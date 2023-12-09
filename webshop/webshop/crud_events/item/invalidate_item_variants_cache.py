@@ -4,7 +4,7 @@ from webshop.webshop.variant_selector.item_variants_cache import (
 )
 
 
-def execute(doc, method=None):
+def execute(doc, method=None, *args, **kwargs): #//// added , *args, **kwargs
     """
     Rebuild ItemVariantsCacheManager via Item or Website Item.
     """
