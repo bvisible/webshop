@@ -102,8 +102,6 @@ def place_order():
 	if not (quotation.shipping_address_name or quotation.customer_address):
 		frappe.throw(_("Set Shipping Address or Billing Address"))
 
-	customer_group = cart_settings.default_customer_group
-
 	sales_order = frappe.get_doc(
 		_make_sales_order(
 			quotation.name, customer_group=customer_group, ignore_permissions=True
@@ -533,6 +531,7 @@ def set_taxes(quotation, cart_settings):
 	#
 	# 	# append taxes
 	quotation.append_taxes_from_master()
+	quotation.append_taxes_from_item_tax_template()
 
 
 def get_party(user=None):
@@ -556,7 +555,15 @@ def get_party(user=None):
 		debtors_account = get_debtors_account(cart_settings)
 
 	if party:
-		return frappe.get_doc(party_doctype, party)
+		doc = frappe.get_doc(party_doctype, party)
+		if doc.doctype in ["Customer", "Supplier"]:
+			if not frappe.db.exists("Portal User", {"parent": doc.name, "user": user}):
+				doc.append("portal_users", {"user": user})
+				doc.flags.ignore_permissions = True
+				doc.flags.ignore_mandatory = True
+				doc.save()
+
+		return doc
 
 	else:
 		if not cart_settings.enabled:
@@ -572,6 +579,8 @@ def get_party(user=None):
 				"territory": get_root_of("Territory"),
 			}
 		)
+
+		customer.append("portal_users", {"user": user})
 
 		if debtors_account:
 			customer.update(

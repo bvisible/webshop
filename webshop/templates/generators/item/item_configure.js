@@ -99,7 +99,9 @@ class ItemConfigure {
 
 	show_range_input_for_all_fields() {
 		this.dialog.fields.forEach(f => {
-			this.show_range_input_if_applicable(f.fieldname);
+			if (!["Section Break", "Coulmn Break"].includes(f.fieldtype)) {
+				this.show_range_input_if_applicable(f.fieldname);
+			}
 		});
 	}
 
@@ -257,10 +259,12 @@ class ItemConfigure {
 
 	btn_clear_values() {
 		this.dialog.fields_list.forEach(f => {
-			f.df.options = f.df.options.map(option => {
-				option.disabled = false;
-				return option;
-			});
+			if (f.df?.options) {
+				f.df.options = f.df.options.map(option => {
+					option.disabled = false;
+					return option;
+				});
+			}
 		});
 		this.dialog.clear();
 		this.on_attribute_selection();
