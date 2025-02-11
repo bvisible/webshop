@@ -1,8 +1,14 @@
 {% from "webshop/templates/includes/macros.html" import product_image %}
 
 {% macro item_subtotal(item) %}
-	<div>
-		{{ item.get_formatted('amount') }}
+	<div class="item-price-details d-flex flex-column align-items-end">
+		{% if item.get("discount_percentage") %}
+			<div class="discount-line">
+				<span class="striked-price">{{ frappe.format_value(item.price_list_rate * item.qty, {"fieldtype": "Currency"}) }}</span>
+				<span class="discount">-{{ "%.1f"|format(item.get("discount_percentage")) }}%</span>
+			</div>
+		{% endif %}
+		<span class="original-price">{{ item.get_formatted('amount') }}</span>
 	</div>
 
 	{% if item.is_free_item %}
@@ -12,9 +18,11 @@
 			</span>
 		</div>
 	{% else %}
-		<span class="item-rate">
-			{{ _('Rate:') }} {{ item.get_formatted('rate') }}
-		</span>
+		{% if item.qty > 1 %}
+			<span class="item-rate">
+				{{ _('Rate:') }} {{ item.get_formatted('rate') }} / {{ item.uom }}
+			</span>
+		{% endif %}
 	{% endif %}
 {% endmacro %}
 
@@ -22,7 +30,9 @@
 	<tr data-name="{{ d.name }}">
 		<td style="width: 60%;">
 			<div class="d-flex">
+				{%- set item_route = frappe.db.get_value('Website Item', {'item_code': d.item_code}, 'route') %}
 				<div class="cart-item-image mr-4">
+					<a href="{{ item_route or '#' }}">
 					{% if d.thumbnail %}
 						{{ product_image(d.thumbnail, alt="d.web_item_name", no_border=True) }}
 					{% else %}
@@ -30,11 +40,14 @@
 							{{ frappe.utils.get_abbr(d.web_item_name) or "NA" }}
 						</div>
 					{% endif %}
+					</a>
 				</div>
 
 				<div class="d-flex w-100" style="flex-direction: column;">
 					<div class="item-title mb-1 mr-3">
-						{{ d.get("web_item_name") or d.item_name }}
+						<a href="{{ item_route or '#' }}" class="text-dark">
+							{{ d.get("web_item_name") or d.item_name }}
+						</a>
 					</div>
 					<div class="item-subtitle mr-2">
 						{{ d.item_code }}
@@ -49,18 +62,18 @@
 					</span>
 					{% endif %}
 
-						<div class="mt-2 notes">
-							<textarea data-item-code="{{d.item_code}}" class="form-control" rows="2" placeholder="{{ _('Add notes') }}">{{d.additional_notes or ''}}</textarea>
-						</div>
+					<div class="mt-2 notes">
+						<textarea data-item-code="{{d.item_code}}" class="form-control" rows="2" placeholder="{{ _('Add notes') }}">{{d.additional_notes or ''}}</textarea>
+					</div>
 				</div>
 			</div>
 		</td>
 
 		<!-- Qty column -->
-		<td class="text-right" style="width: 25%;">
+		<td class="text-right" style="width: 20%;">
 			<div class="d-flex">
 				{% set disabled = 'disabled' if d.is_free_item else '' %}
-				<div class="input-group number-spinner mt-1 mb-4">
+				<div class="input-group number-spinner mt-1 mb-4 mr-2">
 					<span class="input-group-prepend d-sm-inline-block">
 						<button class="btn cart-btn" data-dir="dwn" {{ disabled }}>
 							{{ '–' if not d.is_free_item else ''}}
@@ -75,7 +88,7 @@
 							{{ '+' if not d.is_free_item else ''}}
 						</button>
 					</span>
-					</div>
+				</div>
 
 				<div>
 					{% if not d.is_free_item %}
@@ -89,7 +102,7 @@
 							</span>
 						</div>
 					{% endif %}
-					</div>
+				</div>
 			</div>
 
 

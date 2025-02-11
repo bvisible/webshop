@@ -1,0 +1,13 @@
+{
+  "required_settings": [
+    "publishable_key"
+  ],
+  "context_ids": {
+    "payment_form_id": "payment-form",
+    "card_element_id": "card-element",
+    "card_errors_id": "card-errors",
+    "submit_id": "submit",
+    "payment_intent_id": "payment-intent",
+    "client_secret_id": "client-secret"
+  }
+}

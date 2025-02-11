@@ -63,6 +63,17 @@ def get_product_filter_data(query_args=None):
 			start=start,
 			item_group=item_group,
 		)
+		
+		# Get total count
+		engine.page_length = 0 
+		total_result = engine.query(
+			attribute_filters,
+			field_filters,
+			search_term=search,
+			start=0,
+			item_group=item_group,
+		)
+		engine.page_length = engine.settings.products_per_page or 20  # Restore pagination
 	except Exception:
 		frappe.log_error("Product query with filter failed")
 		return {"exc": "Something went wrong!"}
@@ -80,7 +91,8 @@ def get_product_filter_data(query_args=None):
 		"filters": filters,
 		"settings": engine.settings,
 		"sub_categories": sub_categories,
-		"items_count": result["items_count"],
+		"items_count": len(result["items"]),
+		"total_count": len(result["items"]) if field_filters.get("discount") else total_result["items_count"],
 	}
 
 

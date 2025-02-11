@@ -1,0 +1,373 @@
+<div class="payment-form" id="{{ payment_form_id }}">
+    <div class="form-row row">
+        <div class="col-md-6 mb-3">
+            <label for="cardholder-name">{{ _("Cardholder Name") }}</label>
+            <input type="text" id="cardholder-name" name="cardholder-name" class="form-control mr-3 w-100 font-md" placeholder="{{ _('John Doe') }}"/>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="cardholder-email">{{ _("Cardholder Email") }}</label>
+            <input type="email" id="cardholder-email" name="cardholder-email" class="form-control mr-3 w-100 font-md" placeholder="{{ _('john@doe.com') }}"/>
+        </div>
+        <div class="col-md-12 mb-3 form-payment">
+            <label for="card-element">{{ _("Card Details") }}</label>
+            <div id="{{ card_element_id }}" name="card-element" class="field"></div>
+            <div id="{{ card_errors_id }}" role="alert"></div>
+        </div>
+    </div>
+    <div class="outcome text-center mb-4">
+        <div class="error payment-message" role="alert"></div>
+        <div class="success payment-message" role="alert"></div>
+    </div>
+    <div class="mt-4 d-flex justify-content-between align-items-center">
+        <div class="form-check mb-3" id="terms-acceptance-container">
+            <input type="checkbox" class="form-check-input cursor-pointer" id="terms-acceptance" required>
+            <label class="form-check-label cursor-pointer" for="terms-acceptance">
+                {{ _("I accept the") }} <a href="#terms-title" class="terms-link">{{ doc.tc_name or _("terms and conditions") }}</a>
+            </label>
+        </div>
+        <div class="d-flex justify-content-end">
+            <button type="submit" 
+                class="btn btn-primary btn-submit-payment" 
+                id="{{ submit_id }}" 
+                disabled
+                data-toggle="tooltip"
+                data-placement="top"
+                title="{{ _('Please accept the terms and conditions to continue') }}">
+                {{_('Pay')}} {{format_currency_value(amount, currency)}}
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.StripeElement {
+    background-color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.StripeElement--focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.StripeElement--invalid {
+    border-color: #fa755a;
+}
+</style>
+
+<script>
+    // Initialize fields with existing data
+    let cardholderNameInput = $('#{{ payment_form_id }} input[name="cardholder-name"]');
+    let cardholderEmailInput = $('#{{ payment_form_id }} input[name="cardholder-email"]');
+    let submitButton = $('#{{ submit_id }}');
+        
+    //if empty
+    if (cardholderNameInput.val() === '') {
+        //get #contact_first_name and #contact_last_name
+        let firstName = $('#contact_first_name').val();
+        let lastName = $('#contact_last_name').val();
+
+        cardholderNameInput.val(firstName + ' ' + lastName);
+    }
+    if (cardholderEmailInput.val() === '') {
+        cardholderEmailInput.val($('#contact_email').val());
+    }
+
+    (function() {
+        var stripeScript = document.createElement('script');
+        stripeScript.src = "https://js.stripe.com/v3/";
+        stripeScript.onload = function() {
+            initStripe();
+        };
+        document.head.appendChild(stripeScript);
+    })();
+    
+    function initStripe() {
+        if (!window.Stripe) {
+            console.error("Stripe.js is not loaded");
+            return;
+        }
+
+        const publishableKey = "{{ gateway_settings.publishable_key }}";
+        if (!publishableKey) {
+            console.error("Missing Stripe public key");
+            return;
+        }
+        
+        const stripe = Stripe(publishableKey);   
+        var elements = stripe.elements();
+        var style = {
+            base: {
+                color: '#32325d',
+                fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+                fontSmoothing: 'antialiased',
+                fontSize: '16px',
+                '::placeholder': {
+                    color: '#aab7c4'
+                }
+            },
+            invalid: {
+                color: '#fa755a',
+                iconColor: '#fa755a'
+            }
+        };
+        var card = elements.create('card', {
+            hidePostalCode: true,
+            style: style
+        });
+    
+        // Mount card element
+        card.mount('#{{ card_element_id }}');
+    
+        // Handle validation errors
+        card.on('change', function(event) {
+            var displayError = document.getElementById('{{ card_errors_id }}');
+            displayError.textContent = event.error ? event.error.message : '';
+        });
+    
+        // Function to handle Stripe response
+        function setOutcome(result, formData) {
+            if (result.error) {
+                document.querySelector('.error').style.display = 'block';
+                document.querySelector('.error').textContent = result.error.message;
+            } else {
+                // First create the payment request
+                frappe.call({
+                    method: "webshop.controllers.payment_handler.create_payment_request",
+                    args: {
+                        "quotation_id": "{{ reference_docname }}"
+                    },
+                    callback: function(r) {
+                        if (r.message && r.message.status === "success") {
+                            checkout_manager.freeze('payment-method-item');
+                            let payment_request_id = r.message.payment_request_id;
+                            // Once payment request is created, proceed with Stripe payment
+                            frappe.call({
+                                method: "payments.templates.pages.stripe_checkout.make_payment",
+                                freeze: true,
+                                headers: {"X-Requested-With": "XMLHttpRequest"},
+                                args: {
+                                    "stripe_token_id": result.token.id,
+                                    "data": JSON.stringify({
+                                        amount: {{ amount }},
+                                        currency: "{{ currency }}",
+                                        description: "{{ description }}",
+                                        reference_doctype: "{{ reference_doctype }}",
+                                        reference_docname: "{{ reference_docname }}",
+                                        payer_name: formData.name,
+                                        payer_email: formData.email,
+                                        payment_gateway: "{{ payment_gateway_account }}"
+                                    }),
+                                    "reference_doctype": "{{ reference_doctype }}",
+                                    "reference_docname": "{{ reference_docname }}"
+                                },
+                                callback: function(r) {                                    
+                                    // Check if it's a redirect to payment-failed
+                                    if (r.message && r.message.redirect_to && r.message.redirect_to.includes('payment-failed')) {                                        
+                                        // Extract Stripe error message
+                                        let stripeError = "";
+                                        try {
+                                            if (r._server_messages) {
+                                                const serverMessages = JSON.parse(r._server_messages);
+                                                serverMessages.forEach(msg => {
+                                                    if (msg.includes('CardError') || msg.includes('StripeError')) {
+                                                        stripeError = msg;
+                                                    }
+                                                });
+                                            }
+                                        } catch (e) {
+                                            console.error("Error parsing server messages:", e);
+                                        }
+                                        
+                                        let errorMessage = stripeError || "Payment was declined. Please check your card or use a different one.";
+                                        
+                                        checkout_manager.showMessagePayment('error', errorMessage);
+                                        
+                                        // Add shake animation
+                                        checkout_manager.errorShowPaymentMessage(errorMessage);
+                                        
+                                        // Call handle_payment_failure
+                                        frappe.call({
+                                            method: "webshop.controllers.payment_handler.handle_payment_failure",
+                                            args: {
+                                                "payment_request_id": payment_request_id,
+                                                "error_message": errorMessage
+                                            },
+                                            callback: function(r) {                                                
+                                                // If a new Payment Request was created
+                                                if (r.message && r.message.new_payment_request_id) {
+                                                    payment_request_id = r.message.new_payment_request_id;
+                                                }
+                                                
+                                                checkout_manager.unfreeze('payment-method-item');
+                                            }
+                                        });
+                                        return;
+                                    }
+                                    
+                                    if (r.exc) {
+                                        // Handle payment errors
+                                        let errorMessage = "";
+                                        
+                                        try {
+                                            // Try to parse error if it's JSON
+                                            let errorDetail = r.exc;
+                                            
+                                            if (typeof errorDetail === 'string') {
+                                                if (errorDetail.includes("card was declined")) {
+                                                    errorMessage = "Your card was declined. Please check your funds or use a different card.";
+                                                } else if (errorDetail.includes("expired_card")) {
+                                                    errorMessage = "This card has expired. Please use a different card.";
+                                                } else if (errorDetail.includes("incorrect_cvc")) {
+                                                    errorMessage = "The CVC code is incorrect. Please check and try again.";
+                                                } else {
+                                                    errorMessage = "An error occurred with your card: " + errorDetail;
+                                                }
+                                            } else {
+                                                errorMessage = "An error occurred during payment processing.";
+                                            }
+                                        } catch (e) {
+                                            console.error("Error parsing error:", e);
+                                            errorMessage = "An error occurred during payment processing.";
+                                        }
+                                        
+                                        // Hide success message if it was displayed
+                                        document.querySelector('.success').style.display = 'none';
+                                        // Display error in form
+                                        const errorDiv = document.querySelector('.error');
+                                        errorDiv.style.display = 'block';
+                                        errorDiv.textContent = errorMessage;
+                                        
+                                        // Call handle_payment_failure
+                                        frappe.call({
+                                            method: "webshop.controllers.payment_handler.handle_payment_failure",
+                                            args: {
+                                                "payment_request_id": payment_request_id,
+                                                "error_message": errorMessage
+                                            },
+                                            callback: function(r) {                                                                   
+                                                checkout_manager.unfreeze('payment-method-item');
+                                            }
+                                        });
+                                        return;
+                                    }
+                                    if (r.message && r.message.status === "Completed") {
+                                        // If payment is successful
+                                        checkout_manager.showMessagePayment('success', __("Your payment has been processed successfully. Redirecting..."));
+                                        
+                                        frappe.show_alert({
+                                            message: __("Payment successful!"),
+                                            indicator: 'green'
+                                        });
+                                        
+                                        // If payment is successful, call handle_payment_success
+                                        frappe.call({
+                                            method: "webshop.controllers.payment_handler.handle_payment_success",
+                                            args: {
+                                                "payment_request_id": payment_request_id,
+                                                "transaction_data": {
+                                                    "transaction_id": result.token.id,
+                                                    "payment_gateway": "{{ payment_gateway_account }}"
+                                                }
+                                            },
+                                            callback: function(r) {
+                                                if (r.message && r.message.redirect_to) {
+                                                    setTimeout(function() {
+                                                        window.location.href = r.message.redirect_to;
+                                                        checkout_manager.unfreeze('payment-method-item');
+                                                    }, 2000);
+                                                } else {
+                                                    checkout_manager.unfreeze('payment-method-item');
+                                                    // Hide success message
+                                                    document.querySelector('.success').style.display = 'none';
+                                                    // Display error in form
+                                                    const errorDiv = document.querySelector('.error');
+                                                    errorDiv.style.display = 'block';
+                                                    errorDiv.textContent = r.message.message || "An error occurred";
+                                                }
+                                            }
+                                        });
+                                    } else {
+                                        // In case of payment failure
+                                        frappe.call({
+                                            method: "webshop.controllers.payment_handler.handle_payment_failure",
+                                            args: {
+                                                "payment_request_id": payment_request_id,
+                                                "error_message": r.message.error || r.message.message || "Payment failed"
+                                            },
+                                            callback: function(r) {
+                                                checkout_manager.unfreeze('payment-method-item');
+                                                // Hide success message if it was displayed
+                                                document.querySelector('.success').style.display = 'none';
+                                                // Display error in form
+                                                const errorDiv = document.querySelector('.error');
+                                                errorDiv.style.display = 'block';
+                                                errorDiv.textContent = r.message.message || r.message.error || "An error occurred during payment processing";
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        } else {
+                            checkout_manager.unfreeze('payment-method-item');
+                            // Hide success message if it was displayed
+                            document.querySelector('.success').style.display = 'none';
+                            // Display error in form
+                            const errorDiv = document.querySelector('.error');
+                            errorDiv.style.display = 'block';
+                            errorDiv.textContent = r.message.message || "Error creating payment request";
+                        }
+                    }
+                });
+            }
+        }
+
+        // Validation before submission
+        submitButton.on('click', function(e) {
+            e.preventDefault();
+            
+            let name = cardholderNameInput.val();
+            let email = cardholderEmailInput.val();
+            
+            if (!name || !email) {
+                frappe.msgprint(__("Please fill in all required fields"));
+                return false;
+            }
+            
+            // Check email format
+            if (!checkout_manager.isValidEmail(email)) {
+                frappe.msgprint(__("Please enter a valid email address"));
+                return false;
+            }
+            
+            // If everything is valid, proceed with payment
+            stripe.createToken(card, {
+                name: name,
+                email: email
+            }).then(function(result) {
+                if (result.error) {
+                    // Token creation error (invalid card, declined, etc.)
+                    console.error("Stripe error:", result.error);
+                    // Hide success message if it was displayed
+                    document.querySelector('.success').style.display = 'none';
+                    // Display error in form
+                    const errorDiv = document.querySelector('.error');
+                    errorDiv.style.display = 'block';
+                    errorDiv.textContent = result.error.message;
+                    return;
+                }
+                setOutcome(result, { name, email });
+            }).catch(function(error) {
+                console.error("Unexpected error:", error);
+                // Hide success message if it was displayed
+                document.querySelector('.success').style.display = 'none';
+                // Display error in form
+                const errorDiv = document.querySelector('.error');
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = error.message || "An unexpected error occurred";
+            });
+        });
+    }                                       
+</script>

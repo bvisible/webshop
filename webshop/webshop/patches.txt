@@ -1,0 +1,4 @@
+[pre_model_sync]
+
+[post_model_sync]
+webshop.webshop.patches.v15_0.add_guest_session_to_quotation

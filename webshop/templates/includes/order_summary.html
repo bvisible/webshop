@@ -1,0 +1,157 @@
+{% if doc %}
+<div class="order-summary-wrapper">
+  <div class="frappe-card p-3 order-summary">
+    <div class="d-flex align-items-center justify-content-between cursor-pointer toggle-order-items">
+      <div class="d-flex align-items-center">
+        <h6 class="mb-0 order-summary-title">{{ _("Order Summary") }}</h6>
+        <span class="ml-3 summary-details">
+          <span class="collapsed-view items-count">({{ doc["total_qty"] }} {{ _("Items") }})</span>
+        </span>
+      </div>
+      <div class="d-flex align-items-center">
+        <span class="mr-3 font-weight-bold summary-details">
+          <span class="collapsed-view total-amount">{{ doc.get_formatted("rounded_total") }}</span>
+        </span>
+        <span class="chevron-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </span>
+      </div>
+    </div>
+    <div class="order-items-content">
+      <div id="cart-error" class="alert alert-danger" style="display: none;"></div>
+
+      <!-- Items -->
+      <div class="order-items pb-2 align-items-center">
+        {% for item in doc["items"] %}
+        <div class="order-item d-flex align-items-center" data-item-code="{{ item["item_code"] }}">
+            <div class="item-image mr-3">
+                {% if item.thumbnail %}
+                    {{ product_image(item.thumbnail, alt=item.web_item_name, no_border=True) }}
+                {% else %}
+                    <div class="no-image-cart-item">
+                        {{ frappe.utils.get_abbr(item.web_item_name) or "NA" }}
+                    </div>
+                {% endif %}
+            </div>
+          <div class="item-details flex-grow-1">
+            <div class="item-name">
+              {{ item["item_name"] }}
+            </div>
+            <div class="d-flex align-items-center justify-content-between qty-amount">
+              <div class="input-group number-spinner" style="width: 120px;">
+                <span class="input-group-prepend">
+                  <button class="btn cart-btn" data-dir="dwn">–</button>
+                </span>
+                <input
+                  class="form-control text-center cart-qty"
+                  value="{{ item["qty"] }}"
+                  data-item-code="{{ item["item_code"] }}"
+                  style="max-width: 60px;"
+                />
+                <span class="input-group-append">
+                  <button class="btn cart-btn" data-dir="up">+</button>
+                </span>
+              </div>
+              <div class="item-price-details d-flex flex-column align-items-end ml-3">
+                {% if item.get("discount_percentage") %}
+                    <div class="discount-line">
+                        <span class="striked-price">{{ frappe.format_value(item.price_list_rate * item.qty, {"fieldtype": "Currency"}) }}</span>
+                        <span class="discount">-{{ "%.1f"|format(item.get("discount_percentage")) }}%</span>
+                    </div>
+                {% endif %}
+                <span class="original-price">{{ item.get_formatted("amount") }}</span>
+                {% if item.qty > 1 %}
+                    <span class="unit-price">({{ item.get_formatted("rate") }} / {{ item.uom }})</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="card-body p-0">
+        <table class="table w-100">
+          <tbody>
+            <!-- Net Total -->
+            <tr>
+              <td class="bill-label subtotal-element">
+                {{ _("Order Total") }} ({{ doc["total_qty"] }} {{ _("Items") }})
+              </td>
+              <td class="bill-content net-total text-right subtotal">
+                {{ doc.get_formatted("net_total") }}
+              </td>
+            </tr>
+
+            <!-- Shipping Charges -->
+            {% if doc.shipping_charges %}
+              <tr>
+                <td class="bill-label">
+                  {{ _("Shipping Charges") }}
+                </td>
+                <td class="bill-content text-right">
+                  {{ doc.get_formatted("shipping_charges") }}
+                </td>
+              </tr>
+            {% endif %}
+
+            <!-- Taxes -->
+            {% for d in doc.taxes %}
+              {% if d.tax_amount and not d.is_loyalty_points_reduction %}
+                <tr>
+                  <td class="bill-label">
+                    {{ d.description }}
+                  </td>
+                  <td class="bill-content text-right">
+                    {{ d.get_formatted("tax_amount") }}
+                  </td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+
+            <!-- Coupon Discount -->
+            {% if doc.coupon_code %}
+              <tr class="coupon-row">
+                <td class="bill-label text-success">
+                  {{ _("Coupon Discount") }} ({{ doc.coupon_code }})
+                </td>
+                <td class="bill-content text-right text-success">
+                  - {{ frappe.utils.fmt_money(doc.discount_amount, currency=doc.currency) }}
+                </td>
+              </tr>
+            {% endif %}
+
+            <!-- Loyalty Points -->
+            {% if doc.loyalty_amount and doc.loyalty_amount > 0 %}
+              <tr class="loyalty-row">
+                <td class="bill-label text-success">
+                  {{ _("Loyalty Points") }} ({{ doc.loyalty_points }} {{ _("points") }})
+                </td>
+                <td class="bill-content text-right text-success">
+                  - {{ frappe.utils.fmt_money(doc.loyalty_amount, currency=doc.currency) }}
+                </td>
+              </tr>
+            {% endif %}
+
+          </tbody>
+        </table>
+
+        <table class="table w-100 grand-total mt-3 mb-0">
+          <tbody>
+            <tr>
+              <td class="bill-content net-total">
+                {{ _("Grand Total") }}
+              </td>
+              <td class="bill-content net-total text-right grand-total">
+                {{ doc.get_formatted("rounded_total") }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}

@@ -17,7 +17,7 @@
 
 				<!-- taxes -->
 				{% for d in doc.taxes %}
-					{% if d.tax_amount %}
+					{% if d.tax_amount and not d.is_loyalty_points_reduction %}
 						<tr>
 							<td class="bill-label">
 								{{ d.description }}
@@ -28,6 +28,31 @@
 						</tr>
 					{% endif %}
 				{% endfor %}
+
+				<!-- Coupon Discount -->
+				{% if doc.coupon_code %}
+					<tr class="coupon-row">
+						<td class="bill-label text-success">
+						{{ _("Coupon Discount") }} ({{ doc.coupon_code }})
+						</td>
+						<td class="bill-content text-right text-success">
+						- {{ frappe.utils.fmt_money(doc.discount_amount, currency=doc.currency) }}
+						</td>
+					</tr>
+				{% endif %}
+
+				<!-- Points de fidélité -->
+				{% if doc.loyalty_amount and doc.loyalty_amount > 0 %}
+					<tr class="loyalty-row">
+						<td class="bill-label text-success">
+						{{ _("Points de fidélité") }} ({{ doc.loyalty_points }} {{ _("points") }})
+						</td>
+						<td class="bill-content text-right text-success">
+						- {{ frappe.utils.fmt_money(doc.loyalty_amount, currency=doc.currency) }}
+						</td>
+					</tr>
+				{% endif %}
+				
 			</table>
 
 			<!-- TODO: Apply Coupon Dialog-->

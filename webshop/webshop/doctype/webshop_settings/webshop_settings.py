@@ -40,9 +40,57 @@ class WebshopSettings(Document):
 		self.is_redisearch_enabled_pre_save = frappe.db.get_single_value(
 			"Webshop Settings", "is_redisearch_enabled"
 		)
+		
+		# Save current state of enable_gift_cards for comparison in after_save
+		self.enable_gift_cards_pre_save = frappe.db.get_single_value(
+			"Webshop Settings", "enable_gift_cards"
+		)
+
+		self.update_gift_card_template()
+		self.update_gift_cards_menu()
 
 	def after_save(self):
 		self.create_redisearch_indexes()
+	
+	def update_gift_cards_menu(self):
+		"""Updates gift cards menu in Portal Settings based on enable_gift_cards"""
+		if self.enable_gift_cards == self.enable_gift_cards_pre_save:
+			return
+
+		# Check if entry already exists
+		exists = frappe.db.exists("Portal Menu Item", {
+			"route": "/gift-cards",
+			"parenttype": "Portal Settings"
+		})
+
+		if self.enable_gift_cards and not exists:
+			# Get last idx
+			last_idx = frappe.db.sql("""
+				SELECT MAX(idx) 
+				FROM `tabPortal Menu Item` 
+				WHERE parenttype='Portal Settings'
+			""")[0][0] or 0
+
+			# Create menu entry
+			portal_settings = frappe.get_doc("Portal Settings")
+			portal_settings.append("menu", {
+				"title": "Gift cards",
+				"enabled": 1,
+				"route": "/gift-cards",
+				"reference_doctype": "Coupon Code",
+				"role": "Customer",
+				"idx": last_idx + 1
+			})
+			
+			portal_settings.save()
+
+		elif not self.enable_gift_cards and exists:
+			# Delete menu entry
+			frappe.db.delete("Portal Menu Item", {
+				"route": "/gift-cards",
+				"parenttype": "Portal Settings"
+			})
+			frappe.db.commit()
 
 	def create_redisearch_indexes(self):
 		# if redisearch is enabled (value changed) create indexes and dictionary
@@ -138,14 +186,55 @@ class WebshopSettings(Document):
 		if not frappe.db.get_value("Tax Rule", {"use_for_shopping_cart": 1}, "name"):
 			frappe.throw(frappe._("Set Tax Rule for shopping cart"), ShoppingCartSetupError)
 
+	def get_name_from_territory(self, territory, fieldname, doctype):
+		"""Gets document name for a given territory"""
+		name = None
+		if territory:
+			name = frappe.db.get_value(
+				doctype,
+				{fieldname: territory, "is_default": 1},
+				"name"
+			)
+			if not name:
+				name = frappe.db.get_value(
+					doctype,
+					{fieldname: territory},
+					"name"
+				)
+		return name
+
 	def get_tax_master(self, billing_territory):
-		tax_master = self.get_name_from_territory(
-			billing_territory, "sales_taxes_and_charges_masters", "sales_taxes_and_charges_master"
-		)
-		return tax_master and tax_master[0] or None
+		"""Gets tax template for a given territory"""
+		tax_master = None
+		if billing_territory:
+			tax_master = frappe.db.get_value(
+				"Sales Taxes and Charges Template",
+				{"territory": billing_territory, "is_default": 1},
+				"name"
+			)
+			if not tax_master:
+				tax_master = frappe.db.get_value(
+					"Sales Taxes and Charges Template",
+					{"territory": billing_territory},
+					"name"
+				)
+		return tax_master
 
 	def get_shipping_rules(self, shipping_territory):
-		return self.get_name_from_territory(shipping_territory, "shipping_rules", "shipping_rule")
+		"""Gets shipping rules for a given territory"""
+		shipping_rules = []
+		if shipping_territory:
+			shipping_rules = frappe.db.sql(
+				"""select * from `tabShipping Rule`
+				where disabled != 1
+					and territory = %(territory)s
+					or territory = ''
+				order by name asc""",
+				{"territory": shipping_territory},
+				as_dict=True,
+			)
+
+		return shipping_rules
 
 	def on_change(self):
 		old_doc = self.get_doc_before_save()
@@ -158,14 +247,29 @@ class WebshopSettings(Document):
 			if not (new_fields == old_fields):
 				create_website_items_index()
 
+	def update_gift_card_template(self):
+		"""Updates is_gift_card field on Website Items when gift card template changes"""
+		if not self.is_new():
+			old_doc = self.get_doc_before_save()
+			
+			# If gift cards are disabled or if template has changed,
+			# disable old template
+			if (old_doc.enable_gift_cards and not self.enable_gift_cards) or \
+				(old_doc and old_doc.gift_card_template and old_doc.gift_card_template != self.gift_card_template):
+				frappe.db.set_value('Website Item', old_doc.gift_card_template, 'is_gift_card', 0)
+		
+		# Enable new template only if gift cards are enabled
+		if self.enable_gift_cards and self.gift_card_template:
+			frappe.db.set_value('Website Item', self.gift_card_template, 'is_gift_card', 1)
+
 
 def validate_cart_settings(doc=None, method=None):
 	frappe.get_doc("Webshop Settings", "Webshop Settings").run_method("validate")
 
-
+@frappe.whitelist(allow_guest=True)
 def get_shopping_cart_settings():
-	return frappe.get_cached_doc("Webshop Settings")
-
+    settings = frappe.get_cached_doc("Webshop Settings")
+    return settings.as_dict()
 
 @frappe.whitelist(allow_guest=True)
 def is_cart_enabled():

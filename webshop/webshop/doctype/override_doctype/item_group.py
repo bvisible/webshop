@@ -80,6 +80,11 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		context.name = self.name
 		context.item_group_name = self.item_group_name
 
+		from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
+
+		# Check and merge guest cart if needed
+		check_and_merge_guest_cart()
+
 		return context
 
 def get_item_for_list_in_html(context):

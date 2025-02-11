@@ -268,6 +268,11 @@ class WebsiteItem(WebsiteGenerator):
 		if settings and settings.enable_recommendations:
 			context.recommended_items = self.get_recommended_items(settings)
 
+		from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
+
+		# Check and merge guest cart if needed
+		check_and_merge_guest_cart()
+		
 		return context
 
 	def set_selected_attributes(self, variants, context, attribute_values_available):

@@ -48,5 +48,13 @@ frappe.ui.form.on("Webshop Settings", {
 			frm.set_value('default_customer_group', '');
 			frm.set_value('quotation_series', '');
 		}
+	},
+	enable_checkout_page: function(frm) {
+		if (frm.doc.enable_checkout_page) {
+			frm.set_value('redirect_on_action', '/cart');
+			frm.set_df_property('redirect_on_action', 'read_only', 1);
+		} else {
+			frm.set_df_property('redirect_on_action', 'read_only', 0);
+		}
 	}
 });

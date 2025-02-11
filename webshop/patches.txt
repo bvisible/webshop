@@ -4,3 +4,13 @@
 
 webshop.patches.add_homepage_field #09-05-2024
 webshop.patches.enable_allow_to_guest_view_for_item_group
+webshop.patches.add_guest_session_to_quotation
+webshop.patches.add_shipping_rule_description
+webshop.patches.add_default_view_type
+webshop.patches.add_loyalty_points_reduction_field
+webshop.patches.add_loyalty_point_entry_field
+webshop.patches.add_checkout_fields_to_payment_gateway_account
+webshop.patches.add_gift_card_data_to_sales_doctypes
+webshop.patches.add_payment_gateway_to_quotation
+webshop.patches.add_sales_invoice_link_to_coupon_code
+webshop.patches.add_from_checkout_to_payment_request

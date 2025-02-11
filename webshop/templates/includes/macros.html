@@ -51,7 +51,7 @@
 				<div itemprop="image" class="card-body">
 					<h5 class="card-title">{{ _(card.title) }}</h5>
 					<p class="card-subtitle mb-2 text-muted">{{ _(card.subtitle) or '' }}</p>
-					<p class="card-text">{{ card.content or '' | truncate(140, True) }}</p>
+					<p class="card-text">{{ _(card.content) or '' | truncate(140, True) }}</p>
 				</div>
 				<div class="card-body flex-grow-0">
 					<a href="{{ card.route }}" class="card-link">{{ _('More details') }}</a>
@@ -128,7 +128,7 @@
 	<div class="mt-4">
 		<a href="/{{ item.route or '#' }}">
 			<div class="product-title">
-				{{ title or '' }}
+				{{ _(title) or '' }}
 			</div>
 		</a>
 	</div>
@@ -153,7 +153,7 @@
 		<div class="card-img-container">
 			<a href="/{{ item.route or '#' }}" style="text-decoration: none;">
 				{% if item.image %}
-					<img itemprop="image" class="card-img" src="{{ item.image }}" alt="{{ _(title) }}">
+					<img itemprop="image" class="card-img" src="{{ item.image }}" alt="{{ title }}">
 				{% else %}
 					<div itemprop="image" class="card-img-top no-image">
 						{{ frappe.utils.get_abbr(title) }}
@@ -302,7 +302,7 @@
 
 		{% if values | len > 20 %}
 		<!-- show inline filter if values more than 20 -->
-		<input type="text" class="form-control form-control-sm mb-2 filter-lookup-input" placeholder="Search {{ _(item_field.label) + 's' }}"/>
+		<input type="text" class="form-control form-control-sm mb-2 filter-lookup-input" placeholder="Search {{ _(item_field.label + 's') }}"/>
 		{% endif %}
 
 		{% if values %}
@@ -349,7 +349,7 @@
 						data-attribute-value="{{ attr_value }}"
 						style="width: 14px !important"
 						{% if attr_value.checked %} checked {% endif %}>
-						<span class="label-area">{{ _(attr_value) }}</span>
+						<span class="label-area">{{ attr_value }}</span>
 				</label>
 			</div>
 			{% endfor %}
@@ -362,7 +362,7 @@
 {%- endmacro -%}
 
 {%- macro recommended_item_row(item)-%}
-<div class="recommended-item mb-6 d-flex">
+<div class="recommended-item mt-6 d-flex">
 	<div class="r-item-image">
 		{% if item.website_item_thumbnail %}
 			{{ product_image(item.website_item_thumbnail, css_class="r-product-image", alt="item.website_item_name", no_border=True) }}

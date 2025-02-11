@@ -7,7 +7,33 @@ webshop.ProductView =  class {
 	constructor(options) {
 		Object.assign(this, options);
 		this.preference = this.view_type;
+		this.total_product_count = null;  // Initialize to null to detect first load
 		this.make();
+		this.load_settings();
+	}
+
+	load_settings() {
+		frappe.call({
+			method: 'webshop.webshop.doctype.webshop_settings.webshop_settings.get_shopping_cart_settings',
+			callback: (r) => {
+				if (r.message) {
+					const savedView = localStorage.getItem("product_view");
+					const defaultView = r.message.default_view_type;
+					
+					if (savedView) {
+						this.preference = savedView;
+					} else if (defaultView) {
+						this.preference = defaultView + " View";
+						localStorage.setItem("product_view", this.preference);
+					} else {
+						this.preference = "Grid View";
+						localStorage.setItem("product_view", this.preference);
+					}
+					
+					this.make();
+				}
+			}
+		});
 	}
 
 	make(from_filters=false) {
@@ -29,7 +55,7 @@ webshop.ProductView =  class {
 
 	prepare_view_toggler() {
 
-		if (!$("#list").length || !$("#image-view").length) {
+		if (!$("#list").length || !$("#grid").length) {
 			this.render_view_toggler();
 			this.bind_view_toggler_actions();
 			this.set_view_state();
@@ -71,6 +97,11 @@ webshop.ProductView =  class {
 
 						me.products = result.message["items"];
 						me.product_count = result.message["items_count"];
+						me.total_count = result.message["total_count"];  // Utilisation du nouveau total
+						// Store total product count on first load
+						if (me.total_product_count === null) {
+							me.total_product_count = result.message.total_products || me.product_count;
+						}
 					}
 
 					// Bind filter actions
@@ -93,7 +124,7 @@ webshop.ProductView =  class {
 
 	disable_view_toggler(disable=false) {
 		$('#list').prop('disabled', disable);
-		$('#image-view').prop('disabled', disable);
+		$('#grid').prop('disabled', disable);
 	}
 
 	render_grid_view(items, settings) {
@@ -149,38 +180,74 @@ webshop.ProductView =  class {
 	add_paging_section(settings) {
 		$(".product-paging-area").remove();
 
-		if (this.products) {
-			let paging_html = `
-				<div class="row product-paging-area mt-5">
-					<div class="col-3">
-					</div>
-					<div class="col-9 text-right">
-			`;
-			let query_params = frappe.utils.get_query_params();
-			let start = query_params.start ? cint(JSON.parse(query_params.start)) : 0;
-			let page_length = settings.products_per_page || 0;
+		if (!this.products) return;
 
-			let prev_disable = start > 0 ? "" : "disabled";
-			let next_disable = (this.product_count > page_length) ? "" : "disabled";
+		let query_params = frappe.utils.get_query_params();
+		let start = query_params.start ? cint(JSON.parse(query_params.start)) : 0;
+		let page_length = settings.products_per_page || 0;
+		let current_page = Math.floor(start / page_length) + 1;
+		let total_count = this.total_count || this.product_count;
+		let total_pages = Math.ceil(total_count / page_length);
+		
+		let paging_html = `
+			<div class="row product-paging-area mt-5">
+				<div class="col-12 text-center">
+					<div class="btn-group">
+		`;
 
+		// Previous button (except for first page)
+		if (current_page > 1) {
 			paging_html += `
-				<button class="btn btn-default btn-prev" data-start="${ start - page_length }"
-					style="float: left" ${prev_disable}>
-					${ __("Prev") }
+				<button class="btn btn-default btn-prev" data-start="${(current_page - 2) * page_length}">
+					<svg class="es-icon icon-xs"><use href="#icon-left"></use></svg>
 				</button>`;
-
-			paging_html += `
-				<button class="btn btn-default btn-next" data-start="${ start + page_length }"
-					${next_disable}>
-					${ __("Next") }
-				</button>
-			`;
-
-			paging_html += `</div></div>`;
-
-			$(".page_content").append(paging_html);
-			this.bind_paging_action();
 		}
+
+		// Afficher toutes les pages
+		for (let i = 1; i <= total_pages; i++) {
+			let is_current = i === current_page;
+			let page_start = (i - 1) * page_length;
+			paging_html += `
+				<button class="btn btn-default btn-page ${is_current ? 'btn-primary' : ''}" 
+					data-start="${page_start}" ${is_current ? 'disabled' : ''}>
+					${i}
+				</button>`;
+		}
+
+		// Next button (except for last page)
+		if (current_page < total_pages) {
+			paging_html += `
+				<button class="btn btn-default btn-next" data-start="${current_page * page_length}">
+					<svg class="es-icon icon-xs"><use href="#icon-right"></use></svg>
+				</button>`;
+		}
+
+		paging_html += `
+					</div>
+				</div>
+			</div>
+		`;
+
+		this.products_section.append(paging_html);
+		this.bind_paging_action();
+	}
+
+	count_products() {
+		let args = this.get_query_filters();
+		// Set page_length to 0 to avoid retrieving products
+		args.page_length = 0;
+		
+		return new Promise((resolve) => {
+			frappe.call({
+				method: "webshop.webshop.api.get_product_filter_data",
+				args: {
+					query_args: args
+				},
+				callback: function(result) {
+					resolve(result.message.items_count);
+				}
+			});
+		});
 	}
 
 	prepare_search() {
@@ -211,9 +278,10 @@ webshop.ProductView =  class {
 
 		["btn-list-view", "btn-grid-view"].forEach(view => {
 			let icon = view === "btn-list-view" ? "list" : "image-view";
+			let view_id = view === "btn-list-view" ? "list" : "grid";
 			$(".toggle-container").append(`
 				<div class="form-group mb-0" id="toggle-view">
-					<button id="${ icon }" class="btn ${ view } mr-2">
+					<button id="${ view_id }" class="btn ${ view } mr-2">
 						<span>
 							<svg class="icon icon-md">
 								<use href="#icon-${ icon }"></use>
@@ -237,7 +305,7 @@ webshop.ProductView =  class {
 			localStorage.setItem("product_view", "List View");
 		});
 
-		$("#image-view").click(function() {
+		$("#grid").click(function() {
 			let $btn = $(this);
 			$btn.removeClass('btn-primary');
 			$btn.addClass('btn-primary');
@@ -252,26 +320,22 @@ webshop.ProductView =  class {
 	set_view_state() {
 		if (this.preference === "List View") {
 			$("#list").addClass('btn-primary');
-			$("#image-view").removeClass('btn-primary');
+			$("#grid").removeClass('btn-primary');
 		} else {
-			$("#image-view").addClass('btn-primary');
+			$("#grid").addClass('btn-primary');
 			$("#list").removeClass('btn-primary');
 		}
 	}
 
 	bind_paging_action() {
 		let me = this;
-		$('.btn-prev, .btn-next').click((e) => {
-			const $btn = $(e.target);
-			me.from_filters = false;
-
-			$btn.prop('disabled', true);
+		$('.btn-prev, .btn-next, .btn-page').on('click', function(e) {
+			const $btn = $(this);
 			const start = $btn.data('start');
 
 			let query_params = frappe.utils.get_query_params();
 			query_params.start = start;
-			let path = window.location.pathname + '?' + frappe.utils.get_url_from_dict(query_params);
-			window.location.href = path;
+			window.location.search = me.get_query_string(query_params);
 		});
 	}
 
@@ -311,8 +375,8 @@ webshop.ProductView =  class {
 								<span class="label-area" for="${ filter[0] }">
 									${ filter[1] }
 								</span>
-						</label>
-					</div>
+							</label>
+						</div>
 				`;
 			});
 			html += `</div>`;

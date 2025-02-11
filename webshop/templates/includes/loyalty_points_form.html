@@ -1,0 +1,36 @@
+{% if doc.loyalty_program or available_loyalty_points %}
+<div class="form-group frappe-card p-5">
+	<h6 class="mb-3">{{ _("You want to use your loyalty points?") }}</h6>
+	<div class="mb-0">
+		<div class="row no-gutters">
+			{% if doc.loyalty_points %}
+			<input class="form-control mr-3 w-50 font-md" type="number" value="{{ doc.loyalty_points }}"
+			id="loyalty-point-to-redeem" readonly></input>
+			<button class="btn btn-danger btn-sm bt-remove-loyalty font-md">{{ _("Remove Points") }}</button>
+			{% else %}
+			<input class="form-control mr-3 w-50 font-md" type="number" value=""
+			id="loyalty-point-to-redeem"
+			{% if doc.coupon_code %}
+				disabled
+				data-toggle="tooltip"
+				title="{{ _('You cannot use loyalty points when a promo code is applied') }}"
+			{% endif %}
+			></input>
+			<button class="btn btn-primary btn-sm bt-loyalty-point font-md"
+			{% if doc.coupon_code %}
+				disabled
+				data-toggle="tooltip"
+				title="{{ _('You cannot use loyalty points when a promo code is applied') }}"
+			{% endif %}
+			>{{ _("Apply Loyalty Points") }}</button>
+			{% endif %}
+		</div>
+		<p class="help-box small text-muted d-none d-sm-block mb-0">
+			{{ _("Available Points:") }} {{ available_loyalty_points }}
+			{% if loyalty_points_value != 0 %}
+				<span class="ml-2">({{ _("Equivalent Value:") }} {{ loyalty_points_value }})</span>
+			{% endif %}
+		</p>
+	</div>
+</div>
+{% endif %}

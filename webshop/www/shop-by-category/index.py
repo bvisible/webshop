@@ -19,6 +19,8 @@ def get_context(context):
 
 	context.no_cache = 1
 
+	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
+	check_and_merge_guest_cart()
 
 def get_slideshow(slideshow):
 	values = {"show_indicators": 1, "show_controls": 1, "rounded": 1, "slider_name": "Categories"}

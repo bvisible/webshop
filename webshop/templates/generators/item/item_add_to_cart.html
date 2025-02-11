@@ -91,51 +91,225 @@
 			</div>
 		{% endif %}
 
-		<!-- Add to Cart / View in Cart, Contact Us -->
-		<div class="mt-6 mb-5">
-			<div class="mb-4 d-flex">
-				<!-- Add to Cart -->
-				{% if product_info.price and (cart_settings.allow_items_not_in_stock or product_info.get("in_stock")) %}
-					<a href="/cart" class="btn btn-light btn-view-in-cart hidden mr-2 font-md"
-						role="button">
-						{{  _("View in Cart") if cart_settings.enable_checkout else _("View in Quote") }}
-					</a>
-					<button
-						data-item-code="{{item_code}}"
-						class="btn btn-primary btn-add-to-cart mr-2 w-30-40"
-					>
-						<span class="mr-2">
-							<svg class="icon icon-md">
-								<use href="#icon-assets"></use>
-							</svg>
-						</span>
-						{{ _("Add to Cart") if cart_settings.enable_checkout else  _("Add to Quote") }}
-					</button>
-				{% endif %}
+		{% if frappe.db.get_single_value('Webshop Settings', 'enable_gift_cards') and doc.is_gift_card %}
 
-				<!-- Contact Us -->
-				{% if cart_settings.show_contact_us_button %}
-					{% include "templates/generators/item/item_inquiry.html" %}
+			<div class="gift-card-section mb-4">
+				{% set cart = frappe.call('webshop.webshop.shopping_cart.cart.get_cart_quotation') %}
+				{% set ns = namespace(has_gift_card=False) %} {% for item in cart.doc.items %} {% set is_gift = frappe.db.get_value('Website Item', {'item_code': item.item_code}, 'is_gift_card') %} {% if is_gift %} {% set ns.has_gift_card = True %} {% endif %} {% endfor %}
+				{% if not ns.has_gift_card %}
+					<h5>{{ _("Gift Card Options") }}</h5>
+					
+					<!-- Gift Card Amount Selection -->
+					<div class="gift-card-amount frappe-card p-5 mb-4 mt-4">
+						<label class="form-label">{{ _("Select Amount") }}</label>
+						<div class="d-flex flex-wrap gap-2 gift-card-amounts">
+							{% set gift_card_amounts = frappe.get_all('Gift Card Amount', fields=['amount']) %}
+							{% for amount in gift_card_amounts | sort(attribute='amount') %}
+							<div class="form-check frappe-card mr-3 {% if loop.first %}selected{% endif %}">
+								<input type="radio" 
+									class="form-check-input gift-card-amount-radio" 
+									name="gift_card_amount" 
+									value="{{ amount.amount }}"
+									id="amount_{{ amount.amount }}"
+									hidden
+									{% if loop.first %}checked{% endif %}>
+								<label class="form-check-label" for="amount_{{ amount.amount }}">
+									{{ frappe.format_value(amount.amount, {"fieldtype": "Currency"}) }}
+								</label>
+							</div>
+							{% endfor %}
+							
+							{% if frappe.db.get_single_value('Webshop Settings', 'enable_custom_amount') %}
+							<div class="form-check frappe-card">
+								<input type="radio" 
+									class="form-check-input" 
+									name="gift_card_amount" 
+									value="custom"
+									hidden
+									id="amount_custom">
+								<label class="form-check-label" for="amount_custom">
+									{{ _("Custom Amount") }}
+								</label>
+							</div>
+							<div class="custom-amount-input mt-2" style="display: none;">
+								<input type="number" 
+									class="form-control" 
+									id="custom_amount" 
+									name="custom_amount"
+									placeholder="{{ _('Enter amount') }}"
+									min="1"
+									step="1">
+							</div>
+							{% endif %}
+						</div>
+					</div>
+					<script>
+						frappe.ready(() => {
+							$('.gift-card-amounts .form-check').on('click', function() {
+								// Remove selected class from all
+								$('.gift-card-amounts .form-check').removeClass('selected');
+								// Add selected class to clicked element
+								$(this).addClass('selected');
+								// Check the radio input
+								$(this).find('input[type="radio"]').prop('checked', true);
+								
+								// Handle custom amount display
+								if ($(this).find('#amount_custom').length) {
+									$('.custom-amount-input').slideDown();
+								} else {
+									$('.custom-amount-input').slideUp();
+								}
+							});
+						});
+					</script>
+					
+					<!-- Btn Add to Cart -->
+					<div class="mt-4">
+						<button
+							data-item-code="{{item_code}}"
+							class="btn btn-primary btn-add-to-cart mr-2"
+						>
+							<span class="mr-2">
+								<svg class="icon icon-md">
+									<use href="#icon-assets"></use>
+								</svg>
+							</span>
+							{{ _("Add to Cart") if cart_settings.enable_checkout else _("Add to Quote") }}
+						</button>
+					</div>
+				{% else %}
+					<a href="/cart" class="btn btn-light btn-view-in-cart mr-2 font-md"
+						role="button">
+						{{ _("View in Cart") if cart_settings.enable_checkout else _("View in Quote") }}
+					</a>
 				{% endif %}
 			</div>
-		</div>
+		{% else %}
+			<!-- Add to Cart / View in Cart, Contact Us -->
+			<div class="mt-6 mb-5">
+				<div class="mb-4 d-flex">
+					<!-- Add to Cart -->
+					{% if product_info.price and (cart_settings.allow_items_not_in_stock or product_info.get("in_stock")) %}
+						<a href="/cart" class="btn btn-light btn-view-in-cart hidden mr-2 font-md"
+							role="button">
+							{{  _("View in Cart") if cart_settings.enable_checkout else _("View in Quote") }}
+						</a>
+						<!-- Add quantity -->
+						<div class="input-group number-spinner mr-2 mt-2" style="width: 120px;">
+							<span class="input-group-prepend">
+								<button class="btn cart-btn" data-dir="dwn">
+									–
+								</button>
+							</span>
+							<input class="form-control text-center item-qty" 
+								value="1" 
+								data-item-code="{{item_code}}"
+								style="max-width: 70px;">
+							<span class="input-group-append">
+								<button class="btn cart-btn" data-dir="up">
+									+
+								</button>
+							</span>
+						</div>
+
+						<button
+							data-item-code="{{item_code}}"
+							class="btn btn-primary btn-add-to-cart mr-2 w-30-40"
+						>
+							<span class="mr-2">
+								<svg class="icon icon-md">
+									<use href="#icon-assets"></use>
+								</svg>
+							</span>
+							{{ _("Add to Cart") if cart_settings.enable_checkout else  _("Add to Quote") }}
+						</button>
+					{% endif %}
+
+					<!-- Contact Us -->
+					{% if cart_settings.show_contact_us_button %}
+						{% include "templates/generators/item/item_inquiry.html" %}
+					{% endif %}
+				</div>
+			</div>
+		{% endif %}
 	</div>
 </div>
 
 <script>
+	function g(rolls) {
+		const data = "qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM";
+		let result = "";
+		while (rolls >= 1) {
+			const randomIndex = Math.floor(Math.random() * data.length);
+			const c = data[randomIndex];
+			result = c + result; // Add character at beginning of string
+			rolls--;
+		}
+		return result.toUpperCase();
+	}
+	
 	frappe.ready(() => {
+		$('input[name="gift_card_amount"]').on('change', async function() {
+			const isCustom = $(this).val() === 'custom';
+			$('.custom-amount-input').toggle(isCustom);
+			
+			if (!isCustom) {
+				const amount = parseFloat($(this).val());
+			}
+		});
+
+		$('#custom_amount').on('input', async function() {
+			const amount = parseFloat($(this).val()) || 0;
+		});
+
+		// Initialize price with first amount
+		const firstAmount = $('input[name="gift_card_amount"]:first').val();
+
 		$('.page_content').on('click', '.btn-add-to-cart', (e) => {
-			// Bind action on add to cart button
 			const $btn = $(e.currentTarget);
 			$btn.prop('disabled', true);
 			const item_code = $btn.data('item-code');
-			webshop.webshop.shopping_cart.update_cart({
-				item_code,
-				qty: 1,
-				callback(r) {
+			
+			// Get gift card amount if applicable
+			let amount = 0;
+			let gift_card_data = null;
+			const $selectedAmount = $('input[name="gift_card_amount"]:checked');
+			if ($selectedAmount.length) {
+				if ($selectedAmount.val() === 'custom') {
+					amount = parseFloat($('#custom_amount').val()) || 0;
+					if (amount <= 0) {
+						frappe.throw(__('Please enter a valid amount'));
+						return;
+					}
+				} else {
+					amount = parseFloat($selectedAmount.val());
+				}
+				
+				// Prepare gift card data
+				gift_card_data = {
+					code: g(4) + "-" + g(4) + "-" + g(4),
+					price_list_rate: amount,
+					rate: amount,
+					amount_type: $selectedAmount.val(),
+					custom_amount: $selectedAmount.val() === 'custom' ? amount : null
+				};
+			}
+
+			// Update cart with amount as price_list_rate
+			frappe.call({
+				method: "webshop.webshop.shopping_cart.cart.update_cart",
+				args: {
+					item_code: item_code,
+					qty: 1,
+					price_list_rate: amount,
+					gift_card_data: gift_card_data,
+					add_qty: true,
+					with_items: 1
+				},
+				callback: function(r) {
 					$btn.prop('disabled', false);
 					if (r.message) {
-						$('.btn-add-to-cart, .btn-view-in-cart').toggleClass('hidden');
+						window.location.href = '/cart';
 					}
 				}
 			});

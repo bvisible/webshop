@@ -20,3 +20,8 @@ def get_context(context):
 	)
 
 	context.no_cache = 1
+
+	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
+
+	# Check and merge guest cart if needed
+	check_and_merge_guest_cart()

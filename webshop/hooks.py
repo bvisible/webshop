@@ -12,7 +12,9 @@ required_apps = ["payments", "erpnext"]
 
 web_include_css = "webshop-web.bundle.css"
 
-web_include_js = "web.bundle.js"
+web_include_js = [
+    "web.bundle.js",
+]
 
 after_install = "webshop.setup.install.after_install"
 on_logout = "webshop.webshop.shopping_cart.utils.clear_cart_count"
@@ -31,6 +33,7 @@ override_doctype_class = {
     "Payment Request": "webshop.webshop.doctype.override_doctype.payment_request.PaymentRequest",
     "Item Group": "webshop.webshop.doctype.override_doctype.item_group.WebshopItemGroup",
     "Item": "webshop.webshop.doctype.override_doctype.item.WebshopItem",
+    "Sales Invoice": "webshop.webshop.doctype.override_doctype.sales_invoice.SalesInvoice"
 }
 
 doctype_js = {
@@ -60,6 +63,8 @@ doc_events = {
         "validate": [
             "webshop.webshop.crud_events.quotation.validate_shopping_cart_items.execute",
         ],
+        "on_trash": "webshop.webshop.shopping_cart.cart.remove_quotation_loyalty_points",
+        "on_cancel": "webshop.webshop.shopping_cart.cart.remove_quotation_loyalty_points"
     },
     "Price List": {
         "validate": [
@@ -71,9 +76,26 @@ doc_events = {
             "webshop.webshop.crud_events.tax_rule.validate_use_for_cart.execute",
         ],
     },
+    "Sales Invoice": {
+        "validate": "webshop.webshop.crud_events.sales_invoice.validate",
+        "on_submit": "webshop.webshop.crud_events.sales_invoice.on_submit",
+        "on_update": [
+            "webshop.webshop.shopping_cart.cart.create_gift_cards_from_invoice"
+        ]
+    }
 }
 
 has_website_permission = {
     "Website Item": "webshop.webshop.doctype.website_item.website_item.has_website_permission_for_website_item",
     "Item Group": "webshop.webshop.doctype.website_item.website_item.has_website_permission_for_item_group"
+}
+
+website_route_rules = [
+    {"from_route": "/api/payment/callback", "to_route": "webshop.controllers.payment_handler.payment_callback"}
+]
+
+jinja = {
+    "methods": [
+        "webshop.utils.utils"
+    ]
 }

@@ -163,7 +163,7 @@ webshop.ProductList = class {
 	}
 
 	get_primary_button(item, settings) {
-		if (item.has_variants) {
+		if (item.has_variants || item.is_gift_card) {
 			return `
 				<a href="/${ item.route || '#' }">
 					<div class="btn btn-sm btn-explore-variants btn mb-0 mt-0">

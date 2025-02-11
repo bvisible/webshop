@@ -75,42 +75,31 @@ $.extend(shopping_cart, {
 	},
 
 	update_cart: function(opts) {
-		if (frappe.session.user==="Guest") {
-			if (localStorage) {
-				localStorage.setItem("last_visited", window.location.pathname);
+		shopping_cart.freeze();
+		return frappe.call({
+			type: "POST",
+			method: "webshop.webshop.shopping_cart.cart.update_cart",
+			args: {
+				item_code: opts.item_code,
+				qty: opts.qty,
+				additional_notes: opts.additional_notes !== undefined ? opts.additional_notes : undefined,
+				with_items: opts.with_items || 0,
+				add_qty: opts.add_qty || false
+			},
+			btn: opts.btn,
+			callback: function(r) {
+				shopping_cart.unfreeze();
+				shopping_cart.set_cart_count(true);
+				if(opts.callback)
+					opts.callback(r);
 			}
-			frappe.call('webshop.webshop.api.get_guest_redirect_on_action').then((res) => {
-				window.location.href = res.message || "/login";
-			});
-		} else {
-			shopping_cart.freeze();
-			return frappe.call({
-				type: "POST",
-				method: "webshop.webshop.shopping_cart.cart.update_cart",
-				args: {
-					item_code: opts.item_code,
-					qty: opts.qty,
-					additional_notes: opts.additional_notes !== undefined ? opts.additional_notes : undefined,
-					with_items: opts.with_items || 0
-				},
-				btn: opts.btn,
-				callback: function(r) {
-					shopping_cart.unfreeze();
-					shopping_cart.set_cart_count(true);
-					if(opts.callback)
-						opts.callback(r);
-				}
-			});
-		}
+		});
 	},
 
 	set_cart_count: function(animate=false) {
 		$(".intermediate-empty-cart").remove();
 
 		var cart_count = frappe.get_cookie("cart_count");
-		if(frappe.session.user==="Guest") {
-			cart_count = 0;
-		}
 
 		if(cart_count) {
 			$(".shopping-cart").toggleClass('hidden', false);
@@ -193,11 +182,44 @@ $.extend(shopping_cart, {
 			$btn.prop('disabled', true);
 
 			if (frappe.session.user==="Guest") {
-				if (localStorage) {
-					localStorage.setItem("last_visited", window.location.pathname);
-				}
-				frappe.call('webshop.webshop.api.get_guest_redirect_on_action').then((res) => {
-					window.location.href = res.message || "/login";
+				frappe.call({
+					method: 'webshop.webshop.doctype.webshop_settings.webshop_settings.get_shopping_cart_settings',
+					callback: function(r) {
+						if (!r.message.enable_guest_cart) {
+							if (localStorage) {
+								localStorage.setItem("last_visited", window.location.pathname);
+							}
+							frappe.call('webshop.webshop.api.get_guest_redirect_on_action').then((res) => {
+								window.location.href = res.message || "/login";
+							});
+							return;
+						}
+						
+						// Guest cart is enabled, add to cart
+						const item_code = $btn.data('item-code');
+						
+						webshop.webshop.shopping_cart.update_cart({
+							item_code,
+							qty: 1,
+							callback: function(r) {
+								if (r.message && r.message.error) {
+									frappe.msgprint({
+										title: __('Error'),
+										message: r.message.error,
+										indicator: 'red'
+									});
+									$btn.prop('disabled', false);
+									return;
+								}
+
+								$btn.addClass('hidden');
+								$btn.closest('.cart-action-container').addClass('d-flex');
+								$btn.parent().find('.go-to-cart').removeClass('hidden');
+								$btn.parent().find('.go-to-cart-grid').removeClass('hidden');
+								$btn.parent().find('.cart-indicator').removeClass('hidden');
+							}
+						});
+					}
 				});
 				return;
 			}

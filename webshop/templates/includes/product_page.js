@@ -53,16 +53,27 @@ frappe.ready(function() {
 	})
 
 	$("#item-add-to-cart button").on("click", function() {
+		
 		frappe.provide('webshop.shopping_cart');
 
-		webshop.shopping_cart.update_cart({
-			item_code: get_item_code(),
-			qty: $("#item-spinner .cart-qty").val(),
+		var item_code = get_item_code();
+		var additional_notes = null;
+		var qty = $("#item-spinner input").val();
+
+		webshop.webshop.shopping_cart.update_cart({
+			item_code: item_code,
+			qty: qty,
+			additional_notes: additional_notes,
 			callback: function(r) {
-				if(!r.exc) {
-					toggle_update_cart(1);
-					qty = 1;
+				if (r.message.error) {
+					frappe.msgprint({
+						title: __('Error'),
+						message: r.message.error,
+						indicator: 'red'
+					});
+					return;
 				}
+				window.location.href = "/cart";
 			},
 			btn: this,
 		});

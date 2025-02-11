@@ -1,0 +1,35 @@
+{% set show_coupon_code = cart_settings.show_apply_coupon_code_in_website and cart_settings.enable_checkout %}
+{% if show_coupon_code == 1%}
+<div class="form-group frappe-card p-5">
+    <h6 class="mb-3">{{ _("You have a coupon code or gift card?") }}</h6>
+    <div class="mb-0">
+        <div class="row no-gutters">
+            <input type="text" class="txtcoupon form-control mr-3 w-50 font-md" 
+                placeholder="Enter Coupon Code" 
+                name="txtcouponcode" 
+                {% if doc.coupon_code %}
+                    value="{{ doc.coupon_code }}" 
+                    readonly
+                {% endif %}
+                {% if doc.loyalty_points %}
+                    disabled
+                    data-toggle="tooltip"
+                    title="{{ _('You cannot use a promo code when loyalty points are applied') }}"
+                {% endif %}
+            ></input>
+            {% if doc.coupon_code %}
+            <button class="btn btn-danger btn-sm bt-remove-coupon font-md">{{ _("Remove Coupon") }}</button>
+            {% else %}
+            <button class="btn btn-primary btn-sm bt-coupon font-md" 
+                {% if doc.loyalty_points %}
+                    disabled
+                    data-toggle="tooltip"
+                    title="{{ _('You cannot use a promo code when loyalty points are applied') }}"
+                {% endif %}
+            >{{ _("Apply Coupon") }}</button>
+            {% endif %}
+            <input type="hidden" class="txtreferral_sales_partner font-md" placeholder="Enter Sales Partner" name="txtreferral_sales_partner" type="text"></input>
+        </div>
+    </div>
+</div>
+{% endif %}

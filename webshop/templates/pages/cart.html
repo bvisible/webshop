@@ -45,14 +45,20 @@
 
 				<div class="row mt-2">
 					<div class="col-3">
-						{% if cart_settings.enable_checkout %}
-							<a class="btn btn-primary-light font-md" href="/orders">
-								{{ _('Past Orders') }}
+						{% if frappe.session.user == "Guest" %}
+							<a class="btn btn-primary-light font-md" href="/login">
+								{{ _('Login') }}
 							</a>
 						{% else %}
-							<a class="btn btn-primary-light font-md" href="/quotations">
-								{{ _('Past Quotes') }}
-							</a>
+							{% if cart_settings.enable_checkout %}
+								<a class="btn btn-primary-light font-md" href="/orders">
+									{{ _('Past Orders') }}
+								</a>
+							{% else %}
+								<a class="btn btn-primary-light font-md" href="/quotations">
+									{{ _('Past Quotes') }}
+								</a>
+							{% endif %}
 						{% endif %}
 					</div>
 					<div class="col-9">
@@ -69,7 +75,7 @@
 
 			<!-- Terms and Conditions -->
 			{% if doc.items %}
-				{% if doc.terms %}
+				{% if doc.terms and not cart_settings.enable_checkout_page %}
 					<div class="t-and-c-container mt-4 frappe-card">
 						<h5>{{ _("Terms and Conditions") }}</h5>
 						<div class="t-and-c-terms mt-2">
@@ -82,18 +88,6 @@
 		<!-- Right section -->
 		<div class="col-md-4">
 			<div class="cart-payment-addresses">
-				<!-- Apply Coupon Code  -->
-				{% set show_coupon_code = cart_settings.show_apply_coupon_code_in_website and cart_settings.enable_checkout %}
-				{% if show_coupon_code == 1%}
-					<div class="mb-3">
-						<div class="row no-gutters">
-							<input type="text" class="txtcoupon form-control mr-3 w-50 font-md" placeholder="Enter Coupon Code" name="txtcouponcode"  ></input>
-							<button class="btn btn-primary btn-sm bt-coupon font-md">{{ _("Apply Coupon Code") }}</button>
-							<input type="hidden" class="txtreferral_sales_partner font-md" placeholder="Enter Sales Partner" name="txtreferral_sales_partner" type="text"></input>
-							</div>
-					</div>
-				{% endif %}
-
 				<div class="mb-3 frappe-card p-5">
 					<div class="payment-summary">
 						{% include "templates/includes/cart/cart_payment_summary.html" %}
@@ -104,7 +98,9 @@
 					</div>
 				</div>
 
-				{% include "templates/includes/cart/cart_address.html" %}
+				{% if not cart_settings.enable_checkout_page %}
+					{% include "templates/includes/cart/cart_address.html" %}
+				{% endif %}
 			</div>
 		</div>
 		{% endif %}

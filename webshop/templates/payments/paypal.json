@@ -1,0 +1,9 @@
+{
+  "required_settings": [
+    "client_id"
+  ],
+  "context_ids": {
+    "payment_form_id": "payment-form",
+    "paypal_button_id": "paypal-button"
+  }
+}

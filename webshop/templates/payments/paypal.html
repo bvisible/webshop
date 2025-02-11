@@ -1,0 +1,109 @@
+<div class="payment-form" id="{{ payment_form_id }}">
+    <div class="form-row row">
+        <div class="col-md-6 mb-3">
+            <label for="cardholder-name">{{ _("Cardholder Name") }}</label>
+            <input type="text" id="cardholder-name" name="cardholder-name" class="form-control mr-3 w-100 font-md" placeholder="{{ _('John Doe') }}"/>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="cardholder-email">{{ _("Cardholder Email") }}</label>
+            <input type="email" id="cardholder-email" name="cardholder-email" class="form-control mr-3 w-100 font-md" placeholder="{{ _('john@doe.com') }}"/>
+        </div>
+    </div>
+    <div class="outcome text-center mb-4">
+        <div class="error payment-message" role="alert"></div>
+        <div class="success payment-message" role="alert"></div>
+    </div>
+    <div class="mt-4 d-flex justify-content-between align-items-center">
+        <div class="form-check mb-3" id="terms-acceptance-container">
+            <input type="checkbox" class="form-check-input cursor-pointer" id="terms-acceptance" required>
+            <label class="form-check-label cursor-pointer" for="terms-acceptance">
+                {{ _("I accept the") }} <a href="#terms-title" class="terms-link">{{ doc.tc_name or _("terms and conditions") }}</a>
+            </label>
+        </div>
+        <div class="mt-4 d-flex justify-content-end">
+            <button type="button" class="btn btn-primary btn-submit-payment" id="{{ submit_id }}" disabled>
+                {{_('Pay with PayPal')}} {{format_currency_value(amount, currency)}}
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let formData = checkout_manager.initPaymentForm('{{ payment_form_id }}');
+    let cardholderName = $('#{{ payment_form_id }} input[name="cardholder-name"]');
+    let cardholderEmail = $('#{{ payment_form_id }} input[name="cardholder-email"]');
+    let submitButton = $('#{{ submit_id }}');
+
+    // Pre-fill with existing data
+    if (cardholderName.val() === '') {
+        let firstName = $('#contact_first_name').val();
+        let lastName = $('#contact_last_name').val();
+        cardholderName.val(firstName + ' ' + lastName);
+    }
+    if (cardholderEmail.val() === '') {
+        cardholderEmail.val($('#contact_email').val());
+    }
+
+    function showError(message) {
+        $('.error.payment-message').text(message).show().addClass('show');
+        $('.success.payment-message').hide().removeClass('show');
+    }
+
+    function showSuccess(message) {
+        $('.success.payment-message').text(message).show().addClass('show');
+        $('.error.payment-message').hide().removeClass('show');
+    }
+
+    function validateForm() {
+        const name = cardholderName.val();
+        const email = cardholderEmail.val();
+        
+        if (!name || !email) {
+            console.error("Missing name or email:", name, email);
+            showError("{{ _('Please fill in all fields') }}");
+            return false;
+        }
+        
+        if (!checkout_manager.isValidEmail(email)) {
+            console.error("Invalid email:", email);
+            showError("{{ _('Please enter a valid email address') }}");
+            return false;
+        }
+        
+        return true;
+    }
+
+    // Handle click on payment button
+    submitButton.on('click', function(e) {
+        e.preventDefault();
+        
+        if (!validateForm()) {
+            return;
+        }
+
+        showSuccess("{{ _('Redirecting to PayPal...') }}");
+
+        // Create payment request
+        frappe.call({
+            method: 'webshop.controllers.payment_handler.create_paypal_payment_request',
+            args: {
+                quotation_id: '{{ doc.name }}'
+            },
+            callback: function(r) {
+                if (r.message && r.message.status === 'success') {
+                    // Redirect to PayPal payment URL
+                    window.location.href = r.message.payment_url;
+                } else {
+                    showError(r.message.message || "{{ _('Error creating payment request') }}");
+                }
+            },
+            error: function(r) {
+                console.error("Error:", r);
+                showError("{{ _('Error communicating with server') }}");
+            }
+        });
+    });
+
+    // Initial button state
+    submitButton.addClass('disabled').attr('disabled', 'disabled');
+</script>
