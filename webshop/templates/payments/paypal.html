@@ -21,7 +21,13 @@
             </label>
         </div>
         <div class="mt-4 d-flex justify-content-end">
-            <button type="button" class="btn btn-primary btn-submit-payment" id="{{ submit_id }}" disabled>
+            <button type="button" 
+                class="btn btn-primary btn-submit-payment" 
+                id="{{ submit_id }}" 
+                disabled
+                data-toggle="tooltip"
+                data-placement="top"
+                title="{{ _('Please accept the terms and conditions to continue') }}">
                 {{_('Pay with PayPal')}} {{format_currency_value(amount, currency)}}
             </button>
         </div>
