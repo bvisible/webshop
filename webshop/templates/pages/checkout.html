@@ -1,0 +1,376 @@
+{% extends "templates/web.html" %}
+{% block title %} {{ _("Checkout") }} {% endblock %}
+{% block header %}{% endblock %}
+
+{% from "webshop/templates/includes/macros.html" import product_image %}
+
+{% block page_content %}
+<div class="page-content-wrapper">
+	<!-- Progress Steps -->
+	<div class="page-breadcrumbs">
+		<div class="steps-progress-bar mb-5" data-active-step="2">
+			<div class="step-item">
+				<a href="/cart" class="text-decoration-none">
+					<div class="step-number active">1</div>
+					<div class="step-label active">{{ _("Cart") }}</div>
+				</a>
+			</div>
+			<div class="step-item">
+				<div class="step-number active">2</div>
+				<div class="step-label active">{{ _("Information") }}</div>
+			</div>
+			<div class="step-item">
+				<div class="step-number">3</div>
+				<div class="step-label">{{ _("Shipping") }}</div>
+			</div>
+			<div class="step-item">
+				<div class="step-number">4</div>
+				<div class="step-label">{{ _("Payment") }}</div>
+			</div>
+		</div>
+	</div>
+
+	<main class="container my-4">
+		<div class="row m-0">
+			<!-- Left section -->
+			<div class="col-md-8 col-12 order-md-1 order-2">
+				<!-- Step 1: Information -->
+				<section id="step-address" class="step-section mb-6 active">
+					<h3 class="mt-0 mobile-margin-top"><span class="wave">👋</span> {{ _("Hello") }} {{ contact_first_name or "" }} {{ contact_last_name or "" }}</h3>
+					<p class="text-muted">{{ _("Welcome in checkout. Please fill in your information below.") }}</p>
+					<form id="address-form">
+						<!-- Billing Address -->
+						<div class="mb-4">
+							<h5 class="mb-3">{{ _("Your information") }}</h5>
+							<div class="frappe-card p-5 mb-4">
+							
+								<div class="row">
+									<div class="col-md-6 mb-3">
+										<label for="contact_first_name">{{ _("First Name") }} *</label>
+										<input type="text" 
+												class="form-control" 
+												id="contact_first_name" 
+												name="contact_first_name" 
+												value="{{ contact_first_name or '' }}"
+												required>
+									</div>
+									<div class="col-md-6 mb-3">
+										<label for="contact_last_name">{{ _("Last Name") }} *</label>
+										<input type="text" 
+												class="form-control" 
+												id="contact_last_name" 
+												name="contact_last_name" 
+												value="{{ contact_last_name or '' }}"
+												required>
+									</div>
+								</div>
+
+								<div class="mb-3">
+									<label for="customer_name">{{ _("Company") }}</label>
+									<input type="text" 
+										class="form-control" 
+										id="customer_name" 
+										name="customer_name" 
+										value="{{ customer_name or '' }}"
+										placeholder="{{ _('Optional') }}">
+								</div>
+
+								<!-- Email and phone field -->
+								<div class="row">
+									<div class="col-md-6 mb-3">
+									<label for="contact_email">{{ _("Email") }} *</label>
+									<input type="email" 
+											class="form-control" 
+											id="contact_email" 
+											name="contact_email" 
+											value="{{ contact_email or '' }}"
+											required>
+									</div>
+
+									<div class="col-md-6 mb-3">
+									<label for="contact_phone">{{ _("Phone") }} *</label>
+									<input type="tel" 
+											class="form-control" 
+											id="contact_phone" 
+											name="contact_phone" 
+											value="{{ contact_phone or '' }}"
+											required>
+									</div>
+								</div>
+							</div>
+							
+							<h5 class="mb-3">{{ _("Address") }}</h5>
+							<div class="frappe-card p-5 mb-4">
+
+								<input type="hidden" id="billing_address_name" name="billing_address_name" value="{{ billing_address_name or '' }}">
+								<div class="mb-3">
+									<label for="billing_address_1">{{ _("Address Line 1") }} *</label>
+									<input type="text" 
+											class="form-control" 
+											id="billing_address_1" 
+											name="billing_address_1" 
+											value="{{ billing_address_1 or '' }}"
+											required>
+								</div>
+
+								<div class="mb-3">
+									<label for="billing_address_2">{{ _("Address Line 2") }}</label>
+									<input type="text" 
+											class="form-control" 
+											id="billing_address_2" 
+											name="billing_address_2" 
+											value="{{ billing_address_2 or '' }}"
+											placeholder="{{ _('Apartment, suite, etc. (optional)') }}">
+								</div>
+
+								<div class="row">
+									<div class="col-md-3 mb-3">
+										<label for="billing_postcode">{{ _("Postal Code") }} *</label>
+										<input type="text" 
+												class="form-control" 
+												id="billing_postcode" 
+												name="billing_postcode" 
+												value="{{ billing_postcode or '' }}"
+												required>
+									</div>
+									<div class="col-md-6 mb-3">
+										<label for="billing_city">{{ _("City") }} *</label>
+										<input type="text" 
+												class="form-control" 
+												id="billing_city" 
+												name="billing_city" 
+												value="{{ billing_city or '' }}"
+												required>
+									</div>
+									<div class="col-md-3 mb-3">
+										<label for="billing_state">{{ _("State") }}</label>
+										<input type="text" 
+												class="form-control" 
+												id="billing_state" 
+												name="billing_state" 
+												value="{{ billing_state or '' }}"
+												required>
+									</div>
+								</div>
+
+								<div class="mb-3">
+									<label for="billing_country">{{ _("Country") }} *</label>
+									<select class="form-control"
+											id="billing_country"
+											name="billing_country"
+											required>
+										<option value="">{{ _("Select a country") }}</option>
+										{% for country in frappe.get_all("Country", fields=["name", "country_name"]) %}
+										<option value="{{ country.name }}" {% if billing_country == country.name %}selected{% endif %}>
+											{{ country.country_name }}
+										</option>
+										{% endfor %}
+									</select>
+								</div>
+
+								<div class="row">
+									<div class="col-md-6 mb-3">
+									<label for="billing_email">{{ _("Email") }}</label>
+									<input type="email" 
+											class="form-control" 
+											id="billing_email" 
+											name="billing_email" 
+											value="{{ billing_email or '' }}"
+											required>
+									</div>
+									<div class="col-md-6 mb-3">
+									<label for="billing_phone">{{ _("Phone") }}</label>
+									<input type="tel" 
+											class="form-control" 
+											id="billing_phone" 
+											name="billing_phone" 
+											value="{{ billing_phone or '' }}"
+											required>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<h5 class="mb-3">{{ _("Shipping Address") }}</h5>
+						<div class="frappe-card p-5 mb-4">
+							<!-- Ship to Different Address Option -->
+							<div class="custom-control custom-checkbox mb-2" style="padding-left: 0;">
+								<input type="checkbox" class="custom-control-input" id="ship_to_different" name="ship_to_different">
+								<label class="custom-control-label" for="ship_to_different">
+									{{ _("Ship to a different address?") }}
+								</label>
+							</div>
+
+							<!-- Shipping Address -->
+							<div id="shipping-address-container" style="display: none;">
+								<input type="hidden" id="shipping_address_name" name="shipping_address_name" value="">
+								<div class="mb-3">
+									<label for="shipping_address_1">{{ _("Address Line 1") }} *</label>
+									<input type="text" 
+											class="form-control shipping-field" 
+											id="shipping_address_1" 
+											name="shipping_address_1" 
+											value="{{ shipping_address_1 or '' }}">
+								</div>
+
+								<div class="mb-3">
+									<label for="shipping_address_2">{{ _("Address Line 2") }}</label>
+									<input type="text" 
+											class="form-control shipping-field" 
+											id="shipping_address_2" 
+											name="shipping_address_2" 
+											value="{{ shipping_address_2 or '' }}"
+											placeholder="{{ _('Apartment, suite, etc. (optional)') }}">
+								</div>
+
+								<div class="row">
+									<div class="col-md-3 mb-3">
+										<label for="shipping_postcode">{{ _("Postal Code") }} *</label>
+										<input type="text" 
+												class="form-control shipping-field" 
+												id="shipping_postcode" 
+												name="shipping_postcode" 
+												value="{{ shipping_postcode or '' }}">
+									</div>
+									<div class="col-md-6 mb-3">
+										<label for="shipping_city">{{ _("City") }} *</label>
+										<input type="text" 
+												class="form-control shipping-field" 
+												id="shipping_city" 
+												name="shipping_city" 
+												value="{{ shipping_city or '' }}">
+									</div>
+									<div class="col-md-3 mb-3">
+										<label for="shipping_state">{{ _("State") }}</label>
+										<input type="text" 
+												class="form-control shipping-field" 
+												id="shipping_state" 
+												name="shipping_state" 
+												value="{{ shipping_state or '' }}">
+									</div>
+								</div>
+
+								<div class="mb-3">
+									<label for="shipping_country">{{ _("Country") }} *</label>
+									<select class="form-control shipping-field"
+											id="shipping_country"
+											name="shipping_country">
+										<option value="">{{ _("Select a country") }}</option>
+										{% for country in frappe.get_all("Country", fields=["name", "country_name"]) %}
+										<option value="{{ country.name }}" {% if shipping_country == country.name %}selected{% endif %}>
+											{{ country.country_name }}
+										</option>
+										{% endfor %}
+									</select>
+								</div>
+
+								<div class="row">
+									<div class="col-md-6 mb-3">
+									<label for="shipping_email">{{ _("Email") }}</label>
+									<input type="email" 
+											class="form-control shipping-field" 
+											id="shipping_email" 
+											name="shipping_email" 
+											value="{{ shipping_email or '' }}"
+											required>
+									</div>
+									<div class="col-md-6 mb-3">
+									<label for="shipping_phone">{{ _("Phone") }}</label>
+									<input type="tel" 
+											class="form-control shipping-field" 
+											id="shipping_phone" 
+											name="shipping_phone" 
+											value="{{ shipping_phone or '' }}"
+											required>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="mt-4 d-flex justify-content-between">
+							<button type="button" class="prev-step btn btn-secondary" data-prev="step-cart">
+								{{ _("Return to cart") }}
+							</button>
+							<button type="submit" class="next-step btn btn-primary" data-next="step-shipping">
+								{{ _("Continue to shipping") }}
+							</button>
+						</div>
+					</form>
+				</section>
+
+				<!-- Step 2: Shipping -->
+				<section id="step-shipping" class="step-section mb-6 hidden">
+					<h3 class="mt-0">{{ _("Choose Shipping Method") }}</h3>
+					<div id="shipping-methods-container">
+						<!-- Shipping methods will be loaded here -->
+					</div>
+					<div class="mt-4 d-flex justify-content-between">
+						<button class="prev-step btn btn-secondary" data-prev="step-information">
+							{{ _("Back to information") }}
+						</button>
+						<button class="next-step btn btn-primary" data-next="step-payment">
+							{{ _("Continue to Payment") }}
+						</button>
+					</div>
+				</section>
+
+				<!-- Step 3: Payment -->
+				<section id="step-payment" class="step-section mb-6 hidden">
+					<div class="section-payment">
+						<h3 class="mt-0">{{ _("Payment") }}</h3>
+						<p class="text-muted">{{ _("All transactions are secure and encrypted.") }}</p>
+
+						<!-- Apply Coupon Code  -->
+						<div id="coupon-form-container">
+							{% include "templates/includes/coupon_form.html" %}
+						</div>
+
+						<!-- Loyalty Points -->
+						<div id="loyalty-points-container">
+							{% include "templates/includes/loyalty_points_form.html" %}
+						</div>
+
+						<h5 class="mb-3">{{ _("Payment Method") }}</h5>
+						<!-- Container for payment errors -->
+						<div class="payment-error alert alert-danger" style="display: none;"></div>
+
+						<!-- Container for payment methods -->
+						<div id="payment-methods-container" class="mb-4"></div>
+
+						{% if doc.terms %}
+						<h5 id="terms-title" class="mb-3">{{ _( doc.tc_name or _("terms and conditions") ) }}</h5>
+							<div class="t-and-c-container frappe-card p-5 mb-4">
+								<div class="terms-preview">
+									<div class="ql-editor read-mode terms-content"></div>
+								</div>
+								<div class="terms-full hidden">
+									<div class="ql-editor read-mode">{{ doc.terms }}</div>
+								</div>
+								<button class="btn btn-sm btn-primary-light mt-2 toggle-terms">
+									{{ _("Show more") }}
+								</button>
+							</div>
+						{% endif %}
+						<div class="mt-4 d-flex justify-content-start">
+							<button class="prev-step btn btn-secondary" data-prev="step-shipping">
+								{{ _("Back to shipping") }}
+							</button>
+						</div>
+					</div>
+				</section>
+			</div>
+	  
+			<!-- Right section: Order Summary -->
+			<div class="col-md-4 col-12 order-md-2 order-1">
+				{% include "templates/includes/order_summary.html" %}
+			</div>
+		</div>
+	</main>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+	{% include "templates/pages/checkout.js" %}
+</script>
+{% endblock %}
