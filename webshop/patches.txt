@@ -14,3 +14,4 @@ webshop.patches.add_gift_card_data_to_sales_doctypes
 webshop.patches.add_payment_gateway_to_quotation
 webshop.patches.add_sales_invoice_link_to_coupon_code
 webshop.patches.add_from_checkout_to_payment_request
+webshop.patches.add_gift_card_amount_field

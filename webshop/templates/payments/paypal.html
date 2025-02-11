@@ -85,7 +85,7 @@
 
         // Create payment request
         frappe.call({
-            method: 'webshop.controllers.payment_handler.create_paypal_payment_request',
+            method: 'webshop.templates.payments.paypal.create_paypal_payment_request',
             args: {
                 quotation_id: '{{ doc.name }}'
             },

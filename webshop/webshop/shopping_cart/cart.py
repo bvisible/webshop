@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
+from locale import currency
 import os
 import json
 import re
@@ -1631,10 +1632,14 @@ def create_gift_cards_from_invoice(doc, method=None):
 					# Get coupon_code in gift_card_data field 
 					gift_card_data = json.loads(item.gift_card_data) if item.gift_card_data else None
 					coupon_code = gift_card_data.get("code") if gift_card_data else None
-					
+					coupon_name = _("Gift card {0} of {1}").format(
+						frappe.utils.fmt_money(item.rate, currency=sales_invoice.currency),
+						sales_invoice.customer
+					)
+
 					gift_card = frappe.get_doc({
 						"doctype": "Coupon Code",
-						"coupon_name": coupon_code,
+						"coupon_name": coupon_name,
 						"coupon_type": "Gift Card",
 						"coupon_code": coupon_code,
 						"pricing_rule": pricing_rule_name,
@@ -1643,7 +1648,8 @@ def create_gift_cards_from_invoice(doc, method=None):
 						"maximum_use": 9999,
 						"used": 0,
 						"customer": sales_invoice.customer,
-						"sales_invoice": sales_invoice.name
+						"sales_invoice": sales_invoice.name,
+						"gift_card_amount": item.rate
 					})
 					
 					if owner_email:
