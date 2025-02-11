@@ -1632,9 +1632,10 @@ def create_gift_cards_from_invoice(doc, method=None):
 					# Get coupon_code in gift_card_data field 
 					gift_card_data = json.loads(item.gift_card_data) if item.gift_card_data else None
 					coupon_code = gift_card_data.get("code") if gift_card_data else None
-					coupon_name = _("Gift card {0} of {1}").format(
-						frappe.utils.fmt_money(item.rate, currency=sales_invoice.currency),
-						sales_invoice.customer
+					coupon_name = _("Gift card {0} - {1} - {2}").format(
+						frappe.utils.fmt_money(item.rate, coupon_code, currency=sales_invoice.currency),
+						sales_invoice.customer,
+						coupon_code
 					)
 
 					gift_card = frappe.get_doc({
