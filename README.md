@@ -32,14 +32,31 @@ Frappe Webshop is an Open Source eCommerce Platform, developed primarily using P
 ## Features
 - **Product Management**: Add, edit, and manage products with the ability to add descriptions, images, variants, and inventory counts.
     - **Inventory Control**: Real-time stock updates to ensure that product supply can be easily tracked.
+    - **Product Quantity Selection**: Choose product quantities directly on the product page.
+    - **Customizable Product Views**: Default grid and list views for better product browsing.
 - **Multiple Payment Options**: Integration with popular payment options like Paypal or Stripe, allowing secure and convenient transactions.
+    - **Multi-step Checkout Process**: Streamlined checkout with shipping and billing address management.
+    - **Payment Gateway Integration**: Built-in support for multiple payment gateways (Stripe, PayPal).
+    - **Payment Terms Templates**: Configurable payment terms for each payment method.
+- **Shopping Cart Features**: 
+    - **Guest Cart**: Allow customers to create and manage carts without an account.
+    - **Coupon Management**: Apply discount coupons during checkout.
+    - **Loyalty Points**: Earn and redeem loyalty points during checkout.
 - **User Accounts**: Customers can create accounts and save their information, allowing for convenient checkout and personalized experiences.
+    - **Login/Registration Dialog**: Quick access to account creation and login.
     - **Wishlist and Cart Functions**: Let customers save their favorites and revisit them later for easier purchases.
     - **Order Tracking**: Keep customers informed and provide updates on the status of their orders.
+- **Gift Cards**: 
+    - **Digital Gift Cards**: Sell and manage digital gift cards.
+    - **Customizable Gift Cards**: Personalize gift cards on the product page.
+    - **Gift Card Redemption**: Easy redemption process during checkout.
 - **Advanced Search and Filters**: Advanced search tools and product filters to allow customers to quickly find products they want.
+    - **Enhanced Pagination**: Improved product browsing experience.
 - **Customer Reviews and Ratings**: Customers can share their experiences and product ratings.
 - **Integration with ERPNext**: Integration with ERPNext allows for management of inventory, billing, and order processing in one place.
 - **User-friendly interface**: Frappe Webshop emphasizes ease of use, with a focus on creating simple, yet effective websites.
+    - **Terms and Conditions**: Configurable terms and conditions for the webshop.
+    - **Order Confirmation**: Detailed thank you page with order information.
 
 ## Setup
 1. Install [bench](https://github.com/frappe/bench).
