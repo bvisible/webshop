@@ -475,7 +475,26 @@ def get_payment_template(payment_gateway_account, context=None):
 			"doc": quotation_doc  # Add quotation document to context
 		})
 		
-		# Render template with Frappe API
+		# Check for custom template path
+		try:
+			webshop_method = frappe.get_doc("Webshop Payment Method", {"payment_gateway_account": payment_gateway_account})
+			template_path = webshop_method.get("template_path")
+			if template_path:
+				# If the path starts with apps/, we look for the template in another app
+				if template_path.startswith('apps/'):
+					# Remove the apps/ prefix to get the relative path
+					template_path = template_path[5:]
+				else:
+					# Otherwise use the default template in webshop
+					template_path = f"templates/payments/{gateway_info['type']}.html"
+				
+				html = frappe.get_template(template_path).render(context)
+				return {"error": False, "html": html, "config": gateway_info["settings"]}
+		except Exception as e:
+			frappe.log_error(f"Custom template error: {str(e)}")
+			pass  # If error, use default template
+		
+		# Default template rendering
 		template_name = f"{gateway_info['type']}.html"
 		html = frappe.get_template(f"templates/payments/{template_name}").render(context)
 		

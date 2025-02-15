@@ -297,14 +297,15 @@
       "depends_on": "eval:doc.enable_checkout_page",
       "fieldname": "payment_methods_section",
       "fieldtype": "Section Break",
-      "label": "M\u00e9thodes de Paiement"
+      "label": "Payment Methods"
      },
      {
       "depends_on": "eval:doc.enable_checkout_page",
       "fieldname": "payment_methods",
       "fieldtype": "Table",
-      "label": "M\u00e9thodes de Paiement",
-      "options": "Webshop Payment Method"
+      "label": "Payment Methods",
+      "options": "Webshop Payment Method",
+      "description": "Path to the payment template. If left empty, the default template in webshop/templates/payments will be used. To use a template from another app, specify the path starting with 'apps/myapp/...' (e.g., apps/myapp/templates/payments/custom.html)"
      },
      {
       "fieldname": "column_break_27",
