@@ -42,8 +42,7 @@ class PaymentHandler:
                 payment_method = self.get_default_payment_method()
                 payment_method_doc = frappe.get_doc("Webshop Payment Method", payment_method)
                 # Get payment gateway account
-                pm = payment_method_doc
-                gateway_account = frappe.get_doc("Payment Gateway Account", pm.payment_gateway_account)
+                gateway_account = frappe.get_doc("Payment Gateway Account", payment_method_doc.payment_gateway_account)
             
             # Update quotation with payment_gateway
             quotation.payment_gateway = gateway_account.payment_gateway
@@ -61,7 +60,7 @@ class PaymentHandler:
             # Update payment_terms_template from payment method
             settings = frappe.get_cached_doc("Webshop Settings")
             for method in settings.payment_methods:
-                if method.payment_gateway_account == pm.payment_gateway_account and method.payment_terms_template:
+                if method.payment_gateway_account == gateway_account.name and method.payment_terms_template:
                     quotation.payment_terms_template = method.payment_terms_template
                     quotation.save(ignore_permissions=True)
                     
