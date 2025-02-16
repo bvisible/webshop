@@ -28,6 +28,11 @@ class PaymentHandler:
             # Get webshop parameters
             settings = frappe.get_cached_doc("Webshop Settings")
             
+            # Initialize payment variables
+            payment_method = None
+            payment_method_doc = None
+            gateway_account = None
+            
             # If gateway_settings is provided, use it directly
             if gateway_settings:
                 # Get Payment Gateway
@@ -37,6 +42,16 @@ class PaymentHandler:
                     
                 # Get Payment Gateway Account
                 gateway_account = frappe.get_doc("Payment Gateway Account", {"payment_gateway": gateway})
+                
+                # Find corresponding payment method
+                for method in settings.payment_methods:
+                    if method.payment_gateway_account == gateway_account.name:
+                        payment_method = method.name
+                        payment_method_doc = frappe.get_doc("Webshop Payment Method", payment_method)
+                        break
+                
+                if not payment_method:
+                    frappe.throw(_("No payment method found for gateway account: {0}").format(gateway_account.name))
             else:
                 # Use default payment method
                 payment_method = self.get_default_payment_method()
@@ -58,25 +73,22 @@ class PaymentHandler:
             quotation.save(ignore_permissions=True)
             
             # Update payment_terms_template from payment method
-            settings = frappe.get_cached_doc("Webshop Settings")
-            for method in settings.payment_methods:
-                if method.payment_gateway_account == gateway_account.name and method.payment_terms_template:
-                    quotation.payment_terms_template = method.payment_terms_template
+            if payment_method_doc and payment_method_doc.payment_terms_template:
+                quotation.payment_terms_template = payment_method_doc.payment_terms_template
+                quotation.save(ignore_permissions=True)
+                
+                # Get and update payment schedule
+                from erpnext.controllers.accounts_controller import get_payment_terms
+                payment_schedule = get_payment_terms(
+                    payment_method_doc.payment_terms_template,
+                    posting_date=quotation.transaction_date,
+                    grand_total=quotation.rounded_total or quotation.grand_total,
+                    base_grand_total=quotation.base_rounded_total or quotation.base_grand_total
+                )
+                
+                if payment_schedule:
+                    quotation.set("payment_schedule", payment_schedule)
                     quotation.save(ignore_permissions=True)
-                    
-                    # Get and update payment schedule
-                    from erpnext.controllers.accounts_controller import get_payment_terms
-                    payment_schedule = get_payment_terms(
-                        method.payment_terms_template,
-                        posting_date=quotation.transaction_date,
-                        grand_total=quotation.rounded_total or quotation.grand_total,
-                        base_grand_total=quotation.base_rounded_total or quotation.base_grand_total
-                    )
-                    
-                    if payment_schedule:
-                        quotation.set("payment_schedule", payment_schedule)
-                        quotation.save(ignore_permissions=True)
-                    break
 
             # Create context for payment request
             context = {
@@ -90,7 +102,7 @@ class PaymentHandler:
             # Get gateway parameters from configuration
             gateway_settings = {}
             gateway_type = gateway_account.payment_gateway.split('-')[0].split()[0].lower().strip()
-            config = get_gateway_configuration(gateway_type)
+            config = get_gateway_configuration(gateway_type, gateway_account.name)
             required_settings = config.get("required_settings", [])
             
             # Get required parameters from gateway account
@@ -358,70 +370,3 @@ def handle_direct_order():
             "status": "error",
             "message": _("An error occurred while validating the order")
         }
-
-@frappe.whitelist(allow_guest=True)
-def payment_callback():
-    """Endpoint for receiving payment gateway callbacks"""
-    try:
-        data = frappe.request.get_json()
-        payment_method = frappe.request.headers.get("X-Payment-Method")
-        
-        if not payment_method:
-            frappe.throw(_("Payment method not specified"))
-            
-        # Verify signature according to gateway
-        verify_payment_signature(payment_method, data)
-        
-        handler = PaymentHandler()
-        
-        if data.get("status") == "success":
-            return handler.handle_payment_success(
-                data.get("payment_request_id"),
-                transaction_data=data
-            )
-        else:
-            return handler.handle_payment_failure(
-                data.get("payment_request_id"),
-                error_message=data.get("error_message")
-            )
-            
-    except Exception as e:
-        frappe.log_error("Detailed error in payment callback", e)
-        return {
-            "status": "error",
-            "message": _("Error processing payment callback")
-        }
-
-def verify_payment_signature(payment_method, data):
-    """Verify payment signature according to method"""
-    try:
-        # Get payment method and its configuration
-        settings = frappe.get_doc("Webshop Settings")
-        payment_method_doc = None
-        for pm in settings.get("payment_methods", []):
-            if pm.name == payment_method:
-                payment_method_doc = pm
-                break
-                
-        if not payment_method_doc:
-            frappe.throw(_("Payment method not found"))
-            
-        gateway = frappe.get_doc("Payment Gateway Account", payment_method_doc.payment_gateway_account)
-        
-        # Get gateway type and its configuration
-        gateway_type = gateway.payment_gateway.split('-')[0].split()[0].lower().strip()
-        gateway_config = get_gateway_configuration(gateway_type)
-        
-        # Import and use gateway-specific verification module
-        module_name = f"payments.payment_gateways.{gateway_type}_integration"
-        verify_function = f"verify_{gateway_type}_signature"
-        
-        module = frappe.get_module(module_name)
-        if hasattr(module, verify_function):
-            getattr(module, verify_function)(data, gateway_config)
-        else:
-            frappe.throw(_("Verification function not found for {0}").format(gateway.payment_gateway))
-            
-    except Exception as e:
-        frappe.log_error("Signature verification error", e)
-        frappe.throw(_("Invalid payment signature"))

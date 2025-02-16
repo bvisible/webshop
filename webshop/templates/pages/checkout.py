@@ -480,13 +480,14 @@ def get_payment_template(payment_gateway_account, context=None):
 			webshop_method = frappe.get_doc("Webshop Payment Method", {"payment_gateway_account": payment_gateway_account})
 			template_path = webshop_method.get("template_path")
 			if template_path:
-				# If the path starts with apps/, we look for the template in another app
+				# If path starts with apps/, we look for template in another app
 				if template_path.startswith('apps/'):
-					# Remove the apps/ prefix to get the relative path
-					template_path = template_path[5:]
-				else:
-					# Otherwise use the default template in webshop
-					template_path = f"templates/payments/{gateway_info['type']}.html"
+					# Remove apps/ prefix
+					path_parts = template_path[5:].split('/')
+					# Remove duplicate app name if present
+					if len(path_parts) > 1 and path_parts[0] == path_parts[1]:
+						path_parts.pop(1)
+					template_path = '/'.join(path_parts)
 				
 				html = frappe.get_template(template_path).render(context)
 				return {"error": False, "html": html, "config": gateway_info["settings"]}
@@ -537,7 +538,7 @@ def get_gateway_info(payment_gateway_account):
         gateway_type = gateway.gateway.split('-')[0].split()[0].lower().strip()
         
         # Get gateway configuration from JSON file
-        gateway_config = get_gateway_configuration(gateway_type)
+        gateway_config = get_gateway_configuration(gateway_type, account.name)
         
         return {
             "account": account,
