@@ -304,11 +304,16 @@ class PaymentHandler:
             }
 
 @frappe.whitelist(allow_guest=True)
-def create_payment_request():
-    """Create a payment request for a quotation"""
+def create_payment_request(quotation_id=None, gateway_settings=None):
+    """Create a payment request for a quotation
+    
+    Args:
+        quotation_id (str, optional): ID de la quotation
+        gateway_settings (str, optional): Nom du Gateway Settings à utiliser
+    """
     try:
         handler = PaymentHandler()
-        return handler.create_payment_request()
+        return handler.create_payment_request(quotation_id=quotation_id, gateway_settings=gateway_settings)
     except Exception as e:
         frappe.log_error("Error creating payment request", e)
         return {
