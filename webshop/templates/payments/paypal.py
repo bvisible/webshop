@@ -66,6 +66,7 @@ def create_paypal_payment_request(quotation_id):
                     "currency": quotation.currency,
                     "email_to": quotation.contact_email,
                     "payment_gateway": payment_gateway_account.payment_gateway,
+                    "payment_gateway_account": payment_gateway_account.name,
                     "status": "Draft",
                     "party_type": "Customer",
                     "party": quotation.party_name,
@@ -86,6 +87,7 @@ def create_paypal_payment_request(quotation_id):
                 "currency": quotation.currency,
                 "email_to": quotation.contact_email,
                 "payment_gateway": payment_gateway_account.payment_gateway,
+                "payment_gateway_account": payment_gateway_account.name,
                 "status": "Draft",
                 "party_type": "Customer",
                 "party": quotation.party_name,
@@ -107,6 +109,7 @@ def create_paypal_payment_request(quotation_id):
                 "order_id": payment_request.name,
                 "currency": payment_request.currency,
                 "payment_gateway": payment_gateway_account.payment_gateway,
+                "payment_gateway_account": payment_gateway_account.name,
                 "party_type": "Customer",
                 "party": quotation.party_name,
                 "from_checkout": 1
