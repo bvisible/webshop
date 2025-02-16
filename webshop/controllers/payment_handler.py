@@ -28,17 +28,17 @@ class PaymentHandler:
             # Get webshop parameters
             settings = frappe.get_cached_doc("Webshop Settings")
             
-            # Si gateway_settings est fourni, l'utiliser directement
+            # If gateway_settings is provided, use it directly
             if gateway_settings:
-                # Récupérer le Payment Gateway
+                # Get Payment Gateway
                 gateway = frappe.get_value("Payment Gateway", {"gateway_settings": gateway_settings}, "name")
                 if not gateway:
                     frappe.throw(_("Payment Gateway not found for settings: {0}").format(gateway_settings))
                     
-                # Récupérer le Payment Gateway Account
+                # Get Payment Gateway Account
                 gateway_account = frappe.get_doc("Payment Gateway Account", {"payment_gateway": gateway})
             else:
-                # Utiliser la méthode de paiement par défaut
+                # Use default payment method
                 payment_method = self.get_default_payment_method()
                 payment_method_doc = frappe.get_doc("Webshop Payment Method", payment_method)
                 # Get payment gateway account
@@ -308,8 +308,8 @@ def create_payment_request(quotation_id=None, gateway_settings=None):
     """Create a payment request for a quotation
     
     Args:
-        quotation_id (str, optional): ID de la quotation
-        gateway_settings (str, optional): Nom du Gateway Settings à utiliser
+        quotation_id (str, optional): Quotation ID
+        gateway_settings (str, optional): Gateway Settings name
     """
     try:
         handler = PaymentHandler()
