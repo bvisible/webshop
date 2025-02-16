@@ -9,8 +9,13 @@ class PaymentHandler:
     def __init__(self):
         self.settings = frappe.get_doc("Webshop Settings")
         
-    def create_payment_request(self, quotation_id=None):
-        """Create a payment request for a quotation"""
+    def create_payment_request(self, quotation_id=None, gateway_settings=None):
+        """Create a payment request for a quotation
+        
+        Args:
+            quotation_id (str, optional): ID de la quotation. Si non fourni, utilise le panier.
+            gateway_settings (str, optional): Nom du Gateway Settings à utiliser. Si fourni, bypass la méthode de paiement par défaut.
+        """
         try:
             # if not quotation, get cart quotation
             if not quotation_id:
@@ -23,13 +28,22 @@ class PaymentHandler:
             # Get webshop parameters
             settings = frappe.get_cached_doc("Webshop Settings")
             
-            # Get default payment method
-            payment_method = self.get_default_payment_method()
-            payment_method_doc = frappe.get_doc("Webshop Payment Method", payment_method)
-            
-            # Get payment gateway account
-            pm = payment_method_doc
-            gateway_account = frappe.get_doc("Payment Gateway Account", pm.payment_gateway_account)
+            # Si gateway_settings est fourni, l'utiliser directement
+            if gateway_settings:
+                # Récupérer le Payment Gateway
+                gateway = frappe.get_value("Payment Gateway", {"gateway_settings": gateway_settings}, "name")
+                if not gateway:
+                    frappe.throw(_("Payment Gateway not found for settings: {0}").format(gateway_settings))
+                    
+                # Récupérer le Payment Gateway Account
+                gateway_account = frappe.get_doc("Payment Gateway Account", {"payment_gateway": gateway})
+            else:
+                # Utiliser la méthode de paiement par défaut
+                payment_method = self.get_default_payment_method()
+                payment_method_doc = frappe.get_doc("Webshop Payment Method", payment_method)
+                # Get payment gateway account
+                pm = payment_method_doc
+                gateway_account = frappe.get_doc("Payment Gateway Account", pm.payment_gateway_account)
             
             # Update quotation with payment_gateway
             quotation.payment_gateway = gateway_account.payment_gateway
