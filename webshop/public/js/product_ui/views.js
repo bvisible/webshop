@@ -8,7 +8,6 @@ webshop.ProductView =  class {
 		Object.assign(this, options);
 		this.preference = this.view_type;
 		this.total_product_count = null;  // Initialize to null to detect first load
-		this.make();
 		this.load_settings();
 	}
 
@@ -203,7 +202,7 @@ webshop.ProductView =  class {
 				</button>`;
 		}
 
-		// Afficher toutes les pages
+		// Show page numbers
 		for (let i = 1; i <= total_pages; i++) {
 			let is_current = i === current_page;
 			let page_start = (i - 1) * page_length;

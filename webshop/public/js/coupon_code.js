@@ -1,7 +1,7 @@
 frappe.ui.form.on('Coupon Code', {
     refresh: function(frm) {
         console.log(frm);
-        // Masquer/afficher le champ gift_card_amount selon le type
+        // Show or hide the gift card amount field
         frm.toggle_display('gift_card_amount', frm.doc.coupon_type === 'Gift Card');
         
         // Rendre le champ read-only
@@ -24,7 +24,7 @@ frappe.ui.form.on('Coupon Code', {
     },
     
     coupon_type: function(frm) {
-        // Effacer le montant si ce n'est pas une gift card
+        // Remove the gift card amount
         if (frm.doc.coupon_type !== 'Gift Card') {
             frm.set_value('gift_card_amount', 0);
             frm.save();
