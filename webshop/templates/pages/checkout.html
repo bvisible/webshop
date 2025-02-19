@@ -43,7 +43,7 @@
 						<div class="mb-4">
 							<h5 class="mb-3">{{ _("Your information") }}</h5>
 							<div class="frappe-card p-5 mb-4">
-							
+								<input type="hidden" id="contact_name" name="contact_name" value="{{ contact_name or '' }}">
 								<div class="row">
 									<div class="col-md-6 mb-3">
 										<label for="contact_first_name">{{ _("First Name") }} *</label>
@@ -335,7 +335,17 @@
 						<div class="payment-error alert alert-danger" style="display: none;"></div>
 
 						<!-- Container for payment methods -->
-						<div id="payment-methods-container" class="mb-4"></div>
+						<div id="payment-methods-container" class="mb-4">
+							<div class="frappe-card p-5 mb-4 d-flex align-items-center">
+								<div class="checkout-freeze" style="display: block; position: relative;">
+									<div class="loader">
+										<div class="mask"></div>
+										<div class="mask2"></div>
+									</div>
+								</div>
+								<span class="ml-2"> {{_("Loading payment methods...")}}</span>
+							</div>
+						</div>
 
 						{% if doc.terms %}
 						<h5 id="terms-title" class="mb-3">{{ _( doc.tc_name or _("terms and conditions") ) }}</h5>

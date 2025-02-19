@@ -39,16 +39,19 @@ frappe.ready(function() {
             this.paymentMethods = [];
             this.currentMethod = null;
             this.isGiftCardOnly = false;
-            
+            this.quotationName = null;
+            this.paymentMethodsInitialized = false;
+            // Initialisation du cache pour les templates de paiement
+            this.loadedPaymentTemplates = {};
+
             this.setupListeners();
             this.setupAddressListeners();
-            this.loadExistingAddress();
             this.bindQuantityControls();
             this.checkGiftCardOnly();
             this.showStep('step-address');
-            this.paymentMethodsInitialized = false;
-            this.setupPaymentMethods();
-            this.initializeAddresses();
+            this.loadExistingAddress();
+
+            this.initializeAddressesAndOrderSummary();
             this.initializeCouponHandling();
             this.initializeLoyaltyHandling();
             $(".shopping-cart").toggleClass('hidden', true);
@@ -81,7 +84,7 @@ frappe.ready(function() {
             }
         }
 
-        initializeAddresses() {
+        initializeAddressesAndOrderSummary() {
             if (this.isLoading) return;
             
             this.freezeElements(['step-section', 'order-summary']);
@@ -93,6 +96,7 @@ frappe.ready(function() {
                         if (!r.exc && r.message) {
                             const quotation = r.message.doc;
                             if (quotation) {
+                                this.quotationName = quotation.name;
                                 if (quotation.customer_address) {
                                     $('#billing_address_name').val(quotation.customer_address);
                                     frappe.call({
@@ -105,6 +109,9 @@ frappe.ready(function() {
                                         this.unfreezeElements(['step-section', 'order-summary']);
                                     });
                                 }
+                                
+                                // Update order summary
+                                this._updateOrderSummary(quotation);
                             }
                         }
                     }
@@ -1043,7 +1050,7 @@ frappe.ready(function() {
             this.unfreezeElements(['step-section', 'order-summary']);
         }
 
-        async _updateOrderSummary(doc) {
+        async _updateOrderSummary(doc, notReload = false) {
             const subtotalElement = $('.bill-content.net-total.subtotal');
             const subtotalLabelElement = $('.bill-label.subtotal-element');
 
@@ -1235,8 +1242,8 @@ frappe.ready(function() {
             if (!this.isUpdatingShipping) {
                 this.refreshShippingMethods();
             }
-            // Refresh payment methods if necessary
-            if (!this.isUpdatingPayment) {
+            // Refresh payment methods only if not already updating a method and on payment step
+            if (!this.isUpdatingPayment && $('.step-section.active').attr('id') === 'step-payment' && !notReload) {
                 this.refreshPaymentMethods();
             }
         }
@@ -1477,7 +1484,7 @@ frappe.ready(function() {
 
             frappe.call({
                 method: 'webshop.templates.pages.checkout.get_payment_methods',
-                callback: (r) => {                    
+                callback: (r) => {
                     if (!r.message) {
                         console.error("No response from get_payment_methods API");
                         return;
@@ -1619,12 +1626,25 @@ frappe.ready(function() {
                                     }
                                 });
 
-                                // Select first method by default
-                                if (this.paymentMethods.length > 0) {
-                                    const firstMethod = this.paymentMethods[0];
-                                    $(`#method_${firstMethod.id.replace(/[^a-zA-Z0-9]/g, '_')}`).prop('checked', true);
-                                    this.handlePaymentMethodChange(firstMethod.id);
-                                }
+                                // Get saved payment method
+                                frappe.call({
+                                    method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
+                                    callback: (result) => {
+                                        if (result.message && result.message.doc && result.message.doc.payment_method) {
+                                            const savedMethod = result.message.doc.payment_method;
+                                            $(`#method_${savedMethod.replace(/[^a-zA-Z0-9]/g, '_')}`).prop('checked', true);
+                                            this.handlePaymentMethodChange(savedMethod);
+                                        } else if (this.paymentMethods.length > 0) {
+                                            // if no payment method is saved, select the first one by default
+                                            const firstMethod = this.paymentMethods[0];
+                                            $(`#method_${firstMethod.id.replace(/[^a-zA-Z0-9]/g, '_')}`).prop('checked', true);
+                                            this.handlePaymentMethodChange(firstMethod.id);
+                                        }
+                                    }
+                                });
+
+                                // Initialize tooltips
+                                $('[data-toggle="tooltip"]').tooltip();
                             }
                         }
                     });
@@ -1641,26 +1661,37 @@ frappe.ready(function() {
                 console.error('Method not found:', methodId);
                 return;
             }
-
-            // Mark selected method
+        
+            // Save the method in the quotation
+            frappe.call({
+                method: 'webshop.templates.pages.checkout.update_payment_method',
+                args: {
+                    payment_method: methodId
+                }
+            });
+        
+            // Update the selected method
             $('.payment-method-item').removeClass('selected');
             const cleanId = method.id.replace(/[^a-zA-Z0-9]/g, '_');
             $(`[data-method-id="${cleanId}"]`).addClass('selected');
             $(`#method_${cleanId}`).prop('checked', true);
-
+        
             // Hide all payment forms
             $('.payment-method-form').hide();
-
-            // Clean and prepare form
+        
+            // Prepare the container for the payment form
             const formId = `payment-form-${cleanId}`;
             const $form = $(`#${formId}`);
-            
-            // Remove existing scripts related to form
-            $('script[data-payment-form]').remove();
-            
-            // Clean form
+        
+            // If the template for this method is already loaded, just show it
+            if (this.loadedPaymentTemplates[cleanId]) {
+                 $form.show();
+                 return;
+            }
+        
+            // Any existing content in the form will be removed
             $form.empty().off();
-
+        
             frappe.call({
                 method: 'webshop.templates.pages.checkout.get_payment_template',
                 args: {
@@ -1677,66 +1708,70 @@ frappe.ready(function() {
                         payer_email: frappe.session.user
                     }
                 },
-                callback: (r) => {                        
+                callback: (r) => {
                     if (!r.error && r.message) {
                         try {
-                            // Clean up old gateway instances if they exist
+                            // Cleanup old gateway instances if they exist
                             if (window[`destroy${method.id}Gateway`]) {
                                 window[`destroy${method.id}Gateway`]();
                             }
-
-                            // Extract HTML and JavaScript
+        
+                            // Create a temporary container to separate HTML and scripts
                             const tempContainer = document.createElement('div');
                             tempContainer.innerHTML = r.message.html;
-                            
-                            // Separate HTML from scripts
+        
+                            // Extract scripts and remove script content from container
                             const scripts = tempContainer.getElementsByTagName('script');
                             const scriptContents = [];
-                            
-                            // Extract script contents and remove them from container
                             while (scripts.length > 0) {
                                 const script = scripts[0];
                                 scriptContents.push(script.textContent);
                                 script.parentNode.removeChild(script);
                             }
-                            
-                            // Inject HTML without scripts
+        
+                            // Inject HTML (without scripts) into the form container
                             $form.html(tempContainer.innerHTML);
-                            
-                            // Create new scope for JavaScript
+        
+                            // Create a function to initialize the payment form in an isolated scope
                             const initializePaymentForm = new Function(`
                                 return function(formId, method, config) {
                                     ${scriptContents.join('\n')}
                                 }
                             `)();
-                            
-                            // Initialize form in its own scope
+        
+                            // Initialize the payment form
                             initializePaymentForm(formId, method, r.message.config || {});
-
-                            // Initialize gateway JavaScript if necessary
+        
+                            // If the gateway requires a specific initialization, launch it
                             if (method.client_configuration) {
                                 try {
                                     const config = JSON.parse(method.client_configuration);
-
                                     if (config.init_function && window[config.init_function]) {
                                         const settings = r.message.config || {};
                                         const requiredFields = config.required_fields || [];
                                         const initParams = {};
-                                        
                                         requiredFields.forEach(field => {
                                             if (settings[field]) {
                                                 initParams[field] = settings[field];
                                             }
                                         });
-
                                         window[config.init_function](initParams);
                                     }
                                 } catch (e) {
                                     console.error('Error initializing gateway:', e);
                                 }
                             }
-
+        
+                            // Show the form with an animation
                             $form.fadeIn();
+        
+                            // Store in the cache that the template
+                            this.loadedPaymentTemplates[cleanId] = {
+                                loaded: true,
+                                destroy: typeof window[`destroy${method.id}Gateway`] === 'function'
+                                        ? window[`destroy${method.id}Gateway`]
+                                        : null
+                            };
                         } catch (e) {
                             console.error('Error loading payment template:', e);
                             frappe.msgprint({
@@ -1789,6 +1824,8 @@ frappe.ready(function() {
 
         refreshPaymentMethods() {
             this.isUpdatingPayment = true;
+            // Invalidate the cache to force reloading with new data
+            this.loadedPaymentTemplates = {};
             this.paymentMethodsInitialized = false;  
             this.setupPaymentMethods();
             this.isUpdatingPayment = false;
@@ -1837,7 +1874,7 @@ frappe.ready(function() {
         isValidEmail(email) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return emailRegex.test(email);
-        }    
+        }
 
         async checkGiftCardOnly() {
             frappe.call({

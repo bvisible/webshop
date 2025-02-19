@@ -90,6 +90,7 @@ def get_context(context):
 		# Get primary contact
 		if customer.customer_primary_contact:
 			contact = frappe.get_doc('Contact', customer.customer_primary_contact)
+			context.contact_name = contact.name
 			context.contact_first_name = contact.first_name
 			context.contact_last_name = contact.last_name
 			context.contact_email = contact.email_id
@@ -100,6 +101,7 @@ def get_context(context):
 	if not contact_info_set and quotation.get('contact_person'):
 		contact = frappe.get_doc('Contact', quotation.get('contact_person'))
 		if contact:
+			context.contact_name = contact.name
 			context.contact_first_name = contact.first_name
 			context.contact_last_name = contact.last_name or ''  
 			context.contact_email = contact.email_id
@@ -551,3 +553,16 @@ def get_gateway_info(payment_gateway_account):
     except Exception as e:
         frappe.log_error("Error getting gateway information", e)
         raise
+
+@frappe.whitelist()
+def update_payment_method(payment_method):
+    """Update the payment method in the cart quotation"""
+    quotation = _get_cart_quotation()
+    
+    # Utiliser db_set pour mettre à jour directement sans vérification de timestamp
+    quotation.db_set('payment_method', payment_method, update_modified=False)
+    
+    return {
+        "success": True,
+        "payment_method": payment_method
+    }

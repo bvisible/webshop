@@ -75,6 +75,12 @@
         cardholderEmailInput.val($('#contact_email').val());
     }
 
+    if (window.stripe) {
+        initStripe();
+        return;
+    }
+    window.stripe = true;
+
     (function() {
         var stripeScript = document.createElement('script');
         stripeScript.src = "https://js.stripe.com/v3/";

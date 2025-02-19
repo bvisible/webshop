@@ -35,6 +35,9 @@
 </div>
 
 <script>
+    if (window.paypal) return;
+    window.paypal = true;
+
     let formData = checkout_manager.initPaymentForm('{{ payment_form_id }}');
     let cardholderName = $('#{{ payment_form_id }} input[name="cardholder-name"]');
     let cardholderEmail = $('#{{ payment_form_id }} input[name="cardholder-email"]');
