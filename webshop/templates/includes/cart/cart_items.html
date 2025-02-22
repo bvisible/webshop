@@ -72,11 +72,11 @@
 		<!-- Qty column -->
 		<td class="text-right" style="width: 20%;">
 			<div class="d-flex">
-				{% set disabled = 'disabled' if d.is_free_item else '' %}
+				{% set disabled = 'disabled' if d.is_free_item or d.gift_card_data else '' %}
 				<div class="input-group number-spinner mt-1 mb-4 mr-2">
 					<span class="input-group-prepend d-sm-inline-block">
 						<button class="btn cart-btn" data-dir="dwn" {{ disabled }}>
-							{{ '–' if not d.is_free_item else ''}}
+							{{ '–' if not (d.is_free_item or d.gift_card_data) else ''}}
 						</button>
 					</span>
 
@@ -85,7 +85,7 @@
 
 					<span class="input-group-append d-sm-inline-block">
 						<button class="btn cart-btn" data-dir="up" {{ disabled }}>
-							{{ '+' if not d.is_free_item else ''}}
+							{{ '+' if not (d.is_free_item or d.gift_card_data) else ''}}
 						</button>
 					</span>
 				</div>

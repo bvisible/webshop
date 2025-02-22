@@ -1571,6 +1571,14 @@ def remove_quotation_loyalty_points(doc, method=None):
 	
 	return False
 
+# Check if gift cards exist
+@frappe.whitelist(allow_guest=True)
+def check_gift_cards(code):
+	"""Check if gift cards exist"""
+	
+	coupon_code = frappe.db.exists("Coupon Code", {"coupon_code": code})
+	return bool(coupon_code)
+
 def create_gift_cards_from_invoice(doc, method=None):
 	"""Create gift cards for gift card items in a paid invoice"""
 	try:
@@ -1578,17 +1586,22 @@ def create_gift_cards_from_invoice(doc, method=None):
 		if not sales_invoice.docstatus == 1 or sales_invoice.outstanding_amount > 0:
 			return
 
+		# Check if any gift card item
+		for item in sales_invoice.items:
+			if not is_gift_card_item(item.item_code):
+				continue
+				
+			gift_card_data = json.loads(item.gift_card_data) if item.gift_card_data else None
+			if gift_card_data and gift_card_data.get("code"):
+				# Check if gift card code already exists
+				if frappe.db.exists("Coupon Code", {"coupon_code": gift_card_data.get("code")}):
+					return
+
 		# Check validity settings in Webshop Settings
 		settings = frappe.get_single("Webshop Settings")
 		validity_months = cint(settings.get("number_of_valid_months", 0))
 		valid_from = frappe.utils.today()
 		valid_upto = frappe.utils.add_months(valid_from, validity_months) if validity_months > 0 else None
-
-		# Get customer's email
-		customer = frappe.get_doc("Customer", sales_invoice.customer)
-		owner_email = None
-		if customer.portal_users:
-			owner_email = customer.portal_users[0].user
 
 		for item in sales_invoice.items:
 			if not is_gift_card_item(item.item_code):
@@ -1633,10 +1646,12 @@ def create_gift_cards_from_invoice(doc, method=None):
 					gift_card_data = json.loads(item.gift_card_data) if item.gift_card_data else None
 					coupon_code = gift_card_data.get("code") if gift_card_data else None
 					coupon_name = _("Gift card {0} - {1} - {2}").format(
-						frappe.utils.fmt_money(item.rate, coupon_code, currency=sales_invoice.currency),
+						frappe.utils.fmt_money(item.rate, currency=sales_invoice.currency),
 						sales_invoice.customer,
 						coupon_code
 					)
+
+					customer = frappe.get_doc("Customer", sales_invoice.customer)
 
 					gift_card = frappe.get_doc({
 						"doctype": "Coupon Code",
@@ -1650,33 +1665,76 @@ def create_gift_cards_from_invoice(doc, method=None):
 						"used": 0,
 						"customer": sales_invoice.customer,
 						"sales_invoice": sales_invoice.name,
-						"gift_card_amount": item.rate
+						"gift_card_amount": item.rate,
+						"owner":  customer.portal_users[0].user
 					})
-					
-					if owner_email:
-						gift_card.owner = owner_email
-					
+
 					gift_card.ignore_permissions = True
 					gift_card.insert(ignore_permissions=True)
-					gift_card.save( ignore_permissions=True )
+					gift_card.save(ignore_permissions=True)
 					
-					# Send an email to the customer with the gift card code
-					# frappe.sendmail(
-					# 	recipients=[owner_email] if owner_email else [sales_invoice.contact_email],
-					# 	subject=f"Your gift card of {item.rate:.2f}",
-					# 	message=f"""Hello,
-					# 		Here is your gift card of {item.rate:.2f}.
-					# 		Code: {coupon_code}
-					# 		Valid from {valid_from} to {valid_upto if valid_upto else 'no limit'}.
-					# 
-					# 		Best regards,
-					# 		The team""",
-					# 	delayed=False
-					# )
+					# Update owner
+					user_email = None
+					if customer.portal_users:
+						user = customer.portal_users[0].user
+						user_email = user
+						frappe.db.sql("""
+							UPDATE `tabCoupon Code`
+							SET `owner` = %s, `modified_by` = %s
+							WHERE name = %s
+						""", (user, user, gift_card.name))
+						frappe.db.commit()
+					
+					# Send notification if configured
+					webshop_settings = frappe.get_doc("Webshop Settings")
+					if webshop_settings.gift_card_notification and user_email:
+						try:
+							notification = frappe.get_doc("Notification", webshop_settings.gift_card_notification)
+							if notification:
+								# Send notification
+								from frappe.core.doctype.communication.email import _make
+								_make(
+									doctype=gift_card.doctype,
+									name=gift_card.name,
+									subject=notification.subject,
+									content=frappe.render_template(notification.message, {"doc": gift_card}),
+									recipients=[user_email],
+									send_email=True,
+									communication_medium="Email",
+									sender=notification.sender_email,
+									sender_full_name=notification.sender
+								)
+
+						except Exception as e:
+							frappe.log_error("Gift Card - Notification Error", f"Error sending notification: {str(e)}")
+					
 				except Exception as e:
 					frappe.log_error("Gift Card - Error creation",f"Error creating Gift Card: {str(e)}\nData: {gift_card.as_dict() if 'gift_card' in locals() else 'Not created'}")
 					raise
 
 	except Exception as e:
 		frappe.log_error("Gift Card - General error",f"General error creating Gift Card: {str(e)}")
+		raise
+
+def check_gift_cards_from_payment(doc, method=None):
+	"""Checks payment-related invoices and creates gift cards if necessary"""
+	try:
+		payment_entry = doc
+		
+		# Check only validated payments	
+		if not payment_entry.docstatus == 1:
+			return
+			
+		# Loop through payment references
+		for ref in payment_entry.references:
+			if ref.reference_doctype == "Sales Invoice" and ref.outstanding_amount == 0:
+				sales_invoice = frappe.get_doc("Sales Invoice", ref.reference_name)
+				
+				# Check invoice is validated and has no outstanding amount
+				if sales_invoice.docstatus == 1 and sales_invoice.outstanding_amount == 0:
+					# Create gift cards from invoice
+					create_gift_cards_from_invoice(sales_invoice)
+					
+	except Exception as e:
+		frappe.log_error("Gift Card - Payment Check Error", f"Error checking payment for gift cards: {str(e)}")
 		raise

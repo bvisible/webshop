@@ -40,18 +40,24 @@
               {{ item["item_name"] }}
             </div>
             <div class="d-flex align-items-center justify-content-between qty-amount">
+              {% set disabled = 'disabled' if item.get("gift_card_data") else '' %}
               <div class="input-group number-spinner" style="width: 120px;">
                 <span class="input-group-prepend">
-                  <button class="btn cart-btn" data-dir="dwn">–</button>
+                  <button class="btn cart-btn" data-dir="dwn" {{ disabled }}>
+                    {{ '–' if not item.get("gift_card_data") else '' }}
+                  </button>
                 </span>
                 <input
                   class="form-control text-center cart-qty"
                   value="{{ item["qty"] }}"
                   data-item-code="{{ item["item_code"] }}"
                   style="max-width: 60px;"
+                  {{ disabled }}
                 />
                 <span class="input-group-append">
-                  <button class="btn cart-btn" data-dir="up">+</button>
+                  <button class="btn cart-btn" data-dir="up" {{ disabled }}>
+                    {{ '+' if not item.get("gift_card_data") else '' }}
+                  </button>
                 </span>
               </div>
               <div class="item-price-details d-flex flex-column align-items-end ml-3">

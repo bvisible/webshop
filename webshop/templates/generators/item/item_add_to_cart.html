@@ -285,34 +285,88 @@
 					amount = parseFloat($selectedAmount.val());
 				}
 				
-				// Prepare gift card data
-				gift_card_data = {
-					code: g(4) + "-" + g(4) + "-" + g(4),
-					price_list_rate: amount,
-					rate: amount,
-					amount_type: $selectedAmount.val(),
-					custom_amount: $selectedAmount.val() === 'custom' ? amount : null
+				// Function to generate unique code
+				const generateUniqueCode = () => {
+					return new Promise((resolve, reject) => {
+						const checkCode = (code) => {
+							frappe.call({
+								method: "webshop.webshop.shopping_cart.cart.check_gift_cards",
+								args: { code: code },
+								callback: function(r) {
+									if (r.message) {
+										// Le code existe, on en génère un nouveau
+										const newCode = g(4) + "-" + g(4) + "-" + g(4);
+										checkCode(newCode);
+									} else {
+										// Le code n'existe pas, on peut l'utiliser
+										resolve(code);
+									}
+								},
+								error: function(r) {
+									reject(r);
+								}
+							});
+						};
+						
+						// Premier essai avec un code
+						const initialCode = g(4) + "-" + g(4) + "-" + g(4);
+						checkCode(initialCode);
+					});
 				};
-			}
-
-			// Update cart with amount as price_list_rate
-			frappe.call({
-				method: "webshop.webshop.shopping_cart.cart.update_cart",
-				args: {
-					item_code: item_code,
-					qty: 1,
-					price_list_rate: amount,
-					gift_card_data: gift_card_data,
-					add_qty: true,
-					with_items: 1
-				},
-				callback: function(r) {
-					$btn.prop('disabled', false);
-					if (r.message) {
-						window.location.href = '/cart';
+				
+				// Generate unique code
+				generateUniqueCode()
+					.then(uniqueCode => {
+						// Prepare gift card data
+						gift_card_data = {
+							code: uniqueCode,
+							price_list_rate: amount,
+							rate: amount,
+							amount_type: $selectedAmount.val(),
+							custom_amount: $selectedAmount.val() === 'custom' ? amount : null
+						};
+						
+						// Update cart with amount as price_list_rate
+						frappe.call({
+							method: "webshop.webshop.shopping_cart.cart.update_cart",
+							args: {
+								item_code: item_code,
+								qty: 1,
+								price_list_rate: amount,
+								gift_card_data: gift_card_data,
+								add_qty: true,
+								with_items: 1
+							},
+							callback: function(r) {
+								$btn.prop('disabled', false);
+								if (r.message) {
+									window.location.href = '/cart';
+								}
+							}
+						});
+					})
+					.catch(err => {
+						$btn.prop('disabled', false);
+						frappe.throw(__('Error generating gift card code'));
+					});
+			} else {
+				// Update cart without gift card data
+				frappe.call({
+					method: "webshop.webshop.shopping_cart.cart.update_cart",
+					args: {
+						item_code: item_code,
+						qty: 1,
+						add_qty: true,
+						with_items: 1
+					},
+					callback: function(r) {
+						$btn.prop('disabled', false);
+						if (r.message) {
+							window.location.href = '/cart';
+						}
 					}
-				}
-			});
+				});
+			}
 		});
 
 		$('.page_content').on('click', '.offer-details', (e) => {
