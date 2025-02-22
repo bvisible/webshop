@@ -748,8 +748,12 @@ frappe.ready(function() {
             });
             
             if (stepId === 'step-payment') {
-                this.paymentMethodsInitialized = true;
-                this.setupPaymentMethods();
+                // Initialise payment methods if you have not already done so
+                if (!this.paymentMethodsInitialized) {
+                    this.setupPaymentMethods();
+                    this.paymentMethodsInitialized = true;
+                }
+                
                 // Update shipping method if already selected
                 const selectedShippingMethod = $('input[name="shipping_method"]:checked').val();
                 if (selectedShippingMethod) {

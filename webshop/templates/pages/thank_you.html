@@ -75,6 +75,7 @@
                                                 <tr>
                                                     <th>{{ _("Items") }}</th>
                                                     <th class="text-right">{{ _("Quantity") }}</th>
+                                                    <th class="text-right">{{ _("Rate") }}</th>
                                                     <th class="text-right">{{ _("Amount") }}</th>
                                                 </tr>
                                             </thead>
@@ -84,43 +85,53 @@
                                                     <td>
                                                         <div class="row">
                                                             <div class="col-3">
-                                                                {% if item.thumbnail %}
-                                                                    {{ product_image(item.thumbnail, alt=item.web_item_name, no_border=True) }}
-                                                                {% else %}
-                                                                    <div class="no-image-cart-item">
-                                                                        {{ frappe.utils.get_abbr(item.web_item_name) or "NA" }}
-                                                                    </div>
-                                                                {% endif %}
+                                                              {% if item.thumbnail %}
+                                                                  {{ product_image(item.thumbnail, alt=item.item_name, no_border=True) }}
+                                                              {% else %}
+                                                                  <div class="no-image-cart-item">
+                                                                      {{ frappe.utils.get_abbr(item.item_name) or "NA" }}
+                                                                  </div>
+                                                              {% endif %}
                                                             </div>
                                                             <div class="col">
                                                                 <h6>{{ item.item_name }}</h6>
-                                                                <!-- Gift Card -->
                                                                 {% if item.gift_card_data %}
+                                                                    <!-- Gift Card -->
                                                                     {% set gift_card = json.loads(item.gift_card_data) %}
-                                                                    <span class="text-muted">{{ _("Discount Code :") }} <b>{{ gift_card.get('code') }}</b></span>
-                                                                    <br>
-                                                                    <span class="text-muted">{{ _("Expiration Date :") }} {{ frappe.utils.format_date(frappe.db.get_value("Coupon Code", gift_card.get('code'), "valid_upto")) }}</span>
+                                                                    {% if sales_invoice and sales_invoice.outstanding_amount == 0 %}
+                                                                        <div class="alert alert-success mt-2">
+                                                                            <strong>{{ _("Gift Card Code") }} :</strong> <code>{{ gift_card.get('code') }}</code><br>
+                                                                        </div>
+                                                                    {% else %}
+                                                                        <div class="alert alert-info mt-2">
+                                                                            {{ _("Your gift card code will be available once the invoice has been paid in full.") }}
+                                                                        </div>
+                                                                    {% endif %}
                                                                 {% endif %}
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td class="text-right">{{ item.qty }}</td>
+                                                    <td class="text-right">{{ frappe.utils.fmt_money(item.rate, currency=doc.currency) }}</td>
                                                     <td class="text-right">{{ frappe.utils.fmt_money(item.amount, currency=doc.currency) }}</td>
                                                 </tr>
                                                 {% endfor %}
                                             </tbody>
                                             <tfoot>
                                                 <tr>
+                                                    <td></td>
                                                     <td colspan="2" class="text-right"><strong>{{ _("Subtotal") }}</strong></td>
                                                     <td class="text-right">{{ frappe.utils.fmt_money(doc.net_total, currency=doc.currency) }}</td>
                                                 </tr>
                                                 {% if doc.total_taxes_and_charges %}
                                                 <tr>
+                                                    <td></td>
                                                     <td colspan="2" class="text-right">{{ _("Taxes and Charges") }}</td>
                                                     <td class="text-right">{{ frappe.utils.fmt_money(doc.total_taxes_and_charges, currency=doc.currency) }}</td>
                                                 </tr>
                                                 {% endif %}
                                                 <tr>
+                                                    <td></td>
                                                     <td colspan="2" class="text-right"><strong>{{ _("Total") }}</strong></td>
                                                     <td class="text-right"><strong>{{ frappe.utils.fmt_money(doc.rounded_total, currency=doc.currency) }}</strong></td>
                                                 </tr>
@@ -129,6 +140,36 @@
                                     </div>
                                 </div>
                             </div>
+
+                            {% if sales_invoice %}
+                                <div class="row mt-4">
+                                    <div class="col-md-12">
+                                        <div class="gift-cards-section">
+                                            <h5 class="mt-2">{{ _("Gift Cards") }}</h5>
+                                            {% if gift_cards %}
+                                                <div class="alert alert-success">
+                                                    <h6>{{ _("Your gift card codes are available :") }}</h6>
+                                                    {% for card in gift_cards %}
+                                                        <div class="gift-card-item mb-2">
+                                                            <strong>{{ _("Amount") }} :</strong> {{ frappe.utils.fmt_money(card.gift_card_amount) }}<br>
+                                                            <strong>{{ _("Code") }} :</strong> <code>{{ card.coupon_code }}</code><br>
+                                                            <strong>{{ _("Valid from") }} :</strong> {{ frappe.utils.format_date(card.valid_from) }}
+                                                            {% if card.valid_upto %}
+                                                                {{ _("to") }} {{ frappe.utils.format_date(card.valid_upto) }}
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% elif sales_invoice.outstanding_amount > 0 %}
+                                                <div class="alert alert-info">
+                                                    {{ _("Your gift card codes will be available once the invoice has been paid in full.") }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
                             <!-- btn account and store -->
                             <div class="row mt-4 mb-4 justify-content-center">
                                 <div class="col-md-3">

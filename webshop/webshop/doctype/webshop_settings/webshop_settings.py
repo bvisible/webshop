@@ -249,9 +249,12 @@ class WebshopSettings(Document):
 
 	def update_gift_card_template(self):
 		"""Updates is_gift_card field on Website Items when gift card template changes"""
-		if not self.is_new():
-			old_doc = self.get_doc_before_save()
-			
+		old_doc = None
+		if self.name:
+			old_doc = frappe.get_doc("Webshop Settings", self.name)
+
+		if old_doc and ((old_doc.enable_gift_cards and not self.enable_gift_cards) or \
+			(old_doc.gift_card_template and old_doc.gift_card_template != self.gift_card_template)):
 			# If gift cards are disabled or if template has changed,
 			# disable old template
 			if (old_doc.enable_gift_cards and not self.enable_gift_cards) or \

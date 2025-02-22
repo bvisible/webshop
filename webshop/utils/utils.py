@@ -4,7 +4,7 @@ import json
 from frappe import _
 from frappe.utils.data import fmt_money
 
-@frappe.whitelist()
+@frappe.whitelist( allow_guest=True )
 def format_currency_value(value, currency=None, precision=None):
     """Formats the 'value' with the provided currency and precision."""
     return fmt_money(value, precision=precision, currency=currency)
