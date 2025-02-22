@@ -92,7 +92,6 @@
 		{% endif %}
 
 		{% if frappe.db.get_single_value('Webshop Settings', 'enable_gift_cards') and doc.is_gift_card %}
-
 			<div class="gift-card-section mb-4">
 				{% set cart = frappe.call('webshop.webshop.shopping_cart.cart.get_cart_quotation') %}
 				{% set ns = namespace(has_gift_card=False) %} {% for item in cart.doc.items %} {% set is_gift = frappe.db.get_value('Website Item', {'item_code': item.item_code}, 'is_gift_card') %} {% if is_gift %} {% set ns.has_gift_card = True %} {% endif %} {% endfor %}

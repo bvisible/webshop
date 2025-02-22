@@ -153,7 +153,7 @@
 		<div class="card-img-container">
 			<a href="/{{ item.route or '#' }}" style="text-decoration: none;">
 				{% if item.image %}
-					<img itemprop="image" class="card-img" src="{{ item.image }}" alt="{{ title }}">
+					<img itemprop="image" class="card-img" src="{{ item.image }}" alt="{{ _(title) }}">
 				{% else %}
 					<div itemprop="image" class="card-img-top no-image">
 						{{ frappe.utils.get_abbr(title) }}
@@ -302,7 +302,7 @@
 
 		{% if values | len > 20 %}
 		<!-- show inline filter if values more than 20 -->
-		<input type="text" class="form-control form-control-sm mb-2 filter-lookup-input" placeholder="Search {{ _(item_field.label + 's') }}"/>
+		<input type="text" class="form-control form-control-sm mb-2 filter-lookup-input" placeholder="Search {{ _(item_field.label) + 's' }}"/>
 		{% endif %}
 
 		{% if values %}
@@ -349,7 +349,7 @@
 						data-attribute-value="{{ attr_value }}"
 						style="width: 14px !important"
 						{% if attr_value.checked %} checked {% endif %}>
-						<span class="label-area">{{ attr_value }}</span>
+						<span class="label-area">{{ _(attr_value) }}</span>
 				</label>
 			</div>
 			{% endfor %}

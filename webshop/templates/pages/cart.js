@@ -17,6 +17,7 @@ $.extend(shopping_cart, {
         shopping_cart.bind_change_qty();
         shopping_cart.bind_remove_cart_item();
         shopping_cart.bind_change_notes();
+        shopping_cart.bind_coupon_code();
     },
 
     bind_place_order: function() {
@@ -190,6 +191,29 @@ $.extend(shopping_cart, {
             }
         });
     },
+
+    bind_coupon_code: function() {
+		$(".bt-coupon").on("click", function() {
+			shopping_cart.apply_coupon_code(this);
+		});
+	},
+
+	apply_coupon_code: function(btn) {
+		return frappe.call({
+			type: "POST",
+			method: "webshop.webshop.shopping_cart.cart.apply_coupon_code",
+			btn: btn,
+			args : {
+				applied_code : $('.txtcoupon').val(),
+				applied_referral_sales_partner: $('.txtreferral_sales_partner').val()
+			},
+			callback: function(r) {
+				if (r && r.message){
+					location.reload();
+				}
+			}
+		});
+	}
 });
 
 frappe.ready(function() {
