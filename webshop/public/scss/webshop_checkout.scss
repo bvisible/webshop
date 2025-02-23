@@ -45,7 +45,7 @@ body[data-path="checkout"] {
           top: 15px;
           left: 50px;
           height: 2px;
-          background: var(--green);
+          background: var(--teal);
           z-index: 0;
           transition: width 0.3s ease;
         }
@@ -104,7 +104,7 @@ body[data-path="checkout"] {
         z-index: 1;
 
         &.active {
-          background: var(--green);
+          background: var(--teal);
           color: white;
         }
       }

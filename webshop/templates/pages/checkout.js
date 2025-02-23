@@ -111,7 +111,7 @@ frappe.ready(function() {
                                 }
                                 
                                 // Update order summary
-                                this._updateOrderSummary(quotation);
+                                this.updateOrderSummaryFromDoc(quotation);
                             }
                         }
                     }
@@ -757,7 +757,7 @@ frappe.ready(function() {
                 // Update shipping method if already selected
                 const selectedShippingMethod = $('input[name="shipping_method"]:checked').val();
                 if (selectedShippingMethod) {
-                    this.updateShippingMethod(selectedShippingMethod);
+                    this.updateShippingMethod(selectedShippingMethod, true);
                 }
             }
 
@@ -994,13 +994,12 @@ frappe.ready(function() {
         attachShippingMethodEvents() {
             $('input[name="shipping_method"]').off('change').on('change', (e) => {
                 const method = $(e.target).val();
-                const rate = $(e.target).data('rate');
                 
                 // Update selected class
                 $('.shipping-method').removeClass('selected');
                 $(e.target).closest('.shipping-method').addClass('selected');
                 
-                this.updateShippingMethod(method, rate);
+                this.updateShippingMethod(method);
             });
 
             // Add selected class to already checked method on load
@@ -1014,7 +1013,7 @@ frappe.ready(function() {
             return this.loadShippingMethods(true);
         }
 
-        updateShippingMethod(shipping_method) {
+        updateShippingMethod(shipping_method, notReload = false) {
             if (!shipping_method) return;
             this.freezeElements(['step-section', 'order-summary']);
             this.isUpdatingShipping = true;  
@@ -1027,7 +1026,7 @@ frappe.ready(function() {
                 },
                 callback: (r) => {
                     if (r.message && r.message.doc) {
-                        this.updateOrderSummaryFromDoc(r.message.doc);
+                        this.updateOrderSummaryFromDoc(r.message.doc, notReload);
                     }
                     this.isUpdatingShipping = false; 
                     this.unfreezeElements(['step-section', 'order-summary']);
@@ -1035,14 +1034,14 @@ frappe.ready(function() {
             });
         }
 
-        async updateOrderSummaryFromDoc(doc) {
+        async updateOrderSummaryFromDoc(doc, notReload = false) {
             if (!doc || typeof doc === 'boolean') {
                 // If no doc or doc is a boolean (case of remove), get updated doc
                 frappe.call({
                     method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
                     callback: (result) => {
                         if (result.message && result.message.doc) {
-                            this.updateOrderSummaryFromDoc(result.message.doc);
+                            this.updateOrderSummaryFromDoc(result.message.doc, notReload);
                         }
                         this.unfreezeElements(['step-section', 'order-summary']);
                     }
@@ -1050,7 +1049,7 @@ frappe.ready(function() {
                 return;
             }
 
-            await this._updateOrderSummary(doc);
+            await this._updateOrderSummary(doc, notReload);
             this.unfreezeElements(['step-section', 'order-summary']);
         }
 
@@ -1481,11 +1480,9 @@ frappe.ready(function() {
         }
 
         setupPaymentMethods() {
-            
             if (this.paymentMethodsInitialized) {
                 return;
             }
-
             frappe.call({
                 method: 'webshop.templates.pages.checkout.get_payment_methods',
                 callback: (r) => {
