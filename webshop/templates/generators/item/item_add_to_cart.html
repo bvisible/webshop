@@ -163,19 +163,26 @@
 					</script>
 					
 					<!-- Btn Add to Cart -->
-					<div class="mt-4">
-						<button
-							data-item-code="{{item_code}}"
-							class="btn btn-primary btn-add-to-cart mr-2"
-						>
-							<span class="mr-2">
-								<svg class="icon icon-md">
-									<use href="#icon-assets"></use>
-								</svg>
-							</span>
-							{{ _("Add to Cart") if cart_settings.enable_checkout else _("Add to Quote") }}
-						</button>
-					</div>
+					{% if cart_settings.enable_guest_cart == 0 and frappe.session.user == "Guest" %}
+						<a href="/login" class="btn btn-primary btn-add-to-cart mr-2 w-30-40"
+							role="button">
+							{{  _("To add to cart, please log in") }}
+						</a>	
+					{% else %}
+						<div class="mt-4">
+							<button
+								data-item-code="{{item_code}}"
+								class="btn btn-primary btn-add-to-cart mr-2"
+							>
+								<span class="mr-2">
+									<svg class="icon icon-md">
+										<use href="#icon-assets"></use>
+									</svg>
+								</span>
+								{{ _("Add to Cart") if cart_settings.enable_checkout else _("Add to Quote") }}
+							</button>
+						</div>
+					{% endif %}
 				{% else %}
 					<a href="/cart" class="btn btn-light btn-view-in-cart mr-2 font-md"
 						role="button">
@@ -193,35 +200,42 @@
 							role="button">
 							{{  _("View in Cart") if cart_settings.enable_checkout else _("View in Quote") }}
 						</a>
-						<!-- Add quantity -->
-						<div class="input-group number-spinner mr-2 mt-2" style="width: 120px;">
-							<span class="input-group-prepend">
-								<button class="btn cart-btn" data-dir="dwn">
-									–
-								</button>
-							</span>
-							<input class="form-control text-center item-qty" 
-								value="1" 
-								data-item-code="{{item_code}}"
-								style="max-width: 70px;">
-							<span class="input-group-append">
-								<button class="btn cart-btn" data-dir="up">
-									+
-								</button>
-							</span>
-						</div>
+						{% if cart_settings.enable_guest_cart == 0 and frappe.session.user == "Guest" %}
+							<a href="/login" class="btn btn-primary btn-add-to-cart mr-2 w-30-40"
+								role="button">
+								{{  _("To add to cart, please log in") }}
+							</a>
+						{% else %}
+							<!-- Add quantity -->
+							<div class="input-group number-spinner mr-2 mt-2" style="width: 120px;">
+								<span class="input-group-prepend">
+									<button class="btn cart-btn" data-dir="dwn">
+										–
+									</button>
+								</span>
+								<input class="form-control text-center item-qty" 
+									value="1" 
+									data-item-code="{{item_code}}"
+									style="max-width: 70px;">
+								<span class="input-group-append">
+									<button class="btn cart-btn" data-dir="up">
+										+
+									</button>
+								</span>
+							</div>
 
-						<button
-							data-item-code="{{item_code}}"
-							class="btn btn-primary btn-add-to-cart mr-2 w-30-40"
-						>
-							<span class="mr-2">
-								<svg class="icon icon-md">
-									<use href="#icon-assets"></use>
-								</svg>
-							</span>
-							{{ _("Add to Cart") if cart_settings.enable_checkout else  _("Add to Quote") }}
-						</button>
+							<button
+								data-item-code="{{item_code}}"
+								class="btn btn-primary btn-add-to-cart mr-2 w-30-40"
+							>
+								<span class="mr-2">
+									<svg class="icon icon-md">
+										<use href="#icon-assets"></use>
+									</svg>
+								</span>
+								{{ _("Add to Cart") if cart_settings.enable_checkout else  _("Add to Quote") }}
+							</button>
+						{% endif %}
 					{% endif %}
 
 					<!-- Contact Us -->

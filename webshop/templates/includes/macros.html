@@ -193,15 +193,22 @@
 
 	{% if (item.available and settings.show_stock_availability) or (not settings.show_stock_availability) %}
 		<!-- Show move to cart button if in stock or if showing stock availability is disabled -->
-		<button data-item-code="{{ item.item_code}}"
-			class="btn btn-primary btn-add-to-cart-list btn-add-to-cart mt-2 w-100">
-			<span class="mr-2">
-				<svg class="icon icon-md">
-					<use href="#icon-assets"></use>
-				</svg>
-			</span>
-			{{ _("Move to Cart") }}
-		</button>
+		{% if cart_settings.enable_guest_cart == 0 and frappe.session.user == "Guest" %}
+			<a href="/login" class="btn btn-primary btn-add-to-cart mr-2 w-30-40"
+				role="button">
+				{{  _("To add to cart, please log in") }}
+			</a>	
+		{% else %}
+			<button data-item-code="{{ item.item_code}}"
+				class="btn btn-primary btn-add-to-cart-list btn-add-to-cart mt-2 w-100">
+				<span class="mr-2">
+					<svg class="icon icon-md">
+						<use href="#icon-assets"></use>
+					</svg>
+				</span>
+				{{ _("Move to Cart") }}
+			</button>
+		{% endif %}
 	{% else %}
 		<div class="out-of-stock">
 			{{ _("Out of stock") }}

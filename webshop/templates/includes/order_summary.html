@@ -27,13 +27,13 @@
         {% for item in doc["items"] %}
         <div class="order-item d-flex align-items-center" data-item-code="{{ item["item_code"] }}">
             <div class="item-image mr-3">
-                {% if item.thumbnail %}
-                    {{ product_image(item.thumbnail, alt=item.web_item_name, no_border=True) }}
-                {% else %}
-                    <div class="no-image-cart-item">
-                        {{ frappe.utils.get_abbr(item.web_item_name) or "NA" }}
-                    </div>
-                {% endif %}
+              {% if item.website_image %}
+                <img itemprop="image" class="website-image h-100 w-100" alt="{{ _(item.web_item_name) }}" src="{{ frappe.utils.quoted(item.website_image) | abs_url }}">
+              {% else %}
+                <div itemprop="image" class="no-image-cart-item">
+                  {{ frappe.utils.get_abbr(item.web_item_name) or "NA" }}
+                </div>
+              {% endif %}
             </div>
           <div class="item-details flex-grow-1">
             <div class="item-name">

@@ -33,13 +33,13 @@
 				{%- set item_route = frappe.db.get_value('Website Item', {'item_code': d.item_code}, 'route') %}
 				<div class="cart-item-image mr-4">
 					<a href="{{ item_route or '#' }}">
-					{% if d.thumbnail %}
-						{{ product_image(d.thumbnail, alt="d.web_item_name", no_border=True) }}
-					{% else %}
-						<div class = "no-image-cart-item">
-							{{ frappe.utils.get_abbr(d.web_item_name) or "NA" }}
-						</div>
-					{% endif %}
+						{% if d.website_image %}
+							<img itemprop="image" class="website-image h-100 w-100" alt="{{ _(d.web_item_name) }}" src="{{ frappe.utils.quoted(d.website_image) | abs_url }}">
+						{% else %}
+							<div itemprop="image" class="no-image-cart-item">
+								{{ frappe.utils.get_abbr(d.web_item_name) or "NA" }}
+							</div>
+						{% endif %}
 					</a>
 				</div>
 

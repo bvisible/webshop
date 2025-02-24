@@ -188,25 +188,34 @@ class ItemConfigure {
 		this.dialog.$status_area.empty();
 	}
 
-	get_html_for_item_found({ filtered_items_count, filtered_items, exact_match, product_info }) {
+	get_html_for_item_found({ filtered_items_count, filtered_items, exact_match, product_info, enable_guest_cart}) {
 		const one_item = exact_match.length === 1
 			? exact_match[0]
 			: filtered_items_count === 1
 				? filtered_items[0]
 				: '';
 
-		const item_add_to_cart = one_item ? `
-			<button data-item-code="${one_item}"
-				class="btn btn-primary btn-add-to-cart w-100"
-				data-action="btn_add_to_cart"
-			>
-				<span class="mr-2">
-					${frappe.utils.icon('assets', 'md')}
-				</span>
-				${__("Add to Cart")}
-			</button>
-		` : '';
-
+		let item_add_to_cart = '';
+		if (enable_guest_cart == 0 && frappe.session.user == "Guest") {
+			item_add_to_cart = `
+				<a href="/login" class="btn btn-primary w-100" role="button">
+					${__("To add to cart, please log in")}
+				</a>
+			`;
+		} else {
+			item_add_to_cart = one_item ? `
+				<button data-item-code="${one_item}"
+					class="btn btn-primary btn-add-to-cart w-100"
+					data-action="btn_add_to_cart"
+				>
+					<span class="mr-2">
+						${frappe.utils.icon('assets', 'md')}
+					</span>
+					${__("Add to Cart")}
+				</button>
+			` : '';
+		}
+			
 		const items_found = filtered_items_count === 1 ?
 			__('{0} item found.', [filtered_items_count]) :
 			__('{0} items found.', [filtered_items_count]);
@@ -242,9 +251,7 @@ class ItemConfigure {
 	}
 
 	btn_add_to_cart(e) {
-		if (frappe.session.user !== 'Guest') {
-			localStorage.removeItem(this.get_cache_key());
-		}
+		localStorage.removeItem(this.get_cache_key());
 		const item_code = $(e.currentTarget).data('item-code');
 		const additional_notes = Object.keys(this.range_values || {}).map(attribute => {
 			return `${attribute}: ${this.range_values[attribute]}`;
@@ -255,6 +262,8 @@ class ItemConfigure {
 			qty: 1
 		});
 		this.dialog.hide();
+		// redirect to cart
+		window.location.href = '/cart';
 	}
 
 	btn_clear_values() {

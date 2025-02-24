@@ -156,11 +156,10 @@ def get_next_attribute_and_values(item_code, selected_attributes):
 				exact_match.append(item_code)
 
 	filtered_items_count = len(filtered_items)
+	cart_settings = get_shopping_cart_settings()
 
 	if exact_match:
-		cart_settings = get_shopping_cart_settings()
 		product_info = get_item_variant_price_dict(exact_match[0], cart_settings)
-
 		if product_info:
 			product_info["is_stock_item"] = frappe.get_cached_value("Item", exact_match[0], "is_stock_item")
 			product_info["allow_items_not_in_stock"] = cint(cart_settings.allow_items_not_in_stock)
@@ -199,6 +198,7 @@ def get_next_attribute_and_values(item_code, selected_attributes):
 		"exact_match": exact_match,
 		"product_info": product_info,
 		"available_qty": available_qty,
+		"enable_guest_cart": cart_settings.enable_guest_cart,
 	}
 
 
@@ -240,7 +240,7 @@ def get_item_variant_price_dict(item_code, cart_settings):
 		# Show Price if logged in.
 		# If not logged in, check if price is hidden for guest.
 		if not is_guest or not cart_settings.hide_price_for_guest:
-			price_list = _set_price_list(cart_settings, None)
+			price_list = cart_settings.price_list if not cart_settings.enable_guest_cart else _set_price_list(cart_settings, None)
 			price = get_price(
 				item_code, price_list, cart_settings.default_customer_group, cart_settings.company
 			)

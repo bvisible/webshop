@@ -32,6 +32,17 @@ class WebshopSettings(Document):
 		self.validate_checkout()
 		self.validate_search_index_fields()
 
+		# Désactiver les options en cascade
+		if not self.enabled:
+			self.enable_checkout = 0
+			self.enable_checkout_page = 0
+			self.enable_guest_cart = 0
+		elif not self.enable_checkout:
+			self.enable_checkout_page = 0
+			self.enable_guest_cart = 0
+		elif not self.enable_checkout_page:
+			self.enable_guest_cart = 0
+
 		if self.enabled:
 			self.validate_price_list_exchange_rate()
 

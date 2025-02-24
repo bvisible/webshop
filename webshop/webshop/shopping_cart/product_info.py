@@ -31,6 +31,7 @@ def get_product_info_for_website(item_code, skip_quotation_creation=False):
 	selling_price_list = (
 		cart_quotation.get("selling_price_list")
 		if cart_quotation
+		else cart_settings.price_list if not cart_settings.enable_guest_cart
 		else _set_price_list(cart_settings, None)
 	)
 

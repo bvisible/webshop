@@ -411,7 +411,7 @@ class WebsiteItem(WebsiteGenerator):
 			if is_guest and settings.hide_price_for_guest:
 				return items
 
-			selling_price_list = _set_price_list(settings, None)
+			selling_price_list = settings.price_list if not settings.enable_guest_cart else _set_price_list(settings, None)
 			party = get_party()
 
 			for item in items:
