@@ -189,7 +189,8 @@ class WebsiteItem(WebsiteGenerator):
 			except frappe.DoesNotExistError:
 				pass
 				# cleanup
-				frappe.local.message_log.pop()
+				if frappe.local.message_log:
+					frappe.local.message_log.pop()
 
 			except requests.exceptions.HTTPError:
 				frappe.msgprint(
