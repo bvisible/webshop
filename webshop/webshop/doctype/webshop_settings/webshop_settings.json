@@ -144,8 +144,8 @@
    "fieldname": "guest_customer",
    "fieldtype": "Link",
    "label": "Guest Customer",
-   "options": "Customer",
-   "reqd": 1
+   "mandatory_depends_on": "enable_guest_cart",
+   "options": "Customer"
   },
   {
    "depends_on": "doc.enabled",
@@ -502,7 +502,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-02-24 11:58:56.635651",
+ "modified": "2025-03-03 16:21:32.218170",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",
