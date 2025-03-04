@@ -598,7 +598,7 @@ def decorate_quotation_doc(doc):
 		d.update(
 			frappe.db.get_value(
 				"Website Item", {"item_code": item_code}, fields, as_dict=True
-			)
+			) or {}
 		)
 
 		website_warehouse = frappe.get_cached_value(
