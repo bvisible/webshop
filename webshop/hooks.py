@@ -100,6 +100,7 @@ website_route_rules = [
 
 jinja = {
 	"methods": [
-		"webshop.utils.utils"
+		"webshop.webshop.utils.utils",
+		"webshop.webshop.utils.cart_helpers.get_cart_data"
 	]
 }

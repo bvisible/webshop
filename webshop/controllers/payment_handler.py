@@ -3,7 +3,7 @@ from frappe import _
 import json
 from webshop.webshop.shopping_cart.cart import place_order, _get_cart_quotation, is_gift_card_item
 from erpnext.accounts.doctype.payment_request.payment_request import make_payment_entry
-from webshop.utils.utils import get_gateway_configuration
+from webshop.webshop.utils.utils import get_gateway_configuration
 
 class PaymentHandler:
     def __init__(self):

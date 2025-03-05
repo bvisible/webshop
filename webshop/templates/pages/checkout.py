@@ -4,7 +4,7 @@ from frappe import _
 from frappe.utils import flt, fmt_money
 from webshop.webshop.shopping_cart.cart import get_cart_quotation, get_party, get_address_docs, apply_shipping_rule, _get_cart_quotation
 from webshop.controllers.payment_handler import PaymentHandler
-from webshop.utils.utils import get_gateway_configuration
+from webshop.webshop.utils.utils import get_gateway_configuration
 
 no_cache = 1
 

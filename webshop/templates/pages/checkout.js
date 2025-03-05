@@ -367,7 +367,7 @@ frappe.ready(function() {
         async format_currency_value(value, currency) {
             return new Promise((resolve, reject) => {
                 frappe.call({
-                    method: "webshop.utils.utils.format_currency_value",
+                    method: "webshop.webshop.utils.utils.format_currency_value",
                     args: {
                         value: value,
                         currency: currency
