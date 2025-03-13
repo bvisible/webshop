@@ -1,0 +1,65 @@
+{% set wishlist_data = get_wishlist_data() %}
+{% if not '/wishlist' in frappe.request.path %}
+  <div id="wishlist-data" 
+    data-wishlist-items-count='{{ wishlist_data.wishlist_items_count }}'>
+  </div>
+  <!-- Wishlist interface -->
+  <div class="header-wishlist">
+    <div class="wishlist-icon-wrapper" id="wishlistButton" style="padding: 0;">
+      <a href="/wishlist" class="wishlist-button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" style="max-width: 30px;max-height: 30px;" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5.881c-2.137-2.13-5.59-2.13-7.726 0c-2.136 2.13-2.136 5.578 0 7.708L12 21.3l7.726-7.711c2.136-2.13 2.136-5.578 0-7.708c-2.137-2.13-5.59-2.13-7.726 0Z"/></g></svg>
+        <span id="wishlistBadge" class="wishlist-badge" style="display: none;"></span>
+      </a>
+    </div>
+  </div>
+  <script>
+    // Get the number of items in the wishlist
+    const wishlistData = document.getElementById('wishlist-data');
+    if (wishlistData) {
+      const itemsCount = parseInt(wishlistData.getAttribute('data-wishlist-items-count') || '0');
+      const wishlistBadge = document.getElementById('wishlistBadge');
+      
+      if (wishlistBadge) {
+        if (itemsCount > 0) {
+          wishlistBadge.textContent = itemsCount;
+          wishlistBadge.style.display = 'flex';
+        } else {
+          wishlistBadge.style.display = 'none';
+        }
+      }
+    }
+  </script>
+  <style>
+    .header-wishlist {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .wishlist-button {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      color: var(--text-color);
+    }
+    
+    .wishlist-badge {
+      position: absolute;
+      top: -5px;
+      right: -7px;
+      background-color: #7c7c7ce0;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 400;
+    }
+  </style>
+{% endif %}

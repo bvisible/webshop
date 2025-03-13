@@ -19,9 +19,9 @@
 
 .cart-badge {
   position: absolute;
-  top: 0px;
-  right: 0px;
-  background-color: #000;
+  top: 2px;
+  right: 2px;
+  background-color: #7c7c7ce0;
   color: white;
   border-radius: 50%;
   width: 20px;
@@ -30,6 +30,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 400;
 }
 
 .side-cart-overlay {

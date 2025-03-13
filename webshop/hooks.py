@@ -105,7 +105,8 @@ jinja = {
         "webshop.webshop.utils.product_carousel_helper.get_carousel_items",
         "webshop.webshop.utils.product_carousel_helper.render_product_carousel",
         "webshop.webshop.utils.brand_carousel_helper.get_carousel_brands",
-        "webshop.webshop.utils.brand_carousel_helper.render_brand_carousel"
+        "webshop.webshop.utils.brand_carousel_helper.render_brand_carousel",
+        "webshop.webshop.utils.wishlist_helper.get_wishlist_data"
 	]
 }
 

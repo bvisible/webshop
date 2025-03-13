@@ -99,6 +99,21 @@ $.extend(wishlist, {
 			return;
 		}
 
+		// Function to update the wishlist badge
+		const updateWishlistBadge = function(action) {
+			const wishlistBadge = document.getElementById('wishlistBadge');
+			if (wishlistBadge) {
+				let currentCount = parseInt(wishlistBadge.textContent || '0');
+				if (action === 'add') {
+					currentCount += 1;
+				} else if (action === 'remove' && currentCount > 0) {
+					currentCount -= 1;
+				}
+				wishlistBadge.textContent = currentCount;
+				wishlistBadge.style.display = currentCount > 0 ? 'flex' : 'none';
+			}
+		};
+
 		let success_action = function() {
 			webshop.webshop.wishlist.set_wishlist_count(true);
 		};
@@ -109,9 +124,14 @@ $.extend(wishlist, {
 			btn.addClass("like-action-wished");
 			this.toggle_button_class($wish_icon, 'wished', 'not-wished');
 
+			// Update the badge (-1)
+			updateWishlistBadge('remove');
+
 			let args = { item_code: btn.data('item-code') };
 			let failure_action = function() {
 				me.toggle_button_class($wish_icon, 'not-wished', 'wished');
+				// Cancel the badge update on failure
+				updateWishlistBadge('add');
 			};
 			this.add_remove_from_wishlist("remove", args, success_action, failure_action);
 		} else {
@@ -120,9 +140,14 @@ $.extend(wishlist, {
 			btn.addClass("like-action-wished");
 			this.toggle_button_class($wish_icon, 'not-wished', 'wished');
 
+			// Update the badge (+1)
+			updateWishlistBadge('add');
+
 			let args = {item_code: btn.data('item-code')};
 			let failure_action = function() {
 				me.toggle_button_class($wish_icon, 'wished', 'not-wished');
+				// Cancel the badge update on failure
+				updateWishlistBadge('remove');
 			};
 			this.add_remove_from_wishlist("add", args, success_action, failure_action);
 		}
