@@ -43,15 +43,6 @@ class PaymentHandler:
                 # Get Payment Gateway Account
                 gateway_account = frappe.get_doc("Payment Gateway Account", {"payment_gateway": gateway})
                 
-                # Find corresponding payment method
-                for method in settings.payment_methods:
-                    if method.payment_gateway_account == gateway_account.name:
-                        payment_method = method.name
-                        payment_method_doc = frappe.get_doc("Webshop Payment Method", payment_method)
-                        break
-                
-                if not payment_method:
-                    frappe.throw(_("No payment method found for gateway account: {0}").format(gateway_account.name))
             else:
                 # Use default payment method
                 payment_method = self.get_default_payment_method()

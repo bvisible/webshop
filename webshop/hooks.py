@@ -101,6 +101,17 @@ website_route_rules = [
 jinja = {
 	"methods": [
 		"webshop.webshop.utils.utils",
-		"webshop.webshop.utils.cart_helpers.get_cart_data"
+		"webshop.webshop.utils.cart_helpers.get_cart_data",
+        "webshop.webshop.utils.product_carousel_helper.get_carousel_items",
+        "webshop.webshop.utils.product_carousel_helper.render_product_carousel",
+        "webshop.webshop.utils.brand_carousel_helper.get_carousel_brands",
+        "webshop.webshop.utils.brand_carousel_helper.render_brand_carousel"
 	]
 }
+
+website_redirects = [
+    {"source": "/home", "target": "/"},
+    {"source": "/homepage", "target": "/"},
+    {"source": "/navbar", "target": "/"},
+    {"source": "/footer", "target": "/"}
+]

@@ -12,6 +12,8 @@
   "filter_fields",
   "enable_attribute_filters",
   "filter_attributes",
+  "enable_tag_filters",
+  "enable_price_filter",
   "display_settings_section",
   "hide_variants",
   "enable_variants",
@@ -44,6 +46,8 @@
   "quotation_terms",
   "payment_gateway_account",
   "payment_success_url",
+  "activate_b2b_checkout",
+  "b2b_customer_group",
   "payment_methods_section",
   "payment_methods",
   "add_ons_section",
@@ -497,12 +501,39 @@
    "fieldtype": "Link",
    "label": "Gift card notification",
    "options": "Notification"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.enable_checkout && doc.enable_checkout_page",
+   "fieldname": "activate_b2b_checkout",
+   "fieldtype": "Check",
+   "label": "Activate B2B checkout"
+  },
+  {
+   "depends_on": "activate_b2b_checkout",
+   "fieldname": "b2b_customer_group",
+   "fieldtype": "Table MultiSelect",
+   "label": "B2B Customer Group",
+   "mandatory_depends_on": "activate_b2b_checkout",
+   "options": "B2B Customer Group"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_tag_filters",
+   "fieldtype": "Check",
+   "label": "Enable Tag Filters"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_price_filter",
+   "fieldtype": "Check",
+   "label": "Enable Price Filter"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-03-03 16:21:32.218170",
+ "modified": "2025-03-11 15:15:28.004907",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

@@ -121,12 +121,14 @@ frappe.ready(() => {
 						'Billing',
 						'Shipping'
 					],
-					reqd: 1
+					reqd: 1,
+					default: 'Shipping'
 				},
 				{
 					label: __('Postal Code'),
 					fieldname: 'pincode',
-					fieldtype: 'Data'
+					fieldtype: 'Data',
+					reqd: 1
 				},
 				{
 					fieldname: "phone",

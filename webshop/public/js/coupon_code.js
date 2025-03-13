@@ -1,6 +1,5 @@
 frappe.ui.form.on('Coupon Code', {
     refresh: function(frm) {
-        console.log(frm);
         // Show or hide the gift card amount field
         frm.toggle_display('gift_card_amount', frm.doc.coupon_type === 'Gift Card');
         

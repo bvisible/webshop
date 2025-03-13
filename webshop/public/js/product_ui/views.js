@@ -162,17 +162,28 @@ webshop.ProductView =  class {
 
 	get_query_filters() {
 		const filters = frappe.utils.get_query_params();
-		let {field_filters, attribute_filters} = filters;
+		let {field_filters, attribute_filters, price_range} = filters;
 
 		field_filters = field_filters ? JSON.parse(field_filters) : {};
 		attribute_filters = attribute_filters ? JSON.parse(attribute_filters) : {};
+		
+		// Retrieve the price_range parameter from the URL
+		if (price_range) {
+			try {
+				this.price_range = JSON.parse(price_range);
+			} catch (e) {
+				console.error("Error parsing price_range parameter:", e);
+				this.price_range = {};
+			}
+		}
 
 		return {
 			field_filters: field_filters,
 			attribute_filters: attribute_filters,
 			item_group: this.item_group,
 			start: filters.start || null,
-			from_filters: this.from_filters || false
+			from_filters: this.from_filters || false,
+			price_range: price_range || null // Add the price_range parameter to the query
 		};
 	}
 
@@ -378,9 +389,31 @@ webshop.ProductView =  class {
 						</div>
 				`;
 			});
+
+			// Add "Show only products with discount" checkbox
+			html += `
+				<div class="checkbox mt-3">
+					<label>
+						<input type="checkbox"
+							class="product-filter discount-filter"
+							id="showDiscountOnly"
+							name="discount"
+							data-filter-name="discount"
+							data-filter-value="100"
+							style="width: 14px !important"
+						>
+							<span class="label-area" for="showDiscountOnly">
+								${ __("Show only products with discount") }
+							</span>
+						</label>
+					</div>
+			`;
+
 			html += `</div>`;
 
 			$("#discount-filters").append(html);
+
+
 		}
 	}
 
@@ -406,19 +439,26 @@ webshop.ProductView =  class {
 		$('.discount-filter').on('change', (e) => {
 			const $checkbox = $(e.target);
 			const is_checked = $checkbox.is(':checked');
-
-			const {
-				filterValue: filter_value
-			} = $checkbox.data();
-
+			
+			// Récupérer la valeur du filtre à partir de l'attribut data-filter-value
+			const filter_value = $checkbox.attr('data-filter-value');
+			
 			delete this.field_filters["discount"];
 
 			if (is_checked) {
 				this.field_filters["discount"] = [];
 				this.field_filters["discount"].push(filter_value);
+				
+				// Si c'est la case à cocher "Show only products with discount"
+				if ($checkbox.attr('id') === 'showDiscountOnly') {
+					// Rediriger vers la page all-products avec le filtre de remise
+					window.location.href = "/all-products?field_filters=" + 
+						JSON.stringify({"discount": [filter_value]});
+					return;
+				}
 			}
 
-			if (this.field_filters["discount"].length === 0) {
+			if (!this.field_filters["discount"] || this.field_filters["discount"].length === 0) {
 				delete this.field_filters["discount"];
 			}
 
@@ -430,12 +470,22 @@ webshop.ProductView =  class {
 		let me = this;
 		this.field_filters = {};
 		this.attribute_filters = {};
+		this.tag_filters = [];
+		this.price_range = {};
 
 		$('.product-filter').on('change', (e) => {
 			me.from_filters = true;
 
 			const $checkbox = $(e.target);
 			const is_checked = $checkbox.is(':checked');
+			
+			// Reset price filter if another filter is modified
+			if (!$checkbox.is('.price-filter')) {
+				$('.price-filter').prop('checked', false);
+				$('#price-min').val('');
+				$('#price-max').val('');
+				this.price_range = {};
+			}
 
 			if ($checkbox.is('.attribute-filter')) {
 				const {
@@ -454,7 +504,7 @@ webshop.ProductView =  class {
 				if (this.attribute_filters[attribute_name].length === 0) {
 					delete this.attribute_filters[attribute_name];
 				}
-			} else if ($checkbox.is('.field-filter') || $checkbox.is('.discount-filter')) {
+			} else if ($checkbox.is('.field-filter') || $checkbox.is('.discount-filter') || $checkbox.is('.tag-filter')) {
 				const {
 					filterName: filter_name,
 					filterValue: filter_value
@@ -463,6 +513,27 @@ webshop.ProductView =  class {
 				if ($checkbox.is('.discount-filter')) {
 					// clear previous discount filter to accomodate new
 					delete this.field_filters["discount"];
+				}
+				
+				// Handle special handling for tag filters
+				if ($checkbox.is('.tag-filter')) {
+					if (is_checked) {
+						// Add tag to filter
+						if (!this.field_filters["_user_tags"]) {
+							this.field_filters["_user_tags"] = [];
+						}
+						if (!in_list(this.field_filters["_user_tags"], filter_value)) {
+							this.field_filters["_user_tags"].push(filter_value);
+						}
+					} else {
+						// Remove tag from filter
+						if (this.field_filters["_user_tags"]) {
+							this.field_filters["_user_tags"] = this.field_filters["_user_tags"].filter(v => v !== filter_value);
+							if (this.field_filters["_user_tags"].length === 0) {
+								delete this.field_filters["_user_tags"];
+							}
+						}
+					}
 				}
 				if (is_checked) {
 					this.field_filters[filter_name] = this.field_filters[filter_name] || [];
@@ -497,6 +568,208 @@ webshop.ProductView =  class {
 				}
 			});
 		}, 300));
+		
+		// Initialize price filters
+		this.bind_price_filters();
+	}
+	
+	bind_price_filters() {
+		let me = this;
+		
+		// Get the minimum and maximum price values from the DOM
+		const min_price_value = parseInt($('#price-range-min-value').text()) || 0;
+		const max_price_value = parseInt($('#price-range-max-value').text()) || 5000;
+		
+		// Variables to store the current state of the slider
+		let current_min = min_price_value;
+		let current_max = max_price_value;
+		
+		// Get DOM elements
+		const $track = $('#price-slider-track');
+		const $min_handle = $('#price-slider-min');
+		const $max_handle = $('#price-slider-max');
+		const $selection = $('#price-slider-selection');
+		const $min_input = $('#price-min');
+		const $max_input = $('#price-max');
+		
+		// Function to convert a price value to a position on the slider (in percentage)
+		const priceToPosition = (price) => {
+			return ((price - min_price_value) / (max_price_value - min_price_value)) * 100;
+		};
+		
+		// Function to convert a position on the slider to a price value
+		const positionToPrice = (position) => {
+			const percentage = Math.max(0, Math.min(100, position)) / 100;
+			return Math.round(min_price_value + percentage * (max_price_value - min_price_value));
+		};
+		
+		// Function to update the slider display
+		const updateSlider = () => {
+			const min_pos = priceToPosition(current_min);
+			const max_pos = priceToPosition(current_max);
+			
+			$min_handle.css('left', `${min_pos}%`);
+			$max_handle.css('left', `${max_pos}%`);
+			$selection.css({
+				'left': `${min_pos}%`,
+				'width': `${max_pos - min_pos}%`
+			});
+			
+			$min_input.val(current_min);
+			$max_input.val(current_max);
+		};
+		
+		// Initialize the slider
+		updateSlider();
+		
+		// Handle the drag of the slider handles
+		let isDragging = false;
+		let currentHandle = null;
+		
+		$min_handle.add($max_handle).on('mousedown touchstart', function(e) {
+			e.preventDefault();
+			isDragging = true;
+			currentHandle = $(this).is($min_handle) ? 'min' : 'max';
+			$(document).on('mousemove touchmove', handleDrag);
+			$(document).on('mouseup touchend', stopDrag);
+		});
+		
+		const handleDrag = (e) => {
+			if (!isDragging) return;
+			
+			const trackWidth = $track.width();
+			const trackOffset = $track.offset().left;
+			let pageX = e.pageX;
+			
+			// Support for touch events
+			if (e.touches && e.touches.length) {
+				pageX = e.touches[0].pageX;
+			}
+			
+			const position = ((pageX - trackOffset) / trackWidth) * 100;
+			const price = positionToPrice(position);
+			
+			if (currentHandle === 'min') {
+				current_min = Math.min(price, current_max - 1);
+			} else {
+				current_max = Math.max(price, current_min + 1);
+			}
+			
+			updateSlider();
+		};
+		
+		const stopDrag = () => {
+			isDragging = false;
+			$(document).off('mousemove touchmove', handleDrag);
+			$(document).off('mouseup touchend', stopDrag);
+			
+			// Apply filters automatically when the user releases the handle
+			applyPriceFilter();
+		};
+		
+		// Handle changes in input fields
+		$min_input.on('input', function() {
+			// Ensure the value is between 0 and current_max - 1
+			let value = parseInt($(this).val()) || min_price_value;
+			value = Math.max(0, Math.min(value, current_max - 1));
+			current_min = value;
+			updateSlider();
+		});
+		
+		$min_input.on('change', function() {
+			// Ensure the value is between 0 and current_max - 1
+			let value = parseInt($(this).val()) || min_price_value;
+			value = Math.max(0, Math.min(value, current_max - 1));
+			current_min = value;
+			$(this).val(value); // Update the field with the corrected value
+			updateSlider();
+			// Apply filters automatically when the user finishes typing
+			applyPriceFilter();
+		});
+		
+		$max_input.on('input', function() {
+			// Ensure the value is between current_min + 1 and max_price_value
+			let value = parseInt($(this).val()) || max_price_value;
+			value = Math.min(max_price_value, Math.max(value, current_min + 1));
+			current_max = value;
+			updateSlider();
+		});
+		
+		$max_input.on('change', function() {
+			// Ensure the value is between current_min + 1 and max_price_value
+			let value = parseInt($(this).val()) || max_price_value;
+			value = Math.min(max_price_value, Math.max(value, current_min + 1));
+			current_max = value;
+			$(this).val(value); // Update the field with the corrected value
+			updateSlider();
+			// Apply filters automatically when the user finishes typing
+			applyPriceFilter();
+		});
+		
+		// Function to apply filters automatically
+		const applyPriceFilter = () => {
+			// Check if the values have changed compared to the previous values
+			const previousPriceRange = {...me.price_range};
+			
+			// Reset the price_range object before updating
+			me.price_range = {};
+			
+			// Do not include min/max values if they are equal to the extremes
+			if (current_min > min_price_value) {
+				me.price_range.min = current_min;
+			}
+			
+			if (current_max < max_price_value) {
+				me.price_range.max = current_max;
+			}
+			
+			// Always apply the filter, even if we return to default values
+			// This allows to correctly reset the filters
+			const hasChanges = (
+				previousPriceRange.min !== me.price_range.min || 
+				previousPriceRange.max !== me.price_range.max ||
+				(Object.keys(previousPriceRange).length > 0 && Object.keys(me.price_range).length === 0) ||
+				(Object.keys(previousPriceRange).length === 0 && Object.keys(me.price_range).length > 0)
+			);
+			
+			// If the values have changed or if we have returned to default values, apply the filter
+			if (hasChanges) {
+				me.change_route_with_filters();
+			}
+		};
+		
+		// Restore price filters from URL if necessary
+		const restore_price_filters = () => {
+			const url_params = new URLSearchParams(window.location.search);
+			const price_range_param = url_params.get('price_range');
+			
+			if (price_range_param) {
+				try {
+					const price_range = JSON.parse(decodeURIComponent(price_range_param));
+					
+					if (price_range.min !== undefined) {
+						current_min = parseInt(price_range.min);
+					}
+					
+					if (price_range.max !== undefined) {
+						current_max = parseInt(price_range.max);
+					}
+					
+					updateSlider();
+				} catch (e) {
+					console.error('Erreur lors de la restauration des filtres de prix:', e);
+				}
+			}
+		};
+		
+		// Call the restore function
+		restore_price_filters();
+	}
+
+	refresh_list_view() {
+		// This method is called when price filters are modified
+		// Use change_route_with_filters directly to avoid parameter duplication
+		this.change_route_with_filters();
 	}
 
 	change_route_with_filters() {
@@ -507,11 +780,19 @@ webshop.ProductView =  class {
 			start = 0; // show items from first page if new filters are triggered
 		}
 
-		const query_string = this.get_query_string({
+		// Prepare the query parameters
+		let query_params = {
 			start: start,
 			field_filters: JSON.stringify(this.if_key_exists(this.field_filters)),
 			attribute_filters: JSON.stringify(this.if_key_exists(this.attribute_filters)),
-		});
+		};
+
+		// Add price range filter if it exists
+		if (this.price_range && (this.price_range.min || this.price_range.max)) {
+			query_params.price_range = JSON.stringify(this.price_range);
+		}
+
+		const query_string = this.get_query_string(query_params);
 		window.history.pushState('filters', '', `${location.pathname}?` + query_string);
 
 		$('.page_content input').prop('disabled', true);
@@ -522,7 +803,7 @@ webshop.ProductView =  class {
 
 	restore_filters_state() {
 		const filters = frappe.utils.get_query_params();
-		let {field_filters, attribute_filters} = filters;
+		let {field_filters, attribute_filters, price_range} = filters;
 
 		if (field_filters) {
 			field_filters = JSON.parse(field_filters);
@@ -535,6 +816,7 @@ webshop.ProductView =  class {
 			}
 			this.field_filters = field_filters;
 		}
+		
 		if (attribute_filters) {
 			attribute_filters = JSON.parse(attribute_filters);
 			for (let attribute in attribute_filters) {
@@ -545,6 +827,37 @@ webshop.ProductView =  class {
 				$(selector).prop('checked', true);
 			}
 			this.attribute_filters = attribute_filters;
+		}
+		
+		// Restore price filters state
+		if (price_range) {
+			try {
+				const price_range_obj = JSON.parse(price_range);
+				
+				// Update the price_range object
+				this.price_range = price_range_obj;
+				
+				// Update the input fields
+				if (price_range_obj.min) {
+					$('#price-min').val(price_range_obj.min);
+				}
+				
+				if (price_range_obj.max) {
+					$('#price-max').val(price_range_obj.max);
+				}
+				
+				// Check the corresponding checkbox if it exists
+				$('.price-filter').each(function() {
+					const start_price = parseInt($(this).attr('data-start-price'));
+					const end_price = parseInt($(this).attr('data-end-price'));
+					
+					if (start_price === price_range_obj.min && end_price === price_range_obj.max) {
+						$(this).prop('checked', true);
+					}
+				});
+			} catch (e) {
+				console.error("Error restoring price filters:", e);
+			}
 		}
 	}
 
@@ -595,6 +908,10 @@ webshop.ProductView =  class {
 				url.append(key, value);
 			}
 		}
+		
+		// Note: Do not add price_range here as it is already included in the params object
+		// in the change_route_with_filters method
+		
 		return url.toString();
 	}
 

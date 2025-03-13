@@ -1,0 +1,310 @@
+<div class="mobile-menu-container" id="mobile-menu-container">
+    <!-- Hamburger button to show/hide the menu -->
+    <div class="mobile-menu-toggle" id="mobileMenuToggle">
+        <span class="hamburger-icon">
+            <span class="line"></span>
+            <span class="line"></span>
+            <span class="line"></span>
+        </span>
+    </div>
+    
+    <!-- Menu overlay -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    
+    <!-- Mobile menu content -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <div class="mobile-menu-close" id="mobileMenuClose">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="mobile-menu-content">
+            <!-- Header authentication wrapper -->
+            <div class="mobile-auth-wrapper" id="mobileAuthWrapper"></div>
+            
+            <!-- Navigation content will be injected here -->
+            <div class="mobile-navigation-wrapper" id="mobileNavigationWrapper">
+                {% set nav_data = frappe.call("webshop.webshop.utils.mobile_menu.get_navigation_content", route="navbar", use_cache=True) %}
+                {% if nav_data and nav_data.success and nav_data.nav_content %}
+                    {{ nav_data.nav_content|safe }}
+                {% else %}
+                    <p>{{ _("Navigation not available") }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Header authentication wrapper styles */
+    .mobile-auth-wrapper {
+        width: 100%;
+        padding: 0 0 10px 0;
+    }
+    
+    .mobile-auth-wrapper .header-auth {
+        margin-left: 0 !important;
+        width: 100%;
+    }
+    
+    .mobile-auth-wrapper .auth-wrapper {
+        width: 100%;
+    }
+    
+    .mobile-auth-wrapper .auth-button {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .mobile-auth-wrapper #user-dropdown {
+        position: absolute;
+        width: 100%;
+        margin-top: 10px;
+        padding-top: 0;
+    }
+    
+    .mobile-auth-wrapper #user-dropdown.show {
+        display: block;
+    }
+    
+    .mobile-auth-wrapper .dropdown-item {
+        padding: 10px 15px;
+    }
+    
+    .mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        z-index: 1001;
+    }
+    
+    .hamburger-icon {
+        width: 24px;
+        height: 18px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .hamburger-icon .line {
+        display: block;
+        width: 100%;
+        height: 2px;
+        background-color: #383838;
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-menu-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1090;
+        display: none;
+    }
+    
+    .mobile-menu {
+        position: fixed;
+        top: 0;
+        right: -300px; /* Caché en dehors de l'écran */
+        width: 280px;
+        height: 100%;
+        background-color: white;
+        z-index: 1100;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+        transition: right 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    
+    .mobile-menu.open {
+        right: 0;
+    }
+    
+    .mobile-menu-overlay.open {
+        display: block;
+    }
+    
+    .mobile-menu-header {
+        padding: 25px;
+        border-bottom: 1px solid #ededed;
+        position: relative;
+    }
+    
+    .mobile-menu-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        cursor: pointer;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .mobile-menu-content {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+    }
+    
+    /* Mobile navigation styles */
+    .mobile-navigation-wrapper nav {
+        display: flex;
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+    
+    .mobile-navigation-wrapper nav a {
+        padding: 12px 15px !important;
+        text-decoration: none;
+        color: #383838 !important;
+        border-bottom: 1px solid #f5f5f5;
+        font-size: 16px !important;
+        display: block !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+    
+    .mobile-navigation-wrapper nav a p {
+        margin: 0 !important;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // -- Sélecteurs principaux
+      const mobileMenuContainer = document.getElementById('mobile-menu-container');
+      const mobileMenuToggle    = document.getElementById('mobileMenuToggle');
+      const mobileMenuClose     = document.getElementById('mobileMenuClose');
+      const mobileMenuOverlay   = document.getElementById('mobileMenuOverlay');
+      const mobileMenu          = document.getElementById('mobileMenu');
+      const mobileAuthWrapper   = document.getElementById('mobileAuthWrapper');
+      const headerAuth          = document.getElementById('header-auth');
+    
+      // -- Original location of #header-auth
+      let originalParent      = null;
+      let originalNextSibling = null;
+    
+      /**
+       * Checks if the direct parent of #mobile-menu-container is "visible"
+       * (i.e. if its CSS `display` property is not `none`).
+       */
+      function isMobileMenuContainerParentVisible() {
+        if (!mobileMenuContainer || !mobileMenuContainer.parentElement) {
+          return false;
+        }
+        const parentStyles = window.getComputedStyle(mobileMenuContainer.parentElement);
+        return parentStyles.display !== 'none';
+      }
+    
+      /**
+       * Moves #header-auth physically into the mobile menu container.
+       */
+      function moveHeaderAuthToMobile() {
+        if (!headerAuth) return;
+        // Save original location once
+        if (!originalParent) {
+          originalParent = headerAuth.parentNode;
+          originalNextSibling = headerAuth.nextSibling;
+        }
+        // Move the element (without cloning)
+        if (!mobileAuthWrapper.contains(headerAuth)) {
+          mobileAuthWrapper.appendChild(headerAuth);
+        }
+      }
+    
+      /**
+       * Restores #header-auth to its original location in the header.
+       */
+      function restoreHeaderAuth() {
+        if (!headerAuth || !originalParent) return;
+        if (!originalParent.contains(headerAuth)) {
+          if (originalNextSibling) {
+            originalParent.insertBefore(headerAuth, originalNextSibling);
+          } else {
+            originalParent.appendChild(headerAuth);
+          }
+        }
+      }
+    
+      /**
+       * Updates the location of #header-auth based on the visibility
+       * of the parent of #mobile-menu-container.
+       */
+      function updateHeaderAuth() {
+        if (isMobileMenuContainerParentVisible()) {
+          moveHeaderAuthToMobile();
+        } else {
+          restoreHeaderAuth();
+        }
+      }
+    
+      /**
+       * Opens the mobile menu.
+       */
+      function openMobileMenu() {
+        mobileMenu.classList.add('open');
+        mobileMenuOverlay.classList.add('open');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling in the background
+    
+        // Ensure that #header-auth is moved into the menu
+        moveHeaderAuthToMobile();
+      }
+    
+      /**
+       * Closes the mobile menu.
+       */
+      function closeMobileMenu() {
+        mobileMenu.classList.remove('open');
+        mobileMenuOverlay.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    
+      // -- Event listeners for buttons and overlay
+      if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', openMobileMenu);
+      }
+      if (mobileMenuClose) {
+        mobileMenuClose.addEventListener('click', closeMobileMenu);
+      }
+      if (mobileMenuOverlay) {
+        mobileMenuOverlay.addEventListener('click', closeMobileMenu);
+      }
+      
+      // New listener: close the menu if you click on mobileAuthWrapper
+      if (mobileAuthWrapper) {
+        mobileAuthWrapper.addEventListener('click', closeMobileMenu);
+      }
+    
+      // Close the menu when you click on a navigation link
+      const mobileNavLinks = document.querySelectorAll('.mobile-navigation-wrapper nav a');
+      mobileNavLinks.forEach(link => {
+        link.addEventListener('click', closeMobileMenu);
+      });
+    
+      // -- Initial update and monitoring of changes
+      updateHeaderAuth();
+      window.addEventListener('resize', updateHeaderAuth);
+      if (mobileMenuContainer && mobileMenuContainer.parentElement) {
+        const observer = new MutationObserver(() => {
+          updateHeaderAuth();
+        });
+        observer.observe(mobileMenuContainer.parentElement, {
+          attributes: true,
+          attributeFilter: ['style', 'class']
+        });
+      }
+    });
+</script>    

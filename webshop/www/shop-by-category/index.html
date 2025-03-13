@@ -1,5 +1,5 @@
 {% extends "templates/web.html" %}
-{% block title %}{{ _('Shop by Category') }}{% endblock %}
+{% block title %}{{ _('Category and Brands') }}{% endblock %}
 
 {% block head_include %}
 <style>
@@ -10,6 +10,38 @@
 		height: 300px !important;
 		width: 300px !important;
 		margin: 30px !important;
+	}
+	.category-filter-section {
+		margin-bottom: 20px;
+		padding: 15px;
+		background-color: #f8f9fa;
+		border-radius: 5px;
+	}
+	.category-search {
+		margin-bottom: 10px;
+	}
+	.sort-options {
+		display: flex;
+		align-items: center;
+	}
+	.sort-options label {
+		margin-right: 10px;
+		margin-bottom: 0;
+	}
+	.sort-options select {
+		width: auto;
+	}
+	.hidden-card {
+		display: none !important;
+	}
+	@media (max-width: 767px) {
+		.sort-options {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+		.sort-options label {
+			margin-bottom: 5px;
+		}
 	}
 </style>
 {% endblock %}

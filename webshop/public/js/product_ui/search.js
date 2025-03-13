@@ -57,7 +57,15 @@ webshop.ProductSearch = class {
 
 					// Populate product results
 					product_results = data.message ? data.message.product_results : null;
-					me.populateResults(product_results);
+					
+					// Si nous avons des résultats de produits, récupérer les informations de prix
+					if (product_results && product_results.length > 0) {
+						me.fetchProductPrices(product_results, () => {
+							me.populateResults(product_results);
+						});
+					} else {
+						me.populateResults(product_results);
+					}
 
 					// Populate categories
 					if (me.category_container) {
@@ -187,6 +195,43 @@ webshop.ProductSearch = class {
 		this.attachEventListenersToChips();
 	}
 
+	// Récupérer les informations de prix pour les produits
+	fetchProductPrices(products, callback) {
+		if (!products || products.length === 0) {
+			if (callback) callback();
+			return;
+		}
+		
+		// Créer un tableau des codes d'articles pour la requête
+		const itemCodes = products.map(product => product.item_code);
+		
+		// Appeler l'API pour obtenir les informations de prix
+		frappe.call({
+			method: "webshop.webshop.api.get_product_price_info",
+			args: {
+				items: itemCodes
+			},
+			callback: (data) => {
+				if (data.message && Object.keys(data.message).length > 0) {
+					// Ajouter les informations de prix aux produits
+					products.forEach(product => {
+						if (data.message[product.item_code]) {
+							const priceInfo = data.message[product.item_code];
+							product.formatted_price = priceInfo.formatted_price || '';
+							product.formatted_mrp = priceInfo.formatted_mrp || '';
+							product.discount = priceInfo.discount || '';
+						}
+					});
+				}
+				
+				if (callback) callback();
+			},
+			error: () => {
+				if (callback) callback();
+			}
+		});
+	}
+
 	populateResults(product_results) {
 		if (!product_results || product_results.length === 0) {
 			let empty_html = ``;
@@ -198,12 +243,36 @@ webshop.ProductSearch = class {
 
 		product_results.forEach((res) => {
 			let thumbnail = res.thumbnail || '/assets/webshop/images/cart-empty-state.png';
+			
+			// Préparer l'affichage du prix
+			let priceHtml = '';
+			if (res.formatted_price) {
+				priceHtml = `<div class="product-price">${res.formatted_price}`;
+				
+				// Ajouter le prix barré et la réduction si disponibles
+				if (res.formatted_mrp) {
+					priceHtml += `
+						<small class="striked-price">
+							<s>${res.formatted_mrp.replace(/ +/g, "")}</s>
+						</small>
+						<small class="ml-1 product-info-green">
+							${res.discount} OFF
+						</small>
+					`;
+				}
+				
+				priceHtml += '</div>';
+			} else if (res.price_stock_uom) {
+				priceHtml = `<div class="product-price">${res.price_stock_uom}</div>`;
+			}
+			
 			html += `
 				<div class="dropdown-item" style="display: flex;">
 					<img class="item-thumb col-2" src=${encodeURI(thumbnail)} />
 					<div class="col-9" style="white-space: normal;">
-						<a href="/${res.route}">${res.web_item_name}</a><br>
+						<a class="product-name-result" href="/${res.route}">${res.web_item_name}</a><br>
 						<span class="brand-line">${res.brand ? "by " + res.brand : ""}</span>
+						${priceHtml}
 					</div>
 				</div>
 			`;

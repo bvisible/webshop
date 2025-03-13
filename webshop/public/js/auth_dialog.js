@@ -1,6 +1,4 @@
-frappe.provide('webshop.auth');
-
-webshop.auth.showLoginDialog = function(opts) {
+frappe.showLoginDialog = function(opts) {
     if (!opts) opts = {};
     const forceLogin = opts.forceLogin || false;
 
@@ -297,6 +295,9 @@ webshop.auth.showLoginDialog = function(opts) {
                 flex: 1;
                 padding-left: 35px;
                 border-radius: 4px 0 0 4px;
+                height: 42px;
+                background: transparent;
+                border: 1px solid;
             }
             .btn-verify-email {
                 padding: 4px 8px;
@@ -700,26 +701,90 @@ webshop.auth.showLoginDialog = function(opts) {
                 callback: function(r) {
                     loginBtn.disabled = false;
                     loginBtn.innerHTML = originalBtnHtml;
-
+                    
                     if (r.message && r.message.message === 'success') {
                         frappe.show_alert({
                             message: __("Account created successfully! Please check your email to activate your account."),
                             indicator: 'green'
                         });
                         
-                        // Use msgprint instead of confirm for single OK button
-                        frappe.msgprint({
-                            title: __('Success'),
-                            message: __('Account created successfully! Please check your email to activate your account.'),
-                            primary_action: {
-                                label: __('OK'),
-                                action: function() {
-                                    if (opts.callback) opts.callback(r.message);
-                                    setTimeout(function() {
-                                        window.location.href = '/all-products';
-                                    }, 100);
-                                }
+                        const successOverlay = document.createElement('div');
+                        successOverlay.className = 'success-message-overlay';
+                        successOverlay.innerHTML = `
+                            <div class="success-message-container">
+                                <div class="success-icon">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="12" cy="12" r="10" fill="#48BB78"/>
+                                        <path d="M16.5 8.5L10.5 14.5L7.5 11.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <h3>${__('Success!')}</h3>
+                                <p>${__('Account created successfully! Please check your email to activate your account.')}</p>
+                                <button class="btn btn-primary" onclick="window.location.reload()">${__('OK')}</button>
+                            </div>
+                        `;
+                        document.body.appendChild(successOverlay);
+
+                        // Ajouter le style pour le message de succès
+                        const successStyles = document.createElement('style');
+                        successStyles.textContent = `
+                            .success-message-overlay {
+                                position: fixed;
+                                top: 0;
+                                left: 0;
+                                right: 0;
+                                bottom: 0;
+                                background: rgba(0, 0, 0, 0.6);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                z-index: 1060;
+                                opacity: 0;
+                                transition: opacity 0.3s ease;
                             }
+                            .success-message-overlay.show {
+                                opacity: 1;
+                            }
+                            .success-message-container {
+                                background: white;
+                                border-radius: 8px;
+                                padding: 30px;
+                                max-width: 400px;
+                                text-align: center;
+                                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                                transform: translateY(20px);
+                                opacity: 0;
+                                transition: all 0.4s ease;
+                            }
+                            .success-message-overlay.show .success-message-container {
+                                transform: translateY(0);
+                                opacity: 1;
+                            }
+                            .success-icon {
+                                margin-bottom: 20px;
+                            }
+                            .success-icon svg {
+                                margin: 0 auto;
+                            }
+                            .success-message-container h3 {
+                                font-size: 24px;
+                                margin-bottom: 10px;
+                                color: #2D3748;
+                            }
+                            .success-message-container p {
+                                color: #4A5568;
+                                margin-bottom: 25px;
+                                line-height: 1.5;
+                            }
+                            .success-message-container .btn-primary {
+                                margin-top: 20px;
+                            }
+                        `;
+                        document.head.appendChild(successStyles);
+
+                        // Animer l'apparition du message
+                        requestAnimationFrame(() => {
+                            successOverlay.classList.add('show');
                         });
                     } else {
                         frappe.show_alert({
@@ -749,6 +814,26 @@ webshop.auth.showLoginDialog = function(opts) {
                 args: { 
                     usr: email, 
                     pwd: password
+                },
+                callback: function(r) {
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = originalBtnHtml;
+                    
+                    if (r.message && r.message.message === 'success') {
+                        frappe.show_alert({
+                            message: __('Successful connection!'),
+                            indicator: 'green'
+                        });
+                        setTimeout(() => {
+                            closeDialog();
+                            location.reload();
+                        }, 500);
+                    } else {
+                        frappe.show_alert({
+                            message: r.message.reason || __('An error occurred'),
+                            indicator: 'red'
+                        });
+                    }
                 },
                 statusCode: {
                     200: function() {

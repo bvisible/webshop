@@ -18,18 +18,15 @@
 		<div class="col-md-8">
 			<div class="frappe-card p-5 mb-4">
 				<div id="cart-error" class="alert alert-danger" style="display: none;"></div>
-				<div class="cart-items-header">
-					{{ _('Items') }}
-				</div>
 				<table class="table mt-3 cart-table">
 					<thead>
 						<tr>
 							<th class="item-column">{{ _('Item') }}</th>
 							<th width="20%">{{ _('Quantity') }}</th>
 							{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
-								<th width="20" class="text-right column-sm-view">{{ _('Subtotal') }}</th>
+								<th width="20%" class="text-right">{{ _('Subtotal') }}</th>
 							{% endif %}
-							<th width="10%" class="column-sm-view"></th>
+							<th width="10%" class=""></th>
 						</tr>
 					</thead>
 					<tbody class="cart-items">
@@ -83,6 +80,7 @@
 						</div>
 					</div>
 				{% endif %}
+			{% endif %}
 		</div>
 
 		<!-- Right section -->
@@ -103,7 +101,6 @@
 				{% endif %}
 			</div>
 		</div>
-		{% endif %}
 	</div>
 </div>
 {% else %}
@@ -111,7 +108,7 @@
 	<div class="cart-empty-state">
 		<img src="/assets/webshop/images/cart-empty-state.png" alt="Empty State">
 	</div>
-	<div class="cart-empty-message mt-4">{{ _('Your cart is Empty') }}</p>
+	<div class="cart-empty-message mt-4">{{ _('Your cart is Empty') }}</div>
 	{% if cart_settings.enable_checkout %}
 		<a class="btn btn-outline-primary" href="/orders" style="font-size: 16px;">
 			{{ _('See past orders') }}
@@ -131,4 +128,9 @@
 {{ include_script("frappe-web.bundle.js") }}
 {{ include_script("controls.bundle.js") }}
 {{ include_script("dialog.bundle.js") }}
+<script>
+	frappe.boot = {{ boot | json }}
+	// for backward compatibility of some libs
+	frappe.sys_defaults = frappe.boot.sysdefaults;
+</script>
 {% endblock %}

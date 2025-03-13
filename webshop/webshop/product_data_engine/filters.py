@@ -76,9 +76,74 @@ class ProductFiltersBuilder:
 				values.remove(None)
 
 			if values:
-				filter_data.append([df, values])
+				# If it's a category filter, get the hierarchical structure
+				if df.fieldname == 'item_group':
+					hierarchical_item_groups = self.get_hierarchical_item_groups(values)
+					filter_data.append([df, hierarchical_item_groups])
+				else:
+					filter_data.append([df, values])
 
 		return filter_data
+		
+	def get_hierarchical_item_groups(self, item_group_values):
+		"""Get categories with their hierarchical structure parent-child"""
+		# Get all categories with their parent/child information
+		all_item_groups = frappe.get_all(
+			"Item Group",
+			fields=["name", "parent_item_group", "lft", "rgt"],
+			filters={
+				"show_in_website": 1,
+				"name": ["in", item_group_values]
+			},
+			order_by="lft asc"
+		)
+		
+		# Get the number of products for each category
+		item_counts = {}
+		for item_group in all_item_groups:
+			count = frappe.db.count(
+				"Website Item",
+				filters={
+					"published": 1,
+					"item_group": item_group.name
+				}
+			)
+			item_counts[item_group.name] = count
+		
+		# Build the hierarchical structure
+		root_groups = []
+		group_children = {}
+		
+		# Identify root groups and prepare child structure
+		for group in all_item_groups:
+			if not group.parent_item_group or group.parent_item_group not in [g.name for g in all_item_groups]:
+				root_groups.append(group)
+			else:
+				if group.parent_item_group not in group_children:
+					group_children[group.parent_item_group] = []
+				group_children[group.parent_item_group].append(group)
+		
+		# Recursive function to build the tree
+		def build_tree(groups):
+			result = []
+			for group in groups:
+				group_data = {
+					"name": group.name,
+					"count": item_counts.get(group.name, 0),
+					"children": []
+				}
+				
+				# Add children if any
+				if group.name in group_children:
+					group_data["children"] = build_tree(group_children[group.name])
+				
+				result.append(group_data)
+			return result
+		
+		# Build the tree from root groups
+		hierarchical_groups = build_tree(root_groups)
+		
+		return hierarchical_groups
 
 	def get_filtered_link_doctype_records(self, field):
 		"""
@@ -156,3 +221,159 @@ class ProductFiltersBuilder:
 			discount_filters.append([discount, label])
 
 		return discount_filters
+
+	def get_price_filters(self):
+		"""Get price ranges for filtering products by price."""
+		enable_price_filter = frappe.db.get_single_value("Webshop Settings", "enable_price_filter")
+		
+		if not self.item_group and not enable_price_filter:
+			return None
+
+		item_filters, item_or_filters = {"published": 1}, []
+
+		# Apply item group filter if specified
+		if self.item_group:
+			from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
+			include_child = frappe.db.get_value("Item Group", self.item_group, "include_descendants")
+			if include_child:
+				include_groups = get_child_groups_for_website(self.item_group, include_self=True)
+				include_groups = [x.name for x in include_groups]
+				item_or_filters.extend(
+					[
+						["item_group", "in", include_groups],
+						["Website Item Group", "item_group", "=", self.item_group],  # consider website item groups
+					]
+				)
+			else:
+				item_or_filters.extend(
+					[
+						["item_group", "=", self.item_group],
+						["Website Item Group", "item_group", "=", self.item_group],  # consider website item groups
+					]
+				)
+
+		# Exclude variants if mentioned in settings
+		if frappe.db.get_single_value("Webshop Settings", "hide_variants"):
+			item_filters["variant_of"] = ["is", "not set"]
+
+		# Get min and max price from website items
+		price_range = frappe.db.sql("""
+			SELECT 
+				MIN(price_list_rate) as min_price, 
+				MAX(price_list_rate) as max_price 
+			FROM `tabItem Price` 
+			WHERE `tabItem Price`.item_code IN (
+				SELECT item_code FROM `tabWebsite Item` 
+				WHERE published = 1
+			)
+		""", as_dict=True)
+
+		# If no price is found in the database, use default values
+		if not price_range or not price_range[0].min_price or not price_range[0].max_price:
+			min_price = 0
+			max_price = 10000  # Default maximum price
+		else:
+			# Round prices to create sensible ranges
+			min_price = int(price_range[0].min_price)
+			max_price = int(price_range[0].max_price)
+
+		# Create price ranges
+		price_ranges = []
+		
+		# Determine step size based on price range
+		if max_price - min_price > 1000:
+			step = 500
+		else:
+			step = 100
+
+		# Round min_price down to nearest step
+		min_price = (min_price // step) * step
+		
+		# Round max_price up to nearest step
+		max_price = ((max_price // step) + 1) * step
+
+		# Create price ranges
+		for start_price in range(min_price, max_price, step):
+			end_price = start_price + step
+			if end_price <= max_price:
+				price_ranges.append({
+					"start": start_price,
+					"end": end_price,
+					"label": f"{frappe.utils.fmt_money(start_price)} - {frappe.utils.fmt_money(end_price)}"
+				})
+
+		# Store the real min and max values for the slider
+		real_min_price = int(price_range[0].min_price) if price_range and price_range[0].min_price else 0
+		real_max_price = int(price_range[0].max_price) if price_range and price_range[0].max_price else 10000
+		
+		# Add the real min and max values to the start of the list
+		price_ranges.insert(0, {
+			"min_value": real_min_price,
+			"max_value": real_max_price
+		})
+
+		return price_ranges
+
+	def get_tag_filters(self):
+		"""Get all tags used in Website Items for filtering."""
+		if not self.item_group and not frappe.db.get_single_value("Webshop Settings", "enable_tag_filters"):
+			return []
+
+		item_filters, item_or_filters = {"published": 1}, []
+
+		# Apply item group filter if specified
+		if self.item_group:
+			from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
+			include_child = frappe.db.get_value("Item Group", self.item_group, "include_descendants")
+			if include_child:
+				include_groups = get_child_groups_for_website(self.item_group, include_self=True)
+				include_groups = [x.name for x in include_groups]
+				item_or_filters.extend(
+					[
+						["item_group", "in", include_groups],
+						["Website Item Group", "item_group", "=", self.item_group],  # consider website item groups
+					]
+				)
+			else:
+				item_or_filters.extend(
+					[
+						["item_group", "=", self.item_group],
+						["Website Item Group", "item_group", "=", self.item_group],  # consider website item groups
+					]
+				)
+
+		# Exclude variants if mentioned in settings
+		if frappe.db.get_single_value("Webshop Settings", "hide_variants"):
+			item_filters["variant_of"] = ["is", "not set"]
+
+		# Get all website items with tags
+		website_items = frappe.get_all(
+			"Website Item",
+			fields=["name", "_user_tags"],
+			filters=item_filters,
+			or_filters=item_or_filters
+		)
+
+		# Process tags
+		all_tags = []
+		for item in website_items:
+			if item._user_tags:
+				# Process tags (remove leading comma if present)
+				tags = item._user_tags
+				if tags.startswith(","):
+					tags = tags[1:]
+				
+				# Split tags and add to list
+				item_tags = [tag.strip() for tag in tags.split(",") if tag.strip()]
+				all_tags.extend(item_tags)
+
+		# Count occurrences of each tag
+		tag_counts = {}
+		for tag in all_tags:
+			tag_counts[tag] = tag_counts.get(tag, 0) + 1
+
+		# Sort tags by count (most used first)
+		sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)
+
+		# Return list of tags
+		return [tag for tag, count in sorted_tags]

@@ -17,7 +17,7 @@ frappe.ready(function() {
         constructor() {
             if (frappe.session.user === 'Guest') {
                 // Show login dialog with forceLogin
-                webshop.auth.showLoginDialog({
+                frappe.showLoginDialog({
                     forceLogin: true,
                     callback: function() {
                         // Reload page after successful login
@@ -50,6 +50,7 @@ frappe.ready(function() {
             this.checkGiftCardOnly();
             this.showStep('step-address');
             this.loadExistingAddress();
+            this.setupLeavePageConfirmation();
 
             this.initializeAddressesAndOrderSummary();
             this.initializeCouponHandling();
@@ -126,6 +127,37 @@ frappe.ready(function() {
             this.handleShippingAddressToggle();
             this.bindEvents();
             this.setupCompanyField();
+        }
+
+        setupLeavePageConfirmation() {
+            // Variable to track page modifications
+            this.pageModified = true;
+            
+            // Add an event listener to intercept tab closing
+            window.addEventListener('beforeunload', (e) => {
+                if (this.pageModified) {
+                    // Standard message for different browsers
+                    const confirmationMessage = _("Are you sure you want to leave this page? Your order has not been finalized.");
+                    e.returnValue = confirmationMessage; // Standard for most browsers
+                    return confirmationMessage; // For older browsers
+                }
+            });
+            
+            // Intercept clicks on links that leave the checkout
+            $(document).on('click', 'a', (e) => {
+                const href = $(e.currentTarget).attr('href');
+                // Check if the link does not contain 'checkout', is not thank_you.html and is not an internal anchor (#)
+                if (href && !href.includes('checkout') && !href.includes('thank_you.html') && !href.startsWith('#') && this.pageModified) {
+                    if (!confirm(_("Are you sure you want to leave this page? Your order has not been finalized."))) {
+                        e.preventDefault();
+                    }
+                }
+            });
+            
+            // Disable alert when order is finalized
+            $(document).on('click', '.btn-submit-payment', () => {
+                this.pageModified = false;
+            });
         }
 
         setupCompanyField() {

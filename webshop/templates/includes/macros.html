@@ -1,3 +1,44 @@
+{%- macro price_filter_section(price_filters)-%}
+{% if price_filters %}
+	<div class="mb-4 filter-block pb-5">
+		<div class="filter-label mb-3">{{ _("Price") }}</div>
+		
+		<!-- Price Slider -->
+		<div class="price-range-slider mb-3">
+			<!-- Track of the slider -->
+			<div class="slider-track" id="price-slider-track">
+				<!-- Control points of the slider -->
+				<div class="slider-handle slider-handle-min" id="price-slider-min"></div>
+				<div class="slider-handle slider-handle-max" id="price-slider-max"></div>
+				<!-- Selection bar between the two points -->
+				<div class="slider-selection" id="price-slider-selection"></div>
+			</div>
+		</div>
+		
+		<!-- Input fields for min and max values -->
+		<div class="price-range-inputs">
+			<div class="d-flex justify-content-between align-items-center">
+				<div class="price-input-container">
+					<input type="number" class="form-control form-control-sm" id="price-min" min="0" placeholder="{{ _("0") }}">
+				</div>
+				
+				<div class="price-range-separator">{{ _("à") }}</div>
+				
+				<div class="price-input-container">
+					<input type="number" class="form-control form-control-sm" id="price-max" min="0" max="{{ price_filters[0].max_value if price_filters|length > 0 else 5000 }}" placeholder="{{ _("0") }}">
+				</div>
+			</div>
+		</div>
+		
+		<!-- Storage of min and max values for JavaScript -->
+		<div class="d-none">
+			<span id="price-range-min-value">{{ price_filters[0].min_value if price_filters|length > 0 else 0 }}</span>
+			<span id="price-range-max-value">{{ price_filters[0].max_value if price_filters|length > 0 else 5000 }}</span>
+		</div>
+	</div>
+{% endif %}
+{%- endmacro -%}
+
 {% macro product_image_square(website_image, css_class="") %}
 <div class="product-image product-image-square h-100 rounded
 	{% if not website_image -%} missing-image {%- endif %} {{ css_class }}"
@@ -44,7 +85,7 @@
 	<div class="row">
 		{% for card in section.section_cards %}
 		<div class="col-md-{{ section.column_value }} mb-4">
-			<div class="card h-100 justify-content-between">
+			<div class="card h-100 border-0 justify-content-between">
 				{% if card.image %}
 				<img itemprop="image" class="card-img-top h-75" src="{{ card.image }}" loading="lazy" alt="{{ _(card.title) }}"></img>
 				{% endif %}
@@ -264,7 +305,7 @@
 						<div class="progress-bar progress-bar-cosmetic" role="progressbar"
 							aria-valuenow="{{ percent }}"
 							aria-valuemin="0" aria-valuemax="100"
-							style="width: {{ percent }}%;">
+							style="width: {{ percent }}%">
 						</div>
 					</div>
 				</div>
@@ -314,25 +355,78 @@
 
 		{% if values %}
 		<div class="filter-options">
-			{% for value in values %}
-			<div class="filter-lookup-wrapper checkbox" data-value="{{ value }}">
-				<label for="{{value}}">
-					<input type="checkbox"
-						class="product-filter field-filter"
-						id="{{value}}"
-						data-filter-name="{{ item_field.fieldname }}"
-						data-filter-value="{{ value }}"
-						style="width: 14px !important">
-					<span class="label-area">{{ _(value) }}</span>
-				</label>
-			</div>
-			{% endfor %}
+			{% if item_field.fieldname == 'item_group' %}
+				<!-- Affichage hiérarchique pour les catégories -->
+				{{ render_hierarchical_item_groups(values, item_field.fieldname) }}
+			{% else %}
+				<!-- Affichage normal pour les autres filtres -->
+				{% for value in values %}
+				<div class="filter-lookup-wrapper checkbox" data-value="{{ value }}">
+					<label for="{{value}}">
+						<input type="checkbox"
+							class="product-filter field-filter"
+							id="{{value}}"
+							data-filter-name="{{ item_field.fieldname }}"
+							data-filter-value="{{ value }}"
+							style="width: 14px !important">
+						<span class="label-area">{{ _(value) }}</span>
+					</label>
+				</div>
+				{% endfor %}
+			{% endif %}
 		</div>
+		
+		<!-- Add "See all" link for brand and item group -->
+		{% if item_field.fieldname == 'brand' %}
+		<div class="mt-3">
+			<a href="/shop-by-category?tab=brand" class="btn btn-sm btn-outline-primary">{{ _('See all brands') }}</a>
+		</div>
+		{% elif item_field.fieldname == 'item_group' %}
+		<div class="mt-3">
+			<a href="/shop-by-category" class="btn btn-sm btn-outline-primary">{{ _('See all item groups') }}</a>
+		</div>
+		{% endif %}
 		{% else %}
 		<i class="text-muted">{{ _('No values') }}</i>
 		{% endif %}
 	</div>
 {% endfor %}
+{%- endmacro -%}
+
+{%- macro render_hierarchical_item_groups(item_groups, fieldname, level=0) -%}
+	{% for group in item_groups %}
+		<div class="filter-lookup-wrapper checkbox hierarchical-item-group level-{{ level }}" data-value="{{ group.name }}">
+			<div class="d-flex align-items-center justify-content-between w-100">
+				<div class="d-flex align-items-center">
+					<!-- Checkbox et label pour tous les groupes (parents et enfants) -->
+					<label for="{{ group.name }}" class="mb-0 d-flex align-items-center">
+						<input type="checkbox"
+							class="product-filter field-filter"
+							id="{{ group.name }}"
+							data-filter-name="{{ fieldname }}"
+							data-filter-value="{{ group.name }}"
+							style="width: 14px !important">
+						<span class="label-area">{{ _(group.name) }}</span>
+						{% if group.count %}
+							<span class="badge badge-light ml-1">{{ group.count }}</span>
+						{% endif %}
+					</label>
+				</div>
+				
+				<!-- Bouton +/- à droite pour déployer/replier les enfants -->
+				{% if group.children and group.children|length > 0 %}
+					<span class="toggle-children" data-expanded="false">+</span>
+				{% endif %}
+			</div>
+			
+			{% if group.children and group.children|length > 0 %}
+				<!-- Container pour les enfants (caché par défaut) -->
+				<div class="children-container ml-4" style="display: none;">
+					{{ render_hierarchical_item_groups(group.children, fieldname, level + 1) }}
+				</div>
+			{% endif %}
+		</div>
+	{% endfor %}
 {%- endmacro -%}
 
 {%- macro attribute_filter_section(filters)-%}
@@ -366,6 +460,34 @@
 		{% endif %}
 	</div>
 {% endfor %}
+{%- endmacro -%}
+
+{%- macro tag_filter_section(tag_filters)-%}
+{% if tag_filters and tag_filters|length > 0 %}
+	<div class="mb-4 filter-block pb-5">
+		<div class="filter-label mb-3">{{ _("Tags") }}</div>
+		{% if tag_filters|length > 20 %}
+		<!-- show inline filter if values more than 20 -->
+		<input type="text" class="form-control form-control-sm mb-2 filter-lookup-input" placeholder="{{ _("Search Tags") }}"/>
+		{% endif %}
+
+		<div class="filter-options">
+			{% for tag in tag_filters %}
+			<div class="filter-lookup-wrapper checkbox" data-value="{{ tag }}">
+				<label data-value="{{ tag }}">
+					<input type="checkbox"
+						class="product-filter tag-filter"
+						id="tag-{{ tag }}"
+						data-filter-name="_user_tags"
+						data-filter-value="{{ tag }}"
+						style="width: 14px !important">
+						<span class="label-area">{{ _(tag) }}</span>
+				</label>
+			</div>
+			{% endfor %}
+		</div>
+	</div>
+{% endif %}
 {%- endmacro -%}
 
 {%- macro recommended_item_row(item)-%}

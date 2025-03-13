@@ -1,0 +1,44 @@
+{% set builder_data = frappe.call("webshop.webshop.utils.builder.get_builder_page_content", route="footer", use_cache=True) %}
+{% if builder_data %}
+    <style>
+        {{ builder_data.global_style }}
+        {{ builder_data.style }}
+    </style>
+    
+    {% for style in builder_data.client_styles %}
+    <style>
+        {{ style.content }}
+    </style>
+    {% endfor %}
+    
+    <script>
+        window.pageData = {{ builder_data.page_data | tojson }};
+    </script>
+    
+    {{ builder_data.content|safe }}
+    
+    {% for script in builder_data.client_scripts %}
+    <script>
+        // {{ script.name }}
+        {{ script.content }}
+    </script>
+    {% endfor %}
+    
+    <script>
+        {{ builder_data.global_script|safe }}
+    </script>
+{% else %}
+<nav class="navbar 
+<footer class="web-footer">
+	<div class="container">
+		{% include "templates/includes/footer/footer_logo_extension.html" %}
+
+		{% if footer_items -%}
+			{% include "templates/includes/footer/footer_grouped_links.html" %}
+		{% endif %}
+
+		{% include "templates/includes/footer/footer_links.html" %}
+		{% include "templates/includes/footer/footer_info.html" %}
+	</div>
+</footer>
+{% endif %}

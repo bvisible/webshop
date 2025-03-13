@@ -44,7 +44,7 @@ class ProductQuery:
 			"is_gift_card",
 		]
 
-	def query(self, attributes=None, fields=None, search_term=None, start=0, item_group=None):
+	def query(self, attributes=None, fields=None, search_term=None, start=0, item_group=None, price_condition=None):
 		"""
 		Args:
 		        attributes (dict, optional): Item Attribute filters
@@ -67,6 +67,8 @@ class ProductQuery:
 			self.build_search_filters(search_term)
 		if self.settings.hide_variants:
 			self.filters.append(["variant_of", "is", "not set"])
+		if price_condition:
+			self.build_price_filters(price_condition)
 
 		# query results
 		if attributes:
@@ -161,6 +163,19 @@ class ProductQuery:
 			if not values or field == "discount":
 				continue
 
+			# Get tags
+			if field == "_user_tags":
+				if isinstance(values, list):
+					# Create OR filters for each tag
+					tag_filters = []
+					for tag in values:
+						# Tags can be stored with or without leading comma
+						tag_filters.append(["_user_tags", "like", f"%{tag}%"])
+					
+					# Add tag filters to OR filters
+					self.or_filters.extend(tag_filters)
+				continue
+
 			# handle multiselect fields in filter addition
 			meta = frappe.get_meta("Website Item", cached=True)
 			df = meta.get_field(field)
@@ -220,6 +235,60 @@ class ProductQuery:
 		search = "%{}%".format(search_term)
 		for field in search_fields:
 			self.or_filters.append([field, "like", search])
+			
+	def build_price_filters(self, price_condition):
+		"""Build price filters to filter products by price range.
+		
+		Args:
+			price_condition (dict): Dict containing min_price and max_price
+		"""
+		if not price_condition:
+			return
+		
+		frappe.log_error("Price Filter Debug", f"Application du filtre de prix: {price_condition}")
+		
+		# Get store settings
+		settings = frappe.get_cached_doc("Webshop Settings")
+		
+		# Get default price list
+		default_price_list = settings.price_list
+
+		# Instead of using a direct SQL subquery, we will store the item IDs 
+		# that match our price criteria and use them as a filter
+		min_price = price_condition.get("min_price")
+		max_price = price_condition.get("max_price")
+		
+		# Build conditions for SQL query
+		conditions = [
+			"price_list = %s",
+			"selling = 1"
+		]
+		
+		values = [default_price_list]
+		
+		if min_price is not None:
+			conditions.append("price_list_rate >= %s")
+			values.append(float(min_price))
+		
+		if max_price is not None:
+			conditions.append("price_list_rate <= %s")
+			values.append(float(max_price))
+		
+		# Get item codes that match price criteria
+		item_codes_query = """
+			SELECT item_code 
+			FROM `tabItem Price` 
+			WHERE {}
+		""".format(" AND ".join(conditions))
+				
+		item_codes = [d[0] for d in frappe.db.sql(item_codes_query, values)]
+		
+		if item_codes:
+			# Add filter to include only items with retrieved codes
+			self.filters.append(["item_code", "in", item_codes])
+		else:
+			# If no articles match, add an impossible condition to return nothing
+			self.filters.append(["name", "=", "no_match_found"])
 
 	def add_display_details(self, result, discount_list, cart_items):
 		"""Add price and availability details in result."""

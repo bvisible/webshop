@@ -1,0 +1,428 @@
+<section id="{{ carousel_id|default('brand-carousel') }}" class="brand-carousel" data-total-items="{{ brands|length or 0 }}">
+    {% if carousel_title %}
+    <div class="carousel-title">
+      <h2>{{ _(carousel_title) }}</h2>
+    </div>
+    {% endif %}
+    
+    {% if brands %}
+      <button class="carousel-btn left" aria-label="{{_("Previous")}}">←</button>
+      <div class="carousel-wrapper">
+        <div class="carousel-inner">
+          {% for brand in brands %}
+            <div class="item-card">
+              <div class="card text-center">
+                <div class="card-img-container">
+                  <a href="/{{ brand.route or '#' }}" style="text-decoration: none;">
+                    {% if brand.logo %}
+                      <img class="card-img" src="{{ brand.logo }}" alt="{{ brand.brand_name }}">
+                    {% else %}
+                      <div class="card-img-top no-image">
+                        {{ brand.brand_name[:2].upper() }}
+                      </div>
+                    {% endif %}
+                  </a>
+                </div>
+                <div class="card-body text-center">
+                  <div class="brand-header">
+                    <a href="/{{ brand.route or '#' }}">
+                      <div class="brand-title">
+                        {{ _(brand.brand_name) }}
+                      </div>
+                    </a>
+                  </div>
+                  {% if brand.description %}
+                    <div class="brand-description">
+                      {% set clean_description = brand.description | striptags %}
+                      {{ clean_description[:50] + '...' if clean_description|length > 50 else clean_description }}
+                    </div>
+                  {% endif %}
+                  <div class="btn btn-sm btn-primary btn-discover w-100 mt-2">
+                    {{ _("Voir les produits") }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <button class="carousel-btn right" aria-label="{{_("Next")}}">→</button>
+      <div class="carousel-indicators">
+        <!-- Indicators created dynamically via JavaScript -->
+      </div>
+      
+      <style>
+      .brand-carousel {
+        position: relative;
+        margin: 30px auto;
+        padding: 30px 0;
+        max-width: 1200px;
+        width: 100%;
+      }
+
+      /* Carousel title */
+      .brand-carousel .carousel-title {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .brand-carousel .carousel-title h2 {
+        font-size: 2.2em;
+        font-weight: 600;
+        position: relative;
+        display: inline-block;
+        padding-bottom: 15px;
+        margin-bottom: 5px;
+      }
+
+      .brand-carousel .carousel-title h2:after {
+        content: '';
+        position: absolute;
+        width: 80px;
+        height: 3px;
+        background-color: #000;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .brand-carousel .carousel-wrapper {
+        overflow: hidden;
+        padding: 10px;
+      }
+
+      .brand-carousel .carousel-inner {
+        display: flex;
+        transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        padding: 10px 0;
+      }
+
+      .brand-carousel .item-card {
+        flex: 0 0 calc(25% - 30px);
+        margin: 15px;
+        box-sizing: border-box;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        width: calc(25% - 30px);
+      }
+
+      .brand-carousel .item-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .brand-carousel .card {
+        background-color: #fff;
+        border: 1px solid #eaeaea;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        transition: all 0.3s ease;
+      }
+
+      .brand-carousel .card:hover {
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+      }
+      
+      .brand-carousel .btn-discover {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+      }
+      
+      .brand-carousel .card:hover .btn-discover {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .brand-carousel .card-img-container {
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+        padding-top: 100%; 
+        background-color: #fff;
+      }
+
+      .brand-carousel .card-img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center;
+        transition: transform 0.5s ease;
+        padding: 15px;
+        box-sizing: border-box;
+      }
+
+      .brand-carousel .card:hover .card-img {
+        transform: scale(1.05);
+      }
+
+      .brand-carousel .card-img-top.no-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+        color: #6c757d;
+        font-size: 2.5em;
+        font-weight: bold;
+      }
+
+      .brand-carousel .card-body {
+        padding: 15px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      .brand-carousel .brand-title {
+        font-size: 1.1em;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        transition: color 0.3s ease;
+      }
+
+      .brand-carousel .card:hover .brand-title {
+        color: #007bff;
+      }
+
+      .brand-carousel .brand-description {
+        font-size: 0.9em;
+        color: #6c757d;
+        margin-bottom: 15px;
+        flex-grow: 1;
+      }
+      
+      /* Responsive adjustments */
+      @media (max-width: 1200px) {
+        .brand-carousel .item-card {
+          flex: 0 0 calc(33.33% - 30px);
+          width: calc(33.33% - 30px);
+        }
+      }
+      
+      @media (max-width: 992px) {
+        .brand-carousel .item-card {
+          flex: 0 0 calc(50% - 30px);
+          width: calc(50% - 30px);
+        }
+      }
+      
+      @media (max-width: 576px) {
+        .brand-carousel .item-card {
+          flex: 0 0 calc(100% - 30px);
+          width: calc(100% - 30px);
+        }
+        
+        .brand-carousel .carousel-title h2 {
+          font-size: 1.8em;
+        }
+      }
+      </style>
+      
+      <script>
+        (function() {
+          const carousel = document.getElementById('{{ carousel_id }}');
+          const carouselInner = carousel.querySelector('.carousel-inner');
+          const btnLeft = carousel.querySelector('.carousel-btn.left');
+          const btnRight = carousel.querySelector('.carousel-btn.right');
+          const indicators = carousel.querySelector('.carousel-indicators');
+          
+          let currentIndex = 0;
+          let itemsPerView = 4;
+          // Récupération du nombre total d'éléments depuis une variable data-attribute
+          let totalItems = parseInt(carousel.getAttribute('data-total-items') || '0');
+          let autoplayInterval;
+          let touchStartX = 0;
+          let touchEndX = 0;
+          
+          // Determine how many items to show based on screen width
+          function updateItemsPerView() {
+            const width = window.innerWidth;
+            
+            if (width < 576) {
+              itemsPerView = 1;
+            } else if (width < 992) {
+              itemsPerView = 2;
+            } else if (width < 1200) {
+              itemsPerView = 3;
+            } else {
+              itemsPerView = 4;
+            }
+            
+            updateCarousel();
+            updateIndicators();
+          }
+          
+          // Update the indicators
+          function updateIndicators() {
+            indicators.innerHTML = '';
+            
+            const totalPages = Math.ceil(totalItems / itemsPerView);
+            
+            for (let i = 0; i < totalPages; i++) {
+              const indicator = document.createElement('span');
+              indicator.classList.add('indicator');
+              
+              if (i === currentIndex) {
+                indicator.classList.add('active');
+              }
+              
+              indicator.addEventListener('click', () => {
+                currentIndex = i;
+                updateCarousel();
+                resetAutoplay();
+              });
+              
+              indicators.appendChild(indicator);
+            }
+            
+            updateControlsVisibility();
+          }
+          
+          // Update visibility of navigation buttons
+          function updateControlsVisibility() {
+            const totalPages = Math.ceil(totalItems / itemsPerView);
+            
+            if (currentIndex <= 0) {
+              btnLeft.style.opacity = '0.5';
+              btnLeft.style.pointerEvents = 'none';
+            } else {
+              btnLeft.style.opacity = '1';
+              btnLeft.style.pointerEvents = 'auto';
+            }
+            
+            if (currentIndex >= totalPages - 1) {
+              btnRight.style.opacity = '0.5';
+              btnRight.style.pointerEvents = 'none';
+            } else {
+              btnRight.style.opacity = '1';
+              btnRight.style.pointerEvents = 'auto';
+            }
+          }
+          
+          // Update the carousel position
+          function updateCarousel() {
+            const itemWidth = carouselInner.querySelector('.item-card').offsetWidth;
+            const translateX = -currentIndex * itemsPerView * itemWidth;
+            
+            carouselInner.style.transform = `translateX(${translateX}px)`;
+            
+            // Update indicators
+            const indicators = carousel.querySelectorAll('.indicator');
+            indicators.forEach((indicator, index) => {
+              if (index === currentIndex) {
+                indicator.classList.add('active');
+              } else {
+                indicator.classList.remove('active');
+              }
+            });
+            
+            updateControlsVisibility();
+          }
+          
+          // Event listeners for navigation buttons
+          btnLeft.addEventListener('click', function() {
+            if (currentIndex > 0) {
+              currentIndex--;
+              updateCarousel();
+              resetAutoplay();
+            }
+          });
+          
+          btnRight.addEventListener('click', function() {
+            const totalPages = Math.ceil(totalItems / itemsPerView);
+            
+            if (currentIndex < totalPages - 1) {
+              currentIndex++;
+              updateCarousel();
+              resetAutoplay();
+            }
+          });
+          
+          // Touch events for swipe on mobile
+          function handleSwipe() {
+            if (touchEndX < touchStartX) {
+              // Swipe left, go to next
+              const totalPages = Math.ceil(totalItems / itemsPerView);
+              
+              if (currentIndex < totalPages - 1) {
+                currentIndex++;
+                updateCarousel();
+                resetAutoplay();
+              }
+            }
+            
+            if (touchEndX > touchStartX) {
+              // Swipe right, go to previous
+              if (currentIndex > 0) {
+                currentIndex--;
+                updateCarousel();
+                resetAutoplay();
+              }
+            }
+          }
+          
+          // Autoplay functionality
+          function startAutoplay() {
+            stopAutoplay();
+            
+            autoplayInterval = setInterval(() => {
+              const totalPages = Math.ceil(totalItems / itemsPerView);
+              
+              if (currentIndex < totalPages - 1) {
+                currentIndex++;
+              } else {
+                currentIndex = 0;
+              }
+              
+              updateCarousel();
+            }, 5000);
+          }
+          
+          function stopAutoplay() {
+            if (autoplayInterval) {
+              clearInterval(autoplayInterval);
+            }
+          }
+          
+          function resetAutoplay() {
+            stopAutoplay();
+            startAutoplay();
+          }
+          
+          // Touch event listeners
+          carouselInner.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+          });
+          
+          carouselInner.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+          });
+          
+          // Mouse enter/leave for autoplay control
+          carouselInner.addEventListener('mouseenter', stopAutoplay);
+          carouselInner.addEventListener('mouseleave', startAutoplay);
+          
+          // Initialize
+          updateItemsPerView();
+          window.addEventListener('resize', updateItemsPerView);
+          startAutoplay();
+        })();
+      </script>
+    {% else %}
+      <div class="empty-carousel">
+        <p>{{ _("Aucune marque disponible pour le moment.") }}</p>
+      </div>
+    {% endif %}
+</section>

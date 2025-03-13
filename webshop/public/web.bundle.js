@@ -8,3 +8,4 @@ import './js/product_ui/search'
 import './js/product_ui/views'
 import './js/shopping_cart'
 import './js/wishlist'
+

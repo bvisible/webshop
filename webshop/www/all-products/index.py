@@ -14,6 +14,19 @@ def get_context(context):
 	filter_engine = ProductFiltersBuilder()
 	context.field_filters = filter_engine.get_field_filters()
 	context.attribute_filters = filter_engine.get_attribute_filters()
+	
+	# Add tag filters if enabled
+	if frappe.db.get_single_value("Webshop Settings", "enable_tag_filters"):
+		context.tag_filters = filter_engine.get_tag_filters()
+		
+	# Add price filters if enabled
+	enable_price_filter = frappe.db.get_single_value("Webshop Settings", "enable_price_filter")
+	frappe.log_error("Price Filter Debug", f"Enable Price Filter: {enable_price_filter}")
+	
+	if enable_price_filter:
+		price_filters = filter_engine.get_price_filters()
+		# Avoid logging the entire price filters array which is too long
+		context.price_filters = price_filters
 
 	context.page_length = (
 		cint(frappe.db.get_single_value("Webshop Settings", "products_per_page")) or 20

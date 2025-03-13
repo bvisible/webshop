@@ -20,8 +20,7 @@ def execute():
             'fieldtype': 'Data',
             'insert_after': 'checkout_display_section',
             'translatable': 1,
-            'depends_on': 'eval:frappe.db.get_single_value("Webshop Settings", "enable_checkout_page")',
-            'reqd': 1,
+            'depends_on': 'eval:frappe.db.get_single_value("Webshop Settings", "enable_checkout_page")'
         },
         {
             'fieldname': 'checkout_description',

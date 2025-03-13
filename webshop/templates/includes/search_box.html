@@ -1,0 +1,210 @@
+<div class="webshop-search-component">
+  <div class="input-group">
+    <div class="dropdown w-100" id="dropdownMenuSearchNoJQ">
+      <input type="search" name="query" autocomplete="false" id="search-box-nojq" class="form-control"
+        placeholder="{{ _('Search for Products') }}"
+        aria-label="Product" aria-describedby="button-addon2">
+      <div class="search-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round"
+          class="feather feather-search">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  :root {
+    --neutral-white: #ffffff;
+    --neutral-black: #000000;
+    --neutral: var(--neutral-white);
+    --invert-neutral: var(--neutral-black);
+    --gray-50: #f8f8f8;
+    --gray-100: #f3f3f3;
+    --gray-200: #ededed;
+    --gray-300: #e2e2e2;
+    --gray-400: #c7c7c7;
+    --gray-500: #999999;
+    --gray-600: #7c7c7c;
+  }
+  .webshop-search-component {
+    position: relative;
+    width: 100%;
+  }
+
+  .webshop-search-component #search-box-nojq {
+    padding: 6px 10px 6px 2.5rem;
+    font-size: 14px !important;
+    border-radius: 8px;
+    border: 1px solid #ededed;
+    height: 100%;
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  /* Style pour les résultats de recherche */
+  .webshop-search-component .dropdown-menu {
+    width: 100%;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  /* S'assurer que le dropdown est masqué au chargement */
+  .webshop-search-component .hidden {
+    display: none !important;
+  }
+
+.webshop-search-component .search-icon {
+    left: 0;
+    width: 2.5rem;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 1px;
+    color: rgb(82, 82, 82) !important;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.webshop-search-component .dropdown-item {
+    display: flex;
+    width: 100%;
+    padding: 4px 8px;
+    clear: both;
+    font-weight: 400;
+    color: #383838;
+    text-align: inherit;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+.webshop-search-component .item-thumb {
+    height: 50px;
+    max-width: 80px;
+    min-width: 80px;
+    -o-object-fit: cover;
+    object-fit: cover;
+}
+#search-results-container-nojq {
+    border: 1px solid #ededed;
+    padding: 0.25rem 1rem;
+}
+#search-results-container-nojq #product-scroll > div > div {
+  max-width: 75%;
+  flex: 0 0 75%;
+  white-space: normal;
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+#search-results-container-nojq .recent-search {
+    padding: 0.5rem 0.5rem;
+    border-radius: 8px;
+    display: flex;
+}
+/* Styles pour l'affichage des prix */
+#search-results-container-nojq .product-price {
+  margin-top: 4px;
+  font-weight: 500;
+  color: var(--primary);
+  font-size: 13px;
+}
+#search-results-container-nojq .striked-price {
+  text-decoration: line-through;
+  color: var(--gray-600);
+  font-size: 12px;
+  margin-left: 5px;
+}
+#search-results-container-nojq .product-info-green {
+  color: var(--green);
+  font-size: 12px;
+}
+#search-results-container-nojq .product-name-result {
+  font-weight: 600;
+  font-size: 16px;
+  text-decoration: none;
+}
+#search-results-container-nojq {
+  border: 1px solid var(--gray-200);
+  padding: 0.25rem 1rem;
+}
+#search-results-container-nojq .category-chip {
+  background-color: var(--gray-100);
+  border: none !important;
+  box-shadow: none;
+}
+#search-results-container-nojq .recent-search {
+  padding: 0.5rem 0.5rem;
+  border-radius: var(--border-radius);
+  display: flex;
+}
+#search-results-container-nojq .recent-search:hover {
+  background-color: var(--gray-100);
+}
+#search-results-container-nojq #toggle-view {
+  float: right;
+}
+#search-results-container-nojq #toggle-view .btn-primary {
+  background-color: var(--gray-600);
+  box-shadow: 0 0 0 0.2rem var(--gray-400);
+}
+#search-results-container-nojq .placeholder-div {
+  height: 80%;
+  width: -webkit-fill-available;
+  padding: 50px;
+  text-align: center;
+  background-color: #F9FAFA;
+  border-top-left-radius: calc(0.75rem - 1px);
+  border-top-right-radius: calc(0.75rem - 1px);
+}
+#search-results-container-nojq .placeholder {
+  font-size: 72px;
+}
+#search-results-container-nojq [data-path=cart] .modal-backdrop {
+  background-color: var(--gray-50);
+}
+#search-results-container-nojq .item-thumb {
+  height: 50px;
+  max-width: 80px;
+  min-width: 80px;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+
+.brand-line {
+  color: gray;
+}
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Charger dynamiquement le script de recherche sans jQuery
+    var script = document.createElement('script');
+    script.src = '/assets/webshop/js/product_ui/search_no_jquery.js';
+    script.onload = function() {
+      // Initialiser le composant de recherche après le chargement du script
+      setTimeout(function() {
+        if (typeof webshop !== 'undefined' && typeof webshop.ProductSearchNoJQuery !== 'undefined') {
+          new webshop.ProductSearchNoJQuery();
+        } else {
+          console.error("Le composant de recherche webshop n'a pas pu être chargé.");
+        }
+      }, 100); // Un petit délai pour s'assurer que tout est bien chargé
+    };
+    script.onerror = function() {
+      console.error("Erreur lors du chargement du script de recherche webshop.");
+    };
+    document.head.appendChild(script);
+  });
+</script>

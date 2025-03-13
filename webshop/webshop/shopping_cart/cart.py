@@ -137,6 +137,20 @@ def get_cart_quotation(doc=None):
 				available_loyalty_points = float(loyalty_program_details.get("loyalty_points", 0))
 				loyalty_points_value = frappe.utils.fmt_money(loyalty_program_details.get("loyalty_points", 0) * loyalty_program_details.get("conversion_factor", 0), currency=doc.currency)
 
+	# Get customer information for B2B verification
+	customer_info = None
+	is_b2b_customer = False
+	if doc and doc.customer_name and frappe.session.user != "Guest":
+		customer_info = frappe.db.get_value("Customer", doc.customer_name, ["name", "customer_group"], as_dict=1)
+		
+		# Check if the customer belongs to a B2B group
+		cart_settings = frappe.get_cached_doc("Webshop Settings")
+		if cart_settings.activate_b2b_checkout and customer_info and cart_settings.b2b_customer_group:
+			for group in cart_settings.b2b_customer_group:
+				if group.customer_group == customer_info.customer_group:
+					is_b2b_customer = True
+					break
+
 	return {
 		"doc": decorate_quotation_doc(doc) if doc else None,
 		"shipping_addresses": get_shipping_addresses(party),
@@ -145,7 +159,9 @@ def get_cart_quotation(doc=None):
 		"cart_settings": frappe.get_cached_doc("Webshop Settings"),
 		"available_loyalty_points": available_loyalty_points,
 		"loyalty_points_value": loyalty_points_value,
-		"loyalty_program_details": loyalty_program_details
+		"loyalty_program_details": loyalty_program_details,
+		"customer_info": customer_info,
+		"is_b2b_customer": is_b2b_customer
 	}
 
 
@@ -656,8 +672,13 @@ def _get_cart_quotation(party=None):
 
 	if quotation:
 		qdoc = frappe.get_doc("Quotation", quotation[0].name)
+		# Update transaction date if necessary
+		from frappe.utils import today
+		if qdoc.transaction_date != today():
+			qdoc.transaction_date = today()
 	else:
 		company = frappe.db.get_single_value("Webshop Settings", "company")
+		from frappe.utils import today
 		qdoc = frappe.get_doc(
 			{
 				"doctype": "Quotation",
@@ -670,6 +691,7 @@ def _get_cart_quotation(party=None):
 				"docstatus": 0,
 				"__islocal": 1,
 				"party_name": party.name,
+				"transaction_date": today()
 			}
 		)
 
@@ -717,6 +739,11 @@ def apply_cart_settings(party=None, quotation=None):
 		party = get_party()
 	if not quotation:
 		quotation = _get_cart_quotation(party)
+
+	# Update transaction date if necessary
+	from frappe.utils import today
+	if quotation.transaction_date != today():
+		quotation.transaction_date = today()
 
 	cart_settings = frappe.get_cached_doc("Webshop Settings")
 

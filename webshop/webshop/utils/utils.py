@@ -45,3 +45,7 @@ def get_gateway_configuration(payment_method, payment_gateway_account=None):
     except Exception as e:
         frappe.log_error(f"Error reading payment configuration: {str(e)}")
         return {}
+
+@frappe.whitelist( allow_guest=True )
+def get_first_name(user):
+    return frappe.db.get_value("User", user, "first_name")

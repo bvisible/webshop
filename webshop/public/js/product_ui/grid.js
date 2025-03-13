@@ -122,6 +122,9 @@ webshop.ProductGrid = class {
 	}
 
 	get_price_html(item) {
+		if (item.is_gift_card) {
+			return '';
+		}
 		let price_html = `
 			<div class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
 				${ item.formatted_price || '' }

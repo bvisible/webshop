@@ -1,9 +1,15 @@
-{% from "webshop/templates/includes/macros.html" import attribute_filter_section, field_filter_section, discount_range_filters %}
+{% from "webshop/templates/includes/macros.html" import attribute_filter_section, field_filter_section, discount_range_filters, tag_filter_section, price_filter_section %}
 {% extends "templates/web.html" %}
 
 {% block title %}{{ _('All Products') }}{% endblock %}
 {% block header %}
-<div class="mb-6">{{ _('All Products') }}</div>
+<div class="mb-6 d-flex justify-content-between align-items-center">
+  <div>{{ _('All Products') }}</div>
+  <button id="filterButton" class="filter-button d-md-none">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
+    <span>{{ _('Filters') }}</span>
+  </button>
+</div>
 {% endblock header %}
 
 {% block page_content %}
@@ -15,10 +21,16 @@
 
 	<!-- Filters Section -->
 	<div class="col-12 order-1 col-md-3 order-md-1">
+		<div id="filterOverlay" class="filter-overlay d-md-none"></div>
 		<div class="collapse d-md-block mr-4 filters-section" id="product-filters">
 			<div class="d-flex justify-content-between align-items-center mb-5 title-section">
 				<div class="mb-4 filters-title" > {{ _('Filters') }} </div>
-				<a class="mb-4 clear-filters" href="/all-products">{{ _('Clear All') }}</a>
+				<div class="d-flex">
+					<a class="mb-4 clear-filters" href="/all-products">{{ _('Clear All') }}</a>
+					<button id="closeFilterButton" class="close-filter-button d-md-none ml-3 mb-4">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"/></svg>
+					</button>
+				</div>
 			</div>
 			<!-- field filters -->
 			{% if field_filters %}
@@ -28,6 +40,16 @@
 			<!-- attribute filters -->
 			{% if attribute_filters %}
 				{{ attribute_filter_section(attribute_filters) }}
+			{% endif %}
+
+			<!-- tag filters -->
+			{% if tag_filters %}
+				{{ tag_filter_section(tag_filters) }}
+			{% endif %}
+			
+			<!-- price filters -->
+			{% if price_filters %}
+				{{ price_filter_section(price_filters) }}
 			{% endif %}
 		</div>
 
@@ -45,7 +67,211 @@
 			let path = window.location.pathname + '?' + frappe.utils.get_url_from_dict(query_params);
 			window.location.href = path;
 		});
+
+		// Handle mobile filters
+		const filterButton = document.getElementById('filterButton');
+		const closeFilterButton = document.getElementById('closeFilterButton');
+		const filterOverlay = document.getElementById('filterOverlay');
+		const productFilters = document.getElementById('product-filters');
+
+		// Open the sidebar filters
+		if (filterButton) {
+			filterButton.addEventListener('click', () => {
+				openFilters();
+			});
+		}
+
+		// Close the sidebar filters
+		if (closeFilterButton) {
+			closeFilterButton.addEventListener('click', () => {
+				closeFilters();
+			});
+		}
+
+		// Close the sidebar filters on overlay click
+		if (filterOverlay) {
+			filterOverlay.addEventListener('click', () => {
+				closeFilters();
+			});
+		}
+
+		// Function to open the sidebar filters
+		function openFilters() {
+			if (filterOverlay) {
+				filterOverlay.style.visibility = 'visible';
+				filterOverlay.style.display = 'block';
+				void filterOverlay.offsetWidth; // Force reflow
+				filterOverlay.classList.add('show');
+			}
+
+			if (productFilters) {
+				productFilters.classList.add('show');
+			}
+
+			// Prevent body scrolling
+			document.body.style.overflow = 'hidden';
+		}
+
+		// Function to close the sidebar filters
+		function closeFilters() {
+			if (filterOverlay && filterOverlay.classList.contains('show')) {
+				filterOverlay.classList.remove('show');
+			}
+
+			if (productFilters) {
+				productFilters.classList.remove('show');
+			}
+
+			// Wait for animation to finish before hiding overlay
+			setTimeout(() => {
+				if (filterOverlay) {
+					filterOverlay.style.visibility = 'hidden';
+					filterOverlay.style.display = 'none';
+				}
+			}, 300);
+
+			// Reactivate body scrolling
+			document.body.style.overflow = '';
+		}
 	});
 </script>
+
+<style>
+	/* Filter button styles */
+	.filter-button {
+		background: none;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 6px 12px;
+		display: flex;
+		align-items: center;
+		cursor: pointer;
+		background-color: #f8f9fa;
+	}
+
+	.filter-button svg {
+		margin-right: 5px;
+	}
+
+	/* Overlay styles */
+	.filter-overlay {
+		position: fixed;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		z-index: 1000;
+		opacity: 0;
+		visibility: hidden;
+		transition: opacity 0.3s ease, visibility 0.3s ease;
+	}
+
+	.filter-overlay.show {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	/* Sidebar filter styles */
+	@media (max-width: 767.98px) {
+		.filters-section {
+			position: fixed;
+			top: 0;
+			right: -320px;
+			width: 300px;
+			height: 100%;
+			background-color: white;
+			box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+			z-index: 1001;
+			transition: transform 0.3s ease-in-out;
+			transform: translateX(100%);
+			overflow-y: auto;
+			padding: 15px;
+		}
+
+		.filters-section.show {
+			transform: translateX(0);
+			right: 0;
+			margin-right: 0 !important;
+			animation: slideInFilter 0.3s ease-in-out;
+		}
+	}
+
+	@keyframes slideInFilter {
+		from {
+			transform: translateX(100%);
+		}
+		to {
+			transform: translateX(0);
+		}
+	}
+
+	/* Close filter button styles */
+	.close-filter-button {
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	/* Price slider styles */
+	.price-range-slider {
+		position: relative;
+		height: 6px;
+		margin: 30px 0;
+	}
+	
+	.slider-track {
+		position: relative;
+		height: 6px;
+		width: 100%;
+		background-color: #e9ecef;
+		border-radius: 3px;
+	}
+	
+	.slider-selection {
+		position: absolute;
+		height: 100%;
+		background-color: var(--gray-600);
+		border-radius: 3px;
+	}
+	
+	.slider-handle {
+		position: absolute;
+		top: 50%;
+		width: 18px;
+		height: 18px;
+		background-color: #fff;
+		border: 2px solid var(--gray-600);
+		border-radius: 50%;
+		cursor: pointer;
+		transform: translate(-50%, -50%);
+		z-index: 2;
+	}
+	
+	.slider-handle:hover {
+		background-color: #f8f9fa;
+	}
+	
+	.slider-handle:active {
+		background-color: #e9ecef;
+	}
+	
+	.price-input-container {
+		position: relative;
+		width: 45%;
+	}
+	
+	.price-input-container input {
+		text-align: right;
+	}
+	
+	.price-range-separator {
+		color: #6c757d;
+	}
+</style>
 
 {% endblock %}

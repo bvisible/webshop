@@ -1,0 +1,498 @@
+{% extends "templates/web.html" %}
+{% block title %} {{ _("B2B Checkout") }} {% endblock %}
+{% block header %}{% endblock %}
+
+{% from "webshop/templates/includes/macros.html" import product_image %}
+
+{% block page_content %}
+<div class="page-content-wrapper">
+	<main class="container my-4">
+		<div class="row m-0">
+			<!-- Left section -->
+			<div class="col-md-8 col-12 order-md-1 order-2">
+				<!-- B2B Checkout Section -->
+				<section id="b2b-checkout" class="step-section mb-6 active">
+					<h3 class="mt-0 mobile-margin-top">{{ _("B2B Checkout") }}</h3>
+					<p class="text-muted">{{ _("Welcome to the B2B checkout process.") }}</p>
+					
+					<div class=" mb-4">
+						<h5 class="mb-3">{{ _("Company Information") }}</h5>
+						<div class="frappe-card p-5 mb-3">
+							<p>{{ _("Your order will be processed according to your B2B account settings.") }}</p>
+							{% if customer_name %}
+							<div class="mb-3">
+								<strong>{{ _("Company") }}:</strong> {{ customer_name }}
+							</div>
+							{% endif %}
+						</div>
+
+						<!-- Addresses Section -->
+						<div class="mb-4">
+							<h5 class="mb-3">{{ _("Shipping Address") }}</h5>
+							<div class="frappe-card p-5 mb-3">
+								{% include "templates/includes/cart/cart_address.html" %}
+							</div>
+						</div>
+						
+						<!-- Shipping Methods Section -->
+						<div class="mb-4">
+							<h5 class="mb-3">{{ _("Shipping Method") }}</h5>
+							<div id="shipping-methods-container" class="frappe-card p-5 mb-3">
+								<div class="text-muted">{{ _("Please select a shipping address first") }}</div>
+							</div>
+							<div id="shipping-method-error" class="alert alert-danger mt-2" style="display: none;"></div>
+						</div>
+						
+						<div class="mb-4">
+							<button class="btn btn-primary btn-place-order" type="button" disabled>
+								{{ _("Place Order") }}
+							</button>
+						</div>
+					</div>
+				</section>
+			</div>
+	  
+			<!-- Right section: Order Summary -->
+			<div class="col-md-4 col-12 order-md-2 order-1 mb-4 mb-md-0">
+				{% include "templates/includes/order_summary.html" %}
+			</div>
+		</div>
+	</main>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+	frappe.ready(function() {
+		// Global variables
+		let isLoading = false;
+		let currentShippingMethod = null;
+		let shippingMethodsLoaded = false;
+		
+		// Initialize address handling
+		initializeAddressHandling();
+		
+		// Function to initialize address handling
+		function initializeAddressHandling() {
+			// Listen for address changes
+			$(document).on('click', '.address-card', function() {
+				// Vérifier si c'est une adresse de livraison
+				if ($(this).closest('[data-address-type="shipping"]').length) {
+					loadShippingMethods();
+				}
+			});
+			
+			// Listen for address updates
+			$(document).on('address_updated', function() {
+				loadShippingMethods();
+			});
+			
+			// Check if a shipping address is already selected
+			const hasShippingAddress = $('[data-section="shipping-address"] [data-address-name][data-active]').length > 0;
+			if (hasShippingAddress) {
+				loadShippingMethods();
+			}
+		}
+		
+		// Function to load shipping methods
+		function loadShippingMethods() {
+			if (isLoading) return;
+			
+			// Check if a shipping address is selected
+			const shippingAddressElement = $('[data-section="shipping-address"] [data-address-name][data-active]');
+			if (!shippingAddressElement.length) {
+				$('#shipping-methods-container').html(`<div class="text-muted">${__('Veuillez sélectionner une adresse de livraison')}</div>`);
+				$('.btn-place-order').prop('disabled', true);
+				return;
+			}
+			
+			isLoading = true;
+			$('#shipping-method-error').hide();
+			$('#shipping-methods-container').html(`
+				<div class="shipping-method-loader">
+					<span class="spinner">
+						<i class="fa fa-spinner fa-spin"></i>
+					</span>
+					<span>${__('Chargement des méthodes de livraison...')}</span>
+				</div>
+			`);
+			
+			// Get form data
+			const ship_to_different = $('#input_same_billing').is(':checked') === false;
+			
+			// Get country from active address
+			const shippingAddressName = shippingAddressElement.attr('data-address-name');
+			let shipping_country = '';
+			let billing_country = '';
+			
+			// Use the shipping methods API that already has necessary permissions
+			// This API will retrieve countries from the selected addresses in the session
+			getShippingMethods(ship_to_different, null, null);
+		}
+		
+		// Function to get shipping methods
+		function getShippingMethods(ship_to_different, shipping_country, billing_country) {
+			freeze('step-section');
+
+			frappe.call({
+				method: 'webshop.templates.pages.checkout.get_shipping_methods',
+				freeze: true,
+				args: {
+					ship_to_different: ship_to_different
+				},
+				callback: function(response) {
+					isLoading = false;
+					shippingMethodsLoaded = true;
+					
+					if (response.message && response.message.length) {
+						const methods = response.message;
+						
+						let html = `<div class="shipping-methods">
+							<div class="mb-3">${__('Veuillez sélectionner une méthode de livraison pour continuer')}</div>`;
+						
+						methods.forEach((method, index) => {
+							html += `
+								<div class="shipping-method frappe-card p-4 mb-3">
+									<div class="custom-control custom-radio">
+										<input type="radio" 
+											   id="shipping_method_${method.name}" 
+											   name="shipping_method" 
+											   class="custom-control-input"
+											   value="${method.name}"
+											   data-rate="${method.rate}"
+											   ${methods.length === 1 || method.name === currentShippingMethod ? 'checked' : ''}
+											   style="display: none;"
+											   >
+										<label class="custom-control-label w-100" for="shipping_method_${method.name}">
+											<div class="d-flex justify-content-between align-items-center">
+												<div>
+													<strong>${method.title}</strong>
+													${method.carrier ? `<span class="text-muted ml-2">(${method.carrier})</span>` : ''}
+												</div>
+												<div class="shipping-rate">
+													${method.formatted_rate}
+												</div>
+											</div>
+											${method.description ? `<small class="text-muted d-block">${method.description}</small>` : ''}
+										</label>
+									</div>
+								</div>`;
+						});
+						
+						html += '</div>';
+						$('#shipping-methods-container').html(html);
+						
+						// Attach events to shipping methods
+						attachShippingMethodEvents();
+						
+						// Activate the order button if a method is selected
+						updatePlaceOrderButton();
+						unfreeze('step-section');
+					} else {
+						$('#shipping-methods-container').html(`<div class="alert alert-warning">${__('Aucune méthode de livraison disponible pour votre emplacement')}</div>`);
+						$('.btn-place-order').prop('disabled', true);
+						currentShippingMethod = null;
+						unfreeze('step-section');
+					}
+				},
+				error: function(err) {
+					console.error('Error loading shipping methods:', err);
+					$('#shipping-methods-container').html(`<div class="text-muted">${__('Impossible de charger les méthodes de livraison')}</div>`);
+					$('#shipping-method-error').html(__('Erreur lors du chargement des méthodes de livraison. Veuillez réessayer.')).show();
+					isLoading = false;
+					$('.btn-place-order').prop('disabled', true);
+					currentShippingMethod = null;
+					shippingMethodsLoaded = false;
+				}
+			});
+		}
+		
+		// Function to attach events to shipping methods
+		function attachShippingMethodEvents() {
+			$('input[name="shipping_method"]').off('change').on('change', function() {
+				const method = $(this).val();
+				
+				// Update selected class
+				$('.shipping-method').removeClass('selected');
+				$(this).closest('.shipping-method').addClass('selected');
+				
+				// Update shipping method
+				updateShippingMethod(method);
+			});
+			
+			// Add selected class to the method already checked on load
+			const checkedMethod = $('input[name="shipping_method"]:checked');
+			if (checkedMethod.length) {
+				checkedMethod.closest('.shipping-method').addClass('selected');
+				updateShippingMethod(checkedMethod.val());
+			}
+		}
+		
+		// Function to update shipping method
+		function updateShippingMethod(shipping_method) {
+			if (!shipping_method) return;
+			freeze('step-section');
+
+			// Show loading indicator next to the order button
+			$('.btn-place-order').html(`<i class="fa fa-spinner fa-spin mr-2"></i>${__('Place Order')}`);
+			
+			currentShippingMethod = shipping_method;
+			
+			frappe.call({
+				method: 'webshop.webshop.shopping_cart.cart.apply_shipping_rule',
+				freeze: true,
+				args: {
+					shipping_rule: shipping_method
+				},
+				callback: function(r) {
+					// Restaurer le texte du bouton
+					$('.btn-place-order').html(__('Place Order'));
+					
+					if (r.message && r.message.doc) {
+						// Update order summary with new data
+						updateOrderSummary(r.message.doc);
+						
+						// Activate order button
+						updatePlaceOrderButton();
+						
+						// Show confirmation message
+						const selectedMethodTitle = $(`input[value="${shipping_method}"]`).data('title') || shipping_method;
+						frappe.show_alert({
+							message: __(`Shipping method "${selectedMethodTitle}" applied successfully`),
+							indicator: 'green'
+						}, 3);
+					} else if (r.exc) {
+						// Show error message
+						$('#shipping-method-error').html(__('Error applying shipping method. Please try again.')).show();
+						console.error('Error applying shipping method:', r.exc);
+					}
+					unfreeze('step-section');
+				},
+				error: function(err) {
+					// Restore button text
+					$('.btn-place-order').html(__('Place Order'));
+					$('#shipping-method-error').html(__('Error applying shipping method. Please try again.')).show();
+					console.error('Error applying shipping method:', err);
+					unfreeze('step-section');
+				}
+			});
+		}
+		
+		// Function to update order button
+		function updatePlaceOrderButton() {
+			const selectedShipping = $('input[name="shipping_method"]:checked').val();
+			$('.btn-place-order').prop('disabled', !selectedShipping);
+		}
+		
+		// Handler for the order button
+		$('.btn-place-order').on('click', function() {
+			// Check if shipping methods have been loaded
+			if (!shippingMethodsLoaded) {
+				frappe.msgprint({
+					title: __('Loading shipping methods'),
+					message: __('Please wait while shipping methods are loaded'),
+					indicator: 'yellow'
+				});
+				return;
+			}
+			
+			// Check if a shipping method is selected
+			const selectedShipping = $('input[name="shipping_method"]:checked').val();
+			if (!selectedShipping) {
+				frappe.msgprint({
+					title: __('Shipping method required'),
+					message: __('Please select a shipping method before placing the order'),
+					indicator: 'red'
+				});
+				return;
+			}
+			
+			// Disable button and show loading indicator
+			const $btn = $(this);
+			$btn.prop('disabled', true).html(`<i class="fa fa-spinner fa-spin mr-2"></i>${__('Processing order...')}`);
+			
+			freeze('step-section');
+			return frappe.call({
+				type: "POST",
+				method: "webshop.webshop.shopping_cart.cart.place_order",
+				callback: function(r) {
+					unfreeze('step-section');
+					
+					// Restore button state
+					$('.btn-place-order').prop('disabled', false).html(__('Place Order'));
+					
+					if(r.exc) {
+						var msg = "";
+						if(r._server_messages) {
+							msg = JSON.parse(r._server_messages || []).join("<br>");
+						}
+
+						$("#cart-error")
+							.empty()
+							.html(msg || frappe._("Something went wrong!"))
+							.toggle(true);
+						
+						// Scroll to error
+						$('html, body').animate({
+							scrollTop: $("#cart-error").offset().top - 100
+						}, 500);
+					} else {
+						// Redirect to order confirmation page
+						window.location.href = "/orders/" + encodeURIComponent(r.message);
+					}
+				}
+			});
+		});
+
+		function freeze(selector = 'step-section') {
+            this.isLoading = true;
+            if (!$(`#checkout-freeze-${selector}`).length) {
+                let selectorClass = `.${selector}`;
+                if(selector === 'step-section') {
+                    selectorClass += '.active';
+                } else if(selector === 'payment-method-item') {
+                    selectorClass += '.selected';
+                }
+                let freeze = $(`<div id="checkout-freeze-${selector}" class="checkout-freeze">
+                    <div class="loader">
+                        <div class="mask"></div>
+                        <div class="mask2"></div>
+                    </div>
+                </div>`).appendTo($(selectorClass));
+
+                setTimeout(function() {
+                    freeze.addClass("show");
+                }, 1);
+            } else {
+                $(`#checkout-freeze-${selector}`).addClass("show");
+            }
+        }
+
+        function unfreeze(selector = 'step-section') {
+            this.isLoading = false;
+            if ($("." + selector).length) {
+                let freeze = $(`#checkout-freeze-${selector}`).removeClass("show");
+                setTimeout(function() {
+                    freeze.remove();
+                }, 1);
+            }
+        }
+
+		// Function to update order summary
+		function updateOrderSummary(doc) {
+			if (!doc) return;
+			
+			try {
+				// Update number of items in the subtotal and header
+				if (doc.total_qty) {
+					const formattedQty = parseFloat(doc.total_qty).toFixed(1);
+					$('.subtotal-element').html(`${__('Order Total')} (${formattedQty} ${__('Items')})`);
+					$('.items-count').html(`(${formattedQty} ${__('Items')})`);
+				}
+				
+				// Update subtotal
+				if (doc.net_total) {
+					$('.subtotal').text(format_currency(doc.net_total, doc.currency));
+				}
+				
+				// Update total amount in the header
+				if (doc.rounded_total || doc.grand_total) {
+					const total = doc.rounded_total || doc.grand_total;
+					$('.total-amount').text(format_currency(total, doc.currency));
+				}
+				
+				// Remove existing rows between subtotal and total
+				$('.table:not(.grand-total) tr').not(':first').remove();
+				
+				let rows = [];
+				
+				// 1. Shipping Charges
+				if (doc.shipping_charges && doc.shipping_charges > 0) {
+					rows.push({
+						label: __('Shipping Charges'),
+						value: format_currency(doc.shipping_charges, doc.currency),
+						class: 'shipping-charges'
+					});
+				}
+				
+				// 2. Taxes
+				if (doc.taxes) {
+					doc.taxes.forEach(tax => {
+						if (tax.tax_amount > 0 && !tax.is_loyalty_points_reduction) {
+							rows.push({
+								label: tax.description,
+								value: format_currency(tax.tax_amount, doc.currency),
+								class: 'tax-item'
+							});
+						}
+					});
+				}
+				
+				// 3. Coupon
+				if (doc.coupon_code && doc.discount_amount) {
+					rows.push({
+						label: `${__('Coupon Discount')} (${doc.coupon_code})`,
+						value: `- ${format_currency(doc.discount_amount, doc.currency)}`,
+						class: 'coupon-row',
+						labelClass: 'text-success',
+						valueClass: 'text-success'
+					});
+				}
+				
+				// 4. Loyalty Points
+				if (doc.loyalty_amount && doc.loyalty_amount > 0) {
+					rows.push({
+						label: `${__('Loyalty Points')} (${doc.loyalty_points} ${__('points')})`,
+						value: `- ${format_currency(doc.loyalty_amount, doc.currency)}`,
+						class: 'loyalty-row',
+						labelClass: 'text-success',
+						valueClass: 'text-success'
+					});
+				}
+				
+				// Insert rows into the table
+				let rowsHtml = '';
+				rows.forEach(row => {
+					rowsHtml += `
+						<tr class="${row.class || ''}">
+							<td class="bill-label ${row.labelClass || ''}">
+								${row.label}
+							</td>
+							<td class="bill-content text-right ${row.valueClass || ''}">
+								${row.value}
+							</td>
+						</tr>
+					`;
+				});
+				
+				// Insert rows after the subtotal
+				if 	(rowsHtml) {
+					$('.table:not(.grand-total) tr:first').after(rowsHtml);
+				}
+				
+				// Update total
+				if (doc.grand_total || doc.rounded_total) {
+					const total = doc.rounded_total || doc.grand_total;
+					$('.grand-total .grand-total').text(format_currency(total, doc.currency));
+				}
+				
+			} catch (error) {
+				console.error('Error updating order summary:', error);
+			}
+		}
+
+	});
+</script>
+{% endblock %}
+
+{% block base_scripts %}
+<!-- js should be loaded in body! -->
+{{ include_script("frappe-web.bundle.js") }}
+{{ include_script("controls.bundle.js") }}
+{{ include_script("dialog.bundle.js") }}
+<script>
+	frappe.boot = {{ boot | json }}
+	// for backward compatibility of some libs
+	frappe.sys_defaults = frappe.boot.sysdefaults;
+</script>
+{% endblock %}

@@ -77,4 +77,9 @@
 {{ include_script("frappe-web.bundle.js") }}
 {{ include_script("controls.bundle.js") }}
 {{ include_script("dialog.bundle.js") }}
+<script>
+	frappe.boot = {{ boot | json }}
+	// for backward compatibility of some libs
+	frappe.sys_defaults = frappe.boot.sysdefaults;
+</script>
 {% endblock %}

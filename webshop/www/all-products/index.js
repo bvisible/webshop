@@ -15,11 +15,33 @@ $(() => {
 			});
 
 			this.bind_card_actions();
+			this.bind_hierarchical_category_actions();
 		}
 
 		bind_card_actions() {
 			webshop.webshop.shopping_cart.bind_add_to_cart_action();
 			webshop.webshop.wishlist.bind_wishlist_action();
+		}
+
+		bind_hierarchical_category_actions() {
+			// Handle click on +/- buttons to deploy/collapse categories
+			$(document).on('click', '.toggle-children', function() {
+				const $this = $(this);
+				const $childrenContainer = $this.closest('.hierarchical-item-group').find('> .children-container');
+				const isExpanded = $this.attr('data-expanded') === 'true';
+
+				if (isExpanded) {
+					// Collapse
+					$childrenContainer.slideUp(200);
+					$this.attr('data-expanded', 'false');
+					$this.text('+');
+				} else {
+					// Deploy
+					$childrenContainer.slideDown(200);
+					$this.attr('data-expanded', 'true');
+					$this.text('-');
+				}
+			});
 		}
 	}
 

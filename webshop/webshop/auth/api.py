@@ -1,6 +1,7 @@
 import frappe
 from frappe import _
 from frappe.utils import validate_email_address
+from frappe.utils.oauth import get_oauth2_authorize_url
 
 @frappe.whitelist(allow_guest=True)
 def check_email(email):
@@ -90,7 +91,7 @@ def get_auth_settings():
             provider_list.append({
                 "name": provider.name,
                 "provider_name": provider.provider_name,
-                "auth_url": frappe.utils.oauth.get_oauth2_authorize_url(provider.name),
+                "auth_url": get_oauth2_authorize_url(provider.name, redirect_to="/me"),
                 "icon": icon
             })
 

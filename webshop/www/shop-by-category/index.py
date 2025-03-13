@@ -16,7 +16,7 @@ def get_context(context):
 
 	if settings.slideshow:
 		context.slideshow = get_slideshow(settings.slideshow)
-
+	
 	context.no_cache = 1
 
 	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
@@ -39,7 +39,7 @@ def get_slideshow(slideshow):
 
 def get_tabs(categories):
 	tab_values = {
-		"title": _("Shop by Category"),
+		"title": _("Category and Brands"),
 	}
 
 	categorical_data = get_category_records(categories)

@@ -1,10 +1,13 @@
 import frappe
 import json
 from frappe import _
-from frappe.utils import flt, fmt_money
+from frappe.utils import flt, fmt_money, get_link_to_form
 from webshop.webshop.shopping_cart.cart import get_cart_quotation, get_party, get_address_docs, apply_shipping_rule, _get_cart_quotation
 from webshop.controllers.payment_handler import PaymentHandler
 from webshop.webshop.utils.utils import get_gateway_configuration
+from erpnext.setup.utils import get_exchange_rate
+from erpnext.stock.get_item_details import get_conversion_factor
+from erpnext.accounts.doctype.shipping_rule.shipping_rule import ShippingRule
 
 no_cache = 1
 
@@ -46,6 +49,16 @@ def get_context(context):
 	if not quotation or not quotation.get('items'):
 		frappe.local.flags.redirect_location = '/all-products'
 		raise frappe.Redirect
+	
+	# Check if B2B checkout is enabled
+	if settings.activate_b2b_checkout:
+		# Get cart information to check if it's a B2B customer
+		cart_info = get_cart_quotation()
+		
+		# If it's a B2B customer, redirect to B2B checkout
+		if cart_info.get("is_b2b_customer"):
+			frappe.local.flags.redirect_location = '/checkout_b2b'
+			raise frappe.Redirect
 	
 	# Continue with the rest of the code if a quotation exists
 	if not frappe.db.get_single_value("Webshop Settings", "enable_checkout") or \
@@ -190,7 +203,6 @@ def get_context(context):
 	
 	return context
 
-
 @frappe.whitelist()
 def get_shipping_methods():
 	"""Get available shipping methods based on the cart items and shipping/billing address"""
@@ -219,11 +231,13 @@ def get_shipping_methods():
 		return []
 
 	cart_total = quotation.net_total
-
+	cart_weight = quotation.total_net_weight if hasattr(quotation, 'total_net_weight') else 0
+	
 	# Get all enabled shipping rules
 	shipping_rules = frappe.get_all(
 		"Shipping Rule",
-		fields=["name", "label", "shipping_amount", "disabled", "calculate_based_on", "description"],
+		fields=["name", "label", "shipping_amount", "disabled", "calculate_based_on", 
+			"description", "taxable_account", "tax_is_included", "weight_uom", "dimensions_uom"],
 		filters={"disabled": 0, "shipping_rule_type": "Selling"},
 	)
 
@@ -238,34 +252,268 @@ def get_shipping_methods():
 		
 		# If no country specified or if country is in list
 		if not countries or any(c.country == country for c in countries):
-			# Get conditions for this rule
-			conditions = frappe.get_all(
-				"Shipping Rule Condition",
-				fields=["from_value", "to_value", "shipping_amount"],
-				filters={"parent": rule.name},
-				order_by="from_value"
-			)
-			
-			# Calculate shipping amount based on conditions
+			# Calculate shipping amount based on rule type
 			shipping_amount = rule.shipping_amount  # Default amount
-			for condition in conditions:
-				if (cart_total >= flt(condition.from_value) and 
-					(not condition.to_value or cart_total <= flt(condition.to_value))):
-						shipping_amount = condition.shipping_amount
+			
+			# If fixed amount, no need to check conditions
+			if rule.calculate_based_on == "Fixed":
+				pass  # Use the fixed amount by default
+			
+			# If multiple constraints, use the new logic
+			elif rule.calculate_based_on == "Multiple Constraints":
+				# Check if units of measure are defined
+				if not rule.weight_uom or not rule.dimensions_uom:
+					frappe.log_error(
+						"Error in shipping rule configuration",
+						f"Shipping rule {rule.name} : missing units of measure"
+					)
+					continue
+					
+				# Get conditions for this rule, including new constraint fields
+				conditions = frappe.get_all(
+					"Shipping Rule Condition Multiple Constraints",
+					fields=["condition_group", "constraint_type", "min_value", "max_value", "shipping_amount"],
+					filters={"parent": rule.name},
+					order_by="condition_group, constraint_type"
+				)
+				
+				# Calculate cart dimensions if needed (max dimensions from items)
+				length = width = height = 0
+				total_weight = 0
+				
+				# Calculate dimensions and weight from items
+				for item in quotation.items:
+					# Get item document to read dimensions and weight
+					item_doc = None
+					qty = flt(item.qty or 1)
+					
+					try:
+						item_doc = frappe.get_cached_doc("Item", item.item_code)
+					except:
+						pass
+					
+					# Get weight and dimensions from item doc
+					if item_doc:
+						# Calculate weight and convert to shipping rule UOM
+						item_weight = flt(getattr(item_doc, 'weight_per_unit', 0) or 0) * qty
+						item_weight_uom = getattr(item_doc, 'weight_uom', None) or ''
+						
+						# Convert weight to shipping rule UOM if different
+						if item_weight_uom and rule.weight_uom and item_weight_uom != rule.weight_uom:
+							try:
+								item_weight = convert_to_uom(item_weight, item_weight_uom, rule.weight_uom)
+							except Exception as e:
+								frappe.log_error(
+									"Error converting weight unit",
+									f"Error converting weight unit: {str(e)} for item {item.item_code}"
+								)
+						
+						total_weight += item_weight
+						
+						# Get dimensions and convert to shipping rule UOM
+						item_length = getattr(item_doc, 'length', 0) or 0
+						item_width = getattr(item_doc, 'width', 0) or 0
+						item_height = getattr(item_doc, 'height', 0) or 0
+						item_dim_uom = getattr(item_doc, 'dimension_uom', None) or ''
+						
+						# Convert dimensions to shipping rule UOM if different
+						if item_dim_uom and rule.dimensions_uom and item_dim_uom != rule.dimensions_uom:
+							try:
+								item_length = convert_to_uom(item_length, item_dim_uom, rule.dimensions_uom)
+								item_width = convert_to_uom(item_width, item_dim_uom, rule.dimensions_uom)
+								item_height = convert_to_uom(item_height, item_dim_uom, rule.dimensions_uom)
+							except Exception as e:
+								frappe.log_error(
+									"Error calculating shipping rules",
+									f"Error converting dimension unit: {str(e)} for item {item.item_code}"
+								)
+						
+						# Update max dimensions
+						if item_length > length:
+							length = item_length
+						if item_width > width:
+							width = item_width
+						if item_height > height:
+							height = item_height
+				
+				# Group conditions by condition_group
+				grouped_conditions = {}
+				for condition in conditions:
+					group = condition.condition_group
+					if group not in grouped_conditions:
+						grouped_conditions[group] = {
+							"constraints": [],
+							"shipping_amount": condition.shipping_amount
+						}
+					grouped_conditions[group]["constraints"].append(condition)
+				
+				# Check each condition group
+				shipping_amount = 0
+				valid_groups = {}
+				
+				for group, data in grouped_conditions.items():
+					# Initialize group if not exists
+					if group not in valid_groups:
+						valid_groups[group] = {
+							"valid": True, 
+							"shipping_amount": data["shipping_amount"]
+						}
+					
+					for condition in data["constraints"]:
+						# Skip validation if group already invalid
+						if not valid_groups[group]["valid"]:
+							continue
+						
+						# Determine the constraint value based on type
+						if condition.constraint_type == "Weight":
+							constraint_value = total_weight or cart_weight
+							constraint_label = _("Weight")
+							constraint_uom = rule.weight_uom
+						elif condition.constraint_type == "Price":
+							constraint_value = cart_total
+							constraint_label = _("Price")
+							constraint_uom = quotation.currency if hasattr(quotation, 'currency') else ''
+						elif condition.constraint_type == "Length":
+							constraint_value = length
+							constraint_label = _("Length")
+							constraint_uom = rule.dimensions_uom
+						elif condition.constraint_type == "Width":
+							constraint_value = width
+							constraint_label = _("Width")
+							constraint_uom = rule.dimensions_uom
+						elif condition.constraint_type == "Height":
+							constraint_value = height
+							constraint_label = _("Height")
+							constraint_uom = rule.dimensions_uom
+						else:
+							continue
+							
+						# Check if value is within constraints
+						min_value = flt(condition.min_value) if condition.min_value is not None else 0
+						max_value = flt(condition.max_value) if condition.max_value is not None else float('inf')
+						
+						# Check if value is within constraints
+						if not (min_value <= constraint_value <= max_value):
+							valid_groups[group]["valid"] = False
+							break
+					
+				# Find the first valid group and apply its shipping amount
+				valid_group_found = False
+				for group, data in valid_groups.items():
+					if data["valid"]:
+						shipping_amount = data["shipping_amount"]
+						valid_group_found = True
 						break
-			else:  # If no condition matches, move to next rule
-				continue
+				
+				# Si aucun groupe valide n'est trouvé, passer à la règle suivante
+				if not valid_group_found:
+					continue
+				
+			# For legacy rules (Net Total and Net Weight)
+			else:
+				# Get conditions using legacy fields
+				conditions = frappe.get_all(
+					"Shipping Rule Condition",
+					fields=["from_value", "to_value", "shipping_amount"],
+					filters={"parent": rule.name},
+					order_by="from_value"
+				)
+				
+				if conditions:
+					condition_matched = False
+					for condition in conditions:
+						value = cart_total if rule.calculate_based_on == "Net Total" else cart_weight
+						if (value >= flt(condition.from_value) and 
+							(not condition.to_value or value <= flt(condition.to_value))):
+							shipping_amount = condition.shipping_amount
+							condition_matched = True
+							break
+					# If no condition matches, skip this rule
+					if not condition_matched:
+						continue
+			
+			# Calculate the display amount with tax if applicable
+			display_amount = shipping_amount
+			if rule.taxable_account:
+				try:
+					# If tax is included, show the gross amount
+					if rule.tax_is_included:
+						tax_templates = frappe.get_doc("Item Tax Template", rule.taxable_account)
+						total_tax_rate = 0
+						
+						for tax in tax_templates.taxes:
+							if tax.tax_rate:
+								total_tax_rate += flt(tax.tax_rate)
+						
+						if total_tax_rate > 0:
+							# For display purposes, we show the amount including tax
+							display_amount = shipping_amount
+					else:
+						# If tax is not included, still show the base amount
+						display_amount = shipping_amount
+				except:
+					pass
 			
 			available_methods.append({
 				"name": rule.name,
 				"title": rule.label or rule.name,
 				"description": rule.description or _("Shipping to {0}").format(country),
 				"rate": shipping_amount,
-				"formatted_rate": frappe.format_value(shipping_amount, {"fieldtype": "Currency"}),
-				"calculate_based_on": rule.calculate_based_on
+				"display_rate": display_amount,
+				"formatted_rate": frappe.format_value(display_amount, {"fieldtype": "Currency"}),
+				"calculate_based_on": rule.calculate_based_on,
+				"taxable": bool(rule.taxable_account) 
 			})
-
+	
 	return available_methods
+
+def convert_to_uom(value, from_uom, to_uom):
+	"""Convert value from one UOM to another
+	
+	Args:
+		value (float): The value to convert
+		from_uom (str): Source UOM
+		to_uom (str): Target UOM
+	
+	Returns:
+		float: Converted value
+	"""
+	# If the value is null or the UOMs are identical, return the value as is
+	if not value or not from_uom or not to_uom or from_uom == to_uom:
+		return value
+	
+	# Try direct conversion first
+	uom_conversion = frappe.db.get_value(
+		"UOM Conversion Factor",
+		{"from_uom": from_uom, "to_uom": to_uom},
+		"value"
+	)
+	
+	if uom_conversion:
+		return flt(value) * flt(uom_conversion)
+	
+	# Try inverse conversion
+	reverse_conversion = frappe.db.get_value(
+		"UOM Conversion Factor",
+		{"from_uom": to_uom, "to_uom": from_uom},
+		"value"
+	)
+	
+	if reverse_conversion:
+		return flt(value) / flt(reverse_conversion)
+	
+	# Method of fallback: use standard conversion factors
+	try:
+		from_conversion_factor = frappe.get_value("UOM Conversion Detail", 
+			{"parent": "UOM", "uom": from_uom}, "conversion_factor") or 1.0
+		to_conversion_factor = frappe.get_value("UOM Conversion Detail", 
+			{"parent": "UOM", "uom": to_uom}, "conversion_factor") or 1.0
+		
+		# Convert value
+		return flt(value) * flt(from_conversion_factor) / flt(to_conversion_factor)
+	except Exception as e:
+		frappe.log_error(f"Error converting unit from {from_uom} to {to_uom}: {str(e)}")
+		frappe.throw(_("No conversion factor found between {0} and {1}").format(from_uom, to_uom))
 
 @frappe.whitelist()
 def update_shipping_method():
@@ -307,7 +555,6 @@ def update_shipping_method():
 			'success': False, 
 			'message': _('An error occurred while updating the shipping method. Please try again.')
 		}
-
 @frappe.whitelist(allow_guest=True)
 def get_shipping_address(user=None):
 	"""Get the shipping address for the current user"""
@@ -361,17 +608,17 @@ def get_payment_methods():
 		methods = []
 		for webshop_method in settings.payment_methods:
 			try:
-				# 2. For each method, get Payment Gateway Account
+				# 1. For each method, get Payment Gateway Account
 				payment_gateway_account = frappe.get_doc("Payment Gateway Account", webshop_method.payment_gateway_account)
 				if not payment_gateway_account:
 					continue
 
-				# 3. Get associated Payment Gateway
+				# 2. Get associated Payment Gateway
 				payment_gateway = frappe.get_doc("Payment Gateway", payment_gateway_account.payment_gateway)
 				if not payment_gateway:
 					continue
 
-				# 4. Get gateway settings if specified
+				# 3. Get gateway settings if specified
 				gateway_settings = None
 				if payment_gateway.gateway_settings:
 					try:
@@ -391,14 +638,25 @@ def get_payment_methods():
 
 				# Get gateway type from name
 				gateway_type = payment_gateway.gateway.split('-')[0].split()[0].lower().strip()
-
+				
 				title = payment_gateway_account.checkout_title or payment_gateway_account.name
 				logo_html = f"<img src='{payment_gateway_account.logo}' alt='{title}' class='payment-logo'>" if payment_gateway_account.logo else ""
 				description = payment_gateway_account.checkout_description or ""
 				cart_info = get_cart_quotation()
 				quotation_doc = cart_info.get('doc')
 				
-				methods.append({
+				# Utilisation sécurisée de mode_of_payment (sans logging d'erreur)
+				mode_of_payment = getattr(webshop_method, 'mode_of_payment', None)
+				
+				# Utilisation sécurisée de client_configuration (sans logging d'erreur)
+				client_configuration = getattr(webshop_method, 'client_configuration', None)
+					
+				# Check if mode_of_payment attribute exists before trying to access it
+				if not mode_of_payment and hasattr(webshop_method, 'payment_terms_template') and webshop_method.payment_terms_template:
+					mode_of_payment = webshop_method.payment_terms_template
+					
+				# Build payment method dictionary with security for missing attributes
+				payment_method = {
 					"id": payment_gateway_account.name,
 					"title": title,
 					"description": description,
@@ -407,20 +665,33 @@ def get_payment_methods():
 					"payment_gateway": payment_gateway.name,
 					"payment_gateway_account": payment_gateway_account.name,
 					"currency": payment_gateway_account.currency,
-					"mode_of_payment": webshop_method.mode_of_payment,
-					"gateway_settings": webshop_method.gateway_settings,
-					"client_configuration": webshop_method.client_configuration,
 					"gateway_type": gateway_type,
 					"doc": quotation_doc
-				})
+				}
+				
+				# Add conditionally missing attributes
+				if mode_of_payment:
+					payment_method["mode_of_payment"] = mode_of_payment
+					
+				if hasattr(webshop_method, 'gateway_settings'):
+					payment_method["gateway_settings"] = webshop_method.gateway_settings
+					
+				if client_configuration:
+					payment_method["client_configuration"] = client_configuration
+					
+				# Add template_path if available
+				if hasattr(webshop_method, 'template_path') and webshop_method.template_path:
+					payment_method["template_path"] = webshop_method.template_path
+				
+				methods.append(payment_method)
 
 			except Exception as e:
-				frappe.log_error(f"Error retrieving payment method", e)
+				frappe.log_error("payment_method_error", f"Error retrieving payment method: {str(e)}")
 
 		return {"error": False, "methods": methods}
 
 	except Exception as e:
-		frappe.log_error(f"Error retrieving payment methods", e)
+		frappe.log_error("payment_methods_global_error", f"Error retrieving payment methods: {str(e)}")
 		return {"error": True, "message": str(e)}
 
 @frappe.whitelist(allow_guest=True)

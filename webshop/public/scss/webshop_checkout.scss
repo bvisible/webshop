@@ -7,6 +7,14 @@ body[data-path="checkout"] {
       margin-top: 1rem!important;
     }
   }
+
+  @media (max-width: 992px) {
+      .page-content-wrapper .container {
+          padding-left: 0;
+          padding-right: 0;
+      }
+  }
+
   #page-checkout {
     
     .page-breadcrumbs{
@@ -383,6 +391,18 @@ body[data-path="checkout"] {
               font-weight: 600;
               font-size: 16px;
               padding: 0.5rem 1rem;
+            }
+          }
+
+          #terms-acceptance-container{
+            display: flex;
+            align-items: center;
+
+            input[type="checkbox"] {
+              min-width: 20px !important;
+              min-height: 20px !important;
+              margin-right: 10px !important;
+              margin-bottom: 3px;
             }
           }
         }

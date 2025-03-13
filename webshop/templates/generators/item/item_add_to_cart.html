@@ -6,7 +6,7 @@
 <div class="item-cart row mt-2" data-variant-item-code="{{ item_code }}">
 	<div class="col-md-12">
 		<!-- Price and Availability -->
-		{% if cart_settings.show_price and product_info.price %}
+		{% if cart_settings.show_price and product_info.price and not (frappe.db.get_single_value('Webshop Settings', 'enable_gift_cards') and doc.is_gift_card) %}
 			{% set price_info = product_info.price %}
 
 			<div class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
@@ -172,7 +172,7 @@
 						<div class="mt-4">
 							<button
 								data-item-code="{{item_code}}"
-								class="btn btn-primary btn-add-to-cart mr-2"
+								class="btn btn-primary btn-add-to-cart is-gift-card mr-2"
 							>
 								<span class="mr-2">
 									<svg class="icon icon-md">
@@ -209,25 +209,23 @@
 							<!-- Add quantity -->
 							<div class="input-group number-spinner mr-2 mt-2" style="width: 120px;">
 								<span class="input-group-prepend">
-									<button class="btn cart-btn" data-dir="dwn">
+									<button type="button" class="btn cart-btn" data-dir="dwn">
 										–
 									</button>
 								</span>
 								<input class="form-control text-center item-qty" 
 									value="1" 
 									data-item-code="{{item_code}}"
+									min="1"
 									style="max-width: 70px;">
 								<span class="input-group-append">
-									<button class="btn cart-btn" data-dir="up">
+									<button type="button" class="btn cart-btn" data-dir="up">
 										+
 									</button>
 								</span>
 							</div>
 
-							<button
-								data-item-code="{{item_code}}"
-								class="btn btn-primary btn-add-to-cart mr-2 w-30-40"
-							>
+							<button data-item-code="{{item_code}}" class="btn btn-primary btn-add-to-cart mr-2 w-30-40">
 								<span class="mr-2">
 									<svg class="icon icon-md">
 										<use href="#icon-assets"></use>
@@ -278,10 +276,44 @@
 		// Initialize price with first amount
 		const firstAmount = $('input[name="gift_card_amount"]:first').val();
 
-		$('.page_content').on('click', '.btn-add-to-cart', (e) => {
-			const $btn = $(e.currentTarget);
+		// Handle plus/minus buttons for quantity
+		$('.page_content').on('click', '.cart-btn', function(e) {
+			// Single log per click
+			e.preventDefault();
+			e.stopPropagation(); // Stop event propagation
+			
+			const $btn = $(this);
+			const $input = $btn.closest('.number-spinner').find('.item-qty');
+			const currentVal = parseInt($input.val()) || 1;
+			const direction = $btn.data('dir');
+			
+			if (direction === 'up') {
+				$input.val(currentVal + 1);
+			} else if (direction === 'dwn' && currentVal > 1) {
+				$input.val(currentVal - 1);
+			}
+			
+			// Prevent the change event from triggering
+			return false;
+		});
+		
+		// Prevent negative or non-numeric values in quantity input
+		$('.page_content').on('change', '.item-qty', function() {
+			const $input = $(this);
+			let val = parseInt($input.val()) || 1;
+			if (val < 1) val = 1;
+			$input.val(val);
+		});
+		
+		$('.page_content').on('click', '.btn-add-to-cart', function(e) {
+			// Prevent event propagation
+			e.preventDefault();
+			e.stopPropagation();
+			const $btn = $(this);
 			$btn.prop('disabled', true);
 			const item_code = $btn.data('item-code');
+			// Get quantity from input
+			const qty = parseInt($btn.closest('.mb-4').find('.item-qty').val()) || 1;
 			
 			// Get gift card amount if applicable
 			let amount = 0;
@@ -307,11 +339,11 @@
 								args: { code: code },
 								callback: function(r) {
 									if (r.message) {
-										// Le code existe, on en génère un nouveau
+										// Code exists, generate a new one
 										const newCode = g(4) + "-" + g(4) + "-" + g(4);
 										checkCode(newCode);
 									} else {
-										// Le code n'existe pas, on peut l'utiliser
+										// Code does not exist, use it
 										resolve(code);
 									}
 								},
@@ -321,7 +353,7 @@
 							});
 						};
 						
-						// Premier essai avec un code
+						// First attempt with a code
 						const initialCode = g(4) + "-" + g(4) + "-" + g(4);
 						checkCode(initialCode);
 					});
@@ -344,12 +376,13 @@
 							method: "webshop.webshop.shopping_cart.cart.update_cart",
 							args: {
 								item_code: item_code,
-								qty: 1,
+								qty: qty,
 								price_list_rate: amount,
 								gift_card_data: gift_card_data,
 								add_qty: true,
 								with_items: 1
 							},
+							freeze: true, // Block interface during request
 							callback: function(r) {
 								$btn.prop('disabled', false);
 								if (r.message) {
@@ -368,10 +401,11 @@
 					method: "webshop.webshop.shopping_cart.cart.update_cart",
 					args: {
 						item_code: item_code,
-						qty: 1,
+						qty: qty,
 						add_qty: true,
 						with_items: 1
 					},
+					freeze: true, // Block interface during request
 					callback: function(r) {
 						$btn.prop('disabled', false);
 						if (r.message) {

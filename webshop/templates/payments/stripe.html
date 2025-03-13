@@ -143,7 +143,8 @@
                 frappe.call({
                     method: "webshop.controllers.payment_handler.create_payment_request",
                     args: {
-                        "quotation_id": "{{ reference_docname }}"
+                        "quotation_id": "{{ reference_docname }}",
+                        "gateway_settings": "Stripe Settings"
                     },
                     callback: function(r) {
                         if (r.message && r.message.status === "success") {
@@ -201,7 +202,7 @@
                                                 "payment_request_id": payment_request_id,
                                                 "error_message": errorMessage
                                             },
-                                            callback: function(r) {                                                
+                                            callback: function(r) {    
                                                 // If a new Payment Request was created
                                                 if (r.message && r.message.new_payment_request_id) {
                                                     payment_request_id = r.message.new_payment_request_id;
@@ -253,7 +254,7 @@
                                                 "payment_request_id": payment_request_id,
                                                 "error_message": errorMessage
                                             },
-                                            callback: function(r) {                                                                   
+                                            callback: function(r) {    
                                                 checkout_manager.unfreeze('payment-method-item');
                                             }
                                         });

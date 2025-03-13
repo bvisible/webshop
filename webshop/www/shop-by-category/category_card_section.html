@@ -2,7 +2,9 @@
 <!-- style defined at shop-by-category index -->
 <div class="card category-card" data-type="{{ type }}" data-name="{{ title }}">
 	{% if image %}
-	<img class="card-img-top" src="{{ image }}" alt="{{ title }}" style="height: 80%;">
+	<div class="card-img-wrapper" style="height: 80%;display: flex;align-items: center;padding: 25px;">
+		<img class="card-img-top" src="{{ image }}" alt="{{ title }}" >
+	</div>
 	{% else %}
 	<div class="placeholder-div">
 		<span class="placeholder">
