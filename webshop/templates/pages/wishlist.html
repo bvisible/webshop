@@ -11,7 +11,7 @@
 			<div class="row products-list">
 					{% from "webshop/templates/includes/macros.html" import wishlist_card %}
 					{% for item in items %}
-						{{ wishlist_card(item, settings) }}
+						{{ wishlist_card(item, settings, cart_settings=cart_settings) }}
 					{% endfor %}
 			</div>
 		</div>

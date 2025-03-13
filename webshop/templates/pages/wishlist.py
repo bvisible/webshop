@@ -22,6 +22,7 @@ def get_context(context):
 	context.body_class = "product-page"
 	context.items = items
 	context.settings = settings
+	context.cart_settings = settings
 	context.no_cache = 1
 
 

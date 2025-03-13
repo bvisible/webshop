@@ -186,7 +186,7 @@
 {%- endmacro -%}
 
 
-{%- macro wishlist_card(item, settings) %}
+{%- macro wishlist_card(item, settings, cart_settings=None) %}
 {%- set title = item.web_item_name or ''-%}
 {%- set title = title[:90] + "..." if title|len > 90 else title -%}
 <div class="col-sm-3 wishlist-card">
@@ -208,12 +208,12 @@
 			</div>
 		</div>
 
-		{{ wishlist_card_body(item, title, settings) }}
+		{{ wishlist_card_body(item, title, settings, cart_settings) }}
 	</div>
 </div>
 {%- endmacro -%}
 
-{%- macro wishlist_card_body(item, title, settings) %}
+{%- macro wishlist_card_body(item, title, settings, cart_settings=None) %}
 <div class="card-body card-body-flex text-left" style="width: 100%;">
 	<div class="mt-4">
 		<div class="product-title">{{ _(title) or ''}}</div>
@@ -234,7 +234,7 @@
 
 	{% if (item.available and settings.show_stock_availability) or (not settings.show_stock_availability) %}
 		<!-- Show move to cart button if in stock or if showing stock availability is disabled -->
-		{% if cart_settings.enable_guest_cart == 0 and frappe.session.user == "Guest" %}
+		{% if cart_settings and cart_settings.enable_guest_cart == 0 and frappe.session.user == "Guest" %}
 			<a href="/login" class="btn btn-primary btn-add-to-cart mr-2 w-30-40"
 				role="button">
 				{{  _("To add to cart, please log in") }}
