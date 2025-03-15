@@ -1,10 +1,8 @@
 {% set builder_data = frappe.call("webshop.webshop.utils.builder.get_builder_page_content", route="footer", use_cache=True) %}
 {% if builder_data %}
-    <style>
-        {{ builder_data.global_style }}
-        {{ builder_data.style }}
-    </style>
-    
+
+    {{ builder_data.style }}
+
     {% for style in builder_data.client_styles %}
     <style>
         {{ style.content }}

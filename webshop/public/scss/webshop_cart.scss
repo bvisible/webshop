@@ -6,8 +6,10 @@
 	--body-bg-color:  var(--gray-50);
 }
 
-body.product-page {
-	background: var(--body-bg-color);
+body.product-page,
+body[data-path=me], body[data-path=list], 
+body[data-path=update-profile] {
+    background-color: var(--body-bg-color);
 }
 
 .btn.btn-primary:hover {
@@ -1574,4 +1576,33 @@ input[disabled][title] {
     opacity: 0.7;
     background-color: var(--gray-300);
     border-color: var(--gray-400);
+}
+
+// Change padding of account-info on mobile
+.page_content .account-info {
+	@media (max-width: 767.98px) {
+		padding: var(--padding-sm) 25px;
+	}
+}
+
+.container-sm, 
+.container {
+	@media (max-width: 767.98px) {
+		max-width: 100%;
+		padding-left: 1.25rem;
+		padding-right: 1.25rem;
+	}
+}
+
+.website-list {
+	background-color: var(--body-bg-color);
+	padding: 0;
+	.result .transaction-list-item {
+		padding: var(--padding-md);
+		background-color: var(--card-bg);
+		box-shadow: none;
+		border: 1px solid var(--gray-300);
+		margin-bottom: 15px;
+		border-radius: var(--border-radius-md);
+	}
 }

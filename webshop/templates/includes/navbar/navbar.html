@@ -2,15 +2,15 @@
 {% if builder_data %}
     <style>
         {{ builder_data.global_style }}
-        {{ builder_data.style }}
     </style>
-    
+    {{ builder_data.style }}
+
     {% for style in builder_data.client_styles %}
     <style>
         {{ style.content }}
     </style>
     {% endfor %}
-        <script>
+    <script>
         window.pageData = {{ builder_data.page_data | tojson }};
     </script>
     

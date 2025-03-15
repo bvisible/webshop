@@ -49,7 +49,7 @@ def get_navigation_content(route="navbar", use_cache=True):
             nav_html = extract_nav_from_component(page_component)
             
             # Verify that we have found a nav element (avoid default fallback)
-            if nav_html and not nav_html.startswith("<nav><a href='/'>Accueil</a></nav>"):
+            if nav_html and not nav_html.startswith("<nav><a href='/'></a></nav>"):
                 return {
                     "nav_content": nav_html,
                     "success": True,
@@ -73,17 +73,16 @@ def get_navigation_content(route="navbar", use_cache=True):
         
         # No method worked, use fallback navigation
         return {
-            "nav_content": "<nav><a href='/'>Accueil</a></nav>",
+            "nav_content": "<nav><a href='/'>Home</a></nav>",
             "success": True,
             "method": "fallback",
             "message": _("Navigation fallback generated")
         }
         
     except Exception as e:
-        frappe.log_error("Error extracting navigation", 
-                        f"Error: {str(e)}\nTraceback: {frappe.get_traceback()}")
+        frappe.log_error("Error extracting navigation", e)
         return {
-            "nav_content": "<nav><a href='/'>Accueil</a></nav>",
+            "nav_content": "<nav><a href='/'>Home</a></nav>",
             "success": True,
             "method": "error_fallback",
             "message": str(e)
@@ -113,7 +112,7 @@ def find_navbar_component():
             
         return components[0]
     except Exception as e:
-        frappe.log_error("Error finding navbar component", str(e))
+        frappe.log_error("Error finding navbar component", e)
         return None
 
 def extract_nav_from_component(component):
@@ -122,11 +121,22 @@ def extract_nav_from_component(component):
     and generates minimal HTML
     """
     try:
-        if not component or not component.block:
-            return "<nav><a href='/'>Accueil</a></nav>"
+        # Check if component is valid
+        if not component:
+            return "<nav><a href='/'>Home</a></nav>"
+            
+        # Access block content based on type
+        block_content = None
+        if isinstance(component, dict):
+            block_content = component.get('block')
+        else:
+            block_content = getattr(component, 'block', None)
+            
+        if not block_content:
+            return "<nav><a href='/'>Home</a></nav>"
         
         # Parse the JSON block
-        block_data = json.loads(component.block)
+        block_data = json.loads(block_content)
         
         # Recursively find the nav block
         nav_block = find_nav_block(block_data)
@@ -139,7 +149,7 @@ def extract_nav_from_component(component):
         
         return nav_html
     except Exception as e:
-        frappe.log_error("Error extracting nav from component", str(e))
+        frappe.log_error("Error extracting nav from component", e)
         return "<nav><a href='/'>Home</a></nav>"
 
 def find_nav_block(block):

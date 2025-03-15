@@ -1,5 +1,5 @@
 {% set wishlist_data = get_wishlist_data() %}
-{% if not '/wishlist' in frappe.request.path %}
+{% if not '/wishlist' in frappe.request.path and frappe.session.user != 'Guest' %}
   <div id="wishlist-data" 
     data-wishlist-items-count='{{ wishlist_data.wishlist_items_count }}'>
   </div>

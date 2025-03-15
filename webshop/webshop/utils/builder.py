@@ -63,7 +63,7 @@ def get_builder_component_by_route(route, use_cache=True):
             filters={
                 "name": component_id
             },
-            fields=["name", "block", "title"],
+            fields=["name", "block", "component_name"],
             limit=1
         )
         
@@ -73,7 +73,7 @@ def get_builder_component_by_route(route, use_cache=True):
         component = components[0]
         result = {
             "name": component.name,
-            "title": component.title,
+            "component_name": component.component_name,
             "block": json.loads(component.block) if isinstance(component.block, str) else component.block
         }
         
@@ -315,23 +315,5 @@ def get_builder_page_content(route=None, page_name=None, content_only=False, ski
         
         return result
     except Exception as e:
-        frappe.log_error("Error rendering Builder Page", f"Error rendering page: {str(e)}\nTraceback: {frappe.get_traceback()}")
-        
-        result = {
-            "content": f"<div>Error rendering page: {str(e)}</div>",
-            "success": False,
-            "message": str(e)
-        }
-        
-        if not content_only:
-            result.update({
-                "style": "",
-                "global_style": "",
-                "global_script": "",
-                "page_data": {},
-                "client_scripts": [],
-                "client_styles": [],
-                "fonts": {}
-            })
-            
-        return result
+        frappe.log_error("Error rendering Builder Page", e)
+        return None

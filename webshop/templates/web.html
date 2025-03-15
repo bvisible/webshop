@@ -1,0 +1,250 @@
+{% extends base_template_path %}
+{% block hero %}{% endblock %}
+
+{% block content %}
+
+{% macro main_content() %}
+<div class="page-content-wrapper">
+	<!-- breadcrumbs -->
+	<div class="page-breadcrumbs">
+		{% block breadcrumbs %}
+			{% include 'templates/includes/breadcrumbs.html' %}
+		{% endblock %}
+	</div>
+
+	{% block page_container %}
+	<main class="{% if not full_width %}container my-4{% endif %}">
+		<div class="page-header-wrapper">
+			<div class="page-header">
+				{% block header %}{% endblock %}
+			</div>
+
+			{% if self.header_actions() %}
+			<div class="page-header-actions-block">
+				{% block header_actions %}{% endblock %}
+			</div>
+			{% endif %}
+		</div>
+
+		<div class="page_content">
+			{%- block page_content -%}{%- endblock -%}
+		</div>
+
+		<div class="page-footer">
+			{%- block page_footer -%}{%- endblock -%}
+		</div>
+	</main>
+	{% endblock %}
+</div>
+{% endmacro %}
+
+{% macro container_attributes() -%}
+id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
+{%- if page_or_generator=="Generator" %}source-type="Generator" data-doctype="{{ doctype }}"{%- endif %}
+{%- if source_content_type %}source-content-type="{{ source_content_type }}"{%- endif %}
+{%- endmacro %}
+
+{% macro sidebar() %}
+<div class="sidebar-column 1 col-sm-{{ columns }} d-none d-sm-block">
+	{% block page_sidebar %}
+	{% include "templates/includes/web_sidebar.html" %}
+	{% endblock %}
+</div>
+{% endmacro %}
+
+{% macro mobile_sidebar() %}
+<div id="sidebarOverlay" class="sidebar-overlay d-sm-none"></div>
+<div class="mobile-sidebar-container d-sm-none" id="mobile-sidebar">
+	<div class="d-flex justify-content-between align-items-center mb-3">
+		<div class="sidebar-title">{{ _('Menu') }}</div>
+		<button id="closeSidebarButton" class="close-sidebar-button">
+			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"/></svg>
+		</button>
+	</div>
+	{% block mobile_page_sidebar %}
+	{% include "templates/includes/web_sidebar.html" %}
+	{% endblock %}
+</div>
+{% endmacro %}
+
+{% if show_sidebar %}
+<div class="container">
+	<div class="row" {{ container_attributes() }}>
+		{%- set columns = sidebar_columns or 2 -%}
+		{%- if not sidebar_right -%}
+		{{ sidebar() }}
+		{%- endif -%}
+		<div class="main-column col-sm-{{ 12 - columns }}">
+			<div class="d-sm-none mb-3">
+				<button id="sidebarButton" class="sidebar-button d-flex align-items-center">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+					<span class="ml-2">{{ _("Menu") }}</span>
+				</button>
+			</div>
+			{{ main_content() }}
+		</div>
+		{%- if sidebar_right -%}
+		{{ sidebar() }}
+		{%- endif -%}
+	</div>
+</div>
+{{ mobile_sidebar() }}
+{% else %}
+<div {{ container_attributes() }}>
+	{{ main_content() }}
+</div>
+{% endif %}
+
+<script>
+	// Handle mobile sidebar
+	const sidebarButton = document.getElementById('sidebarButton');
+	const closeSidebarButton = document.getElementById('closeSidebarButton');
+	const sidebarOverlay = document.getElementById('sidebarOverlay');
+	const mobileSidebar = document.getElementById('mobile-sidebar');
+
+	// Open the sidebar
+	if (sidebarButton) {
+		sidebarButton.addEventListener('click', () => {
+			openSidebar();
+		});
+	}
+
+	// Close the sidebar
+	if (closeSidebarButton) {
+		closeSidebarButton.addEventListener('click', () => {
+			closeSidebar();
+		});
+	}
+
+	// Close the sidebar on overlay click
+	if (sidebarOverlay) {
+		sidebarOverlay.addEventListener('click', () => {
+			closeSidebar();
+		});
+	}
+
+	// Function to open the sidebar
+	function openSidebar() {
+		if (sidebarOverlay) {
+			sidebarOverlay.style.visibility = 'visible';
+			sidebarOverlay.style.display = 'block';
+			void sidebarOverlay.offsetWidth; // Force reflow
+			sidebarOverlay.classList.add('show');
+		}
+
+		if (mobileSidebar) {
+			mobileSidebar.classList.add('show');
+		}
+
+		// Prevent body scrolling
+		document.body.style.overflow = 'hidden';
+	}
+
+	// Function to close the sidebar
+	function closeSidebar() {
+		if (sidebarOverlay && sidebarOverlay.classList.contains('show')) {
+			sidebarOverlay.classList.remove('show');
+		}
+
+		if (mobileSidebar) {
+			mobileSidebar.classList.remove('show');
+		}
+
+		// Wait for animation to finish before hiding overlay
+		setTimeout(() => {
+			if (sidebarOverlay) {
+				sidebarOverlay.style.visibility = 'hidden';
+				sidebarOverlay.style.display = 'none';
+			}
+		}, 300);
+
+		// Reactivate body scrolling
+		document.body.style.overflow = '';
+	}
+</script>
+
+<style>
+/* Sidebar button styles */
+.sidebar-button {
+	background: none;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 6px 12px;
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	background-color: #f8f9fa;
+	position: absolute;
+    right: 30px;
+    top: 25px;
+}
+
+/* Overlay styles */
+.sidebar-overlay {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 1000;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sidebar-overlay.show {
+	opacity: 1;
+	visibility: visible;
+}
+
+/* Mobile sidebar styles */
+.mobile-sidebar-container {
+	position: fixed;
+	top: 0;
+	right: -320px;
+	width: 300px;
+	height: 100%;
+	background-color: white;
+	box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+	z-index: 1001;
+	transition: transform 0.3s ease-in-out;
+	transform: translateX(100%);
+	overflow-y: auto;
+	padding: 15px;
+}
+
+.mobile-sidebar-container.show {
+	transform: translateX(0);
+	right: 0;
+	margin-right: 0 !important;
+	animation: slideSidebar 0.3s ease-in-out;
+}
+
+@keyframes slideSidebar {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+/* Close sidebar button styles */
+.close-sidebar-button {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.sidebar-title {
+	font-weight: bold;
+	font-size: 1.1rem;
+}
+</style>
+
+{% endblock %}
