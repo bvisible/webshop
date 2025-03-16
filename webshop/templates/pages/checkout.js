@@ -137,7 +137,7 @@ frappe.ready(function() {
             window.addEventListener('beforeunload', (e) => {
                 if (this.pageModified) {
                     // Standard message for different browsers
-                    const confirmationMessage = _("Are you sure you want to leave this page? Your order has not been finalized.");
+                    const confirmationMessage =__("Are you sure you want to leave this page? Your order has not been finalized.");
                     e.returnValue = confirmationMessage; // Standard for most browsers
                     return confirmationMessage; // For older browsers
                 }
@@ -148,7 +148,7 @@ frappe.ready(function() {
                 const href = $(e.currentTarget).attr('href');
                 // Check if the link does not contain 'checkout', is not thank_you.html and is not an internal anchor (#)
                 if (href && !href.includes('checkout') && !href.includes('thank_you.html') && !href.startsWith('#') && this.pageModified) {
-                    if (!confirm(_("Are you sure you want to leave this page? Your order has not been finalized."))) {
+                    if (!confirm(__("Are you sure you want to leave this page? Your order has not been finalized."))) {
                         e.preventDefault();
                     }
                 }

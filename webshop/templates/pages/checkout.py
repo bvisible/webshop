@@ -277,11 +277,11 @@ def get_shipping_methods():
 					order_by="condition_group, constraint_type"
 				)
 				
-				# Calculate cart dimensions if needed (max dimensions from items)
-				length = width = height = 0
+				# Use bin packing algorithm to calculate optimal dimensions
 				total_weight = 0
+				packing_items = []
 				
-				# Calculate dimensions and weight from items
+				# Collect dimensions and weights of items
 				for item in quotation.items:
 					# Get item document to read dimensions and weight
 					item_doc = None
@@ -311,9 +311,9 @@ def get_shipping_methods():
 						total_weight += item_weight
 						
 						# Get dimensions and convert to shipping rule UOM
-						item_length = getattr(item_doc, 'length', 0) or 0
-						item_width = getattr(item_doc, 'width', 0) or 0
-						item_height = getattr(item_doc, 'height', 0) or 0
+						item_length = flt(getattr(item_doc, 'length', 0) or 0)
+						item_width = flt(getattr(item_doc, 'width', 0) or 0)
+						item_height = flt(getattr(item_doc, 'height', 0) or 0)
 						item_dim_uom = getattr(item_doc, 'dimension_uom', None) or ''
 						
 						# Convert dimensions to shipping rule UOM if different
@@ -328,13 +328,23 @@ def get_shipping_methods():
 									f"Error converting dimension unit: {str(e)} for item {item.item_code}"
 								)
 						
-						# Update max dimensions
-						if item_length > length:
-							length = item_length
-						if item_width > width:
-							width = item_width
-						if item_height > height:
-							height = item_height
+						# Add each unit of the item as a distinct item for bin packing
+						for i in range(int(qty)):
+							packing_items.append({
+								"name": f"{item.item_code}_{i}",
+								"length": item_length,
+								"width": item_width,
+								"height": item_height,
+								"weight": item_weight / qty
+							})
+				
+				# Calculate optimal packing using ShippingRule's method
+				optimal_packing = ShippingRule.calculate_optimal_packing(packing_items)
+				
+				# Use optimized dimensions for validation
+				length = optimal_packing.get("length", 0)
+				width = optimal_packing.get("width", 0)
+				height = optimal_packing.get("height", 0)
 				
 				# Group conditions by condition_group
 				grouped_conditions = {}
