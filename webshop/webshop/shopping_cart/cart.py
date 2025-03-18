@@ -712,6 +712,13 @@ def update_party(fullname, company_name=None, mobile_no=None, phone=None):
 
 	party.customer_name = company_name or fullname
 	party.customer_type = "Company" if company_name else "Individual"
+	
+	# Make sure default_currency is set
+	if not party.get("default_currency"):
+		from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
+		cart_settings = get_shopping_cart_settings()
+		if cart_settings.company:
+			party.default_currency = frappe.get_cached_value("Company", cart_settings.company, "default_currency")
 
 	contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
 	contact = frappe.get_doc("Contact", contact_name)
@@ -892,6 +899,11 @@ def get_party(user=None):
 				})
 		return None
 
+	# Check if the user already exists as a Portal User
+	existing_customer = frappe.db.get_value("Portal User", {"user": user}, "parent")
+	if existing_customer:
+		return frappe.get_doc("Customer", existing_customer)
+
 	contact_name = get_contact_name(user)
 	party = None
 
@@ -957,21 +969,26 @@ def get_party(user=None):
 			user_doc.last_name = fullname_parts[1] if len(fullname_parts) > 1 else ""
 			user_doc.save()
 		
-		# Create contact with user information
-		contact = frappe.new_doc("Contact")
-		contact.update({
-			"first_name": user_doc.first_name,
-			"last_name": user_doc.last_name,
-			"full_name": fullname,
-			"email_id": user,
-			"user": user,
-			"is_primary_contact": 1,
-			"is_billing_contact": 1,
-			"email_ids": [{
-				"email_id": user,
-				"is_primary": 1
-			}]
-		})
+		# Create contact with user information only if email is valid
+		contact = None
+		if user and "@" in user:
+			try:
+				contact = frappe.new_doc("Contact")
+				contact.update({
+					"first_name": user_doc.first_name or "",
+					"last_name": user_doc.last_name or "",
+					"full_name": fullname or "",
+					"email_id": user,
+					"user": user,
+					"is_primary_contact": 1,
+					"is_billing_contact": 1,
+					"email_ids": [{
+						"email_id": user,
+						"is_primary": 1
+					}]
+				})
+			except Exception as e:
+				frappe.log_error("Shopping Cart Contact Preparation Error", f"Error preparing contact for {user}: {str(e)}")
 		
 		# Add Customer role directly to the roles table
 		if not any(r.role == "Customer" for r in user_doc.roles):
@@ -996,12 +1013,18 @@ def get_party(user=None):
 					})
 					user_doc.save(ignore_permissions=True)
 		
+		# Get company default currency
+		company_currency = None
+		if cart_settings.company:
+			company_currency = frappe.get_cached_value("Company", cart_settings.company, "default_currency")
+
 		customer.update(
 			{
 				"customer_name": f"{user_doc.first_name} {user_doc.last_name}".strip(),
 				"customer_type": "Individual",
 				"customer_group": get_shopping_cart_settings().default_customer_group,
 				"territory": get_root_of("Territory"),
+				"default_currency": company_currency
 			}
 		)
 
@@ -1017,15 +1040,31 @@ def get_party(user=None):
 			)
 
 		customer.flags.ignore_mandatory = True
-		customer.insert(ignore_permissions=True)
+		try:
+			customer.insert(ignore_permissions=True)
 
-		contact = frappe.new_doc("Contact")
-		contact.update(
-			{"first_name": user_doc.first_name, "last_name": user_doc.last_name, "email_ids": [{"email_id": user, "is_primary": 1}]}
-		)
-		contact.append("links", dict(link_doctype="Customer", link_name=customer.name))
-		contact.flags.ignore_mandatory = True
-		contact.insert(ignore_permissions=True)
+			# Vérifier si l'email est valide avant de créer un contact
+			if user and "@" in user:
+				contact = frappe.new_doc("Contact")
+				contact.update({
+					"first_name": user_doc.first_name or "", 
+					"last_name": user_doc.last_name or "", 
+					"email_ids": [{"email_id": user, "is_primary": 1}]
+				})
+				contact.append("links", dict(link_doctype="Customer", link_name=customer.name))
+				contact.flags.ignore_mandatory = True
+				try:
+					contact.insert(ignore_permissions=True)
+				except Exception as contact_error:
+					frappe.log_error("Shopping Cart Contact Creation Error", f"Error inserting contact for {user}: {str(contact_error)}")
+		except Exception as e:
+			frappe.log_error("Shopping Cart Customer Creation Error", f"Error inserting automatic Customer/Contact for {user}: {str(e)}")
+			# In case of failure, try to find an existing client linked to the guest_customer
+			if cart_settings.guest_customer:
+				return frappe._dict({
+					"name": cart_settings.guest_customer,
+					"customer_group": frappe.db.get_value("Customer", cart_settings.guest_customer, "customer_group")
+				})
 
 		return customer
 
@@ -1222,6 +1261,13 @@ def update_customer_info(customer_name=None, customer_type=None):
 			customer_doc.customer_name = customer_name
 		if customer_type:
 			customer_doc.customer_type = customer_type
+		
+		# Make sure default_currency is set
+		if not customer_doc.get("default_currency"):
+			from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
+			cart_settings = get_shopping_cart_settings()
+			if cart_settings.company:
+				customer_doc.default_currency = frappe.get_cached_value("Company", cart_settings.company, "default_currency")
 			
 		customer_doc.save(ignore_permissions=True)
 		
@@ -1273,12 +1319,42 @@ def update_contact_info(first_name, last_name, email=None, phone=None, company_n
 				"message": "No active quotation found"
 			}
 
-		# Get or create contact
-		contact_name = get_contact_name(frappe.session.user)
-		if contact_name:
-			contact = frappe.get_doc("Contact", contact_name)
-		else:
+		# Check if contact exists for user
+		contact_found = False
+		if quotation.party_name:
+			# Check if a contact exists directly for the user
+			contact_name = get_contact_name(frappe.session.user)
+			if contact_name:
+				contact = frappe.get_doc("Contact", contact_name)
+				contact_found = True
+			else:
+				# If no contact is directly linked to the user, check for contacts linked to the customer
+				contacts = frappe.get_all("Dynamic Link", 
+					fields=["parent"], 
+					filters={
+						"link_doctype": "Customer", 
+						"link_name": quotation.party_name,
+						"parenttype": "Contact"
+					})
+				
+				if contacts:
+					# Use the first contact linked to the customer
+					contact = frappe.get_doc("Contact", contacts[0].parent)
+					contact_found = True
+					
+					# Update the link with the current user
+					contact.user = frappe.session.user
+					
+					# Check and update email if necessary
+					if email and not any(e.email_id == email for e in contact.email_ids):
+						for e in contact.email_ids:
+							e.is_primary = 0
+						contact.append("email_ids", {"email_id": email, "is_primary": 1})
+		
+		# If no contact was found, create a new one
+		if not contact_found:
 			contact = frappe.new_doc("Contact")
+			contact.user = frappe.session.user
 			contact.append("links", {
 				"link_doctype": "Customer",
 				"link_name": quotation.party_name

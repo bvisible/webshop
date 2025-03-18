@@ -176,7 +176,40 @@ class WebsiteItem(WebsiteGenerator):
 
 		if self.website_image and not self.thumbnail:
 			file_doc = None
+			
+			# Check if the file exists
+			existing_files = frappe.get_all(
+				"File",
+				filters={
+					"file_url": self.website_image
+				},
+				fields=["name", "attached_to_doctype", "attached_to_name", "thumbnail_url"],
+				limit=1
+			)
 
+			# If a file with this URL already exists
+			if existing_files:
+				try:
+					# Use the existing file instead of creating a new one
+					file_doc = frappe.get_doc("File", existing_files[0].name)
+					
+					# Add a reference to the current Website Item
+					# Note: This approach maintains the file attached to its original doctype
+					# while also using it for this Website Item
+					if file_doc.thumbnail_url:
+						self.thumbnail = file_doc.thumbnail_url
+					else:
+						# If the thumbnail doesn't exist, create it
+						file_doc.make_thumbnail()
+						self.thumbnail = file_doc.thumbnail_url
+					return
+				except Exception as e:
+					frappe.log_error(
+						title="Image Debug - Error Using Existing File",
+						message=f"Error using existing file: {str(e)}"
+					)
+			
+			# Try to find a file already attached to this Website Item
 			try:
 				file_doc = frappe.get_doc(
 					"File",
@@ -187,27 +220,33 @@ class WebsiteItem(WebsiteGenerator):
 					},
 				)
 			except frappe.DoesNotExistError:
+				frappe.log_error(
+					title="Image Debug - File Not Attached Yet",
+					message=f"No file with URL {self.website_image} attached to {self.doctype} {self.name}"
+				)
 				pass
 				# cleanup
 				if frappe.local.message_log:
 					frappe.local.message_log.pop()
-
-			except requests.exceptions.HTTPError:
-				frappe.msgprint(
-					_("Warning: Invalid attachment {0}").format(self.website_image)
-				)
-				self.website_image = None
-
-			except requests.exceptions.SSLError:
-				frappe.msgprint(
-					_("Warning: Invalid SSL certificate on attachment {0}").format(
-						self.website_image
+			except (requests.exceptions.HTTPError, requests.exceptions.SSLError) as e:
+				if isinstance(e, requests.exceptions.HTTPError):
+					frappe.msgprint(
+						_("Warning: Invalid attachment {0}").format(self.website_image)
 					)
-				)
+				elif isinstance(e, requests.exceptions.SSLError):
+					frappe.msgprint(
+						_("Warning: Invalid SSL certificate on attachment {0}").format(
+							self.website_image
+						)
+					)
 				self.website_image = None
 
-			# for CSV import
+			# If no file is found or an error occurred, create a new file
 			if self.website_image and not file_doc:
+				frappe.log_error(
+					title="Image Debug - Need to Create New File",
+					message=f"Creating new file with URL {self.website_image} for {self.doctype} {self.name}"
+				)
 				try:
 					file_doc = frappe.get_doc(
 						{
@@ -218,9 +257,14 @@ class WebsiteItem(WebsiteGenerator):
 						}
 					).save()
 
-				except IOError:
+				except Exception as e:
+					frappe.log_error(
+						title="Image Debug - Error Creating File",
+						message=f"Error creating file: {str(e)}"
+					)
 					self.website_image = None
 
+			# If we finally have a file, ensure it has a thumbnail
 			if file_doc:
 				if not file_doc.thumbnail_url:
 					file_doc.make_thumbnail()
@@ -541,6 +585,101 @@ def make_website_item(doc, save=True):
 		doc.get("image") and not website_item.website_image
 	):
 		website_item.website_image = doc.get("image")
+
+	# Check if there are multiple images attached to the Item
+	item_images = []
+	
+	# Add the main image first if it exists
+	if doc.get("image"):
+		item_images.append(doc.get("image"))
+	
+	# Get attached files
+	try:
+		# Check if there are files attached to the Item doctype directly
+		attached_files = frappe.get_all(
+			"File",
+			filters={
+				"attached_to_doctype": "Item",
+				"attached_to_name": doc.get("item_code"),
+				"is_private": 0
+			},
+			fields=["file_url"]
+		)
+		
+		# Add attached file URLs that look like images and aren't already in our list
+		for file_doc in attached_files:
+			file_url = file_doc.file_url
+			# Check if it's an image by extension
+			if file_url and file_url not in item_images and (
+				file_url.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'))
+			):
+				item_images.append(file_url)
+				
+	except Exception as e:
+		frappe.log_error(f"Error fetching item images: {str(e)}")
+	
+	# Create a slideshow if we have more than one image
+	if len(item_images) > 1:
+		try:
+			# Create a unique slideshow name
+			slideshow_name = f"item-{doc.get('item_code')}-slideshow"
+			
+			# Check if slideshow already exists
+			existing_slideshow = frappe.db.exists("Website Slideshow", slideshow_name)
+			
+			if existing_slideshow:
+				# Retrieve and update existing slideshow
+				slideshow = frappe.get_doc("Website Slideshow", slideshow_name)
+				
+				# Log what we're doing
+				frappe.log_error(
+					title="Slideshow Update - make_website_item", 
+					message=f"Updating existing slideshow: {slideshow_name} for item: {doc.get('item_code')}"
+				)
+				
+				# Remove existing slideshow items
+				slideshow.set("slideshow_items", [])
+				
+				# Re-add all current images to the slideshow
+				for idx, image_url in enumerate(item_images):
+					slideshow.append("slideshow_items", {
+						"image": image_url,
+						"heading": doc.get("item_name") if idx == 0 else "",
+						"description": doc.get("description") if idx == 0 else "",
+						"url": f"/webshop/{doc.get('item_group','').lower().replace(' ', '-')}/{doc.get('item_name','').lower().replace(' ', '-') or doc.get('item_code','').lower()}"
+					})
+				
+				slideshow.save()
+				
+				# Set the slideshow in the website item
+				website_item.slideshow = slideshow.name
+				
+			else:
+				# Create new slideshow
+				slideshow = frappe.new_doc("Website Slideshow")
+				slideshow.slideshow_name = slideshow_name
+				
+				# Log what we're doing
+				frappe.log_error(
+					title="Slideshow Creation - make_website_item", 
+					message=f"Creating new slideshow: {slideshow_name} for item: {doc.get('item_code')}"
+				)
+				
+				# Add all images to the slideshow
+				for idx, image_url in enumerate(item_images):
+					slideshow.append("slideshow_items", {
+						"image": image_url,
+						"heading": doc.get("item_name") if idx == 0 else "",
+						"description": doc.get("description") if idx == 0 else "",
+						"url": f"/webshop/{doc.get('item_group','').lower().replace(' ', '-')}/{doc.get('item_name','').lower().replace(' ', '-') or doc.get('item_code','').lower()}"
+					})
+				
+				slideshow.save()
+				
+				# Set the slideshow in the website item
+				website_item.slideshow = slideshow.name
+		except Exception as e:
+			frappe.log_error(f"Error creating slideshow: {str(e)}")
 
 	if not save:
 		return website_item
