@@ -546,6 +546,17 @@ def check_if_user_is_customer(user=None):
 
 	return True if customer else False
 
+@frappe.whitelist()
+def get_item_warehouses(item_code):
+	"""
+	Get warehouses where the item has available stock
+	"""
+	bin_data = frappe.get_all("Bin", 
+		filters={"item_code": item_code, "actual_qty": [">", 0]}, 
+		fields=["warehouse", "actual_qty"],
+		order_by="actual_qty desc"
+	)
+	return bin_data
 
 @frappe.whitelist()
 def make_website_item(doc, save=True):
@@ -566,6 +577,11 @@ def make_website_item(doc, save=True):
 
 	website_item = frappe.new_doc("Website Item")
 	website_item.web_item_name = doc.get("item_name")
+
+	# Define default warehouse (one with the most stock)
+	warehouses_with_stock = get_item_warehouses(doc.get("item_code"))
+	if warehouses_with_stock:
+		website_item.website_warehouse = warehouses_with_stock[0].warehouse
 
 	fields_to_map = [
 		"item_code",
