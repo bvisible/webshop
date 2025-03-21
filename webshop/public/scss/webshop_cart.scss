@@ -368,7 +368,36 @@ body[data-path=update-profile] {
 		max-width: 50%;
 
 		.btn-add-to-cart {
-			font-size: 14px;
+			width: fit-content;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			padding: 5px 30px;
+		}
+
+		.btn-configure {
+			width: fit-content;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			background-color: var(--btn-primary);
+			color: var(--neutral);
+			--icon-stroke: currentColor;
+			--icon-fill-bg: var(--btn-primary);
+			white-space: nowrap;
+			padding: 5px 30px;
+		}
+
+		@media (max-width: 576px) {
+			.action-buttons {
+				flex-direction: column;
+				row-gap: 10px;
+
+				.btn-add-to-cart,
+				.btn-inquiry {
+					width: 100%;
+				}
+			}
 		}
 	}
 
@@ -384,7 +413,7 @@ body[data-path=update-profile] {
 
 	@media (max-width: 789px) {
 		.product-details {
-			max-width: 90% !important;
+			max-width: 100% !important;
 
 			.btn-add-to-cart {
 				font-size: 14px;

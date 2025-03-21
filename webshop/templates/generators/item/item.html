@@ -24,24 +24,31 @@
 </div>
 
 <!-- Additional Info/Reviews, Recommendations -->
+{% set has_tabs = show_tabs and tabs %}
+{% set has_specs = website_specifications %}
+{% set has_content = doc.website_content %}
+{% set has_reviews = shopping_cart.cart_settings.enable_reviews and not doc.has_variants %}
+{% set show_recommended_items = recommended_items and shopping_cart.cart_settings.enable_recommendations %}
+{% set has_content_to_show = has_tabs or has_specs or has_content or has_reviews or show_recommended_items %}
+
+{% if has_content_to_show %}
 <div class="d-flex">
-	{% set show_recommended_items = recommended_items and shopping_cart.cart_settings.enable_recommendations %}
 	{% set info_col = 'col-9' if show_recommended_items else 'col-12' %}
+	{% set padding_top = 'pt-0' if has_tabs else '' %}
 
-	{% set padding_top = 'pt-0' if (show_tabs and tabs) else '' %}
-
+	{% if has_tabs or has_specs or has_content or has_reviews %}
 	<div class="product-container mt-4 {{ padding_top }} {{ info_col }}">
-		<div class="item-content {{ 'mt-minus-2' if (show_tabs and tabs) else '' }}">
+		<div class="item-content {{ 'mt-minus-2' if has_tabs else '' }}">
 			<div class="product-page-content" itemscope itemtype="http://schema.org/Product">
 				<!-- Product Specifications Table Section -->
-				{% if show_tabs and tabs %}
+				{% if has_tabs %}
 					<div class="category-tabs">
 						<!-- tabs -->
 							{{ web_block("Section with Tabs", values=tabs, add_container=0,
 								add_top_padding=0, add_bottom_padding=0)
 							}}
 					</div>
-				{% elif website_specifications %}
+				{% elif has_specs %}
 					{% include "templates/generators/item/item_specifications.html"%}
 				{% endif %}
 
@@ -49,12 +56,13 @@
 				{{ doc.website_content or '' }}
 
 				<!-- Reviews and Comments -->
-				{% if shopping_cart.cart_settings.enable_reviews and not doc.has_variants %}
+				{% if has_reviews %}
 					{% include "templates/generators/item/item_reviews.html"%}
 				{% endif %}
 			</div>
 		</div>
 	</div>
+	{% endif %}
 
 	<!-- Recommended Items -->
 	{% if show_recommended_items %}
@@ -67,8 +75,8 @@
 			</div>
 		</div>
 	{% endif %}
-
 </div>
+{% endif %}
 {% endblock %}
 
 {% block base_scripts %}

@@ -193,7 +193,7 @@
 		{% else %}
 			<!-- Add to Cart / View in Cart, Contact Us -->
 			<div class="mt-6 mb-5">
-				<div class="mb-4 d-flex">
+				<div class="mb-4 d-flex action-buttons">
 					<!-- Add to Cart -->
 					{% if product_info.price and (cart_settings.allow_items_not_in_stock or product_info.get("in_stock")) %}
 						<a href="/cart" class="btn btn-light btn-view-in-cart hidden mr-2 font-md"
@@ -201,7 +201,7 @@
 							{{  _("View in Cart") if cart_settings.enable_checkout else _("View in Quote") }}
 						</a>
 						{% if cart_settings.enable_guest_cart == 0 and frappe.session.user == "Guest" %}
-							<a href="/login" class="btn btn-primary btn-add-to-cart mr-2 w-30-40"
+							<a href="/login" class="btn btn-primary btn-add-to-cart mr-2"
 								role="button">
 								{{  _("To add to cart, please log in") }}
 							</a>
@@ -225,7 +225,7 @@
 								</span>
 							</div>
 
-							<button data-item-code="{{item_code}}" class="btn btn-primary btn-add-to-cart mr-2 w-30-40">
+							<button data-item-code="{{item_code}}" class="btn btn-primary btn-add-to-cart mr-2">
 								<span class="mr-2">
 									<svg class="icon icon-md">
 										<use href="#icon-assets"></use>

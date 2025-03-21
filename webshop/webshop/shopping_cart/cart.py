@@ -1686,7 +1686,7 @@ def create_gift_cards_from_invoice(doc, method=None):
 	"""Create gift cards for gift card items in a paid invoice"""
 	try:
 		sales_invoice = doc
-		if not sales_invoice.docstatus == 1 or sales_invoice.outstanding_amount > 0:
+		if not sales_invoice.docstatus == 1 or sales_invoice.outstanding_amount > 0 or sales_invoice.is_pos == 1:
 			return
 
 		# Check if any gift card item
