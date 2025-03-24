@@ -1733,18 +1733,23 @@ function showMiniCartNotification(itemCode, qty, itemName, itemImage) {
     document.body.appendChild(notification);
   }
   
-  // Get product information from page context
+  // Get product information from page context if itemName is not provided
   if (!itemName) {
-    // Try to find product name in context (page title, data-attributes, etc.)
-    const productTitle = document.querySelector('.product-title, .item-title, h1');
-    if (productTitle) {
-      itemName = productTitle.textContent.trim();
-    } else {
-      // Fallback on a generic name
-      itemName = 'Produit';
-    }
+    frappe.call({
+      method: "webshop.webshop.shopping_cart.product_info.get_website_item_name",
+      args: { item_code: itemCode },
+      callback: function(r) {
+        let productName = r.message || "Item " + itemCode;
+        displayNotificationContent(notification, itemCode, qty, productName, itemImage);
+      }
+    });
+  } else {
+    displayNotificationContent(notification, itemCode, qty, itemName, itemImage);
   }
-  
+}
+
+// Helper function to display notification content
+function displayNotificationContent(notification, itemCode, qty, itemName, itemImage) {
   const imageUrl = itemImage;
   
   // Update notification content
@@ -1757,7 +1762,7 @@ function showMiniCartNotification(itemCode, qty, itemName, itemImage) {
         }
       </div>
       <div>
-        <div style="font-weight: bold; margin-bottom: 5px;">${itemName}</div>
+        <div style="font-weight: bold; margin-bottom: 5px;">${itemName || 'Product'}</div>
         <div style="font-size: 14px; color: #28a745;">✓ ${__('Added to cart')} (${qty})</div>
       </div>
       <div style="margin-left: auto; cursor: pointer;" onclick="document.getElementById('cart-notification').remove()">×</div>

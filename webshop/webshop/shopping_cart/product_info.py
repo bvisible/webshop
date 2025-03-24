@@ -110,3 +110,7 @@ def set_product_info_for_website(item):
 		else:
 			item["price_stock_uom"] = ""
 			item["price_sales_uom"] = ""
+
+@frappe.whitelist(allow_guest=True)
+def get_website_item_name(item_code):
+	return frappe.db.get_value("Website Item", {"item_code": item_code}, "item_name")
