@@ -429,10 +429,10 @@
 				}
 				
 				// 3. Coupon
-				if (doc.coupon_code && doc.discount_amount) {
+				if (doc.coupon_code && doc.discount_amount || doc.gift_card_coupon && doc.discount_amount) {
 					rows.push({
-						label: `${__('Coupon Discount')} (${doc.coupon_code})`,
-						value: `- ${format_currency(doc.discount_amount, doc.currency)}`,
+						label: `${__('Coupon Discount')} (${doc.coupon_code || doc.gift_card_coupon})`,
+						value: `-${format_currency(doc.discount_amount, doc.currency)}`,
 						class: 'coupon-row',
 						labelClass: 'text-success',
 						valueClass: 'text-success'
@@ -443,7 +443,7 @@
 				if (doc.loyalty_amount && doc.loyalty_amount > 0) {
 					rows.push({
 						label: `${__('Loyalty Points')} (${doc.loyalty_points} ${__('points')})`,
-						value: `- ${format_currency(doc.loyalty_amount, doc.currency)}`,
+						value: `-${format_currency(doc.loyalty_amount, doc.currency)}`,
 						class: 'loyalty-row',
 						labelClass: 'text-success',
 						valueClass: 'text-success'

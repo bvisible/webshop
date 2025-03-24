@@ -9,7 +9,6 @@ from erpnext.accounts.doctype.payment_request.payment_request import (
 
 class PaymentRequest(OriginalPaymentRequest):
     def on_payment_authorized(self, status=None):
-        frappe.log_error("on_payment_authorized")
         if not status:
             return
 

@@ -141,6 +141,57 @@ $.extend(shopping_cart, {
 	},
 
 	shopping_cart_update: function({item_code, qty, cart_dropdown, additional_notes}) {
+		// Check if a coupon or loyalty points are applied before updating the cart
+		frappe.call({
+			method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
+			callback: (r) => {
+				if (r.message && r.message.doc) {
+					const doc = r.message.doc;
+					// Check if a coupon or loyalty points are applied
+					if (doc.coupon_code || doc.gift_card_coupon) {
+						// Remove the coupon before updating the quantity
+						frappe.call({
+							method: 'webshop.webshop.shopping_cart.cart.remove_coupon_code',
+							callback: (r) => {
+								if (r.message) {
+									frappe.show_alert({
+										message: __('The coupon has been removed to update the cart'),
+										indicator: 'blue'
+									});
+									// Continue with the cart update
+									shopping_cart.perform_cart_update({item_code, qty, cart_dropdown, additional_notes});
+								}
+							}
+						});
+					} else if (doc.loyalty_points) {
+						// Remove loyalty points before updating the quantity
+						frappe.call({
+							method: 'webshop.webshop.shopping_cart.cart.remove_loyalty_points',
+							callback: (r) => {
+								if (r.message) {
+									frappe.show_alert({
+										message: __('The loyalty points have been removed to update the cart'),
+										indicator: 'blue'
+									});
+									// Continue with the cart update
+									shopping_cart.perform_cart_update({item_code, qty, cart_dropdown, additional_notes});
+								}
+							}
+						});
+					} else {
+						// No coupon or loyalty points, update directly
+						shopping_cart.perform_cart_update({item_code, qty, cart_dropdown, additional_notes});
+					}
+				} else {
+					// No cart data, update directly
+					shopping_cart.perform_cart_update({item_code, qty, cart_dropdown, additional_notes});
+				}
+			}
+		});
+	},
+
+	// Auxiliary function to update the cart
+	perform_cart_update: function({item_code, qty, cart_dropdown, additional_notes}) {
 		shopping_cart.update_cart({
 			item_code,
 			qty,

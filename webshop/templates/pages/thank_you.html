@@ -121,9 +121,9 @@
                                                 <tr>
                                                     <td></td>
                                                     <td colspan="2" class="text-right"><strong>{{ _("Subtotal") }}</strong></td>
-                                                    <td class="text-right">{{ frappe.utils.fmt_money(doc.net_total, currency=doc.currency) }}</td>
+                                                    <td class="text-right">{{ frappe.utils.fmt_money(max(0, doc.net_total), currency=doc.currency) }}</td>
                                                 </tr>
-                                                {% if doc.total_taxes_and_charges %}
+                                                {% if doc.total_taxes_and_charges and doc.net_total > 0 %}
                                                 <tr>
                                                     <td></td>
                                                     <td colspan="2" class="text-right">{{ _("Taxes and Charges") }}</td>

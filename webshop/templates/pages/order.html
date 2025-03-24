@@ -141,19 +141,19 @@
 							<div class="panel-heading">
 								<div class="row">
 									<div class="form-column col-sm-6 address-title">
-										<strong>Loyalty Points</strong>
+										<strong>{{ _("Loyalty Points") }}</strong>
 									</div>
 								</div>
 							</div>
 
 							<div class="form-group">
-								<div class="h6">Enter Loyalty Points</div>
+								<div class="h6">{{ _("Enter Loyalty Points") }}</div>
 								<div class="control-input-wrapper">
 									<div class="control-input">
 										<input class="form-control" type="number" min="0"
 											max="{{ available_loyalty_points }}" id="loyalty-point-to-redeem">
 									</div>
-									<p class="help-box small text-muted d-none d-sm-block"> Available Points: {{
+									<p class="help-box small text-muted d-none d-sm-block"> {{ _("Available Points") }}: {{
 										available_loyalty_points }} </p>
 								</div>
 							</div>

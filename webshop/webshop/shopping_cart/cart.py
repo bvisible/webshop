@@ -118,7 +118,7 @@ def get_cart_quotation(doc=None):
 	if doc and not doc.customer_address and addresses:
 		update_cart_address("billing", addresses[0].name)
 
-	if doc:		
+	if doc:
 		# Get loyalty points information
 		available_loyalty_points = 0
 		loyalty_points_value = 0
@@ -130,12 +130,28 @@ def get_cart_quotation(doc=None):
 			)
 
 			if customer_loyalty_program:
+				import math
+				
 				loyalty_program_details = get_loyalty_program_details_with_points(
 					doc.customer_name, customer_loyalty_program
 				)
 
-				available_loyalty_points = float(loyalty_program_details.get("loyalty_points", 0))
-				loyalty_points_value = frappe.utils.fmt_money(loyalty_program_details.get("loyalty_points", 0) * loyalty_program_details.get("conversion_factor", 0), currency=doc.currency)
+				# Get raw loyalty points
+				raw_loyalty_points = float(loyalty_program_details.get("loyalty_points", 0))
+				conversion_factor = loyalty_program_details.get("conversion_factor", 0)
+				
+				# Round down loyalty points to the nearest 10
+				rounded_loyalty_points = math.floor(raw_loyalty_points / 10) * 10
+				
+				# Update the loyalty program details with rounded points
+				loyalty_program_details["loyalty_points"] = rounded_loyalty_points
+				
+				# Set the available loyalty points to the rounded value
+				available_loyalty_points = rounded_loyalty_points
+				
+				# Calculate loyalty points value based on rounded points
+				equivalent_value = rounded_loyalty_points * conversion_factor
+				loyalty_points_value = frappe.utils.fmt_money(equivalent_value, currency=doc.currency)
 
 	# Get customer information for B2B verification
 	customer_info = None
@@ -202,6 +218,62 @@ def place_order():
 	quotation = _get_cart_quotation()
 	cart_settings = frappe.get_cached_doc("Webshop Settings")
 	quotation.company = cart_settings.company
+	
+	# Save the coupon info for later use
+	coupon_data = None
+	gift_card_to_split = False
+	
+	# Check if we have a stored coupon in temp_coupon_code
+	if hasattr(quotation, "temp_coupon_code") and quotation.temp_coupon_code:
+		coupon_data = {
+			"coupon_code": quotation.temp_coupon_code
+		}
+		
+	# Check if this is a gift card that might need to be split
+	if hasattr(quotation, "gift_card_coupon") and quotation.gift_card_coupon and \
+	   hasattr(quotation, "gift_card_original_amount") and quotation.gift_card_original_amount:
+	
+		gift_card_amount = flt(quotation.gift_card_original_amount)
+		order_total = flt(quotation.grand_total)
+		
+		# Double-check that discount is applied correctly
+		if flt(quotation.discount_amount) == 0 and order_total > 0:
+			# Apply discount if not already applied
+			if gift_card_amount >= order_total:
+				# Limit discount to order total
+				quotation.apply_discount_on = "Grand Total"
+				quotation.discount_amount = order_total
+				quotation.gift_card_to_split = 1  # Mark for split
+				quotation.flags.ignore_permissions = True
+				quotation.save()
+			else:
+				# Apply full gift card amount
+				quotation.apply_discount_on = "Grand Total"
+				quotation.discount_amount = gift_card_amount
+				quotation.gift_card_to_split = 0
+				quotation.flags.ignore_permissions = True
+				quotation.save()
+		
+		# Get latest values after possible updates
+		gift_card_amount = flt(quotation.gift_card_original_amount)
+		used_amount = flt(quotation.discount_amount)
+		excess_amount = gift_card_amount - used_amount
+		
+		# Check if we need to split
+		if excess_amount > 0:
+			gift_card_to_split = True
+			
+		# Store gift card data for processing after sales order creation
+		if not coupon_data:
+			coupon_data = {}
+			
+		coupon_data.update({
+			"is_gift_card": True,
+			"gift_card_coupon": quotation.gift_card_coupon,
+			"gift_card_amount": gift_card_amount,
+			"used_amount": used_amount,
+			"excess_amount": excess_amount
+		})
 
 	quotation.flags.ignore_permissions = True
 	quotation.submit()
@@ -219,6 +291,194 @@ def place_order():
 		)
 	)
 	sales_order.payment_schedule = []
+	
+	# For gift cards that need to be split, process the split BEFORE creating the sales order
+	if coupon_data and coupon_data.get("is_gift_card") and coupon_data.get("gift_card_coupon"):
+		# We need to create a new gift card for the used amount before inserting the sales order
+		gift_card_amount = flt(coupon_data.get("gift_card_amount"))
+		used_amount = flt(quotation.discount_amount)
+		excess_amount = 0
+		
+		# Check if we have an excess amount that needs to be split
+		if gift_card_amount > used_amount and used_amount > 0:
+			excess_amount = gift_card_amount - used_amount
+			gift_card_to_split = True
+			
+			original_coupon = coupon_data.get("gift_card_coupon")
+			
+			# Get the original gift card
+			original_card = frappe.get_doc("Coupon Code", original_coupon)
+
+			if original_card and original_card.coupon_type == "Gift Card":
+				# Create a new gift card for the used amount
+				import string
+				import random
+				
+				# Generate a unique code for the new gift card
+				def generate_unique_code():
+					chars = string.ascii_uppercase + string.digits
+					code_parts = [''.join(random.choice(chars) for _ in range(4)) for _ in range(3)]
+					new_code = '-'.join(code_parts)
+					
+					while frappe.db.exists("Coupon Code", {"coupon_code": new_code}):
+						code_parts = [''.join(random.choice(chars) for _ in range(4)) for _ in range(3)]
+						new_code = '-'.join(code_parts)
+						
+					return new_code
+				
+				new_code = generate_unique_code()
+				
+				# Create a pricing rule for the used amount
+				pricing_rule_filters = {
+					"apply_on": "Transaction",
+					"price_or_product_discount": "Price",
+					"is_cumulative": 1,
+					"valid_upto": "2999-12-31",
+					"selling": 1,
+					"buying": 0,
+					"coupon_code_based": 1,
+					"disable": 0,
+					"margin_type": "Amount",
+					"rate_or_discount": "Discount Amount",
+					"discount_amount": used_amount
+				}
+				
+				pricing_rule = frappe.db.exists("Pricing Rule", pricing_rule_filters)
+				
+				if not pricing_rule:
+					pricing_rule = frappe.get_doc({
+						"doctype": "Pricing Rule",
+						"title": f"{_('Gift Card')} {frappe.utils.fmt_money(used_amount, currency=frappe.db.get_default('currency'))}",
+						**pricing_rule_filters
+					})
+					
+					pricing_rule.insert(ignore_permissions=True)
+					pricing_rule_name = pricing_rule.name
+				else:
+					pricing_rule_name = pricing_rule
+				
+				# Create the new gift card with the used amount
+				new_card_name = f"{_('Gift Card')} {frappe.utils.fmt_money(used_amount, currency=frappe.db.get_default('currency'))} - {original_card.customer or _('Customer')} - {new_code}"
+				
+				# Create the new gift card
+				new_gift_card = frappe.get_doc({
+					"doctype": "Coupon Code",
+					"coupon_name": new_card_name,
+					"coupon_type": "Gift Card",
+					"coupon_code": new_code,
+					"pricing_rule": pricing_rule_name,
+					"valid_from": original_card.valid_from,
+					"valid_upto": original_card.valid_upto,
+					"maximum_use": 1,
+					"used": 0,
+					"customer": original_card.customer,
+					"gift_card_amount": used_amount,
+					"coupon_code_residual": original_card.name,
+					"description": f"{_('Created from gift card')}: {original_card.name} ({_('amount used in order from quotation')} {quotation.name})"
+				})
+				
+				# If the customer has a portal user, set as owner
+				if original_card.customer:
+					try:
+						customer = frappe.get_doc("Customer", original_card.customer)
+						if hasattr(customer, "portal_users") and customer.portal_users:
+							user = customer.portal_users[0].user
+							new_gift_card.owner = user
+					except Exception as e:
+						frappe.log_error( "Gift Card Split Error", f"Error getting customer portal user: {str(e)}")
+				
+				# Save the new gift card
+				try:
+					new_gift_card.insert(ignore_permissions=True)
+					new_gift_card.save(ignore_permissions=True)
+					
+					# Update the original card with the remaining amount
+					excess_pricing_rule_filters = {
+						"apply_on": "Transaction",
+						"price_or_product_discount": "Price",
+						"is_cumulative": 1,
+						"valid_upto": "2999-12-31",
+						"selling": 1,
+						"buying": 0,
+						"coupon_code_based": 1,
+						"disable": 0,
+						"margin_type": "Amount",
+						"rate_or_discount": "Discount Amount",
+						"discount_amount": excess_amount
+					}
+					
+					excess_pricing_rule = frappe.db.exists("Pricing Rule", excess_pricing_rule_filters)
+					
+					if not excess_pricing_rule:
+						excess_pricing_rule = frappe.get_doc({
+							"doctype": "Pricing Rule",
+							"title": f"{_('Gift Card')} {excess_amount:.2f}",
+							**excess_pricing_rule_filters
+						})
+						
+						excess_pricing_rule.insert(ignore_permissions=True)
+						excess_pricing_rule_name = excess_pricing_rule.name
+					else:
+						excess_pricing_rule_name = excess_pricing_rule
+					
+					# Update the original card
+					original_card.gift_card_amount = excess_amount
+					original_card.pricing_rule = excess_pricing_rule_name
+					
+					if original_card.description:
+						original_card.description += f"\n\n{_('Amount adjusted on')} {frappe.utils.today()}: {frappe.utils.fmt_money(gift_card_amount, currency=frappe.db.get_default('currency'))} → {frappe.utils.fmt_money(excess_amount, currency=frappe.db.get_default('currency'))}. {_('Amount used')} ({frappe.utils.fmt_money(used_amount, currency=frappe.db.get_default('currency'))}) {_('transferred to card')} {new_code} {_('for order from quotation')} {quotation.name}."
+					else:
+						original_card.description = f"{_('Amount adjusted on')} {frappe.utils.today()}: {frappe.utils.fmt_money(gift_card_amount, currency=frappe.db.get_default('currency'))} → {frappe.utils.fmt_money(excess_amount, currency=frappe.db.get_default('currency'))}. {_('Amount used')} ({frappe.utils.fmt_money(used_amount, currency=frappe.db.get_default('currency'))}) {_('transferred to card')} {new_code} {_('for order from quotation')} {quotation.name}."
+					
+					original_card.save(ignore_permissions=True)
+					
+					# Remember the previous value
+					old_value = coupon_data.get("gift_card_coupon")
+					
+					# Update the coupon data to use the new gift card for the sales order
+					coupon_data["gift_card_coupon"] = new_gift_card.name
+
+				except Exception as e:
+					frappe.log_error(
+						"Gift Card Split Error",
+						f"Gift card split FAILED: "
+						f"Original card {original_coupon}, "
+						f"Used amount {used_amount}, "
+						f"Excess amount {excess_amount}. "
+						f"Error: {str(e)}"
+					)
+	
+	if coupon_data:
+		if "coupon_code" in coupon_data:
+			# Set coupon code in the sales order
+			sales_order.coupon_code = coupon_data["coupon_code"]
+			
+			# Keep the discount amount from the quotation
+			if quotation.discount_amount:
+				sales_order.apply_discount_on = "Grand Total"
+				sales_order.discount_amount = quotation.discount_amount
+				
+		elif "gift_card_coupon" in coupon_data:
+			# Set gift card coupon in the sales order
+			coupon_code = coupon_data["gift_card_coupon"]
+
+			# Check if the coupon code is valid and has a sufficient amount
+			coupon_doc = frappe.get_doc("Coupon Code", coupon_code)
+			discount_amount = quotation.discount_amount
+		
+			# Ensure the coupon code is valid and has a sufficient amount
+			if coupon_doc.gift_card_amount < discount_amount:
+				frappe.throw(_("Gift card amount ({0}) is less than required discount amount ({1})").format(
+					coupon_doc.gift_card_amount, discount_amount
+				))
+			
+			# Apply the coupon code to the sales order
+			sales_order.coupon_code = coupon_code
+			
+			# Ensure the discount is correctly applied
+			if discount_amount:
+				sales_order.apply_discount_on = "Grand Total"
+				sales_order.discount_amount = discount_amount
 
 	# Check if all items are gift cards
 	if quotation.items and len(quotation.items) == 1:
@@ -249,11 +509,240 @@ def place_order():
 	sales_order.flags.ignore_permissions = True
 	sales_order.insert()
 	sales_order.submit()
+	
+	# Le split a déjà été fait avant l'insertion du sales order, 
+	# donc nous n'avons pas besoin de faire quoi que ce soit ici
 
 	if hasattr(frappe.local, "cookie_manager"):
 		frappe.local.cookie_manager.delete_cookie("cart_count")
 
 	return sales_order.name
+
+
+def process_gift_card_on_submit(doc, method=None):
+	"""
+	Hook function called when a Sales Order is submitted.
+	Checks if the Sales Order was created from a Quotation with a gift card
+	that needs to be split, and processes the split if needed.
+	"""
+	if doc.doctype != "Sales Order" or not doc.docstatus == 1:
+		return
+	
+	# Check if this Sales Order was created from a Quotation
+	if not doc.quotation:
+		return
+	
+	# Get the Quotation
+	try:
+		quotation = frappe.get_doc("Quotation", doc.quotation)
+		
+		# Check if this Quotation has a gift card that needs to be split
+		if hasattr(quotation, "gift_card_coupon") and quotation.gift_card_coupon and \
+		   hasattr(quotation, "gift_card_original_amount") and quotation.gift_card_original_amount:
+			
+			# Check if we need to split the gift card
+			gift_card_amount = flt(quotation.gift_card_original_amount)
+			used_amount = flt(quotation.discount_amount)
+			
+			if gift_card_amount > used_amount and used_amount > 0:
+				excess_amount = gift_card_amount - used_amount
+				
+				# Prepare gift card data for processing
+				gift_card_data = {
+					"coupon_code": quotation.gift_card_coupon,
+					"gift_card_amount": gift_card_amount,
+					"used_amount": used_amount,
+					"excess_amount": excess_amount
+				}
+				
+				# Process the gift card split
+				process_gift_card_split(doc, gift_card_data)
+	except Exception as e:
+		frappe.log_error(f"Gift Card Processing Error: {str(e)}", _("Error processing gift card for Sales Order {0}").format(doc.name))
+
+
+def process_gift_card_split(sales_order, gift_card_data):
+	"""
+	Process gift card split after sales order creation.
+	If the gift card amount is greater than the amount used:
+	1. Create a NEW gift card for the amount USED in the order
+	2. Update the ORIGINAL gift card to keep only the REMAINING amount
+	3. Update the sales_order to use the NEW gift card instead of the original
+	"""
+	try:
+		# Extract gift card data - try both new and old key names for compatibility
+		coupon_name = gift_card_data.get("gift_card_coupon") or gift_card_data.get("coupon_code")
+		gift_card_amount = flt(gift_card_data.get("gift_card_amount"))
+		used_amount = flt(gift_card_data.get("used_amount"))
+		excess_amount = flt(gift_card_data.get("excess_amount"))
+		
+		# If there's no excess amount, nothing to do
+		if not excess_amount or excess_amount <= 0:
+			return
+		
+		# Get the coupon details
+		coupon_doc = frappe.get_doc("Coupon Code", coupon_name)
+		
+		# Generate a new unique code
+		try:
+			# Try to import from POS module if available
+			from erpnext.selling.page.point_of_sale.point_of_sale import generate_gift_card_code
+			new_code = generate_gift_card_code()
+			# Make sure code is unique
+			while frappe.db.exists("Coupon Code", {"coupon_code": new_code}):
+				new_code = generate_gift_card_code()
+		except ImportError:
+			# If not available, generate a simple code
+			import random, string
+			letters = string.ascii_uppercase + string.digits
+			code_parts = [
+				''.join(random.choice(letters) for _ in range(4)),
+				''.join(random.choice(letters) for _ in range(4)),
+				''.join(random.choice(letters) for _ in range(4))
+			]
+			new_code = '-'.join(code_parts)
+			
+			# Make sure the code is unique
+			while frappe.db.exists("Coupon Code", {"coupon_code": new_code}):
+				code_parts = [
+					''.join(random.choice(letters) for _ in range(4)),
+					''.join(random.choice(letters) for _ in range(4)),
+					''.join(random.choice(letters) for _ in range(4))
+				]
+				new_code = '-'.join(code_parts)
+		
+		# Get customer info
+		customer_name = sales_order.customer
+		
+		# IMPORTANT: Contrairement à notre implémentation précédente, nous créons
+		# une nouvelle carte cadeau pour le montant UTILISÉ (pas pour le montant restant)
+		# et nous laissons le montant RESTANT sur la carte d'origine
+		
+		# Get or create pricing rule for the USED amount (not the excess amount)
+		pricing_rule_name = None
+		pricing_rule_filters = {
+			"apply_on": "Transaction",
+			"price_or_product_discount": "Price",
+			"is_cumulative": 1,
+			"valid_upto": "2999-12-31",
+			"selling": 1,
+			"buying": 0,
+			"coupon_code_based": 1,
+			"disable": 0,
+			"margin_type": "Amount",
+			"rate_or_discount": "Discount Amount",
+			"discount_amount": used_amount  # USED amount, not excess
+		}
+		
+		pricing_rule = frappe.db.exists("Pricing Rule", pricing_rule_filters)
+		
+		if not pricing_rule:
+			try:
+				pricing_rule = frappe.get_doc({
+					"doctype": "Pricing Rule",
+					"title": f"{_('Gift Card')} {used_amount:.2f}",
+					**pricing_rule_filters
+				})
+				
+				pricing_rule.insert(ignore_permissions=True)
+				pricing_rule_name = pricing_rule.name
+			except Exception as e:
+				frappe.log_error("Gift Card - Error Creating Pricing Rule", f"Error creating Pricing Rule: {str(e)}\nData: {pricing_rule_filters}")
+				return
+		else:
+			pricing_rule_name = pricing_rule
+		
+		# Create the new gift card with the USED amount (not excess)
+		new_coupon_name = _("Gift Card") + f" {frappe.utils.fmt_money(used_amount, currency=sales_order.currency)} - {customer_name or _('Customer')} - {new_code}"
+		
+		new_gift_card = frappe.get_doc({
+			"doctype": "Coupon Code",
+			"coupon_name": new_coupon_name,
+			"coupon_type": "Gift Card",
+			"coupon_code": new_code,
+			"pricing_rule": pricing_rule_name,
+			"valid_from": coupon_doc.valid_from,
+			"valid_upto": coupon_doc.valid_upto,
+			"maximum_use": 1,
+			"used": 1,  # Marked as used since it's already applied to this order
+			"customer": customer_name,
+			"gift_card_amount": used_amount,  # USED amount, not excess
+			"coupon_code_residual": coupon_doc.name,  # Link to original card
+			"description": _("Created from split of {0} in webshop. Used in order {1}. Original amount: {2}, Used: {3}, Remaining on original card: {4}").format(
+				coupon_doc.coupon_code,
+				sales_order.name,
+				frappe.utils.fmt_money(gift_card_amount, currency=sales_order.currency),
+				frappe.utils.fmt_money(used_amount, currency=sales_order.currency),
+				frappe.utils.fmt_money(excess_amount, currency=sales_order.currency)
+			)
+		})
+		
+		new_gift_card.insert(ignore_permissions=True)
+		new_gift_card.save(ignore_permissions=True)
+		
+		# Now update the original gift card to keep only the REMAINING amount
+		# Remember the old coupon code for the message
+		old_code = coupon_doc.coupon_code
+		
+		# Add a note about the split
+		if coupon_doc.description:
+			coupon_doc.description += f"\n\n{_('Amount adjusted on')} {frappe.utils.today()} : {frappe.utils.fmt_money(gift_card_amount, currency=sales_order.currency)} → {frappe.utils.fmt_money(excess_amount, currency=sales_order.currency)}. {_('Amount used')} ({frappe.utils.fmt_money(used_amount, currency=sales_order.currency)}) {_('transferred to new card')} {new_code} {_('for order')} {sales_order.name}."
+		else:
+			coupon_doc.description = f"{_('Amount adjusted on')} {frappe.utils.today()} : {frappe.utils.fmt_money(gift_card_amount, currency=sales_order.currency)} → {frappe.utils.fmt_money(excess_amount, currency=sales_order.currency)}. {_('Amount used')} ({frappe.utils.fmt_money(used_amount, currency=sales_order.currency)}) {_('transferred to new card')} {new_code} {_('for order')} {sales_order.name}."
+		
+		# Update gift card amount to REMAINING amount (not used amount)
+		coupon_doc.gift_card_amount = excess_amount
+		
+		# Original card is NOT marked as used since it still has value
+		coupon_doc.used = 0
+		
+		# Save the original gift card
+		coupon_doc.save(ignore_permissions=True)
+		
+		# We need to update the sales_order to use the NEW gift card instead of the original
+		# But we can't modify coupon_code after submission, so we'll use a custom field
+		# or add a comment to track this information
+		try:
+			# Try to update a custom field if it exists
+			if hasattr(sales_order, "gift_card_used"):
+				sales_order.gift_card_used = new_code
+				sales_order.db_update()
+			elif frappe.get_meta("Sales Order").has_field("gift_card_used"):
+				frappe.db.set_value("Sales Order", sales_order.name, "gift_card_used", new_code)
+		except Exception as e:
+			frappe.log_error(f"Error updating Sales Order with new gift card: {str(e)}", "Gift Card Split")
+		
+		# Add info to the sales order's comment to record the transaction
+		frappe.get_doc({
+			"doctype": "Comment",
+			"comment_type": "Info",
+			"reference_doctype": sales_order.doctype,
+			"reference_name": sales_order.name,
+			"content": _("Gift card {0} split: amount utilisé {1} transféré à une nouvelle carte cadeau {2}. Montant restant sur la carte originale: {3}.").format(
+				old_code,
+				frappe.utils.fmt_money(used_amount, currency=sales_order.currency),
+				new_code,
+				frappe.utils.fmt_money(excess_amount, currency=sales_order.currency)
+			)
+		}).insert(ignore_permissions=True)
+		
+		# Show a message to the user about the split
+		frappe.msgprint(
+			_("Carte cadeau {0} valeur ({1}) excède le total de la commande ({2}). Une nouvelle carte cadeau ({3}) a été créée pour le montant utilisé. Le montant restant ({4}) est disponible sur la carte originale.").format(
+				old_code,
+				frappe.utils.fmt_money(gift_card_amount, currency=sales_order.currency),
+				frappe.utils.fmt_money(used_amount, currency=sales_order.currency),
+				new_code,
+				frappe.utils.fmt_money(excess_amount, currency=sales_order.currency)
+			),
+			title=_("Carte Cadeau Divisée")
+		)
+		
+	except Exception as e:
+		frappe.log_error(f"Gift Card Split Error: {str(e)}", _(
+			"Error while creating new gift card during split. Original: {0}, Amount: {1}").format(
+			coupon_name, gift_card_amount
+		))
 
 
 @frappe.whitelist()
@@ -859,28 +1348,48 @@ def set_taxes(quotation, cart_settings):
 	quotation.append_taxes_from_item_tax_template()
 	
 def apply_loyalty_points_tax(quotation):
-	"""Add tax line for loyalty points if necessary"""
-	if quotation.loyalty_points and quotation.loyalty_amount:
-		# Check if loyalty points tax line exists
-		has_loyalty_tax = False
-		for tax in quotation.taxes:
-			if tax.is_loyalty_points_reduction:
-				has_loyalty_tax = True
-				break
-		
-		# If tax line does not exist, add it manually
-		if not has_loyalty_tax:
-			loyalty_program = frappe.db.get_value("Customer", quotation.party_name, "loyalty_program")
-			if loyalty_program:
-				loyalty_program_doc = frappe.get_doc("Loyalty Program", loyalty_program)
-				quotation.append("taxes", {
-					"charge_type": "Actual",
-					"description": "Loyalty program",
-					"account_head": loyalty_program_doc.expense_account,
-					"cost_center": loyalty_program_doc.cost_center,
-					"tax_amount": -quotation.loyalty_amount,
-					"is_loyalty_points_reduction": 1
-				})
+    """Add tax line for loyalty points if necessary"""
+    if quotation.loyalty_points and quotation.loyalty_amount:
+        # Check if loyalty points tax line exists
+        has_loyalty_tax = False
+        loyalty_tax_idx = None
+        
+        for i, tax in enumerate(quotation.taxes):
+            if tax.is_loyalty_points_reduction:
+                has_loyalty_tax = True
+                tax.tax_amount = -quotation.loyalty_amount
+                loyalty_tax_idx = i
+                break
+        
+        # If tax line does not exist, add it manually at the end
+        if not has_loyalty_tax:
+            loyalty_program = frappe.db.get_value("Customer", quotation.party_name, "loyalty_program")
+            if loyalty_program:
+                loyalty_program_doc = frappe.get_doc("Loyalty Program", loyalty_program)
+                
+                # Calculate the correct idx value (should be the next available index)
+                max_idx = 0
+                for tax in quotation.taxes:
+                    if tax.idx > max_idx:
+                        max_idx = tax.idx
+                
+                next_idx = max_idx + 1
+                
+                # Add the loyalty tax with the correct idx value
+                quotation.append("taxes", {
+                    "idx": next_idx,
+                    "charge_type": "Actual",
+                    "description": "Loyalty program",
+                    "account_head": loyalty_program_doc.expense_account,
+                    "cost_center": loyalty_program_doc.cost_center,
+                    "tax_amount": -quotation.loyalty_amount,
+                    "is_loyalty_points_reduction": 1
+                })
+        
+        # Ensure sequential idx values after modifications
+        quotation.taxes.sort(key=lambda x: x.idx)
+        for i, tax in enumerate(quotation.taxes):
+            tax.idx = i + 1
 				
 def get_party(user=None):
 	"""Return the customer (Customer) for the current user"""
@@ -1416,51 +1925,142 @@ def update_contact_info(first_name, last_name, email=None, phone=None, company_n
 
 @frappe.whitelist(allow_guest=True)
 def apply_coupon_code(applied_code, applied_referral_sales_partner):
-	quotation = True
+    quotation = True
 
-	if not applied_code:
-		frappe.throw(_("Please enter a coupon code"))
+    if not applied_code:
+        frappe.throw(_("Please enter a coupon code"))
 
-	coupon_list = frappe.get_all("Coupon Code", filters={"coupon_code": applied_code})
-	if not coupon_list:
-		frappe.throw(_("Please enter a valid coupon code"))
+    coupon_list = frappe.get_all("Coupon Code", filters={"coupon_code": applied_code})
+    if not coupon_list:
+        frappe.throw(_("Please enter a valid coupon code"))
 
-	coupon_name = coupon_list[0].name
+    coupon_name = coupon_list[0].name
+    
+    # Get the coupon document to check usage limits
+    coupon_doc = frappe.get_doc("Coupon Code", coupon_name)
+    
+    # Check coupon validity based on type
+    if coupon_doc.coupon_type == "Promotional":
+        # For promotional coupons, check maximum usage limit
+        if coupon_doc.maximum_use and coupon_doc.used >= coupon_doc.maximum_use:
+            frappe.throw(_("This coupon code has reached its maximum usage limit"))
+    elif coupon_doc.coupon_type == "Gift Card":
+        # For gift cards, we also need to check maximum usage limit
+        # Gift cards should only be used up to their maximum_use value
+        if coupon_doc.maximum_use and coupon_doc.used >= coupon_doc.maximum_use:
+            frappe.throw(_("This gift card has already been used and cannot be applied again"))
+    
+    # Check date validity
+    from datetime import datetime
+    from frappe.utils import getdate
+    today = datetime.now().date()
+    
+    if coupon_doc.valid_from and getdate(coupon_doc.valid_from) > today:
+        frappe.throw(_("This coupon code is not yet valid"))
+        
+    if coupon_doc.valid_upto and getdate(coupon_doc.valid_upto) < today:
+        frappe.throw(_("This coupon code has expired"))
 
-	from erpnext.accounts.doctype.pricing_rule.utils import validate_coupon_code
+    # Import validate_coupon_code but we've already done our custom validations
+    from erpnext.accounts.doctype.pricing_rule.utils import validate_coupon_code
+    validate_coupon_code(coupon_name)
+    quotation = _get_cart_quotation()
+    
+    # Check if this is a gift card
+    is_gift_card = coupon_doc.coupon_type == "Gift Card" and hasattr(coupon_doc, "gift_card_amount")
+    
+    # Store coupon information in custom fields but NOT in the coupon_code field
+    # This avoids standard processing of the coupon
+    quotation.temp_coupon_code = coupon_name
+    
+    # For gift cards, we need to store the original amount for later processing
+    if is_gift_card:
+        gift_card_amount = flt(coupon_doc.gift_card_amount)
+        
+        # Set the gift card coupon reference and amount
+        quotation.gift_card_coupon = coupon_name
+        quotation.gift_card_original_amount = gift_card_amount
+        
+        # Calculate the order total before any discount
+        order_total = flt(quotation.grand_total) if quotation.grand_total else flt(quotation.rounded_total)
+        
+        # If gift card amount exceeds total, limit the discount
+        if gift_card_amount > order_total and order_total > 0:
+            # Calculate the limited discount amount (just enough to make total = 0)
+            max_discount = order_total
+            
+            # Flag for gift card split during order placement
+            quotation.gift_card_to_split = 1
+        else:
+            # Use the full amount
+            max_discount = gift_card_amount
+            quotation.gift_card_to_split = 0
+            
+        # Set the discount amount (will be automatically applied)
+        quotation.apply_discount_on = "Grand Total"
+        quotation.discount_amount = max_discount
+        if hasattr(quotation, "base_discount_amount"):
+            quotation.base_discount_amount = max_discount
+        
+        # Add a comment to inform the user if there's excess
+        if gift_card_amount > order_total and order_total > 0:
+            frappe.get_doc({
+                "doctype": "Comment",
+                "comment_type": "Info",
+                "reference_doctype": "Quotation",
+                "reference_name": quotation.name,
+                "content": _("Gift card amount ({0}) exceeds order total ({1}). The excess amount ({2}) will be converted to a new gift card upon order submission.").format(
+                    frappe.format(gift_card_amount, dict(fieldtype="Currency")),
+                    frappe.format(order_total, dict(fieldtype="Currency")),
+                    frappe.format(gift_card_amount - order_total, dict(fieldtype="Currency"))
+                )
+            }).insert(ignore_permissions=True)
+    else:
+        # For regular coupons, we need to calculate and apply the discount ourselves
+        # so that we can control exactly how it's applied
+        quotation.coupon_code = coupon_name
+        
+    # Save without setting coupon_code
+    quotation.flags.ignore_permissions = True
+    quotation.save()
+    
+    # For regular coupons (not gift cards), check that discount does not exceed total amount
+    if quotation.discount_amount > quotation.rounded_total and not is_gift_card:
+        # Remove if discount is too high and it's not a gift card
+        quotation.temp_coupon_code = ""
+        quotation.discount_amount = 0
+        quotation.flags.ignore_permissions = True
+        quotation.save()
+        frappe.throw(_("Discount value cannot exceed total amount"))
 
-	validate_coupon_code(coupon_name)
-	quotation = _get_cart_quotation()
-	
-	# Save coupon and recalculate totals
-	quotation.coupon_code = coupon_name
-	quotation.flags.ignore_permissions = True
-	quotation.save()
-	
-	# Check that discount does not exceed total amount
-	if quotation.discount_amount > quotation.rounded_total:
-		# Remove coupon if discount is too high
-		quotation.coupon_code = ""
-		quotation.flags.ignore_permissions = True
-		quotation.save()
-		frappe.throw(_("Discount value cannot exceed total amount"))
+    if applied_referral_sales_partner:
+        sales_partner_list = frappe.get_all(
+            "Sales Partner", filters={"referral_code": applied_referral_sales_partner}
+        )
+        if sales_partner_list:
+            sales_partner_name = sales_partner_list[0].name
+            quotation.referral_sales_partner = sales_partner_name
+            quotation.flags.ignore_permissions = True
+            quotation.save()
 
-	if applied_referral_sales_partner:
-		sales_partner_list = frappe.get_all(
-			"Sales Partner", filters={"referral_code": applied_referral_sales_partner}
-		)
-		if sales_partner_list:
-			sales_partner_name = sales_partner_list[0].name
-			quotation.referral_sales_partner = sales_partner_name
-			quotation.flags.ignore_permissions = True
-			quotation.save()
-
-	return quotation
+    return quotation
 
 @frappe.whitelist(allow_guest=True)
 def remove_coupon_code():
 	quotation = _get_cart_quotation()
+	# Clear our temporary coupon code
+	quotation.temp_coupon_code = ""
+	# Clear coupon code
 	quotation.coupon_code = ""
+	# Clear any gift card information
+	if hasattr(quotation, "gift_card_coupon"):
+		quotation.gift_card_coupon = ""
+	if hasattr(quotation, "gift_card_original_amount"):
+		quotation.gift_card_original_amount = 0
+	# Clear discount
+	quotation.discount_amount = 0
+	if hasattr(quotation, "base_discount_amount"):
+		quotation.base_discount_amount = 0
 	quotation.flags.ignore_permissions = True
 	quotation.save()
 	return True
@@ -1478,42 +2078,53 @@ def get_coupon_html():
 
 @frappe.whitelist(allow_guest=True)
 def get_loyalty_points_html():
-	quotation = _get_cart_quotation()
-	cart_settings = frappe.get_cached_doc("Webshop Settings")
-	
-	# Check if user is logged in and get loyalty points
-	customer_info = get_party()
-	customer = customer_info.name if customer_info else None
-	
-	# Get available loyalty points
-	loyalty_points_details = {}
-	if customer:
-		try:
-			# Get customer's loyalty program first
-			loyalty_program = frappe.db.get_value("Customer", customer, "loyalty_program")
-			if loyalty_program:
-				loyalty_points_details = get_loyalty_program_details_with_points(
-					customer,
-					loyalty_program,
-					company=quotation.company,
-					silent=True
-				)
-		except Exception as e:
-			frappe.log_error(f"Error getting loyalty points", e)
-			loyalty_points_details = frappe._dict({"loyalty_points": 0})
-	else:
-		loyalty_points_details = frappe._dict({"loyalty_points": 0})
+    quotation = _get_cart_quotation()
+    cart_settings = frappe.get_cached_doc("Webshop Settings")
+    
+    # Check if user is logged in and get loyalty points
+    customer_info = get_party()
+    customer = customer_info.name if customer_info else None
+    
+    # Get available loyalty points
+    loyalty_points_details = {}
+    if customer:
+        try:
+            # Get customer's loyalty program first
+            loyalty_program = frappe.db.get_value("Customer", customer, "loyalty_program")
+            if loyalty_program:
+                loyalty_points_details = get_loyalty_program_details_with_points(
+                    customer,
+                    loyalty_program,
+                    company=quotation.company,
+                    silent=True
+                )
+        except Exception as e:
+            frappe.log_error(f"Error getting loyalty points", e)
+            loyalty_points_details = frappe._dict({"loyalty_points": 0})
+    else:
+        loyalty_points_details = frappe._dict({"loyalty_points": 0})
 
-	
-	context = {
-		"doc": quotation,
-		"cart_settings": cart_settings,
-		"available_loyalty_points": loyalty_points_details.get("loyalty_points", 0),
-		"conversion_factor": loyalty_points_details.get("conversion_factor", 0),
-		"loyalty_points_value": frappe.utils.fmt_money(loyalty_points_details.get("loyalty_points", 0) * loyalty_points_details.get("conversion_factor", 0), currency=quotation.currency),
-	}
-	
-	return frappe.render_template("templates/includes/loyalty_points_form.html", context)
+    # Round loyalty points to nearest 10
+    import math
+    raw_loyalty_points = float(loyalty_points_details.get("loyalty_points", 0))
+    rounded_loyalty_points = math.floor(raw_loyalty_points / 10) * 10
+    
+    # Update the loyalty_points_details with rounded points
+    loyalty_points_details["loyalty_points"] = rounded_loyalty_points
+    
+    # Calculate equivalent value based on rounded points
+    conversion_factor = loyalty_points_details.get("conversion_factor", 0)
+    equivalent_value = rounded_loyalty_points * conversion_factor
+    
+    context = {
+        "doc": quotation,
+        "cart_settings": cart_settings,
+        "available_loyalty_points": rounded_loyalty_points,
+        "conversion_factor": conversion_factor,
+        "loyalty_points_value": frappe.utils.fmt_money(equivalent_value, currency=quotation.currency),
+    }
+    
+    return frappe.render_template("templates/includes/loyalty_points_form.html", context)
 
 @frappe.whitelist(allow_guest=True)
 def apply_loyalty_points(points):
@@ -1568,16 +2179,11 @@ def apply_loyalty_points(points):
 			break
 	
 	if existing_loyalty_charge:
+		frappe.log_error("Existing loyalty charge found")
 		existing_loyalty_charge.tax_amount = -loyalty_amount
 	else:
-		quotation.append("taxes", {
-			"charge_type": "Actual",
-			"description": "Loyalty program",
-			"account_head": loyalty_program_doc.expense_account,
-			"cost_center": loyalty_program_doc.cost_center,
-			"tax_amount": -loyalty_amount,
-			"is_loyalty_points_reduction": 1
-		})
+		frappe.log_error("No existing loyalty charge found")
+		apply_loyalty_points_tax(quotation)
 	
 	# Create loyalty point entry
 	loyalty_point_entry = frappe.get_doc({
@@ -1714,6 +2320,8 @@ def create_gift_cards_from_invoice(doc, method=None):
 			pricing_rule_filters = {
 				"apply_on": "Transaction",
 				"price_or_product_discount": "Price",
+				"is_cumulative": 1,
+				"valid_upto": "2999-12-31",
 				"selling": 1,
 				"buying": 0,
 				"coupon_code_based": 1,
@@ -1730,7 +2338,7 @@ def create_gift_cards_from_invoice(doc, method=None):
 				try:
 					pricing_rule = frappe.get_doc({
 						"doctype": "Pricing Rule",
-						"title": f"Gift card {item.rate:.2f}",
+						"title": f"{_('Gift Card')} {item.rate:.2f}",
 						**pricing_rule_filters
 					})
 
@@ -1841,3 +2449,190 @@ def check_gift_cards_from_payment(doc, method=None):
 	except Exception as e:
 		frappe.log_error("Gift Card - Payment Check Error", f"Error checking payment for gift cards: {str(e)}")
 		raise
+
+
+def process_gift_card_split(sales_order, coupon_data):
+	"""
+	Process the splitting of a gift card when its amount exceeds the order total.
+	
+	Args:
+		sales_order: Sales Order document
+		coupon_data: Dictionary containing gift card information
+		
+	Returns:
+		dict: Status and information about the split gift card
+	"""
+	try:
+		# Check if it's a gift card that needs splitting
+		if not coupon_data or not coupon_data.get("is_gift_card") or not coupon_data.get("gift_card_coupon"):
+			return {"status": "error", "message": "Invalid gift card data"}
+			
+		gift_card_coupon = coupon_data.get("gift_card_coupon")
+		used_amount = flt(coupon_data.get("used_amount"))
+		excess_amount = flt(coupon_data.get("excess_amount"))
+		
+		# Verify amounts are valid
+		if used_amount <= 0 or excess_amount <= 0:
+			return {"status": "error", "message": "Invalid gift card amounts"}
+			
+		# Get the original gift card
+		original_card = frappe.get_doc("Coupon Code", gift_card_coupon)
+		if not original_card or original_card.coupon_type != "Gift Card":
+			return {"status": "error", "message": "Gift card not found or invalid type"}
+			
+		# Generate a unique code for the new gift card
+		import string
+		import random
+		
+		def generate_unique_gift_card_code():
+			"""Generate a unique code for a gift card"""
+			def generate_segment():
+				"""Generate a segment of 4 alphanumeric characters"""
+				chars = string.ascii_uppercase + string.digits
+				return ''.join(random.choice(chars) for _ in range(4))
+			
+			# Generate initial code
+			code = f"{generate_segment()}-{generate_segment()}-{generate_segment()}"
+			
+			# Check if the code already exists
+			while frappe.db.exists("Coupon Code", {"coupon_code": code}):
+				code = f"{generate_segment()}-{generate_segment()}-{generate_segment()}"
+			
+			return code
+			
+		new_code = generate_unique_gift_card_code()
+		
+		# Get validity parameters from the original card
+		valid_from = original_card.valid_from
+		valid_upto = original_card.valid_upto
+		
+		# Create pricing rule for the new excess amount
+		pricing_rule_filters = {
+			"apply_on": "Transaction",
+			"price_or_product_discount": "Price",
+			"is_cumulative": 1,
+			"valid_upto": "2999-12-31",
+			"selling": 1,
+			"buying": 0,
+			"coupon_code_based": 1,
+			"disable": 0,
+			"margin_type": "Amount",
+			"rate_or_discount": "Discount Amount",
+			"discount_amount": excess_amount
+		}
+		
+		pricing_rule = frappe.db.exists("Pricing Rule", pricing_rule_filters)
+		
+		if not pricing_rule:
+			try:
+				pricing_rule = frappe.get_doc({
+					"doctype": "Pricing Rule",
+					"title": f"{_('Gift Card')} {excess_amount:.2f}",
+					**pricing_rule_filters
+				})
+				
+				pricing_rule.insert(ignore_permissions=True)
+				pricing_rule_name = pricing_rule.name
+			except Exception as e:
+				frappe.log_error("Gift Card - Error Creating Pricing Rule", f"Error creating Pricing Rule: {str(e)}")
+				return {"status": "error", "message": "Error creating pricing rule"}
+		else:
+			pricing_rule_name = pricing_rule
+		
+		# Create the new gift card with the excess amount
+		new_card_name = _("Gift Card {0} - {1} - {2}").format(
+			frappe.utils.fmt_money(excess_amount, currency=sales_order.currency),
+			original_card.customer,
+			new_code
+		)
+		
+		# Get the customer info
+		customer = frappe.get_doc("Customer", original_card.customer)
+		user_email = None
+		if hasattr(customer, "portal_users") and customer.portal_users:
+			user = customer.portal_users[0].user
+			user_email = user
+		
+		# Create the new gift card
+		new_gift_card = frappe.get_doc({
+			"doctype": "Coupon Code",
+			"coupon_name": new_card_name,
+			"coupon_type": "Gift Card",
+			"coupon_code": new_code,
+			"pricing_rule": pricing_rule_name,
+			"valid_from": valid_from,
+			"valid_upto": valid_upto,
+			"maximum_use": 9999,
+			"used": 0,
+			"customer": original_card.customer,
+			"gift_card_amount": excess_amount,
+			"description": _("Created from gift card: {0} (remaining amount after order {1})").format(
+				original_card.name, sales_order.name
+			)
+		})
+		
+		if user_email:
+			new_gift_card.owner = user_email
+		
+		new_gift_card.insert(ignore_permissions=True)
+		new_gift_card.save(ignore_permissions=True)
+		
+		# Update the original gift card
+		original_card.gift_card_amount = used_amount  # Update to the used amount
+		original_card.used = 1  # Mark as used
+		
+		# Add a note to the description
+		original_amount = used_amount + excess_amount
+		if original_card.description:
+			original_card.description += f"\n\n{_('Amount adjusted on')} {today()} for order {sales_order.name}: {fmt_money(original_amount, currency=sales_order.currency)} → {fmt_money(used_amount, currency=sales_order.currency)}. {_('Remaining amount')} ({fmt_money(excess_amount, currency=sales_order.currency)}) {_('transferred to card')} {new_code}."
+		else:
+			original_card.description = f"{_('Amount adjusted on')} {today()} for order {sales_order.name}: {fmt_money(original_amount, currency=sales_order.currency)} → {fmt_money(used_amount, currency=sales_order.currency)}. {_('Remaining amount')} ({fmt_money(excess_amount, currency=sales_order.currency)}) {_('transferred to card')} {new_code}."
+		
+		original_card.save(ignore_permissions=True)
+		
+		# Send notification if configured
+		webshop_settings = frappe.get_cached_doc("Webshop Settings")
+		if webshop_settings.gift_card_notification and user_email:
+			try:
+				notification = frappe.get_doc("Notification", webshop_settings.gift_card_notification)
+				if notification:
+					# Send notification
+					from frappe.core.doctype.communication.email import _make
+					_make(
+						doctype=new_gift_card.doctype,
+						name=new_gift_card.name,
+						subject=notification.subject,
+						content=frappe.render_template(notification.message, {"doc": new_gift_card}),
+						recipients=[user_email],
+						send_email=True,
+						communication_medium="Email",
+						sender=notification.sender_email,
+						sender_full_name=notification.sender
+					)
+			except Exception as e:
+				frappe.log_error("Gift Card - Notification Error", f"Error sending notification: {str(e)}")
+		
+		# Ensure the changes are saved
+		frappe.db.commit()
+		
+		# Display a message to the user
+		frappe.msgprint(
+			_("A new gift card has been created with the remaining amount of {0}. Card code: {1}").format(
+				frappe.utils.fmt_money(excess_amount, currency=sales_order.currency),
+				new_code
+			),
+			title=_("Gift Card Split")
+		)
+		
+		return {
+			"status": "success",
+			"message": _("Gift card split successfully"),
+			"new_gift_card": new_code,
+			"original_gift_card": original_card.name,
+			"used_amount": used_amount,
+			"excess_amount": excess_amount
+		}
+		
+	except Exception as e:
+		frappe.log_error("Gift Card - Error Splitting", f"Error splitting gift card: {str(e)}")
+		return {"status": "error", "message": f"Error: {str(e)}"}

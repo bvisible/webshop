@@ -186,21 +186,37 @@ def get_context(context):
 		from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
 			get_loyalty_program_details_with_points,
 		)
+		import math
 
 		loyalty_program_details = get_loyalty_program_details_with_points(
 			context.doc.customer_name, customer_loyalty_program
 		)
 
+		# Get the raw points
 		available_loyalty_points = loyalty_program_details.get("loyalty_points")
 		conversion_factor = loyalty_program_details.get("conversion_factor")
-
-		context = {
-			"loyalty_points": loyalty_program_details.get("loyalty_points"),
-			"available_loyalty_points": available_loyalty_points,
+		
+		# Round down loyalty points to the nearest 10
+		rounded_loyalty_points = math.floor(available_loyalty_points / 10) * 10
+		
+		# Calculate the equivalent value based on rounded points
+		equivalent_value = rounded_loyalty_points * conversion_factor
+		
+		# Format the money value
+		formatted_value = frappe.utils.fmt_money(equivalent_value, currency=quotation.currency)
+		
+		# Update the loyalty_program_details to use the rounded points
+		loyalty_program_details["loyalty_points"] = rounded_loyalty_points
+		
+		# Update the context with properly rounded values
+		context.update({
+			"loyalty_points": rounded_loyalty_points,  # This is important - update ALL instances
+			"available_loyalty_points": rounded_loyalty_points,
 			"conversion_factor": conversion_factor,
-			"loyalty_points_value": frappe.utils.fmt_money(available_loyalty_points * conversion_factor, currency=quotation.currency)
-		}
-	
+			"loyalty_points_value": formatted_value,
+			"loyalty_program_details": loyalty_program_details  # Update with modified details
+		})
+
 	return context
 
 @frappe.whitelist()

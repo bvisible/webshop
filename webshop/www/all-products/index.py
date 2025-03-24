@@ -21,7 +21,6 @@ def get_context(context):
 		
 	# Add price filters if enabled
 	enable_price_filter = frappe.db.get_single_value("Webshop Settings", "enable_price_filter")
-	frappe.log_error("Price Filter Debug", f"Enable Price Filter: {enable_price_filter}")
 	
 	if enable_price_filter:
 		price_filters = filter_engine.get_price_filters()

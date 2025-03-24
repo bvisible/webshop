@@ -3,7 +3,6 @@ from frappe import _
 import json
 from webshop.webshop.shopping_cart.cart import place_order, _get_cart_quotation, is_gift_card_item
 from erpnext.accounts.doctype.payment_request.payment_request import make_payment_entry
-from webshop.webshop.utils.utils import get_gateway_configuration
 
 class PaymentHandler:
     def __init__(self):
@@ -13,8 +12,8 @@ class PaymentHandler:
         """Create a payment request for a quotation
         
         Args:
-            quotation_id (str, optional): ID de la quotation. Si non fourni, utilise le panier.
-            gateway_settings (str, optional): Nom du Gateway Settings à utiliser. Si fourni, bypass la méthode de paiement par défaut.
+            quotation_id (str, optional): ID of the quotation. If not provided, uses the cart.
+            gateway_settings (str, optional): Name of the Gateway Settings to use. If provided, bypasses the default payment method.
         """
         try:
             # if not quotation, get cart quotation
@@ -90,31 +89,10 @@ class PaymentHandler:
                 "payment_gateway": gateway_account.payment_gateway
             }
             
-            # Get gateway parameters from configuration
-            gateway_settings = {}
-            gateway_type = gateway_account.payment_gateway.split('-')[0].split()[0].lower().strip()
-            config = get_gateway_configuration(gateway_type, gateway_account.name)
-            required_settings = config.get("required_settings", [])
-            
-            # Get required parameters from gateway account
-            for setting in required_settings:
-                if hasattr(gateway_account, setting):
-                    gateway_settings[setting] = getattr(gateway_account, setting)
-            
             # Prepare data for template
             context.update({
                 "payment_method": payment_method,
-                "gateway_settings": gateway_settings,
                 "callback_url": frappe.utils.get_url("/api/payment/callback"),
-            })
-            
-            # Get context IDs from JSON configuration
-            context_ids = config.get("context_ids", {})
-            context.update({
-                "payment_form_id": context_ids.get("payment_form_id", "payment-form"),
-                "card_element_id": context_ids.get("card_element_id", "card-element"),
-                "card_errors_id": context_ids.get("card_errors_id", "card-errors"),
-                "submit_id": context_ids.get("submit_id", "submit")
             })
             
             # Create payment request with transaction date

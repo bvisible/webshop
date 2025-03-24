@@ -50,7 +50,7 @@ frappe.ready(function() {
             this.checkGiftCardOnly();
             this.showStep('step-address');
             this.loadExistingAddress();
-            this.setupLeavePageConfirmation();
+            //this.setupLeavePageConfirmation();
 
             this.initializeAddressesAndOrderSummary();
             this.initializeCouponHandling();
@@ -309,6 +309,7 @@ frappe.ready(function() {
                         });
                         return;
                     }
+
                     this.showStep('step-payment');
                 }
             });
@@ -1051,6 +1052,56 @@ frappe.ready(function() {
             this.isUpdatingShipping = true;  
             this.currentShippingMethod = shipping_method;  
 
+            // Check if a coupon or loyalty points are applied
+            frappe.call({
+                method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
+                callback: (r) => {
+                    if (r.message && r.message.doc) {
+                        const doc = r.message.doc;
+                        // Check if a coupon is applied
+                        if (doc.coupon_code || doc.gift_card_coupon) {
+                            // Remove the coupon before applying the shipping rule
+                            frappe.call({
+                                method: 'webshop.webshop.shopping_cart.cart.remove_coupon_code',
+                                callback: (r) => {
+                                    if (r.message) {
+                                        frappe.show_alert({
+                                            message: __('The coupon has been removed to apply shipping rule'),
+                                            indicator: 'blue'
+                                        });
+                                        // Apply the shipping rule
+                                        this.applyShippingRule(shipping_method, notReload);
+                                    }
+                                }
+                            });
+                        } else if (doc.loyalty_points > 0) {
+                            // Remove loyalty points before applying the shipping rule
+                            frappe.call({
+                                method: 'webshop.webshop.shopping_cart.cart.remove_loyalty_points',
+                                callback: (r) => {
+                                    if (r.message) {
+                                        frappe.show_alert({
+                                            message: __('The loyalty points have been removed to apply shipping rule'),
+                                            indicator: 'blue'
+                                        });
+                                        // Apply the shipping rule
+                                        this.applyShippingRule(shipping_method, notReload);
+                                    }
+                                }
+                            });
+                        } else {
+                            // No coupon or loyalty points, apply the shipping rule directly
+                            this.applyShippingRule(shipping_method, notReload);
+                        }
+                    } else {
+                        // No cart data, apply the shipping rule directly
+                        this.applyShippingRule(shipping_method, notReload);
+                    }
+                }
+            });
+        }
+        
+        applyShippingRule(shipping_method, notReload = false) {
             frappe.call({
                 method: 'webshop.webshop.shopping_cart.cart.apply_shipping_rule',
                 args: {
@@ -1118,9 +1169,15 @@ frappe.ready(function() {
                 for (const tax of doc.taxes) {
                     if (tax.tax_amount > 0) {
                         const formattedTaxAmount = await this.format_currency_value(tax.tax_amount, doc.currency);
+                        // Format tax description to show only text before % character if % exists
+                        let taxDescription = tax.description;
+                        if (taxDescription.includes('%')) {
+                            taxDescription = taxDescription.split('%')[0] + '%';
+                        }
+                        
                         summaryHtml += `
                             <tr>
-                                <td class="bill-label">${tax.description}</td>
+                                <td class="bill-label">${taxDescription}</td>
                                 <td class="bill-content text-right">${formattedTaxAmount}</td>
                             </tr>`;
                     }
@@ -1128,15 +1185,15 @@ frappe.ready(function() {
             }
 
             // 3. Coupon
-            if (doc.coupon_code) {
+            if (doc.coupon_code || doc.gift_card_coupon) {
                 const formattedDiscount = await this.format_currency_value(doc.discount_amount, doc.currency);
                 summaryHtml += `
                     <tr class="coupon-row">
                         <td class="bill-label text-success">
-                            ${__("Coupon Discount")} (${doc.coupon_code})
+                            ${__("Coupon Discount")} (${doc.coupon_code || doc.gift_card_coupon})
                         </td>
                         <td class="bill-content text-right text-success">
-                            - ${formattedDiscount}
+                            -${formattedDiscount}
                         </td>
                     </tr>`;
             }
@@ -1149,7 +1206,7 @@ frappe.ready(function() {
                             ${__("Loyalty Points")} (${doc.loyalty_points} ${__("points")})
                         </td>
                         <td class="bill-content text-right text-success">
-                            - ${format_currency(doc.loyalty_amount, doc.currency)}
+                            -${format_currency(doc.loyalty_amount, doc.currency)}
                         </td>
                     </tr>`;
             }
@@ -1263,7 +1320,7 @@ frappe.ready(function() {
                 $('.bt-coupon').prop('disabled', false);
             }
 
-            if (doc.coupon_code) {
+            if (doc.coupon_code || doc.gift_card_coupon) {
                 $('#loyalty-point-to-redeem').prop('disabled', true)
                     .attr('title', __('Please remove coupon code first'));
                 $('.bt-loyalty-point').prop('disabled', true);
@@ -1314,6 +1371,57 @@ frappe.ready(function() {
 
         updateItemQuantity(item_code, qty) {
             this.freezeElements(['order-summary']);
+            
+            // Check if a coupon or loyalty points are applied
+            frappe.call({
+                method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
+                callback: (r) => {
+                    if (r.message && r.message.doc) {
+                        const doc = r.message.doc;
+                        // Check if a coupon or loyalty points are applied
+                        if (doc.coupon_code || doc.gift_card_coupon) {
+                            // Remove the coupon before updating the quantity
+                            frappe.call({
+                                method: 'webshop.webshop.shopping_cart.cart.remove_coupon_code',
+                                callback: (r) => {
+                                    if (r.message) {
+                                        frappe.show_alert({
+                                            message: __('The coupon has been removed to update item quantity'),
+                                            indicator: 'blue'
+                                        });
+                                        // Update the quantity
+                                        this.performItemQuantityUpdate(item_code, qty);
+                                    }
+                                }
+                            });
+                        } else if (doc.loyalty_points) {
+                            // Remove loyalty points before updating the quantity
+                            frappe.call({
+                                method: 'webshop.webshop.shopping_cart.cart.remove_loyalty_points',
+                                callback: (r) => {
+                                    if (r.message) {
+                                        frappe.show_alert({
+                                            message: __('The loyalty points have been removed to update item quantity'),
+                                            indicator: 'blue'
+                                        });
+                                        // Update the quantity
+                                        this.performItemQuantityUpdate(item_code, qty);
+                                    }
+                                }
+                            });
+                        } else {
+                            // No coupon or loyalty points, update quantity directly
+                            this.performItemQuantityUpdate(item_code, qty);
+                        }
+                    } else {
+                        // No cart data, update quantity directly
+                        this.performItemQuantityUpdate(item_code, qty);
+                    }
+                }
+            });
+        }
+        
+        performItemQuantityUpdate(item_code, qty) {
             frappe.call({
                 method: 'webshop.webshop.shopping_cart.cart.update_cart',
                 args: {
@@ -1357,7 +1465,7 @@ frappe.ready(function() {
                         if (r.message && r.message.doc) {
                             const doc = r.message.doc;
                             // If a coupon is applied, remove it first
-                            if (doc.coupon_code) {
+                            if (doc.coupon_code || doc.gift_card_coupon) {
                                 this.freezeElements(['order-summary']);
                                 frappe.call({
                                     method: 'webshop.webshop.shopping_cart.cart.remove_coupon_code',
@@ -1559,13 +1667,13 @@ frappe.ready(function() {
                             if (rounded_total === 0) {
                                 const validationButton = `
                                     <div class="payment-method-item selected frappe-card p-5 mb-3 d-flex justify-content-between align-items-center" data-method-id="direct_validation">
-                                        <div class="form-check mb-3 w-50">
+                                        <div class="form-check mb-3" id="terms-acceptance-container">
                                             <input type="checkbox" class="form-check-input" id="terms-acceptance" required>
                                             <label class="form-check-label" for="terms-acceptance">
                                                 ${__("I agree to the")} <a href="#terms-title" class="terms-link">${result.message.doc.tc_name || __("terms and conditions")}</a>
                                             </label>
                                         </div>
-                                        <div class="d-flex justify-content-end w-50">
+                                        <div class="mt-4 d-flex justify-content-end">
                                             <button class="btn btn-primary w-100" 
                                                 id="validate_zero_amount" 
                                                 disabled

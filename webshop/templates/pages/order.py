@@ -42,15 +42,34 @@ def get_context(context):
 	customer_loyalty_program = frappe.db.get_value(
 		"Customer", context.doc.customer_name, "loyalty_program"
 	)
+	
 	if customer_loyalty_program:
 		from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
 			get_loyalty_program_details_with_points,
 		)
+		import math
 
 		loyalty_program_details = get_loyalty_program_details_with_points(
 			context.doc.customer_name, customer_loyalty_program
 		)
-		context.available_loyalty_points = int(loyalty_program_details.get("loyalty_points"))
+		
+		# Get raw loyalty points
+		raw_loyalty_points = float(loyalty_program_details.get("loyalty_points", 0))
+		
+		# Round down loyalty points to the nearest 10
+		rounded_loyalty_points = math.floor(raw_loyalty_points / 10) * 10
+		
+		# Update the loyalty program details
+		loyalty_program_details["loyalty_points"] = rounded_loyalty_points
+		
+		# Set rounded loyalty points in context
+		context.available_loyalty_points = rounded_loyalty_points
+		
+		# If you're also setting the loyalty_points_value here, calculate it based on rounded points
+		if "conversion_factor" in loyalty_program_details:
+			conversion_factor = loyalty_program_details.get("conversion_factor", 0)
+			equivalent_value = rounded_loyalty_points * conversion_factor
+			context.loyalty_points_value = frappe.utils.fmt_money(equivalent_value, currency=context.doc.currency)
 
 	# show Make Purchase Invoice button based on permission
 	context.show_make_pi_button = frappe.has_permission("Purchase Invoice", "create")

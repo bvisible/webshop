@@ -38,7 +38,7 @@ def get_cart_data():
             cart_info_fields = {}
             for field in ['currency', 'conversion_rate', 'price_list_currency', 'taxes_and_charges',
                         'total', 'base_total', 'net_total', 'base_net_total', 'total_taxes_and_charges',
-                        'discount_amount', 'coupon_code', 'grand_total', 'rounded_total']:
+                        'discount_amount', 'coupon_code', 'gift_card_coupon', 'grand_total', 'rounded_total']:
                 if hasattr(quotation, field) and getattr(quotation, field) is not None:
                     cart_info_fields[field] = getattr(quotation, field)
             
@@ -536,7 +536,7 @@ def cart_info_for_template():
                 cart_info_fields = {}
                 for field in ['currency', 'conversion_rate', 'price_list_currency', 'taxes_and_charges',
                             'total', 'base_total', 'net_total', 'base_net_total', 'total_taxes_and_charges',
-                            'discount_amount', 'coupon_code']:
+                            'discount_amount', 'coupon_code', 'gift_card_coupon']:
                     if hasattr(quotation, field) and getattr(quotation, field) is not None:
                         cart_info_fields[field] = getattr(quotation, field)
                 

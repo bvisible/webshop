@@ -16,3 +16,5 @@ webshop.patches.add_sales_invoice_link_to_coupon_code
 webshop.patches.add_from_checkout_to_payment_request
 webshop.patches.add_gift_card_amount_field
 webshop.patches.add_payment_method_field
+webshop.patches.add_gift_card_fields_to_quotation
+webshop.patches.add_coupon_code_residual_field

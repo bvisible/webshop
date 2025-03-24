@@ -244,9 +244,7 @@ class ProductQuery:
 		"""
 		if not price_condition:
 			return
-		
-		frappe.log_error("Price Filter Debug", f"Application du filtre de prix: {price_condition}")
-		
+				
 		# Get store settings
 		settings = frappe.get_cached_doc("Webshop Settings")
 		

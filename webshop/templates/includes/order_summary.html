@@ -108,7 +108,11 @@
               {% if d.tax_amount and not d.is_loyalty_points_reduction %}
                 <tr>
                   <td class="bill-label">
-                    {{ d.description }}
+                    {% if "%" in d.description %}
+                      {{ d.description.split("%")[0] }}%
+                    {% else %}
+                      {{ d.description }}
+                    {% endif %}
                   </td>
                   <td class="bill-content text-right">
                     {{ d.get_formatted("tax_amount") }}
@@ -118,13 +122,13 @@
             {% endfor %}
 
             <!-- Coupon Discount -->
-            {% if doc.coupon_code %}
+            {% if doc.coupon_code or doc.gift_card_coupon %}
               <tr class="coupon-row">
                 <td class="bill-label text-success">
-                  {{ _("Coupon Discount") }} ({{ doc.coupon_code }})
+                  {{ _("Coupon Discount") }} ({{ doc.coupon_code or doc.gift_card_coupon }})
                 </td>
                 <td class="bill-content text-right text-success">
-                  - {{ frappe.utils.fmt_money(doc.discount_amount, currency=doc.currency) }}
+                  -{{ frappe.utils.fmt_money(doc.discount_amount, currency=doc.currency) }}
                 </td>
               </tr>
             {% endif %}
@@ -136,7 +140,7 @@
                   {{ _("Loyalty Points") }} ({{ doc.loyalty_points }} {{ _("points") }})
                 </td>
                 <td class="bill-content text-right text-success">
-                  - {{ frappe.utils.fmt_money(doc.loyalty_amount, currency=doc.currency) }}
+                  -{{ frappe.utils.fmt_money(doc.loyalty_amount, currency=doc.currency) }}
                 </td>
               </tr>
             {% endif %}

@@ -258,6 +258,57 @@ function handleQuantityChange(e) {
     }
   }
   
+  // Check if a coupon or loyalty points are applied before updating quantity
+  frappe.call({
+    method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
+    callback: (r) => {
+      if (r.message && r.message.doc) {
+        const doc = r.message.doc;
+        // Check if a coupon or loyalty points are applied
+        if (doc.coupon_code || doc.gift_card_coupon) {
+          // Remove the coupon before updating the quantity
+          frappe.call({
+            method: 'webshop.webshop.shopping_cart.cart.remove_coupon_code',
+            callback: (r) => {
+              if (r.message) {
+                frappe.show_alert({
+                  message: __('Le coupon a été supprimé pour mettre à jour la quantité'),
+                  indicator: 'blue'
+                });
+                // Continue with the quantity update
+                updateCartItemQuantity(itemCode, newQty, cartItem, currentQty, qtyElement, button);
+              }
+            }
+          });
+        } else if (doc.loyalty_points) {
+          // Remove loyalty points before updating the quantity
+          frappe.call({
+            method: 'webshop.webshop.shopping_cart.cart.remove_loyalty_points',
+            callback: (r) => {
+              if (r.message) {
+                frappe.show_alert({
+                  message: __('Les points de fidélité ont été supprimés pour mettre à jour la quantité'),
+                  indicator: 'blue'
+                });
+                // Continue with the quantity update
+                updateCartItemQuantity(itemCode, newQty, cartItem, currentQty, qtyElement, button);
+              }
+            }
+          });
+        } else {
+          // No coupon or loyalty points, update quantity directly
+          updateCartItemQuantity(itemCode, newQty, cartItem, currentQty, qtyElement, button);
+        }
+      } else {
+        // No cart data, update quantity directly
+        updateCartItemQuantity(itemCode, newQty, cartItem, currentQty, qtyElement, button);
+      }
+    }
+  });
+}
+
+// Helper function to update cart item quantity
+function updateCartItemQuantity(itemCode, newQty, cartItem, currentQty, qtyElement, button) {
   // Call API to update quantity
   frappe.call({
     method: 'webshop.webshop.utils.cart_helpers.update_cart',
@@ -385,6 +436,57 @@ function handleRemoveItem(e) {
     cartItem.style.overflow = 'hidden';
   }
 
+  // Check if a coupon or loyalty points are applied before removing item
+  frappe.call({
+    method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
+    callback: (r) => {
+      if (r.message && r.message.doc) {
+        const doc = r.message.doc;
+        // Check if a coupon or loyalty points are applied
+        if (doc.coupon_code || doc.gift_card_coupon) {
+          // Remove the coupon before removing the item
+          frappe.call({
+            method: 'webshop.webshop.shopping_cart.cart.remove_coupon_code',
+            callback: (r) => {
+              if (r.message) {
+                frappe.show_alert({
+                  message: __('Le coupon a été supprimé pour retirer le produit'),
+                  indicator: 'blue'
+                });
+                // Continue with the item removal
+                removeCartItem(itemCode, cartItem, button);
+              }
+            }
+          });
+        } else if (doc.loyalty_points) {
+          // Remove loyalty points before removing the item
+          frappe.call({
+            method: 'webshop.webshop.shopping_cart.cart.remove_loyalty_points',
+            callback: (r) => {
+              if (r.message) {
+                frappe.show_alert({
+                  message: __('Les points de fidélité ont été supprimés pour retirer le produit'),
+                  indicator: 'blue'
+                });
+                // Continue with the item removal
+                removeCartItem(itemCode, cartItem, button);
+              }
+            }
+          });
+        } else {
+          // No coupon or loyalty points, remove item directly
+          removeCartItem(itemCode, cartItem, button);
+        }
+      } else {
+        // No cart data, remove item directly
+        removeCartItem(itemCode, cartItem, button);
+      }
+    }
+  });
+}
+
+// Helper function to remove cart item
+function removeCartItem(itemCode, cartItem, button) {
   // Call API to remove the item (qty=0 means remove)
   frappe.call({
     method: 'webshop.webshop.utils.cart_helpers.update_cart',
@@ -505,8 +607,12 @@ function refreshCart(forceRender = false) {
           pageData.tax_info = [];
           if (quotation.taxes && quotation.taxes.length > 0) {
             quotation.taxes.forEach(tax => {
+              let taxDescription = tax.description;
+              if (taxDescription.includes('%')) {
+                taxDescription = taxDescription.split('%')[0] + '%';
+              }
               pageData.tax_info.push({
-                description: tax.description,
+                description: taxDescription,
                 tax_amount: tax.tax_amount,
                 rate: tax.rate
               });
@@ -799,6 +905,9 @@ function updateCartTotals(cartData) {
   // Method 1: Direct tax array
   if (Array.isArray(cartData.taxes)) {
     extractedTaxes = cartData.taxes.map(tax => {
+      if (tax.description.includes('%')) {
+        tax.description = tax.description.split('%')[0] + '%';
+      }
       return {
         description: tax.description || tax.account_head || tax.title || 'Taxe',
         amount: tax.tax_amount || tax.amount || 0
@@ -808,6 +917,9 @@ function updateCartTotals(cartData) {
   // Method 2: Taxes in the document
   else if (cartData.doc && Array.isArray(cartData.doc.taxes)) {
     extractedTaxes = cartData.doc.taxes.map(tax => {
+      if (tax.description.includes('%')) {
+        tax.description = tax.description.split('%')[0] + '%';
+      }
       return {
         description: tax.description || tax.account_head || tax.title || 'Taxe',
         amount: tax.tax_amount || tax.amount || 0
@@ -964,7 +1076,11 @@ function renderTaxInfo() {
     
     if (typeof tax === 'object') {
       // Standard object structure
-      taxName = tax.description || tax.account_head || tax.title || 'Taxe';
+      if (tax.description.includes('%')) {
+        taxName = tax.description.split('%')[0] + '%';
+      } else {
+        taxName = tax.description || tax.account_head || tax.title || 'Taxe';
+      }
       taxAmount = tax.tax_amount || tax.amount || 0;
       
       // Check if the amount is a string (can happen with certain responses)
