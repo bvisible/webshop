@@ -35,6 +35,7 @@
   "column_break_21",
   "default_customer_group",
   "quotation_series",
+  "allow_non_website_items_in_cart_quotation",
   "checkout_settings_section",
   "enable_checkout",
   "enable_checkout_page",
@@ -528,12 +529,20 @@
    "fieldname": "enable_price_filter",
    "fieldtype": "Check",
    "label": "Enable Price Filter"
-  }
+  },
+  {
+  "default": "0",
+  "depends_on": "enabled",
+  "fieldname": "allow_non_website_items_in_cart_quotation",
+  "fieldtype": "Check",
+  "in_list_view": 1,
+  "label": "Allow Non Website Items in Cart Quotation"
+ }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-03-11 15:15:28.004907",
+ "modified": "2025-03-22 13:01:51.906319",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

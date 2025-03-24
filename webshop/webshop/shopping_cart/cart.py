@@ -1464,7 +1464,7 @@ def get_party(user=None):
 
 		return doc
 
-	else:
+	elif not frappe.db.exists("Portal User", {"user": user}):
 		if not cart_settings.enabled:
 			frappe.local.flags.redirect_location = "/contact"
 			raise frappe.Redirect
@@ -1576,6 +1576,13 @@ def get_party(user=None):
 				})
 
 		return customer
+	else:
+		customer = frappe.db.get_value(
+			"Portal User", {"user": user}, ["parent"]
+		)
+
+		if frappe.db.exists("Customer", customer):
+			return frappe.get_doc("Customer", customer)
 
 def get_debtors_account(cart_settings):
 	if not cart_settings.payment_gateway_account:
