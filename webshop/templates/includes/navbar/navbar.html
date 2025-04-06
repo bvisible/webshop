@@ -1,5 +1,5 @@
 {% set builder_data = frappe.call("webshop.webshop.utils.builder.get_builder_page_content", route="navbar", use_cache=False) %}
-{% if builder_data %}
+{% if builder_data and builder_data.success %}
     <style>
         {{ builder_data.global_style }}
     </style>
@@ -11,7 +11,7 @@
     </style>
     {% endfor %}
     <script>
-        window.pageData = {{ builder_data.page_data | tojson }};
+        window.pageData = {{ (builder_data.page_data or {}) | tojson }};
     </script>
     
     {{ builder_data.content|safe }}
