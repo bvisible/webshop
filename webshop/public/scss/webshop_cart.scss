@@ -1556,6 +1556,10 @@ body[data-path=update-profile] {
 	pointer-events: auto;
 }
 
+.w-fit {
+	width: fit-content !important;
+}
+
 // Styles pour les tooltips des boutons désactivés
 button[disabled][title],
 input[disabled][title] {

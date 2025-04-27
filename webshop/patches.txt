@@ -18,3 +18,4 @@ webshop.patches.add_gift_card_amount_field
 webshop.patches.add_payment_method_field
 webshop.patches.add_gift_card_fields_to_quotation
 webshop.patches.add_coupon_code_residual_field
+webshop.patches.clear_cache_for_item_group_route

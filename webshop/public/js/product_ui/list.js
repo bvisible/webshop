@@ -100,7 +100,7 @@ webshop.ProductList = class {
 		if (item.is_gift_card) {
 			details = `
 				<p class="product-code">
-					${ item.item_group } | Item Code : ${ item.item_code }
+					${ item.item_group } | ${ __('Item Code') } : ${ item.item_code }
 				</p>
 				<div class="mt-2" style="color: var(--gray-600) !important; font-size: 13px;">
 					${ item.short_description || '' }
@@ -110,7 +110,7 @@ webshop.ProductList = class {
 		} else {
 			details = `
 				<p class="product-code">
-					${ item.item_group } | Item Code : ${ item.item_code }
+					${ item.item_group } | ${ __('Item Code') } : ${ item.item_code }
 				</p>
 				<div class="mt-2" style="color: var(--gray-600) !important; font-size: 13px;">
 					${ item.short_description || '' }
@@ -125,7 +125,7 @@ webshop.ProductList = class {
 					<s>${ item.formatted_mrp ? item.formatted_mrp.replace(/ +/g, "") : "" }</s>
 				</small>
 				<small class="ml-1 product-info-green">
-					${ item.discount } OFF
+					${ item.discount } ${ __("OFF") }
 				</small>
 			`;
 		}
@@ -179,7 +179,7 @@ webshop.ProductList = class {
 			return `
 				<a href="/${ item.route || '#' }">
 					<div class="btn btn-sm btn-explore-variants btn mb-0 mt-0">
-						${ __('Explore') }
+						${ __("Explore") }
 					</div>
 				</a>
 			`;
@@ -196,7 +196,7 @@ webshop.ProductList = class {
 							<use href="#icon-assets"></use>
 						</svg>
 					</span>
-					${ settings.enable_checkout ? __('Add to Cart') :  __('Add to Quote') }
+					${ settings.enable_checkout ? __("Add to Cart") :  __("Add to Quote") }
 				</div>
 
 				<div class="cart-indicator list-indicator ${item.in_cart ? '' : 'hidden'}">
@@ -210,7 +210,7 @@ webshop.ProductList = class {
 						${ item.in_cart ? '' : 'hidden' }"
 						data-item-code="${ item.item_code }"
 						style="padding: 0.25rem 1rem; min-width: 135px;">
-						${ settings.enable_checkout ? __('Go to Cart') :  __('Go to Quote') }
+						${ settings.enable_checkout ? __("Go to Cart") :  __("Go to Quote") }
 					</div>
 				</a>
 			`;

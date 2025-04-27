@@ -396,6 +396,7 @@ class WebsiteItem(WebsiteGenerator):
 			self.item_code, skip_quotation_creation=True
 		)
 
+	@frappe.whitelist()
 	def copy_specification_from_item_group(self):
 		self.set("website_specifications", [])
 		if self.item_group:
@@ -418,7 +419,7 @@ class WebsiteItem(WebsiteGenerator):
 
 	def get_tabs(self):
 		tab_values = {}
-		tab_values["tab_1_title"] = "Product Details"
+		tab_values["tab_1_title"] = _("Product Details")
 		tab_values["tab_1_content"] = frappe.render_template(
 			"templates/generators/item/item_specifications.html",
 			{
