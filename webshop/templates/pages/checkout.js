@@ -601,13 +601,14 @@ frappe.ready(function() {
                         const billingAddressName = $('#billing_address_name').val();
 
                         if (billingAddressName) {
-                            // Update existing address
+                            console.log("Updating existing address");
+                            // Update existing address using new method
                             await frappe.call({
-                                method: 'frappe.client.set_value',
+                                method: 'webshop.templates.pages.checkout.update_address_info',
                                 args: {
                                     doctype: 'Address',
-                                    name: billingAddressName,
-                                    fieldname: {
+                                    docname: billingAddressName,
+                                    fieldname_dict: {
                                         ...billingData,
                                         is_primary_address: 1,
                                         is_shipping_address: 0
@@ -615,6 +616,7 @@ frappe.ready(function() {
                                 }
                             });
                         } else {
+                            console.log("Creating new billing address");
                             // Create new billing address
                             const response = await frappe.call({
                                 method: 'webshop.webshop.shopping_cart.cart.add_new_address',
@@ -648,13 +650,14 @@ frappe.ready(function() {
                         const shippingData = this.collectAddressData('Shipping');
                         let shippingAddressName = $('#shipping_address_name').val();
                         if (shippingAddressName) {
-                            // Update existing shipping address
+                            console.log("Updating existing shipping address");
+                            // Update existing shipping address using new method
                             await frappe.call({
-                                method: 'frappe.client.set_value',
+                                method: 'webshop.templates.pages.checkout.update_address_info',
                                 args: {
                                     doctype: 'Address',
-                                    name: shippingAddressName,
-                                    fieldname: {
+                                    docname: shippingAddressName,
+                                    fieldname_dict: {
                                         ...shippingData,
                                         is_primary_address: 0,
                                         is_shipping_address: 1
@@ -662,6 +665,7 @@ frappe.ready(function() {
                                 }
                             });
                         } else {
+                            console.log("Creating new shipping address");
                             // Create new shipping address
                             const response = await frappe.call({
                                 method: 'webshop.webshop.shopping_cart.cart.add_new_address',

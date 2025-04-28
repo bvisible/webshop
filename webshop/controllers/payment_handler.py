@@ -31,6 +31,7 @@ class PaymentHandler:
             payment_method = None
             payment_method_doc = None
             gateway_account = None
+            payment_terms_template = None
             
             # If gateway_settings is provided, use it directly
             if gateway_settings:
@@ -42,10 +43,21 @@ class PaymentHandler:
                 # Get Payment Gateway Account
                 gateway_account = frappe.get_doc("Payment Gateway Account", {"payment_gateway": gateway})
                 
+                # Get the payment method from webshop settings based on the gateway name
+                # Extract the payment method name (part before the dash if any)
+                payment_method_name = gateway.split("-")[0].strip()
+                
+                # Find matching payment method in webshop settings
+                for method in settings.payment_methods:
+                    if method.payment_gateway_account.startswith(payment_method_name):
+                        payment_terms_template = method.payment_terms_template
+                        break
+                
             else:
                 # Use default payment method
                 payment_method = self.get_default_payment_method()
                 payment_method_doc = frappe.get_doc("Webshop Payment Method", payment_method)
+                payment_terms_template = payment_method_doc.payment_terms_template
                 # Get payment gateway account
                 gateway_account = frappe.get_doc("Payment Gateway Account", payment_method_doc.payment_gateway_account)
             
@@ -62,19 +74,20 @@ class PaymentHandler:
             quotation.set_payment_schedule()
             quotation.save(ignore_permissions=True)
             
-            # Update payment_terms_template from payment method
-            if payment_method_doc and payment_method_doc.payment_terms_template:
-                quotation.payment_terms_template = payment_method_doc.payment_terms_template
+            # Update payment_terms_template 
+            if payment_terms_template:
+                quotation.payment_terms_template = payment_terms_template
                 quotation.save(ignore_permissions=True)
                 
                 # Get and update payment schedule
                 from erpnext.controllers.accounts_controller import get_payment_terms
                 payment_schedule = get_payment_terms(
-                    payment_method_doc.payment_terms_template,
+                    payment_terms_template,
                     posting_date=quotation.transaction_date,
                     grand_total=quotation.rounded_total or quotation.grand_total,
                     base_grand_total=quotation.base_rounded_total or quotation.base_grand_total
                 )
+                frappe.log_error("Payment schedule", payment_schedule)
                 
                 if payment_schedule:
                     quotation.set("payment_schedule", payment_schedule)

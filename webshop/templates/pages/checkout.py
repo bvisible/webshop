@@ -863,3 +863,21 @@ def update_payment_method(payment_method):
         "success": True,
         "payment_method": payment_method
     }
+
+@frappe.whitelist()
+def update_address_info(doctype, docname, fieldname_dict):
+    """Update address information with ignore_permissions=True"""
+    try:
+        # Convert JSON string to dict if needed
+        if isinstance(fieldname_dict, str):
+            fieldname_dict = json.loads(fieldname_dict)
+            
+        # Update the document with ignore_permissions=True
+        doc = frappe.get_doc(doctype, docname)
+        doc.update(fieldname_dict)
+        doc.save(ignore_permissions=True)
+        
+        return {"success": True, "name": docname}
+    except Exception as e:
+        frappe.log_error(f"Error updating address: {str(e)}")
+        return {"success": False, "message": str(e)}

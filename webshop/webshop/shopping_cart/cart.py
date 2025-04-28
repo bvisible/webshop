@@ -1054,7 +1054,7 @@ def update_cart_address(address_type, address_name):
 	apply_cart_settings(quotation=quotation)
 
 	quotation.flags.ignore_permissions = True
-	quotation.save()
+	quotation.save(ignore_permissions=True)
 	
 	context = get_cart_quotation(quotation)
 	context["address"] = address_doc

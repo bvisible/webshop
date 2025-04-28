@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 from frappe.utils import get_url
 from webshop.webshop.shopping_cart.cart import place_order
 
@@ -75,6 +76,9 @@ class PaymentRequest(OriginalPaymentRequest):
                 }
             ).get(success_url, "/me")
 
+        # Set the user to Administrator to avoid permission errors
+        frappe.set_user("Administrator")
+        # Call the set_as_paid method
         self.set_as_paid()
 
         return redirect_to
