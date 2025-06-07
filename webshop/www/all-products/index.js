@@ -7,11 +7,26 @@ $(() => {
 
 			let view_type = localStorage.getItem("product_view") || "List View";
 
+			// Get stock filter settings
+			let stock_filter_default = false;
+			if (window.stock_filter_settings && window.stock_filter_settings.enabled) {
+				// Check if user has a saved preference
+				const saved_preference = localStorage.getItem('stock_filter_checked');
+				if (saved_preference !== null) {
+					// Use saved preference
+					stock_filter_default = saved_preference === 'true';
+				} else {
+					// Use default from settings
+					stock_filter_default = window.stock_filter_settings.default_checked;
+				}
+			}
+			
 			// Render Product Views, Filters & Search
 			new webshop.ProductView({
 				view_type: view_type,
 				products_section: $('#product-listing'),
-				item_group: me.item_group
+				item_group: me.item_group,
+				stock_filter_default: stock_filter_default
 			});
 
 			this.bind_card_actions();

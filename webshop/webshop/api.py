@@ -98,17 +98,8 @@ def get_product_filter_data(query_args=None):
 			price_condition=price_condition
 		)
 		
-		# Get total count
-		engine.page_length = 0 
-		total_result = engine.query(
-			attribute_filters,
-			field_filters,
-			search_term=search,
-			start=0,
-			item_group=item_group,
-			price_condition=price_condition
-		)
-		engine.page_length = engine.settings.products_per_page or 20  # Restore pagination
+		# The total count is now included in the result from the optimized query
+		total_count = result.get("items_count", 0)
 	except Exception:
 		frappe.log_error("Product query with filter failed")
 		return {"exc": "Something went wrong!"}
@@ -135,6 +126,11 @@ def get_product_filter_data(query_args=None):
 		price_filters = filter_engine.get_price_filters()
 		if price_filters:
 			filters["price_filters"] = price_filters
+			
+	# Add stock filter settings
+	if frappe.db.get_single_value("Webshop Settings", "enable_stock_filter"):
+		filters["enable_stock_filter"] = True
+		filters["stock_filter_default_checked"] = frappe.db.get_single_value("Webshop Settings", "stock_filter_default_checked")
 
 	return {
 		"items": result["items"] or [],
@@ -142,7 +138,7 @@ def get_product_filter_data(query_args=None):
 		"settings": engine.settings,
 		"sub_categories": sub_categories,
 		"items_count": len(result["items"]),
-		"total_count": len(result["items"]) if field_filters.get("discount") else total_result["items_count"],
+		"total_count": total_count,
 	}
 
 

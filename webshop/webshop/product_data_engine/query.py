@@ -43,6 +43,7 @@ class ProductQuery:
 			"on_backorder",
 			"is_gift_card",
 		]
+		self._total_count_cache = None
 
 	def query(self, attributes=None, fields=None, search_term=None, start=0, item_group=None, price_condition=None):
 		"""
@@ -69,6 +70,9 @@ class ProductQuery:
 			self.filters.append(["variant_of", "is", "not set"])
 		if price_condition:
 			self.build_price_filters(price_condition)
+		# Add stock filter if requested
+		if fields and fields.get("in_stock"):
+			self.build_stock_filters(True)
 
 		# query results
 		if attributes:
@@ -94,24 +98,83 @@ class ProductQuery:
 
 	def query_items(self, start=0):
 		"""Build a query to fetch Website Items based on field filters."""
-		# MySQL does not support offset without limit,
-		# frappe does not accept two parameters for limit
-		# https://dev.mysql.com/doc/refman/8.0/en/select.html#id4651989
-		count_items = frappe.db.get_all(
-			"Website Item",
-			filters=self.filters,
-			or_filters=self.or_filters,
-			limit_page_length=184467440737095516,
-			limit_start=start,  # get all items from this offset for total count ahead
-			order_by="ranking desc",
-		)
-		count = len(count_items)
+		# Get total count using get_all with limit 0 for better performance
+		# Cache the count for the same filters to avoid repeated queries
+		count_filters = self.filters.copy()
+		
+		# Create a cache key based on filters
+		cache_key = frappe.utils.cstr(count_filters) + frappe.utils.cstr(self.or_filters)
+		
+		if self._total_count_cache and self._total_count_cache.get('key') == cache_key:
+			count = self._total_count_cache.get('count')
+		else:
+			# Build SQL query for counting with proper handling of filters and or_filters
+			conditions = []
+			values = []
+			
+			# Handle regular filters
+			if count_filters:
+				for filter_item in count_filters:
+					if isinstance(filter_item, list) and len(filter_item) >= 3:
+						field, operator, value = filter_item[0], filter_item[1], filter_item[2]
+						if operator == "=":
+							conditions.append(f"`{field}` = %s")
+							values.append(value)
+						elif operator == "in":
+							if isinstance(value, list):
+								placeholders = ", ".join(["%s"] * len(value))
+								conditions.append(f"`{field}` IN ({placeholders})")
+								values.extend(value)
+						elif operator == "is":
+							if value == "not set":
+								conditions.append(f"`{field}` IS NULL")
+			
+			# Handle or_filters
+			or_conditions = []
+			if self.or_filters:
+				for or_filter in self.or_filters:
+					if isinstance(or_filter, list) and len(or_filter) >= 3:
+						field, operator, value = or_filter[0], or_filter[1], or_filter[2]
+						if operator == "like":
+							or_conditions.append(f"`{field}` LIKE %s")
+							values.append(value)
+						elif operator == "=":
+							or_conditions.append(f"`{field}` = %s")
+							values.append(value)
+						elif operator == "in":
+							if isinstance(value, list):
+								placeholders = ", ".join(["%s"] * len(value))
+								or_conditions.append(f"`{field}` IN ({placeholders})")
+								values.extend(value)
+			
+			# Build final WHERE clause
+			where_clause = ""
+			if conditions:
+				where_clause = " WHERE " + " AND ".join(conditions)
+			if or_conditions:
+				or_clause = " (" + " OR ".join(or_conditions) + ")"
+				if where_clause:
+					where_clause += " AND " + or_clause
+				else:
+					where_clause = " WHERE " + or_clause
+			
+			# Execute count query
+			count_sql = f"SELECT COUNT(*) FROM `tabWebsite Item`{where_clause}"
+			count = frappe.db.sql(count_sql, values)[0][0]
+			self._total_count_cache = {'key': cache_key, 'count': count}
 
-		# If discounts included, return all rows.
-		# Slice after filtering rows with discount (See `filter_results_by_discount`).
-		# Slicing before hand will miss discounted items on the 3rd or 4th page.
-		# Discounts are fetched on computing Pricing Rules so we cannot query them directly.
-		page_length = 184467440737095516 if self.filter_with_discount else self.page_length
+		# If discounts included, we need to fetch more items to ensure we have enough after filtering
+		# But we should still limit the query to avoid memory issues
+		if self.filter_with_discount:
+			# Fetch 3x the page length to have a buffer for discount filtering
+			# This is a compromise between performance and accuracy
+			page_length = self.page_length * 3
+			# For discount filtering, we need to adjust the start position
+			# because we're fetching more items than needed
+			effective_start = max(0, start - self.page_length)
+		else:
+			page_length = self.page_length
+			effective_start = start
 
 		items = frappe.db.get_all(
 			"Website Item",
@@ -119,7 +182,7 @@ class ProductQuery:
 			filters=self.filters,
 			or_filters=self.or_filters,
 			limit_page_length=page_length,
-			limit_start=start,
+			limit_start=effective_start,
 			order_by="ranking desc",
 		)
 
@@ -161,6 +224,11 @@ class ProductQuery:
 		"""
 		for field, values in filters.items():
 			if not values or field == "discount":
+				continue
+				
+			# Handle stock filter
+			if field == "in_stock" and values:
+				# Will be handled separately in add_stock_filter
 				continue
 
 			# Get tags
@@ -287,6 +355,41 @@ class ProductQuery:
 		else:
 			# If no articles match, add an impossible condition to return nothing
 			self.filters.append(["name", "=", "no_match_found"])
+			
+	def build_stock_filters(self, in_stock_only=True):
+		"""Build filters to show only in-stock items.
+		
+		Args:
+			in_stock_only (bool): If True, filter only in-stock items
+		"""
+		if not in_stock_only:
+			return
+			
+		# Get all item codes that are in stock
+		# This includes checking actual stock and also non-stock items
+		stock_items_query = """
+			SELECT DISTINCT wi.item_code
+			FROM `tabWebsite Item` wi
+			LEFT JOIN `tabItem` i ON wi.item_code = i.item_code
+			LEFT JOIN `tabBin` b ON wi.item_code = b.item_code AND b.warehouse = wi.website_warehouse
+			WHERE wi.published = 1
+			AND (
+				-- Non-stock items are always "in stock"
+				i.is_stock_item = 0
+				-- Stock items with actual stock
+				OR (i.is_stock_item = 1 AND b.actual_qty > 0)
+				-- Items on backorder
+				OR wi.on_backorder = 1
+			)
+		"""
+		
+		in_stock_items = [d[0] for d in frappe.db.sql(stock_items_query)]
+		
+		if in_stock_items:
+			self.filters.append(["item_code", "in", in_stock_items])
+		else:
+			# No items in stock, return empty result
+			self.filters.append(["name", "=", "no_match_found"])
 
 	def add_display_details(self, result, discount_list, cart_items):
 		"""Add price and availability details in result."""
@@ -384,8 +487,8 @@ class ProductQuery:
 			]
 
 		if self.filter_with_discount:
-			# no limit was added to results while querying
-			# slice results manually
-			result[: self.page_length]
+			# Slice results to get only the required page
+			# We fetched extra items to account for filtering
+			result = result[: self.page_length]
 
 		return result

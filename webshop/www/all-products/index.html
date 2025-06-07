@@ -1,4 +1,4 @@
-{% from "webshop/templates/includes/macros.html" import attribute_filter_section, field_filter_section, discount_range_filters, tag_filter_section, price_filter_section %}
+{% from "webshop/templates/includes/macros.html" import attribute_filter_section, field_filter_section, discount_range_filters, tag_filter_section, price_filter_section, stock_filter_section %}
 {% extends "templates/web.html" %}
 
 {% block title %}{{ _('All Products') }}{% endblock %}
@@ -51,12 +51,23 @@
 			{% if price_filters %}
 				{{ price_filter_section(price_filters) }}
 			{% endif %}
+			
+			<!-- discount filters will be inserted here by JavaScript -->
+			
+			<!-- stock filter -->
+			{{ stock_filter_section(enable_stock_filter, stock_filter_default_checked) }}
 		</div>
 
 	</div>
 </div>
 
 <script>
+	// Store stock filter settings for JavaScript
+	window.stock_filter_settings = {
+		enabled: {{ enable_stock_filter|json }},
+		default_checked: {{ stock_filter_default_checked|json }}
+	};
+	
 	frappe.ready(() => {
 		$('.btn-prev, .btn-next').click((e) => {
 			const $btn = $(e.target);

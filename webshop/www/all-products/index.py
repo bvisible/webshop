@@ -30,6 +30,10 @@ def get_context(context):
 	context.page_length = (
 		cint(frappe.db.get_single_value("Webshop Settings", "products_per_page")) or 20
 	)
+	
+	# Add stock filter settings
+	context.enable_stock_filter = bool(frappe.db.get_single_value("Webshop Settings", "enable_stock_filter"))
+	context.stock_filter_default_checked = bool(frappe.db.get_single_value("Webshop Settings", "stock_filter_default_checked"))
 
 	context.no_cache = 1
 

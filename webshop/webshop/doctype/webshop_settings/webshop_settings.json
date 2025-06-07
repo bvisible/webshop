@@ -14,6 +14,8 @@
   "filter_attributes",
   "enable_tag_filters",
   "enable_price_filter",
+  "enable_stock_filter",
+  "stock_filter_default_checked",
   "display_settings_section",
   "hide_variants",
   "enable_variants",
@@ -529,6 +531,19 @@
    "fieldname": "enable_price_filter",
    "fieldtype": "Check",
    "label": "Enable Price Filter"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_stock_filter",
+   "fieldtype": "Check",
+   "label": "Enable Stock Filter"
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_stock_filter",
+   "fieldname": "stock_filter_default_checked",
+   "fieldtype": "Check",
+   "label": "Stock Filter Checked by Default"
   },
   {
   "default": "0",
