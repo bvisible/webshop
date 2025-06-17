@@ -1,8 +1,8 @@
 {% if shopping_cart and shopping_cart.cart_settings.enabled %}
 {% set cart_settings = shopping_cart.cart_settings %}
 	{% if cart_settings.show_contact_us_button | int %}
-		<button class="btn btn-inquiry font-md w-30-40" data-item-code="{{ doc.name }}">
-			{{ _('Contact Us') }}
+		<button class="btn btn-inquiry font-md" data-item-code="{{ doc.name }}" style="border: 1px solid;">
+			{{ _('?') }}
 		</button>
 	{% endif %}
 <script>

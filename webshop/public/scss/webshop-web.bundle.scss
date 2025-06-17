@@ -1,3 +1,202 @@
 @import "./webshop_cart";
 @import "./webshop_checkout";
 @import "./webshop_checkout_b2b";
+@import "./webshop_variant_grid";
+@import "./webshop_price_slider";
+@import "./webshop_responsive";
+@import "./webshop_loyalty";
+
+// Enhanced Product Card styles
+.item-card {
+	.card {
+		position: relative;
+		overflow: visible;
+		transition: all 0.3s ease;
+		border: 1px solid var(--gray-200);
+		
+		&:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+			
+			.btn-add-to-cart-list {
+				visibility: visible !important;
+			}
+			
+			.like-action {
+				visibility: visible !important;
+			}
+		}
+	}
+	
+	// Discount badge
+	.discount-badge {
+		position: absolute;
+		top: 5px;
+		left: 5px;
+		z-index: 10;
+		background: #28a745;
+		color: white;
+		padding: 4px 10px;
+		border-radius: 12px 4px 4px 4px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		
+		.discount-icon {
+			font-size: 0.875rem;
+		}
+	}
+	
+	// Stock info in category section
+	.product-category-stock {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-top: 0.5rem;
+		gap: 0.5rem;
+		overflow: visible;
+		
+		.product-category {
+			color: var(--text-muted);
+			font-size: 0.875rem;
+			flex: 1;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		
+		.stock-info {
+			position: relative;
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+			
+			.stock-badge {
+				width: 12px;
+				height: 12px;
+				border-radius: 50%;
+				display: inline-block;
+				position: relative;
+				cursor: help;
+				
+				&.in-stock {
+					background-color: #28a745;
+				}
+				
+				&.low-stock {
+					background-color: #ffc107;
+				}
+				
+				&.out-of-stock {
+					background-color: #dc3545;
+				}
+				
+				&.on-backorder {
+					background-color: var(--primary-color);
+				}
+			}
+			
+			.stock-qty {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				font-weight: 500;
+			}
+			
+			// Tooltip on hover
+			&:hover .stock-tooltip {
+				opacity: 1;
+				visibility: visible;
+			}
+			
+			.stock-tooltip {
+				position: absolute;
+				bottom: 100%;
+				right: -10px;
+				transform: translateY(-4px);
+				background-color: rgba(0, 0, 0, 0.9);
+				color: white;
+				padding: 6px 10px;
+				border-radius: 4px;
+				font-size: 0.75rem;
+				white-space: nowrap;
+				margin-bottom: 4px;
+				opacity: 0;
+				visibility: hidden;
+				transition: opacity 0.2s ease, transform 0.2s ease;
+				z-index: 10000;
+				
+				&::after {
+					content: '';
+					position: absolute;
+					top: 100%;
+					right: 15px;
+					border-width: 4px;
+					border-style: solid;
+					border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
+				}
+			}
+		}
+	}
+	
+	// Enhanced price display
+	.product-price {
+		margin-top: 0.75rem;
+		
+		.striked-price {
+			opacity: 0.6;
+			margin-left: 0.5rem;
+		}
+		
+		.product-info-green {
+			color: #28a745;
+			font-weight: 600;
+		}
+	}
+	
+	// Card image improvements
+	.card-img-container {
+		position: relative;
+		background: var(--gray-50);
+		overflow: hidden;
+		border-radius: 0.75rem 0.75rem 0 0;
+
+		img {
+			transition: transform 0.3s ease;
+		}
+		
+		&:hover img {
+			transform: scale(1.05);
+		}
+	}
+	
+	// Button improvements
+	.btn-add-to-cart-list {
+		transition: all 0.2s ease;
+		
+		&:hover {
+			transform: translateY(-1px);
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+		}
+	}
+	
+	// Product title improvements
+	.product-title {
+		min-height: 2.5rem;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	
+	// Loyalty points display
+	.loyalty-points-info {
+		font-size: 0.875rem;
+		
+		.fa-star {
+			color: #ffc107;
+		}
+	}
+}

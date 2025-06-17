@@ -1,4 +1,4 @@
-{% from "webshop/templates/includes/macros.html" import field_filter_section, attribute_filter_section, discount_range_filters %}
+{% from "webshop/templates/includes/macros.html" import field_filter_section, attribute_filter_section, discount_range_filters, tag_filter_section, price_filter_section, stock_filter_section %}
 {% extends "templates/web.html" %}
 
 {% block header %}
@@ -49,6 +49,21 @@
 
 				<!-- attribute filters -->
 				{{ attribute_filter_section(attribute_filters) }}
+				
+				<!-- tag filters -->
+				{% if tag_filters %}
+					{{ tag_filter_section(tag_filters) }}
+				{% endif %}
+				
+				<!-- price filters -->
+				{% if price_filters %}
+					{{ price_filter_section(price_filters) }}
+				{% endif %}
+				
+				<!-- discount filters will be inserted here by JavaScript -->
+				
+				<!-- stock filter -->
+				{{ stock_filter_section(enable_stock_filter, stock_filter_default_checked) }}
 
 			</div>
 
@@ -57,6 +72,46 @@
 </div>
 
 <script>
+	// Store stock filter settings for JavaScript
+	window.stock_filter_settings = {
+		enabled: {{ enable_stock_filter|json }},
+		default_checked: {{ stock_filter_default_checked|json }}
+	};
+	
+	// Store product settings for JavaScript
+	window.product_settings = {{ product_settings|json }};
+	
+	// Store translations for JavaScript
+	window.product_translations = {
+		"Search for Products": {{ _("Search for Products")|json }},
+		"Sort by:": {{ _("Sort by:")|json }},
+		"Most Relevant": {{ _("Most Relevant")|json }},
+		"Price: Low to High": {{ _("Price: Low to High")|json }},
+		"Price: High to Low": {{ _("Price: High to Low")|json }},
+		"New Arrivals": {{ _("New Arrivals")|json }},
+		"Customer Rating": {{ _("Customer Rating")|json }},
+		"Page": {{ _("Page")|json }},
+		"of": {{ _("of")|json }},
+		"products": {{ _("products")|json }},
+		"No products found": {{ _("No products found")|json }},
+		"Something went wrong. Please refresh or contact us.": {{ _("Something went wrong. Please refresh or contact us.")|json }},
+		"Discounts": {{ _("Discounts")|json }},
+		"Show only products with discount": {{ _("Show only products with discount")|json }},
+		"No more discounted products. Returning to first page.": {{ _("No more discounted products. Returning to first page.")|json }},
+		"On backorder": {{ _("On backorder")|json }},
+		"Out of stock": {{ _("Out of stock")|json }},
+		"Low stock": {{ _("Low stock")|json }},
+		"In stock": {{ _("In stock")|json }},
+		"available": {{ _("available")|json }},
+		"Explore": {{ _("Explore")|json }},
+		"Add to Cart": {{ _("Add to Cart")|json }},
+		"Add to Quote": {{ _("Add to Quote")|json }},
+		"Go to Cart": {{ _("Go to Cart")|json }},
+		"Go to Quote": {{ _("Go to Quote")|json }},
+		"Item Code": {{ _("Item Code")|json }},
+		"Available on backorder": {{ _("Available on backorder")|json }}
+	};
+	
 	frappe.ready(() => {
 		$('.btn-prev, .btn-next').click((e) => {
 			const $btn = $(e.target);

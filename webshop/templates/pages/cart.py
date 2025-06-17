@@ -13,4 +13,12 @@ def get_context(context):
     check_and_merge_guest_cart()
     
     context.body_class = "product-page"
-    context.update(get_cart_quotation())
+    cart_data = get_cart_quotation()
+    context.update(cart_data)
+    
+    # Add loyalty points information
+    if cart_data.get("doc"):
+        from webshop.webshop.utils.loyalty_cart import get_loyalty_points_for_cart
+        loyalty_info = get_loyalty_points_for_cart(cart_data["doc"])
+        if loyalty_info:
+            context.loyalty_cart_info = loyalty_info

@@ -217,6 +217,12 @@ def get_context(context):
 			"loyalty_program_details": loyalty_program_details  # Update with modified details
 		})
 
+	# Add loyalty points to earn information
+	from webshop.webshop.utils.loyalty_cart import get_loyalty_points_for_cart
+	loyalty_info = get_loyalty_points_for_cart(quotation)
+	if loyalty_info:
+		context.loyalty_cart_info = loyalty_info
+
 	return context
 
 @frappe.whitelist()

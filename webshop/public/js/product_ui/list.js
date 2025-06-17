@@ -38,10 +38,21 @@ webshop.ProductList = class {
 		let image = item.website_image;
 		let wishlist_enabled = !item.has_variants && settings.enable_wishlist;
 		let image_html = ``;
+		
+		// Add discount badge if item has discount
+		let discount_badge = '';
+		if (item.discount_percent && item.discount_percent > 0) {
+			discount_badge = `
+				<div class="discount-badge">
+					<span>- ${Math.round(item.discount_percent)}%</span>
+				</div>
+			`;
+		}
 
 		if (image) {
 			image_html += `
-				<div class="col-2 border text-center rounded list-image">
+				<div class="col-2 border text-center rounded list-image" style="position: relative; overflow: hidden;">
+					${discount_badge}
 					<a class="product-link product-list-link" href="/${ item.route || '#' }">
 						<img itemprop="image" class="website-image h-100 w-100" alt="${ title }"
 							src="${ image }">
@@ -51,7 +62,8 @@ webshop.ProductList = class {
 			`;
 		} else {
 			image_html += `
-				<div class="col-2 border text-center rounded list-image">
+				<div class="col-2 border text-center rounded list-image" style="position: relative; overflow: hidden;">
+					${discount_badge}
 					<a class="product-link product-list-link" href="/${ item.route || '#' }"
 						style="text-decoration: none">
 						<div class="card-img-top no-image-list">
@@ -100,7 +112,7 @@ webshop.ProductList = class {
 		if (item.is_gift_card) {
 			details = `
 				<p class="product-code">
-					${ item.item_group } | ${ __('Item Code') } : ${ item.item_code }
+					${ item.item_group } | ${ window.product_translations && window.product_translations["Item Code"] || "Item Code" } : ${ item.item_code }
 				</p>
 				<div class="mt-2" style="color: var(--gray-600) !important; font-size: 13px;">
 					${ item.short_description || '' }
@@ -108,10 +120,19 @@ webshop.ProductList = class {
 			`;
 			return details;
 		} else {
+			// Show category and stock info on same line
+			let stock_info = '';
+			if (settings.show_stock_availability && !item.has_variants) {
+				stock_info = this.get_inline_stock_info(item);
+			}
+			
 			details = `
-				<p class="product-code">
-					${ item.item_group } | ${ __('Item Code') } : ${ item.item_code }
-				</p>
+				<div class="product-category-stock">
+					<p class="product-code" style="margin-bottom: 0.5rem;">
+						${ item.item_group } | ${ window.product_translations && window.product_translations["Item Code"] || "Item Code" } : ${ item.item_code }
+						${stock_info ? ' | ' + stock_info : ''}
+					</p>
+				</div>
 				<div class="mt-2" style="color: var(--gray-600) !important; font-size: 13px;">
 					${ item.short_description || '' }
 				</div>
@@ -125,36 +146,89 @@ webshop.ProductList = class {
 					<s>${ item.formatted_mrp ? item.formatted_mrp.replace(/ +/g, "") : "" }</s>
 				</small>
 				<small class="ml-1 product-info-green">
-					${ item.discount } ${ __("OFF") }
+					- ${ item.discount }
 				</small>
 			`;
 		}
 
-		details += this.get_stock_availability(item, settings);
 		details += `</div>`;
+		
+		// Add loyalty points if available
+		if (item.loyalty_points_html) {
+			details += `
+				<div class="loyalty-points-info">
+					<span class="loyalty-points-badge loyalty-badge-small">
+						<img src="/assets/webshop/icons/loyalty_icon.svg" class="loyalty-icon" alt="Points de fidélité">
+						${item.loyalty_points_html}
+					</span>
+				</div>
+			`;
+		}
 		}
 		return details;
 	}
+	
+	get_inline_stock_info(item) {
+		let stockClass = '';
+		let stockText = '';
+		let stockQty = '';
+		let tooltipText = '';
+		
+		if (item.on_backorder) {
+			stockClass = 'on-backorder';
+			stockText = window.product_translations && window.product_translations["On backorder"] || "On backorder";
+			tooltipText = window.product_translations && window.product_translations["On backorder"] || "On backorder";
+		} else if (!item.in_stock) {
+			stockClass = 'out-of-stock';
+			stockText = window.product_translations && window.product_translations["Out of stock"] || "Out of stock";
+			tooltipText = window.product_translations && window.product_translations["Out of stock"] || "Out of stock";
+		} else if (item.stock_qty && parseFloat(item.stock_qty) <= 5) {
+			stockClass = 'low-stock';
+			stockText = window.product_translations && window.product_translations["Low stock"] || "Low stock";
+			stockQty = `(${Math.floor(item.stock_qty)})`;
+			tooltipText = (window.product_translations && window.product_translations["Low stock"] || "Low stock") + `: ${Math.floor(item.stock_qty)} ${window.product_translations && window.product_translations["available"] || "available"}`;
+		} else {
+			stockClass = 'in-stock';
+			stockText = window.product_translations && window.product_translations["In stock"] || "In stock";
+			// Toujours afficher la quantité si elle existe et est > 0
+			if (item.stock_qty !== undefined && item.stock_qty !== null && parseFloat(item.stock_qty) > 0) {
+				stockQty = `(${Math.floor(item.stock_qty)})`;
+				tooltipText = (window.product_translations && window.product_translations["In stock"] || "In stock") + `: ${Math.floor(item.stock_qty)} ${window.product_translations && window.product_translations["available"] || "available"}`;
+			} else {
+				tooltipText = window.product_translations && window.product_translations["In stock"] || "In stock";
+			}
+		}
+		
+		return `
+			<span class="stock-info">
+				<span class="stock-badge ${stockClass}"></span>
+				${stockQty ? `<span class="stock-qty">${stockQty}</span>` : ''}
+				<span class="stock-tooltip">${tooltipText}</span>
+			</span>
+		`;
+	}
 
 	get_stock_availability(item, settings) {
+		// Remove stock availability from here since we show it inline with category
+		return ``;
 		if (settings.show_stock_availability && !item.has_variants) {
 			if (item.on_backorder) {
 				return `
 					<br>
 					<span class="out-of-stock mt-2" style="color: var(--primary-color)">
-						${ __("Available on backorder") }
+						${ window.product_translations && window.product_translations["Available on backorder"] || "Available on backorder" }
 					</span>
 				`;
 			} else if (!item.in_stock) {
 				return `
 					<br>
-					<span class="out-of-stock mt-2">${ __("Out of stock") }</span>
+					<span class="out-of-stock mt-2">${ window.product_translations && window.product_translations["Out of stock"] || "Out of stock" }</span>
 				`;
 			} else if (item.is_stock) {
 				return `
 					<br>
 					<span class="in-stock in-green has-stock mt-2"
-						style="font-size: 14px;">${ __("In stock") }</span>
+						style="font-size: 14px;">${ window.product_translations && window.product_translations["In stock"] || "In stock" }</span>
 				`;
 			}
 		}
@@ -179,7 +253,7 @@ webshop.ProductList = class {
 			return `
 				<a href="/${ item.route || '#' }">
 					<div class="btn btn-sm btn-explore-variants btn mb-0 mt-0">
-						${ __("Explore") }
+						${ window.product_translations && window.product_translations["Explore"] || "Explore" }
 					</div>
 				</a>
 			`;
@@ -196,7 +270,7 @@ webshop.ProductList = class {
 							<use href="#icon-assets"></use>
 						</svg>
 					</span>
-					${ settings.enable_checkout ? __("Add to Cart") :  __("Add to Quote") }
+					${ settings.enable_checkout ? (window.product_translations && window.product_translations["Add to Cart"] || "Add to Cart") :  (window.product_translations && window.product_translations["Add to Quote"] || "Add to Quote") }
 				</div>
 
 				<div class="cart-indicator list-indicator ${item.in_cart ? '' : 'hidden'}">
@@ -210,7 +284,7 @@ webshop.ProductList = class {
 						${ item.in_cart ? '' : 'hidden' }"
 						data-item-code="${ item.item_code }"
 						style="padding: 0.25rem 1rem; min-width: 135px;">
-						${ settings.enable_checkout ? __("Go to Cart") :  __("Go to Quote") }
+						${ settings.enable_checkout ? (window.product_translations && window.product_translations["Go to Cart"] || "Go to Cart") :  (window.product_translations && window.product_translations["Go to Quote"] || "Go to Quote") }
 					</div>
 				</a>
 			`;

@@ -113,5 +113,6 @@ website_redirects = [
     {"source": "/home", "target": "/"},
     {"source": "/homepage", "target": "/"},
     {"source": "/navbar", "target": "/"},
-    {"source": "/footer", "target": "/"}
+    {"source": "/footer", "target": "/"},
+    {"source": "/all-item-groups", "target": "/all-products"}
 ]

@@ -1,0 +1,127 @@
+// Responsive styles for webshop
+
+// Toolbar responsive improvements
+.toolbar {
+    // Desktop layout
+    @media (min-width: 768px) {
+        gap: 1rem;
+        
+        .input-group {
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .toggle-container {
+            flex: 0 0 auto;
+            gap: 0.5rem;
+        }
+        
+        .sort-selector-container {
+            flex: 0 0 auto;
+        }
+    }
+    
+    // Mobile layout
+    @media (max-width: 767px) {
+        gap: 0.5rem;
+        
+        .toggle-container {
+            order: 1;
+            width: 100%;
+            justify-content: space-between !important;
+        }
+        
+        .input-group {
+            order: 2;
+            width: 100%;
+        }
+        
+        .sort-selector-container {
+            order: 0;
+            width: 100%;
+            justify-content: center;
+        }
+    }
+}
+
+// Sort selector responsive
+.sort-selector-container {
+    // Desktop
+    @media (min-width: 768px) {
+        margin-left: auto !important;
+        flex-shrink: 0;
+    }
+    
+    @media (max-width: 575px) {
+        flex: 1;
+        
+        select#product-sort-selector {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+            max-width: 150px !important;
+        }
+    }
+    
+    @media (max-width: 400px) {
+        select#product-sort-selector {
+            max-width: 120px !important;
+        }
+    }
+}
+
+// View toggle buttons responsive
+#toggle-view {
+    @media (max-width: 575px) {
+        .btn {
+            padding: 0.25rem 0.5rem;
+            
+            .icon {
+                width: 16px;
+                height: 16px;
+            }
+        }
+    }
+}
+
+// Active filters display responsive
+.active-filters-display {
+    @media (max-width: 575px) {
+        .active-filter-badges {
+            .badge {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+            }
+        }
+    }
+}
+
+// Product grid responsive
+.products-list {
+    @media (max-width: 575px) {
+        .col-sm-6, .col-md-3 {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
+}
+
+// Search box responsive
+#search-box {
+    @media (max-width: 575px) {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+// Filter sidebar responsive
+.filter-block {
+    @media (max-width: 767px) {
+        padding-bottom: 1rem !important;
+        margin-bottom: 1rem !important;
+        
+        .filter-label {
+            font-size: 1rem;
+            margin-bottom: 0.5rem !important;
+        }
+    }
+}

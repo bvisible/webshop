@@ -122,6 +122,25 @@ def get_cart_data():
     except Exception as e:
         frappe.log_error("Cart Error", f"Error while getting cart data: {str(e)}")
     
+    # Get loyalty points information
+    loyalty_info = {}
+    show_loyalty = False
+    show_loyalty_for_guests = False
+    
+    try:
+        settings = frappe.get_single("Webshop Settings")
+        show_loyalty = settings.enable_loyalty_points
+        show_loyalty_for_guests = settings.show_loyalty_points_for_guests if settings.enable_loyalty_points else False
+        
+        if settings.enable_loyalty_points and cart_info and cart_info.get('doc'):
+            from webshop.webshop.utils.loyalty_cart import get_loyalty_points_for_cart
+            loyalty_data = get_loyalty_points_for_cart(cart_info.get('doc'))
+            
+            if loyalty_data:
+                loyalty_info = loyalty_data
+    except Exception as e:
+        frappe.log_error("Loyalty Points Error", f"Error while getting loyalty data: {str(e)}")
+    
     # Return cart data
     return {
         "cart_items": cart_items,
@@ -129,7 +148,10 @@ def get_cart_data():
         "cart_items_count": cart_items_count,
         "currency": cart_currency,
         "cart_info": cart_info_fields,
-        "tax_info": tax_info
+        "tax_info": tax_info,
+        "loyalty_info": loyalty_info,
+        "show_loyalty": show_loyalty,
+        "show_loyalty_for_guests": show_loyalty_for_guests
     }
 
 def format_cart_response(cart_data):

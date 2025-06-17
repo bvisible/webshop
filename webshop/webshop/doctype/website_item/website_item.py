@@ -243,10 +243,6 @@ class WebsiteItem(WebsiteGenerator):
 
 			# If no file is found or an error occurred, create a new file
 			if self.website_image and not file_doc:
-				frappe.log_error(
-					title="Image Debug - Need to Create New File",
-					message=f"Creating new file with URL {self.website_image} for {self.doctype} {self.name}"
-				)
 				try:
 					file_doc = frappe.get_doc(
 						{
@@ -292,6 +288,25 @@ class WebsiteItem(WebsiteGenerator):
 		self.set_shopping_cart_data(context)
 
 		settings = context.shopping_cart.cart_settings
+		
+		# Add loyalty points information
+		if settings.enable_loyalty_points:
+			from webshop.webshop.utils.loyalty_points import format_loyalty_points_message
+			
+			product_info = context.shopping_cart.get("product_info", {})
+			price_info = product_info.get("price", {})
+			
+			if price_info and price_info.get("price_list_rate"):
+				customer = frappe.session.user if frappe.session.user != "Guest" else None
+				if customer or settings.show_loyalty_points_for_guests:
+					loyalty_info = format_loyalty_points_message(
+						self.item_code, 
+						price_info.get("price_list_rate"), 
+						1, 
+						customer
+					)
+					if loyalty_info and loyalty_info.get("earned_text"):
+						context.loyalty_points_info = loyalty_info
 
 		self.get_product_details_section(context)
 
@@ -648,11 +663,6 @@ def make_website_item(doc, save=True):
 				# Retrieve and update existing slideshow
 				slideshow = frappe.get_doc("Website Slideshow", slideshow_name)
 				
-				# Log what we're doing
-				frappe.log_error(
-					title="Slideshow Update - make_website_item", 
-					message=f"Updating existing slideshow: {slideshow_name} for item: {doc.get('item_code')}"
-				)
 				
 				# Remove existing slideshow items
 				slideshow.set("slideshow_items", [])
@@ -675,12 +685,6 @@ def make_website_item(doc, save=True):
 				# Create new slideshow
 				slideshow = frappe.new_doc("Website Slideshow")
 				slideshow.slideshow_name = slideshow_name
-				
-				# Log what we're doing
-				frappe.log_error(
-					title="Slideshow Creation - make_website_item", 
-					message=f"Creating new slideshow: {slideshow_name} for item: {doc.get('item_code')}"
-				)
 				
 				# Add all images to the slideshow
 				for idx, image_url in enumerate(item_images):

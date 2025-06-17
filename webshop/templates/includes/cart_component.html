@@ -6,7 +6,10 @@
     data-cart-items-count='{{ cart_data.cart_items_count }}' 
     data-cart-total='{{ cart_data.cart_total }}' 
     data-currency='{{ cart_data.currency }}' 
-    data-tax-info='{{ json.dumps(cart_data.tax_info) }}'>
+    data-tax-info='{{ json.dumps(cart_data.tax_info) }}'
+    data-loyalty-info='{{ json.dumps(cart_data.loyalty_info) }}'
+    data-show-loyalty='{{ "true" if cart_data.show_loyalty else "false" }}'
+    data-show-loyalty-for-guests='{{ "true" if cart_data.show_loyalty_for_guests else "false" }}'>
   </div>
   <!-- Cart interface -->
   <div class="header-cart">
@@ -47,6 +50,32 @@
             <span>{{ _("Total") }}:</span>
             <span id="cartTotal">0.00</span>
           </div>
+          <!-- Loyalty Points Section -->
+          {% set cart_settings = frappe.get_doc("Webshop Settings") %}
+          {% if cart_settings.enable_loyalty_points and (frappe.session.user != "Guest" or cart_settings.show_loyalty_points_for_guests) %}
+            {% if cart_data.loyalty_info and cart_data.loyalty_info.points_to_earn > 0 %}
+              <div id="cartLoyaltyPoints" class="cart-loyalty-points">
+                <div class="loyalty-points-mini">
+                  <img src="/assets/webshop/icons/loyalty_icon.svg" class="loyalty-icon-inline" alt="Loyalty Points">
+                  <span class="loyalty-text-mini">
+                    {% if cart_settings.loyalty_points_earned_text %}
+                      {% set earned_text = cart_settings.loyalty_points_earned_text.replace("{points}", cart_data.loyalty_info.points_to_earn|string).replace("{value}", frappe.utils.fmt_money(cart_data.loyalty_info.points_value, currency=cart_data.loyalty_info.currency)) %}
+                      {{ earned_text }}
+                    {% else %}
+                      {{ _("Earn") }} {{ cart_data.loyalty_info.points_to_earn }} {{ _("points worth") }} 
+                      {{ frappe.utils.fmt_money(cart_data.loyalty_info.points_value, currency=cart_data.loyalty_info.currency) }}
+                    {% endif %}
+                  </span>
+                  {% if cart_settings.loyalty_points_conversion_text %}
+                    {% set conversion_text = cart_settings.loyalty_points_conversion_text.replace("{points}", cart_data.loyalty_info.points_to_earn|string).replace("{amount}", frappe.utils.fmt_money(cart_data.loyalty_info.points_value, currency=cart_data.loyalty_info.currency)) %}
+                    <div class="loyalty-tooltip">
+                      {{ conversion_text }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            {% endif %}
+          {% endif %}
           <div class="cart-buttons">
             <a href="/cart" class="view-cart-btn">{{ _("View Cart") }}</a>
             <a href="/checkout" class="checkout-btn btn btn-primary">{{ _("Checkout") }}</a>

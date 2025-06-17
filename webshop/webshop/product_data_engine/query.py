@@ -7,6 +7,7 @@ from frappe.utils import flt
 from webshop.webshop.doctype.item_review.item_review import get_customer
 from webshop.webshop.shopping_cart.product_info import get_product_info_for_website
 from webshop.webshop.utils.product import get_non_stock_item_status
+from webshop.webshop.utils.loyalty_points import format_loyalty_points_message
 
 
 class ProductQuery:
@@ -45,18 +46,19 @@ class ProductQuery:
 		]
 		self._total_count_cache = None
 
-	def query(self, attributes=None, fields=None, search_term=None, start=0, item_group=None, price_condition=None):
+	def query(self, attributes=None, fields=None, search_term=None, start=0, item_group=None, price_condition=None, sort_order=None):
 		"""
 		Args:
 		        attributes (dict, optional): Item Attribute filters
 		        fields (dict, optional): Field level filters
 		        search_term (str, optional): Search term to lookup
 		        start (int, optional): Page start
+		        sort_order (str, optional): Sort order (relevance, price_low_to_high, price_high_to_low, new_arrivals, rating)
 
 		Returns:
 		        dict: Dict containing items, item count & discount range
 		"""
-		# track if discounts included in field filters
+		# Track if discounts included in field filters
 		self.filter_with_discount = bool(fields.get("discount"))
 		result, discount_list, website_item_groups, cart_items, count = [], [], [], [], 0
 
@@ -74,14 +76,15 @@ class ProductQuery:
 		if fields and fields.get("in_stock"):
 			self.build_stock_filters(True)
 
-		# query results
+		# Store sort order for use in query
+		self.sort_order = sort_order
+		
+		
+		# query results with proper sorting
 		if attributes:
 			result, count = self.query_items_with_attributes(attributes, start)
 		else:
 			result, count = self.query_items(start=start)
-
-		# sort combined results by ranking
-		result = sorted(result, key=lambda x: x.get("ranking"), reverse=True)
 
 		if self.settings.enabled:
 			cart_items = self.get_cart_items()
@@ -92,9 +95,16 @@ class ProductQuery:
 		if discount_list:
 			discounts = [min(discount_list), max(discount_list)]
 
-		result = self.filter_results_by_discount(fields, result)
+		# Note: Discount filtering is now handled directly in the query methods
+		# for better performance (query_items_with_discount_filter and 
+		# query_items_with_discount_and_price_sort)
 
-		return {"items": result, "items_count": count, "discounts": discounts}
+		return {
+			"items": result, 
+			"items_count": len(result),
+			"total_count": count,  # This is the count before discount filter
+			"discounts": discounts
+		}
 
 	def query_items(self, start=0):
 		"""Build a query to fetch Website Items based on field filters."""
@@ -162,19 +172,36 @@ class ProductQuery:
 			count_sql = f"SELECT COUNT(*) FROM `tabWebsite Item`{where_clause}"
 			count = frappe.db.sql(count_sql, values)[0][0]
 			self._total_count_cache = {'key': cache_key, 'count': count}
+			
 
-		# If discounts included, we need to fetch more items to ensure we have enough after filtering
-		# But we should still limit the query to avoid memory issues
+		# Check if we need special handling for discount filter
 		if self.filter_with_discount:
-			# Fetch 3x the page length to have a buffer for discount filtering
-			# This is a compromise between performance and accuracy
-			page_length = self.page_length * 3
-			# For discount filtering, we need to adjust the start position
-			# because we're fetching more items than needed
-			effective_start = max(0, start - self.page_length)
+			# Check if we also need price sorting
+			if hasattr(self, 'sort_order') and self.sort_order in ["price_low_to_high", "price_high_to_low"]:
+				# For discount + price sort, the price sort method will handle it
+				pass  # Continue with normal flow
+			else:
+				# Use optimized query for discount filter only
+				return self.query_items_with_discount_filter(start)
+		
+		# Determine order_by based on sort_order
+		if hasattr(self, 'sort_order') and self.sort_order:
+			if self.sort_order == "new_arrivals":
+				order_by = "creation desc"
+			elif self.sort_order == "rating":
+				# TODO: Add average_rating field to Website Item
+				order_by = "ranking desc"  # Fallback to ranking for now
+			elif self.sort_order in ["price_low_to_high", "price_high_to_low"]:
+				# For price sorting, we need a custom query
+				return self.query_items_with_price_sort(start, self.sort_order)
+			else:
+				order_by = "ranking desc"
 		else:
-			page_length = self.page_length
-			effective_start = start
+			order_by = "ranking desc"
+		
+		# Standard pagination
+		page_length = self.page_length
+		effective_start = start
 
 		items = frappe.db.get_all(
 			"Website Item",
@@ -183,9 +210,379 @@ class ProductQuery:
 			or_filters=self.or_filters,
 			limit_page_length=page_length,
 			limit_start=effective_start,
-			order_by="ranking desc",
+			order_by=order_by,
 		)
 
+		return items, count
+	
+	def query_items_with_discount_filter(self, start=0):
+		"""Query items that have active discounts using optimized SQL."""
+		# Get settings
+		settings = frappe.get_cached_doc("Webshop Settings")
+		price_list = settings.price_list
+		
+		if not price_list:
+			# No price list configured, fallback to regular query with buffer
+			return self.query_items_with_regular_discount_flow(start)
+		
+		# Build WHERE conditions
+		conditions = []
+		values = []
+		
+		# Add filters
+		for filter_item in self.filters:
+			if isinstance(filter_item, list) and len(filter_item) >= 3:
+				field, operator, value = filter_item[0], filter_item[1], filter_item[2]
+				
+				if operator == "=":
+					conditions.append(f"wi.`{field}` = %s")
+					values.append(value)
+				elif operator == "in" and isinstance(value, list):
+					placeholders = ", ".join(["%s"] * len(value))
+					conditions.append(f"wi.`{field}` IN ({placeholders})")
+					values.extend(value)
+				elif operator == "is":
+					if value == "not set":
+						conditions.append(f"wi.`{field}` IS NULL")
+		
+		# Build WHERE clause
+		where_parts = []
+		if conditions:
+			where_parts.append(" AND ".join(conditions))
+		if self.or_filters:
+			or_conditions = []
+			for or_filter in self.or_filters:
+				if isinstance(or_filter, list) and len(or_filter) >= 3:
+					field, operator, value = or_filter[0], or_filter[1], or_filter[2]
+					if operator == "like":
+						or_conditions.append(f"wi.`{field}` LIKE %s")
+						values.append(value)
+					elif operator == "=":
+						or_conditions.append(f"wi.`{field}` = %s")
+						values.append(value)
+			if or_conditions:
+				where_parts.append("(" + " OR ".join(or_conditions) + ")")
+		
+		where_clause = " WHERE " + " AND ".join(where_parts) if where_parts else ""
+		
+		# Use the optimized query method with default sorting by ranking
+		return self.query_items_with_discount_and_price_sort(start, "relevance", price_list, where_clause, values)
+	
+	def query_items_with_discount_and_price_sort(self, start, sort_order, price_list, where_clause, values):
+		"""Optimized query for items with discounts, sorted by price"""
+		# Build field list
+		field_list = ", ".join([f"wi.`{field}`" for field in self.fields])
+		
+		# Determine sort direction and aggregate function
+		is_price_sort = sort_order in ["price_low_to_high", "price_high_to_low"]
+		sort_direction = "ASC" if sort_order == "price_low_to_high" else "DESC"
+		aggregate_func = "MIN" if sort_order == "price_low_to_high" else "MAX"
+		default_price = "999999999" if sort_order == "price_low_to_high" else "0"
+		
+		# Determine ORDER BY clause
+		if is_price_sort:
+			order_by = f"current_price {sort_direction}, ranking DESC"
+		elif sort_order == "new_arrivals":
+			order_by = "creation DESC"
+		else:
+			order_by = "ranking DESC"
+		
+		# Build optimized query that combines discount detection and price sorting
+		query_sql = f"""
+		WITH discounted_items AS (
+			SELECT 
+				{field_list},
+				wi.creation,
+				COALESCE(
+					CASE 
+						WHEN wi.has_variants = 1 THEN
+							(SELECT {aggregate_func}(vip.price_list_rate)
+							 FROM `tabItem Price` vip
+							 INNER JOIN `tabItem` vi ON vi.name = vip.item_code
+							 WHERE vi.variant_of = wi.item_code
+							 AND vip.selling = 1
+							 AND vip.price_list = %s
+							 AND vip.price_list_rate > 0)
+						ELSE ip.price_list_rate
+					END,
+					{default_price}
+				) as current_price,
+				GREATEST(
+					-- Pricing rule discount
+					COALESCE(pr.discount_percentage, 0),
+					-- Price list comparison discount
+					CASE 
+						WHEN ip_mrp.price_list_rate > 0 AND ip.price_list_rate > 0 
+						THEN ((ip_mrp.price_list_rate - ip.price_list_rate) / ip_mrp.price_list_rate * 100)
+						ELSE 0
+					END
+				) as discount_percent,
+				ip.price_list_rate,
+				ip_mrp.price_list_rate as mrp
+			FROM `tabWebsite Item` wi
+			LEFT JOIN `tabItem Price` ip ON wi.item_code = ip.item_code 
+				AND ip.selling = 1 
+				AND ip.price_list = %s
+			LEFT JOIN `tabItem Price` ip_mrp ON wi.item_code = ip_mrp.item_code 
+				AND ip_mrp.selling = 1 
+				AND ip_mrp.price_list != %s
+				AND ip_mrp.price_list_rate > COALESCE(ip.price_list_rate, 0)
+			LEFT JOIN (
+				-- Get best discount from pricing rules
+				SELECT 
+					pri.item_code,
+					MAX(pr.discount_percentage) as discount_percentage
+				FROM `tabPricing Rule` pr
+				INNER JOIN `tabPricing Rule Item Code` pri ON pri.parent = pr.name
+				WHERE pr.disable = 0
+				AND pr.selling = 1
+				AND pr.discount_percentage > 0
+				AND (pr.valid_from IS NULL OR pr.valid_from <= CURDATE())
+				AND (pr.valid_upto IS NULL OR pr.valid_upto >= CURDATE())
+				GROUP BY pri.item_code
+			) pr ON wi.item_code = pr.item_code
+			{where_clause}
+		)
+		SELECT *
+		FROM discounted_items
+		WHERE discount_percent > 0
+		ORDER BY {order_by}
+		LIMIT %s OFFSET %s
+		"""
+		
+		# Build values list
+		query_values = [price_list, price_list, price_list]  # For the price lookups
+		query_values.extend(values)  # For WHERE conditions
+		query_values.extend([self.page_length, start])  # For LIMIT and OFFSET
+		
+		items = frappe.db.sql(query_sql, query_values, as_dict=True)
+		
+		# Get count of discounted items
+		count_sql = f"""
+		SELECT COUNT(*)
+		FROM (
+			SELECT wi.name
+			FROM `tabWebsite Item` wi
+			LEFT JOIN `tabItem Price` ip ON wi.item_code = ip.item_code 
+				AND ip.selling = 1 
+				AND ip.price_list = %s
+			LEFT JOIN `tabItem Price` ip_mrp ON wi.item_code = ip_mrp.item_code 
+				AND ip_mrp.selling = 1 
+				AND ip_mrp.price_list != %s
+				AND ip_mrp.price_list_rate > COALESCE(ip.price_list_rate, 0)
+			LEFT JOIN (
+				SELECT 
+					pri.item_code,
+					MAX(pr.discount_percentage) as discount_percentage
+				FROM `tabPricing Rule` pr
+				INNER JOIN `tabPricing Rule Item Code` pri ON pri.parent = pr.name
+				WHERE pr.disable = 0
+				AND pr.selling = 1
+				AND pr.discount_percentage > 0
+				AND (pr.valid_from IS NULL OR pr.valid_from <= CURDATE())
+				AND (pr.valid_upto IS NULL OR pr.valid_upto >= CURDATE())
+				GROUP BY pri.item_code
+			) pr ON wi.item_code = pr.item_code
+			{where_clause}
+			AND (pr.discount_percentage > 0 OR (ip_mrp.price_list_rate > 0 AND ip.price_list_rate > 0))
+		) as discounted_count
+		"""
+		
+		count_values = [price_list, price_list]
+		count_values.extend(values)
+		count = frappe.db.sql(count_sql, count_values)[0][0]
+		
+		# Add additional item details
+		discount_list = []
+		cart_items = self.get_cart_items() if self.settings.enabled else []
+		
+		for item in items:
+			# Format price info
+			if item.get("price_list_rate"):
+				from frappe.utils import fmt_money
+				currency = frappe.db.get_single_value("Webshop Settings", "company") 
+				if currency:
+					currency = frappe.db.get_value("Company", currency, "default_currency") or "USD"
+				else:
+					currency = "USD"
+				
+				item["formatted_price"] = fmt_money(item.price_list_rate, currency=currency)
+				if item.get("mrp") and item.mrp > item.price_list_rate:
+					item["formatted_mrp"] = fmt_money(item.mrp, currency=currency)
+				
+				if item.get("discount_percent"):
+					item["discount_percent"] = flt(item.discount_percent)
+					discount_list.append(item.discount_percent)
+					item["discount"] = f"{int(item.discount_percent)}% OFF"
+			
+			# Add stock info
+			if self.settings.show_stock_availability:
+				self.get_stock_availability(item)
+			
+			# Check cart and wishlist status
+			item.in_cart = item.item_code in cart_items
+			item.wished = frappe.db.exists("Wishlist Item", {"item_code": item.item_code, "parent": frappe.session.user})
+			
+			# Add loyalty points information if enabled
+			if self.settings.enable_loyalty_points and (frappe.session.user != "Guest" or self.settings.show_loyalty_points_for_guests):
+				if item.get("formatted_price") and item.get("current_price"):
+					customer = frappe.session.user if frappe.session.user != "Guest" else None
+					loyalty_info = format_loyalty_points_message(item.item_code, item.current_price, 1, customer)
+					if loyalty_info and loyalty_info.get("earned_text"):
+						item.loyalty_points_html = loyalty_info["earned_text"]
+			
+			# Clean up temporary fields
+			for field in ["current_price", "price_list_rate", "mrp"]:
+				if field in item:
+					del item[field]
+		
+		return items, count
+	
+	def query_items_with_regular_discount_flow(self, start):
+		"""Fallback method using regular flow with buffer for discount filtering."""
+		# Temporarily disable filter_with_discount to avoid recursion
+		self.filter_with_discount = False
+		
+		# Fetch more items with buffer
+		old_page_length = self.page_length
+		self.page_length = old_page_length * 20  # 20x buffer
+		
+		# Get items using regular query
+		items, count = self.query_items(start)
+		
+		# Restore page length
+		self.page_length = old_page_length
+		self.filter_with_discount = True
+		
+		return items, count
+	
+	def query_items_with_price_sort(self, start, sort_order):
+		"""Query items with price-based sorting using SQL join"""
+		# Get default price list from settings
+		price_list = frappe.db.get_single_value("Webshop Settings", "price_list")
+		
+		# Build WHERE conditions
+		conditions = []
+		values = []
+		
+		# Add filters
+		for filter_item in self.filters:
+			if isinstance(filter_item, list) and len(filter_item) >= 3:
+				field, operator, value = filter_item[0], filter_item[1], filter_item[2]
+				
+				if operator == "=":
+					conditions.append(f"wi.`{field}` = %s")
+					values.append(value)
+				elif operator == "in" and isinstance(value, list):
+					placeholders = ", ".join(["%s"] * len(value))
+					conditions.append(f"wi.`{field}` IN ({placeholders})")
+					values.extend(value)
+				elif operator == "is":
+					if value == "not set":
+						conditions.append(f"wi.`{field}` IS NULL")
+		
+		# Add or_filters (for search)
+		or_conditions = []
+		if self.or_filters:
+			for or_filter in self.or_filters:
+				if isinstance(or_filter, list) and len(or_filter) >= 3:
+					field, operator, value = or_filter[0], or_filter[1], or_filter[2]
+					
+					if operator == "like":
+						or_conditions.append(f"wi.`{field}` LIKE %s")
+						values.append(value)
+					elif operator == "=":
+						or_conditions.append(f"wi.`{field}` = %s")
+						values.append(value)
+		
+		# Build final WHERE clause
+		where_parts = []
+		if conditions:
+			where_parts.append(" AND ".join(conditions))
+		if or_conditions:
+			where_parts.append("(" + " OR ".join(or_conditions) + ")")
+		
+		where_clause = " WHERE " + " AND ".join(where_parts) if where_parts else ""
+		
+		# If discount filter is active, use optimized query
+		if self.filter_with_discount and price_list:
+			return self.query_items_with_discount_and_price_sort(start, sort_order, price_list, where_clause, values)
+		
+		# Count query - create a copy of values for count query
+		count_values = values.copy()
+		count_sql = f"""
+			SELECT COUNT(DISTINCT wi.name) 
+			FROM `tabWebsite Item` wi
+			{where_clause}
+		"""
+		count = frappe.db.sql(count_sql, count_values)[0][0]
+		
+		# Main query with price join
+		order_clause = "ASC" if sort_order == "price_low_to_high" else "DESC"
+		
+		# Build field list
+		field_list = ", ".join([f"wi.`{field}`" for field in self.fields])
+		
+		# For templates with variants, we need to get the min or max price of their variants
+		# For "low to high", use MIN price and 999999999 as default for items without price (they appear last)
+		# For "high to low", use MAX price and 0 as default (they appear first)
+		default_price = "999999999" if sort_order == "price_low_to_high" else "0"
+		aggregate_func = "MIN" if sort_order == "price_low_to_high" else "MAX"
+		
+		# Build the query SQL with proper parameter placeholders
+		if price_list:
+			query_sql = f"""
+				SELECT DISTINCT {field_list}, 
+					CASE 
+						WHEN wi.has_variants = 1 THEN
+							COALESCE(
+								(SELECT {aggregate_func}(vip.price_list_rate)
+								 FROM `tabItem Price` vip
+								 INNER JOIN `tabItem` vi ON vi.name = vip.item_code
+								 WHERE vi.variant_of = wi.item_code
+								 AND vip.selling = 1
+								 AND vip.price_list = %s
+								 AND vip.price_list_rate > 0),
+								{default_price}
+							)
+						ELSE 
+							COALESCE(ip.price_list_rate, {default_price})
+					END as sort_price
+				FROM `tabWebsite Item` wi
+				LEFT JOIN `tabItem Price` ip ON wi.item_code = ip.item_code 
+					AND ip.selling = 1 
+					AND ip.price_list = %s
+				{where_clause}
+				ORDER BY sort_price {order_clause}, wi.ranking DESC
+				LIMIT %s OFFSET %s
+			"""
+			
+			# Build values list for the query in the correct order
+			# The price_list parameters come BEFORE the WHERE clause in the SQL
+			query_values = [price_list, price_list]  # First the price lists (subquery, then join)
+			query_values.extend(values)  # Then the WHERE clause values
+		else:
+			# No price list configured - sort by default price
+			query_sql = f"""
+				SELECT DISTINCT {field_list}, 
+					{default_price} as sort_price
+				FROM `tabWebsite Item` wi
+				{where_clause}
+				ORDER BY sort_price {order_clause}, wi.ranking DESC
+				LIMIT %s OFFSET %s
+			"""
+			query_values = values.copy()
+		
+		# Add limit and offset
+		query_values.extend([self.page_length, start])
+		
+		items = frappe.db.sql(query_sql, query_values, as_dict=True)
+		
+		# Remove the sort_price field from results
+		for item in items:
+			if 'sort_price' in item:
+				del item['sort_price']
+		
 		return items, count
 
 	def query_items_with_attributes(self, attributes, start=0):
@@ -223,7 +620,12 @@ class ProductQuery:
 		        filters (dict): Filters
 		"""
 		for field, values in filters.items():
-			if not values or field == "discount":
+			if not values:
+				continue
+				
+			# Handle discount filter separately - it's processed in query methods
+			if field == "discount":
+				# Skip here as it's handled by query_items_with_discount_filter
 				continue
 				
 			# Handle stock filter
@@ -244,10 +646,48 @@ class ProductQuery:
 					self.or_filters.extend(tag_filters)
 				continue
 
+			# Special handling for item_group field
+			if field == "item_group":
+				# Use the specialized item_group filter builder
+				# Handle both single value and list of values
+				if isinstance(values, list) and len(values) > 1:
+					# For multiple item groups, we need to collect all possible groups
+					# and use IN clause for OR logic
+					all_groups = []
+					for item_group in values:
+						# Get child groups for each selected group
+						from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
+						try:
+							include_groups = get_child_groups_for_website(item_group, include_self=True)
+							if include_groups:
+								include_groups = [x.name for x in include_groups]
+								all_groups.extend(include_groups)
+							else:
+								# If no child groups found, at least include the group itself
+								all_groups.append(item_group)
+						except Exception as e:
+							frappe.log_error(f"Error getting child groups for {item_group}: {str(e)}")
+							# On error, at least include the group itself
+							all_groups.append(item_group)
+					
+					# Remove duplicates and add as single IN filter
+					all_groups = list(set(all_groups))
+
+					if all_groups:
+						self.filters.append(["item_group", "in", all_groups])
+					else:
+						# If no groups found at all, add impossible condition
+						self.filters.append(["name", "=", "no_match_found"])
+				else:
+					# Single item group
+					single_value = values[0] if isinstance(values, list) else values
+					self.build_item_group_filters(single_value)
+				continue
+
 			# handle multiselect fields in filter addition
 			meta = frappe.get_meta("Website Item", cached=True)
 			df = meta.get_field(field)
-			if df.fieldtype == "Table MultiSelect":
+			if df and df.fieldtype == "Table MultiSelect":
 				child_doctype = df.options
 				child_meta = frappe.get_meta(child_doctype, cached=True)
 				fields = child_meta.get("fields")
@@ -264,22 +704,25 @@ class ProductQuery:
 		"Add filters for Item group page and include Website Item Groups."
 		from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
 
-		item_group_filters = []
-
-		item_group_filters.append(["Website Item", "item_group", "=", item_group])
-		# Consider Website Item Groups
-		item_group_filters.append(["Website Item Group", "item_group", "=", item_group])
-
-		if frappe.db.get_value("Item Group", item_group, "include_descendants"):
-			# include child item group's items as well
-			# eg. Group Node A, will show items of child 1 and child 2 as well
-			# on it's web page
+		try:
+			# Always include child groups when filtering
+			# This ensures that selecting a parent category shows all products from child categories
 			include_groups = get_child_groups_for_website(item_group, include_self=True)
-			include_groups = [x.name for x in include_groups]
+			include_groups = [x.name for x in include_groups] if include_groups else []
 
-			item_group_filters.append(["Website Item", "item_group", "in", include_groups])
-
-		self.or_filters.extend(item_group_filters)
+			if include_groups:
+				# Use regular filters for item_group to ensure proper count
+				self.filters.append(["item_group", "in", include_groups])
+			else:
+				# Fallback if no children found
+				self.filters.append(["item_group", "=", item_group])
+		except Exception as e:
+			frappe.log_error(f"Error in build_item_group_filters for {item_group}: {str(e)}")
+			# On error, at least filter by the item group itself
+			self.filters.append(["item_group", "=", item_group])
+		
+		# Note: Website Item Group filtering would require complex joins
+		# and is not included in the count query for performance reasons
 
 	def build_search_filters(self, search_term):
 		"""Query search term in specified fields
@@ -390,6 +833,7 @@ class ProductQuery:
 		else:
 			# No items in stock, return empty result
 			self.filters.append(["name", "=", "no_match_found"])
+	
 
 	def add_display_details(self, result, discount_list, cart_items):
 		"""Add price and availability details in result."""
@@ -413,6 +857,14 @@ class ProductQuery:
 			):
 				item.wished = True
 
+			# Add loyalty points information if enabled
+			if self.settings.enable_loyalty_points and (frappe.session.user != "Guest" or self.settings.show_loyalty_points_for_guests):
+				if item.get("formatted_price") and item.get("price_list_rate"):
+					customer = frappe.session.user if frappe.session.user != "Guest" else None
+					loyalty_info = format_loyalty_points_message(item.item_code, item.price_list_rate, 1, customer)
+					if loyalty_info and loyalty_info.get("earned_text"):
+						item.loyalty_points_html = loyalty_info["earned_text"]
+
 		return result, discount_list
 
 	def get_price_discount_info(self, item, price_object, discount_list):
@@ -435,8 +887,10 @@ class ProductQuery:
 		from webshop.templates.pages.wishlist import (
 			get_stock_availability as get_stock_availability_from_template,
 		)
+		from webshop.webshop.utils.product import get_web_item_qty_in_stock
 
 		item.in_stock = False
+		item.stock_qty = 0
 		warehouse = item.get("website_warehouse")
 		is_stock_item = frappe.get_cached_value("Item", item.item_code, "is_stock_item")
 
@@ -450,8 +904,10 @@ class ProductQuery:
 			else:
 				item.in_stock = True
 		elif warehouse:
-			# stock item and has warehouse
-			item.in_stock = get_stock_availability_from_template(item.item_code, warehouse)
+			# stock item and has warehouse - get full stock info
+			stock_info = get_web_item_qty_in_stock(item.item_code, "website_warehouse", warehouse)
+			item.in_stock = stock_info.in_stock
+			item.stock_qty = stock_info.stock_qty if stock_info.stock_qty else 0
 
 	def get_cart_items(self):
 		customer = get_customer(silent=True)
@@ -476,19 +932,4 @@ class ProductQuery:
 				return items
 
 		return []
-
-	def filter_results_by_discount(self, fields, result):
-		if fields and fields.get("discount"):
-			discount_percent = frappe.utils.flt(fields["discount"][0])
-			result = [
-				row
-				for row in result
-				if row.get("discount_percent") and row.discount_percent <= discount_percent
-			]
-
-		if self.filter_with_discount:
-			# Slice results to get only the required page
-			# We fetched extra items to account for filtering
-			result = result[: self.page_length]
-
-		return result
+	

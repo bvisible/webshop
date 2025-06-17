@@ -6,7 +6,9 @@
  "engine": "InnoDB",
  "field_order": [
   "products_per_page",
+  "column_break_cysa",
   "default_view_type",
+  "default_product_sort",
   "filter_categories_section",
   "enable_field_filters",
   "filter_fields",
@@ -74,7 +76,14 @@
   "slideshow",
   "guest_display_settings_section",
   "hide_price_for_guest",
-  "redirect_on_action"
+  "redirect_on_action",
+  "loyalty_program_section",
+  "enable_loyalty_points",
+  "loyalty_program",
+  "show_loyalty_points_for_guests",
+  "column_break_loyalty",
+  "loyalty_points_conversion_text",
+  "loyalty_points_earned_text"
  ],
  "fields": [
   {
@@ -92,7 +101,14 @@
    "options": "Grid\nList"
   },
   {
-   "collapsible": 1,
+   "default": "relevance",
+   "description": "Choose the default sort order for products",
+   "fieldname": "default_product_sort",
+   "fieldtype": "Select",
+   "label": "Default Product Sort Order",
+   "options": "relevance\nprice_low_to_high\nprice_high_to_low\nnew_arrivals\nrating"
+  },
+  {
    "fieldname": "filter_categories_section",
    "fieldtype": "Section Break",
    "label": "Filters and Categories"
@@ -294,7 +310,7 @@
    "options": "\nOrders\nInvoices\nMy Account"
   },
   {
-   "depends_on": "eval:doc.enable_checkout && !doc.enable_checkout_page",
+   "depends_on": "eval:doc.enable_checkout",
    "fieldname": "payment_gateway_account",
    "fieldtype": "Link",
    "label": "Payment Gateway Account",
@@ -335,14 +351,6 @@
    "options": "Terms and Conditions"
   },
   {
-   "depends_on": "eval:doc.enable_checkout && !doc.enable_checkout_page",
-   "fieldname": "payment_gateway_account",
-   "fieldtype": "Link",
-   "label": "Payment Gateway Account",
-   "mandatory_depends_on": "enable_checkout",
-   "options": "Payment Gateway Account"
-  },
-  {
    "collapsible": 1,
    "depends_on": "enable_field_filters",
    "fieldname": "shop_by_category_section",
@@ -356,7 +364,6 @@
    "options": "Website Slideshow"
   },
   {
-   "collapsible": 1,
    "fieldname": "add_ons_section",
    "fieldtype": "Section Break",
    "label": "Add-ons"
@@ -546,18 +553,67 @@
    "label": "Stock Filter Checked by Default"
   },
   {
-  "default": "0",
-  "depends_on": "enabled",
-  "fieldname": "allow_non_website_items_in_cart_quotation",
-  "fieldtype": "Check",
-  "in_list_view": 1,
-  "label": "Allow Non Website Items in Cart Quotation"
- }
+   "default": "0",
+   "depends_on": "enabled",
+   "fieldname": "allow_non_website_items_in_cart_quotation",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Allow Non Website Items in Cart Quotation"
+  },
+  {
+   "fieldname": "column_break_cysa",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "loyalty_program_section",
+   "fieldtype": "Section Break",
+   "label": "Loyalty Program Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_loyalty_points",
+   "fieldtype": "Check",
+   "label": "Show Loyalty Points on Shop"
+  },
+  {
+   "depends_on": "enable_loyalty_points",
+   "fieldname": "loyalty_program",
+   "fieldtype": "Link",
+   "label": "Loyalty Program",
+   "options": "Loyalty Program",
+   "mandatory_depends_on": "enable_loyalty_points"
+  },
+  {
+   "default": "0",
+   "depends_on": "enable_loyalty_points",
+   "fieldname": "show_loyalty_points_for_guests",
+   "fieldtype": "Check",
+   "label": "Show Loyalty Points for Guests"
+  },
+  {
+   "fieldname": "column_break_loyalty",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "enable_loyalty_points",
+   "fieldname": "loyalty_points_conversion_text",
+   "fieldtype": "Data",
+   "label": "Points Conversion Text",
+   "default": "{points} points = {amount}"
+  },
+  {
+   "depends_on": "enable_loyalty_points",
+   "fieldname": "loyalty_points_earned_text",
+   "fieldtype": "Data",
+   "label": "Points Earned Text",
+   "default": "Earn {points} points with this purchase",
+   "description": "Use {points} for points count and {value} for monetary value"
+  }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-03-22 13:01:51.906319",
+ "modified": "2025-06-10 10:45:38.532405",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",
@@ -578,6 +634,7 @@
    "role": "All"
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

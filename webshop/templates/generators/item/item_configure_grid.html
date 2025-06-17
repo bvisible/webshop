@@ -1,0 +1,58 @@
+{% if shopping_cart and shopping_cart.cart_settings.enabled %}
+{% set cart_settings = shopping_cart.cart_settings %}
+
+{% if cart_settings.enable_variants | int %}
+<div class="variant-selection-section mt-4">
+	<!-- Variant Grid Container (hidden initially) -->
+	<div class="variant-grid-container" id="variant-grid-container" style="display: none;">
+		<div class="variant-grid-header mb-3">
+			<div class="d-flex align-items-center justify-content-between">
+				<h5 class="mb-0">{{ _('Select Variant') }}</h5>
+				<span class="price-range text-primary font-weight-bold" style="display: none;"></span>
+			</div>
+			<p class="text-muted mb-0 small">{{ _('Click on a variant to see details') }}</p>
+		</div>
+		
+		<div class="variant-grid" id="variant-grid">
+			<!-- Variant cards will be dynamically added here -->
+		</div>
+		
+		<div class="variant-grid-footer mt-3" style="display: none;">
+			<div class="selected-variant-info">
+				<div class="d-flex align-items-center justify-content-between">
+					<div>
+						<h6 class="mb-1">{{ _('Selected') }}: <span class="selected-variant-name"></span></h6>
+						<div class="selected-variant-price"></div>
+					</div>
+					<button class="btn btn-primary btn-add-to-cart">
+						{{ _('Add to Cart') }}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- Loading spinner -->
+	<div class="text-center py-4" id="variant-loading">
+		<div class="spinner-border text-primary" role="status">
+			<span class="sr-only">{{ _('Loading...') }}</span>
+		</div>
+		<p class="text-muted mt-2">{{ _('Loading variants...') }}</p>
+	</div>
+</div>
+
+<script>
+frappe.ready(() => {
+	// Auto-load variants when page loads
+	const item_code = "{{ doc.item_code }}";
+	const item_name = "{{ doc.web_item_name }}";
+	
+	new ItemConfigureGrid(item_code, item_name);
+});
+</script>
+
+<script>
+{% include "templates/generators/item/item_configure_grid.js" %}
+</script>
+{% endif %}
+{% endif %}

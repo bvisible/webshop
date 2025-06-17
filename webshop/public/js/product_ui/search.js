@@ -256,7 +256,7 @@ webshop.ProductSearch = class {
 							<s>${res.formatted_mrp.replace(/ +/g, "")}</s>
 						</small>
 						<small class="ml-1 product-info-green">
-							${res.discount} OFF
+							- ${res.discount}
 						</small>
 					`;
 				}

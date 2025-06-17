@@ -58,6 +58,23 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 
 		context.field_filters = filter_engine.get_field_filters()
 		context.attribute_filters = filter_engine.get_attribute_filters()
+		
+		# Add tag filters if enabled
+		if frappe.db.get_single_value("Webshop Settings", "enable_tag_filters"):
+			context.tag_filters = filter_engine.get_tag_filters()
+			
+		# Add price filters if enabled
+		if frappe.db.get_single_value("Webshop Settings", "enable_price_filter"):
+			context.price_filters = filter_engine.get_price_filters()
+		
+		# Add stock filter settings
+		context.enable_stock_filter = bool(frappe.db.get_single_value("Webshop Settings", "enable_stock_filter"))
+		
+		# Add product settings for sort order
+		context.product_settings = {
+			"default_product_sort": frappe.db.get_single_value("Webshop Settings", "default_product_sort") or "relevance"
+		}
+		context.stock_filter_default_checked = bool(frappe.db.get_single_value("Webshop Settings", "stock_filter_default_checked"))
 
 		context.update({"parents": get_parent_item_groups(self.parent_item_group), "title": self.name})
 

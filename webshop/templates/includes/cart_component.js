@@ -20,7 +20,10 @@ let pageData = {
   cart_items_count: 0,
   currency: '',
   cart_info: {},
-  tax_info: []
+  tax_info: [],
+  loyalty_info: {},
+  show_loyalty: false,
+  show_loyalty_for_guests: false
 };
 
 if (cartDataElement) {
@@ -41,6 +44,15 @@ if (cartDataElement) {
     if (cartDataElement.dataset.taxInfo) {
       pageData.tax_info = JSON.parse(cartDataElement.dataset.taxInfo || '[]');
     }
+    
+    // Get loyalty information
+    if (cartDataElement.dataset.loyaltyInfo) {
+      pageData.loyalty_info = JSON.parse(cartDataElement.dataset.loyaltyInfo || '{}');
+    }
+    
+    // Get loyalty settings
+    pageData.show_loyalty = cartDataElement.dataset.showLoyalty === 'true';
+    pageData.show_loyalty_for_guests = cartDataElement.dataset.showLoyaltyForGuests === 'true';
   } catch (e) {
     console.error('Error parsing cart data:', e);
   }
@@ -619,6 +631,17 @@ function refreshCart(forceRender = false) {
             });
           }
           
+          // Extract loyalty information
+          if (r.message.loyalty_info) {
+            pageData.loyalty_info = r.message.loyalty_info;
+          }
+          if (r.message.show_loyalty !== undefined) {
+            pageData.show_loyalty = r.message.show_loyalty;
+          }
+          if (r.message.show_loyalty_for_guests !== undefined) {
+            pageData.show_loyalty_for_guests = r.message.show_loyalty_for_guests;
+          }
+          
           // Update the interface
           updateCartUI();
         } catch (err) {
@@ -998,6 +1021,9 @@ function updateCartTotals(cartData) {
   } else {
     if (cartTaxDetails) cartTaxDetails.style.display = 'none';
   }
+  
+  // Update loyalty points display (not needed anymore as we use Jinja)
+  // updateLoyaltyPoints();
   
   // Update cart badge in header
   updateCartBadge();
@@ -1911,6 +1937,43 @@ function forceUpdateQuantityElement(itemCode, newQty) {
   setTimeout(() => {
     document.body.removeChild(script);
   }, 1000);
+}
+
+// Function to update loyalty points display
+function updateLoyaltyPoints() {  
+  const loyaltyPointsContainer = document.getElementById('cartLoyaltyPoints');
+  const loyaltyPointsText = document.getElementById('loyaltyPointsText');
+  
+  if (!loyaltyPointsContainer || !loyaltyPointsText) {
+    return;
+  }
+  
+  // Check if loyalty is enabled and if we should show for guests
+  const isGuest = typeof frappe !== 'undefined' && frappe.session && frappe.session.user === 'Guest';
+  const shouldShow = pageData.show_loyalty && (!isGuest || pageData.show_loyalty_for_guests);
+  
+  if (shouldShow && pageData.loyalty_info && pageData.loyalty_info.points_to_earn > 0) {
+    // Format the message
+    let message = '';
+    if (pageData.loyalty_info.earned_text) {
+      message = pageData.loyalty_info.earned_text;
+    } else {
+      // Default message if no custom text
+      const points = pageData.loyalty_info.points_to_earn || 0;
+      const value = pageData.loyalty_info.points_value || 0;
+      
+      if (typeof __ !== 'undefined') {
+        message = __('Earn {0} points worth {1}', [points, formatPrice(value)]);
+      } else {
+        message = `Earn ${points} points worth ${formatPrice(value)}`;
+      }
+    }
+    
+    loyaltyPointsText.textContent = message;
+    loyaltyPointsContainer.style.display = 'block';
+  } else {
+    loyaltyPointsContainer.style.display = 'none';
+  }
 }
 
 // Initialize buttons on page load

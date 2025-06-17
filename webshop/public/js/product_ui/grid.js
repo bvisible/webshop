@@ -36,10 +36,21 @@ webshop.ProductGrid = class {
 
 	get_image_html(item, title) {
 		let image = item.website_image;
+		let discount_badge = '';
+		
+		// Add discount badge if item has discount
+		if (item.discount_percent && item.discount_percent > 0) {
+			discount_badge = `
+				<div class="discount-badge">
+					<span>- ${Math.round(item.discount_percent)}%</span>
+				</div>
+			`;
+		}
 
 		if (image) {
 			return `
 				<div class="card-img-container">
+					${discount_badge}
 					<a href="/${ item.route || '#' }" style="text-decoration: none;">
 						<img itemprop="image" class="card-img" src="${ image }" alt="${ title }">
 					</a>
@@ -48,6 +59,7 @@ webshop.ProductGrid = class {
 		} else {
 			return `
 				<div class="card-img-container">
+					${discount_badge}
 					<a href="/${ item.route || '#' }" style="text-decoration: none;">
 						<div class="card-img-top no-image">
 							${ frappe.get_abbr(title) }
@@ -77,10 +89,28 @@ webshop.ProductGrid = class {
 		}
 
 		body_html += `</div>`;
+		
+		// Category and stock info in same line
+		body_html += `<div class="product-category-stock">`;
 		body_html += `<div class="product-category" itemprop="name">${ item.item_group || '' }</div>`;
+		
+		// Add stock info if settings allow
+		if (settings.show_stock_availability && !item.has_variants) {
+			body_html += this.get_inline_stock_info(item);
+		}
+		
+		body_html += `</div>`;
 
 		if (item.formatted_price) {
+			body_html += `<div class="price-loyalty-wrapper">`;
 			body_html += this.get_price_html(item);
+			
+			// Add loyalty points icon next to price
+			if (item.loyalty_points_html) {
+				body_html += this.get_loyalty_points_html(item);
+			}
+			
+			body_html += `</div>`;
 		}
 
 		body_html += this.get_stock_availability(item, settings);
@@ -136,7 +166,7 @@ webshop.ProductGrid = class {
 					<s>${ item.formatted_mrp ? item.formatted_mrp.replace(/ +/g, "") : "" }</s>
 				</small>
 				<small class="ml-1 product-info-green">
-					${ item.discount } ${ __("OFF") }
+					- ${ item.discount }
 				</small>
 			`;
 		}
@@ -144,23 +174,62 @@ webshop.ProductGrid = class {
 		return price_html;
 	}
 
-	get_stock_availability(item, settings) {
-		if (settings.show_stock_availability && !item.has_variants) {
-			if (item.on_backorder) {
-				return `
-					<span class="out-of-stock mb-2 mt-1" style="color: var(--primary-color)">
-						${ __("Available on backorder") }
-					</span>
-				`;
-			} else if (!item.in_stock) {
-				return `
-					<span class="out-of-stock mb-2 mt-1">
-						${ __("Out of stock") }
-					</span>
-				`;
+	get_inline_stock_info(item) {
+		let stockClass = '';
+		let stockText = '';
+		let stockQty = '';
+		let tooltipText = '';
+		
+		if (item.on_backorder) {
+			stockClass = 'on-backorder';
+			stockText = window.product_translations && window.product_translations["On backorder"] || "On backorder";
+			tooltipText = window.product_translations && window.product_translations["On backorder"] || "On backorder";
+		} else if (!item.in_stock) {
+			stockClass = 'out-of-stock';
+			stockText = window.product_translations && window.product_translations["Out of stock"] || "Out of stock";
+			tooltipText = window.product_translations && window.product_translations["Out of stock"] || "Out of stock";
+		} else if (item.stock_qty && parseFloat(item.stock_qty) <= 5) {
+			stockClass = 'low-stock';
+			stockText = window.product_translations && window.product_translations["Low stock"] || "Low stock";
+			stockQty = `(${Math.floor(item.stock_qty)})`;
+			tooltipText = (window.product_translations && window.product_translations["Low stock"] || "Low stock") + `: ${Math.floor(item.stock_qty)} ${window.product_translations && window.product_translations["available"] || "available"}`;
+		} else {
+			stockClass = 'in-stock';
+			stockText = window.product_translations && window.product_translations["In stock"] || "In stock";
+			// Toujours afficher la quantité si elle existe et est > 0
+			if (item.stock_qty !== undefined && item.stock_qty !== null && parseFloat(item.stock_qty) > 0) {
+				stockQty = `(${Math.floor(item.stock_qty)})`;
+				tooltipText = (window.product_translations && window.product_translations["In stock"] || "In stock") + `: ${Math.floor(item.stock_qty)} ${window.product_translations && window.product_translations["available"] || "available"}`;
+			} else {
+				tooltipText = window.product_translations && window.product_translations["In stock"] || "In stock";
 			}
 		}
+		
+		return `
+			<span class="stock-info">
+				<span class="stock-badge ${stockClass}"></span>
+				${stockQty ? `<span class="stock-qty">${stockQty}</span>` : ''}
+				<span class="stock-tooltip">${tooltipText}</span>
+			</span>
+		`;
+	}
 
+	get_loyalty_points_html(item) {
+		if (!item.loyalty_points_html) return '';
+		
+		return `
+			<span class="loyalty-points-icon-wrapper">
+				<img src="/assets/webshop/icons/loyalty_icon.svg" class="loyalty-icon-inline" alt="Loyalty Points">
+				<span class="loyalty-tooltip-inline">
+					${item.loyalty_points_html}
+				</span>
+			</span>
+		`;
+	}
+
+	get_stock_availability(item, settings) {
+		// This is now just for the larger stock message below price
+		// Keeping empty since we show stock info inline with category
 		return ``;
 	}
 
@@ -169,7 +238,7 @@ webshop.ProductGrid = class {
 			return `
 				<a href="/${ item.route || '#' }">
 					<div class="btn btn-sm btn-explore-variants w-100 mt-4">
-						${ __("Explore") }
+						${ window.product_translations && window.product_translations["Explore"] || "Explore" }
 					</div>
 				</a>
 			`;
@@ -184,7 +253,7 @@ webshop.ProductGrid = class {
 							<use href="#icon-assets"></use>
 						</svg>
 					</span>
-					${ settings.enable_checkout ? __("Add to Cart") :  __("Add to Quote") }
+					${ settings.enable_checkout ? (window.product_translations && window.product_translations["Add to Cart"] || "Add to Cart") :  (window.product_translations && window.product_translations["Add to Quote"] || "Add to Quote") }
 				</div>
 
 				<a href="/cart">
@@ -193,7 +262,7 @@ webshop.ProductGrid = class {
 						w-100 mt-4 go-to-cart-grid
 						${ item.in_cart ? '' : 'hidden' }"
 						data-item-code="${ item.item_code }">
-						${ settings.enable_checkout ? __("Go to Cart") :  __("Go to Quote") }
+						${ settings.enable_checkout ? (window.product_translations && window.product_translations["Go to Cart"] || "Go to Cart") :  (window.product_translations && window.product_translations["Go to Quote"] || "Go to Quote") }
 					</div>
 				</a>
 			`;

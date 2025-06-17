@@ -167,6 +167,24 @@ def get_cart_quotation(doc=None):
 					is_b2b_customer = True
 					break
 
+	# Get loyalty points to earn information
+	loyalty_info = {}
+	show_loyalty = False
+	show_loyalty_for_guests = False
+	
+	try:
+		settings = frappe.get_cached_doc("Webshop Settings")
+		show_loyalty = settings.enable_loyalty_points
+		show_loyalty_for_guests = settings.show_loyalty_points_for_guests if settings.enable_loyalty_points else False
+		
+		if settings.enable_loyalty_points and doc:
+			from webshop.webshop.utils.loyalty_cart import get_loyalty_points_for_cart
+			loyalty_data = get_loyalty_points_for_cart(doc)
+			if loyalty_data:
+				loyalty_info = loyalty_data
+	except Exception as e:
+		frappe.log_error("Loyalty Points Error in get_cart_quotation", str(e))
+
 	return {
 		"doc": decorate_quotation_doc(doc) if doc else None,
 		"shipping_addresses": get_shipping_addresses(party),
@@ -177,7 +195,10 @@ def get_cart_quotation(doc=None):
 		"loyalty_points_value": loyalty_points_value,
 		"loyalty_program_details": loyalty_program_details,
 		"customer_info": customer_info,
-		"is_b2b_customer": is_b2b_customer
+		"is_b2b_customer": is_b2b_customer,
+		"loyalty_info": loyalty_info,
+		"show_loyalty": show_loyalty,
+		"show_loyalty_for_guests": show_loyalty_for_guests
 	}
 
 
@@ -1027,9 +1048,12 @@ def create_lead_for_item_inquiry(lead, subject, message):
 def get_terms_and_conditions(terms_name):
 	return frappe.db.get_value("Terms and Conditions", terms_name, "terms")
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def update_cart_address(address_type, address_name):
 	quotation = _get_cart_quotation()
+	if not quotation:
+		frappe.throw(_("Cart not found"))
+		
 	address_doc = frappe.get_doc("Address", address_name).as_dict()
 	address_display = get_address_display(address_doc)
 	
@@ -1039,18 +1063,43 @@ def update_cart_address(address_type, address_name):
 		quotation.shipping_address_name = (
 			quotation.shipping_address_name or address_name
 		)
-		address_doc = next(
-			(doc for doc in get_billing_addresses() if doc["name"] == address_name),
-			None,
-		)
+		# For guests, create address info directly
+		if frappe.session.user == "Guest":
+			address_doc = {
+				"name": address_name,
+				"title": address_doc.get("address_title"),
+				"display": address_display
+			}
+		else:
+			address_doc = next(
+				(doc for doc in get_billing_addresses() if doc["name"] == address_name),
+				None,
+			)
 	elif address_type.lower() == "shipping":
 		quotation.shipping_address_name = address_name
 		quotation.shipping_address = address_display
 		quotation.customer_address = quotation.customer_address or address_name
-		address_doc = next(
-			(doc for doc in get_shipping_addresses() if doc["name"] == address_name),
-			None,
-		)
+		# For guests, create address info directly
+		if frappe.session.user == "Guest":
+			address_doc = {
+				"name": address_name,
+				"title": address_doc.get("address_title"),
+				"display": address_display
+			}
+		else:
+			address_doc = next(
+				(doc for doc in get_shipping_addresses() if doc["name"] == address_name),
+				None,
+			)
+			
+	# Ensure quotation has valid totals before applying settings
+	if not quotation.grand_total:
+		quotation.grand_total = 0
+		quotation.base_grand_total = 0
+		
+	# Clear payment schedule before recalculation to avoid errors
+	quotation.payment_schedule = []
+		
 	apply_cart_settings(quotation=quotation)
 
 	quotation.flags.ignore_permissions = True
@@ -1083,6 +1132,8 @@ def decorate_quotation_doc(doc):
 	for d in doc.get("items", []):
 		item_code = d.item_code
 		fields = ["web_item_name", "thumbnail", "website_image", "description", "route"]
+		variant_item_name = None
+		variant_image = None
 
 		# Variant Item
 		if not frappe.db.exists("Website Item", {"item_code": item_code}):
@@ -1093,18 +1144,28 @@ def decorate_quotation_doc(doc):
 				as_dict=True,
 			)[0]
 			item_code = variant_data.variant_of
-			fields = fields[1:]
-			d.web_item_name = variant_data.item_name
+			variant_item_name = variant_data.item_name
+			variant_image = variant_data.image
 
-			if variant_data.image:  # get image from variant or template web item
-				d.thumbnail = variant_data.image
-				fields = fields[2:]
-
-		d.update(
-			frappe.db.get_value(
-				"Website Item", {"item_code": item_code}, fields, as_dict=True
-			) or {}
-		)
+		# Get website item data (parent/template item data for variants)
+		website_item_data = frappe.db.get_value(
+			"Website Item", {"item_code": item_code}, fields, as_dict=True
+		) or {}
+		
+		d.update(website_item_data)
+		
+		# For variants, override with variant-specific data
+		if variant_item_name:
+			d.web_item_name = variant_item_name
+		
+		# For images: use variant image if available, otherwise use parent/template image
+		if variant_image:
+			d.thumbnail = variant_image
+			d.website_image = variant_image
+		elif not d.get("website_image") and website_item_data.get("website_image"):
+			# If variant has no image, ensure parent/template image is used
+			d.website_image = website_item_data.get("website_image")
+			d.thumbnail = website_item_data.get("thumbnail") or website_item_data.get("website_image")
 
 		website_warehouse = frappe.get_cached_value(
 			"Website Item", {"item_code": item_code}, "website_warehouse"
@@ -1636,13 +1697,25 @@ def get_address_docs(
 	if not party:
 		return []
 
-	address_names = frappe.db.get_all(
-		"Dynamic Link",
-		fields=("parent"),
-		filters=dict(
-			parenttype="Address", link_doctype=party.doctype, link_name=party.name
-		),
-	)
+	# Handle guest customers
+	if frappe.session.user == "Guest" and isinstance(party, dict):
+		# For guests with a dict party, we need to handle it differently
+		address_names = frappe.db.get_all(
+			"Dynamic Link",
+			fields=("parent"),
+			filters=dict(
+				parenttype="Address", link_doctype="Customer", link_name=party.get("name")
+			),
+		)
+	else:
+		# Normal flow for logged in users
+		address_names = frappe.db.get_all(
+			"Dynamic Link",
+			fields=("parent"),
+			filters=dict(
+				parenttype="Address", link_doctype=party.doctype, link_name=party.name
+			),
+		)
 
 	out = []
 
@@ -2186,10 +2259,8 @@ def apply_loyalty_points(points):
 			break
 	
 	if existing_loyalty_charge:
-		frappe.log_error("Existing loyalty charge found")
 		existing_loyalty_charge.tax_amount = -loyalty_amount
 	else:
-		frappe.log_error("No existing loyalty charge found")
 		apply_loyalty_points_tax(quotation)
 	
 	# Create loyalty point entry

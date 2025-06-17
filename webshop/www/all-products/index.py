@@ -27,6 +27,11 @@ def get_context(context):
 		# Avoid logging the entire price filters array which is too long
 		context.price_filters = price_filters
 
+	# Add product settings for sort order
+	context.product_settings = {
+		"default_product_sort": frappe.db.get_single_value("Webshop Settings", "default_product_sort") or "relevance"
+	}
+	
 	context.page_length = (
 		cint(frappe.db.get_single_value("Webshop Settings", "products_per_page")) or 20
 	)

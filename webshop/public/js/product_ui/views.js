@@ -9,6 +9,18 @@ webshop.ProductView =  class {
 		this.preference = this.view_type;
 		this.total_product_count = null;  // Initialize to null to detect first load
 		this.stock_filter_default = options.stock_filter_default || false;
+		
+		// Initialize sort order early
+		this.current_sort = localStorage.getItem('product_sort_order') || 
+			(window.product_settings && window.product_settings.default_product_sort) || 
+			'relevance';
+		
+		// Initialize stock filter preference if not set
+		if (localStorage.getItem('stock_filter_checked') === null && localStorage.getItem('discount_filter_checked') === 'true') {
+			// If discount filter is active and stock filter has no preference, set it to false
+			localStorage.setItem('stock_filter_checked', 'false');
+		}
+		
 		this.load_settings();
 	}
 
@@ -44,13 +56,66 @@ webshop.ProductView =  class {
 
 	prepare_toolbar() {
 		this.products_section.append(`
-			<div class="toolbar d-flex">
+			<div class="toolbar d-flex flex-column flex-md-row align-items-center">
 			</div>
 		`);
+		// On mobile: sort first, then search, then view toggles
+		// On desktop: search, view toggles, sort
 		this.prepare_search();
 		this.prepare_view_toggler();
+		this.prepare_sort_selector();
+		this.prepare_active_filters_display();
 
 		new webshop.ProductSearch();
+	}
+	
+	prepare_active_filters_display() {
+		// Add a section to show active filters
+		this.products_section.append(`
+			<div class="active-filters-display mt-2 mb-2" style="display: none;">
+				<div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
+					<small class="text-muted mr-2">Active filters:</small>
+					<div class="active-filter-badges d-flex flex-wrap" style="gap: 0.5rem;"></div>
+				</div>
+			</div>
+		`);
+	}
+	
+	update_active_filters_display() {
+		const $display = $('.active-filters-display');
+		const $badges = $('.active-filter-badges');
+		$badges.empty();
+		
+		let hasActiveFilters = false;
+		
+		// Check localStorage filters
+		const stockFilter = localStorage.getItem('stock_filter_checked') === 'true';
+		const discountFilter = localStorage.getItem('discount_filter_checked') === 'true';
+		
+		if (stockFilter) {
+			hasActiveFilters = true;
+			$badges.append(`
+				<span class="badge badge-info">
+					<i class="fa fa-check"></i> In Stock Only
+				</span>
+			`);
+		}
+		
+		if (discountFilter) {
+			hasActiveFilters = true;
+			$badges.append(`
+				<span class="badge badge-warning">
+					<i class="fa fa-tag"></i> Discounted Only
+				</span>
+			`);
+		}
+		
+		// Show/hide the display based on active filters
+		if (hasActiveFilters) {
+			$display.show();
+		} else {
+			$display.hide();
+		}
 	}
 
 	prepare_view_toggler() {
@@ -60,6 +125,55 @@ webshop.ProductView =  class {
 			this.bind_view_toggler_actions();
 			this.set_view_state();
 		}
+	}
+	
+	prepare_sort_selector() {
+		// Get saved sort order or use default from settings
+		const saved_sort = localStorage.getItem('product_sort_order') || 
+			(window.product_settings && window.product_settings.default_product_sort) || 
+			'relevance';
+		
+		this.current_sort = saved_sort;
+		
+		// Use server-side translations if available
+		const translations = window.product_translations || {};
+		const sortByLabel = translations["Sort by:"] || "Sort by:";
+		const mostRelevant = translations["Most Relevant"] || "Most Relevant";
+		const priceLowToHigh = translations["Price: Low to High"] || "Price: Low to High";
+		const priceHighToLow = translations["Price: High to Low"] || "Price: High to Low";
+		const newArrivals = translations["New Arrivals"] || "New Arrivals";
+		const customerRating = translations["Customer Rating"] || "Customer Rating";
+		
+		// Add sort selector to toolbar (not toggle-container)
+		$(".toolbar").append(`
+			<div class="sort-selector-container ml-md-auto d-flex align-items-center mb-2 mb-md-0">
+				<label class="mb-0 mr-2 text-muted small d-none d-sm-block">${sortByLabel}</label>
+				<div class="d-flex align-items-center">
+					<svg class="icon icon-sm mr-1 d-sm-none text-muted" style="width: 16px; height: 16px;">
+						<use href="#icon-sort"></use>
+					</svg>
+					<select class="form-control form-control-sm" id="product-sort-selector" style="width: auto; max-width: 200px;">
+						<option value="relevance" ${saved_sort === 'relevance' ? 'selected' : ''}>${mostRelevant}</option>
+						<option value="price_low_to_high" ${saved_sort === 'price_low_to_high' ? 'selected' : ''}>${priceLowToHigh}</option>
+						<option value="price_high_to_low" ${saved_sort === 'price_high_to_low' ? 'selected' : ''}>${priceHighToLow}</option>
+						<option value="new_arrivals" ${saved_sort === 'new_arrivals' ? 'selected' : ''}>${newArrivals}</option>
+						<option value="rating" ${saved_sort === 'rating' ? 'selected' : ''}>${customerRating}</option>
+					</select>
+				</div>
+			</div>
+		`);
+		
+		// Bind change event
+		$('#product-sort-selector').on('change', (e) => {
+			const new_sort = $(e.target).val();
+			this.current_sort = new_sort;
+			
+			// Save preference
+			localStorage.setItem('product_sort_order', new_sort);
+			
+			// Reload products with new sort
+			this.get_item_filter_data(true);
+		});
 	}
 
 	get_item_filter_data(from_filters=false) {
@@ -78,15 +192,23 @@ webshop.ProductView =  class {
 			callback: function(result) {
 				if (!result || result.exc || !result.message || result.message.exc) {
 					me.render_no_products_section(true);
-				} else {
+				} else {					
 					// Sub Category results are independent of Items
-					if (me.item_group && result.message["sub_categories"].length) {
+					if (me.item_group && result.message["sub_categories"] && result.message["sub_categories"].length) {
 						me.render_item_sub_categories(result.message["sub_categories"]);
 					}
 
 					// Always render discount filters
-					me.re_render_discount_filters(result.message["filters"].discount_filters);
+					me.re_render_discount_filters();
+					
+					// Update price filter range if available
+					if (result.message.filters && result.message.filters.price_filters) {
+						me.update_price_filter_range(result.message.filters.price_filters);
+					} 
 
+					// Clean up any existing no-products section before rendering
+					$('.cart-empty').remove();
+					
 					if (!result.message["items"].length) {
 						// if result has no items or result is empty
 						me.render_no_products_section();
@@ -111,10 +233,19 @@ webshop.ProductView =  class {
 						// filter persistence is handle on filter change event
 						me.bind_filters();
 						me.restore_filters_state();
+					} else {
+						// Always restore discount checkbox state from localStorage
+						const saved_discount_preference = localStorage.getItem('discount_filter_checked');
+						if (saved_discount_preference !== null) {
+							$('#showDiscountOnly').prop('checked', saved_discount_preference === 'true');
+						}
 					}
 
 					// Bottom paging
 					me.add_paging_section(result.message["settings"]);
+					
+					// Update active filters display
+					me.update_active_filters_display();
 				}
 
 				me.disable_view_toggler(false);
@@ -165,43 +296,81 @@ webshop.ProductView =  class {
 		const filters = frappe.utils.get_query_params();
 		let {field_filters, attribute_filters, price_range} = filters;
 
-		field_filters = field_filters ? JSON.parse(field_filters) : {};
-		attribute_filters = attribute_filters ? JSON.parse(attribute_filters) : {};
-		
-		// If no field_filters in URL, check if stock filter should be applied
-		if (Object.keys(field_filters).length === 0 && !this.from_filters) {
-			const saved_preference = localStorage.getItem('stock_filter_checked');
-			let should_apply = false;
-			
-			if (saved_preference !== null) {
-				should_apply = saved_preference === 'true';
-			} else {
-				should_apply = this.stock_filter_default;
+		// Safe parsing with proper decoding for mobile compatibility
+		try {
+			field_filters = field_filters ? JSON.parse(decodeURIComponent(field_filters)) : {};
+		} catch (e) {
+			console.error("Error parsing field_filters:", e);
+			// Try without decoding as fallback
+			try {
+				field_filters = field_filters ? JSON.parse(field_filters) : {};
+			} catch (e2) {
+				console.error("Error parsing field_filters (fallback):", e2);
+				field_filters = {};
 			}
-			
-			if (should_apply) {
+		}
+		
+		try {
+			attribute_filters = attribute_filters ? JSON.parse(decodeURIComponent(attribute_filters)) : {};
+		} catch (e) {
+			console.error("Error parsing attribute_filters:", e);
+			// Try without decoding as fallback
+			try {
+				attribute_filters = attribute_filters ? JSON.parse(attribute_filters) : {};
+			} catch (e2) {
+				console.error("Error parsing attribute_filters (fallback):", e2);
+				attribute_filters = {};
+			}
+		}
+		
+		// Always check localStorage for stock/discount filters
+		// These are managed separately from URL filters
+		const saved_stock_preference = localStorage.getItem('stock_filter_checked');
+		const saved_discount_preference = localStorage.getItem('discount_filter_checked');
+		
+		// For stock filter
+		if (saved_stock_preference !== null) {
+			if (saved_stock_preference === 'true') {
 				field_filters["in_stock"] = ["1"];
 			}
+		} else if (Object.keys(field_filters).length === 0 && !this.from_filters && saved_discount_preference !== 'true') {
+			// Only apply default if no saved preference, no other filters active, and discount is not active
+			if (this.stock_filter_default) {
+				field_filters["in_stock"] = ["1"];
+			}
+		}
+		
+		// For discount filter - always respect localStorage
+		if (saved_discount_preference === 'true') {
+			field_filters["discount"] = ["100"];
 		}
 		
 		// Retrieve the price_range parameter from the URL
 		if (price_range) {
 			try {
-				this.price_range = JSON.parse(price_range);
+				this.price_range = JSON.parse(decodeURIComponent(price_range));
 			} catch (e) {
 				console.error("Error parsing price_range parameter:", e);
-				this.price_range = {};
+				// Try without decoding as fallback
+				try {
+					this.price_range = JSON.parse(price_range);
+				} catch (e2) {
+					console.error("Error parsing price_range (fallback):", e2);
+					this.price_range = {};
+				}
 			}
 		}
 
-		return {
+		const result = {
 			field_filters: field_filters,
 			attribute_filters: attribute_filters,
 			item_group: this.item_group,
 			start: filters.start || null,
 			from_filters: this.from_filters || false,
-			price_range: price_range || null // Add the price_range parameter to the query
+			price_range: price_range || null, // Add the price_range parameter to the query
+			sort_order: this.current_sort || 'relevance' // Add sort order
 		};
+		return result;
 	}
 
 	add_paging_section(settings) {
@@ -214,7 +383,34 @@ webshop.ProductView =  class {
 		let page_length = settings.products_per_page || 0;
 		let current_page = Math.floor(start / page_length) + 1;
 		let total_count = this.total_count || this.product_count;
+		
 		let total_pages = Math.ceil(total_count / page_length);
+		
+		// Check if discount filter is active
+		const saved_discount_preference = localStorage.getItem('discount_filter_checked');
+		const discount_filter_active = saved_discount_preference === 'true';
+		
+		// If discount filter is active, handle special cases
+		if (discount_filter_active) {
+			// If we have no products and we're not on the first page, redirect to first page
+			if (this.products.length === 0 && start > 0) {
+				const translations = window.product_translations || {};
+				frappe.show_alert({
+					message: translations["No more discounted products. Returning to first page."] || "No more discounted products. Returning to first page.",
+					indicator: 'orange'
+				});
+				setTimeout(() => {
+					window.location.search = this.get_query_string({});
+				}, 2000);
+				return;
+			}
+			
+			// If we have fewer items than expected, adjust display
+			if (this.products.length < page_length && total_pages > current_page) {
+				// This might be the last page with discount items
+				total_pages = current_page;
+			}
+		}
 		
 		let paging_html = `
 			<div class="row product-paging-area mt-5">
@@ -280,10 +476,16 @@ webshop.ProductView =  class {
 				</button>`;
 		}
 
+		const translations = window.product_translations || {};
+		const pageText = translations["Page"] || "Page";
+		const ofText = translations["of"] || "of";
+		const productsText = translations["products"] || "products";
+		
 		paging_html += `
 					</div>
 					<div class="mt-3 text-muted">
-						${__("Page")} ${current_page} ${__("of")} ${total_pages} (${total_count} ${__("products")})
+						${pageText} ${current_page} ${ofText} ${total_pages} 
+						<i>(${total_count} ${productsText})</i>
 					</div>
 				</div>
 			</div>
@@ -312,11 +514,14 @@ webshop.ProductView =  class {
 	}
 
 	prepare_search() {
+		// Use server-side translations if available, fallback to default text
+		const searchPlaceholder = (window.product_translations && window.product_translations["Search for Products"]) || "Search for Products";
+		
 		$(".toolbar").append(`
-			<div class="input-group col-8 p-0">
+			<div class="input-group flex-grow-1 mb-2 mb-md-0 mr-md-3">
 				<div class="dropdown w-100" id="dropdownMenuSearch">
 					<input type="search" name="query" id="search-box" class="form-control font-md"
-						placeholder="${__("Search for Products")}"
+						placeholder="${searchPlaceholder}"
 						aria-label="Product" aria-describedby="button-addon2">
 					<div class="search-icon">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -335,7 +540,7 @@ webshop.ProductView =  class {
 	}
 
 	render_view_toggler() {
-		$(".toolbar").append(`<div class="toggle-container col-4 p-0"></div>`);
+		$(".toolbar").append(`<div class="toggle-container d-flex justify-content-between align-items-center flex-grow-0"></div>`);
 
 		["btn-list-view", "btn-grid-view"].forEach(view => {
 			let icon = view === "btn-list-view" ? "list" : "image-view";
@@ -400,8 +605,8 @@ webshop.ProductView =  class {
 		});
 	}
 
-	re_render_discount_filters(filter_data) {
-		this.get_discount_filter_html(filter_data);
+	re_render_discount_filters() {
+		this.get_discount_filter_html();
 		if (this.from_filters) {
 			// Bind filter action if triggered via filters
 			// if not from filter action, page load will bind actions
@@ -412,7 +617,7 @@ webshop.ProductView =  class {
 		this.restore_discount_filter();
 	}
 
-	get_discount_filter_html(filter_data) {
+	get_discount_filter_html() {
 		$("#discount-filters").remove();
 		
 		// Find the stock filter section
@@ -420,10 +625,14 @@ webshop.ProductView =  class {
 			return $(this).find('.filter-label').text().includes('Availability');
 		});
 		
+		// Use server-side translations
+		const translations = window.product_translations || {};
+		const discountsLabel = translations["Discounts"] || "Discounts";
+		
 		// Always show the discount filter section before stock filter
 		const discountSection = `
 			<div id="discount-filters" class="mb-4 filter-block pb-5">
-				<div class="filter-label mb-3">${ __("Discounts") }</div>
+				<div class="filter-label mb-3">${ discountsLabel }</div>
 			</div>
 		`;
 		
@@ -436,31 +645,9 @@ webshop.ProductView =  class {
 
 		let html = `<div class="filter-options">`;
 		
-		// Add percentage filters if there are discounted products
-		if (filter_data && filter_data.length > 0) {
-			filter_data.forEach(filter => {
-				html += `
-					<div class="checkbox">
-						<label data-value="${ filter[0] }">
-							<input type="radio"
-								class="product-filter discount-filter"
-								name="discount" id="${ filter[0] }"
-								data-filter-name="discount"
-								data-filter-value="${ filter[0] }"
-								style="width: 14px !important"
-							>
-								<span class="label-area" for="${ filter[0] }">
-									${ filter[1] }
-								</span>
-							</label>
-						</div>
-				`;
-			});
-		}
-
-		// Always add "Show only products with discount" checkbox
+		// Only add "Show only products with discount" checkbox
 		html += `
-			<div class="checkbox ${filter_data && filter_data.length > 0 ? 'mt-3' : ''}">
+			<div class="checkbox">
 				<label>
 					<input type="checkbox"
 						class="product-filter discount-filter"
@@ -471,7 +658,7 @@ webshop.ProductView =  class {
 						style="width: 14px !important"
 					>
 						<span class="label-area" for="showDiscountOnly">
-							${ __("Show only products with discount") }
+							${ translations["Show only products with discount"] || "Show only products with discount" }
 						</span>
 					</label>
 				</div>
@@ -487,7 +674,18 @@ webshop.ProductView =  class {
 		let field_filters = filters.field_filters;
 		if (!field_filters) return;
 
-		field_filters = JSON.parse(field_filters);
+		// Safe parsing with proper decoding
+		try {
+			field_filters = JSON.parse(decodeURIComponent(field_filters));
+		} catch (e) {
+			// Try without decoding as fallback
+			try {
+				field_filters = JSON.parse(field_filters);
+			} catch (e2) {
+				console.error("Error parsing discount filters:", e2);
+				return;
+			}
+		}
 
 		if (field_filters && field_filters["discount"]) {
 			const values = field_filters["discount"];
@@ -508,19 +706,39 @@ webshop.ProductView =  class {
 			// Récupérer la valeur du filtre à partir de l'attribut data-filter-value
 			const filter_value = $checkbox.attr('data-filter-value');
 			
+			// Special handling for "Show only products with discount" checkbox
+			if ($checkbox.attr('id') === 'showDiscountOnly') {
+				// Save preference in localStorage like stock filter
+				localStorage.setItem('discount_filter_checked', is_checked ? 'true' : 'false');
+				
+				// If enabling discount filter and stock filter has no saved preference, save it as false
+				// This prevents the default stock filter from being applied on mobile
+				if (is_checked && localStorage.getItem('stock_filter_checked') === null) {
+					localStorage.setItem('stock_filter_checked', 'false');
+				}
+				
+				// Force immediate update of filters
+				if (is_checked) {
+					this.field_filters = this.field_filters || {};
+					this.field_filters["discount"] = ["100"];
+				} else {
+					if (this.field_filters) {
+						delete this.field_filters["discount"];
+					}
+				}
+				
+				// Set from_filters to true to ensure filters are applied
+				me.from_filters = true;
+				me.change_route_with_filters();
+				return;
+			}
+			
+			// For percentage discount filters
 			delete this.field_filters["discount"];
 
 			if (is_checked) {
 				this.field_filters["discount"] = [];
 				this.field_filters["discount"].push(filter_value);
-				
-				// Si c'est la case à cocher "Show only products with discount"
-				if ($checkbox.attr('id') === 'showDiscountOnly') {
-					// Rediriger vers la page all-products avec le filtre de remise
-					window.location.href = "/all-products?field_filters=" + 
-						JSON.stringify({"discount": [filter_value]});
-					return;
-				}
 			}
 
 			if (!this.field_filters["discount"] || this.field_filters["discount"].length === 0) {
@@ -541,18 +759,26 @@ webshop.ProductView =  class {
 		// Initialize stock filter based on saved preference or default
 		const url_filters = frappe.utils.get_query_params().field_filters;
 		if (!url_filters) {
-			// No filters in URL, check saved preference
-			const saved_preference = localStorage.getItem('stock_filter_checked');
-			let should_apply = false;
+			// No filters in URL, check saved preferences
 			
-			if (saved_preference !== null) {
-				should_apply = saved_preference === 'true';
+			// Stock filter
+			const saved_stock_preference = localStorage.getItem('stock_filter_checked');
+			let should_apply_stock = false;
+			
+			if (saved_stock_preference !== null) {
+				should_apply_stock = saved_stock_preference === 'true';
 			} else {
-				should_apply = this.stock_filter_default;
+				should_apply_stock = this.stock_filter_default;
 			}
 			
-			if (should_apply) {
+			if (should_apply_stock) {
 				this.field_filters["in_stock"] = ["1"];
+			}
+			
+			// Discount filter
+			const saved_discount_preference = localStorage.getItem('discount_filter_checked');
+			if (saved_discount_preference === 'true') {
+				this.field_filters["discount"] = ["100"];
 			}
 		}
 
@@ -568,6 +794,11 @@ webshop.ProductView =  class {
 				$('#price-min').val('');
 				$('#price-max').val('');
 				this.price_range = {};
+			}
+			
+			// Special handling for discount filter - skip here as it's handled separately
+			if ($checkbox.is('.discount-filter')) {
+				return;
 			}
 			
 			// Special handling for stock filter
@@ -658,18 +889,72 @@ webshop.ProductView =  class {
 			const keyword = ($input.val() || '').toLowerCase();
 			const $filter_options = $input.next('.filter-options');
 
-			$filter_options.find('.filter-lookup-wrapper').show();
-			$filter_options.find('.filter-lookup-wrapper').each((i, el) => {
-				const $el = $(el);
-				const value = $el.data('value').toLowerCase();
-				if (!value.includes(keyword)) {
-					$el.hide();
-				}
-			});
+			if (!keyword) {
+				// If search is cleared, show all and collapse hierarchical groups
+				$filter_options.find('.filter-lookup-wrapper').show();
+				$filter_options.find('.children-container').hide();
+				$filter_options.find('.toggle-children').text('+').attr('data-expanded', 'false');
+			} else {
+				// First, hide all items
+				$filter_options.find('.filter-lookup-wrapper').hide();
+				
+				// Then show items that match the search
+				$filter_options.find('.filter-lookup-wrapper').each((i, el) => {
+					const $el = $(el);
+					const value = ($el.data('value') || '').toLowerCase();
+					
+					if (value.includes(keyword)) {
+						// Show this element
+						$el.show();
+						
+						// If it's a hierarchical item group, show all parents
+						$el.parents('.filter-lookup-wrapper').show();
+						
+						// If it has children, expand and show all children
+						const $childContainer = $el.find('> .children-container');
+						if ($childContainer.length > 0) {
+							$childContainer.show();
+							$childContainer.find('.filter-lookup-wrapper').show();
+							$el.find('> .d-flex .toggle-children').text('-').attr('data-expanded', 'true');
+						}
+						
+						// Also expand parent containers that contain this item
+						$el.parents('.children-container').each(function() {
+							$(this).show();
+							$(this).prev('.d-flex').find('.toggle-children').text('-').attr('data-expanded', 'true');
+						});
+					}
+				});
+			}
 		}, 300));
 		
 		// Initialize price filters
 		this.bind_price_filters();
+		
+		// Bind discount filter actions
+		this.bind_discount_filter_action();
+	}
+	
+	update_price_filter_range(price_filters) {
+		// Update the price filter range based on current filters
+		if (price_filters && price_filters.length > 0) {
+			const price_range = price_filters[0]; // First element contains min/max values
+			if (price_range.min_value !== undefined && price_range.max_value !== undefined) {
+				// Update the hidden values
+				$('#price-range-min-value').text(price_range.min_value);
+				$('#price-range-max-value').text(price_range.max_value);
+				
+				// Update the input placeholders
+				$('#price-min').attr('placeholder', price_range.min_value);
+				$('#price-max').attr('placeholder', price_range.max_value);
+				$('#price-max').attr('max', price_range.max_value);
+				
+				// Re-initialize the price slider if it exists
+				if (this.price_slider_initialized) {
+					this.bind_price_filters();
+				}
+			}
+		}
 	}
 	
 	bind_price_filters() {
@@ -677,7 +962,7 @@ webshop.ProductView =  class {
 		
 		// Get the minimum and maximum price values from the DOM
 		const min_price_value = parseInt($('#price-range-min-value').text()) || 0;
-		const max_price_value = parseInt($('#price-range-max-value').text()) || 5000;
+		const max_price_value = parseInt($('#price-range-max-value').text()) || 10000;
 		
 		// Variables to store the current state of the slider
 		let current_min = min_price_value;
@@ -863,6 +1148,9 @@ webshop.ProductView =  class {
 		
 		// Call the restore function
 		restore_price_filters();
+		
+		// Mark that price slider is initialized
+		me.price_slider_initialized = true;
 	}
 
 	refresh_list_view() {
@@ -879,13 +1167,24 @@ webshop.ProductView =  class {
 			start = 0; // show items from first page if new filters are triggered
 		}
 
-		// Check if we have any filters at all
-		const has_field_filters = this.if_key_exists(this.field_filters);
+		// Create a copy of field_filters excluding localStorage-managed filters
+		let url_field_filters = {};
+		if (this.field_filters) {
+			for (let key in this.field_filters) {
+				// Exclude stock and discount filters from URL (they use localStorage)
+				if (key !== 'in_stock' && key !== 'discount') {
+					url_field_filters[key] = this.field_filters[key];
+				}
+			}
+		}
+
+		// Check if we have any filters to put in URL
+		const has_url_field_filters = this.if_key_exists(url_field_filters);
 		const has_attribute_filters = this.if_key_exists(this.attribute_filters);
 		const has_price_filters = this.price_range && (this.price_range.min || this.price_range.max);
 		
 		// If no filters and start is 0, use clean URL
-		if (!has_field_filters && !has_attribute_filters && !has_price_filters && start === 0) {
+		if (!has_url_field_filters && !has_attribute_filters && !has_price_filters && start === 0) {
 			window.history.pushState('filters', '', location.pathname);
 		} else {
 			// Prepare the query parameters
@@ -895,8 +1194,8 @@ webshop.ProductView =  class {
 				query_params.start = start;
 			}
 			
-			if (has_field_filters) {
-				query_params.field_filters = JSON.stringify(this.field_filters);
+			if (has_url_field_filters) {
+				query_params.field_filters = JSON.stringify(url_field_filters);
 			}
 			
 			if (has_attribute_filters) {
@@ -935,40 +1234,40 @@ webshop.ProductView =  class {
 				$(selector).prop('checked', true);
 			}
 			this.field_filters = field_filters;
-			
-			// If in_stock is not in the URL but other filters are, uncheck the stock filter
-			if (!field_filters.hasOwnProperty('in_stock')) {
-				$('#showInStockOnly').prop('checked', false);
-			}
-		} else if (!has_url_filters) {
-			// No filters at all in URL, use saved preference or defaults
-			const saved_preference = localStorage.getItem('stock_filter_checked');
-			let should_check = false;
-			
-			if (saved_preference !== null) {
-				// Use saved preference
-				should_check = saved_preference === 'true';
-			} else {
-				// Use default setting
-				should_check = this.stock_filter_default;
-			}
-			
-			if (should_check) {
+		}
+		
+		// Always restore localStorage-managed filters regardless of URL filters
+		// Stock filter
+		const saved_stock_preference = localStorage.getItem('stock_filter_checked');
+		if (saved_stock_preference !== null) {
+			const should_check_stock = saved_stock_preference === 'true';
+			if (should_check_stock) {
 				this.field_filters = this.field_filters || {};
 				this.field_filters["in_stock"] = ["1"];
 				$('#showInStockOnly').prop('checked', true);
 			} else {
 				$('#showInStockOnly').prop('checked', false);
 			}
-		} else {
-			// We have other filters but no field_filters
-			// Still check saved preference for stock filter
-			const saved_preference = localStorage.getItem('stock_filter_checked');
-			if (saved_preference !== null) {
-				$('#showInStockOnly').prop('checked', saved_preference === 'true');
+		} else if (!has_url_filters) {
+			// Only use default if no saved preference and no URL filters
+			const should_check_stock = this.stock_filter_default;
+			if (should_check_stock) {
+				this.field_filters = this.field_filters || {};
+				this.field_filters["in_stock"] = ["1"];
+				$('#showInStockOnly').prop('checked', true);
 			} else {
 				$('#showInStockOnly').prop('checked', false);
 			}
+		}
+		
+		// Discount filter - only update checkbox state, not filters
+		const saved_discount_preference = localStorage.getItem('discount_filter_checked');
+		if (saved_discount_preference !== null) {
+			const should_check_discount = saved_discount_preference === 'true';
+			$('#showDiscountOnly').prop('checked', should_check_discount);
+		} else {
+			// No saved preference - ensure checkbox is unchecked by default
+			$('#showDiscountOnly').prop('checked', false);
 		}
 		
 		if (attribute_filters) {
@@ -1016,9 +1315,10 @@ webshop.ProductView =  class {
 	}
 
 	render_no_products_section(error=false) {
+		const translations = window.product_translations || {};
 		let error_section = `
 			<div class="mt-4 w-100 alert alert-error font-md">
-				${ __("Something went wrong. Please refresh or contact us.") }
+				${ translations["Something went wrong. Please refresh or contact us."] || "Something went wrong. Please refresh or contact us." }
 			</div>
 		`;
 		let no_results_section = `
@@ -1026,7 +1326,7 @@ webshop.ProductView =  class {
 				<div class="cart-empty-state">
 					<img src="/assets/webshop/images/cart-empty-state.png" alt="Empty Cart">
 				</div>
-				<div class="cart-empty-message mt-4">${ __("No products found") }</p>
+				<div class="cart-empty-message mt-4">${ translations["No products found"] || "No products found" }</p>
 			</div>
 		`;
 
@@ -1059,7 +1359,12 @@ webshop.ProductView =  class {
 		for (let key in object) {
 			const value = object[key];
 			if (value) {
-				url.append(key, value);
+				// For JSON values, ensure they are properly stringified
+				if (typeof value === 'object') {
+					url.append(key, JSON.stringify(value));
+				} else {
+					url.append(key, value);
+				}
 			}
 		}
 		

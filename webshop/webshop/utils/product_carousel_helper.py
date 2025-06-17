@@ -67,7 +67,6 @@ def get_carousel_items(item_group=None, only_promotions=False, limit=20,
     
     if sort_by not in valid_sort_fields:
         # Si le champ de tri demandé n'est pas valide, utiliser modified par défaut
-        frappe.log_error(f"Invalid sort field '{sort_by}' for carousel items. Using 'modified' instead.", "Carousel Error")
         sort_by = "modified"
     
     # Get website items

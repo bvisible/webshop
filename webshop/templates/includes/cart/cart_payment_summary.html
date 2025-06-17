@@ -45,11 +45,11 @@
 					</tr>
 				{% endif %}
 
-				<!-- Points de fidélité -->
+				<!-- Loyalty Points -->
 				{% if doc.loyalty_amount and doc.loyalty_amount > 0 %}
 					<tr class="loyalty-row">
 						<td class="bill-label text-success">
-						{{ _("Points de fidélité") }} ({{ doc.loyalty_points }} {{ _("points") }})
+						{{ _("Loyalty Points") }} ({{ doc.loyalty_points }} {{ _("points") }})
 						</td>
 						<td class="bill-content text-right text-success">
 						-{{ frappe.utils.fmt_money(doc.loyalty_amount, currency=doc.currency) }}
@@ -58,6 +58,36 @@
 				{% endif %}
 				
 			</table>
+
+			<!-- Loyalty Points to Earn -->
+			{% if cart_settings.enable_loyalty_points and (frappe.session.user != "Guest" or cart_settings.show_loyalty_points_for_guests) %}
+				{% set loyalty_program = frappe.get_doc("Loyalty Program", cart_settings.loyalty_program) if cart_settings.loyalty_program else None %}
+				{% if loyalty_program %}
+					{% set collection_factor = loyalty_program.collection_rules[0].collection_factor if loyalty_program.collection_rules else 3 %}
+					{% set points_to_earn = (doc.grand_total / collection_factor)|int %}
+					{% set points_value = points_to_earn * loyalty_program.conversion_factor %}
+					{% if points_to_earn > 0 %}
+						<div class="loyalty-points-section mt-4">
+							<img src="/assets/webshop/icons/loyalty_icon.svg" class="loyalty-icon-large" alt="Loyalty Points">
+							<p class="loyalty-text">
+								{% if cart_settings.loyalty_points_earned_text %}
+									{% set earned_text = cart_settings.loyalty_points_earned_text.replace("{points}", points_to_earn|string).replace("{value}", frappe.utils.fmt_money(points_value, currency=doc.currency)) %}
+									{{ earned_text }}
+								{% else %}
+									{{ _("Earn") }} {{ points_to_earn }} {{ _("points worth") }} 
+									{{ frappe.utils.fmt_money(points_value, currency=doc.currency) }}
+								{% endif %}
+							</p>
+							{% if cart_settings.loyalty_points_conversion_text %}
+								{% set conversion_text = cart_settings.loyalty_points_conversion_text.replace("{points}", points_to_earn|string).replace("{amount}", frappe.utils.fmt_money(points_value, currency=doc.currency)) %}
+								<div class="loyalty-tooltip">
+									{{ conversion_text }}
+								</div>
+							{% endif %}
+						</div>
+					{% endif %}
+				{% endif %}
+			{% endif %}
 
 			<!-- TODO: Apply Coupon Dialog-->
 			<!-- {% set show_coupon_code = cart_settings.show_apply_coupon_code_in_website and cart_settings.enable_checkout %}

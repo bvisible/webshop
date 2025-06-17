@@ -22,7 +22,6 @@ def get_carousel_brands(limit=10, sort_by="modified", sort_order="desc", feature
     try:
         # Check if the Brand table exists
         if not frappe.db.table_exists("Brand"):
-            frappe.log_error("Table Brand does not exist")
             return []
             
         # Get metadata of the Brand table to check available fields

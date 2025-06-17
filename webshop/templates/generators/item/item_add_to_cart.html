@@ -32,6 +32,19 @@
 					({{ price_info.formatted_price }} / {{ product_info.uom }})
 				</small>
 			</div>
+			
+			<!-- Loyalty Points Info -->
+			{% if loyalty_points_info and loyalty_points_info.earned_text %}
+			<div class="loyalty-points-section">
+				<img src="/assets/webshop/icons/loyalty_icon.svg" class="loyalty-icon-large" alt="Loyalty Points">
+				<p class="loyalty-text">{{ loyalty_points_info.earned_text }}</p>
+				{% if loyalty_points_info.conversion_text %}
+					<div class="loyalty-tooltip">
+						{{ loyalty_points_info.conversion_text }}
+					</div>
+				{% endif %}
+			</div>
+			{% endif %}
 		{% else %}
 			{{ _("UOM") }} : {{ product_info.uom }}
 		{% endif %}
