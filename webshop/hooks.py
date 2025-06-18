@@ -12,9 +12,7 @@ required_apps = ["payments", "erpnext"]
 
 web_include_css = "webshop-web.bundle.css"
 
-web_include_js = [
-	"web.bundle.js",
-]
+web_include_js = "web.bundle.js"
 
 after_install = "webshop.setup.install.after_install"
 on_logout = "webshop.webshop.shopping_cart.utils.clear_cart_count"
@@ -22,6 +20,16 @@ on_session_creation = [
 	"webshop.webshop.utils.portal.update_debtors_account",
 	"webshop.webshop.shopping_cart.utils.set_cart_count",
 ]
+
+# Hook for maintenance mode check
+website_redirects = [
+	{"source": "/home", "target": "/"},
+	{"source": "/homepage", "target": "/"},
+	{"source": "/navbar", "target": "/"},
+	{"source": "/footer", "target": "/"},
+	{"source": "/all-item-groups", "target": "/all-products"}
+]
+
 update_website_context = [
 	"webshop.webshop.shopping_cart.utils.update_website_context",
 ]
@@ -108,11 +116,3 @@ jinja = {
         "webshop.webshop.utils.wishlist_helper.get_wishlist_data"
 	]
 }
-
-website_redirects = [
-    {"source": "/home", "target": "/"},
-    {"source": "/homepage", "target": "/"},
-    {"source": "/navbar", "target": "/"},
-    {"source": "/footer", "target": "/"},
-    {"source": "/all-item-groups", "target": "/all-products"}
-]

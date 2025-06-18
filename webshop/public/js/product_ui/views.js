@@ -15,6 +15,36 @@ webshop.ProductView =  class {
 			(window.product_settings && window.product_settings.default_product_sort) || 
 			'relevance';
 		
+		// Check URL parameters for discount filter and sort order
+		const urlParams = new URLSearchParams(window.location.search);
+		
+		// Handle discount filter from URL
+		if (urlParams.get('discount') === 'true') {
+			// Set discount filter in localStorage when coming from URL
+			localStorage.setItem('discount_filter_checked', 'true');
+			// Also ensure stock filter is set to false if not already set
+			if (localStorage.getItem('stock_filter_checked') === null) {
+				localStorage.setItem('stock_filter_checked', 'false');
+			}
+			// Remove the discount parameter from URL to avoid confusion
+			urlParams.delete('discount');
+		}
+		
+		// Handle sort order from URL
+		if (urlParams.get('sort') === 'new_arrivals') {
+			// Set sort order in localStorage when coming from URL
+			localStorage.setItem('product_sort_order', 'new_arrivals');
+			this.current_sort = 'new_arrivals';
+			// Remove the sort parameter from URL to avoid confusion
+			urlParams.delete('sort');
+		}
+		
+		// Update URL if parameters were removed
+		if (urlParams.get('discount') === null && urlParams.get('sort') === null) {
+			const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+			window.history.replaceState({}, '', newUrl);
+		}
+		
 		// Initialize stock filter preference if not set
 		if (localStorage.getItem('stock_filter_checked') === null && localStorage.getItem('discount_filter_checked') === 'true') {
 			// If discount filter is active and stock filter has no preference, set it to false
@@ -183,6 +213,7 @@ webshop.ProductView =  class {
 		let args = this.get_query_filters();
 
 		this.disable_view_toggler(true);
+		this.show_product_loader();
 
 		frappe.call({
 			method: "webshop.webshop.api.get_product_filter_data",
@@ -190,6 +221,7 @@ webshop.ProductView =  class {
 				query_args: args
 			},
 			callback: function(result) {
+				me.hide_product_loader();
 				if (!result || result.exc || !result.message || result.message.exc) {
 					me.render_no_products_section(true);
 				} else {					
@@ -672,28 +704,41 @@ webshop.ProductView =  class {
 	restore_discount_filter() {
 		const filters = frappe.utils.get_query_params();
 		let field_filters = filters.field_filters;
-		if (!field_filters) return;
-
-		// Safe parsing with proper decoding
-		try {
-			field_filters = JSON.parse(decodeURIComponent(field_filters));
-		} catch (e) {
-			// Try without decoding as fallback
+		
+		// First check URL parameters
+		if (field_filters) {
+			// Safe parsing with proper decoding
 			try {
-				field_filters = JSON.parse(field_filters);
-			} catch (e2) {
-				console.error("Error parsing discount filters:", e2);
-				return;
+				field_filters = JSON.parse(decodeURIComponent(field_filters));
+			} catch (e) {
+				// Try without decoding as fallback
+				try {
+					field_filters = JSON.parse(field_filters);
+				} catch (e2) {
+					console.error("Error parsing discount filters:", e2);
+					field_filters = null;
+				}
+			}
+
+			if (field_filters && field_filters["discount"]) {
+				const values = field_filters["discount"];
+				const selector = values.map(value => {
+					return `input[data-filter-name="discount"][data-filter-value="${value}"]`;
+				}).join(',');
+				$(selector).prop('checked', true);
+				this.field_filters = field_filters;
 			}
 		}
-
-		if (field_filters && field_filters["discount"]) {
-			const values = field_filters["discount"];
-			const selector = values.map(value => {
-				return `input[data-filter-name="discount"][data-filter-value="${value}"]`;
-			}).join(',');
-			$(selector).prop('checked', true);
-			this.field_filters = field_filters;
+		
+		// Also check localStorage for the discount filter state
+		const saved_discount_preference = localStorage.getItem('discount_filter_checked');
+		if (saved_discount_preference === 'true') {
+			$('#showDiscountOnly').prop('checked', true);
+			// If checkbox is checked via localStorage, also update field_filters
+			if (!this.field_filters) {
+				this.field_filters = {};
+			}
+			this.field_filters["discount"] = ["100"];
 		}
 	}
 
@@ -1383,5 +1428,103 @@ webshop.ProductView =  class {
 			}
 		}
 		return exists ? obj : undefined;
+	}
+
+	disable_view_toggler(disable) {
+		$('#list').prop('disabled', disable);
+		$('#grid').prop('disabled', disable);
+	}
+	
+	show_product_loader() {
+		// Remove any existing loader
+		$('.product-loader').remove();
+		
+		// Create loader HTML
+		const loaderHTML = `
+			<div class="product-loader">
+				<div class="loader-backdrop"></div>
+				<div class="loader-content">
+					<div class="spinner-container">
+						<div class="spinner-border text-primary" role="status">
+							<span class="sr-only">Loading...</span>
+						</div>
+					</div>
+					<p class="loader-text">Loading products...</p>
+				</div>
+			</div>
+		`;
+		
+		// Add loader to products section
+		this.products_section.append(loaderHTML);
+		
+		// Add CSS if not already added
+		if (!$('#product-loader-styles').length) {
+			$('head').append(`
+				<style id="product-loader-styles">
+					.product-loader {
+						position: absolute;
+						top: 0;
+						left: 0;
+						right: 0;
+						bottom: 0;
+						min-height: 400px;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						z-index: 100;
+					}
+					
+					.loader-backdrop {
+						position: absolute;
+						top: 0;
+						left: 0;
+						right: 0;
+						bottom: 0;
+						/*background: rgba(255, 255, 255, 0.9);*/
+						backdrop-filter: blur(2px);
+					}
+					
+					.loader-content {
+						position: relative;
+						text-align: center;
+						z-index: 101;
+					}
+					
+					.spinner-container {
+						margin-bottom: 1rem;
+					}
+					
+					.spinner-border {
+						width: 3rem;
+						height: 3rem;
+						border-width: 0.3em;
+					}
+					
+					.loader-text {
+						color: var(--text-muted);
+						font-size: 1rem;
+						margin: 0;
+						animation: pulse 1.5s ease-in-out infinite;
+					}
+					
+					@keyframes pulse {
+						0%, 100% { opacity: 1; }
+						50% { opacity: 0.5; }
+					}
+					
+					/* Position relative for products section */
+					#products-grid-area, #products-list-area {
+						position: relative;
+						min-height: 400px;
+					}
+				</style>
+			`);
+		}
+	}
+	
+	hide_product_loader() {
+		$('.product-loader').fadeOut(200, function() {
+			$(this).remove();
+		});
 	}
 };

@@ -36,6 +36,8 @@ The brand carousel displays a responsive, interactive carousel of brand logos an
 ### Optional Parameters/Variables
 - `carousel_id` (string): Custom ID for the carousel element (default: 'brand-carousel')
 - `carousel_title` (string): Title to display above the carousel
+- `view_more_link` (string): URL for "View More" button (shows button if provided)
+- `view_more_text` (string): Custom text for "View More" button (default: "View More")
 
 ### Example Usage
 ```html
@@ -63,6 +65,13 @@ The brand carousel displays a responsive, interactive carousel of brand logos an
 {% set carousel_title = "Featured Brands" %}
 {% set carousel_id = "featured-brands-carousel" %}
 {% include "webshop/templates/includes/brand_carousel.html" with context %}
+
+<!-- With View More button -->
+{% set carousel_title = "Popular Brands" %}
+{% set carousel_id = "popular-brands" %}
+{% set view_more_link = "/shop-by-category?tab=brand" %}
+{% set view_more_text = "View All Brands" %}
+{% include "webshop/templates/includes/brand_carousel.html" %}
 ```
 
 ### Dependencies
@@ -169,73 +178,86 @@ None - the component is fully self-contained.
 
 ### Purpose and Functionality
 The product carousel displays a responsive, interactive carousel of products with:
-- Product images with hover zoom effect
-- Product name, description, and pricing
-- Discount display with strikethrough original price
-- "Discover" button on hover
+- Automatic product fetching from database if no list provided
+- Real-time price display with currency formatting
+- Discount badges and strikethrough pricing
+- Category display
+- "Explore" button for product details
 - Touch/swipe support
 - Auto-play with pause on hover
 - Responsive layout (1-4 products per view)
+- Support for discount-only filtering
 
 ### Required Context Variables
-- `website_items` (list): Array of product objects. Each item should contain:
-  - `route` (string): URL path to the product page
-  - `web_item_name` or `item_name` or `name` (string): Product display name
-  - `website_image` (string, optional): Product image URL
-  - `abbr` (string): Abbreviation for no-image fallback
-  - `description` (string, optional): Product description
-  - `price` (float, optional): Current price
-  - `formatted_price` (string): Formatted price string
-  - `formatted_mrp` (string, optional): Formatted original price
-  - `discount` (string, optional): Discount percentage or amount
+None - the carousel will automatically fetch the latest published products if no list is provided.
 
 ### Optional Parameters/Variables
-- `carousel_id` (string): Custom ID for the carousel (default: 'product-carousel')
+- `carousel_id` (string): Custom ID for the carousel (auto-generated if not provided)
 - `carousel_title` (string): Title to display above the carousel
+- `show_discounted_only` (bool): If True, only shows products with discounts (default: False)
+- `carousel_limit` (int): Maximum number of products to display (default: 8)
+- `website_items` (list): Custom list of products (overrides automatic fetching)
+- `view_more_link` (string): URL for "View More" button (shows button if provided)
+- `view_more_text` (string): Custom text for "View More" button (default: "View More")
 
 ### Example Usage
 ```html
+<!-- Basic usage (fetches latest 8 products) -->
 {% include "webshop/templates/includes/product_carousel.html" %}
 
-<!-- With custom products -->
-{% set website_items = [
-  {
-    "route": "products/laptop-pro-15",
-    "web_item_name": "Laptop Pro 15\"",
-    "website_image": "/files/laptop-pro-15.jpg",
-    "abbr": "LP",
-    "description": "High-performance laptop for professionals",
-    "price": 1299.99,
-    "formatted_price": "$1,299.99",
-    "formatted_mrp": "$1,599.99",
-    "discount": "19% off"
-  },
-  {
-    "route": "products/wireless-mouse",
-    "item_name": "Wireless Mouse",
-    "website_image": "/files/wireless-mouse.jpg",
-    "abbr": "WM",
-    "description": "Ergonomic wireless mouse",
-    "price": 29.99,
-    "formatted_price": "$29.99"
-  }
-] %}
+<!-- Show only discounted products with View More button -->
+{% set carousel_id = "promo-products" %}
+{% set carousel_title = "Promotions" %}
+{% set show_discounted_only = True %}
+{% set carousel_limit = 12 %}
+{% set view_more_link = "/all-products?discount=true" %}
+{% set view_more_text = "View All Promotions" %}
+{% include "webshop/templates/includes/product_carousel.html" %}
 
+<!-- Multiple carousels on same page (IMPORTANT: reset variables) -->
+{% set carousel_id = "new-products" %}
+{% set carousel_title = "New Arrivals" %}
+{% set show_discounted_only = False %}  <!-- Reset to False -->
+{% set website_items = None %}  <!-- Reset to None -->
+{% include "webshop/templates/includes/product_carousel.html" %}
+
+{% set carousel_id = "sale-products" %}
+{% set carousel_title = "On Sale" %}
+{% set show_discounted_only = True %}
+{% set website_items = None %}
+{% include "webshop/templates/includes/product_carousel.html" %}
+
+<!-- With custom product list -->
+{% set carousel_id = "featured" %}
 {% set carousel_title = "Featured Products" %}
-{% set carousel_id = "featured-products" %}
-{% include "webshop/templates/includes/product_carousel.html" with context %}
+{% set website_items = frappe.get_all("Website Item", 
+    filters={"published": 1, "featured": 1}, 
+    fields=["name", "web_item_name", "route", "website_image", "item_group"],
+    limit=6
+) %}
+{% include "webshop/templates/includes/product_carousel.html" %}
 ```
+
+### Important Notes for Multiple Carousels
+When using multiple carousels on the same page, **always reset variables** between includes:
+- Set `show_discounted_only = False` if not filtering by discount
+- Set `website_items = None` to trigger automatic fetching
+- Use unique `carousel_id` values to avoid conflicts
 
 ### Dependencies
 - **CSS:** Embedded within the template with:
   - Responsive breakpoints
+  - Discount badge styling
   - Hover effects and animations
-  - Schema.org structured data markup
 - **JavaScript:** Self-contained carousel logic with:
+  - Unique initialization per carousel
   - Touch/swipe event handling
   - Auto-play functionality (5-second intervals)
-  - Image preloading for performance
   - Responsive item count adjustment
+- **Server-side:** 
+  - Automatic price fetching from Item Price doctype
+  - Discount calculation based on price lists
+  - Currency formatting from Webshop Settings
 
 ---
 

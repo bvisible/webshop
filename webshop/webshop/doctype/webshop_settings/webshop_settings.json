@@ -83,7 +83,13 @@
   "show_loyalty_points_for_guests",
   "column_break_loyalty",
   "loyalty_points_conversion_text",
-  "loyalty_points_earned_text"
+  "loyalty_points_earned_text",
+  "maintenance_mode_section",
+  "maintenance_mode",
+  "maintenance_message",
+  "column_break_maintenance",
+  "maintenance_end_time",
+  "allow_system_users_during_maintenance"
  ],
  "fields": [
   {
@@ -608,6 +614,44 @@
    "label": "Points Earned Text",
    "default": "Earn {points} points with this purchase",
    "description": "Use {points} for points count and {value} for monetary value"
+  },
+  {
+   "fieldname": "maintenance_mode_section",
+   "fieldtype": "Section Break",
+   "label": "Maintenance Mode"
+  },
+  {
+   "default": "Disabled",
+   "fieldname": "maintenance_mode",
+   "fieldtype": "Select",
+   "label": "Maintenance Mode",
+   "options": "Disabled\nWebshop Only\nWebsite and Webshop"
+  },
+  {
+   "depends_on": "eval:doc.maintenance_mode != 'Disabled'",
+   "fieldname": "maintenance_message",
+   "fieldtype": "Small Text",
+   "label": "Maintenance Message",
+   "default": "We are currently performing maintenance. We'll be back soon!"
+  },
+  {
+   "fieldname": "column_break_maintenance",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.maintenance_mode != 'Disabled'",
+   "fieldname": "maintenance_end_time",
+   "fieldtype": "Datetime",
+   "label": "Expected End Time",
+   "description": "Optional: When maintenance is expected to end"
+  },
+  {
+   "depends_on": "eval:doc.maintenance_mode != 'Disabled'",
+   "fieldname": "allow_system_users_during_maintenance",
+   "fieldtype": "Check",
+   "label": "Allow System Users During Maintenance",
+   "description": "Allow users with System Manager or Website Manager roles to access the site during maintenance",
+   "default": "1"
   }
  ],
  "index_web_pages_for_search": 1,

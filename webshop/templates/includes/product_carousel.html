@@ -1,11 +1,134 @@
-<section id="{{ carousel_id|default('product-carousel') }}" class="product-carousel">
+{% if not website_items %}
+    {# Get products based on requested type #}
+    {% set base_filters = {"published": 1} %}
+    
+    {# If we only want discounted products #}
+    {% if show_discounted_only %}
+        {# Fetch more products to filter from #}
+        {% set limit_count = 1000 %}
+    {% else %}
+        {% set limit_count = carousel_limit|default(8) %}
+    {% endif %}
+    
+    {% set all_items = frappe.get_all(
+        "Website Item",
+        filters=base_filters,
+        fields=["name", "web_item_name", "item_name", "item_code", "route", "website_image", "item_group", "description"],
+        order_by="creation desc",
+        limit=limit_count
+    ) %}
+    
+    {# Get prices for each product #}
+    {% set items_with_prices = [] %}
+    {% set settings = frappe.get_doc("Webshop Settings") %}
+    {% set price_list = settings.price_list if settings else None %}
+    
+    {% set max_items = carousel_limit|default(8) %}
+    {% for item in all_items %}
+        {% if show_discounted_only and items_with_prices|length >= max_items %}
+            {# Stop when we have enough discounted items #}
+        {% elif not show_discounted_only and items_with_prices|length >= max_items %}
+            {# Stop when we have enough items #}
+        {% else %}
+            {% if price_list and item.item_code %}
+                {# Get current price and check for discounts from multiple sources #}
+                {% set price_data = frappe.db.sql("""
+                    SELECT 
+                        ip.price_list_rate as current_price,
+                        GREATEST(
+                            COALESCE(ip_mrp.price_list_rate, 0),
+                            COALESCE(ip.price_list_rate, 0)
+                        ) as mrp_price,
+                        COALESCE(pr.discount_percentage, 0) as pricing_rule_discount
+                    FROM `tabWebsite Item` wi
+                    LEFT JOIN `tabItem Price` ip ON wi.item_code = ip.item_code 
+                        AND ip.selling = 1 
+                        AND ip.price_list = %s
+                    LEFT JOIN `tabItem Price` ip_mrp ON wi.item_code = ip_mrp.item_code 
+                        AND ip_mrp.selling = 1 
+                        AND ip_mrp.price_list != %s
+                    LEFT JOIN (
+                        SELECT 
+                            COALESCE(pri.item_code, i.name) as item_code,
+                            MAX(pr.discount_percentage) as discount_percentage
+                        FROM `tabPricing Rule` pr
+                        LEFT JOIN `tabPricing Rule Item Code` pri ON pri.parent = pr.name
+                        LEFT JOIN `tabPricing Rule Item Group` prg ON prg.parent = pr.name
+                        LEFT JOIN `tabItem` i ON i.item_group = prg.item_group
+                        WHERE pr.disable = 0
+                        AND pr.selling = 1
+                        AND pr.discount_percentage > 0
+                        AND (pr.valid_from IS NULL OR pr.valid_from <= CURDATE())
+                        AND (pr.valid_upto IS NULL OR pr.valid_upto >= CURDATE())
+                        AND (pri.item_code IS NOT NULL OR prg.item_group IS NOT NULL)
+                        GROUP BY COALESCE(pri.item_code, i.name)
+                    ) pr ON wi.item_code = pr.item_code
+                    WHERE wi.name = %s
+                    LIMIT 1
+                """, (price_list, price_list, item.name), as_dict=True) %}
+                
+                {% if price_data and price_data[0] %}
+                    {% set price_info = price_data[0] %}
+                    {% set current_price = price_info.current_price %}
+                    {% set mrp_price = price_info.mrp_price %}
+                    {% set pricing_rule_discount = price_info.pricing_rule_discount %}
+                    
+                    {# Calculate discount from multiple sources #}
+                    {% set price_based_discount = ((mrp_price - current_price) / mrp_price * 100)|int if (mrp_price and mrp_price > current_price) else 0 %}
+                    {% set has_discount = (price_based_discount > 0) or (pricing_rule_discount > 0) %}
+                    {% set discount_percent = pricing_rule_discount if pricing_rule_discount > price_based_discount else price_based_discount %}
+                    
+                    {# If there's a pricing rule discount but no MRP, calculate MRP from discount #}
+                    {% if pricing_rule_discount > 0 and (not mrp_price or mrp_price <= current_price) %}
+                        {% set mrp_price = current_price / (1 - pricing_rule_discount / 100) %}
+                    {% endif %}
+                    
+                    {# If we only want discounted products, filter them #}
+                    {% if not show_discounted_only or has_discount %}
+                        {% set new_item = {
+                            "name": item.name,
+                            "web_item_name": item.web_item_name,
+                            "item_name": item.item_name,
+                            "item_code": item.item_code,
+                            "route": item.route,
+                            "website_image": item.website_image,
+                            "item_group": item.item_group,
+                            "description": item.description,
+                            "formatted_price": frappe.utils.fmt_money(current_price, currency=settings.company_currency if settings.company_currency else "CHF"),
+                            "formatted_mrp": frappe.utils.fmt_money(mrp_price, currency=settings.company_currency if settings.company_currency else "CHF") if has_discount else None,
+                            "discount": "-" + discount_percent|string + "%" if has_discount else None,
+                            "discount_percent": discount_percent
+                        } %}
+                        {% set _ = items_with_prices.append(new_item) %}
+                    {% endif %}
+                {% elif not show_discounted_only %}
+                    {# If no price but we're not filtering, add anyway #}
+                    {% set _ = items_with_prices.append(item) %}
+                {% endif %}
+            {% elif not show_discounted_only %}
+                {# If no price list or item_code, add anyway if not filtering #}
+                {% set _ = items_with_prices.append(item) %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    
+    {% set website_items = items_with_prices %}
+{% endif %}
+
+{% set unique_carousel_id = carousel_id|default('product-carousel-' + range(1000, 9999)|random|string) %}
+<section id="{{ unique_carousel_id }}" class="product-carousel">
     {% if carousel_title %}
-    <div class="carousel-title">
-      <h2>{{ _(carousel_title) }}</h2>
+    <div class="carousel-header">
+      <h2 class="carousel-title">{{ _(carousel_title) }}</h2>
+      {% if view_more_link %}
+      <a href="{{ view_more_link }}" class="btn btn-sm btn-view-more">
+        {{ _(view_more_text|default("View More")) }} →
+      </a>
+      {% endif %}
     </div>
     {% endif %}
     
-    {% if website_items %}
+    {% if website_items and website_items|length > 0 %}
       <button class="carousel-btn left" aria-label="{{_("Previous")}}">←</button>
       <div class="carousel-wrapper">
         <div class="carousel-inner">
@@ -13,48 +136,58 @@
             <div class="item-card">
               <div class="card text-left">
                 <div class="card-img-container">
+                  {% if item.discount_percent and item.discount_percent > 0 %}
+                    <div class="discount-badge">
+                      <span>{{ item.discount }}</span>
+                    </div>
+                  {% endif %}
                   <a href="/{{ item.route or '#' }}" style="text-decoration: none;">
                     {% if item.website_image %}
                       <img class="card-img" src="{{ item.website_image }}" alt="{{ item.web_item_name or item.item_name or item.name }}">
                     {% else %}
                       <div class="card-img-top no-image">
-                        {{ item.abbr }}
+                        {% set display_name = item.web_item_name or item.item_name or item.name %}
+                        {{ display_name[0].upper() if display_name else "?" }}
                       </div>
                     {% endif %}
                   </a>
                 </div>
-                <div class="card-body text-left card-body-flex">
-                  <div class="product-header">
+                <div class="card-body text-left card-body-flex" style="width:100%">
+                  <div style="margin-top: 1rem; display: flex;">
                     <a href="/{{ item.route or '#' }}">
-                      <div class="product-title">
+                      <div class="product-title" itemprop="name">
                         {{ _(item.web_item_name or item.item_name or item.name) }}
                       </div>
                     </a>
                   </div>
-                  <div class="product-category">
-                    {% if item.description %}
-                      {% set clean_description = item.description | striptags %}
-                      {{ clean_description.split(' ')[0] }}
-                    {% endif %}
+                  
+                  {# Category and stock info in same line #}
+                  <div class="product-category-stock">
+                    <div class="product-category" itemprop="name">{{ item.item_group or '' }}</div>
+                    {# Stock info would go here if we had it #}
                   </div>
+                  
+                  {# Price section #}
                   <div class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
-                    {% if item.price %}
-                      <span class="current-price" itemprop="lowPrice">{{ item.formatted_price }}</span>
+                    {% if item.formatted_price %}
+                      {{ item.formatted_price }}
                       {% if item.formatted_mrp %}
                         <small class="striked-price">
-                          <s itemprop="highPrice">{{ item.formatted_mrp.replace(' ', '') }}</s>
+                          <s>{{ item.formatted_mrp }}</s>
                         </small>
                         <small class="ml-1 product-info-green">
                           {{ item.discount }}
                         </small>
                       {% endif %}
                     {% else %}
-                      <span class="product-price-unavailable"></span>
+                      <span class="product-price-placeholder">{{ _("Price on request") }}</span>
                     {% endif %}
                   </div>
-                  <div class="btn btn-sm btn-primary btn-discover w-100 mt-2">
-                    {{ _("Discover") }}
-                  </div>
+                  
+                  {# Explore button #}
+                  <a href="/{{ item.route or '#' }}" class="btn btn-sm btn-explore-variants w-100 mt-4">
+                    {{ _("Explore") }}
+                  </a>
                 </div>
               </div>
             </div>
@@ -69,36 +202,45 @@
       <style>
       .product-carousel {
         position: relative;
-        margin: 30px auto;
-        padding: 30px 0;
+        margin: 0 !important;
+        padding: 0 !important;
         max-width: 1200px;
         width: 100%;
+        overflow: visible;
       }
 
-      /* Carousel title */
-      .carousel-title {
-        text-align: center;
+      /* Carousel header */
+      .carousel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 1rem;
       }
 
-      .carousel-title h2 {
+      .carousel-title {
         font-size: 2.2em;
         font-weight: 600;
-        position: relative;
-        display: inline-block;
-        padding-bottom: 15px;
-        margin-bottom: 5px;
+        margin: 0;
+        padding-bottom: 5px;
       }
 
-      .carousel-title h2:after {
-        content: '';
-        position: absolute;
-        width: 80px;
-        height: 3px;
-        background-color: #000;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
+      .btn-view-more {
+        background-color: transparent;
+        color: var(--primary-color, #171717);
+        border: 1px solid var(--primary-color, #171717);
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+      }
+
+      .btn-view-more:hover {
+        background-color: var(--primary-color, #171717);
+        color: white;
+        text-decoration: none;
+        transform: translateX(2px);
       }
 
       .carousel-wrapper {
@@ -137,17 +279,7 @@
 
       .card:hover {
         box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-      }
-      
-      .btn-discover {
-        opacity: 0;
-        transform: translateY(10px);
-        transition: opacity 0.3s ease, transform 0.3s ease;
-      }
-      
-      .card:hover .btn-discover {
-        opacity: 1;
-        transform: translateY(0);
+        transform: translateY(-2px);
       }
 
       .card-img-container {
@@ -217,24 +349,36 @@
         font-weight: 600;
         color: #333;
         line-height: 1.3;
-        margin-bottom: 5px;
-        overflow: hidden;
+        min-height: 2.5rem;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
+        overflow: hidden;
         text-overflow: ellipsis;
       }
 
+      .product-category-stock {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.5rem;
+        gap: 0.5rem;
+      }
+
       .product-category {
-        font-size: 0.85em;
-        color: #666;
-        margin-bottom: 10px;
+        color: var(--text-muted, #666);
+        font-size: 0.875rem;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .product-price {
         font-size: 1.1em;
         font-weight: 700;
         color: #333;
+        margin-top: 0.75rem;
         margin-bottom: 10px;
         display: flex;
         align-items: center;
@@ -296,6 +440,45 @@
         background-color: #040404;
         border-color: black;
       }
+      
+      .btn-explore-variants {
+        background-color: var(--primary-color, #171717);
+        color: white;
+        border: 1px solid var(--primary-color, #171717);
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        transition: all 0.2s ease;
+      }
+      
+      .btn-explore-variants:hover {
+        background-color: var(--primary-dark, #040404);
+        border-color: var(--primary-dark, #040404);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      .discount-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+        background: #28a745;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      
+      .product-price-placeholder {
+        color: #999;
+        font-style: italic;
+        font-size: 0.9em;
+      }
 
       .w-100 {
         width: 100%;
@@ -338,21 +521,24 @@
         z-index: 10;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
-        transform: translateY(0px);
         line-height: 40px;
       }
 
-      .carousel-btn:hover {
+      .carousel-btn:hover:not(:disabled) {
         background-color: #f8f9fa;
         box-shadow: 0 4px 8px rgba(0,0,0,0.15);
       }
+      
+      .carousel-btn:disabled {
+        cursor: not-allowed;
+      }
 
       .carousel-btn.left {
-        left: 10px;
+        left: 0;
       }
 
       .carousel-btn.right {
-        right: 10px;
+        right: 0;
       }
 
       .carousel-indicators {
@@ -404,21 +590,39 @@
         .carousel-btn {
           width: 35px;
           height: 35px;
-        }
-        #product-carousel {
-          padding: 30px 30px;
+          font-size: 1em;
         }
         .product-title {
           height: auto;
           max-height: none;
           -webkit-line-clamp: 3;
         }
+        .carousel-header {
+          justify-content: center;
+        }
+        .carousel-title {
+          font-size: 1.8em;
+          text-align: center;
+          width: 100%;
+        }
+        .btn-view-more {
+          width: 100%;
+          text-align: center;
+        }
       }
       </style>
       
       <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const carousel = document.querySelector('#{{ carousel_id|default("product-carousel") }}');
+      (function() {
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initProductCarousel);
+        } else {
+          initProductCarousel();
+        }
+        
+        function initProductCarousel() {
+          const carousel = document.querySelector('#{{ unique_carousel_id }}');
         const carouselInner = carousel.querySelector('.carousel-inner');
         const btnLeft = carousel.querySelector('.carousel-btn.left');
         const btnRight = carousel.querySelector('.carousel-btn.right');
@@ -477,18 +681,18 @@
         }
         
         function updateControlsVisibility() {
-          if (itemCount <= itemsPerView) {
-            btnLeft.style.display = 'none';
-            btnRight.style.display = 'none';
-            indicators.style.display = 'none';
-          } else {
-            btnLeft.style.display = '';
-            btnRight.style.display = '';
-            indicators.style.display = '';
-            
-            btnLeft.disabled = currentIndex === 0;
-            btnRight.disabled = currentIndex >= itemCount - itemsPerView;
-          }
+          // Always show controls for better UX
+          btnLeft.style.display = '';
+          btnRight.style.display = '';
+          indicators.style.display = '';
+          
+          // Disable buttons at boundaries
+          btnLeft.disabled = currentIndex === 0;
+          btnRight.disabled = currentIndex >= Math.max(0, itemCount - itemsPerView);
+          
+          // Update button opacity for visual feedback
+          btnLeft.style.opacity = currentIndex === 0 ? '0.5' : '1';
+          btnRight.style.opacity = currentIndex >= Math.max(0, itemCount - itemsPerView) ? '0.5' : '1';
         }
         
         function updateCarousel() {
@@ -573,7 +777,7 @@
                 currentIndex = 0;
               }
               updateCarousel();
-            }, 5000); // Changer toutes les 5 secondes
+            }, 5000); // Change every 5 seconds
           }
         }
         
@@ -612,7 +816,18 @@
         
         // Apply immediately to avoid incorrect display
         updateCarousel();
-      });
+        }
+      })();
       </script>
+    {% else %}
+      <div class="empty-carousel text-center" style="padding: 3rem 1rem;">
+        <p style="color: #666; margin: 0;">
+          {% if show_discounted_only %}
+            {{ _("No products on sale at the moment") }}
+          {% else %}
+            {{ _("No products available") }}
+          {% endif %}
+        </p>
+      </div>
     {% endif %}
 </section>

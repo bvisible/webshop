@@ -31,6 +31,15 @@
 		<span class="product-item-group">
 			{{ _(doc.item_group) }}
 		</span>
+		{% if doc.brand %}
+		<span class="product-separator">•</span>
+		<span class="product-brand">
+			<a href="/all-products?field_filters={{ {'brand':[doc.brand]}|tojson|urlencode }}" class="brand-link">
+				{{ _(doc.brand) }}
+			</a>
+		</span>
+		{% endif %}
+		<span class="product-separator">•</span>
 		<span class="product-item-code" itemprop="name">
 			{{ _("Item Code") }}:
 		</span>
@@ -54,6 +63,47 @@
 	{% endif  %}
 	</div>
 </div>
+
+<style>
+	.product-separator {
+		margin: 0 0.5rem;
+		color: var(--text-muted);
+	}
+	
+	.product-brand {
+		font-weight: 500;
+	}
+	
+	.brand-link {
+		color: var(--primary-color, #171717);
+		text-decoration: none;
+		transition: all 0.2s ease;
+	}
+	
+	.brand-link:hover {
+		color: var(--primary-dark, #040404);
+		text-decoration: underline;
+	}
+	
+	.product-code {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+		margin-bottom: 1rem;
+		color: var(--text-muted);
+		font-size: 0.9rem;
+	}
+	
+	.product-item-group {
+		font-weight: 500;
+		color: var(--text-color);
+	}
+	
+	.product-item-code {
+		margin-left: 0.5rem;
+	}
+</style>
 
 {% block base_scripts %}
 <!-- js should be loaded in body! -->

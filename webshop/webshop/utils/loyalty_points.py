@@ -100,10 +100,6 @@ def format_loyalty_points_message(item_code, price, qty=1, customer=None):
     points_data = get_loyalty_points_for_item(item_code, price, qty, customer)
     
     if not points_data or not points_data.get("points"):
-        frappe.log_error(
-            message="No points data or zero points",
-            title="No points"
-        )
         return ""
     
     settings = frappe.get_single("Webshop Settings")

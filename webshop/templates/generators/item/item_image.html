@@ -8,19 +8,122 @@
 			{% endfor %}
 		</div>
 		{{ product_image(slides[0].image, 'product-image') }}
-		<!-- Simple image slideshow -->
+		<!-- Enhanced image slideshow with navigation and autoplay -->
+		<div class="slideshow-navigation">
+			<button class="slideshow-btn prev" aria-label="Previous image">‹</button>
+			<button class="slideshow-btn next" aria-label="Next image">›</button>
+		</div>
+		<div class="slideshow-progress">
+			{% for item in slides %}
+			<span class="progress-dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></span>
+			{% endfor %}
+		</div>
 		<script>
 			frappe.ready(() => {
+				const slides = document.querySelectorAll('.item-slideshow-image');
+				const totalSlides = slides.length;
+				let currentSlide = 0;
+				let autoplayInterval = null;
+				let isMouseOver = false;
+				
+				// Click on thumbnail
 				$('.page_content').on('click', '.item-slideshow-image', (e) => {
 					const $img = $(e.currentTarget);
+					const index = $('.item-slideshow-image').index($img);
+					showSlide(index);
+					resetAutoplay();
+				});
+				
+				// Click on progress dots
+				$('.progress-dot').on('click', (e) => {
+					const index = parseInt($(e.currentTarget).data('index'));
+					showSlide(index);
+					resetAutoplay();
+				});
+				
+				// Navigation buttons
+				$('.slideshow-btn.prev').on('click', () => {
+					currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+					showSlide(currentSlide);
+					resetAutoplay();
+				});
+				
+				$('.slideshow-btn.next').on('click', () => {
+					currentSlide = (currentSlide + 1) % totalSlides;
+					showSlide(currentSlide);
+					resetAutoplay();
+				});
+				
+				// Keyboard navigation
+				$(document).on('keydown', (e) => {
+					if ($('.image-zoom-view').is(':visible')) return;
+					
+					if (e.key === 'ArrowLeft') {
+						currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+						showSlide(currentSlide);
+						resetAutoplay();
+					} else if (e.key === 'ArrowRight') {
+						currentSlide = (currentSlide + 1) % totalSlides;
+						showSlide(currentSlide);
+						resetAutoplay();
+					}
+				});
+				
+				// Mouse hover detection
+				$('.product-image, .item-slideshow').on('mouseenter', () => {
+					isMouseOver = true;
+					stopAutoplay();
+				}).on('mouseleave', () => {
+					isMouseOver = false;
+					startAutoplay();
+				});
+				
+				function showSlide(index) {
+					currentSlide = index;
+					const $img = $(slides[index]);
 					const link = $img.prop('src');
 					const $product_image = $('.product-image');
+					
+					// Fade effect
+					$product_image.find('img').fadeOut(200, function() {
+						$(this).prop('src', link).fadeIn(200);
+					});
 					$product_image.find('a').prop('href', link);
-					$product_image.find('img').prop('src', link);
-
+					
 					$('.item-slideshow-image').removeClass('active');
 					$img.addClass('active');
-				});
+					
+					// Update progress dots
+					$('.progress-dot').removeClass('active');
+					$('.progress-dot').eq(index).addClass('active');
+				}
+				
+				function startAutoplay() {
+					if (!isMouseOver && totalSlides > 1) {
+						stopAutoplay();
+						autoplayInterval = setInterval(() => {
+							currentSlide = (currentSlide + 1) % totalSlides;
+							showSlide(currentSlide);
+						}, 8000); // 8 seconds
+					}
+				}
+				
+				function stopAutoplay() {
+					if (autoplayInterval) {
+						clearInterval(autoplayInterval);
+						autoplayInterval = null;
+					}
+				}
+				
+				function resetAutoplay() {
+					stopAutoplay();
+					if (!isMouseOver) {
+						startAutoplay();
+					}
+				}
+				
+				// Start autoplay initially
+				startAutoplay();
 			})
 		</script>
 	{% else %}
@@ -37,6 +140,19 @@
 				<line x1="6" y1="6" x2="18" y2="18"></line>
 			</svg>
 		</button>
+		<div class="zoom-content">
+			<button class="zoom-nav zoom-prev" aria-label="Previous image">‹</button>
+			<div class="zoom-image-container"></div>
+			<button class="zoom-nav zoom-next" aria-label="Next image">›</button>
+		</div>
+		{% if slides %}
+		<div class="zoom-thumbnails">
+			{% for item in slides %}
+			<img class="zoom-thumbnail {% if loop.first %}active{% endif %}" 
+				src="{{ item.image }}" alt="{{ item.heading }}" data-index="{{ loop.index0 }}">
+			{% endfor %}
+		</div>
+		{% endif %}
 	</div>
 </div>
 <style>
@@ -53,56 +169,379 @@
 		height: 100vh;
 		width: 100vw;
 		display: flex;
+		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		background: rgba(0, 0, 0, 0.8);
+		background: rgba(0, 0, 0, 0.95);
 		z-index: 1080;
 	}
 
-	.image-zoom-view img {
-		max-height: 100%;
-		max-width: 100%;
-	}
-
-	.image-zoom-view button {
+	.image-zoom-view .close {
 		position: absolute;
-		right: 3rem;
+		right: 2rem;
 		top: 2rem;
+		z-index: 1090;
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		padding: 10px;
+		transition: transform 0.2s ease;
+	}
+	
+	.image-zoom-view .close:hover {
+		transform: scale(1.1);
 	}
 
 	.image-zoom-view svg {
 		color: var(--white);
+		width: 30px;
+		height: 30px;
+	}
+	
+	.zoom-content {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 80vh;
+		width: 100%;
+		position: relative;
+	}
+	
+	.zoom-image-container {
+		max-height: 100%;
+		max-width: 90%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	
+	.zoom-image-container img {
+		max-height: 100%;
+		max-width: 100%;
+		object-fit: contain;
+	}
+	
+	.zoom-nav {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		background-color: rgba(255, 255, 255, 0.9);
+		border: none;
+		width: 50px;
+		height: 50px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+		font-size: 28px;
+		line-height: 1;
+		color: var(--text-color);
+		z-index: 1090;
+	}
+	
+	.zoom-nav:hover {
+		background-color: rgba(255, 255, 255, 1);
+		transform: translateY(-50%) scale(1.1);
+	}
+	
+	.zoom-nav.zoom-prev {
+		left: 2rem;
+	}
+	
+	.zoom-nav.zoom-next {
+		right: 2rem;
+	}
+	
+	.zoom-thumbnails {
+		position: absolute;
+		bottom: 2rem;
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		gap: 10px;
+		padding: 10px;
+		background: rgba(0, 0, 0, 0.7);
+		border-radius: 8px;
+		max-width: 90%;
+		overflow-x: auto;
+		z-index: 1090;
+	}
+	
+	.zoom-thumbnail {
+		width: 60px;
+		height: 60px;
+		object-fit: cover;
+		cursor: pointer;
+		opacity: 0.6;
+		transition: all 0.3s ease;
+		border: 2px solid transparent;
+		border-radius: 4px;
+	}
+	
+	.zoom-thumbnail.active {
+		opacity: 1;
+		border-color: var(--primary);
+	}
+	
+	.zoom-thumbnail:hover {
+		opacity: 1;
+		transform: scale(1.1);
+	}
+	
+	/* Mobile adjustments */
+	@media (max-width: 768px) {
+		.zoom-nav {
+			width: 40px;
+			height: 40px;
+			font-size: 24px;
+		}
+		
+		.zoom-nav.zoom-prev {
+			left: 1rem;
+		}
+		
+		.zoom-nav.zoom-next {
+			right: 1rem;
+		}
+		
+		.zoom-thumbnails {
+			bottom: 1rem;
+			gap: 5px;
+			padding: 5px;
+		}
+		
+		.zoom-thumbnail {
+			width: 50px;
+			height: 50px;
+		}
+	}
+	
+	/* Slideshow navigation styles */
+	.slideshow-navigation {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 100%;
+		display: flex;
+		justify-content: space-between;
+		pointer-events: none;
+		z-index: 10;
+	}
+	
+	.slideshow-btn {
+		background-color: rgba(255, 255, 255, 0.9);
+		border: none;
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		pointer-events: all;
+		transition: all 0.3s ease;
+		box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+		font-size: 24px;
+		line-height: 1;
+		color: var(--text-color);
+		opacity: 0;
+		margin: 0 10px;
+	}
+	
+	.slideshow-btn:hover {
+		background-color: rgba(255, 255, 255, 1);
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+		transform: scale(1.1);
+	}
+	
+	.slideshow-btn:active {
+		transform: scale(0.95);
+	}
+	
+	/* Show navigation buttons on hover */
+	.col-md-6:hover .slideshow-btn,
+	.col-md-4:hover .slideshow-btn {
+		opacity: 1;
+	}
+	
+	/* Product image container positioning */
+	.col-md-6, .col-md-4 {
+		position: relative;
+	}
+	
+	/* Fade effect for thumbnails */
+	.item-slideshow-image {
+		transition: all 0.3s ease;
+		opacity: 0.6;
+	}
+	
+	.item-slideshow-image.active {
+		opacity: 1;
+		border-color: var(--primary) !important;
+		box-shadow: 0 0 0 2px var(--primary);
+	}
+	
+	.item-slideshow-image:hover {
+		opacity: 1;
+		transform: scale(1.05);
+	}
+	
+	/* Product image transitions */
+	.product-image img {
+		transition: opacity 0.3s ease;
+	}
+	
+	/* Progress indicator */
+	.slideshow-progress {
+		position: absolute;
+		bottom: 10px;
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		gap: 5px;
+		z-index: 10;
+	}
+	
+	.progress-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background-color: rgb(248 248 248);
+		transition: all 0.3s ease;
+		cursor: pointer;
+	}
+	
+	.progress-dot.active {
+		background-color: var(--primary);
+		transform: scale(1.2);
+	}
+	
+	/* Mobile responsiveness */
+	@media (max-width: 768px) {
+		.slideshow-btn {
+			width: 35px;
+			height: 35px;
+			font-size: 20px;
+			opacity: 1;
+		}
+		
+		.slideshow-navigation {
+			position: static;
+			transform: none;
+			margin-top: 10px;
+			justify-content: center;
+			gap: 20px;
+		}
 	}
 </style>
 <script>
 	frappe.ready(() => {
 		const $zoom_wrapper = $('.image-zoom-view');
+		const $zoom_container = $('.zoom-image-container');
+		let zoomImages = [];
+		let currentZoomIndex = 0;
+		
+		// Get all slide images from thumbnails if they exist
+		const $thumbnails = $('.item-slideshow-image');
+		if ($thumbnails.length > 0) {
+			$thumbnails.each(function() {
+				zoomImages.push($(this).attr('src'));
+			});
+		} else {
+			// Get the main image
+			const mainImage = $('.website-image').attr('src');
+			if (mainImage) {
+				zoomImages = [mainImage];
+			}
+		}
 
+		// Click on main image to open zoom
 		$('.website-image').on('click', (e) => {
 			e.preventDefault();
 			const $img = $(e.target);
 			const src = $img.prop('src');
 			if (!src) return;
-			show_preview(src);
+			
+			// Find the index of the clicked image
+			currentZoomIndex = zoomImages.indexOf(src);
+			if (currentZoomIndex === -1) currentZoomIndex = 0;
+			
+			show_zoom_preview();
 		});
 
-		$zoom_wrapper.on('click', 'button', hide_preview);
+		// Close button
+		$zoom_wrapper.on('click', '.close', hide_zoom_preview);
+		
+		// Click outside image to close
+		$zoom_wrapper.on('click', (e) => {
+			if ($(e.target).hasClass('image-zoom-view')) {
+				hide_zoom_preview();
+			}
+		});
+		
+		// Navigation buttons
+		$zoom_wrapper.on('click', '.zoom-prev', () => {
+			currentZoomIndex = (currentZoomIndex - 1 + zoomImages.length) % zoomImages.length;
+			update_zoom_image();
+		});
+		
+		$zoom_wrapper.on('click', '.zoom-next', () => {
+			currentZoomIndex = (currentZoomIndex + 1) % zoomImages.length;
+			update_zoom_image();
+		});
+		
+		// Thumbnail clicks
+		$zoom_wrapper.on('click', '.zoom-thumbnail', (e) => {
+			currentZoomIndex = parseInt($(e.target).data('index'));
+			update_zoom_image();
+		});
 
+		// Keyboard navigation
 		$(document).on('keydown', (e) => {
+			if (!$zoom_wrapper.is(':visible')) return;
+			
 			if (e.key === 'Escape') {
-				hide_preview();
+				hide_zoom_preview();
+			} else if (e.key === 'ArrowLeft') {
+				e.preventDefault();
+				currentZoomIndex = (currentZoomIndex - 1 + zoomImages.length) % zoomImages.length;
+				update_zoom_image();
+			} else if (e.key === 'ArrowRight') {
+				e.preventDefault();
+				currentZoomIndex = (currentZoomIndex + 1) % zoomImages.length;
+				update_zoom_image();
 			}
 		});
 
-		function show_preview(src) {
+		function show_zoom_preview() {
 			$zoom_wrapper.show();
-			const $img = $(`<img src="${src}">`)
-			$zoom_wrapper.append($img);
+			update_zoom_image();
+			$('body').css('overflow', 'hidden'); // Prevent scrolling
 		}
 
-		function hide_preview() {
-			$zoom_wrapper.find('img').remove();
+		function hide_zoom_preview() {
 			$zoom_wrapper.hide();
+			$zoom_container.empty();
+			$('body').css('overflow', ''); // Restore scrolling
+		}
+		
+		function update_zoom_image() {
+			const src = zoomImages[currentZoomIndex];
+			$zoom_container.html(`<img src="${src}" alt="Product image">`);
+			
+			// Update thumbnail active state
+			$('.zoom-thumbnail').removeClass('active');
+			$('.zoom-thumbnail').eq(currentZoomIndex).addClass('active');
+			
+			// Hide navigation if only one image
+			if (zoomImages.length <= 1) {
+				$('.zoom-nav, .zoom-thumbnails').hide();
+			} else {
+				$('.zoom-nav, .zoom-thumbnails').show();
+			}
 		}
 	})
 </script>
