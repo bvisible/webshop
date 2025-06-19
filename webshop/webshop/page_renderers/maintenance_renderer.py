@@ -11,18 +11,14 @@ class MaintenancePageRenderer(BaseRenderer):
 		
 	def can_render(self):
 		"""Check if maintenance mode is active and should block this request"""
-		frappe.log_error(f"MaintenancePageRenderer checking path: {self.path}", "Maintenance Debug")
 		
 		if not self.is_maintenance_active():
-			frappe.log_error(f"Maintenance not active for path: {self.path}", "Maintenance Debug")
 			return False
 			
 		maintenance_mode = self.get_maintenance_mode()
-		frappe.log_error(f"Maintenance mode: {maintenance_mode}, Path: {self.path}", "Maintenance Debug")
 		
 		# Always allow login page
 		if self.path in ['login', 'api/method/login', 'api/method/logout']:
-			frappe.log_error(f"Allowing login path: {self.path}", "Maintenance Debug")
 			return False
 			
 		# Check if request is for API
@@ -54,9 +50,7 @@ class MaintenancePageRenderer(BaseRenderer):
 			excluded_paths = ['login', 'assets', 'files', 'private/files', 'api/method/login', 'api/method/logout']
 			# Check exact match for login or prefix match for other paths
 			if self.path == 'login' or any(self.path.startswith(p) for p in excluded_paths):
-				frappe.log_error(f"Website mode - Allowing excluded path: {self.path}", "Maintenance Debug")
 				return False
-			frappe.log_error(f"Website mode - BLOCKING path: {self.path}", "Maintenance Debug")
 			return True
 			
 		return False

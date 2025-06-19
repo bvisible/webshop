@@ -8,18 +8,12 @@ def inject_maintenance_css(context):
 	if frappe.local.request and frappe.local.request.path != "/login":
 		return
 		
-	frappe.log_error(f"Injecting CSS on login page", "Maintenance CSS Debug")
-		
 	# Check if maintenance mode is active
 	maintenance_website = cint(frappe.db.get_single_value('Webshop Settings', 'maintenance_website'))
 	maintenance_webshop = cint(frappe.db.get_single_value('Webshop Settings', 'maintenance_webshop'))
-	
-	frappe.log_error(f"Maintenance mode - Website: {maintenance_website}, Webshop: {maintenance_webshop}", "Maintenance CSS Debug")
-	
-	# Only inject CSS if website maintenance is active
-	if maintenance_website:
-		frappe.log_error(f"Adding CSS to hide builder elements", "Maintenance CSS Debug")
 		
+	# Only inject CSS if website maintenance is active
+	if maintenance_website:		
 		# Add custom CSS to context
 		if not hasattr(context, 'custom_css') or context.custom_css is None:
 			context.custom_css = ""
@@ -55,5 +49,3 @@ def inject_maintenance_css(context):
 			}
 		</style>
 		"""
-		
-		frappe.log_error(f"CSS injected to head_html", "Maintenance CSS Debug")
