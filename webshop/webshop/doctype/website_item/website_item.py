@@ -333,7 +333,119 @@ class WebsiteItem(WebsiteGenerator):
 		# Check and merge guest cart if needed
 		check_and_merge_guest_cart()
 		
+		# Get bundle items if this is a product bundle
+		self.set_bundle_items(context)
+		
 		return context
+
+	def set_bundle_items(self, context):
+		"""Fetch and set bundle items with their web URLs if this is a product bundle."""
+		context.bundle_items = []
+		
+		# Check if this item is a product bundle
+		if frappe.db.exists("Product Bundle", self.item_code):
+			bundle_doc = frappe.get_doc("Product Bundle", self.item_code)
+			
+			for bundle_item in bundle_doc.items:
+				item_info = {
+					"item_code": bundle_item.item_code,
+					"item_name": bundle_item.description or bundle_item.item_code,
+					"qty": bundle_item.qty,
+					"uom": bundle_item.uom,
+					"web_item_name": None,
+					"route": None,
+					"website_image": None,
+					"is_published": False,
+					"in_stock": False,
+					"stock_qty": 0,
+					"on_backorder": False
+				}
+				
+				# Check if the bundle item has a published Website Item
+				website_item = frappe.db.get_value(
+					"Website Item",
+					{"item_code": bundle_item.item_code, "published": 1},
+					["web_item_name", "route", "website_image", "thumbnail"],
+					as_dict=True
+				)
+				
+				if website_item:
+					item_info.update({
+						"web_item_name": website_item.web_item_name,
+						"route": website_item.route,
+						"website_image": website_item.thumbnail or website_item.website_image,
+						"is_published": True
+					})
+				
+				# Get stock information for the bundle item
+				from webshop.webshop.doctype.website_item.website_item import get_item_warehouses
+				
+				# Check if item allows backorders
+				item_doc = frappe.get_cached_value("Item", bundle_item.item_code, 
+					["stock_uom", "is_stock_item", "allow_alternative_item"], as_dict=True)
+				
+				if item_doc and item_doc.get("is_stock_item"):
+					warehouses_with_stock = get_item_warehouses(bundle_item.item_code)
+					if warehouses_with_stock:
+						total_stock = sum(w.actual_qty for w in warehouses_with_stock)
+						item_info["stock_qty"] = total_stock
+						item_info["in_stock"] = total_stock >= bundle_item.qty
+					else:
+						item_info["in_stock"] = False
+					
+					# Check for backorder settings
+					if not item_info["in_stock"] and context.shopping_cart and context.shopping_cart.cart_settings:
+						if context.shopping_cart.cart_settings.allow_items_not_in_stock:
+							item_info["on_backorder"] = True
+				else:
+					# Non-stock items are always available
+					item_info["in_stock"] = True
+				
+				# Get price information for the bundle item
+				from erpnext.utilities.product import get_price
+				
+				selling_price_list = None
+				customer_group = None
+				company = frappe.defaults.get_user_default("company")
+				
+				if context.shopping_cart:
+					if hasattr(context.shopping_cart, 'price_list') and context.shopping_cart.price_list:
+						selling_price_list = context.shopping_cart.price_list.name
+					elif hasattr(context.shopping_cart, 'cart_settings') and context.shopping_cart.cart_settings:
+						selling_price_list = context.shopping_cart.cart_settings.price_list
+						company = context.shopping_cart.cart_settings.company
+				
+				# Get customer group from the current customer if logged in
+				if frappe.session.user != "Guest":
+					customer = frappe.db.get_value("Customer", 
+						{"email_id": frappe.session.user}, 
+						["customer_group", "name"], 
+						as_dict=True
+					)
+					if customer:
+						customer_group = customer.customer_group
+				
+				# Fallback to Guest customer group
+				if not customer_group:
+					customer_group = frappe.db.get_single_value("Selling Settings", "customer_group") or "All Customer Groups"
+				
+				if selling_price_list and company:
+					price_obj = get_price(
+						bundle_item.item_code,
+						selling_price_list,
+						customer_group,
+						company,
+						bundle_item.qty or 1
+					)
+					if price_obj:
+						item_info["price"] = price_obj.get("price_list_rate") or price_obj.get("rate")
+						item_info["currency"] = price_obj.get("currency")
+						item_info["formatted_price"] = frappe.utils.fmt_money(
+							item_info["price"], 
+							currency=item_info["currency"]
+						) if item_info.get("price") else None
+				
+				context.bundle_items.append(item_info)
 
 	def set_selected_attributes(self, variants, context, attribute_values_available):
 		for variant in variants:

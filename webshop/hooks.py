@@ -21,7 +21,6 @@ on_session_creation = [
 	"webshop.webshop.shopping_cart.utils.set_cart_count",
 ]
 
-# Hook for maintenance mode check
 website_redirects = [
 	{"source": "/home", "target": "/"},
 	{"source": "/homepage", "target": "/"},
@@ -60,6 +59,11 @@ doc_events = {
 		],
 		"after_rename": [
 			"webshop.webshop.crud_events.item.invalidate_item_variants_cache.execute",
+		],
+	},
+	"Product Bundle": {
+		"on_update": [
+			"webshop.webshop.crud_events.product_bundle.invalidate_bundle_cache.execute",
 		],
 	},
 	"Sales Taxes and Charges Template": {

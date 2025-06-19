@@ -1,0 +1,191 @@
+{% if bundle_items %}
+<div class="product-bundle-section mt-4">
+	<h4 class="bundle-title">{{ _("This bundle includes:") }}</h4>
+	<div class="bundle-items-container">
+		{% for item in bundle_items %}
+		<div class="bundle-item">
+			<div class="bundle-item-image">
+				{% if item.website_image %}
+					{% if item.is_published %}
+					<a href="/{{ item.route }}">
+						<img src="{{ item.website_image }}" alt="{{ item.web_item_name or item.item_name }}" class="bundle-item-img">
+					</a>
+					{% else %}
+					<img src="{{ item.website_image }}" alt="{{ item.item_name }}" class="bundle-item-img">
+					{% endif %}
+				{% else %}
+					<div class="bundle-item-placeholder">
+						<svg class="icon icon-md">
+							<use href="#icon-box"></use>
+						</svg>
+					</div>
+				{% endif %}
+			</div>
+			<div class="bundle-item-details">
+				{% if item.is_published %}
+				<a href="/{{ item.route }}" class="bundle-item-name">
+					{{ item.web_item_name or item.item_name }}
+				</a>
+				{% else %}
+				<span class="bundle-item-name">{{ item.item_name }}</span>
+				{% endif %}
+				<div class="bundle-item-qty">
+					{{ _("Quantity") }}: {{ item.qty }} {{ item.uom }}
+				</div>
+				{% if item.formatted_price %}
+				<div class="bundle-item-price">
+					{{ item.formatted_price }}
+				</div>
+				{% endif %}
+				{% if shopping_cart.cart_settings.show_stock_availability %}
+				<div class="bundle-item-stock">
+					{% if item.on_backorder %}
+						<span class="no-stock" style="color: var(--primary-color);">
+							{{ _('Available on backorder') }}
+						</span>
+					{% elif not item.in_stock %}
+						<span class="no-stock out-of-stock">
+							{{ _('Out of stock') }}
+						</span>
+					{% else %}
+						<span class="in-green has-stock">
+							{{ _('In stock') }}
+							{% if shopping_cart.cart_settings.show_stock_qty and item.stock_qty %}
+								({{ item.stock_qty|int }})
+							{% endif %}
+						</span>
+					{% endif %}
+				</div>
+				{% endif %}
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+</div>
+
+<style>
+.product-bundle-section {
+	background-color: var(--gray-50);
+	padding: 1.5rem;
+	border-radius: var(--border-radius);
+	margin-bottom: 2rem;
+}
+
+.bundle-title {
+	margin-top: 0;
+	margin-bottom: 1.5rem;
+	font-size: 1.25rem;
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.bundle-items-container {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+	gap: 1.5rem;
+}
+
+.bundle-item {
+	display: flex;
+	align-items: center;
+	background: white;
+	padding: 1rem;
+	border-radius: var(--border-radius);
+	border: 1px solid var(--gray-200);
+	transition: all 0.2s ease;
+}
+
+.bundle-item:hover {
+	border-color: var(--primary-color);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.bundle-item-image {
+	width: 60px;
+	height: 60px;
+	flex-shrink: 0;
+	margin-right: 1rem;
+}
+
+.bundle-item-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 4px;
+}
+
+.bundle-item-placeholder {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--gray-100);
+	border-radius: 4px;
+	color: var(--gray-400);
+}
+
+.bundle-item-details {
+	flex: 1;
+	min-width: 0;
+}
+
+.bundle-item-name {
+	display: block;
+	font-weight: 500;
+	color: var(--text-color);
+	text-decoration: none;
+	margin-bottom: 0.25rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+a.bundle-item-name:hover {
+	color: var(--primary-color);
+	text-decoration: underline;
+}
+
+.bundle-item-qty {
+	font-size: 0.875rem;
+	color: var(--text-muted);
+}
+
+.bundle-item-price {
+	font-size: 1rem;
+	font-weight: 600;
+	color: var(--primary-color);
+	margin-top: 0.5rem;
+}
+
+.bundle-item-stock {
+	font-size: 0.875rem;
+	margin-top: 0.25rem;
+}
+
+.bundle-item-stock .in-green,
+.bundle-item-stock .has-stock {
+	color: var(--green-600);
+}
+
+.bundle-item-stock .no-stock,
+.bundle-item-stock .out-of-stock {
+	color: var(--red-600);
+}
+
+@media (max-width: 768px) {
+	.bundle-items-container {
+		grid-template-columns: 1fr;
+	}
+	
+	.bundle-item {
+		padding: 0.75rem;
+	}
+	
+	.bundle-item-image {
+		width: 50px;
+		height: 50px;
+	}
+}
+</style>
+{% endif %}
