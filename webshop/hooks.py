@@ -31,6 +31,7 @@ website_redirects = [
 
 update_website_context = [
 	"webshop.webshop.shopping_cart.utils.update_website_context",
+	"webshop.webshop.maintenance_context.inject_maintenance_css",
 ]
 
 website_generators = ["Website Item", "Item Group"]
@@ -107,6 +108,10 @@ has_website_permission = {
 
 website_route_rules = [
 	{"from_route": "/api/payment/callback", "to_route": "webshop.controllers.payment_handler.payment_callback"}
+]
+
+page_renderer = [
+	"webshop.webshop.page_renderers.maintenance_renderer.MaintenancePageRenderer"
 ]
 
 jinja = {

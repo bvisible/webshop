@@ -85,11 +85,13 @@
   "loyalty_points_conversion_text",
   "loyalty_points_earned_text",
   "maintenance_mode_section",
-  "maintenance_mode",
-  "maintenance_message",
+  "maintenance_website",
+  "maintenance_webshop",
+  "allow_system_users_during_maintenance",
+  "redirect_to_login",
   "column_break_maintenance",
-  "maintenance_end_time",
-  "allow_system_users_during_maintenance"
+  "maintenance_message",
+  "maintenance_end_time"
  ],
  "fields": [
   {
@@ -586,8 +588,8 @@
    "fieldname": "loyalty_program",
    "fieldtype": "Link",
    "label": "Loyalty Program",
-   "options": "Loyalty Program",
-   "mandatory_depends_on": "enable_loyalty_points"
+   "mandatory_depends_on": "enable_loyalty_points",
+   "options": "Loyalty Program"
   },
   {
    "default": "0",
@@ -601,19 +603,19 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "{points} points = {amount}",
    "depends_on": "enable_loyalty_points",
    "fieldname": "loyalty_points_conversion_text",
    "fieldtype": "Data",
-   "label": "Points Conversion Text",
-   "default": "{points} points = {amount}"
+   "label": "Points Conversion Text"
   },
   {
+   "default": "Earn {points} points with this purchase",
    "depends_on": "enable_loyalty_points",
+   "description": "Use {points} for points count and {value} for monetary value",
    "fieldname": "loyalty_points_earned_text",
    "fieldtype": "Data",
-   "label": "Points Earned Text",
-   "default": "Earn {points} points with this purchase",
-   "description": "Use {points} for points count and {value} for monetary value"
+   "label": "Points Earned Text"
   },
   {
    "fieldname": "maintenance_mode_section",
@@ -621,43 +623,59 @@
    "label": "Maintenance Mode"
   },
   {
-   "default": "Disabled",
-   "fieldname": "maintenance_mode",
-   "fieldtype": "Select",
-   "label": "Maintenance Mode",
-   "options": "Disabled\nWebshop Only\nWebsite and Webshop"
+   "default": "0",
+   "description": "Enable maintenance mode for the entire website",
+   "fieldname": "maintenance_website",
+   "fieldtype": "Check",
+   "label": "Maintenance Mode - Website"
   },
   {
-   "depends_on": "eval:doc.maintenance_mode != 'Disabled'",
+   "default": "0",
+   "depends_on": "maintenance_website",
+   "description": "Enable maintenance mode for webshop features only (requires Website maintenance to be enabled)",
+   "fieldname": "maintenance_webshop",
+   "fieldtype": "Check",
+   "label": "Maintenance Mode - Webshop"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.maintenance_website || doc.maintenance_webshop",
+   "description": "Redirect directly to login page instead of showing maintenance page",
+   "fieldname": "redirect_to_login",
+   "fieldtype": "Check",
+   "label": "Redirect to Login"
+  },
+  {
+   "default": "We are currently performing maintenance. We'll be back soon!",
+   "depends_on": "eval:doc.maintenance_website || doc.maintenance_webshop",
    "fieldname": "maintenance_message",
    "fieldtype": "Small Text",
-   "label": "Maintenance Message",
-   "default": "We are currently performing maintenance. We'll be back soon!"
+   "label": "Maintenance Message"
   },
   {
    "fieldname": "column_break_maintenance",
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.maintenance_mode != 'Disabled'",
+   "depends_on": "eval:doc.maintenance_website || doc.maintenance_webshop",
+   "description": "Optional: When maintenance is expected to end",
    "fieldname": "maintenance_end_time",
    "fieldtype": "Datetime",
-   "label": "Expected End Time",
-   "description": "Optional: When maintenance is expected to end"
+   "label": "Expected End Time"
   },
   {
-   "depends_on": "eval:doc.maintenance_mode != 'Disabled'",
+   "default": "1",
+   "depends_on": "eval:doc.maintenance_website || doc.maintenance_webshop",
+   "description": "Allow users with System Manager or Website Manager roles to access the site during maintenance",
    "fieldname": "allow_system_users_during_maintenance",
    "fieldtype": "Check",
-   "label": "Allow System Users During Maintenance",
-   "description": "Allow users with System Manager or Website Manager roles to access the site during maintenance",
-   "default": "1"
+   "label": "Allow System Users During Maintenance"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-06-10 10:45:38.532405",
+ "modified": "2025-06-19 18:30:23.943796",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",
