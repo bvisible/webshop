@@ -631,7 +631,6 @@
   },
   {
    "default": "0",
-   "depends_on": "maintenance_website",
    "description": "Enable maintenance mode for webshop features only (requires Website maintenance to be enabled)",
    "fieldname": "maintenance_webshop",
    "fieldtype": "Check",
@@ -675,7 +674,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-06-19 18:30:23.943796",
+ "modified": "2025-06-20 13:42:03.570921",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

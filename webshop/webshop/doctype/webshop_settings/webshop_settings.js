@@ -58,5 +58,17 @@ frappe.ui.form.on("Webshop Settings", {
 		} else {
 			frm.set_df_property('redirect_on_action', 'read_only', 0);
 		}
+	},
+	maintenance_website: function(frm) {
+		if (!frm.doc.maintenance_website && frm.doc.maintenance_webshop) {
+			frm.set_value('maintenance_webshop', 0);
+			frappe.msgprint(__('Webshop maintenance mode cannot be enabled without website maintenance mode'));
+		}
+	},
+	maintenance_webshop: function(frm) {
+		if (frm.doc.maintenance_webshop && !frm.doc.maintenance_website) {
+			frm.set_value('maintenance_website', 1);
+			frappe.msgprint(__('Website maintenance mode has been automatically enabled'));
+		}
 	}
 });
