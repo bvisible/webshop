@@ -6,10 +6,14 @@
 	--body-bg-color:  var(--gray-50);
 }
 
-body.product-page,
+body, body.product-page,
 body[data-path=me], body[data-path=list], 
 body[data-path=update-profile] {
     background-color: var(--body-bg-color);
+}
+
+[data-doctype="Web Form"] .page-content-wrapper .container .page_content .web-list-container {
+    background-color: var(--fg-color);
 }
 
 .btn.btn-primary:hover {
@@ -165,7 +169,11 @@ body[data-path=update-profile] {
 	.product-title {
 		font-size: 16px;
 		color: var(--gray-800);
-		font-weight: 500;
+		font-weight: 600;
+	}
+
+	.product-title:hover {
+		text-decoration: none;
 	}
 
 	.product-description {
@@ -189,8 +197,8 @@ body[data-path=update-profile] {
 
 	.product-price {
 		font-size: 18px;
-		font-weight: 600;
-		color: var(--text-color);
+		font-weight: 500;
+		color: var(--gray-600);
 		margin: var(--margin-sm) 0;
 		margin-bottom: auto !important;
 		margin-top: 0 !important;
@@ -1623,6 +1631,12 @@ input[disabled][title] {
 	@media (max-width: 767.98px) {
 		padding: var(--padding-sm) 25px;
 	}
+}
+
+.empty-apps-state{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 .container-sm, 

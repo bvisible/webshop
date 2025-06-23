@@ -122,7 +122,7 @@ webshop.ProductGrid = class {
 
 	get_title(item, title) {
 		let title_html = `
-			<a href="/${ item.route || '#' }">
+			<a href="/${ item.route || '#' }" style=" text-decoration: none;">
 				<div class="product-title" itemprop="name">
 					${ title || '' }
 				</div>
