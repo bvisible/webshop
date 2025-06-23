@@ -8,6 +8,7 @@ from webshop.webshop.doctype.item_review.item_review import get_customer
 from webshop.webshop.shopping_cart.product_info import get_product_info_for_website
 from webshop.webshop.utils.product import get_non_stock_item_status
 from webshop.webshop.utils.loyalty_points import format_loyalty_points_message
+from webshop.webshop.shopping_cart.cart import get_party
 
 
 class ProductQuery:
@@ -217,56 +218,8 @@ class ProductQuery:
 	
 	def query_items_with_discount_filter(self, start=0):
 		"""Query items that have active discounts using optimized SQL."""
-		# Get settings
-		settings = frappe.get_cached_doc("Webshop Settings")
-		price_list = settings.price_list
-		
-		if not price_list:
-			# No price list configured, fallback to regular query with buffer
-			return self.query_items_with_regular_discount_flow(start)
-		
-		# Build WHERE conditions
-		conditions = []
-		values = []
-		
-		# Add filters
-		for filter_item in self.filters:
-			if isinstance(filter_item, list) and len(filter_item) >= 3:
-				field, operator, value = filter_item[0], filter_item[1], filter_item[2]
-				
-				if operator == "=":
-					conditions.append(f"wi.`{field}` = %s")
-					values.append(value)
-				elif operator == "in" and isinstance(value, list):
-					placeholders = ", ".join(["%s"] * len(value))
-					conditions.append(f"wi.`{field}` IN ({placeholders})")
-					values.extend(value)
-				elif operator == "is":
-					if value == "not set":
-						conditions.append(f"wi.`{field}` IS NULL")
-		
-		# Build WHERE clause
-		where_parts = []
-		if conditions:
-			where_parts.append(" AND ".join(conditions))
-		if self.or_filters:
-			or_conditions = []
-			for or_filter in self.or_filters:
-				if isinstance(or_filter, list) and len(or_filter) >= 3:
-					field, operator, value = or_filter[0], or_filter[1], or_filter[2]
-					if operator == "like":
-						or_conditions.append(f"wi.`{field}` LIKE %s")
-						values.append(value)
-					elif operator == "=":
-						or_conditions.append(f"wi.`{field}` = %s")
-						values.append(value)
-			if or_conditions:
-				where_parts.append("(" + " OR ".join(or_conditions) + ")")
-		
-		where_clause = " WHERE " + " AND ".join(where_parts) if where_parts else ""
-		
-		# Use the optimized query method with default sorting by ranking
-		return self.query_items_with_discount_and_price_sort(start, "relevance", price_list, where_clause, values)
+		# Use the new optimized method with caching
+		return self.query_items_with_discount_optimized(start)
 	
 	def query_items_with_discount_and_price_sort(self, start, sort_order, price_list, where_clause, values):
 		"""Optimized query for items with discounts, sorted by price"""
@@ -932,4 +885,235 @@ class ProductQuery:
 				return items
 
 		return []
+	
+	def get_user_discount_cache_key(self, item_codes=None):
+		"""Generate a unique cache key per user and context"""
+		key_parts = [
+			"discount_filter",
+			frappe.session.user,
+			self.settings.price_list,
+			frappe.utils.today()  # Expire daily
+		]
+		if item_codes:
+			key_parts.append(hash(tuple(sorted(item_codes))))
+		return ":".join(map(str, key_parts))
+	
+	def query_items_with_discount_optimized(self, start=0):
+		"""Optimized version with user cache"""
+		# Get filtered item codes if any filters are applied
+		filtered_item_codes = None
+		if len(self.filters) > 1:  # More than just the published filter
+			# Get a quick list of item codes that match current filters
+			filtered_item_codes = self._get_filtered_item_codes()
+		
+		# User-specific cache key
+		cache_key = self.get_user_discount_cache_key(filtered_item_codes)
+		
+		# Check cache
+		cached_result = frappe.cache().get_value(cache_key)
+		if cached_result and isinstance(cached_result, dict):
+			items = cached_result.get("items", [])
+			count = cached_result.get("count", 0)
+			return items[start:start + self.page_length], count
+		
+		# If not in cache, execute optimized query
+		items, count = self._execute_discount_query_optimized(start)
+		
+		# Cache for 5 minutes
+		cache_data = {"items": items, "count": count}
+		frappe.cache().set_value(cache_key, cache_data, expires_in_sec=300)
+		
+		return items, count
+	
+	def _get_filtered_item_codes(self):
+		"""Get item codes that match current filters (excluding discount filter)"""
+		conditions = []
+		values = []
+		
+		for filter_item in self.filters:
+			if isinstance(filter_item, list) and len(filter_item) >= 3:
+				field, operator, value = filter_item[0], filter_item[1], filter_item[2]
+				if field == "published":
+					continue  # Skip the default published filter
+				
+				if operator == "=":
+					conditions.append(f"`{field}` = %s")
+					values.append(value)
+				elif operator == "in" and isinstance(value, list):
+					placeholders = ", ".join(["%s"] * len(value))
+					conditions.append(f"`{field}` IN ({placeholders})")
+					values.extend(value)
+		
+		if not conditions:
+			return None
+		
+		where_clause = " WHERE " + " AND ".join(conditions)
+		sql = f"SELECT name FROM `tabWebsite Item` {where_clause} LIMIT 1000"
+		
+		results = frappe.db.sql(sql, values)
+		return [r[0] for r in results] if results else None
+	
+	def _execute_discount_query_optimized(self, start):
+		"""Optimized query using CTE for discounts"""
+		price_list = self.settings.price_list
+		if not price_list:
+			# Fallback to regular query if no price list
+			return self.query_items_with_regular_discount_flow(start)
+		
+		# Build WHERE conditions for main query
+		conditions = ["wi.published = 1"]
+		values = {}
+		
+		for filter_item in self.filters:
+			if isinstance(filter_item, list) and len(filter_item) >= 3:
+				field, operator, value = filter_item[0], filter_item[1], filter_item[2]
+				if field == "published":
+					continue
+				
+				if operator == "=":
+					param_name = f"{field}_val"
+					conditions.append(f"wi.`{field}` = %({param_name})s")
+					values[param_name] = value
+				elif operator == "in" and isinstance(value, list):
+					param_names = []
+					for i, v in enumerate(value):
+						param_name = f"{field}_val_{i}"
+						param_names.append(f"%({param_name})s")
+						values[param_name] = v
+					conditions.append(f"wi.`{field}` IN ({', '.join(param_names)})")
+		
+		where_clause = " AND ".join(conditions)
+		
+		# Build field list
+		field_list = ", ".join([f"wi.`{field}`" for field in self.fields])
+		
+		# Use CTE to pre-filter items with discounts
+		sql = f"""
+		WITH discounted_items AS (
+			SELECT DISTINCT 
+				wi.name,
+				wi.item_code,
+				GREATEST(
+					COALESCE(
+						(SELECT MAX(pr.discount_percentage)
+						 FROM `tabPricing Rule Item Code` pri
+						 INNER JOIN `tabPricing Rule` pr ON pr.name = pri.parent
+						 WHERE pri.item_code = wi.item_code
+						 AND pr.disable = 0
+						 AND pr.selling = 1
+						 AND pr.discount_percentage > 0
+						 AND (pr.valid_from IS NULL OR pr.valid_from <= CURDATE())
+						 AND (pr.valid_upto IS NULL OR pr.valid_upto >= CURDATE())
+						), 0
+					),
+					CASE 
+						WHEN ip_mrp.price_list_rate > 0 AND ip.price_list_rate > 0 
+						     AND ip_mrp.price_list_rate > ip.price_list_rate
+						THEN ((ip_mrp.price_list_rate - ip.price_list_rate) / ip_mrp.price_list_rate * 100)
+						ELSE 0
+					END
+				) as discount_percent,
+				COALESCE(ip.price_list_rate, 0) as price_list_rate,
+				COALESCE(ip_mrp.price_list_rate, 0) as mrp
+			FROM `tabWebsite Item` wi
+			LEFT JOIN `tabItem Price` ip ON ip.item_code = wi.item_code 
+				AND ip.price_list = %(price_list)s
+				AND ip.selling = 1
+				AND (ip.valid_from IS NULL OR ip.valid_from <= CURDATE())
+				AND (ip.valid_upto IS NULL OR ip.valid_upto >= CURDATE())
+			LEFT JOIN `tabItem Price` ip_mrp ON ip_mrp.item_code = wi.item_code
+				AND ip_mrp.price_list = %(mrp_price_list)s
+				AND ip_mrp.selling = 1
+				AND (ip_mrp.valid_from IS NULL OR ip_mrp.valid_from <= CURDATE())
+				AND (ip_mrp.valid_upto IS NULL OR ip_mrp.valid_upto >= CURDATE())
+			WHERE {where_clause}
+			HAVING discount_percent > 0
+		)
+		SELECT 
+			{field_list},
+			di.discount_percent,
+			di.price_list_rate,
+			di.mrp
+		FROM `tabWebsite Item` wi
+		INNER JOIN discounted_items di ON di.name = wi.name
+		ORDER BY di.discount_percent DESC, wi.weightage DESC
+		LIMIT %(limit)s OFFSET %(offset)s
+		"""
+		
+		# Add values for the query
+		values.update({
+			'price_list': price_list,
+			'mrp_price_list': getattr(self.settings, 'mrp_price_list', price_list) or price_list,
+			'limit': self.page_length,
+			'offset': start
+		})
+		
+		items = frappe.db.sql(sql, values, as_dict=True)
+		
+		# Get count using simpler query
+		count_sql = f"""
+		SELECT COUNT(DISTINCT wi.name)
+		FROM `tabWebsite Item` wi
+		WHERE {where_clause}
+		AND EXISTS (
+			SELECT 1 
+			FROM `tabItem Price` ip
+			WHERE ip.item_code = wi.item_code
+			AND ip.price_list = %(price_list)s
+			AND ip.selling = 1
+			AND ip.price_list_rate > 0
+		)
+		"""
+		
+		count_values = {k: v for k, v in values.items() if k not in ['limit', 'offset', 'mrp_price_list']}
+		count_values['price_list'] = price_list
+		count = frappe.db.sql(count_sql, count_values)[0][0]
+		
+		# Process items (add formatted prices, stock info, etc.)
+		return self._process_discount_items(items), count
+	
+	def _process_discount_items(self, items):
+		"""Process discount items to add formatted prices and other info"""
+		cart_items = self.get_cart_items() if self.settings.enabled else []
+		
+		for item in items:
+			# Format price info
+			if item.get("price_list_rate"):
+				from frappe.utils import fmt_money
+				currency = frappe.db.get_single_value("Webshop Settings", "company") 
+				if currency:
+					currency = frappe.db.get_value("Company", currency, "default_currency") or "USD"
+				else:
+					currency = "USD"
+				
+				item["formatted_price"] = fmt_money(item.price_list_rate, currency=currency)
+				if item.get("mrp") and item.mrp > item.price_list_rate:
+					item["formatted_mrp"] = fmt_money(item.mrp, currency=currency)
+				
+				if item.get("discount_percent"):
+					item["discount_percent"] = flt(item.discount_percent)
+					item["discount"] = f"{int(item.discount_percent)}% OFF"
+			
+			# Add stock info
+			if self.settings.show_stock_availability:
+				self.get_stock_availability(item)
+			
+			# Check cart and wishlist status
+			item.in_cart = item.item_code in cart_items
+			item.wished = frappe.db.exists("Wishlist Item", {"item_code": item.item_code, "parent": frappe.session.user})
+			
+			# Add loyalty points information if enabled
+			if self.settings.enable_loyalty_points and (frappe.session.user != "Guest" or self.settings.show_loyalty_points_for_guests):
+				if item.get("formatted_price") and item.get("price_list_rate"):
+					customer = frappe.session.user if frappe.session.user != "Guest" else None
+					loyalty_info = format_loyalty_points_message(item.item_code, item.price_list_rate, 1, customer)
+					if loyalty_info and loyalty_info.get("earned_text"):
+						item.loyalty_points_html = loyalty_info["earned_text"]
+			
+			# Clean up temporary fields
+			for field in ["price_list_rate", "mrp"]:
+				if field in item:
+					del item[field]
+		
+		return items
 	

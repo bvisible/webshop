@@ -52,6 +52,10 @@ webshop.ProductView =  class {
 		}
 		
 		this.load_settings();
+		
+		// Initialize preloaded results cache
+		this.preloaded_discount_results = null;
+		this.preload_in_progress = false;
 	}
 
 	load_settings() {
@@ -744,6 +748,12 @@ webshop.ProductView =  class {
 
 	bind_discount_filter_action() {
 		let me = this;
+		
+		// Preload discount results if discount filter was previously enabled
+		if (localStorage.getItem('discount_filter_checked') === 'true' && !this.preload_in_progress) {
+			this.preloadDiscountResults();
+		}
+		
 		$('.discount-filter').on('change', (e) => {
 			const $checkbox = $(e.target);
 			const is_checked = $checkbox.is(':checked');
@@ -766,10 +776,17 @@ webshop.ProductView =  class {
 				if (is_checked) {
 					this.field_filters = this.field_filters || {};
 					this.field_filters["discount"] = ["100"];
+					
+					// Start preloading for next time if not already done
+					if (!this.preload_in_progress) {
+						this.preloadDiscountResults();
+					}
 				} else {
 					if (this.field_filters) {
 						delete this.field_filters["discount"];
 					}
+					// Clear preloaded results when discount filter is disabled
+					this.preloaded_discount_results = null;
 				}
 				
 				// Set from_filters to true to ensure filters are applied
@@ -791,6 +808,35 @@ webshop.ProductView =  class {
 			}
 
 			me.change_route_with_filters();
+		});
+	}
+	
+	preloadDiscountResults() {
+		// Avoid duplicate preloading
+		if (this.preload_in_progress) return;
+		
+		this.preload_in_progress = true;
+		
+		// Get current webshop settings
+		const settings = window.product_settings || {};
+		const price_list = settings.price_list || null;
+		
+		// Preload discount items in background
+		frappe.call({
+			method: "webshop.webshop.api.get_discount_items_preview",
+			args: {
+				limit: 20,
+				price_list: price_list
+			},
+			callback: (r) => {
+				if (r.message) {
+					this.preloaded_discount_results = r.message;
+				}
+				this.preload_in_progress = false;
+			},
+			error: () => {
+				this.preload_in_progress = false;
+			}
 		});
 	}
 

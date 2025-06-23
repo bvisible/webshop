@@ -885,3 +885,105 @@ def get_promotional_products(limit=10):
 			item["promotion_ends"] = formatdate(item.valid_upto)
 	
 	return items
+
+
+@frappe.whitelist(allow_guest=True)
+def get_discount_items_preview(limit=20, price_list=None):
+	"""Endpoint optimized to quickly retrieve items with discount"""
+	from webshop.webshop.shopping_cart.cart import get_party
+	
+	limit = min(int(limit or 20), 50)  # Max 50 items
+	
+	# Get settings
+	settings = frappe.get_cached_doc("Webshop Settings")
+	if not settings.enabled:
+		return []
+	
+	if not price_list:
+		price_list = settings.price_list
+	
+	if not price_list:
+		return []
+	
+	# Use user cache
+	cache_key = f"discount_preview:{frappe.session.user}:{price_list}:{limit}"
+	cached = frappe.cache().get_value(cache_key)
+	if cached:
+		return cached
+	
+	# Simplified query for preview
+	party = get_party()
+	customer = party.name if party else None
+	
+	# Query with CTE for better performance
+	items = frappe.db.sql("""
+		WITH discount_items AS (
+			SELECT 
+				wi.name, wi.item_code, wi.web_item_name,
+				wi.thumbnail, wi.route, wi.website_image,
+				wi.short_description,
+				GREATEST(
+					COALESCE(
+						(SELECT MAX(pr.discount_percentage)
+						 FROM `tabPricing Rule Item Code` pri
+						 INNER JOIN `tabPricing Rule` pr ON pr.name = pri.parent
+						 WHERE pri.item_code = wi.item_code
+						 AND pr.disable = 0
+						 AND pr.selling = 1
+						 AND pr.discount_percentage > 0
+						 AND (pr.valid_from IS NULL OR pr.valid_from <= CURDATE())
+						 AND (pr.valid_upto IS NULL OR pr.valid_upto >= CURDATE())
+						), 0
+					),
+					CASE 
+						WHEN ip_mrp.price_list_rate > 0 AND ip.price_list_rate > 0 
+						     AND ip_mrp.price_list_rate > ip.price_list_rate
+						THEN ((ip_mrp.price_list_rate - ip.price_list_rate) / ip_mrp.price_list_rate * 100)
+						ELSE 0
+					END
+				) as discount_percent,
+				ip.price_list_rate,
+				ip_mrp.price_list_rate as mrp
+			FROM `tabWebsite Item` wi
+			LEFT JOIN `tabItem Price` ip ON ip.item_code = wi.item_code 
+				AND ip.price_list = %(price_list)s
+				AND ip.selling = 1
+				AND (ip.valid_from IS NULL OR ip.valid_from <= CURDATE())
+				AND (ip.valid_upto IS NULL OR ip.valid_upto >= CURDATE())
+			LEFT JOIN `tabItem Price` ip_mrp ON ip_mrp.item_code = wi.item_code
+				AND ip_mrp.price_list = %(mrp_price_list)s
+				AND ip_mrp.selling = 1
+				AND (ip_mrp.valid_from IS NULL OR ip_mrp.valid_from <= CURDATE())
+				AND (ip_mrp.valid_upto IS NULL OR ip_mrp.valid_upto >= CURDATE())
+			WHERE wi.published = 1
+		)
+		SELECT * FROM discount_items
+		WHERE discount_percent > 0
+		ORDER BY discount_percent DESC, name
+		LIMIT %(limit)s
+	""", {
+		'price_list': price_list,
+		'mrp_price_list': getattr(settings, 'mrp_price_list', price_list) or price_list,
+		'limit': limit
+	}, as_dict=True)
+	
+	# Format prices
+	from frappe.utils import fmt_money
+	currency = frappe.db.get_value("Company", settings.company, "default_currency") if settings.company else "USD"
+	
+	for item in items:
+		if item.get("price_list_rate"):
+			item["formatted_price"] = fmt_money(item.price_list_rate, currency=currency)
+			if item.get("mrp") and item.mrp > item.price_list_rate:
+				item["formatted_mrp"] = fmt_money(item.mrp, currency=currency)
+			if item.get("discount_percent"):
+				item["discount"] = f"{int(item.discount_percent)}% OFF"
+		
+		# Clean up fields
+		for field in ["price_list_rate", "mrp"]:
+			if field in item:
+				del item[field]
+	
+	# Cache for 5 minutes
+	frappe.cache().set_value(cache_key, items, expires_in_sec=300)
+	return items
