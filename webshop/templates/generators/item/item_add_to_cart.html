@@ -230,6 +230,10 @@
 									value="1" 
 									data-item-code="{{item_code}}"
 									min="1"
+									{% if product_info.show_stock_qty and product_info.stock_qty and not product_info.get("on_backorder") %}
+									max="{{ product_info.stock_qty|int }}"
+									data-max-qty="{{ product_info.stock_qty|int }}"
+									{% endif %}
 									style="max-width: 70px;">
 								<span class="input-group-append">
 									<button type="button" class="btn cart-btn" data-dir="up">
@@ -299,9 +303,18 @@
 			const $input = $btn.closest('.number-spinner').find('.item-qty');
 			const currentVal = parseInt($input.val()) || 1;
 			const direction = $btn.data('dir');
+			const maxQty = $input.attr('max') ? parseInt($input.attr('max')) : null;
 			
 			if (direction === 'up') {
-				$input.val(currentVal + 1);
+				const newVal = currentVal + 1;
+				if (maxQty && newVal > maxQty) {
+					frappe.show_alert({
+						message: __('Maximum available quantity is {0}', [maxQty]),
+						indicator: 'orange'
+					});
+				} else {
+					$input.val(newVal);
+				}
 			} else if (direction === 'dwn' && currentVal > 1) {
 				$input.val(currentVal - 1);
 			}
@@ -314,7 +327,18 @@
 		$('.page_content').on('change', '.item-qty', function() {
 			const $input = $(this);
 			let val = parseInt($input.val()) || 1;
+			const maxQty = $input.attr('max') ? parseInt($input.attr('max')) : null;
+			
 			if (val < 1) val = 1;
+			
+			if (maxQty && val > maxQty) {
+				val = maxQty;
+				frappe.show_alert({
+					message: __('Maximum available quantity is {0}', [maxQty]),
+					indicator: 'orange'
+				});
+			}
+			
 			$input.val(val);
 		});
 		
@@ -326,7 +350,19 @@
 			$btn.prop('disabled', true);
 			const item_code = $btn.data('item-code');
 			// Get quantity from input
-			const qty = parseInt($btn.closest('.mb-4').find('.item-qty').val()) || 1;
+			const $qtyInput = $btn.closest('.mb-4').find('.item-qty');
+			const qty = parseInt($qtyInput.val()) || 1;
+			const maxQty = $qtyInput.attr('max') ? parseInt($qtyInput.attr('max')) : null;
+			
+			// Check if quantity exceeds max
+			if (maxQty && qty > maxQty) {
+				frappe.show_alert({
+					message: __('Maximum available quantity is {0}', [maxQty]),
+					indicator: 'red'
+				});
+				$btn.prop('disabled', false);
+				return;
+			}
 			
 			// Get gift card amount if applicable
 			let amount = 0;
