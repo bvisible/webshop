@@ -34,6 +34,13 @@ update_website_context = [
 	"webshop.webshop.maintenance_context.inject_maintenance_css",
 ]
 
+# Scheduled Tasks
+scheduler_events = {
+	"daily": [
+		"webshop.webshop.utils.frequently_bought_together.calculate_frequently_bought_together"
+	]
+}
+
 website_generators = ["Website Item", "Item Group"]
 
 override_doctype_class = {

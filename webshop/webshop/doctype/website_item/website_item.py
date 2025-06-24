@@ -205,8 +205,8 @@ class WebsiteItem(WebsiteGenerator):
 					return
 				except Exception as e:
 					frappe.log_error(
-						title="Image Debug - Error Using Existing File",
-						message=f"Error using existing file: {str(e)}"
+						"Image Debug - Error Using Existing File",
+						f"Error using existing file: {str(e)}"
 					)
 			
 			# Try to find a file already attached to this Website Item
@@ -221,8 +221,8 @@ class WebsiteItem(WebsiteGenerator):
 				)
 			except frappe.DoesNotExistError:
 				frappe.log_error(
-					title="Image Debug - File Not Attached Yet",
-					message=f"No file with URL {self.website_image} attached to {self.doctype} {self.name}"
+					"Image Debug - File Not Attached Yet",
+					f"No file with URL {self.website_image} attached to {self.doctype} {self.name}"
 				)
 				pass
 				# cleanup
@@ -255,8 +255,8 @@ class WebsiteItem(WebsiteGenerator):
 
 				except Exception as e:
 					frappe.log_error(
-						title="Image Debug - Error Creating File",
-						message=f"Error creating file: {str(e)}"
+						"Image Debug - Error Creating File",
+						f"Error creating file: {str(e)}"
 					)
 					self.website_image = None
 
@@ -327,6 +327,48 @@ class WebsiteItem(WebsiteGenerator):
 		context.recommended_items = None
 		if settings and settings.enable_recommendations:
 			context.recommended_items = self.get_recommended_items(settings)
+			
+			# If no manual recommendations, get auto recommendations with prices
+			if not context.recommended_items:
+				auto_items = frappe.get_all("Website Item", 
+					filters={
+						"published": 1,
+						"item_group": self.item_group,
+						"name": ["!=", self.name]
+					},
+					fields=["item_code", "web_item_name as website_item_name", "route", "thumbnail as website_item_thumbnail", "website_image"],
+					limit=4,
+					order_by="RAND()"
+				)
+				
+				if auto_items and settings.show_price:
+					from erpnext.utilities.product import get_price
+					selling_price_list = settings.price_list
+					
+					for item in auto_items:
+						if not item.website_item_thumbnail:
+							item.website_item_thumbnail = item.website_image
+						
+						price_obj = get_price(
+							item.item_code,
+							selling_price_list,
+							settings.default_customer_group,
+							settings.company
+						)
+						if price_obj:
+							item.price_info = {
+								"formatted_price": frappe.utils.fmt_money(
+									price_obj.get("price_list_rate") or price_obj.get("rate"),
+									currency=price_obj.get("currency")
+								)
+							}
+				
+				context.recommended_items = auto_items
+		
+		context.frequently_bought_together = None
+		if settings and settings.enable_frequently_bought_together:
+			from webshop.webshop.utils.frequently_bought_together import get_frequently_bought_together
+			context.frequently_bought_together = get_frequently_bought_together(self.item_code)
 
 		from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
 

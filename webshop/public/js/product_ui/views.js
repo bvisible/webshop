@@ -225,8 +225,8 @@ webshop.ProductView =  class {
 				query_args: args
 			},
 			callback: function(result) {
-				me.hide_product_loader();
 				if (!result || result.exc || !result.message || result.message.exc) {
+					me.hide_product_loader();
 					me.render_no_products_section(true);
 				} else {					
 					// Sub Category results are independent of Items
@@ -247,15 +247,22 @@ webshop.ProductView =  class {
 					
 					if (!result.message["items"].length) {
 						// if result has no items or result is empty
+						me.hide_product_loader();
 						me.render_no_products_section();
 					} else {
+						// Store products before rendering
+						me.products = result.message["items"];
+						me.product_count = result.message["items_count"];
+						me.total_count = result.message["total_count"];  // Utilisation du nouveau total
+						me.settings = result.message["settings"];  // Store settings for later use
+						
+						// Hide loader after storing products
+						me.hide_product_loader();
+						
 						// Render views
 						me.render_list_view(result.message["items"], result.message["settings"]);
 						me.render_grid_view(result.message["items"], result.message["settings"]);
 
-						me.products = result.message["items"];
-						me.product_count = result.message["items_count"];
-						me.total_count = result.message["total_count"];  // Utilisation du nouveau total
 						// Store total product count on first load
 						if (me.total_product_count === null) {
 							me.total_product_count = result.message.total_products || me.product_count;
@@ -1482,86 +1489,197 @@ webshop.ProductView =  class {
 	}
 	
 	show_product_loader() {
-		// Remove any existing loader
-		$('.product-loader').remove();
+		// Determine view type from user preference
+		const isGridView = this.preference === "Grid View";
 		
-		// Create loader HTML
-		const loaderHTML = `
-			<div class="product-loader">
-				<div class="loader-backdrop"></div>
-				<div class="loader-content">
-					<div class="spinner-container">
-						<div class="spinner-border text-primary" role="status">
-							<span class="sr-only">Loading...</span>
+		// First ensure the containers exist
+		if (!$('#products-grid-area').length) {
+			this.products_section.append(`
+				<div id="products-list-area" class="row products-list mt-6 ml-2 ${!isGridView ? '' : 'hidden'}" itemscope itemtype="https://schema.org/Product"></div>
+				<div id="products-grid-area" class="row products-list mt-minus-1 ${isGridView ? '' : 'hidden'}" itemscope itemtype="https://schema.org/Product"></div>
+			`);
+		}
+		
+		// Make sure the correct view is visible
+		if (isGridView) {
+			$('#products-list-area').addClass('hidden');
+			$('#products-grid-area').removeClass('hidden');
+		} else {
+			$('#products-grid-area').addClass('hidden');
+			$('#products-list-area').removeClass('hidden');
+		}
+		
+		// Get the target container
+		const targetContainer = isGridView ? $('#products-grid-area') : $('#products-list-area');
+		
+		// Clear existing content
+		targetContainer.empty();
+		
+		// Create skeleton loader HTML
+		let skeletonItems = '';
+		// Use the page length from settings or default values
+		const itemCount = (this.settings && this.settings.products_per_page) || (isGridView ? 12 : 8);
+		
+		for (let i = 0; i < itemCount; i++) {
+			if (isGridView) {
+				// Grid skeleton
+				skeletonItems += `
+					<div class="col-sm-6 col-lg-4 item-card skeleton-item">
+						<div class="card text-left">
+							<div class="card-img-container">
+								<div class="skeleton-img skeleton-loader"></div>
+							</div>
+							<div class="card-body text-left card-body-flex" style="width:100%">
+								<div style="margin-top: 1rem;">
+									<div class="skeleton-title skeleton-loader"></div>
+								</div>
+								<div class="skeleton-category skeleton-loader"></div>
+								<div class="skeleton-price-row">
+									<div class="skeleton-price skeleton-loader"></div>
+								</div>
+							</div>
 						</div>
 					</div>
-					<p class="loader-text">Loading products...</p>
-				</div>
-			</div>
-		`;
+				`;
+			} else {
+				// List skeleton
+				skeletonItems += `
+					<div class="row list-row w-100 mb-4 skeleton-item">
+						<div class="col-2 border text-center rounded list-image" style="position: relative; overflow: hidden;">
+							<div class="skeleton-img-list skeleton-loader"></div>
+						</div>
+						<div class="col-10 text-left">
+							<div style="display: flex; margin-left: -15px;">
+								<div class="col-8" style="margin-right: -15px;">
+									<div class="skeleton-title skeleton-loader"></div>
+								</div>
+								<div class="col-4">
+									<div class="skeleton-btn-list skeleton-loader"></div>
+								</div>
+							</div>
+							<div class="skeleton-category skeleton-loader"></div>
+							<div class="skeleton-price skeleton-loader"></div>
+						</div>
+					</div>
+				`;
+			}
+		}
 		
-		// Add loader to products section
-		this.products_section.append(loaderHTML);
+		// Add skeletons directly to the existing container
+		targetContainer.html(skeletonItems);
 		
 		// Add CSS if not already added
-		if (!$('#product-loader-styles').length) {
+		if (!$('#skeleton-loader-styles').length) {
 			$('head').append(`
-				<style id="product-loader-styles">
-					.product-loader {
-						position: absolute;
-						top: 0;
-						left: 0;
-						right: 0;
-						bottom: 0;
-						min-height: 400px;
-						display: flex;
-						align-items: center;
-						justify-content: center;
-						z-index: 100;
+				<style id="skeleton-loader-styles">
+					/* Skeleton loader base styles */
+					.skeleton-loader {
+						background: linear-gradient(
+							90deg,
+							#f0f0f0 0%,
+							#f8f8f8 50%,
+							#f0f0f0 100%
+						);
+						background-size: 200% 100%;
+						animation: skeleton-loading 1.5s ease-in-out infinite;
 					}
 					
-					.loader-backdrop {
-						position: absolute;
-						top: 0;
-						left: 0;
-						right: 0;
-						bottom: 0;
-						/*background: rgba(255, 255, 255, 0.9);*/
-						backdrop-filter: blur(2px);
+					@keyframes skeleton-loading {
+						0% {
+							background-position: -200% 0;
+						}
+						100% {
+							background-position: 200% 0;
+						}
 					}
 					
-					.loader-content {
-						position: relative;
-						text-align: center;
-						z-index: 101;
+					/* Grid skeleton styles */
+					.skeleton-img {
+						height: 200px;
+						width: 100%;
+						border-radius: 0;
 					}
 					
-					.spinner-container {
+					.skeleton-title {
+						height: 18px;
+						width: 80%;
+						margin-bottom: 8px;
+						border-radius: 4px;
+					}
+					
+					.skeleton-category {
+						height: 14px;
+						width: 50%;
+						margin-bottom: 8px;
+						border-radius: 4px;
+					}
+					
+					.skeleton-price-row {
+						margin-top: 16px;
+					}
+					
+					.skeleton-price {
+						height: 20px;
+						width: 45%;
+						border-radius: 4px;
+						display: inline-block;
+					}
+					
+					/* Match card styles */
+					.product-loader .card {
 						margin-bottom: 1rem;
+						border: 1px solid rgba(0,0,0,.125);
+						border-radius: 0.25rem;
 					}
 					
-					.spinner-border {
-						width: 3rem;
-						height: 3rem;
-						border-width: 0.3em;
+					.product-loader .card-body {
+						padding: 1rem;
 					}
 					
-					.loader-text {
-						color: var(--text-muted);
-						font-size: 1rem;
-						margin: 0;
-						animation: pulse 1.5s ease-in-out infinite;
+					/* List skeleton styles */
+					.skeleton-img-list {
+						height: 100%;
+						width: 100%;
+						min-height: 120px;
+						border-radius: 0.25rem;
 					}
 					
-					@keyframes pulse {
-						0%, 100% { opacity: 1; }
-						50% { opacity: 0.5; }
+					.skeleton-btn-list {
+						height: 30px;
+						width: 135px;
+						float: right;
+						border-radius: 4px;
+					}
+					
+					.list-row .skeleton-title {
+						margin-bottom: 8px;
+					}
+					
+					.list-row .skeleton-category {
+						height: 14px;
+						width: 40%;
+						margin-bottom: 8px;
+					}
+					
+					.list-row .skeleton-price {
+						height: 20px;
+						width: 30%;
+					}
+					
+					/* Remove default card styles for skeleton */
+					.skeleton-item .card {
+						transition: none;
+					}
+					
+					.skeleton-item .card:hover {
+						transform: none;
+						box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 					}
 					
 					/* Position relative for products section */
 					#products-grid-area, #products-list-area {
+						margin-top: 10px;
 						position: relative;
-						min-height: 400px;
 					}
 				</style>
 			`);
@@ -1569,8 +1687,13 @@ webshop.ProductView =  class {
 	}
 	
 	hide_product_loader() {
-		$('.product-loader').fadeOut(200, function() {
-			$(this).remove();
-		});
+		// Remove all skeleton items
+		$('.skeleton-item').remove();
+		
+		// Also ensure both product areas are properly cleaned if no products will be shown
+		if (!this.products || this.products.length === 0) {
+			$('#products-grid-area').empty();
+			$('#products-list-area').empty();
+		}
 	}
 };

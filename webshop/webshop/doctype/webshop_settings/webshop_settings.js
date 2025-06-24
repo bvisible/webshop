@@ -26,6 +26,25 @@ frappe.ui.form.on("Webshop Settings", {
 			);
 		}
 
+		// Add button for calculating frequently bought together
+		if (frm.doc.enable_frequently_bought_together && !frm.is_new()) {
+			frm.add_custom_button(__('Calculate Frequently Bought Together'), function() {
+				frappe.call({
+					method: 'calculate_frequently_bought_together_items',
+					doc: frm.doc,
+					freeze: true,
+					freeze_message: __('Calculating frequently bought together items...'),
+					callback: function(r) {
+						if (r.message && r.message.success) {
+							frappe.msgprint(r.message.message);
+						} else if (r.message && !r.message.success) {
+							frappe.msgprint(r.message.message);
+						}
+					}
+				});
+			});
+		}
+
 		frappe.model.with_doctype("Website Item", () => {
 			const web_item_meta = frappe.get_meta('Website Item');
 

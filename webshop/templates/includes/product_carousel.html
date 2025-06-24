@@ -1,118 +1,18 @@
 {% if not website_items %}
-    {# Get products based on requested type #}
-    {% set base_filters = {"published": 1} %}
-    
-    {# If we only want discounted products #}
-    {% if show_discounted_only %}
-        {# Fetch more products to filter from #}
-        {% set limit_count = 1000 %}
-    {% else %}
-        {% set limit_count = carousel_limit|default(8) %}
-    {% endif %}
-    
-    {% set all_items = frappe.get_all(
-        "Website Item",
-        filters=base_filters,
-        fields=["name", "web_item_name", "item_name", "item_code", "route", "website_image", "item_group", "description"],
-        order_by="creation desc",
-        limit=limit_count
+    {# Use the optimized carousel helper to get products with prices in one query #}
+    {% set website_items = get_carousel_items(
+        item_group=carousel_item_group,
+        only_promotions=show_discounted_only,
+        limit=carousel_limit|default(8) * 3 if show_discounted_only else carousel_limit|default(8),
+        sort_by=carousel_sort_by|default("creation"),
+        sort_order=carousel_sort_order|default("desc"),
+        brand=carousel_brand
     ) %}
     
-    {# Get prices for each product #}
-    {% set items_with_prices = [] %}
-    {% set settings = frappe.get_doc("Webshop Settings") %}
-    {% set price_list = settings.price_list if settings else None %}
-    
-    {% set max_items = carousel_limit|default(8) %}
-    {% for item in all_items %}
-        {% if show_discounted_only and items_with_prices|length >= max_items %}
-            {# Stop when we have enough discounted items #}
-        {% elif not show_discounted_only and items_with_prices|length >= max_items %}
-            {# Stop when we have enough items #}
-        {% else %}
-            {% if price_list and item.item_code %}
-                {# Get current price and check for discounts from multiple sources #}
-                {% set price_data = frappe.db.sql("""
-                    SELECT 
-                        ip.price_list_rate as current_price,
-                        GREATEST(
-                            COALESCE(ip_mrp.price_list_rate, 0),
-                            COALESCE(ip.price_list_rate, 0)
-                        ) as mrp_price,
-                        COALESCE(pr.discount_percentage, 0) as pricing_rule_discount
-                    FROM `tabWebsite Item` wi
-                    LEFT JOIN `tabItem Price` ip ON wi.item_code = ip.item_code 
-                        AND ip.selling = 1 
-                        AND ip.price_list = %s
-                    LEFT JOIN `tabItem Price` ip_mrp ON wi.item_code = ip_mrp.item_code 
-                        AND ip_mrp.selling = 1 
-                        AND ip_mrp.price_list != %s
-                    LEFT JOIN (
-                        SELECT 
-                            COALESCE(pri.item_code, i.name) as item_code,
-                            MAX(pr.discount_percentage) as discount_percentage
-                        FROM `tabPricing Rule` pr
-                        LEFT JOIN `tabPricing Rule Item Code` pri ON pri.parent = pr.name
-                        LEFT JOIN `tabPricing Rule Item Group` prg ON prg.parent = pr.name
-                        LEFT JOIN `tabItem` i ON i.item_group = prg.item_group
-                        WHERE pr.disable = 0
-                        AND pr.selling = 1
-                        AND pr.discount_percentage > 0
-                        AND (pr.valid_from IS NULL OR pr.valid_from <= CURDATE())
-                        AND (pr.valid_upto IS NULL OR pr.valid_upto >= CURDATE())
-                        AND (pri.item_code IS NOT NULL OR prg.item_group IS NOT NULL)
-                        GROUP BY COALESCE(pri.item_code, i.name)
-                    ) pr ON wi.item_code = pr.item_code
-                    WHERE wi.name = %s
-                    LIMIT 1
-                """, (price_list, price_list, item.name), as_dict=True) %}
-                
-                {% if price_data and price_data[0] %}
-                    {% set price_info = price_data[0] %}
-                    {% set current_price = price_info.current_price %}
-                    {% set mrp_price = price_info.mrp_price %}
-                    {% set pricing_rule_discount = price_info.pricing_rule_discount %}
-                    
-                    {# Calculate discount from multiple sources #}
-                    {% set price_based_discount = ((mrp_price - current_price) / mrp_price * 100)|int if (mrp_price and mrp_price > current_price) else 0 %}
-                    {% set has_discount = (price_based_discount > 0) or (pricing_rule_discount > 0) %}
-                    {% set discount_percent = pricing_rule_discount if pricing_rule_discount > price_based_discount else price_based_discount %}
-                    
-                    {# If there's a pricing rule discount but no MRP, calculate MRP from discount #}
-                    {% if pricing_rule_discount > 0 and (not mrp_price or mrp_price <= current_price) %}
-                        {% set mrp_price = current_price / (1 - pricing_rule_discount / 100) %}
-                    {% endif %}
-                    
-                    {# If we only want discounted products, filter them #}
-                    {% if not show_discounted_only or has_discount %}
-                        {% set new_item = {
-                            "name": item.name,
-                            "web_item_name": item.web_item_name,
-                            "item_name": item.item_name,
-                            "item_code": item.item_code,
-                            "route": item.route,
-                            "website_image": item.website_image,
-                            "item_group": item.item_group,
-                            "description": item.description,
-                            "formatted_price": frappe.utils.fmt_money(current_price, currency=settings.company_currency if settings.company_currency else "CHF"),
-                            "formatted_mrp": frappe.utils.fmt_money(mrp_price, currency=settings.company_currency if settings.company_currency else "CHF") if has_discount else None,
-                            "discount": "-" + discount_percent|string + "%" if has_discount else None,
-                            "discount_percent": discount_percent
-                        } %}
-                        {% set _ = items_with_prices.append(new_item) %}
-                    {% endif %}
-                {% elif not show_discounted_only %}
-                    {# If no price but we're not filtering, add anyway #}
-                    {% set _ = items_with_prices.append(item) %}
-                {% endif %}
-            {% elif not show_discounted_only %}
-                {# If no price list or item_code, add anyway if not filtering #}
-                {% set _ = items_with_prices.append(item) %}
-            {% endif %}
-        {% endif %}
-    {% endfor %}
-    
-    {% set website_items = items_with_prices %}
+    {# If we need exactly the carousel_limit number of items, trim the list #}
+    {% if show_discounted_only and website_items|length > carousel_limit|default(8) %}
+        {% set website_items = website_items[:carousel_limit|default(8)] %}
+    {% endif %}
 {% endif %}
 
 {% set unique_carousel_id = carousel_id|default('product-carousel-' + range(1000, 9999)|random|string) %}
@@ -214,7 +114,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 30px;
+        margin-bottom: 0 !important;
         flex-wrap: wrap;
         gap: 1rem;
       }
@@ -352,6 +252,7 @@
         min-height: 2.5rem;
         display: -webkit-box;
         -webkit-line-clamp: 2;
+        line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -376,7 +277,7 @@
 
       .product-price {
         font-size: 1.1em;
-        font-weight: 700;
+        font-weight: 500;
         color: #333;
         margin-top: 0.75rem;
         margin-bottom: 10px;
@@ -596,6 +497,7 @@
           height: auto;
           max-height: none;
           -webkit-line-clamp: 3;
+          line-clamp: 3;
         }
         .carousel-header {
           justify-content: center;

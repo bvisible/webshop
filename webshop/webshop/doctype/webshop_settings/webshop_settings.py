@@ -13,6 +13,7 @@ from webshop.webshop.redisearch_utils import (
 	get_indexable_web_fields,
 	is_search_module_loaded,
 )
+from webshop.webshop.utils.frequently_bought_together import calculate_frequently_bought_together
 
 
 class ShoppingCartSetupError(frappe.ValidationError):
@@ -257,6 +258,14 @@ class WebshopSettings(Document):
 			# if search index fields get changed
 			if not (new_fields == old_fields):
 				create_website_items_index()
+
+	@frappe.whitelist()
+	def calculate_frequently_bought_together_items(self):
+		"""Manually trigger calculation of frequently bought together items"""
+		if not self.enable_frequently_bought_together:
+			frappe.throw(_("Please enable 'Frequently Bought Together' first"))
+		
+		return calculate_frequently_bought_together()
 
 	def update_gift_card_template(self):
 		"""Updates is_gift_card field on Website Items when gift card template changes"""

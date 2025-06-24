@@ -236,7 +236,11 @@ class ProductQuery:
 		if is_price_sort:
 			order_by = f"current_price {sort_direction}, ranking DESC"
 		elif sort_order == "new_arrivals":
-			order_by = "creation DESC"
+			order_by = "creation DESC, ranking DESC"
+		elif sort_order == "rating":
+			order_by = "ranking DESC"
+		elif sort_order == "relevance":
+			order_by = "ranking DESC"
 		else:
 			order_by = "ranking DESC"
 		
@@ -907,30 +911,31 @@ class ProductQuery:
 	
 	def query_items_with_discount_optimized(self, start=0):
 		"""Optimized version with user cache"""
-		# Get filtered item codes if any filters are applied
-		filtered_item_codes = None
-		if len(self.filters) > 1:  # More than just the published filter
-			# Get a quick list of item codes that match current filters
-			filtered_item_codes = self._get_filtered_item_codes()
+		# For now, disable caching to fix pagination issue
+		# The cache was causing problems because it was caching paginated results
+		# and then applying additional pagination on top
 		
-		# User-specific cache key
-		cache_key = self.get_user_discount_cache_key(filtered_item_codes)
-		
-		# Check cache
-		cached_result = frappe.cache().get_value(cache_key)
-		if cached_result and isinstance(cached_result, dict):
-			items = cached_result.get("items", [])
-			count = cached_result.get("count", 0)
-			return items[start:start + self.page_length], count
-		
-		# If not in cache, execute optimized query
+		# Execute optimized query directly
 		items, count = self._execute_discount_query_optimized(start)
 		
-		# Cache for 5 minutes
-		cache_data = {"items": items, "count": count}
-		frappe.cache().set_value(cache_key, cache_data, expires_in_sec=300)
-		
 		return items, count
+	
+	def _get_discount_order_by(self):
+		"""Get ORDER BY clause for discount queries based on sort_order"""
+		if hasattr(self, 'sort_order') and self.sort_order:
+			if self.sort_order == "new_arrivals":
+				return "creation DESC, discount_percent DESC"
+			elif self.sort_order == "rating":
+				return "ranking DESC, discount_percent DESC"
+			elif self.sort_order == "price_low_to_high":
+				return "price_list_rate ASC, discount_percent DESC"
+			elif self.sort_order == "price_high_to_low":
+				return "price_list_rate DESC, discount_percent DESC"
+			elif self.sort_order == "relevance":
+				return "ranking DESC, discount_percent DESC"
+		
+		# Default: sort by ranking (relevance), then by discount percentage
+		return "ranking DESC, discount_percent DESC"
 	
 	def _get_filtered_item_codes(self):
 		"""Get item codes that match current filters (excluding discount filter)"""
@@ -988,6 +993,9 @@ class ProductQuery:
 						param_names.append(f"%({param_name})s")
 						values[param_name] = v
 					conditions.append(f"wi.`{field}` IN ({', '.join(param_names)})")
+				elif operator == "is":
+					if value == "not set":
+						conditions.append(f"wi.`{field}` IS NULL")
 		
 		where_clause = " AND ".join(conditions)
 		
@@ -1000,6 +1008,7 @@ class ProductQuery:
 			SELECT DISTINCT 
 				wi.name,
 				wi.item_code,
+				wi.creation,
 				GREATEST(
 					COALESCE(
 						(SELECT MAX(pr.discount_percentage)
@@ -1029,8 +1038,9 @@ class ProductQuery:
 				AND (ip.valid_from IS NULL OR ip.valid_from <= CURDATE())
 				AND (ip.valid_upto IS NULL OR ip.valid_upto >= CURDATE())
 			LEFT JOIN `tabItem Price` ip_mrp ON ip_mrp.item_code = wi.item_code
-				AND ip_mrp.price_list = %(mrp_price_list)s
+				AND ip_mrp.price_list != %(price_list)s
 				AND ip_mrp.selling = 1
+				AND ip_mrp.price_list_rate > COALESCE(ip.price_list_rate, 0)
 				AND (ip_mrp.valid_from IS NULL OR ip_mrp.valid_from <= CURDATE())
 				AND (ip_mrp.valid_upto IS NULL OR ip_mrp.valid_upto >= CURDATE())
 			WHERE {where_clause}
@@ -1040,40 +1050,69 @@ class ProductQuery:
 			{field_list},
 			di.discount_percent,
 			di.price_list_rate,
-			di.mrp
+			di.mrp,
+			wi.creation
 		FROM `tabWebsite Item` wi
 		INNER JOIN discounted_items di ON di.name = wi.name
-		ORDER BY di.discount_percent DESC, wi.weightage DESC
+		ORDER BY {self._get_discount_order_by()}
 		LIMIT %(limit)s OFFSET %(offset)s
 		"""
 		
 		# Add values for the query
 		values.update({
 			'price_list': price_list,
-			'mrp_price_list': getattr(self.settings, 'mrp_price_list', price_list) or price_list,
 			'limit': self.page_length,
 			'offset': start
 		})
 		
 		items = frappe.db.sql(sql, values, as_dict=True)
 		
-		# Get count using simpler query
+		# Get count using the same discount logic as main query
 		count_sql = f"""
-		SELECT COUNT(DISTINCT wi.name)
-		FROM `tabWebsite Item` wi
-		WHERE {where_clause}
-		AND EXISTS (
-			SELECT 1 
-			FROM `tabItem Price` ip
-			WHERE ip.item_code = wi.item_code
-			AND ip.price_list = %(price_list)s
-			AND ip.selling = 1
-			AND ip.price_list_rate > 0
+		WITH discounted_items AS (
+			SELECT DISTINCT 
+				wi.name,
+				wi.item_code,
+				wi.creation,
+				GREATEST(
+					COALESCE(
+						(SELECT MAX(pr.discount_percentage)
+						 FROM `tabPricing Rule Item Code` pri
+						 INNER JOIN `tabPricing Rule` pr ON pr.name = pri.parent
+						 WHERE pri.item_code = wi.item_code
+						 AND pr.disable = 0
+						 AND pr.selling = 1
+						 AND pr.discount_percentage > 0
+						 AND (pr.valid_from IS NULL OR pr.valid_from <= CURDATE())
+						 AND (pr.valid_upto IS NULL OR pr.valid_upto >= CURDATE())
+						), 0
+					),
+					CASE 
+						WHEN ip_mrp.price_list_rate > 0 AND ip.price_list_rate > 0 
+						     AND ip_mrp.price_list_rate > ip.price_list_rate
+						THEN ((ip_mrp.price_list_rate - ip.price_list_rate) / ip_mrp.price_list_rate * 100)
+						ELSE 0
+					END
+				) as discount_percent
+			FROM `tabWebsite Item` wi
+			LEFT JOIN `tabItem Price` ip ON ip.item_code = wi.item_code 
+				AND ip.price_list = %(price_list)s
+				AND ip.selling = 1
+				AND (ip.valid_from IS NULL OR ip.valid_from <= CURDATE())
+				AND (ip.valid_upto IS NULL OR ip.valid_upto >= CURDATE())
+			LEFT JOIN `tabItem Price` ip_mrp ON ip_mrp.item_code = wi.item_code
+				AND ip_mrp.price_list != %(price_list)s
+				AND ip_mrp.selling = 1
+				AND ip_mrp.price_list_rate > COALESCE(ip.price_list_rate, 0)
+				AND (ip_mrp.valid_from IS NULL OR ip_mrp.valid_from <= CURDATE())
+				AND (ip_mrp.valid_upto IS NULL OR ip_mrp.valid_upto >= CURDATE())
+			WHERE {where_clause}
+			HAVING discount_percent > 0
 		)
+		SELECT COUNT(DISTINCT name) FROM discounted_items
 		"""
 		
-		count_values = {k: v for k, v in values.items() if k not in ['limit', 'offset', 'mrp_price_list']}
-		count_values['price_list'] = price_list
+		count_values = {k: v for k, v in values.items() if k not in ['limit', 'offset']}
 		count = frappe.db.sql(count_sql, count_values)[0][0]
 		
 		# Process items (add formatted prices, stock info, etc.)

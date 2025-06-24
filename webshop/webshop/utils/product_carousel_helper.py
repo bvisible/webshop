@@ -3,6 +3,123 @@ from frappe import _
 from frappe.utils import fmt_money
 from erpnext.utilities.product import get_price
 
+def _get_abbr(name):
+    """Create abbreviation from name"""
+    return ''.join([w[0].upper() for w in (name or '').split()]) if name else ""
+
+def _format_carousel_item(item):
+    """Format a single item for carousel display"""
+    formatted_item = {
+        "name": item.get("name"),
+        "web_item_name": item.get("web_item_name"),
+        "item_name": item.get("item_name"),
+        "item_code": item.get("item_code"),
+        "website_image": item.get("website_image"),
+        "route": item.get("route"),
+        "item_group": item.get("item_group"),
+        "brand": item.get("brand"),
+        "description": item.get("short_description") or item.get("web_long_description", ""),
+        "has_variants": item.get("has_variants"),
+        "abbr": _get_abbr(item.get("web_item_name") or item.get("item_name"))
+    }
+    
+    # Add price information if available
+    if item.get("formatted_price"):
+        formatted_item.update({
+            "price": item.get("price_list_rate"),
+            "currency": item.get("currency"),
+            "formatted_price": item.get("formatted_price")
+        })
+        
+        # Add discount information if available
+        if item.get("formatted_mrp"):
+            formatted_item.update({
+                "formatted_mrp": item.get("formatted_mrp"),
+                "compare_at_price": item.get("compare_at_price"),
+                "discount": item.get("discount"),
+                "discount_percent": item.get("discount_percent", 0),
+                "is_promotion": True
+            })
+    elif item.get("price_list_rate"):
+        # For items from direct SQL query
+        formatted_item.update({
+            "price": item.get("price_list_rate"),
+            "currency": item.get("currency", "CHF"),
+            "formatted_price": fmt_money(item.get("price_list_rate"), currency=item.get("currency", "CHF"))
+        })
+    
+    return formatted_item
+
+def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
+    """Optimized query for new arrivals carousel"""
+    # Get settings
+    settings = frappe.get_cached_doc("Webshop Settings")
+    if not settings.enabled:
+        return []
+    
+    price_list = settings.price_list or frappe.db.get_value("Selling Settings", None, "selling_price_list") or "Standard Selling"
+    currency = frappe.get_cached_value("Price List", price_list, "currency") or "CHF"
+    
+    # Build conditions
+    conditions = ["wi.published = 1"]
+    params = {
+        "price_list": price_list,
+        "limit": limit + 10  # Get a few extra in case of filtering
+    }
+    
+    if item_group:
+        conditions.append("wi.item_group = %(item_group)s")
+        params["item_group"] = item_group
+    
+    where_clause = " AND ".join(conditions)
+    
+    # Optimized query for new arrivals with prices
+    query = """
+        SELECT 
+            wi.name,
+            wi.web_item_name,
+            wi.item_name,
+            wi.item_code,
+            wi.website_image,
+            wi.route,
+            wi.item_group,
+            wi.brand,
+            wi.short_description,
+            wi.has_variants,
+            wi.creation,
+            ip.price_list_rate,
+            ip.currency
+        FROM `tabWebsite Item` wi
+        LEFT JOIN `tabItem Price` ip ON ip.item_code = wi.item_code 
+            AND ip.price_list = %(price_list)s
+            AND ip.selling = 1
+            AND IFNULL(ip.valid_from, '2000-01-01') <= CURDATE()
+            AND IFNULL(ip.valid_upto, '2100-01-01') >= CURDATE()
+        WHERE {where_clause}
+        ORDER BY wi.creation DESC
+        LIMIT %(limit)s
+    """.format(where_clause=where_clause)
+    
+    items = frappe.db.sql(query, params, as_dict=True)
+    
+    # Format items
+    formatted_items = []
+    for item in items:
+        if exclude_items and item.item_code in exclude_items:
+            continue
+        
+        # Add currency for consistent formatting
+        if item.price_list_rate:
+            item["currency"] = currency
+            
+        formatted_items.append(_format_carousel_item(item))
+        
+        # Stop when we have enough items
+        if len(formatted_items) >= limit:
+            break
+    
+    return formatted_items
+
 def get_carousel_items(item_group=None, only_promotions=False, limit=20, 
                        sort_by="modified", sort_order="desc", brand=None, 
                        exclude_items=None, search_term=None):
@@ -22,107 +139,53 @@ def get_carousel_items(item_group=None, only_promotions=False, limit=20,
     Returns:
         list: Articles formatted for carousel display
     """
-    # Function to create abbreviations
-    def get_abbr(name):
-        return ''.join([w[0].upper() for w in name.split()]) if name else ""
+    # For new arrivals without promotions, use optimized direct query
+    if sort_by in ["creation", "modified"] and not only_promotions and not search_term:
+        return _get_new_arrivals_optimized(limit, item_group, exclude_items)
     
-    # Build filters
-    filters = {"published": 1}  # Only published articles
+    # For all other cases, use ProductQuery
+    from webshop.webshop.product_data_engine.query import ProductQuery
     
-    # Add group filter if provided
-    if item_group:
-        filters["item_group"] = item_group
-    
-    # Add brand filter if provided
+    # Build field filters
+    fields = {}
+    if only_promotions:
+        fields["discount"] = [10, 90]
     if brand:
-        filters["brand"] = brand
+        fields["brand"] = brand
     
-    # Exclude articles if necessary
-    if exclude_items:
-        filters["item_code"] = ["not in", exclude_items]
+    # Initialize query engine with optimized limit
+    engine = ProductQuery()
+    engine.page_length = limit * 2  # Get double to account for post-filtering
     
-    # Add search term if provided
-    if search_term:
-        filters.update([
-            [
-                "Website Item",
-                "item_name",
-                "like",
-                f"%{search_term}%"
-            ]
-        ])
-    
-    # Fields to retrieve
-    fields = [
-        "name", "web_item_name", "item_name", "item_code", 
-        "website_image", "route", "item_group", "brand",
-        "description", "has_variants"
-    ]
-    
-    # Valider le champ de tri pour éviter des erreurs SQL
-    valid_sort_fields = [
-        "name", "modified", "creation", "item_name", "item_code", 
-        "web_item_name", "ranking", "published"
-    ]
-    
-    if sort_by not in valid_sort_fields:
-        # Si le champ de tri demandé n'est pas valide, utiliser modified par défaut
-        sort_by = "modified"
-    
-    # Get website items
-    website_items = frappe.db.get_list(
-        "Website Item",
-        filters=filters,
+    # Execute query
+    result = engine.query(
         fields=fields,
-        order_by=f"{sort_by} {sort_order}",
-        limit=limit,
-        ignore_permissions=True
+        search_term=search_term,
+        item_group=item_group,
+        start=0,
+        sort_order={
+            "creation": "new_arrivals",
+            "modified": "new_arrivals",
+            "price": "price_low_to_high",
+            "ranking": "relevance"
+        }.get(sort_by, "relevance")
     )
     
-    # Process each item
-    for item in website_items:
-        # Add abbreviation
-        item['abbr'] = get_abbr(item.get('web_item_name') or item.get('item_name') or '')
+    # Format and filter items
+    formatted_items = []
+    for item in result.get("items", []):
+        # Skip excluded items
+        if exclude_items and item.get("item_code") in exclude_items:
+            continue
+            
+        formatted_item = _format_carousel_item(item)
+        formatted_items.append(formatted_item)
         
-        # Get price details
-        if item.get('item_code'):
-            try:
-                # Get necessary parameters
-                settings = frappe.get_doc("Webshop Settings")
-                selling_price_list = frappe.db.get_value("Selling Settings", None, "selling_price_list") or "Standard Selling"
-                from webshop.webshop.shopping_cart.cart import get_party
-                party = get_party()
-                
-                # Use standard get_price function to retrieve price details
-                price_details = get_price(
-                    item['item_code'],
-                    selling_price_list,
-                    settings.default_customer_group,
-                    settings.company,
-                    party=party
-                )
-                
-                if price_details:
-                    # Store formatted price details
-                    item['price'] = price_details.get("price_list_rate")
-                    item['currency'] = price_details.get("currency", "CHF")
-                    item['formatted_price'] = price_details.get("formatted_price")
-                    item['formatted_mrp'] = price_details.get("formatted_mrp")
-                    
-                    # Handle promotion information
-                    if item['formatted_mrp']:
-                        item['is_promotion'] = True
-                        item['compare_at_price'] = price_details.get("mrp")
-                        item['discount'] = price_details.get("formatted_discount_percent") or price_details.get("formatted_discount_rate")
-                        item['discount_percent'] = price_details.get("discount_percent")
-            except Exception as e:
-                frappe.log_error(f"Error getting price for {item['item_code']}: {str(e)}", "Carousel Error")
+        # Stop when we have enough
+        if len(formatted_items) >= limit:
+            break
     
-    # Filter for promotions if requested
-    if only_promotions:
-        website_items = [item for item in website_items if item.get('is_promotion', False)]
-    
-    return website_items
+    return formatted_items
 
 def get_related_items(item_code, limit=4):
     """

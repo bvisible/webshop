@@ -30,17 +30,73 @@
 {% set has_tabs = show_tabs and tabs %}
 {% set has_specs = website_specifications %}
 {% set has_content = doc.website_content %}
-{% set has_reviews = shopping_cart.cart_settings.enable_reviews and not doc.has_variants %}
-{% set show_recommended_items = recommended_items and shopping_cart.cart_settings.enable_recommendations %}
-{% set has_content_to_show = has_tabs or has_specs or has_content or has_reviews or show_recommended_items %}
+{% set has_reviews = shopping_cart.cart_settings.enable_reviews %}
+{% set show_recommended_items = shopping_cart.cart_settings.enable_recommendations %}
+{% set has_fbt = shopping_cart.cart_settings.enable_frequently_bought_together and frequently_bought_together %}
+{% set has_recommendations = show_recommended_items or has_fbt %}
+{% set has_content_to_show = has_tabs or has_specs or has_content or has_reviews or has_recommendations %}
 
 {% if has_content_to_show %}
-<div class="d-flex">
-	{% set info_col = 'col-9' if show_recommended_items else 'col-12' %}
-	{% set padding_top = 'pt-0' if has_tabs else '' %}
-
+<div class="d-flex flex-wrap product-info-wrapper">
+	<!-- Recommendations section (will be first on mobile) -->
+	{% if has_recommendations %}
 	{% if has_tabs or has_specs or has_content or has_reviews %}
-	<div class="product-container mt-4 {{ padding_top }} {{ info_col }}">
+		{% if has_fbt %}
+			{% set recommendations_col_class = 'col-lg-6' %}
+		{% else %}
+			{% set recommendations_col_class = 'col-lg-3' %}
+		{% endif %}
+	{% else %}
+		{% set recommendations_col_class = 'col-lg-12' %}
+	{% endif %}
+	<div class="col-12 {{ recommendations_col_class }} mt-4 order-1 order-lg-2 recommendations-wrapper">
+		<div class="row">
+			<!-- Recommended Items -->
+			{% if show_recommended_items and recommended_items %}
+				{% set rec_inner_col = 'col-12' if recommendations_col_class == 'col-lg-3' else 'col-md-6' %}
+				<div class="col-12 {{ rec_inner_col }} recommended-item-section">
+					<span class="recommendation-header">{{ _("Recommended") }}</span>
+					<div class="product-container mt-2 recommendation-container">
+						{% for item in recommended_items %}
+							{{ recommended_item_row(item) }}
+						{% endfor %}
+					</div>
+				</div>
+			{% endif %}
+
+			<!-- Frequently Bought Together -->
+			{% if shopping_cart.cart_settings.enable_frequently_bought_together and frequently_bought_together %}
+				{% set fbt_inner_col = 'col-12' if recommendations_col_class == 'col-lg-3' else 'col-md-6' %}
+				<div class="col-12 {{ fbt_inner_col }} frequently-bought-section">
+					<span class="recommendation-header">{{ _("Frequently Bought Together") }}</span>
+					<div class="product-container mt-2 recommendation-container">
+						{% for item in frequently_bought_together[:4] %}
+							{{ recommended_item_row({
+								"website_item_name": item.web_item_name,
+								"route": item.route,
+								"website_item_thumbnail": item.thumbnail or item.website_image,
+								"price_info": {"formatted_price": item.formatted_price} if item.formatted_price else None
+							}) }}
+						{% endfor %}
+					</div>
+				</div>
+			{% endif %}
+		</div>
+	</div>
+	{% endif %}
+
+	<!-- Info and reviews section (will be second on mobile) -->
+	{% if has_tabs or has_specs or has_content or has_reviews %}
+	{% if has_recommendations %}
+		{% if has_fbt %}
+			{% set info_col_class = 'col-lg-6' %}
+		{% else %}
+			{% set info_col_class = 'col-lg-9' %}
+		{% endif %}
+	{% else %}
+		{% set info_col_class = 'col-lg-12' %}
+	{% endif %}
+	<div class="col-12 {{ info_col_class }} product-container mt-4 order-2 order-lg-1 {{ 'pt-0' if has_tabs else '' }}">
 		<div class="item-content {{ 'mt-minus-2' if has_tabs else '' }}">
 			<div class="product-page-content" itemscope itemtype="http://schema.org/Product">
 				<!-- Product Specifications Table Section -->
@@ -66,20 +122,9 @@
 		</div>
 	</div>
 	{% endif %}
-
-	<!-- Recommended Items -->
-	{% if show_recommended_items %}
-		<div class="mt-4 col-3 recommended-item-section">
-			<span class="recommendation-header">{{ _("Recommended") }}</span>
-			<div class="product-container mt-2 recommendation-container">
-				{% for item in recommended_items %}
-					{{ recommended_item_row(item) }}
-				{% endfor %}
-			</div>
-		</div>
-	{% endif %}
 </div>
 {% endif %}
+
 {% endblock %}
 
 {% block base_scripts %}

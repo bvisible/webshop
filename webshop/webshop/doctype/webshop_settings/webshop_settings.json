@@ -67,6 +67,7 @@
   "enable_reviews",
   "column_break_23",
   "enable_recommendations",
+  "enable_frequently_bought_together",
   "item_search_settings_section",
   "redisearch_warning",
   "search_index_fields",
@@ -492,6 +493,12 @@
    "fieldname": "enable_recommendations",
    "fieldtype": "Check",
    "label": "Enable Recommendations"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_frequently_bought_together",
+   "fieldtype": "Check",
+   "label": "Enable Frequently Bought Together"
   },
   {
    "default": "0",

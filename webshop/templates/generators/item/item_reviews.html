@@ -1,43 +1,71 @@
 {% from "webshop/templates/includes/macros.html" import user_review, ratings_summary %}
 
 <div class="mt-4 ratings-reviews-section">
+	<div class="reviews-container">
 		<!-- Title and Action -->
-		<div class="w-100 mt-4 mb-2 d-flex">
-			<div class="reviews-header col-9">
+		<div class="reviews-header-wrapper d-flex justify-content-between align-items-center mb-4">
+			<h3 class="reviews-title mb-0 mt-0">
 				{{ _("Customer Reviews") }}
-			</div>
+				<span class="review-count-badge">{{ total_reviews or 0 }}</span>
+			</h3>
 
-			<div class="write-a-review-btn col-3">
-				<!-- Write a Review for legitimate users -->
-				{% if frappe.session.user != "Guest" and user_is_customer %}
-					<button class="btn btn-write-review"
-						data-web-item="{{ doc.name }}">
-						{{ _("Write a Review") }}
-					</button>
-				{% endif %}
-			</div>
+			<!-- Write a Review for legitimate users -->
+			{% if frappe.session.user != "Guest" and user_is_customer %}
+				<button class="btn btn-primary btn-write-review"
+					data-web-item="{{ doc.name }}">
+					<svg class="icon icon-sm mr-2">
+						<use href="#icon-edit"></use>
+					</svg>
+					{{ _("Write a Review") }}
+				</button>
+			{% elif frappe.session.user == "Guest" %}
+				<a href="/login" class="btn btn-outline-primary btn-sm">
+					{{ _("Login to Review") }}
+				</a>
+			{% endif %}
 		</div>
 
-		<!-- Summary -->
-		{{ ratings_summary(reviews, reviews_per_rating, average_rating, average_whole_rating, for_summary=True, total_reviews=total_reviews) }}
+		<!-- Enhanced Summary -->
+		<div class="reviews-summary-card">
+			{{ ratings_summary(reviews, reviews_per_rating, average_rating, average_whole_rating, for_summary=True, total_reviews=total_reviews) }}
 
 
-	<!-- Reviews and Comments -->
-	<div class="mt-8">
-		{% if reviews %}
-			{{ user_review(reviews) }}
+		</div>
 
-			{% if total_reviews > 4 %}
-				<div class="mt-6 mb-6"style="color: var(--primary);">
-					<a href="/customer_reviews?web_item={{ doc.name }}">{{ _("View all reviews") }}</a>
+		<!-- Reviews and Comments -->
+		<div class="reviews-list-section mt-5">
+			{% if reviews %}
+				<div class="reviews-list">
+					{{ user_review(reviews) }}
+				</div>
+
+				{% if total_reviews > 4 %}
+					<div class="text-center mt-4">
+						<a href="/customer_reviews?web_item={{ doc.name }}" class="btn btn-outline-primary">
+							{{ _("View all") }} {{ total_reviews }} {{ _("reviews") }}
+							<svg class="icon icon-sm ml-2">
+								<use href="#icon-right"></use>
+							</svg>
+						</a>
+					</div>
+				{% endif %}
+
+			{% else %}
+				<div class="no-reviews-section text-center py-5">
+					<svg class="icon icon-xl text-muted mb-3">
+						<use href="#icon-star"></use>
+					</svg>
+					<h5 class="text-muted">{{ _("No Reviews Yet") }}</h5>
+					<p class="text-muted">{{ _("Be the first to review this product") }}</p>
+					{% if frappe.session.user != "Guest" and user_is_customer %}
+						<button class="btn btn-primary btn-write-review mt-3 d-inline-block"
+							data-web-item="{{ doc.name }}">
+							{{ _("Write the First Review") }}
+						</button>
+					{% endif %}
 				</div>
 			{% endif %}
-
-		{% else %}
-			<h6 class="text-muted mt-6">
-				{{ _("No Reviews") }}
-			</h6>
-		{% endif %}
+		</div>
 	</div>
 </div>
 

@@ -301,45 +301,45 @@
 {%- endmacro -%}
 
 {%- macro ratings_summary(reviews, reviews_per_rating, average_rating, average_whole_rating, for_summary=False, total_reviews=None)-%}
-<div class="rating-summary-section mt-4">
-	<div class="rating-summary-numbers col-3">
-		<h2 style="font-size: 2rem;">
-			{{ average_rating or 0 }}
-		</h2>
-		<div class="mb-2" style="margin-top: -.5rem;">
-			{{ frappe.utils.cstr(total_reviews or 0) + " " + _("ratings") }}
+<div class="rating-summary-section">
+	<div class="row">
+		<!-- Overall Rating -->
+		<div class="col-md-4 text-center rating-overview">
+			<div class="rating-score-wrapper">
+				<h1 class="rating-score mb-0 mt-0">{{ average_rating or 0 }}</h1>
+				<div class="rating-stars">
+					{% for i in range(1,6) %}
+						{% set fill_class = 'star-filled' if i <= average_whole_rating else 'star-empty' %}
+						<svg class="icon icon-md {{ fill_class }}">
+							<use href="#icon-star"></use>
+						</svg>
+					{% endfor %}
+				</div>
+				<p class="rating-count text-muted mb-0">
+					{{ _("Based on") }} {{ total_reviews or 0 }} {{ _("reviews") }}
+				</p>
+			</div>
 		</div>
 
-		<!-- Ratings Summary -->
-		{% if reviews %}
-			{% set rating_title = frappe.utils.cstr(average_rating) + " " + _("out of 5") if not for_summary else ''%}
-			{{ ratings_with_title(average_whole_rating/5, rating_title, "md", "rating-summary-title", for_summary) }}
-		{% endif %}
-
-		<div class="mt-2">{{ frappe.utils.cstr(average_rating or 0) + " " + _("out of 5") }}</div>
-	</div>
-
-	<!-- Rating Progress Bars -->
-	<div class="rating-progress-bar-section col-4 ml-4">
-		{% for percent in reviews_per_rating %}
-			<div class="col-sm-4 small rating-bar-title">
-				{{ loop.index }} star
-			</div>
-			<div class="row">
-				<div class="col-md-7">
-					<div class="progress rating-progress-bar" title="{{ percent }} % of reviews are {{ loop.index }} star">
-						<div class="progress-bar progress-bar-cosmetic" role="progressbar"
+		<!-- Rating Breakdown -->
+		<div class="col-md-8 rating-breakdown">
+			{% for percent in reviews_per_rating %}
+				<div class="rating-bar-item d-flex align-items-center mb-2">
+					<span class="star-label">{{ loop.index }}</span>
+					<svg class="icon icon-sm star-icon">
+						<use href="#icon-star"></use>
+					</svg>
+					<div class="progress rating-progress flex-grow-1 mx-3">
+						<div class="progress-bar" role="progressbar"
 							aria-valuenow="{{ percent }}"
 							aria-valuemin="0" aria-valuemax="100"
 							style="width: {{ percent }}%">
 						</div>
 					</div>
+					<span class="percent-label">{{ percent }}%</span>
 				</div>
-				<div class="col-sm-1 small">
-					{{ percent }}%
-				</div>
-			</div>
-		{% endfor %}
+			{% endfor %}
+		</div>
 	</div>
 </div>
 {%- endmacro -%}
@@ -348,19 +348,47 @@
 <!-- User Reviews -->
 <div class="user-reviews">
 	{% for review in reviews %}
-		<div class="mb-3 review">
-			{{ ratings_with_title(review.rating, _(review.review_title), "sm", "user-review-title") }}
+		<div class="review-card">
+			<div class="review-header d-flex justify-content-between align-items-start">
+				<div class="review-info">
+					<h5 class="review-title mb-1">{{ _(review.review_title) }}</h5>
+					<div class="review-rating mb-2">
+						{% for i in range(1,6) %}
+							{% set fill_class = 'star-filled' if i <= review.rating else 'star-empty' %}
+							<svg class="icon icon-sm {{ fill_class }}">
+								<use href="#icon-star"></use>
+							</svg>
+						{% endfor %}
+						<span class="rating-text ml-2">{{ review.rating }}.0</span>
+					</div>
+				</div>
+				<div class="review-verified">
+					{% if review.verified_purchase %}
+						<span class="badge badge-success">
+							<svg class="icon icon-xs mr-1">
+								<use href="#icon-check"></use>
+							</svg>
+							{{ _("Verified Purchase") }}
+						</span>
+					{% endif %}
+				</div>
+			</div>
+			
 			{% if review.comment %}
-				<div class="product-description mb-4">
-					<p>
-						{{ _(review.comment) }}
-					</p>
+				<div class="review-content">
+					<p class="mb-3">{{ _(review.comment) }}</p>
 				</div>
 			{% endif %}
-			<div class="review-signature mb-2">
-				<span class="reviewer">{{ _(review.customer) }}</span>
-				<span class="indicator grey" style="--text-on-gray: var(--gray-300);"></span>
-				<span class="reviewer">{{ _(review.published_on) }}</span>
+			
+			<div class="review-footer">
+				<div class="reviewer-info">
+					<svg class="icon icon-sm text-muted mr-1">
+						<use href="#icon-user"></use>
+					</svg>
+					<span class="reviewer-name">{{ _(review.customer) }}</span>
+					<span class="review-separator">•</span>
+					<span class="review-date text-muted">{{ _(review.published_on) }}</span>
+				</div>
 			</div>
 		</div>
 	{% endfor %}
