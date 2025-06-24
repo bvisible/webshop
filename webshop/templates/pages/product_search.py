@@ -48,11 +48,20 @@ def get_product_data(search=None, start=0, limit=12):
 
 	# search term condition
 	if search:
-		query += """ and (item_name like %(search)s
-				or web_item_name like %(search)s
-				or brand like %(search)s
-				or web_long_description like %(search)s)"""
-		search = "%" + cstr(search) + "%"
+		# First check if search term matches an exact item_code
+		exact_match = frappe.db.exists("Website Item", {"item_code": cstr(search), "published": 1})
+		if exact_match:
+			query += """ and item_code = %(exact_search)s"""
+			search_params = {"exact_search": cstr(search)}
+		else:
+			query += """ and (item_name like %(search)s
+					or web_item_name like %(search)s
+					or item_code like %(search)s
+					or brand like %(search)s
+					or web_long_description like %(search)s)"""
+			search_params = {"search": "%" + cstr(search) + "%"}
+	else:
+		search_params = {}
 
 	# order by
 	query += """ ORDER BY ranking desc, modified desc limit %s offset %s""" % (
@@ -60,7 +69,7 @@ def get_product_data(search=None, start=0, limit=12):
 		cint(start),
 	)
 
-	return frappe.db.sql(query, {"search": search}, as_dict=1)  # nosemgrep
+	return frappe.db.sql(query, search_params, as_dict=1)  # nosemgrep
 
 
 @frappe.whitelist(allow_guest=True)
@@ -85,6 +94,20 @@ def product_search(query, limit=10, fuzzy_search=True):
 		return search_results
 
 	if not query:
+		return search_results
+
+	# First check if query matches an exact item_code
+	exact_match = frappe.db.get_value(
+		"Website Item", 
+		{"item_code": query, "published": 1}, 
+		["web_item_name", "item_name", "item_code", "brand", "route",
+		 "website_image", "thumbnail", "item_group", "description",
+		 "web_long_description as website_description", "website_warehouse", "ranking"],
+		as_dict=1
+	)
+	
+	if exact_match:
+		search_results["results"] = [exact_match]
 		return search_results
 
 	redis = frappe.cache()

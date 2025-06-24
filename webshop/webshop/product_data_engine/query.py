@@ -683,6 +683,13 @@ class ProductQuery:
 		Args:
 		        search_term (str): Search candidate
 		"""
+		# First check if search term matches an exact item_code
+		exact_match = frappe.db.exists("Website Item", {"item_code": search_term})
+		if exact_match:
+			# If exact item_code match found, only filter by that
+			self.filters.append(["item_code", "=", search_term])
+			return
+		
 		# Default fields to search from
 		default_fields = {"item_code", "item_name", "web_long_description", "item_group"}
 
