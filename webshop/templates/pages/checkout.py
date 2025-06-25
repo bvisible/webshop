@@ -68,7 +68,26 @@ def get_context(context):
 	context.no_cache = 1
 	
 	# Get cart details using the same function as cart.py
-	cart_quotation = get_cart_quotation()
+	try:
+		cart_quotation = get_cart_quotation()
+	except Exception as e:
+		# If there's an error with shipping rules, log it but continue
+		error_message = str(e)
+		if "Shipping Rule Not Applicable" in error_message or "not within the range" in error_message:
+			frappe.log_error(f"Shipping rule error on checkout: {error_message}", "Checkout")
+			# Get cart without applying shipping rules
+			quotation = _get_cart_quotation()
+			cart_quotation = {
+				'doc': quotation,
+				'cart_settings': frappe.get_cached_doc("Webshop Settings"),
+				'shipping_addresses': get_address_docs(party=get_party()),
+				'billing_addresses': get_address_docs(party=get_party()),
+				'shipping_rules': []
+			}
+		else:
+			# Re-raise other errors
+			raise
+	
 	context.update(cart_quotation)
 	
 	# The quotation document is in cart_quotation['doc']

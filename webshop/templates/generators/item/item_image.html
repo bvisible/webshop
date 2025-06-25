@@ -1,26 +1,36 @@
 {% set column_size = 6 if slides else 4 %}
-<div class="col-md-{{ column_size }} h-100 d-flex mb-4">
+<div class="col-md-{{ column_size }} h-100 d-flex mb-4 product-image-wrapper">
 	{% if slides %}
-		<div class="item-slideshow d-flex flex-column mr-3">
+		<div class="item-slideshow d-flex flex-column mr-3 d-none d-md-flex">
 			{% for item in slides %}
 			<img class="item-slideshow-image mb-2 {% if loop.first %}active{% endif %}"
 					src="{{ item.image }}" alt="{{ item.heading }}">
 			{% endfor %}
 		</div>
-		{{ product_image(slides[0].image, 'product-image') }}
-		<!-- Enhanced image slideshow with navigation and autoplay -->
-		<div class="slideshow-navigation">
-			<button class="slideshow-btn prev" aria-label="Previous image">‹</button>
-			<button class="slideshow-btn next" aria-label="Next image">›</button>
+		<div class="product-image-container">
+			{{ product_image(slides[0].image, 'product-image') }}
+			<!-- Enhanced image slideshow with navigation and autoplay -->
+			<div class="slideshow-navigation">
+				<button class="slideshow-btn prev" aria-label="Previous image">‹</button>
+				<button class="slideshow-btn next" aria-label="Next image">›</button>
+			</div>
+			<div class="slideshow-progress">
+				{% for item in slides %}
+				<span class="progress-dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></span>
+				{% endfor %}
+			</div>
 		</div>
-		<div class="slideshow-progress">
+		<!-- Mobile thumbnails - shown only on mobile below the image -->
+		<div class="item-slideshow-mobile d-flex d-md-none mt-3">
 			{% for item in slides %}
-			<span class="progress-dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></span>
+			<img class="item-slideshow-image {% if loop.first %}active{% endif %}"
+					src="{{ item.image }}" alt="{{ item.heading }}">
 			{% endfor %}
 		</div>
 		<script>
 			frappe.ready(() => {
-				const slides = document.querySelectorAll('.item-slideshow-image');
+				// Only select desktop thumbnails for the slideshow logic
+				const slides = document.querySelectorAll('.item-slideshow:not(.item-slideshow-mobile) .item-slideshow-image');
 				const totalSlides = slides.length;
 				let currentSlide = 0;
 				let autoplayInterval = null;
@@ -29,7 +39,14 @@
 				// Click on thumbnail
 				$('.page_content').on('click', '.item-slideshow-image', (e) => {
 					const $img = $(e.currentTarget);
-					const index = $('.item-slideshow-image').index($img);
+					// Get index based on the src attribute to handle duplicated thumbnails
+					const clickedSrc = $img.attr('src');
+					let index = 0;
+					slides.forEach((slide, i) => {
+						if ($(slide).attr('src') === clickedSrc) {
+							index = i;
+						}
+					});
 					showSlide(index);
 					resetAutoplay();
 				});
@@ -90,8 +107,14 @@
 					});
 					$product_image.find('a').prop('href', link);
 					
-					$('.item-slideshow-image').removeClass('active');
-					$img.addClass('active');
+					// Update active state for all thumbnails with the same src
+					$('.item-slideshow-image').each(function() {
+						if ($(this).attr('src') === link) {
+							$(this).addClass('active');
+						} else {
+							$(this).removeClass('active');
+						}
+					});
 					
 					// Update progress dots
 					$('.progress-dot').removeClass('active');
@@ -362,14 +385,16 @@
 	}
 	
 	/* Show navigation buttons on hover */
-	.col-md-6:hover .slideshow-btn,
-	.col-md-4:hover .slideshow-btn {
+	.product-image-container:hover .slideshow-btn {
 		opacity: 1;
 	}
 	
 	/* Product image container positioning */
-	.col-md-6, .col-md-4 {
+	.product-image-container {
 		position: relative;
+		flex: 1;
+		display: flex;
+		flex-direction: column;
 	}
 	
 	/* Fade effect for thumbnails */
@@ -426,14 +451,59 @@
 			height: 35px;
 			font-size: 20px;
 			opacity: 1;
+			margin: 0 5px;
 		}
 		
+		/* Keep navigation arrows overlaying the image on mobile */
 		.slideshow-navigation {
-			position: static;
-			transform: none;
-			margin-top: 10px;
-			justify-content: center;
-			gap: 20px;
+			position: absolute;
+			top: 50%;
+			transform: translateY(-50%);
+			width: 100%;
+			display: flex;
+			justify-content: space-between;
+		}
+		
+		/* Ensure product image container maintains relative position */
+		.product-image-container {
+			position: relative;
+		}
+		
+		/* Adjust progress dots position on mobile */
+		.slideshow-progress {
+			bottom: 5px;
+		}
+		
+		.progress-dot {
+			width: 6px;
+			height: 6px;
+		}
+		
+		/* Ensure mobile layout doesn't break */
+		.product-image-wrapper {
+			flex-direction: column;
+		}
+		
+		.item-slideshow{
+			display: none!important;
+		}
+		/* Mobile thumbnails styling */
+		.item-slideshow-mobile {
+			flex-direction: row;
+			overflow-x: auto;
+			gap: 0.5rem;
+			justify-content: flex-start;
+			padding: 0 10px;
+			-webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+		}
+		
+		.item-slideshow-mobile .item-slideshow-image {
+			width: 60px;
+			height: 60px;
+			object-fit: cover;
+			flex-shrink: 0;
+			border-radius: 4px;
+			margin-bottom: 0;
 		}
 	}
 </style>

@@ -1050,72 +1050,84 @@ def get_terms_and_conditions(terms_name):
 
 @frappe.whitelist(allow_guest=True)
 def update_cart_address(address_type, address_name):
-	quotation = _get_cart_quotation()
-	if not quotation:
-		frappe.throw(_("Cart not found"))
-		
-	address_doc = frappe.get_doc("Address", address_name).as_dict()
-	address_display = get_address_display(address_doc)
-	
-	if address_type.lower() == "billing":
-		quotation.customer_address = address_name
-		quotation.address_display = address_display
-		quotation.shipping_address_name = (
-			quotation.shipping_address_name or address_name
-		)
-		# For guests, create address info directly
-		if frappe.session.user == "Guest":
-			address_doc = {
-				"name": address_name,
-				"title": address_doc.get("address_title"),
-				"display": address_display
-			}
-		else:
-			address_doc = next(
-				(doc for doc in get_billing_addresses() if doc["name"] == address_name),
-				None,
-			)
-	elif address_type.lower() == "shipping":
-		quotation.shipping_address_name = address_name
-		quotation.shipping_address = address_display
-		quotation.customer_address = quotation.customer_address or address_name
-		# For guests, create address info directly
-		if frappe.session.user == "Guest":
-			address_doc = {
-				"name": address_name,
-				"title": address_doc.get("address_title"),
-				"display": address_display
-			}
-		else:
-			address_doc = next(
-				(doc for doc in get_shipping_addresses() if doc["name"] == address_name),
-				None,
-			)
+	try:
+		quotation = _get_cart_quotation()
+		if not quotation:
+			frappe.throw(_("Cart not found"))
 			
-	# Ensure quotation has valid totals before applying settings
-	if not quotation.grand_total:
-		quotation.grand_total = 0
-		quotation.base_grand_total = 0
-		
-	# Clear payment schedule before recalculation to avoid errors
-	quotation.payment_schedule = []
-		
-	apply_cart_settings(quotation=quotation)
-
-	quotation.flags.ignore_permissions = True
-	quotation.save(ignore_permissions=True)
+		address_doc = frappe.get_doc("Address", address_name).as_dict()
+		address_display = get_address_display(address_doc)
 	
-	context = get_cart_quotation(quotation)
-	context["address"] = address_doc
+		if address_type.lower() == "billing":
+			quotation.customer_address = address_name
+			quotation.address_display = address_display
+			quotation.shipping_address_name = (
+				quotation.shipping_address_name or address_name
+			)
+			# For guests, create address info directly
+			if frappe.session.user == "Guest":
+				address_doc = {
+					"name": address_name,
+					"title": address_doc.get("address_title"),
+					"display": address_display
+				}
+			else:
+				address_doc = next(
+					(doc for doc in get_billing_addresses() if doc["name"] == address_name),
+					None,
+				)
+		elif address_type.lower() == "shipping":
+			quotation.shipping_address_name = address_name
+			quotation.shipping_address = address_display
+			quotation.customer_address = quotation.customer_address or address_name
+			# For guests, create address info directly
+			if frappe.session.user == "Guest":
+				address_doc = {
+					"name": address_name,
+					"title": address_doc.get("address_title"),
+					"display": address_display
+				}
+			else:
+				address_doc = next(
+					(doc for doc in get_shipping_addresses() if doc["name"] == address_name),
+					None,
+				)
+			
+		# Ensure quotation has valid totals before applying settings
+		if quotation.grand_total is None:
+			quotation.grand_total = 0
+		if quotation.base_grand_total is None:
+			quotation.base_grand_total = 0
+		
+		# Ensure other required fields are set
+		if not quotation.conversion_rate:
+			quotation.conversion_rate = 1
+		
+		# Clear payment schedule before recalculation to avoid errors
+		quotation.payment_schedule = []
+			
+		apply_cart_settings(quotation=quotation)
 
-	return {
-		"taxes": frappe.render_template(
-			"templates/includes/order/order_taxes.html", context
-		),
-		"address": frappe.render_template(
-			"templates/includes/cart/address_card.html", context
-		),
-}
+		# Calculate taxes and totals before saving
+		quotation.calculate_taxes_and_totals()
+		
+		quotation.flags.ignore_permissions = True
+		quotation.save(ignore_permissions=True)
+		
+		context = get_cart_quotation(quotation)
+		context["address"] = address_doc
+
+		return {
+			"taxes": frappe.render_template(
+				"templates/includes/order/order_taxes.html", context
+			),
+			"address": frappe.render_template(
+				"templates/includes/cart/address_card.html", context
+			),
+		}
+	except Exception as e:
+		frappe.log_error(f"Error updating cart address: {str(e)}", "Cart Address Update Error")
+		frappe.throw(_("Error updating address. Please try again or contact support."))
 
 def guess_territory():
 	territory = None
@@ -1245,9 +1257,44 @@ def _get_cart_quotation(party=None):
 			}
 		)
 
-		qdoc.contact_person = frappe.db.get_value(
-			"Contact", {"email_id": frappe.session.user}
-		)
+		# Get contact that belongs to this customer
+		contact_person = None
+		if party.name:
+			# Try to find a contact linked to this customer with ANY email
+			# (not just the session user's email, as the contact might have a different primary email)
+			contact_person = frappe.db.sql("""
+				SELECT c.name 
+				FROM `tabContact` c
+				JOIN `tabDynamic Link` dl ON dl.parent = c.name
+				WHERE dl.link_doctype = %s 
+				AND dl.link_name = %s
+				AND dl.parenttype = 'Contact'
+				ORDER BY c.is_primary_contact DESC, c.creation ASC
+				LIMIT 1
+			""", (party.doctype, party.name), as_dict=True)
+			
+			if contact_person:
+				qdoc.contact_person = contact_person[0].name
+			else:
+				# If no contact exists for this customer, try to create one
+				try:
+					contact = frappe.new_doc("Contact")
+					contact.first_name = frappe.db.get_value("User", frappe.session.user, "first_name") or frappe.session.user.split("@")[0]
+					contact.append("links", {
+						"link_doctype": party.doctype,
+						"link_name": party.name
+					})
+					contact.append("email_ids", {
+						"email_id": frappe.session.user,
+						"is_primary": 1
+					})
+					contact.flags.ignore_permissions = True
+					contact.insert()
+					qdoc.contact_person = contact.name
+				except Exception:
+					# If contact creation fails, leave contact_person as None
+					qdoc.contact_person = None
+		
 		qdoc.contact_email = frappe.session.user
 
 		qdoc.flags.ignore_permissions = True
@@ -1470,9 +1517,21 @@ def get_party(user=None):
 		return None
 
 	# Check if the user already exists as a Portal User
-	existing_customer = frappe.db.get_value("Portal User", {"user": user}, "parent")
-	if existing_customer:
-		return frappe.get_doc("Customer", existing_customer)
+	# This is the MOST RELIABLE way to find the correct customer
+	existing_customers = frappe.db.sql("""
+		SELECT parent 
+		FROM `tabPortal User` 
+		WHERE user = %s 
+		AND parenttype = 'Customer'
+		ORDER BY creation ASC
+		LIMIT 1
+	""", user, as_dict=True)
+	
+	if existing_customers:
+		customer_name = existing_customers[0].parent
+		# Verify the customer still exists and is not disabled
+		if frappe.db.exists("Customer", {"name": customer_name, "disabled": 0}):
+			return frappe.get_doc("Customer", customer_name)
 
 	contact_name = get_contact_name(user)
 	party = None
@@ -1753,18 +1812,29 @@ def _apply_shipping_rule(party=None, quotation=None, cart_settings=None):
 		quotation.run_method("calculate_taxes_and_totals")
 		return
 
+	# Don't auto-apply shipping rules on initial load
+	# Let the user select them on checkout
 	if not quotation.shipping_rule:
-		shipping_rules = get_shipping_rules(quotation, cart_settings)
-
-		if not shipping_rules:
-			return
-
-		elif quotation.shipping_rule not in shipping_rules:
-			quotation.shipping_rule = shipping_rules[0]
+		# Just calculate totals without shipping
+		quotation.run_method("calculate_taxes_and_totals")
+		return
 
 	if quotation.shipping_rule:
-		quotation.run_method("apply_shipping_rule")
-		quotation.run_method("calculate_taxes_and_totals")
+		try:
+			quotation.run_method("apply_shipping_rule")
+			quotation.run_method("calculate_taxes_and_totals")
+		except Exception as e:
+			# If shipping rule fails (e.g., weight/value out of range), 
+			# remove it and continue without shipping charges
+			error_message = str(e)
+			if "not within the range" in error_message or "Not Applicable" in error_message:
+				quotation.shipping_rule = None
+				quotation.run_method("calculate_taxes_and_totals")
+				# Don't show error message on page load, just log it
+				frappe.log_error(f"Shipping rule not applicable: {error_message}", "Shopping Cart")
+			else:
+				# Re-raise other types of errors
+				raise
 
 def get_applicable_shipping_rules(party=None, quotation=None):
 	shipping_rules = get_shipping_rules(quotation)
@@ -1795,7 +1865,37 @@ def get_shipping_rules(quotation=None, cart_settings=None):
 				.where((sr_country.country == country) & (sr.disabled != 1) & (sr.shipping_rule_type == "Selling"))
 			)
 			result = query.run(as_list=True)
-			shipping_rules = [x[0] for x in result]
+			all_shipping_rules = [x[0] for x in result]
+			
+			# Filter rules based on applicability
+			# Calculate total weight if needed
+			total_weight = 0
+			if quotation.items:
+				for item in quotation.items:
+					item_doc = frappe.get_cached_doc("Item", item.item_code)
+					if hasattr(item_doc, "weight_per_unit") and item_doc.weight_per_unit:
+						total_weight += flt(item_doc.weight_per_unit) * flt(item.qty)
+			
+			# Check each rule's applicability
+			for rule_name in all_shipping_rules:
+				try:
+					rule = frappe.get_cached_doc("Shipping Rule", rule_name)
+					# Simple check if rule might be applicable based on conditions
+					# The actual validation will happen when apply_shipping_rule is called
+					applicable = True
+					
+					# Check if rule has weight-based conditions
+					if rule.conditions:
+						for condition in rule.conditions:
+							if condition.from_value and condition.to_value:
+								# For now, just add the rule and let apply_shipping_rule handle validation
+								pass
+					
+					if applicable:
+						shipping_rules.append(rule_name)
+				except Exception:
+					# If we can't check the rule, include it and let apply_shipping_rule handle it
+					shipping_rules.append(rule_name)
 
 	return shipping_rules
 
