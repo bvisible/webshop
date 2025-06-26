@@ -266,6 +266,43 @@ class WebshopSettings(Document):
 			frappe.throw(_("Please enable 'Frequently Bought Together' first"))
 		
 		return calculate_frequently_bought_together()
+	
+	@frappe.whitelist()
+	def regenerate_sitemap(self):
+		"""Clear sitemap cache and regenerate all sitemaps"""
+		from frappe.utils.caching import clear_cache
+		from frappe.utils import now_datetime
+		
+		# List of cache keys to clear
+		cache_functions = [
+			"webshop.www.sitemap.get_published_doctype_pages",
+			"webshop.www.sitemap.get_builder_pages", 
+			"webshop.www.sitemap.get_web_pages",
+			"webshop.www.sitemap_products.get_product_links",
+			"webshop.www.sitemap_categories.get_category_links",
+			"webshop.www.sitemap_brands.get_brand_links",
+			"webshop.www.sitemap_blog.get_blog_links",
+			"webshop.www.sitemap_pages.get_builder_page_links",
+			"webshop.www.sitemap_pages.get_web_page_links"
+		]
+		
+		# Clear each cache
+		for func in cache_functions:
+			try:
+				clear_cache(func)
+			except Exception:
+				pass
+		
+		# Update last generated timestamp
+		self.db_set("sitemap_last_generated", now_datetime())
+		
+		frappe.msgprint(
+			_("Sitemap cache has been cleared successfully. The sitemaps will be regenerated on next access."),
+			alert=True,
+			indicator="green"
+		)
+		
+		return True
 
 	def update_gift_card_template(self):
 		"""Updates is_gift_card field on Website Items when gift card template changes"""

@@ -26,6 +26,28 @@ frappe.ui.form.on("Webshop Settings", {
 			);
 		}
 
+		// Add sitemap view button
+		frm.add_custom_button(__('View Sitemap'), function() {
+			window.open('/sitemap_index.xml', '_blank');
+		}, __('Sitemap'));
+		
+		// Update sitemap info with actual domain
+		if (frm.fields_dict.sitemap_info) {
+			const domain = window.location.origin;
+			frm.set_df_property('sitemap_info', 'options', 
+				`<p>The sitemap is automatically generated and cached for 6 hours. You can access it at:</p>
+				<ul>
+					<li><a href="${domain}/sitemap_index.xml" target="_blank">${domain}/sitemap_index.xml</a> - Main sitemap index</li>
+					<li><a href="${domain}/sitemap.xml" target="_blank">${domain}/sitemap.xml</a> - All content</li>
+					<li><a href="${domain}/sitemap_products.xml" target="_blank">${domain}/sitemap_products.xml</a> - Products only</li>
+					<li><a href="${domain}/sitemap_categories.xml" target="_blank">${domain}/sitemap_categories.xml</a> - Categories only</li>
+					<li><a href="${domain}/sitemap_brands.xml" target="_blank">${domain}/sitemap_brands.xml</a> - Brands only</li>
+					<li><a href="${domain}/sitemap_blog.xml" target="_blank">${domain}/sitemap_blog.xml</a> - Blog posts only</li>
+					<li><a href="${domain}/sitemap_pages.xml" target="_blank">${domain}/sitemap_pages.xml</a> - Pages only</li>
+				</ul>`
+			);
+		}
+
 		// Add button for calculating frequently bought together
 		if (frm.doc.enable_frequently_bought_together && !frm.is_new()) {
 			frm.add_custom_button(__('Calculate Frequently Bought Together'), function() {
@@ -89,5 +111,22 @@ frappe.ui.form.on("Webshop Settings", {
 			frm.set_value('maintenance_website', 1);
 			frappe.msgprint(__('Website maintenance mode has been automatically enabled'));
 		}
+	},
+	regenerate_sitemap: function(frm) {
+		frappe.confirm(
+			__('This will clear the sitemap cache and force regeneration. Continue?'),
+			function() {
+				frm.call({
+					method: 'regenerate_sitemap',
+					freeze: true,
+					freeze_message: __('Clearing sitemap cache...'),
+					callback: function(r) {
+						if (r.message) {
+							frm.reload_doc();
+						}
+					}
+				});
+			}
+		);
 	}
 });
