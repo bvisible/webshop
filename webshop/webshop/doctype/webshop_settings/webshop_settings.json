@@ -49,6 +49,7 @@
   "column_break_27",
   "save_quotations_as_draft",
   "quotation_terms",
+  "checkout_cgv",
   "payment_gateway_account",
   "payment_success_url",
   "activate_b2b_checkout",
@@ -357,6 +358,14 @@
    "fieldname": "quotation_terms",
    "fieldtype": "Link",
    "label": "Terms and Conditions for Quotations",
+   "options": "Terms and Conditions"
+  },
+  {
+   "depends_on": "eval:doc.enable_checkout",
+   "description": "General Terms and Conditions (GTC) to be displayed on the checkout page",
+   "fieldname": "checkout_cgv",
+   "fieldtype": "Link",
+   "label": "Terms and conditions for Checkout",
    "options": "Terms and Conditions"
   },
   {

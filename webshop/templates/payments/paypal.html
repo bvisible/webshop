@@ -17,7 +17,7 @@
         <div class="form-check mb-3" id="terms-acceptance-container">
             <input type="checkbox" class="form-check-input cursor-pointer" id="terms-acceptance" required>
             <label class="form-check-label cursor-pointer" for="terms-acceptance">
-                {{ _("I accept the") }} <a href="#terms-title" class="terms-link">{{ doc.tc_name or _("terms and conditions") }}</a>
+                {{ _("I accept the") }} <a href="#terms-title" class="terms-link">{{ cgv_tc_name or _("terms and conditions") }}</a>
             </label>
         </div>
         <div class="mt-4 d-flex justify-content-end">

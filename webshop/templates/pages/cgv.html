@@ -1,0 +1,101 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ cgv_title }}{% endblock %}
+
+{% block page_content %}
+<div class="page-content-wrapper">
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                {% if show_cgv %}
+                    <h1 class="page-title mb-4 mt-0">{{ cgv_title }}</h1>
+
+                    <div class="cgv-content frappe-card p-5">
+                        
+                        <div class="cgv-terms">
+                            <div class="ql-editor read-mode">
+                                {{ cgv_content }}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-5 text-center">
+                            <a href="/checkout" class="btn btn-primary">
+                                {{ _("Retour au checkout") }}
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="cgv-content frappe-card p-5 text-center">
+                        <h1 class="page-title mb-4">{{ cgv_title }}</h1>
+                        <p class="text-muted">{{ _("Les conditions générales de vente ne sont pas encore configurées.") }}</p>
+                        
+                        <div class="mt-4">
+                            <a href="/all-products" class="btn btn-primary">
+                                {{ _("Continuer mes achats") }}
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+.cgv-content {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.cgv-terms {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #333;
+}
+
+.cgv-terms h2 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 24px;
+    color: #2c3e50;
+}
+
+.cgv-terms h3 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 20px;
+    color: #34495e;
+}
+
+.cgv-terms p {
+    margin-bottom: 15px;
+}
+
+.cgv-terms ul, .cgv-terms ol {
+    margin-bottom: 15px;
+    padding-left: 30px;
+}
+
+.cgv-terms li {
+    margin-bottom: 8px;
+}
+
+.page-title {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .cgv-content {
+        padding: 20px !important;
+    }
+    
+    .cgv-terms {
+        font-size: 14px;
+    }
+}
+</style>
+{% endblock %}

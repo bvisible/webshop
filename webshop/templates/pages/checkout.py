@@ -138,6 +138,12 @@ def get_context(context):
 	context.shipping_amount = quotation.get('shipping_fee', 0)
 	context.total = quotation.get('grand_total', 0)
 	
+	# Get CGV from Webshop Settings
+	if cart_quotation.get('cart_settings') and cart_quotation['cart_settings'].get('checkout_cgv'):
+		cgv_terms = cart_quotation['cart_settings'].checkout_cgv
+		context.cgv_tc_name = cgv_terms
+		context.cgv_terms = frappe.db.get_value("Terms and Conditions", cgv_terms, "terms")
+	
 	# Get customer information
 	customer = None
 	contact_info_set = False
@@ -808,6 +814,14 @@ def get_payment_template(payment_gateway_account, context=None):
 		if not quotation_doc:
 			frappe.throw(_('Your basket is empty'))
 
+		# Get CGV from Webshop Settings for payment templates
+		webshop_settings = frappe.get_cached_doc("Webshop Settings")
+		cgv_tc_name = None
+		cgv_terms = None
+		if webshop_settings.checkout_cgv:
+			cgv_tc_name = webshop_settings.checkout_cgv
+			cgv_terms = frappe.db.get_value("Terms and Conditions", webshop_settings.checkout_cgv, "terms")
+		
 		# Add required variables to template
 		context.update({
 			"payment_gateway": gateway_info["type"],
@@ -822,7 +836,9 @@ def get_payment_template(payment_gateway_account, context=None):
 			"reference_doctype": "Quotation",  
 			"reference_docname": quotation_doc.name if quotation_doc else "",  
 			"description": f"Payment for order {quotation_doc.name}" if quotation_doc else "",
-			"doc": quotation_doc  # Add quotation document to context
+			"doc": quotation_doc,  # Add quotation document to context
+			"cgv_tc_name": cgv_tc_name,  # Add CGV name for payment templates
+			"cgv_terms": cgv_terms  # Add CGV content for payment templates
 		})
 		
 		# Check for custom template path

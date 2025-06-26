@@ -347,18 +347,23 @@
 							</div>
 						</div>
 
-						{% if doc.terms %}
-						<h5 id="terms-title" class="mb-3">{{ _( doc.tc_name or _("terms and conditions") ) }}</h5>
+						{% if cgv_terms %}
+						<h5 id="terms-title" class="mb-3">{{ _( cgv_tc_name or _("Conditions Générales de Vente") ) }}</h5>
 							<div class="t-and-c-container frappe-card p-5 mb-4">
 								<div class="terms-preview">
 									<div class="ql-editor read-mode terms-content"></div>
 								</div>
 								<div class="terms-full hidden">
-									<div class="ql-editor read-mode">{{ doc.terms }}</div>
+									<div class="ql-editor read-mode">{{ cgv_terms }}</div>
 								</div>
-								<button class="btn btn-sm btn-primary-light mt-2 toggle-terms">
-									{{ _("Show more") }}
-								</button>
+								<div class="d-flex justify-content-between align-items-center mt-2">
+									<button class="btn btn-sm btn-primary-light toggle-terms">
+										{{ _("Show more") }}
+									</button>
+									<a href="/cgv" target="_blank" class="btn btn-sm btn-link">
+										{{ _("See full page") }} <i class="fa fa-external-link"></i>
+									</a>
+								</div>
 							</div>
 						{% endif %}
 						<div class="mt-4 d-flex justify-content-start">
