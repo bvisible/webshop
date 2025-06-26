@@ -1,24 +1,44 @@
 {% if not brands %}
     {# Get brands automatically if not provided #}
-    {% set brands = frappe.get_all(
+    
+    {# First, get all brands #}
+    {% set all_brands = frappe.get_all(
         "Brand",
-        fields=["name", "brand", "image"],
-        order_by="brand asc",
-        limit=20
+        fields=["name", "brand", "image", "description"],
+        limit=100
     ) %}
-    {# Transform the data to match expected format #}
+    
+    {# Transform the data and add product count #}
     {% set transformed_brands = [] %}
-    {% for b in brands %}
+    {% for b in all_brands %}
         {% set brand_filter = '{"brand":["' + b.name + '"]}' %}
-        {% set brand_item = {
-            "brand_name": b.brand,
-            "logo": b.image,
-            "route": "all-products?field_filters=" + brand_filter|urlencode,
-            "description": ""
-        } %}
-        {% set _ = transformed_brands.append(brand_item) %}
+        {% set product_count = 0 %}
+        {% if carousel_sort_by == "product_count" or show_product_count %}
+            {% set product_count = frappe.db.count("Website Item", {"brand": b.name, "published": 1}) %}
+        {% endif %}
+        {% if product_count > 0 or not carousel_sort_by == "product_count" %}
+            {% set brand_item = {
+                "brand_name": b.brand,
+                "logo": b.image,
+                "route": "all-products?field_filters=" + brand_filter.replace(' ', '%20').replace('"', '%22'),
+                "description": b.description or "",
+                "product_count": product_count,
+                "_name": b.name
+            } %}
+            {% set _ = transformed_brands.append(brand_item) %}
+        {% endif %}
     {% endfor %}
-    {% set brands = transformed_brands %}
+    
+    {# Sort the brands #}
+    {% if carousel_sort_by == "product_count" %}
+        {% set sorted_brands = transformed_brands|sort(attribute='product_count', reverse=True) %}
+        {% set brands = sorted_brands[:carousel_limit|default(20)] %}
+    {% elif carousel_sort_by == "random" %}
+        {% set brands = transformed_brands[:carousel_limit|default(20)] %}
+    {% else %}
+        {% set sorted_brands = transformed_brands|sort(attribute='brand_name') %}
+        {% set brands = sorted_brands[:carousel_limit|default(20)] %}
+    {% endif %}
 {% endif %}
 
 {% set unique_carousel_id = carousel_id|default('brand-carousel-' + range(1000, 9999)|random|string) %}
@@ -60,6 +80,11 @@
                       </div>
                     </a>
                   </div>
+                  {% if show_product_count and brand.product_count %}
+                    <div class="brand-product-count">
+                      {{ brand.product_count }} {{ _("products") if brand.product_count > 1 else _("product") }}
+                    </div>
+                  {% endif %}
                   {% if brand.description %}
                     <div class="brand-description">
                       {% set clean_description = brand.description | striptags %}
@@ -272,6 +297,14 @@
         transition: color 0.3s ease;
       }
 
+      .brand-carousel .brand-product-count {
+        font-size: 0.85em;
+        color: var(--primary-color, #171717);
+        font-weight: 500;
+        margin-top: 4px;
+        margin-bottom: 8px;
+      }
+      
       .brand-carousel .brand-description {
         font-size: 0.9em;
         color: #6c757d;
@@ -365,13 +398,14 @@
           function updateIndicators() {
             indicators.innerHTML = '';
             
-            const totalPages = Math.ceil(totalItems / itemsPerView);
+            const maxIndex = Math.max(1, totalItems - itemsPerView + 1);
+            const step = Math.max(1, Math.floor(maxIndex / 8)); // Limit to ~8 indicators
             
-            for (let i = 0; i < totalPages; i++) {
+            for (let i = 0; i < maxIndex; i += step) {
               const indicator = document.createElement('span');
               indicator.classList.add('indicator');
               
-              if (i === currentIndex) {
+              if (Math.abs(i - currentIndex) < step / 2) {
                 indicator.classList.add('active');
               }
               
@@ -389,35 +423,39 @@
           
           // Update visibility of navigation buttons
           function updateControlsVisibility() {
-            const totalPages = Math.ceil(totalItems / itemsPerView);
+            // Always show controls for better UX
+            btnLeft.style.display = '';
+            btnRight.style.display = '';
+            indicators.style.display = '';
             
-            if (currentIndex <= 0) {
-              btnLeft.style.opacity = '0.5';
-              btnLeft.style.pointerEvents = 'none';
-            } else {
-              btnLeft.style.opacity = '1';
-              btnLeft.style.pointerEvents = 'auto';
-            }
+            // Disable buttons at boundaries
+            btnLeft.disabled = currentIndex === 0;
+            btnRight.disabled = currentIndex >= Math.max(0, totalItems - itemsPerView);
             
-            if (currentIndex >= totalPages - 1) {
-              btnRight.style.opacity = '0.5';
-              btnRight.style.pointerEvents = 'none';
-            } else {
-              btnRight.style.opacity = '1';
-              btnRight.style.pointerEvents = 'auto';
-            }
+            // Update button opacity for visual feedback
+            btnLeft.style.opacity = currentIndex === 0 ? '0.5' : '1';
+            btnRight.style.opacity = currentIndex >= Math.max(0, totalItems - itemsPerView) ? '0.5' : '1';
           }
           
           // Update the carousel position
           function updateCarousel() {
-            const itemWidth = carouselInner.querySelector('.item-card').offsetWidth;
-            const translateX = -currentIndex * itemsPerView * itemWidth;
+            const items = carousel.querySelectorAll('.item-card');
+            if (items.length === 0) return;
             
-            carouselInner.style.transform = `translateX(${translateX}px)`;
+            // Limit the index to avoid exceeding the limits
+            currentIndex = Math.max(0, Math.min(currentIndex, totalItems - itemsPerView));
+            
+            // Calculate the offset in pixels for better precision
+            const itemWidth = items[0].offsetWidth;
+            const marginWidth = 30; // Margin of 15px on each side
+            const totalItemWidth = itemWidth + marginWidth;
+            const offset = currentIndex * totalItemWidth;
+            
+            carouselInner.style.transform = `translateX(-${offset}px)`;
             
             // Update indicators
-            const indicators = carousel.querySelectorAll('.indicator');
-            indicators.forEach((indicator, index) => {
+            const indicatorElements = carousel.querySelectorAll('.indicator');
+            indicatorElements.forEach((indicator, index) => {
               if (index === currentIndex) {
                 indicator.classList.add('active');
               } else {
@@ -438,9 +476,7 @@
           });
           
           btnRight.addEventListener('click', function() {
-            const totalPages = Math.ceil(totalItems / itemsPerView);
-            
-            if (currentIndex < totalPages - 1) {
+            if (currentIndex < totalItems - itemsPerView) {
               currentIndex++;
               updateCarousel();
               resetAutoplay();
@@ -449,19 +485,19 @@
           
           // Touch events for swipe on mobile
           function handleSwipe() {
-            if (touchEndX < touchStartX) {
-              // Swipe left, go to next
-              const totalPages = Math.ceil(totalItems / itemsPerView);
-              
-              if (currentIndex < totalPages - 1) {
+            const swipeThreshold = 50; // Swipe detection threshold
+            
+            if (touchEndX < touchStartX - swipeThreshold) {
+              // Swipe left (next)
+              if (currentIndex < totalItems - itemsPerView) {
                 currentIndex++;
                 updateCarousel();
                 resetAutoplay();
               }
             }
             
-            if (touchEndX > touchStartX) {
-              // Swipe right, go to previous
+            if (touchEndX > touchStartX + swipeThreshold) {
+              // Swipe right (previous)
               if (currentIndex > 0) {
                 currentIndex--;
                 updateCarousel();
@@ -472,19 +508,19 @@
           
           // Autoplay functionality
           function startAutoplay() {
-            stopAutoplay();
-            
-            autoplayInterval = setInterval(() => {
-              const totalPages = Math.ceil(totalItems / itemsPerView);
+            if (totalItems > itemsPerView) {
+              stopAutoplay();
               
-              if (currentIndex < totalPages - 1) {
-                currentIndex++;
-              } else {
-                currentIndex = 0;
-              }
-              
-              updateCarousel();
-            }, 5000);
+              autoplayInterval = setInterval(() => {
+                if (currentIndex < totalItems - itemsPerView) {
+                  currentIndex++;
+                } else {
+                  currentIndex = 0;
+                }
+                
+                updateCarousel();
+              }, 5000); // Change every 5 seconds
+            }
           }
           
           function stopAutoplay() {

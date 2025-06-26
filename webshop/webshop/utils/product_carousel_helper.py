@@ -122,7 +122,8 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
 
 def get_carousel_items(item_group=None, only_promotions=False, limit=20, 
                        sort_by="modified", sort_order="desc", brand=None, 
-                       exclude_items=None, search_term=None):
+                       exclude_items=None, search_term=None, use_cache=False,
+                       cache_ttl=3600):
     """
     Helper function to get formatted products for the carousel.
     
@@ -135,57 +136,89 @@ def get_carousel_items(item_group=None, only_promotions=False, limit=20,
         brand (str, optional): Filter by brand
         exclude_items (list, optional): List of item codes to exclude
         search_term (str, optional): Search term
+        use_cache (bool, optional): Whether to use cache (default: False)
+        cache_ttl (int, optional): Cache time to live in seconds (default: 3600 = 1 hour)
         
     Returns:
         list: Articles formatted for carousel display
     """
+    # Import cache manager
+    from webshop.webshop.utils.carousel_cache import CarouselCacheManager
+    
+    # Check if cache should be used
+    if use_cache:
+        cache_manager = CarouselCacheManager()
+        
+        # Generate cache key based on all parameters
+        cache_params = {
+            "item_group": item_group,
+            "only_promotions": only_promotions,
+            "limit": limit,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
+            "brand": brand,
+            "exclude_items": exclude_items,
+            "search_term": search_term
+        }
+        
+        cache_key = cache_manager.generate_cache_key(**cache_params)
+        
+        # Try to get from cache
+        cached_items = cache_manager.get_from_cache(cache_key)
+        if cached_items is not None:
+            return cached_items
+    
     # For new arrivals without promotions, use optimized direct query
     if sort_by in ["creation", "modified"] and not only_promotions and not search_term:
-        return _get_new_arrivals_optimized(limit, item_group, exclude_items)
-    
-    # For all other cases, use ProductQuery
-    from webshop.webshop.product_data_engine.query import ProductQuery
-    
-    # Build field filters
-    fields = {}
-    if only_promotions:
-        fields["discount"] = [10, 90]
-    if brand:
-        fields["brand"] = brand
-    
-    # Initialize query engine with optimized limit
-    engine = ProductQuery()
-    engine.page_length = limit * 2  # Get double to account for post-filtering
-    
-    # Execute query
-    result = engine.query(
-        fields=fields,
-        search_term=search_term,
-        item_group=item_group,
-        start=0,
-        sort_order={
-            "creation": "new_arrivals",
-            "modified": "new_arrivals",
-            "price": "price_low_to_high",
-            "ranking": "relevance"
-        }.get(sort_by, "relevance")
-    )
-    
-    # Format and filter items
-    formatted_items = []
-    for item in result.get("items", []):
-        # Skip excluded items
-        if exclude_items and item.get("item_code") in exclude_items:
-            continue
-            
-        formatted_item = _format_carousel_item(item)
-        formatted_items.append(formatted_item)
+        items = _get_new_arrivals_optimized(limit, item_group, exclude_items)
+    else:
+        # For all other cases, use ProductQuery
+        from webshop.webshop.product_data_engine.query import ProductQuery
         
-        # Stop when we have enough
-        if len(formatted_items) >= limit:
-            break
+        # Build field filters
+        fields = {}
+        if only_promotions:
+            fields["discount"] = [10, 90]
+        if brand:
+            fields["brand"] = brand
+        
+        # Initialize query engine with optimized limit
+        engine = ProductQuery()
+        engine.page_length = limit * 2  # Get double to account for post-filtering
+        
+        # Execute query
+        result = engine.query(
+            fields=fields,
+            search_term=search_term,
+            item_group=item_group,
+            start=0,
+            sort_order={
+                "creation": "new_arrivals",
+                "modified": "new_arrivals",
+                "price": "price_low_to_high",
+                "ranking": "relevance"
+            }.get(sort_by, "relevance")
+        )
+        
+        # Format and filter items
+        items = []
+        for item in result.get("items", []):
+            # Skip excluded items
+            if exclude_items and item.get("item_code") in exclude_items:
+                continue
+                
+            formatted_item = _format_carousel_item(item)
+            items.append(formatted_item)
+            
+            # Stop when we have enough
+            if len(items) >= limit:
+                break
     
-    return formatted_items
+    # Cache the results if cache is enabled
+    if use_cache and 'cache_manager' in locals():
+        cache_manager.set_cache(cache_key, items, cache_ttl)
+    
+    return items
 
 def get_related_items(item_code, limit=4):
     """

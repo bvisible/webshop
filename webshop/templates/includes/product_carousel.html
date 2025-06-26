@@ -6,7 +6,9 @@
         limit=carousel_limit|default(8) * 3 if show_discounted_only else carousel_limit|default(8),
         sort_by=carousel_sort_by|default("creation"),
         sort_order=carousel_sort_order|default("desc"),
-        brand=carousel_brand
+        brand=carousel_brand,
+        use_cache=carousel_use_cache|default(False),
+        cache_ttl=carousel_cache_ttl|default(3600)
     ) %}
     
     {# If we need exactly the carousel_limit number of items, trim the list #}

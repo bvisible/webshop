@@ -1,197 +1,199 @@
 import frappe
 from frappe import _
-import uuid
+from typing import List, Dict, Optional
+from urllib.parse import quote
+from webshop.webshop.utils.carousel_cache import CarouselCacheManager
 
-def get_carousel_brands(limit=10, sort_by="modified", sort_order="desc", featured_only=False, 
-                        category=None, exclude_brands=None, search_term=None):
+
+def get_brands_with_product_count(limit: int = 20, sort_by: str = "brand_name", 
+                                 use_cache: bool = False, cache_ttl: int = 3600, debug: bool = False) -> List[Dict]:
     """
-    Helper function to get formatted brands for the carousel.
+    Get brands with their product count and formatted for carousel display.
     
     Args:
-        limit (int, optional): Maximum number of brands to retrieve
-        sort_by (str, optional): Field for sorting
-        sort_order (str, optional): Sorting direction ('asc' or 'desc')
-        featured_only (bool, optional): Display only featured brands
-        category (str, optional): Filter by category
-        exclude_brands (list, optional): List of brand names to exclude
-        search_term (str, optional): Search term
+        limit: Maximum number of brands to return
+        sort_by: Sort criteria - "brand_name", "product_count", or "random"
+        use_cache: Whether to use cache
+        cache_ttl: Cache time to live in seconds
         
     Returns:
-        list: Brands formatted for carousel display
+        List of brand dictionaries formatted for carousel
     """
-    try:
-        # Check if the Brand table exists
-        if not frappe.db.table_exists("Brand"):
-            return []
-            
-        # Get metadata of the Brand table to check available fields
-        brand_meta = frappe.get_meta("Brand")
-        available_fields = [field.fieldname for field in brand_meta.fields]
-        
-        # Initialize base filters (without published which may not exist)
-        filters = {}
-        
-        # Add featured filter if exists
-        if featured_only and "featured" in available_fields:
-            filters["featured"] = 1
-            
-        # Add category filter if exists
-        if category and "category" in available_fields:
-            filters["category"] = category
-        
-        # Add show_in_website filter if exists
-        if "show_in_website" in available_fields:
-            filters["show_in_website"] = 1
-        
-        # Prepare filters for SQL query
-        query_filters = []
-        for key, value in filters.items():
-            query_filters.append(f"`tabBrand`.`{key}` = {frappe.db.escape(value)}")
-            
-        # Add search term if provided
-        if search_term:
-            search_conditions = []
-            if "brand" in available_fields:
-                search_conditions.append(f"`tabBrand`.`brand` LIKE {frappe.db.escape('%' + search_term + '%')}")
-            if "description" in available_fields:
-                search_conditions.append(f"`tabBrand`.`description` LIKE {frappe.db.escape('%' + search_term + '%')}")
-            
-            if search_conditions:
-                query_filters.append(f"({' OR '.join(search_conditions)})")
-            
-        # Combine filters
-        where_clause = " AND ".join(query_filters) if query_filters else "1=1"
-        
-        # Add brand exclusion if provided
-        if exclude_brands:
-            exclude_clause = ", ".join([frappe.db.escape(brand) for brand in exclude_brands])
-            where_clause += f" AND `tabBrand`.`name` NOT IN ({exclude_clause})"
-            
-        # Check if the sort field exists
-        if sort_by not in available_fields and sort_by != "name":
-            sort_by = "modified" if "modified" in available_fields else "name"
-            
-        # Prepare the order by clause
-        order_by_clause = f"`tabBrand`.`{sort_by}` {sort_order}"
-        
-        # Determine fields to select based on available fields
-        fields = ["`tabBrand`.`name`"]
-        
-        # Add fields if they exist
-        field_mapping = {
-            "brand": "`tabBrand`.`brand`",
-            "description": "`tabBrand`.`description`",
-            "brand_logo": "`tabBrand`.`brand_logo` as logo",
-            "logo": "`tabBrand`.`logo` as logo",
-            "route": "`tabBrand`.`route`",
-            "modified": "`tabBrand`.`modified`",
-            "creation": "`tabBrand`.`creation`"
+    if use_cache:
+        cache_manager = CarouselCacheManager()
+        cache_params = {
+            "type": "brands",
+            "limit": limit,
+            "sort_by": sort_by
         }
+        cache_key = cache_manager.generate_cache_key(**cache_params)
         
-        for field, sql_field in field_mapping.items():
-            if field in available_fields or field in ["name", "modified", "creation"]:
-                fields.append(sql_field)
-        
-        # Execute the query
-        brands = frappe.db.sql(f"""
-            SELECT {', '.join(fields)}
-            FROM `tabBrand`
-            WHERE {where_clause}
-            ORDER BY {order_by_clause}
-            LIMIT {int(limit)}
-        """, as_dict=1)
-
-        # Format brands for carousel
-        formatted_brands = []
-        for brand in brands:
-            # Get the logo or use a placeholder
-            logo = brand.get("logo") or ""
-            
-            # Get the route or create one
-            route = brand.get("route") or f"brands/{frappe.scrub(brand.name)}"
-            
-            # Format brand for carousel
-            formatted_brand = {
-                "name": brand.name,
-                "brand_name": brand.get("brand") or brand.name,
-                "description": brand.get("description") or "",
-                "logo": logo,
-                "route": route,
-                "modified": brand.get("modified"),
-                "creation": brand.get("creation")
-            }
-            
-            formatted_brands.append(formatted_brand)
-            
-        return formatted_brands
-    except Exception as e:
-        frappe.log_error(f"Error in get_carousel_brands: {str(e)}")
-        return []
-
-def render_brand_carousel(limit=10, sort_by="modified", sort_order="desc", 
-                          featured_only=False, category=None, carousel_title=None,
-                          carousel_id=None, context=None):
+        # Try to get from cache
+        cached_brands = cache_manager.get_from_cache(cache_key)
+        if cached_brands is not None:
+            return cached_brands
+    
+    # Get brands with product count using SQL for better performance
+    query = """
+        SELECT 
+            b.name as brand_name,
+            b.brand,
+            b.image as logo,
+            b.description,
+            COUNT(DISTINCT wi.name) as product_count
+        FROM `tabBrand` b
+        LEFT JOIN `tabWebsite Item` wi ON wi.brand = b.name AND wi.published = 1
+        GROUP BY b.name, b.brand, b.image, b.description
+        HAVING product_count > 0
     """
-    Render a brand carousel with specified filters
+    
+    # Add sorting
+    if sort_by == "product_count":
+        query += " ORDER BY product_count DESC, b.brand ASC"
+    elif sort_by == "random":
+        query += " ORDER BY RAND()"
+    else:  # default to brand_name
+        query += " ORDER BY b.brand ASC"
+    
+    # Add limit
+    query += f" LIMIT {int(limit)}"
+    
+    try:
+        brands_data = frappe.db.sql(query, as_dict=True)
+        
+        if debug:
+            frappe.logger().debug(f"Brand query returned {len(brands_data)} brands")
+            if brands_data and len(brands_data) > 0:
+                frappe.logger().debug(f"Sample brand data: {brands_data[0]}")
+    except Exception as e:
+        frappe.log_error(f"Error in brand carousel query: {str(e)}", "Brand Carousel Error")
+        return []
+    
+    # Format brands for carousel
+    formatted_brands = []
+    for brand in brands_data:
+        # Create filter for the brand
+        brand_filter = '{"brand":["' + brand.brand_name + '"]}'
+        
+        formatted_brand = {
+            "brand_name": brand.brand,  # This is the alias from SQL query
+            "logo": brand.logo,
+            "route": f"all-products?field_filters={quote(brand_filter)}",
+            "description": brand.description or "",
+            "product_count": brand.product_count
+        }
+        formatted_brands.append(formatted_brand)
+    
+    # Cache the results if cache is enabled
+    if use_cache and 'cache_manager' in locals():
+        cache_manager.set_cache(cache_key, formatted_brands, cache_ttl)
+    
+    return formatted_brands
+
+
+def get_top_brands(limit: int = 8, use_cache: bool = True, cache_ttl: int = 7200) -> List[Dict]:
+    """
+    Get top brands sorted by product count.
     
     Args:
-        limit (int, optional): Maximum number of brands to retrieve
-        sort_by (str, optional): Field for sorting
-        sort_order (str, optional): Sorting direction ('asc' or 'desc')
-        featured_only (bool, optional): Display only featured brands
-        category (str, optional): Filter by category
-        carousel_title (str, optional): Title for the carousel
-        carousel_id (str, optional): Custom ID for the carousel
-        context (dict, optional): Jinja template context
-
+        limit: Maximum number of brands to return
+        use_cache: Whether to use cache (default: True)
+        cache_ttl: Cache time to live in seconds (default: 2 hours)
+        
     Returns:
-        str: HTML rendered for the carousel
+        List of top brands
     """
-    # Get carousel brands
-    carousel_brands = get_carousel_brands(
+    return get_brands_with_product_count(
         limit=limit,
-        sort_by=sort_by,
-        sort_order=sort_order,
-        featured_only=featured_only,
-        category=category
+        sort_by="product_count",
+        use_cache=use_cache,
+        cache_ttl=cache_ttl
+    )
+
+
+def get_featured_brands(brand_names: List[str], use_cache: bool = True, 
+                       cache_ttl: int = 3600) -> List[Dict]:
+    """
+    Get specific featured brands in a custom order.
+    
+    Args:
+        brand_names: List of brand names to feature
+        use_cache: Whether to use cache
+        cache_ttl: Cache time to live in seconds
+        
+    Returns:
+        List of featured brands in the specified order
+    """
+    if not brand_names:
+        return []
+    
+    if use_cache:
+        cache_manager = CarouselCacheManager()
+        cache_params = {
+            "type": "featured_brands",
+            "brands": ",".join(sorted(brand_names))
+        }
+        cache_key = cache_manager.generate_cache_key(**cache_params)
+        
+        # Try to get from cache
+        cached_brands = cache_manager.get_from_cache(cache_key)
+        if cached_brands is not None:
+            return cached_brands
+    
+    # Get brand data
+    brands_data = frappe.get_all(
+        "Brand",
+        filters={
+            "name": ["in", brand_names]
+        },
+        fields=["name", "brand", "image", "description"]
     )
     
-    # Generate a unique ID if not provided
-    if not carousel_id:
-        carousel_id = f"brand-carousel-{str(uuid.uuid4())[:8]}"
+    # Create a map for easy lookup
+    brand_map = {b.name: b for b in brands_data}
     
-    # Create or get context for the carousel
-    if context is None:
-        try:
-            # Try to get the current context from Frappe
-            context = frappe._dict(frappe.get_hooks("context") or {})
-        except:
-            # If failure, create an empty context
-            context = frappe._dict({})
-    else:
-        # If a context is provided, copy it to avoid modifying the original
-        try:
-            context = frappe._dict({k: v for k, v in context.items() if not k.startswith('_')})
-        except:
-            # If failure, create a new context
-            context = frappe._dict({})
+    # Format brands in the requested order
+    formatted_brands = []
+    for brand_name in brand_names:
+        if brand_name in brand_map:
+            brand = brand_map[brand_name]
+            
+            # Get product count
+            product_count = frappe.db.count(
+                "Website Item",
+                filters={"brand": brand_name, "published": 1}
+            )
+            
+            if product_count > 0:
+                brand_filter = '{"brand":["' + brand_name + '"]}'
+                formatted_brand = {
+                    "brand_name": brand.brand,
+                    "logo": brand.image,
+                    "route": f"all-products?field_filters={quote(brand_filter)}",
+                    "description": brand.description or "",
+                    "product_count": product_count
+                }
+                formatted_brands.append(formatted_brand)
     
-    # Update context with carousel brands
-    context.update({
-        "brands": carousel_brands,
-        "carousel_title": carousel_title or _("Nos marques"),
-        "carousel_id": carousel_id
-    })
+    # Cache the results if cache is enabled
+    if use_cache and 'cache_manager' in locals():
+        cache_manager.set_cache(cache_key, formatted_brands, cache_ttl)
     
-    # Render the template with the correct path
-    try:
-        # Try first with the relative path
-        return frappe.render_template("templates/includes/brand_carousel.html", context)
-    except Exception as e:
-        try:
-            # Try with the absolute path
-            return frappe.render_template("webshop/templates/includes/brand_carousel.html", context)
-        except Exception as e:
-            # Log the error and return an error message
-            frappe.log_error(f"Error rendering brand carousel: {str(e)}")
-            return f"<div class='alert alert-warning'>Unable to load brand carousel: {str(e)}</div>"
+    return formatted_brands
+
+
+def clear_brand_carousel_cache():
+    """Clear all brand carousel cache entries."""
+    cache_manager = CarouselCacheManager()
+    cache_manager.clear_cache(pattern="brands")
+    cache_manager.clear_cache(pattern="featured_brands")
+
+
+# Hook for cache invalidation when brands are updated
+def clear_brand_cache_on_update(doc, method=None):
+    """Clear brand cache when a brand is updated."""
+    if doc.doctype == "Brand":
+        clear_brand_carousel_cache()
+    elif doc.doctype == "Website Item" and doc.brand:
+        # Also clear when website items are updated as it affects product count
+        clear_brand_carousel_cache()

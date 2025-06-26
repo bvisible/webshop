@@ -198,38 +198,3 @@
 		border-width: 0.3em;
 	}
 }
-
-// Dark mode support
-@media (prefers-color-scheme: dark) {
-	.variant-grid-container {
-		background: var(--gray-900);
-		border-color: var(--gray-700);
-		
-		.variant-card {
-			background: var(--gray-800);
-			border-color: var(--gray-700);
-			
-			&:hover:not(.disabled) {
-				border-color: var(--primary);
-				background: var(--gray-700);
-			}
-			
-			&.selected {
-				background: rgba(var(--primary-rgb), 0.2);
-			}
-			
-			&.disabled {
-				background: var(--gray-900);
-				opacity: 0.5;
-				
-				&::after {
-					background: var(--gray-500);
-				}
-			}
-		}
-		
-		.variant-grid-footer {
-			background: var(--gray-800);
-		}
-	}
-}
