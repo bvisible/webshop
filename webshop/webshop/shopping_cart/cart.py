@@ -781,6 +781,7 @@ def request_for_quotation():
 
 @frappe.whitelist(allow_guest=True)
 def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty=False, price_list_rate=None, gift_card_data=None):
+	
 	# Convert gift_card_data from JSON if necessary
 	if gift_card_data and isinstance(gift_card_data, str):
 		try:
@@ -818,6 +819,7 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 		if not frappe.db.get_single_value("Webshop Settings", "enable_guest_cart"):
 			frappe.throw(_("Please log in to add items to cart"))
 		
+		# Import guest cart handler
 		from webshop.webshop.shopping_cart.guest_cart import create_guest_quotation
 		
 		# Get existing quotation if it exists
@@ -963,9 +965,12 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			else:
 				quotation.remove(quotation_items[0])
 	
+	# Set permissions flags before applying cart settings
+	quotation.flags.ignore_permissions = True
+	quotation.flags.ignore_mandatory = True
+	
 	apply_cart_settings(quotation=quotation)
 
-	quotation.flags.ignore_permissions = True
 	quotation.payment_schedule = []
 	if not empty_card:
 		quotation.save(ignore_version=True)
@@ -976,7 +981,20 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 	set_cart_count(quotation)
 
 	if cint(with_items):
-		context = get_cart_quotation(quotation)
+		try:
+			context = get_cart_quotation(quotation)
+		except frappe.PermissionError:
+			# If permission error for guest, try with a simplified context
+			if frappe.session.user == "Guest":
+				context = {
+					"doc": quotation,
+					"cart_settings": frappe.get_cached_doc("Webshop Settings"),
+					"shipping_addresses": [],
+					"billing_addresses": [],
+					"shipping_rules": []
+				}
+			else:
+				raise
 		return {
 			"items": frappe.render_template(
 				"templates/includes/cart/cart_items.html", context
@@ -1093,6 +1111,10 @@ def update_cart_address(address_type, address_name):
 					None,
 				)
 			
+		# Set ignore_permissions flag early to avoid permission errors
+		quotation.flags.ignore_permissions = True
+		quotation.flags.ignore_mandatory = True
+		
 		# Ensure quotation has valid totals before applying settings
 		if quotation.grand_total is None:
 			quotation.grand_total = 0
@@ -1102,16 +1124,32 @@ def update_cart_address(address_type, address_name):
 		# Ensure other required fields are set
 		if not quotation.conversion_rate:
 			quotation.conversion_rate = 1
+		if not quotation.plc_conversion_rate:
+			quotation.plc_conversion_rate = 1
 		
 		# Clear payment schedule before recalculation to avoid errors
 		quotation.payment_schedule = []
+		
+		# For guest quotations, ensure party_name is set
+		if frappe.session.user == "Guest":
+			if not quotation.party_name or quotation.party_name == "Guest":
+				guest_customer = frappe.db.get_single_value("Webshop Settings", "guest_customer")
+				if guest_customer:
+					quotation.party_name = guest_customer
+					quotation.quotation_to = "Customer"
 			
 		apply_cart_settings(quotation=quotation)
 
 		# Calculate taxes and totals before saving
-		quotation.calculate_taxes_and_totals()
+		quotation.run_method("set_missing_values")
+		quotation.run_method("calculate_taxes_and_totals")
 		
-		quotation.flags.ignore_permissions = True
+		# Ensure totals are set after calculation
+		if quotation.grand_total is None:
+			quotation.grand_total = quotation.total or 0
+		if quotation.base_grand_total is None:
+			quotation.base_grand_total = quotation.grand_total * (quotation.conversion_rate or 1)
+		
 		quotation.save(ignore_permissions=True)
 		
 		context = get_cart_quotation(quotation)
@@ -1349,6 +1387,24 @@ def apply_cart_settings(party=None, quotation=None):
 	if quotation.transaction_date != today():
 		quotation.transaction_date = today()
 
+	# Ensure required fields are set to avoid NoneType errors
+	if not quotation.conversion_rate:
+		quotation.conversion_rate = 1
+	if not quotation.plc_conversion_rate:
+		quotation.plc_conversion_rate = 1
+	
+	# Initialize totals if they are None
+	if quotation.total is None:
+		quotation.total = 0
+	if quotation.grand_total is None:
+		quotation.grand_total = 0
+	if quotation.base_grand_total is None:
+		quotation.base_grand_total = 0
+	if quotation.rounded_total is None:
+		quotation.rounded_total = 0
+	if quotation.base_rounded_total is None:
+		quotation.base_rounded_total = 0
+
 	cart_settings = frappe.get_cached_doc("Webshop Settings")
 
 	set_price_list_and_rate(quotation, cart_settings)
@@ -1533,6 +1589,7 @@ def get_party(user=None):
 		if frappe.db.exists("Customer", {"name": customer_name, "disabled": 0}):
 			return frappe.get_doc("Customer", customer_name)
 
+	# Try to find via Contact
 	contact_name = get_contact_name(user)
 	party = None
 
@@ -1541,6 +1598,25 @@ def get_party(user=None):
 		if contact.links:
 			party_doctype = contact.links[0].link_doctype
 			party = contact.links[0].link_name
+
+	# Try another method: search for customer by email in contact
+	if not party:
+		# Search for customer with matching email
+		customer_via_email = frappe.db.sql("""
+			SELECT DISTINCT dl.link_name
+			FROM `tabContact` c
+			JOIN `tabContact Email` ce ON ce.parent = c.name
+			JOIN `tabDynamic Link` dl ON dl.parent = c.name
+			WHERE ce.email_id = %s
+			AND dl.link_doctype = 'Customer'
+			AND dl.parenttype = 'Contact'
+			ORDER BY c.creation ASC
+			LIMIT 1
+		""", user, as_dict=True)
+		
+		if customer_via_email:
+			party_doctype = "Customer"
+			party = customer_via_email[0].link_name
 
 	cart_settings = frappe.get_cached_doc("Webshop Settings")
 
@@ -1584,7 +1660,8 @@ def get_party(user=None):
 
 		return doc
 
-	elif not frappe.db.exists("Portal User", {"user": user}):
+	# Only create new customer if we really can't find one
+	if not frappe.db.exists("Portal User", {"user": user}):
 		if not cart_settings.enabled:
 			frappe.local.flags.redirect_location = "/contact"
 			raise frappe.Redirect
@@ -1779,9 +1856,19 @@ def get_address_docs(
 	out = []
 
 	for a in address_names:
-		address = frappe.get_doc("Address", a.parent)
-		address.display = get_address_display(address.as_dict())
-		out.append(address)
+		try:
+			# For guests, we need to bypass permission checks
+			if frappe.session.user == "Guest":
+				address = frappe.get_doc("Address", a.parent)
+				# Set flags to bypass permissions for display calculation
+				address.flags.ignore_permissions = True
+			else:
+				address = frappe.get_doc("Address", a.parent)
+			address.display = get_address_display(address.as_dict())
+			out.append(address)
+		except frappe.PermissionError:
+			# Skip addresses that the user doesn't have permission to access
+			continue
 
 	return out
 
@@ -1830,8 +1917,6 @@ def _apply_shipping_rule(party=None, quotation=None, cart_settings=None):
 			if "not within the range" in error_message or "Not Applicable" in error_message:
 				quotation.shipping_rule = None
 				quotation.run_method("calculate_taxes_and_totals")
-				# Don't show error message on page load, just log it
-				frappe.log_error(f"Shipping rule not applicable: {error_message}", "Shopping Cart")
 			else:
 				# Re-raise other types of errors
 				raise

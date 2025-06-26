@@ -118,7 +118,26 @@ def create_guest_quotation(items=None):
             
         quotation.append("items", item_dict)
 
+    # Set default values to avoid NoneType errors
+    quotation.conversion_rate = quotation.conversion_rate or 1
+    quotation.plc_conversion_rate = quotation.plc_conversion_rate or 1
+    
+    # Set permission flags early to avoid permission errors
+    quotation.flags.ignore_permissions = True
+    quotation.flags.ignore_mandatory = True
+    
+    # Apply cart settings
     apply_cart_settings(guest_customer, quotation)
+    
+    # Ensure totals are calculated before saving
+    quotation.run_method("set_missing_values")
+    quotation.run_method("calculate_taxes_and_totals")
+    
+    # Ensure totals are not None
+    if quotation.grand_total is None:
+        quotation.grand_total = quotation.total or 0
+    if quotation.base_grand_total is None:
+        quotation.base_grand_total = quotation.grand_total * quotation.conversion_rate
 
     # Save the quotation
     quotation.flags.ignore_permissions = True
@@ -195,13 +214,17 @@ def check_and_merge_guest_cart():
             return
 
         # Get customer for logged in user
+        frappe.neolog("Guest Cart Merge", f"Getting customer for user: {frappe.session.user}")
         try:
             customer = get_party()
+            frappe.neolog("Guest Cart Merge", f"Got customer: {customer.name if customer else 'None'}")
         except Exception as e:
+            frappe.neolog("Guest Cart Merge", f"Error getting customer: {str(e)}")
             frappe.log_error("DEBUG: Error getting customer", e)
             return
         
         if not customer:
+            frappe.neolog("Guest Cart Merge", "No customer found, returning")
             return
 
         # Check if customer is guest customer
@@ -243,6 +266,7 @@ def check_and_merge_guest_cart():
             return
 
         # Check if user already has an active quotation
+        frappe.neolog("Guest Cart Merge", f"Looking for user quotation for customer: {customer.name}, email: {frappe.session.user}")
         try:
             user_quotation = frappe.get_all(
                 "Quotation",
@@ -257,9 +281,12 @@ def check_and_merge_guest_cart():
                 limit_page_length=1,
             )
             
+            frappe.neolog("Guest Cart Merge", f"Found user quotation: {user_quotation[0].name if user_quotation else 'None'}")
+            
             if user_quotation:
                 user_doc = frappe.get_doc("Quotation", user_quotation[0].name)
             else:
+                frappe.neolog("Guest Cart Merge", "No existing quotation, creating new one")
                 # Create a new quotation
                 company = settings.company
                 user_doc = frappe.get_doc({
@@ -274,7 +301,23 @@ def check_and_merge_guest_cart():
                     "party_name": customer.name,
                 })
                 
-                user_doc.contact_person = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
+                # Get contact that belongs to this customer
+                contact_person = frappe.db.sql("""
+                    SELECT c.name 
+                    FROM `tabContact` c
+                    JOIN `tabDynamic Link` dl ON dl.parent = c.name
+                    WHERE dl.link_doctype = %s 
+                    AND dl.link_name = %s
+                    AND dl.parenttype = 'Contact'
+                    ORDER BY c.is_primary_contact DESC, c.creation ASC
+                    LIMIT 1
+                """, (customer.doctype, customer.name), as_dict=True)
+                
+                if contact_person:
+                    user_doc.contact_person = contact_person[0].name
+                else:
+                    user_doc.contact_person = None
+                    
                 user_doc.contact_email = frappe.session.user
                 
                 user_doc.flags.ignore_permissions = True

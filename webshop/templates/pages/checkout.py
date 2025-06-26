@@ -18,37 +18,63 @@ def get_context(context):
 	# Check and merge guest cart if needed
 	check_and_merge_guest_cart()
 	
-	# Check if a quotation exists
-	quotation = _get_cart_quotation()
-	
-	# Check shop settings
+	# Check shop settings first
 	settings = frappe.get_doc("Webshop Settings")
 	
-	# If quotation is not saved or None, check cookies
-	if not quotation or quotation.is_new():
-		quotation_name = frappe.request.cookies.get('quotation_name')
+	# For Guest users, try to get their cart from session
+	if frappe.session.user == "Guest":
 		guest_session_id = frappe.request.cookies.get('guest_session_id')
+		quotation = None
 		
-		if quotation_name and guest_session_id:
-			# Check if quotation exists with correct guest_session_id
+		if guest_session_id:
+			# Try to find guest quotation
 			existing_quotation = frappe.db.get_value(
 				"Quotation",
 				{
-					"name": quotation_name,
 					"guest_session_id": guest_session_id,
 					"docstatus": 0,
-					"status": "Draft"
+					"status": "Draft",
+					"order_type": "Shopping Cart"
 				},
-				["name", "guest_session_id"],
-				as_dict=True
+				"name"
 			)
 			
 			if existing_quotation:
-				quotation = frappe.get_doc("Quotation", existing_quotation.name)
-	
-	if not quotation or not quotation.get('items'):
-		frappe.local.flags.redirect_location = '/all-products'
-		raise frappe.Redirect
+				quotation = frappe.get_doc("Quotation", existing_quotation)
+		
+		# If no quotation or empty cart for guest, redirect
+		if not quotation or not quotation.get('items'):
+			frappe.local.flags.redirect_location = '/cart'
+			raise frappe.Redirect
+	else:
+		# For logged in users, get cart quotation normally
+		quotation = _get_cart_quotation()
+		
+		# If quotation is not saved or None, check cookies
+		if not quotation or quotation.is_new():
+			quotation_name = frappe.request.cookies.get('quotation_name')
+			guest_session_id = frappe.request.cookies.get('guest_session_id')
+			
+			if quotation_name and guest_session_id:
+				# Check if quotation exists with correct guest_session_id
+				existing_quotation = frappe.db.get_value(
+					"Quotation",
+					{
+						"name": quotation_name,
+						"guest_session_id": guest_session_id,
+						"docstatus": 0,
+						"status": "Draft"
+					},
+					["name", "guest_session_id"],
+					as_dict=True
+				)
+				
+				if existing_quotation:
+					quotation = frappe.get_doc("Quotation", existing_quotation.name)
+		
+		if not quotation or not quotation.get('items'):
+			frappe.local.flags.redirect_location = '/all-products'
+			raise frappe.Redirect
 	
 	# Check if B2B checkout is enabled
 	if settings.activate_b2b_checkout:

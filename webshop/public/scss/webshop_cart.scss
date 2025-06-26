@@ -12,6 +12,11 @@ body[data-path=update-profile] {
     background-color: var(--body-bg-color);
 }
 
+#page-login .page-card-head .app-logo{
+	max-width: fit-content;
+    margin: auto;
+}
+
 [data-doctype="Web Form"] .page-content-wrapper .container .page_content .web-list-container {
     background-color: var(--fg-color);
 }

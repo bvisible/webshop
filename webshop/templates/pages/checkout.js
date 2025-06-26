@@ -17,13 +17,35 @@ frappe.ready(function() {
         constructor() {
             if (frappe.session.user === 'Guest') {
                 // Show login dialog with forceLogin
-                frappe.showLoginDialog({
-                    forceLogin: true,
-                    callback: function() {
-                        // Reload page after successful login
-                        window.location.reload();
+                setTimeout(() => {
+                    frappe.showLoginDialog({
+                        forceLogin: true,
+                        callback: function() {
+                            // Redirect to cart after successful login
+                            frappe.msgprint({
+                                message: __('Login successful! Redirecting to cart...'),
+                                indicator: 'green'
+                            });
+                            setTimeout(() => {
+                                window.location.href = '/cart';
+                            }, 1000);
+                        }
+                    });
+                }, 500);
+                
+                // Add a back to cart link
+                setTimeout(() => {
+                    const loginDialog = document.querySelector('.login-dialog');
+                    if (loginDialog && !loginDialog.querySelector('.back-to-cart-link')) {
+                        const backLink = document.createElement('div');
+                        backLink.className = 'back-to-cart-link text-center mt-3';
+                        backLink.innerHTML = '<a href="/cart" class="text-muted">← ' + __('Back to Cart') + '</a>';
+                        loginDialog.appendChild(backLink);
                     }
-                });
+                }, 1000);
+                
+                // Prevent the rest of the checkout initialization for guests
+                return;
             }
             this.steps = {
                 'cart': 1,
