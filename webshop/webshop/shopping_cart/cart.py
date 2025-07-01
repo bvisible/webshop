@@ -2505,8 +2505,12 @@ def remove_loyalty_points():
 @frappe.whitelist(allow_guest=True)
 def is_gift_card_item(item_code):
 	"""Check if an item is a gift card"""
-	website_item = frappe.get_cached_doc("Website Item", {"item_code": item_code})
-	return website_item.is_gift_card if website_item else False
+	try:
+		website_item = frappe.get_cached_doc("Website Item", {"item_code": item_code})
+		return website_item.is_gift_card if website_item else False
+	except frappe.DoesNotExistError:
+		# If Website Item doesn't exist, it's not a gift card
+		return False
 
 def remove_quotation_loyalty_points(doc, method=None):
 	"""Remove loyalty points related to a specific quotation"""
