@@ -5,7 +5,7 @@ from frappe.utils import cint
 def inject_maintenance_css(context):
 	"""Inject CSS to hide builder elements on login page during maintenance"""
 	# Only inject on login page
-	if frappe.local.request and frappe.local.request.path != "/login":
+	if getattr(frappe.local, 'request', None) and frappe.local.request.path != "/login":
 		return
 		
 	# Check if maintenance mode is active
