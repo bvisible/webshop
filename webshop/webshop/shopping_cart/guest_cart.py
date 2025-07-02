@@ -214,17 +214,13 @@ def check_and_merge_guest_cart():
             return
 
         # Get customer for logged in user
-        frappe.neolog("Guest Cart Merge", f"Getting customer for user: {frappe.session.user}")
         try:
             customer = get_party()
-            frappe.neolog("Guest Cart Merge", f"Got customer: {customer.name if customer else 'None'}")
         except Exception as e:
-            frappe.neolog("Guest Cart Merge", f"Error getting customer: {str(e)}")
             frappe.log_error("DEBUG: Error getting customer", e)
             return
         
         if not customer:
-            frappe.neolog("Guest Cart Merge", "No customer found, returning")
             return
 
         # Check if customer is guest customer
@@ -266,7 +262,6 @@ def check_and_merge_guest_cart():
             return
 
         # Check if user already has an active quotation
-        frappe.neolog("Guest Cart Merge", f"Looking for user quotation for customer: {customer.name}, email: {frappe.session.user}")
         try:
             user_quotation = frappe.get_all(
                 "Quotation",
@@ -280,13 +275,10 @@ def check_and_merge_guest_cart():
                 order_by="modified desc",
                 limit_page_length=1,
             )
-            
-            frappe.neolog("Guest Cart Merge", f"Found user quotation: {user_quotation[0].name if user_quotation else 'None'}")
-            
+
             if user_quotation:
                 user_doc = frappe.get_doc("Quotation", user_quotation[0].name)
             else:
-                frappe.neolog("Guest Cart Merge", "No existing quotation, creating new one")
                 # Create a new quotation
                 company = settings.company
                 user_doc = frappe.get_doc({
