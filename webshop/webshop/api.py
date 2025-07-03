@@ -11,6 +11,7 @@ from webshop.webshop.product_data_engine.filters import ProductFiltersBuilder
 from webshop.webshop.product_data_engine.query import ProductQuery
 from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
 from webshop.webshop.utils.discount_query import get_discounted_items_query, get_items_with_pricing_rule_discount
+from webshop.webshop.utils.import_gift_cards import import_gift_cards_from_excel, get_gift_card_import_template
 
 
 @frappe.whitelist(allow_guest=True)
@@ -987,3 +988,15 @@ def get_discount_items_preview(limit=20, price_list=None):
 	# Cache for 5 minutes
 	frappe.cache().set_value(cache_key, items, expires_in_sec=300)
 	return items
+
+
+@frappe.whitelist()
+def import_gift_cards(file_content=None, dry_run=False):
+	"""API endpoint to import gift cards from Excel file"""
+	return import_gift_cards_from_excel(file_content, dry_run)
+
+
+@frappe.whitelist()
+def download_gift_card_template():
+	"""API endpoint to download gift card import template"""
+	return get_gift_card_import_template()
