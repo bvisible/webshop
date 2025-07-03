@@ -6,8 +6,53 @@ from frappe.utils.data import fmt_money
 
 @frappe.whitelist( allow_guest=True )
 def format_currency_value(value, currency=None, precision=None):
-    """Formats the 'value' with the provided currency and precision."""
-    return fmt_money(value, precision=precision, currency=currency)
+    """Formats the 'value' with the provided currency and precision.
+    
+    Webshop setting 'hide_currency_symbol_in_shop' controls currency symbol display:
+    - Empty/None: Use global ERPNext setting
+    - 'Yes': Hide currency symbol
+    - 'No': Show currency symbol
+    """
+    from frappe.utils import cint, flt, get_number_format_info
+    
+    # Cache the webshop settings lookup
+    cache_key = "webshop_hide_currency_symbol"
+    webshop_hide_symbol = frappe.cache().get_value(cache_key)
+    
+    if webshop_hide_symbol is None:
+        # Get from database and cache for 1 hour
+        webshop_settings = frappe.get_cached_doc("Webshop Settings")
+        webshop_hide_symbol = webshop_settings.get("hide_currency_symbol_in_shop") or ""
+        frappe.cache().set_value(cache_key, webshop_hide_symbol, expires_in_sec=3600)
+    
+    # Determine if we should hide the symbol
+    if webshop_hide_symbol:
+        # Webshop setting overrides global
+        hide_symbol = (webshop_hide_symbol == "Yes")
+    else:
+        # Use global setting
+        hide_symbol = frappe.defaults.get_global_default("hide_currency_symbol") == "Yes"
+    
+    # If we should hide the symbol, format without currency
+    if hide_symbol:
+        return fmt_money(value, precision=precision, currency=None)
+    
+    # If no currency specified, use standard formatting
+    if not currency:
+        return fmt_money(value, precision=precision, currency=currency)
+    
+    # Otherwise, we want to show the symbol
+    # Format the number without currency first (to avoid double symbol issues)
+    formatted_number = fmt_money(value, precision=precision, currency=None)
+    
+    # Add currency symbol manually
+    symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
+    symbol_on_right = frappe.db.get_value("Currency", currency, "symbol_on_right", cache=True)
+    
+    if symbol_on_right:
+        return f"{formatted_number} {symbol}"
+    else:
+        return f"{symbol} {formatted_number}"
 
 def get_gateway_configuration(payment_method, payment_gateway_account=None):
     """Gets the JSON configuration for a given payment method
@@ -49,3 +94,10 @@ def get_gateway_configuration(payment_method, payment_gateway_account=None):
 @frappe.whitelist( allow_guest=True )
 def get_first_name(user):
     return frappe.db.get_value("User", user, "first_name")
+
+def webshop_fmt_money(value, currency=None, precision=None):
+    """
+    Template helper function for formatting money in webshop templates.
+    This is a wrapper around format_currency_value that can be used directly in Jinja templates.
+    """
+    return format_currency_value(value, currency=currency, precision=precision)

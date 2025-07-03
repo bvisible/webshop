@@ -3,7 +3,8 @@
 
 import frappe
 from frappe import _
-from frappe.utils import flt, fmt_money
+from frappe.utils import flt
+from webshop.webshop.utils.utils import format_currency_value
 
 
 def get_loyalty_points_for_item(item_code, price, qty=1, customer=None):
@@ -106,7 +107,7 @@ def format_loyalty_points_message(item_code, price, qty=1, customer=None):
     
     # Format the earned points message with both points and value
     points = points_data["points"]
-    value = fmt_money(points_data["points_value"], currency=points_data["currency"])
+    value = format_currency_value(points_data["points_value"], currency=points_data["currency"])
     
     # Use the template from settings, with support for both {points} and {value}
     earned_text = settings.loyalty_points_earned_text or "Earn {points} points with this purchase"

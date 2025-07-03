@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from frappe.utils import fmt_money
+from webshop.webshop.utils.utils import format_currency_value
 from erpnext.utilities.product import get_price
 
 def _get_abbr(name):
@@ -45,7 +45,7 @@ def _format_carousel_item(item):
         formatted_item.update({
             "price": item.get("price_list_rate"),
             "currency": item.get("currency", "CHF"),
-            "formatted_price": fmt_money(item.get("price_list_rate"), currency=item.get("currency", "CHF"))
+            "formatted_price": format_currency_value(item.get("price_list_rate"), currency=item.get("currency", "CHF"))
         })
     
     return formatted_item

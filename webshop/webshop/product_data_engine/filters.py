@@ -2,6 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 import frappe
 from frappe.utils import floor
+from webshop.webshop.utils.utils import format_currency_value
 
 
 class ProductFiltersBuilder:
@@ -689,7 +690,7 @@ class ProductFiltersBuilder:
 				price_ranges.append({
 					"start": start_price,
 					"end": end_price,
-					"label": f"{frappe.utils.fmt_money(start_price)} - {frappe.utils.fmt_money(end_price)}"
+					"label": f"{format_currency_value(start_price)} - {format_currency_value(end_price)}"
 				})
 
 		# Store the real min and max values for the slider

@@ -75,7 +75,11 @@
 								"website_item_name": item.web_item_name,
 								"route": item.route,
 								"website_item_thumbnail": item.thumbnail or item.website_image,
-								"price_info": {"formatted_price": item.formatted_price} if item.formatted_price else None
+								"price_info": {
+									"price_list_rate": item.price,
+									"currency": item.currency,
+									"formatted_price": item.formatted_price
+								} if item.price else None
 							}) }}
 						{% endfor %}
 					</div>

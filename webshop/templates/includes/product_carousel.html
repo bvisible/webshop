@@ -71,11 +71,21 @@
                   
                   {# Price section #}
                   <div class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
-                    {% if item.formatted_price %}
-                      {{ item.formatted_price }}
+                    {% if item.formatted_price or item.price %}
+                      {% if item.price and item.currency %}
+                        {{ webshop_fmt_money(item.price, currency=item.currency) }}
+                      {% else %}
+                        {{ item.formatted_price }}
+                      {% endif %}
                       {% if item.formatted_mrp %}
                         <small class="striked-price">
-                          <s>{{ item.formatted_mrp }}</s>
+                          <s>
+                            {% if item.mrp and item.currency %}
+                              {{ webshop_fmt_money(item.mrp, currency=item.currency) }}
+                            {% else %}
+                              {{ item.formatted_mrp }}
+                            {% endif %}
+                          </s>
                         </small>
                         <small class="ml-1 product-info-green">
                           {{ item.discount }}

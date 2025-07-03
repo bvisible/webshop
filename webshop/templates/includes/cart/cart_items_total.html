@@ -5,6 +5,6 @@
 		{{ _("Net Total") }}
 	</th>
 	<th class="text-right item-grand-total totals" colspan="3">
-		{{ doc.get_formatted("total") }}
+		{{ webshop_fmt_money(doc.total, currency=doc.currency) }}
 	</th>
 </tr>

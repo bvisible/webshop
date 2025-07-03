@@ -128,7 +128,7 @@
                   {{ _("Coupon Discount") }} ({{ doc.coupon_code or doc.gift_card_coupon }})
                 </td>
                 <td class="bill-content text-right text-success">
-                  -{{ frappe.utils.fmt_money(doc.discount_amount, currency=doc.currency) }}
+                  -{{ webshop_fmt_money(doc.discount_amount, currency=doc.currency) }}
                 </td>
               </tr>
             {% endif %}
@@ -140,7 +140,7 @@
                   {{ _("Loyalty Points") }} ({{ doc.loyalty_points }} {{ _("points") }})
                 </td>
                 <td class="bill-content text-right text-success">
-                  -{{ frappe.utils.fmt_money(doc.loyalty_amount, currency=doc.currency) }}
+                  -{{ webshop_fmt_money(doc.loyalty_amount, currency=doc.currency) }}
                 </td>
               </tr>
             {% endif %}
@@ -173,15 +173,15 @@
                 <img src="/assets/webshop/icons/loyalty_icon.svg" class="loyalty-icon-large" alt="Loyalty Points">
                 <p class="loyalty-text">
                   {% if cart_settings.loyalty_points_earned_text %}
-                    {% set earned_text = cart_settings.loyalty_points_earned_text.replace("{points}", points_to_earn|string).replace("{value}", frappe.utils.fmt_money(points_value, currency=doc.currency)) %}
+                    {% set earned_text = cart_settings.loyalty_points_earned_text.replace("{points}", points_to_earn|string).replace("{value}", webshop_fmt_money(points_value, currency=doc.currency)) %}
                     {{ earned_text }}
                   {% else %}
                     {{ _("Earn") }} {{ points_to_earn }} {{ _("points worth") }} 
-                    {{ frappe.utils.fmt_money(points_value, currency=doc.currency) }}
+                    {{ webshop_fmt_money(points_value, currency=doc.currency) }}
                   {% endif %}
                 </p>
                 {% if cart_settings.loyalty_points_conversion_text %}
-                  {% set conversion_text = cart_settings.loyalty_points_conversion_text.replace("{points}", points_to_earn|string).replace("{amount}", frappe.utils.fmt_money(points_value, currency=doc.currency)) %}
+                  {% set conversion_text = cart_settings.loyalty_points_conversion_text.replace("{points}", points_to_earn|string).replace("{amount}", webshop_fmt_money(points_value, currency=doc.currency)) %}
                   <div class="loyalty-tooltip">
                     {{ conversion_text }}
                   </div>

@@ -59,15 +59,15 @@
                   <img src="/assets/webshop/icons/loyalty_icon.svg" class="loyalty-icon-inline" alt="Loyalty Points">
                   <span class="loyalty-text-mini">
                     {% if cart_settings.loyalty_points_earned_text %}
-                      {% set earned_text = cart_settings.loyalty_points_earned_text.replace("{points}", cart_data.loyalty_info.points_to_earn|string).replace("{value}", frappe.utils.fmt_money(cart_data.loyalty_info.points_value, currency=cart_data.loyalty_info.currency)) %}
+                      {% set earned_text = cart_settings.loyalty_points_earned_text.replace("{points}", cart_data.loyalty_info.points_to_earn|string).replace("{value}", webshop_fmt_money(cart_data.loyalty_info.points_value, currency=cart_data.loyalty_info.currency)) %}
                       {{ earned_text }}
                     {% else %}
                       {{ _("Earn") }} {{ cart_data.loyalty_info.points_to_earn }} {{ _("points worth") }} 
-                      {{ frappe.utils.fmt_money(cart_data.loyalty_info.points_value, currency=cart_data.loyalty_info.currency) }}
+                      {{ frappe.call("webshop.webshop.utils.utils.format_currency_value", value=cart_data.loyalty_info.points_value, currency=cart_data.loyalty_info.currency) }}
                     {% endif %}
                   </span>
                   {% if cart_settings.loyalty_points_conversion_text %}
-                    {% set conversion_text = cart_settings.loyalty_points_conversion_text.replace("{points}", cart_data.loyalty_info.points_to_earn|string).replace("{amount}", frappe.utils.fmt_money(cart_data.loyalty_info.points_value, currency=cart_data.loyalty_info.currency)) %}
+                    {% set conversion_text = cart_settings.loyalty_points_conversion_text.replace("{points}", cart_data.loyalty_info.points_to_earn|string).replace("{amount}", webshop_fmt_money(cart_data.loyalty_info.points_value, currency=cart_data.loyalty_info.currency)) %}
                     <div class="loyalty-tooltip">
                       {{ conversion_text }}
                     </div>

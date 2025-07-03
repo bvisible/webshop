@@ -406,7 +406,8 @@ def get_all_variants_info(item_code):
 				)
 				
 				if price_obj:
-					formatted_price = frappe.utils.fmt_money(
+					from webshop.webshop.utils.utils import format_currency_value
+					formatted_price = format_currency_value(
 						price_obj.price_list_rate,
 						currency=price_obj.currency
 					)
@@ -433,13 +434,13 @@ def get_all_variants_info(item_code):
 			price_range = {
 				"min": price_min,
 				"max": price_max,
-				"formatted": frappe.utils.fmt_money(price_min, currency=currency)
+				"formatted": format_currency_value(price_min, currency=currency)
 			}
 		else:
 			price_range = {
 				"min": price_min,
 				"max": price_max,
-				"formatted": f"{frappe.utils.fmt_money(price_min, currency=currency)} - {frappe.utils.fmt_money(price_max, currency=currency)}"
+				"formatted": f"{format_currency_value(price_min, currency=currency)} - {format_currency_value(price_max, currency=currency)}"
 			}
 	
 	return {
@@ -509,7 +510,8 @@ def get_product_price_info(items):
 			)
 			
 			if price_obj:
-				formatted_price = frappe.utils.fmt_money(
+				from webshop.webshop.utils.utils import format_currency_value
+				formatted_price = format_currency_value(
 					price_obj.get("price_list_rate") or base_price,
 					currency=currency
 				)
@@ -522,12 +524,12 @@ def get_product_price_info(items):
 				# Add discount info if applicable
 				if price_obj.get("discount_percent"):
 					result[item_code]["discount"] = f"{price_obj.get('discount_percent')}% OFF"
-					result[item_code]["formatted_mrp"] = frappe.utils.fmt_money(base_price, currency=currency)
+					result[item_code]["formatted_mrp"] = format_currency_value(base_price, currency=currency)
 			else:
 				# No pricing rule, use base price
 				result[item_code] = {
 					"price_list_rate": base_price,
-					"formatted_price": frappe.utils.fmt_money(base_price, currency=currency)
+					"formatted_price": format_currency_value(base_price, currency=currency)
 				}
 		else:
 			# No price found
@@ -734,18 +736,18 @@ def calculate_price_range(variants):
 	max_price = max(prices)
 	
 	# Format prices
-	from frappe.utils import fmt_money
+	from webshop.webshop.utils.utils import format_currency_value
 	
 	if min_price == max_price:
 		return {
-			"formatted": fmt_money(min_price, currency=currency),
+			"formatted": format_currency_value(min_price, currency=currency),
 			"min": min_price,
 			"max": max_price,
 			"currency": currency
 		}
 	else:
 		return {
-			"formatted": f"{fmt_money(min_price, currency=currency)} - {fmt_money(max_price, currency=currency)}",
+			"formatted": f"{format_currency_value(min_price, currency=currency)} - {format_currency_value(max_price, currency=currency)}",
 			"min": min_price,
 			"max": max_price,
 			"currency": currency
@@ -969,14 +971,14 @@ def get_discount_items_preview(limit=20, price_list=None):
 	}, as_dict=True)
 	
 	# Format prices
-	from frappe.utils import fmt_money
+	from webshop.webshop.utils.utils import format_currency_value
 	currency = frappe.db.get_value("Company", settings.company, "default_currency") if settings.company else "USD"
 	
 	for item in items:
 		if item.get("price_list_rate"):
-			item["formatted_price"] = fmt_money(item.price_list_rate, currency=currency)
+			item["formatted_price"] = format_currency_value(item.price_list_rate, currency=currency)
 			if item.get("mrp") and item.mrp > item.price_list_rate:
-				item["formatted_mrp"] = fmt_money(item.mrp, currency=currency)
+				item["formatted_mrp"] = format_currency_value(item.mrp, currency=currency)
 			if item.get("discount_percent"):
 				item["discount"] = f"{int(item.discount_percent)}% OFF"
 		

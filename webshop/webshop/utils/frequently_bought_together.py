@@ -121,9 +121,10 @@ def get_frequently_bought_together(item_code, limit=4):
                 settings.company
             )
             if price_obj:
+                from webshop.webshop.utils.utils import format_currency_value
                 item.price = price_obj.get("price_list_rate") or price_obj.get("rate")
                 item.currency = price_obj.get("currency")
-                item.formatted_price = frappe.utils.fmt_money(
+                item.formatted_price = format_currency_value(
                     item.price, 
                     currency=item.currency
                 ) if item.get("price") else None

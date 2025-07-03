@@ -60,10 +60,10 @@ def get_loyalty_points_for_cart(doc):
     # Format the conversion text if available
     conversion_text = ""
     if points_to_earn and points_value and settings.loyalty_points_conversion_text:
-        from frappe.utils import fmt_money
+        from webshop.webshop.utils.utils import format_currency_value
         conversion_text = settings.loyalty_points_conversion_text
         conversion_text = conversion_text.replace("{points}", str(points_to_earn))
-        conversion_text = conversion_text.replace("{amount}", fmt_money(points_value, currency=currency))
+        conversion_text = conversion_text.replace("{amount}", format_currency_value(points_value, currency=currency))
         
     return {
         "points_to_earn": points_to_earn,

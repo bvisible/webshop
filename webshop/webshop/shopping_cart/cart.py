@@ -20,6 +20,7 @@ from webshop.webshop.doctype.webshop_settings.webshop_settings import (
 	get_shopping_cart_settings,
 )
 from webshop.webshop.utils.product import get_web_item_qty_in_stock
+from webshop.webshop.utils.utils import format_currency_value
 from erpnext.selling.doctype.quotation.quotation import _make_sales_order
 from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
 	get_loyalty_program_details_with_points,
@@ -151,7 +152,8 @@ def get_cart_quotation(doc=None):
 				
 				# Calculate loyalty points value based on rounded points
 				equivalent_value = rounded_loyalty_points * conversion_factor
-				loyalty_points_value = frappe.utils.fmt_money(equivalent_value, currency=doc.currency)
+				from webshop.webshop.utils.utils import format_currency_value
+				loyalty_points_value = format_currency_value(equivalent_value, currency=doc.currency)
 
 	# Get customer information for B2B verification
 	customer_info = None
@@ -369,7 +371,7 @@ def place_order():
 				if not pricing_rule:
 					pricing_rule = frappe.get_doc({
 						"doctype": "Pricing Rule",
-						"title": f"{_('Gift Card')} {frappe.utils.fmt_money(used_amount, currency=frappe.db.get_default('currency'))}",
+						"title": f"{_('Gift Card')} {format_currency_value(used_amount, currency=frappe.db.get_default('currency'))}",
 						**pricing_rule_filters
 					})
 					
@@ -379,7 +381,7 @@ def place_order():
 					pricing_rule_name = pricing_rule
 				
 				# Create the new gift card with the used amount
-				new_card_name = f"{_('Gift Card')} {frappe.utils.fmt_money(used_amount, currency=frappe.db.get_default('currency'))} - {original_card.customer or _('Customer')} - {new_code}"
+				new_card_name = f"{_('Gift Card')} {format_currency_value(used_amount, currency=frappe.db.get_default('currency'))} - {original_card.customer or _('Customer')} - {new_code}"
 				
 				# Create the new gift card
 				new_gift_card = frappe.get_doc({
@@ -447,9 +449,9 @@ def place_order():
 					original_card.pricing_rule = excess_pricing_rule_name
 					
 					if original_card.description:
-						original_card.description += f"\n\n{_('Amount adjusted on')} {frappe.utils.today()}: {frappe.utils.fmt_money(gift_card_amount, currency=frappe.db.get_default('currency'))} → {frappe.utils.fmt_money(excess_amount, currency=frappe.db.get_default('currency'))}. {_('Amount used')} ({frappe.utils.fmt_money(used_amount, currency=frappe.db.get_default('currency'))}) {_('transferred to card')} {new_code} {_('for order from quotation')} {quotation.name}."
+						original_card.description += f"\n\n{_('Amount adjusted on')} {frappe.utils.today()}: {format_currency_value(gift_card_amount, currency=frappe.db.get_default('currency'))} → {format_currency_value(excess_amount, currency=frappe.db.get_default('currency'))}. {_('Amount used')} ({format_currency_value(used_amount, currency=frappe.db.get_default('currency'))}) {_('transferred to card')} {new_code} {_('for order from quotation')} {quotation.name}."
 					else:
-						original_card.description = f"{_('Amount adjusted on')} {frappe.utils.today()}: {frappe.utils.fmt_money(gift_card_amount, currency=frappe.db.get_default('currency'))} → {frappe.utils.fmt_money(excess_amount, currency=frappe.db.get_default('currency'))}. {_('Amount used')} ({frappe.utils.fmt_money(used_amount, currency=frappe.db.get_default('currency'))}) {_('transferred to card')} {new_code} {_('for order from quotation')} {quotation.name}."
+						original_card.description = f"{_('Amount adjusted on')} {frappe.utils.today()}: {format_currency_value(gift_card_amount, currency=frappe.db.get_default('currency'))} → {format_currency_value(excess_amount, currency=frappe.db.get_default('currency'))}. {_('Amount used')} ({format_currency_value(used_amount, currency=frappe.db.get_default('currency'))}) {_('transferred to card')} {new_code} {_('for order from quotation')} {quotation.name}."
 					
 					original_card.save(ignore_permissions=True)
 					
@@ -674,7 +676,7 @@ def process_gift_card_split(sales_order, gift_card_data):
 			pricing_rule_name = pricing_rule
 		
 		# Create the new gift card with the USED amount (not excess)
-		new_coupon_name = _("Gift Card") + f" {frappe.utils.fmt_money(used_amount, currency=sales_order.currency)} - {customer_name or _('Customer')} - {new_code}"
+		new_coupon_name = _("Gift Card") + f" {format_currency_value(used_amount, currency=sales_order.currency)} - {customer_name or _('Customer')} - {new_code}"
 		
 		new_gift_card = frappe.get_doc({
 			"doctype": "Coupon Code",
@@ -692,9 +694,9 @@ def process_gift_card_split(sales_order, gift_card_data):
 			"description": _("Created from split of {0} in webshop. Used in order {1}. Original amount: {2}, Used: {3}, Remaining on original card: {4}").format(
 				coupon_doc.coupon_code,
 				sales_order.name,
-				frappe.utils.fmt_money(gift_card_amount, currency=sales_order.currency),
-				frappe.utils.fmt_money(used_amount, currency=sales_order.currency),
-				frappe.utils.fmt_money(excess_amount, currency=sales_order.currency)
+				format_currency_value(gift_card_amount, currency=sales_order.currency),
+				format_currency_value(used_amount, currency=sales_order.currency),
+				format_currency_value(excess_amount, currency=sales_order.currency)
 			)
 		})
 		
@@ -707,9 +709,9 @@ def process_gift_card_split(sales_order, gift_card_data):
 		
 		# Add a note about the split
 		if coupon_doc.description:
-			coupon_doc.description += f"\n\n{_('Amount adjusted on')} {frappe.utils.today()} : {frappe.utils.fmt_money(gift_card_amount, currency=sales_order.currency)} → {frappe.utils.fmt_money(excess_amount, currency=sales_order.currency)}. {_('Amount used')} ({frappe.utils.fmt_money(used_amount, currency=sales_order.currency)}) {_('transferred to new card')} {new_code} {_('for order')} {sales_order.name}."
+			coupon_doc.description += f"\n\n{_('Amount adjusted on')} {frappe.utils.today()} : {format_currency_value(gift_card_amount, currency=sales_order.currency)} → {format_currency_value(excess_amount, currency=sales_order.currency)}. {_('Amount used')} ({format_currency_value(used_amount, currency=sales_order.currency)}) {_('transferred to new card')} {new_code} {_('for order')} {sales_order.name}."
 		else:
-			coupon_doc.description = f"{_('Amount adjusted on')} {frappe.utils.today()} : {frappe.utils.fmt_money(gift_card_amount, currency=sales_order.currency)} → {frappe.utils.fmt_money(excess_amount, currency=sales_order.currency)}. {_('Amount used')} ({frappe.utils.fmt_money(used_amount, currency=sales_order.currency)}) {_('transferred to new card')} {new_code} {_('for order')} {sales_order.name}."
+			coupon_doc.description = f"{_('Amount adjusted on')} {frappe.utils.today()} : {format_currency_value(gift_card_amount, currency=sales_order.currency)} → {format_currency_value(excess_amount, currency=sales_order.currency)}. {_('Amount used')} ({format_currency_value(used_amount, currency=sales_order.currency)}) {_('transferred to new card')} {new_code} {_('for order')} {sales_order.name}."
 		
 		# Update gift card amount to REMAINING amount (not used amount)
 		coupon_doc.gift_card_amount = excess_amount
@@ -741,9 +743,9 @@ def process_gift_card_split(sales_order, gift_card_data):
 			"reference_name": sales_order.name,
 			"content": _("Gift card {0} split: amount utilisé {1} transféré à une nouvelle carte cadeau {2}. Montant restant sur la carte originale: {3}.").format(
 				old_code,
-				frappe.utils.fmt_money(used_amount, currency=sales_order.currency),
+				format_currency_value(used_amount, currency=sales_order.currency),
 				new_code,
-				frappe.utils.fmt_money(excess_amount, currency=sales_order.currency)
+				format_currency_value(excess_amount, currency=sales_order.currency)
 			)
 		}).insert(ignore_permissions=True)
 		
@@ -751,10 +753,10 @@ def process_gift_card_split(sales_order, gift_card_data):
 		frappe.msgprint(
 			_("Carte cadeau {0} valeur ({1}) excède le total de la commande ({2}). Une nouvelle carte cadeau ({3}) a été créée pour le montant utilisé. Le montant restant ({4}) est disponible sur la carte originale.").format(
 				old_code,
-				frappe.utils.fmt_money(gift_card_amount, currency=sales_order.currency),
-				frappe.utils.fmt_money(used_amount, currency=sales_order.currency),
+				format_currency_value(gift_card_amount, currency=sales_order.currency),
+				format_currency_value(used_amount, currency=sales_order.currency),
 				new_code,
-				frappe.utils.fmt_money(excess_amount, currency=sales_order.currency)
+				format_currency_value(excess_amount, currency=sales_order.currency)
 			),
 			title=_("Carte Cadeau Divisée")
 		)
@@ -2386,7 +2388,7 @@ def get_loyalty_points_html():
         "cart_settings": cart_settings,
         "available_loyalty_points": rounded_loyalty_points,
         "conversion_factor": conversion_factor,
-        "loyalty_points_value": frappe.utils.fmt_money(equivalent_value, currency=quotation.currency),
+        "loyalty_points_value": format_currency_value(equivalent_value, currency=quotation.currency),
     }
     
     return frappe.render_template("templates/includes/loyalty_points_form.html", context)
@@ -2624,7 +2626,7 @@ def create_gift_cards_from_invoice(doc, method=None):
 					gift_card_data = json.loads(item.gift_card_data) if item.gift_card_data else None
 					coupon_code = gift_card_data.get("code") if gift_card_data else None
 					coupon_name = _("Gift card {0} - {1} - {2}").format(
-						frappe.utils.fmt_money(item.rate, currency=sales_invoice.currency),
+						format_currency_value(item.rate, currency=sales_invoice.currency),
 						sales_invoice.customer,
 						coupon_code
 					)
@@ -2808,7 +2810,7 @@ def process_gift_card_split(sales_order, coupon_data):
 		
 		# Create the new gift card with the excess amount
 		new_card_name = _("Gift Card {0} - {1} - {2}").format(
-			frappe.utils.fmt_money(excess_amount, currency=sales_order.currency),
+			format_currency_value(excess_amount, currency=sales_order.currency),
 			original_card.customer,
 			new_code
 		)
@@ -2851,9 +2853,9 @@ def process_gift_card_split(sales_order, coupon_data):
 		# Add a note to the description
 		original_amount = used_amount + excess_amount
 		if original_card.description:
-			original_card.description += f"\n\n{_('Amount adjusted on')} {today()} for order {sales_order.name}: {fmt_money(original_amount, currency=sales_order.currency)} → {fmt_money(used_amount, currency=sales_order.currency)}. {_('Remaining amount')} ({fmt_money(excess_amount, currency=sales_order.currency)}) {_('transferred to card')} {new_code}."
+			original_card.description += f"\n\n{_('Amount adjusted on')} {today()} for order {sales_order.name}: {format_currency_value(original_amount, currency=sales_order.currency)} → {format_currency_value(used_amount, currency=sales_order.currency)}. {_('Remaining amount')} ({format_currency_value(excess_amount, currency=sales_order.currency)}) {_('transferred to card')} {new_code}."
 		else:
-			original_card.description = f"{_('Amount adjusted on')} {today()} for order {sales_order.name}: {fmt_money(original_amount, currency=sales_order.currency)} → {fmt_money(used_amount, currency=sales_order.currency)}. {_('Remaining amount')} ({fmt_money(excess_amount, currency=sales_order.currency)}) {_('transferred to card')} {new_code}."
+			original_card.description = f"{_('Amount adjusted on')} {today()} for order {sales_order.name}: {format_currency_value(original_amount, currency=sales_order.currency)} → {format_currency_value(used_amount, currency=sales_order.currency)}. {_('Remaining amount')} ({format_currency_value(excess_amount, currency=sales_order.currency)}) {_('transferred to card')} {new_code}."
 		
 		original_card.save(ignore_permissions=True)
 		
@@ -2885,7 +2887,7 @@ def process_gift_card_split(sales_order, coupon_data):
 		# Display a message to the user
 		frappe.msgprint(
 			_("A new gift card has been created with the remaining amount of {0}. Card code: {1}").format(
-				frappe.utils.fmt_money(excess_amount, currency=sales_order.currency),
+				format_currency_value(excess_amount, currency=sales_order.currency),
 				new_code
 			),
 			title=_("Gift Card Split")

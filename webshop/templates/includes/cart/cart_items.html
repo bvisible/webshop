@@ -4,11 +4,11 @@
 	<div class="item-price-details d-flex flex-column align-items-end">
 		{% if item.get("discount_percentage") %}
 			<div class="discount-line">
-				<span class="striked-price">{{ frappe.format_value(item.price_list_rate * item.qty, {"fieldtype": "Currency"}) }}</span>
+				<span class="striked-price">{{ webshop_fmt_money(item.price_list_rate * item.qty, currency=doc.currency) }}</span>
 				<span class="discount">-{{ "%.1f"|format(item.get("discount_percentage")) }}%</span>
 			</div>
 		{% endif %}
-		<span class="original-price">{{ item.get_formatted('amount') }}</span>
+		<span class="original-price">{{ webshop_fmt_money(item.amount, currency=doc.currency) }}</span>
 	</div>
 
 	{% if item.is_free_item %}
@@ -20,7 +20,7 @@
 	{% else %}
 		{% if item.qty > 1 %}
 			<span class="item-rate">
-				{{ _('Rate:') }} {{ item.get_formatted('rate') }} / {{ item.uom }}
+				{{ _('Rate:') }} {{ webshop_fmt_money(item.rate, currency=doc.currency) }} / {{ item.uom }}
 			</span>
 		{% endif %}
 	{% endif %}

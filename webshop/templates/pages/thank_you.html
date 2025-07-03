@@ -34,7 +34,7 @@
                                           <strong>{{ _("Order Number:") }}</strong> {{ sales_order.name }}<br>
                                           <strong>{{ _("Date :") }}</strong> {{ frappe.utils.format_date(sales_order.transaction_date) }}<br>
                                           <strong>{{ _("Status :") }}</strong> {{ _(sales_order.status) }}<br>
-                                          <strong>{{ _("Total :") }}</strong> {{ frappe.utils.fmt_money(sales_order.grand_total, currency=sales_order.currency) }}
+                                          <strong>{{ _("Total :") }}</strong> {{ webshop_fmt_money(sales_order.grand_total, currency=sales_order.currency) }}
                                           {% if payment_info %}
                                                 <br><br>
                                                 <strong>{{ _("Payment Method :") }}</strong> {{ payment_info.mode_of_payment_label }}<br>
@@ -44,7 +44,7 @@
                                                 {% if payment_info.reference_date %}
                                                     <strong>{{ _("Payment Date :") }}</strong> {{ frappe.utils.format_date(payment_info.reference_date) }}<br>
                                                 {% endif %}
-                                                <strong>{{ _("Amount Paid:") }}</strong> {{ frappe.utils.fmt_money(payment_info.paid_amount, currency=doc.currency) }}
+                                                <strong>{{ _("Amount Paid:") }}</strong> {{ webshop_fmt_money(payment_info.paid_amount, currency=doc.currency) }}
                                             {% endif %}
                                       </div>
                                   {% endif %}
@@ -112,8 +112,8 @@
                                                         </div>
                                                     </td>
                                                     <td class="text-right">{{ item.qty }}</td>
-                                                    <td class="text-right">{{ frappe.utils.fmt_money(item.rate, currency=doc.currency) }}</td>
-                                                    <td class="text-right">{{ frappe.utils.fmt_money(item.amount, currency=doc.currency) }}</td>
+                                                    <td class="text-right">{{ webshop_fmt_money(item.rate, currency=doc.currency) }}</td>
+                                                    <td class="text-right">{{ webshop_fmt_money(item.amount, currency=doc.currency) }}</td>
                                                 </tr>
                                                 {% endfor %}
                                             </tbody>
@@ -121,19 +121,19 @@
                                                 <tr>
                                                     <td></td>
                                                     <td colspan="2" class="text-right"><strong>{{ _("Subtotal") }}</strong></td>
-                                                    <td class="text-right">{{ frappe.utils.fmt_money(max(0, doc.net_total), currency=doc.currency) }}</td>
+                                                    <td class="text-right">{{ webshop_fmt_money(max(0, doc.net_total), currency=doc.currency) }}</td>
                                                 </tr>
                                                 {% if doc.total_taxes_and_charges and doc.net_total > 0 %}
                                                 <tr>
                                                     <td></td>
                                                     <td colspan="2" class="text-right">{{ _("Taxes and Charges") }}</td>
-                                                    <td class="text-right">{{ frappe.utils.fmt_money(doc.total_taxes_and_charges, currency=doc.currency) }}</td>
+                                                    <td class="text-right">{{ webshop_fmt_money(doc.total_taxes_and_charges, currency=doc.currency) }}</td>
                                                 </tr>
                                                 {% endif %}
                                                 <tr>
                                                     <td></td>
                                                     <td colspan="2" class="text-right"><strong>{{ _("Total") }}</strong></td>
-                                                    <td class="text-right"><strong>{{ frappe.utils.fmt_money(doc.rounded_total, currency=doc.currency) }}</strong></td>
+                                                    <td class="text-right"><strong>{{ webshop_fmt_money(doc.rounded_total, currency=doc.currency) }}</strong></td>
                                                 </tr>
                                             </tfoot>
                                         </table>
@@ -151,7 +151,7 @@
                                                     <h6>{{ _("Your gift card codes are available :") }}</h6>
                                                     {% for card in gift_cards %}
                                                         <div class="gift-card-item mb-2">
-                                                            <strong>{{ _("Amount") }} :</strong> {{ frappe.utils.fmt_money(card.gift_card_amount) }}<br>
+                                                            <strong>{{ _("Amount") }} :</strong> {{ webshop_fmt_money(card.gift_card_amount) }}<br>
                                                             <strong>{{ _("Code") }} :</strong> <code>{{ card.coupon_code }}</code><br>
                                                             <strong>{{ _("Valid from") }} :</strong> {{ frappe.utils.format_date(card.valid_from) }}
                                                             {% if card.valid_upto %}

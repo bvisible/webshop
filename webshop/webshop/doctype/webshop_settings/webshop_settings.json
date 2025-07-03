@@ -22,6 +22,7 @@
   "hide_variants",
   "enable_variants",
   "show_price",
+  "hide_currency_symbol_in_shop",
   "column_break_9",
   "login_required_to_view_products",
   "show_stock_availability",
@@ -195,6 +196,13 @@
    "fieldname": "show_attachments",
    "fieldtype": "Check",
    "label": "Show Public Attachments"
+  },
+  {
+   "description": "Control currency symbol display in the webshop. If empty, uses the global ERPNext setting. 'Yes' hides the symbol, 'No' shows it.",
+   "fieldname": "hide_currency_symbol_in_shop",
+   "fieldtype": "Select",
+   "label": "Hide Currency Symbol in Shop",
+   "options": "\nYes\nNo"
   },
   {
    "default": "0",

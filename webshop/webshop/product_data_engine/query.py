@@ -356,16 +356,17 @@ class ProductQuery:
 		for item in items:
 			# Format price info
 			if item.get("price_list_rate"):
-				from frappe.utils import fmt_money
+				from webshop.webshop.utils.utils import format_currency_value
 				currency = frappe.db.get_single_value("Webshop Settings", "company") 
 				if currency:
 					currency = frappe.db.get_value("Company", currency, "default_currency") or "USD"
 				else:
 					currency = "USD"
 				
-				item["formatted_price"] = fmt_money(item.price_list_rate, currency=currency)
+				item["currency"] = currency
+				item["formatted_price"] = format_currency_value(item.price_list_rate, currency=currency)
 				if item.get("mrp") and item.mrp > item.price_list_rate:
-					item["formatted_mrp"] = fmt_money(item.mrp, currency=currency)
+					item["formatted_mrp"] = format_currency_value(item.mrp, currency=currency)
 				
 				if item.get("discount_percent"):
 					item["discount_percent"] = flt(item.discount_percent)
@@ -833,9 +834,25 @@ class ProductQuery:
 
 	def get_price_discount_info(self, item, price_object, discount_list):
 		"""Modify item object and add price details."""
+		from webshop.webshop.utils.utils import format_currency_value
+		
 		fields = ["formatted_mrp", "formatted_price", "price_list_rate"]
 		for field in fields:
 			item[field] = price_object.get(field)
+
+		# Override formatted_price with our custom formatting
+		if price_object.get("price_list_rate") is not None:
+			item["formatted_price"] = format_currency_value(
+				price_object.get("price_list_rate"),
+				currency=price_object.get("currency")
+			)
+			
+		# Also format MRP if it exists
+		if price_object.get("mrp_rate") is not None:
+			item["formatted_mrp"] = format_currency_value(
+				price_object.get("mrp_rate"),
+				currency=price_object.get("currency")
+			)
 
 		if price_object.get("discount_percent"):
 			item.discount_percent = flt(price_object.discount_percent)
@@ -1125,16 +1142,17 @@ class ProductQuery:
 		for item in items:
 			# Format price info
 			if item.get("price_list_rate"):
-				from frappe.utils import fmt_money
+				from webshop.webshop.utils.utils import format_currency_value
 				currency = frappe.db.get_single_value("Webshop Settings", "company") 
 				if currency:
 					currency = frappe.db.get_value("Company", currency, "default_currency") or "USD"
 				else:
 					currency = "USD"
 				
-				item["formatted_price"] = fmt_money(item.price_list_rate, currency=currency)
+				item["currency"] = currency
+				item["formatted_price"] = format_currency_value(item.price_list_rate, currency=currency)
 				if item.get("mrp") and item.mrp > item.price_list_rate:
-					item["formatted_mrp"] = fmt_money(item.mrp, currency=currency)
+					item["formatted_mrp"] = format_currency_value(item.mrp, currency=currency)
 				
 				if item.get("discount_percent"):
 					item["discount_percent"] = flt(item.discount_percent)

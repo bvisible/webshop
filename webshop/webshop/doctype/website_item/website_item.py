@@ -356,10 +356,15 @@ class WebsiteItem(WebsiteGenerator):
 							settings.company
 						)
 						if price_obj:
+							from webshop.webshop.utils.utils import format_currency_value
+							price_list_rate = price_obj.get("price_list_rate") or price_obj.get("rate")
+							currency = price_obj.get("currency")
 							item.price_info = {
-								"formatted_price": frappe.utils.fmt_money(
-									price_obj.get("price_list_rate") or price_obj.get("rate"),
-									currency=price_obj.get("currency")
+								"price_list_rate": price_list_rate,
+								"currency": currency,
+								"formatted_price": format_currency_value(
+									price_list_rate,
+									currency=currency
 								)
 							}
 				
@@ -637,6 +642,13 @@ class WebsiteItem(WebsiteGenerator):
 					settings.company,
 					party=party,
 				)
+				# Override formatted_price with our custom formatting
+				if item.price_info and item.price_info.get("price_list_rate") is not None:
+					from webshop.webshop.utils.utils import format_currency_value
+					item.price_info["formatted_price"] = format_currency_value(
+						item.price_info.get("price_list_rate"),
+						currency=item.price_info.get("currency")
+					)
 
 		return items
 

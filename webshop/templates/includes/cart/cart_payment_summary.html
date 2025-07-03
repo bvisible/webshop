@@ -12,7 +12,7 @@
 				<tr>
 					{% set total_items = frappe.utils.cstr(frappe.utils.flt(doc.total_qty, 0)) %}
 					<td class="bill-label">{{ _("Net Total (") + total_items + _(" Items)") }}</td>
-					<td class="bill-content net-total text-right">{{ doc.get_formatted("net_total") }}</td>
+					<td class="bill-content net-total text-right">{{ webshop_fmt_money(doc.net_total, currency=doc.currency) }}</td>
 				</tr>
 
 				<!-- taxes -->
@@ -27,7 +27,7 @@
 								{% endif %}
 							</td>
 							<td class="bill-content text-right">
-								{{ d.get_formatted("tax_amount") }}
+								{{ webshop_fmt_money(d.tax_amount, currency=doc.currency) }}
 							</td>
 						</tr>
 					{% endif %}
@@ -40,7 +40,7 @@
 						{{ _("Coupon Discount") }} ({{ doc.coupon_code or doc.gift_card_coupon }})
 						</td>
 						<td class="bill-content text-right text-success">
-						-{{ frappe.utils.fmt_money(doc.discount_amount, currency=doc.currency) }}
+						-{{ webshop_fmt_money(doc.discount_amount, currency=doc.currency) }}
 						</td>
 					</tr>
 				{% endif %}
@@ -52,7 +52,7 @@
 						{{ _("Loyalty Points") }} ({{ doc.loyalty_points }} {{ _("points") }})
 						</td>
 						<td class="bill-content text-right text-success">
-						-{{ frappe.utils.fmt_money(doc.loyalty_amount, currency=doc.currency) }}
+						-{{ webshop_fmt_money(doc.loyalty_amount, currency=doc.currency) }}
 						</td>
 					</tr>
 				{% endif %}
@@ -71,15 +71,15 @@
 							<img src="/assets/webshop/icons/loyalty_icon.svg" class="loyalty-icon-large" alt="Loyalty Points">
 							<p class="loyalty-text">
 								{% if cart_settings.loyalty_points_earned_text %}
-									{% set earned_text = cart_settings.loyalty_points_earned_text.replace("{points}", points_to_earn|string).replace("{value}", frappe.utils.fmt_money(points_value, currency=doc.currency)) %}
+									{% set earned_text = cart_settings.loyalty_points_earned_text.replace("{points}", points_to_earn|string).replace("{value}", webshop_fmt_money(points_value, currency=doc.currency)) %}
 									{{ earned_text }}
 								{% else %}
 									{{ _("Earn") }} {{ points_to_earn }} {{ _("points worth") }} 
-									{{ frappe.utils.fmt_money(points_value, currency=doc.currency) }}
+									{{ webshop_fmt_money(points_value, currency=doc.currency) }}
 								{% endif %}
 							</p>
 							{% if cart_settings.loyalty_points_conversion_text %}
-								{% set conversion_text = cart_settings.loyalty_points_conversion_text.replace("{points}", points_to_earn|string).replace("{amount}", frappe.utils.fmt_money(points_value, currency=doc.currency)) %}
+								{% set conversion_text = cart_settings.loyalty_points_conversion_text.replace("{points}", points_to_earn|string).replace("{amount}", webshop_fmt_money(points_value, currency=doc.currency)) %}
 								<div class="loyalty-tooltip">
 									{{ conversion_text }}
 								</div>
@@ -106,7 +106,7 @@
 			<table class="table w-100 grand-total mt-6">
 				<tr>
 					<td class="bill-content net-total">{{ _("Grand Total") }}</td>
-					<td class="bill-content net-total text-right">{{ doc.get_formatted("grand_total") }}</td>
+					<td class="bill-content net-total text-right">{{ webshop_fmt_money(doc.grand_total, currency=doc.currency) }}</td>
 				</tr>
 			</table>
 		{% endif %}

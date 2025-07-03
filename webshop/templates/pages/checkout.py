@@ -1,7 +1,8 @@
 import frappe
 import json
 from frappe import _
-from frappe.utils import flt, fmt_money, get_link_to_form
+from frappe.utils import flt, get_link_to_form
+from webshop.webshop.utils.utils import format_currency_value
 from webshop.webshop.shopping_cart.cart import get_cart_quotation, get_party, get_address_docs, apply_shipping_rule, _get_cart_quotation
 from webshop.controllers.payment_handler import PaymentHandler
 from webshop.webshop.utils.utils import get_gateway_configuration
@@ -254,7 +255,7 @@ def get_context(context):
 		equivalent_value = rounded_loyalty_points * conversion_factor
 		
 		# Format the money value
-		formatted_value = frappe.utils.fmt_money(equivalent_value, currency=quotation.currency)
+		formatted_value = format_currency_value(equivalent_value, currency=quotation.currency)
 		
 		# Update the loyalty_program_details to use the rounded points
 		loyalty_program_details["loyalty_points"] = rounded_loyalty_points
@@ -543,7 +544,7 @@ def get_shipping_methods():
 				"description": rule.description or _("Shipping to {0}").format(country),
 				"rate": shipping_amount,
 				"display_rate": display_amount,
-				"formatted_rate": frappe.format_value(display_amount, {"fieldtype": "Currency"}),
+				"formatted_rate": format_currency_value(display_amount, currency=quotation.currency),
 				"calculate_based_on": rule.calculate_based_on,
 				"taxable": bool(rule.taxable_account) 
 			})
@@ -626,11 +627,11 @@ def update_shipping_method():
 			'taxes': [{
 				"description": tax.description, 
 				"tax_amount": tax.tax_amount,
-				"formatted_tax_amount": fmt_money(tax.tax_amount, currency=quotation_doc.currency)
+				"formatted_tax_amount": format_currency_value(tax.tax_amount, currency=quotation_doc.currency)
 			} for tax in quotation_doc.taxes] if quotation_doc.taxes else [],
-			'formatted_grand_total': fmt_money(quotation_doc.grand_total, currency=quotation_doc.currency),
-			'formatted_net_total': fmt_money(quotation_doc.net_total, currency=quotation_doc.currency),
-			'formatted_shipping_amount': fmt_money(quotation_doc.shipping_rule_rate if hasattr(quotation_doc, 'shipping_rule_rate') else 0, currency=quotation_doc.currency)
+			'formatted_grand_total': format_currency_value(quotation_doc.grand_total, currency=quotation_doc.currency),
+			'formatted_net_total': format_currency_value(quotation_doc.net_total, currency=quotation_doc.currency),
+			'formatted_shipping_amount': format_currency_value(quotation_doc.shipping_rule_rate if hasattr(quotation_doc, 'shipping_rule_rate') else 0, currency=quotation_doc.currency)
 		}
 	except Exception as e:
 		frappe.log_error(f"Error updating the shipping method", e)

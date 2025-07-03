@@ -246,11 +246,25 @@
 		<div class="product-category">{{ _(item.item_group) or '' }}</div>
 	</div>
 	<div  class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
-		{{ item.get("formatted_price") or '' }}
+		{% if item.get("price_info") %}
+			{{ webshop_fmt_money(item.price_info.get("price_list_rate", 0), currency=item.price_info.get("currency")) }}
+		{% elif item.get("price") %}
+			{{ webshop_fmt_money(item.get("price", 0), currency=item.get("currency")) }}
+		{% else %}
+			{{ item.get("formatted_price") or '' }}
+		{% endif %}
 
 		{% if item.get("formatted_mrp") %}
 			<small class="ml-1 striked-price">
-				<s>{{ _(item.formatted_mrp) }}</s>
+				<s>
+				{% if item.get("price_info") and item.get("price_info").get("mrp") %}
+					{{ webshop_fmt_money(item.price_info.get("mrp"), currency=item.price_info.get("currency")) }}
+				{% elif item.get("mrp") %}
+					{{ webshop_fmt_money(item.get("mrp", 0), currency=item.get("currency")) }}
+				{% else %}
+					{{ _(item.formatted_mrp) }}
+				{% endif %}
+				</s>
 			</small>
 			<small class="ml-1 product-info-green" >
 				- {{ _(item.discount) }}
@@ -573,7 +587,11 @@
 			{% set price = item.get('price_info') %}
 			<div class="mt-2">
 				<span class="item-price">
-					{{ price.get('formatted_price') or '' }}
+					{% if price.get('price_list_rate') is not none and price.get('currency') %}
+						{{ webshop_fmt_money(price.get('price_list_rate'), currency=price.get('currency')) }}
+					{% elif price.get('formatted_price') %}
+						{{ price.get('formatted_price') }}
+					{% endif %}
 				</span>
 
 				{% if price.get('formatted_mrp') %}

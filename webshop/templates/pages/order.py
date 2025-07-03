@@ -69,7 +69,8 @@ def get_context(context):
 		if "conversion_factor" in loyalty_program_details:
 			conversion_factor = loyalty_program_details.get("conversion_factor", 0)
 			equivalent_value = rounded_loyalty_points * conversion_factor
-			context.loyalty_points_value = frappe.utils.fmt_money(equivalent_value, currency=context.doc.currency)
+			from webshop.webshop.utils.utils import format_currency_value
+			context.loyalty_points_value = format_currency_value(equivalent_value, currency=context.doc.currency)
 
 	# show Make Purchase Invoice button based on permission
 	context.show_make_pi_button = frappe.has_permission("Purchase Invoice", "create")

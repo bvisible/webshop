@@ -63,6 +63,9 @@ class WebshopSettings(Document):
 
 	def after_save(self):
 		self.create_redisearch_indexes()
+		
+		# Clear currency symbol cache when settings change
+		frappe.cache().delete_value("webshop_hide_currency_symbol")
 	
 	def update_gift_cards_menu(self):
 		"""Updates gift cards menu in Portal Settings based on enable_gift_cards"""

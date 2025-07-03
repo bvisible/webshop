@@ -12,15 +12,15 @@
 			<div class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
 				<!-- Final Price -->
 				{% if price_info.formatted_mrp %}
-					<span itemprop="lowPrice" content="{{ price_info.formatted_price_sales_uom }}">{{ price_info.formatted_price_sales_uom }}</span>
+					<span itemprop="lowPrice" content="{{ price_info.formatted_price_sales_uom }}">{{ webshop_fmt_money(price_info.get("price_list_rate", 0) * price_info.get("conversion_factor", 1), currency=price_info.get("currency")) }}</span>
 				{% else %}
-					<span itemprop="highPrice" content="{{ price_info.formatted_price_sales_uom }}">{{ price_info.formatted_price_sales_uom }}</span>
+					<span itemprop="highPrice" content="{{ price_info.formatted_price_sales_uom }}">{{ webshop_fmt_money(price_info.get("price_list_rate", 0) * price_info.get("conversion_factor", 1), currency=price_info.get("currency")) }}</span>
 				{% endif %}
 
 				<!-- Striked Price and Discount  -->
 				{% if price_info.formatted_mrp %}
 					<small itemprop="highPrice" class="formatted-price">
-						<s>MRP {{ price_info.formatted_mrp }}</s>
+						<s>MRP {{ webshop_fmt_money(price_info.get("mrp") or price_info.get("price_list_rate", 0), currency=price_info.get("currency")) }}</s>
 					</small>
 					<small class="ml-1 formatted-price in-green">
 						-{{ price_info.get("formatted_discount_percent") or price_info.get("formatted_discount_rate")}}
@@ -29,7 +29,7 @@
 
 				<!-- Price per UOM -->
 				<small class="formatted-price ml-2">
-					({{ price_info.formatted_price }} / {{ product_info.uom }})
+					({{ webshop_fmt_money(price_info.get("price_list_rate", 0), currency=price_info.get("currency")) }} / {{ product_info.uom }})
 				</small>
 			</div>
 			
