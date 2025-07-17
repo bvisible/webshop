@@ -15,8 +15,8 @@
         </div>
     </div>
     <div class="outcome text-center mb-4">
-        <div class="error payment-message" role="alert"></div>
-        <div class="success payment-message" role="alert"></div>
+        <div class="error payment-message stripe-error-{{ submit_id }}" role="alert"></div>
+        <div class="success payment-message stripe-success-{{ submit_id }}" role="alert"></div>
     </div>
     <div class="mt-4 d-flex justify-content-between align-items-center">
         <div class="form-check mb-3" id="terms-acceptance-container">
@@ -62,6 +62,7 @@
     let cardholderNameInput = $('#{{ payment_form_id }} input[name="cardholder-name"]');
     let cardholderEmailInput = $('#{{ payment_form_id }} input[name="cardholder-email"]');
     let submitButton = $('#{{ submit_id }}');
+    let isProcessingPayment = false;
         
     //if empty
     if (cardholderNameInput.val() === '') {
@@ -133,18 +134,40 @@
             displayError.textContent = event.error ? event.error.message : '';
         });
     
+        // Reset button state function (define it globally for this payment method)
+        const resetButtonState = function() {
+            isProcessingPayment = false;
+            submitButton.prop('disabled', false);
+            const originalButtonText = '{{_("Pay")}} {{format_currency_value(amount, currency)}}';
+            submitButton.html(originalButtonText);
+            // Re-enable button only if terms are still accepted
+            const termsAccepted = $('#{{ payment_form_id }}').closest('.payment-method-item').find('#terms-acceptance').prop('checked');
+            if (!termsAccepted) {
+                submitButton.prop('disabled', true);
+            }
+            // Call global stop processing after local reset
+            if (checkout_manager && !checkout_manager._isResetting) {
+                checkout_manager.stopPaymentProcessing();
+            }
+        };
+        
         // Function to handle Stripe response
         function setOutcome(result, formData) {
             if (result.error) {
-                document.querySelector('.error').style.display = 'block';
-                document.querySelector('.error').textContent = result.error.message;
+                const errorDiv = document.querySelector('.stripe-error-{{ submit_id }}');
+                if (errorDiv) {
+                    errorDiv.style.display = 'block';
+                    errorDiv.textContent = result.error.message;
+                }
+                resetButtonState();
             } else {
                 // First create the payment request
                 frappe.call({
                     method: "webshop.controllers.payment_handler.create_payment_request",
                     args: {
                         "quotation_id": "{{ reference_docname }}",
-                        "gateway_settings": "Stripe Settings"
+                        "gateway_settings": "Stripe Settings",
+                        "idempotency_token": checkout_manager.getIdempotencyToken()
                     },
                     callback: function(r) {
                         if (r.message && r.message.status === "success") {
@@ -209,6 +232,7 @@
                                                 }
                                                 
                                                 checkout_manager.unfreeze('payment-method-item');
+                                                resetButtonState();
                                             }
                                         });
                                         return;
@@ -241,9 +265,9 @@
                                         }
                                         
                                         // Hide success message if it was displayed
-                                        document.querySelector('.success').style.display = 'none';
+                                        document.querySelector('.stripe-success-{{ submit_id }}').style.display = 'none';
                                         // Display error in form
-                                        const errorDiv = document.querySelector('.error');
+                                        const errorDiv = document.querySelector('.stripe-error-{{ submit_id }}');
                                         errorDiv.style.display = 'block';
                                         errorDiv.textContent = errorMessage;
                                         
@@ -256,6 +280,7 @@
                                             },
                                             callback: function(r) {    
                                                 checkout_manager.unfreeze('payment-method-item');
+                                                resetButtonState();
                                             }
                                         });
                                         return;
@@ -287,10 +312,11 @@
                                                     }, 2000);
                                                 } else {
                                                     checkout_manager.unfreeze('payment-method-item');
+                                                    resetButtonState();
                                                     // Hide success message
-                                                    document.querySelector('.success').style.display = 'none';
+                                                    document.querySelector('.stripe-success-{{ submit_id }}').style.display = 'none';
                                                     // Display error in form
-                                                    const errorDiv = document.querySelector('.error');
+                                                    const errorDiv = document.querySelector('.stripe-error-{{ submit_id }}');
                                                     errorDiv.style.display = 'block';
                                                     errorDiv.textContent = r.message.message || "An error occurred";
                                                 }
@@ -306,10 +332,11 @@
                                             },
                                             callback: function(r) {
                                                 checkout_manager.unfreeze('payment-method-item');
+                                                resetButtonState();
                                                 // Hide success message if it was displayed
-                                                document.querySelector('.success').style.display = 'none';
+                                                document.querySelector('.stripe-success-{{ submit_id }}').style.display = 'none';
                                                 // Display error in form
-                                                const errorDiv = document.querySelector('.error');
+                                                const errorDiv = document.querySelector('.stripe-error-{{ submit_id }}');
                                                 errorDiv.style.display = 'block';
                                                 errorDiv.textContent = r.message.message || r.message.error || "An error occurred during payment processing";
                                             }
@@ -319,10 +346,11 @@
                             });
                         } else {
                             checkout_manager.unfreeze('payment-method-item');
+                            resetButtonState();
                             // Hide success message if it was displayed
-                            document.querySelector('.success').style.display = 'none';
+                            document.querySelector('.stripe-success-{{ submit_id }}').style.display = 'none';
                             // Display error in form
-                            const errorDiv = document.querySelector('.error');
+                            const errorDiv = document.querySelector('.stripe-error-{{ submit_id }}');
                             errorDiv.style.display = 'block';
                             errorDiv.textContent = r.message.message || "Error creating payment request";
                         }
@@ -334,6 +362,12 @@
         // Validation before submission
         submitButton.on('click', function(e) {
             e.preventDefault();
+            
+            // Prevent multiple clicks - use both local and global locks
+            if (isProcessingPayment || !checkout_manager.startPaymentProcessing()) {
+                console.log("Payment already in progress, ignoring click");
+                return false;
+            }
             
             let name = cardholderNameInput.val();
             let email = cardholderEmailInput.val();
@@ -349,6 +383,15 @@
                 return false;
             }
             
+            // Set processing state and disable button
+            isProcessingPayment = true;
+            submitButton.prop('disabled', true);
+            
+            // Add loading state
+            const originalButtonText = submitButton.html();
+            submitButton.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' + __('Processing...'));
+            
+            
             // If everything is valid, proceed with payment
             stripe.createToken(card, {
                 name: name,
@@ -358,22 +401,27 @@
                     // Token creation error (invalid card, declined, etc.)
                     console.error("Stripe error:", result.error);
                     // Hide success message if it was displayed
-                    document.querySelector('.success').style.display = 'none';
+                    document.querySelector('.stripe-success-{{ submit_id }}').style.display = 'none';
                     // Display error in form
-                    const errorDiv = document.querySelector('.error');
+                    const errorDiv = document.querySelector('.stripe-error-{{ submit_id }}');
                     errorDiv.style.display = 'block';
                     errorDiv.textContent = result.error.message;
+                    // Reset button state on error
+                    resetButtonState();
                     return;
                 }
                 setOutcome(result, { name, email });
+                // Note: button state will be reset in setOutcome error handlers
             }).catch(function(error) {
                 console.error("Unexpected error:", error);
                 // Hide success message if it was displayed
-                document.querySelector('.success').style.display = 'none';
+                document.querySelector('.stripe-success-{{ submit_id }}').style.display = 'none';
                 // Display error in form
-                const errorDiv = document.querySelector('.error');
+                const errorDiv = document.querySelector('.stripe-error-{{ submit_id }}');
                 errorDiv.style.display = 'block';
                 errorDiv.textContent = error.message || "An unexpected error occurred";
+                // Reset button state on error
+                resetButtonState();
             });
         });
     }                                       

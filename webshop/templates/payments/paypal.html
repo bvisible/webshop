@@ -10,8 +10,8 @@
         </div>
     </div>
     <div class="outcome text-center mb-4">
-        <div class="error payment-message" role="alert"></div>
-        <div class="success payment-message" role="alert"></div>
+        <div class="error payment-message paypal-error-{{ submit_id }}" role="alert"></div>
+        <div class="success payment-message paypal-success-{{ submit_id }}" role="alert"></div>
     </div>
     <div class="mt-4 d-flex justify-content-between align-items-center">
         <div class="form-check mb-3" id="terms-acceptance-container">
@@ -42,6 +42,7 @@
     let cardholderName = $('#{{ payment_form_id }} input[name="cardholder-name"]');
     let cardholderEmail = $('#{{ payment_form_id }} input[name="cardholder-email"]');
     let submitButton = $('#{{ submit_id }}');
+    let isProcessingPayment = false;
 
     // Pre-fill with existing data
     if (cardholderName.val() === '') {
@@ -54,13 +55,13 @@
     }
 
     function showError(message) {
-        $('.error.payment-message').text(message).show().addClass('show');
-        $('.success.payment-message').hide().removeClass('show');
+        $('.paypal-error-{{ submit_id }}').text(message).show().addClass('show');
+        $('.paypal-success-{{ submit_id }}').hide().removeClass('show');
     }
 
     function showSuccess(message) {
-        $('.success.payment-message').text(message).show().addClass('show');
-        $('.error.payment-message').hide().removeClass('show');
+        $('.paypal-success-{{ submit_id }}').text(message).show().addClass('show');
+        $('.paypal-error-{{ submit_id }}').hide().removeClass('show');
     }
 
     function validateForm() {
@@ -82,21 +83,54 @@
         return true;
     }
 
+    // Reset button state function
+    const resetButtonState = function() {
+        isProcessingPayment = false;
+        submitButton.prop('disabled', false);
+        const originalButtonText = '{{_("Pay with PayPal")}} {{format_currency_value(amount, currency)}}';
+        submitButton.html(originalButtonText);
+        // Re-enable button only if terms are still accepted
+        const termsAccepted = $('#{{ payment_form_id }}').closest('.payment-method-item').find('#terms-acceptance').prop('checked');
+        if (!termsAccepted) {
+            submitButton.prop('disabled', true);
+        }
+        // Call global stop processing after local reset
+        if (checkout_manager && !checkout_manager._isResetting) {
+            checkout_manager.stopPaymentProcessing();
+        }
+    };
+
     // Handle click on payment button
     submitButton.on('click', function(e) {
         e.preventDefault();
         
+        // Prevent multiple clicks - use both local and global locks
+        if (isProcessingPayment || !checkout_manager.startPaymentProcessing()) {
+            console.log("Payment already in progress, ignoring click");
+            return false;
+        }
+        
         if (!validateForm()) {
+            checkout_manager.stopPaymentProcessing();
             return;
         }
 
+        // Set processing state and disable button
+        isProcessingPayment = true;
+        submitButton.prop('disabled', true);
+        
+        // Add loading state
+        const originalButtonText = submitButton.html();
+        submitButton.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' + __('Redirecting to PayPal...'));
+        
         showSuccess("{{ _('Redirecting to PayPal...') }}");
 
         // Create payment request
         frappe.call({
             method: 'webshop.templates.payments.paypal.create_paypal_payment_request',
             args: {
-                quotation_id: '{{ doc.name }}'
+                quotation_id: '{{ doc.name }}',
+                idempotency_token: checkout_manager.getIdempotencyToken()
             },
             callback: function(r) {
                 if (r.message && r.message.status === 'success') {
@@ -104,11 +138,13 @@
                     window.location.href = r.message.payment_url;
                 } else {
                     showError(r.message.message || "{{ _('Error creating payment request') }}");
+                    resetButtonState();
                 }
             },
             error: function(r) {
                 console.error("Error:", r);
                 showError("{{ _('Error communicating with server') }}");
+                resetButtonState();
             }
         });
     });

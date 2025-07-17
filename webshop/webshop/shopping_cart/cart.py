@@ -308,6 +308,11 @@ def place_order():
 	if not (quotation.shipping_address_name or quotation.customer_address):
 		frappe.throw(_("Set Shipping Address or Billing Address"))
 
+	# Submit quotation if it's still in draft state
+	if quotation.docstatus == 0:
+		quotation.flags.ignore_permissions = True
+		quotation.submit()
+
 	sales_order = frappe.get_doc(
 		_make_sales_order(
 			quotation.name, ignore_permissions=True
@@ -924,6 +929,10 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 		return None
 
 	quotation = _get_cart_quotation()
+	
+	# Check if quotation exists
+	if not quotation:
+		return {"success": False, "message": _("No cart found")}
 
 	empty_card = False
 	if qty == 0:

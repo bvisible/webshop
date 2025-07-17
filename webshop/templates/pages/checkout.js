@@ -15,6 +15,13 @@ if (!frappe.get_abbr) {
 frappe.ready(function() {
     class CheckoutManager {
         constructor() {
+            // Global payment processing state
+            this.isProcessingPayment = false;
+            this.paymentTimeout = null;
+            
+            // Idempotency token for payment requests
+            this.paymentIdempotencyToken = this.generateIdempotencyToken();
+            
             if (frappe.session.user === 'Guest') {
                 // Show login dialog with forceLogin
                 setTimeout(() => {
@@ -105,6 +112,32 @@ frappe.ready(function() {
                 const words = fullText.split(' ').slice(0, 30).join(' ') + '...';
                 $('.terms-preview .ql-editor').html(words);
             }
+            
+            // Override dialog hide to reset payment state
+            const originalHide = frappe.ui.Dialog.prototype.hide;
+            frappe.ui.Dialog.prototype.hide = function() {
+                if (window.checkout_manager && window.checkout_manager.isProcessingPayment) {
+                    console.log("Dialog closed, resetting payment state");
+                    window.checkout_manager.stopPaymentProcessing();
+                }
+                return originalHide.apply(this, arguments);
+            };
+            
+            // Also listen for escape key
+            $(document).on('keydown', (e) => {
+                if (e.key === 'Escape' && this.isProcessingPayment) {
+                    console.log("Escape pressed, resetting payment state");
+                    this.stopPaymentProcessing();
+                }
+            });
+            
+            // Listen for click on modal backdrop or close button
+            $(document).on('click', '.modal-backdrop, .modal .btn-modal-close, .modal .close', () => {
+                if (this.isProcessingPayment) {
+                    console.log("Modal closed via backdrop or close button, resetting payment state");
+                    this.stopPaymentProcessing();
+                }
+            });
         }
 
         initializeAddressesAndOrderSummary() {
@@ -414,6 +447,30 @@ frappe.ready(function() {
                     }
                 }
             });
+            
+            // Function to check and update button state based on terms acceptance
+            this.updatePaymentButtonState = function() {
+                $('.payment-method-item.selected').each(function() {
+                    const $item = $(this);
+                    const $checkbox = $item.find('#terms-acceptance');
+                    const $submitBtn = $item.find('.btn-submit-payment');
+                    
+                    if ($checkbox.length && $submitBtn.length) {
+                        const isChecked = $checkbox.prop('checked');
+                        $submitBtn.prop('disabled', !isChecked);
+                        
+                        if (!isChecked) {
+                            $submitBtn.addClass('disabled')
+                                .attr('disabled', 'disabled')
+                                .attr('title', __('Please accept the terms and conditions to continue'));
+                        } else {
+                            $submitBtn.removeClass('disabled')
+                                .removeAttr('disabled')
+                                .removeAttr('title');
+                        }
+                    }
+                });
+            };
 
             // Initialize tooltips
             $('[data-toggle="tooltip"]').tooltip();
@@ -1726,9 +1783,17 @@ frappe.ready(function() {
                                 });
 
                                 $('#validate_zero_amount').on('click', () => {
+                                    // Use global payment lock
+                                    if (!this.startPaymentProcessing()) {
+                                        return;
+                                    }
+                                    
                                     this.freezeElements(['payment-method-item']);
                                     frappe.call({
                                         method: 'webshop.controllers.payment_handler.handle_direct_order',
+                                        args: {
+                                            idempotency_token: this.getIdempotencyToken()
+                                        },
                                         callback: (r) => {
                                             if (r.message) {
                                                 if (r.message.status === "success") {
@@ -1739,9 +1804,14 @@ frappe.ready(function() {
                                                         indicator: 'red',
                                                         message: r.message.message
                                                     });
+                                                    this.stopPaymentProcessing();
                                                 }
                                                 this.unfreezeElements(['payment-method-item']);
                                             }
+                                        },
+                                        error: () => {
+                                            this.stopPaymentProcessing();
+                                            this.unfreezeElements(['payment-method-item']);
                                         }
                                     });
                                 });
@@ -1818,7 +1888,13 @@ frappe.ready(function() {
             this.unfreeze('step-section');
         }
 
-        handlePaymentMethodChange(methodId) {            
+        handlePaymentMethodChange(methodId) {
+            // Reset payment processing state when changing payment method
+            if (this.isProcessingPayment) {
+                console.log("Resetting payment state due to payment method change");
+                this.stopPaymentProcessing();
+            }
+            
             const method = this.paymentMethods.find(m => m.id === methodId);
             if (!method) {
                 console.error('Method not found:', methodId);
@@ -1849,6 +1925,10 @@ frappe.ready(function() {
             // If the template for this method is already loaded, just show it
             if (this.loadedPaymentTemplates[cleanId]) {
                  $form.show();
+                 // Update button state when showing cached template
+                 setTimeout(() => {
+                     this.updatePaymentButtonState();
+                 }, 50);
                  return;
             }
         
@@ -1935,6 +2015,11 @@ frappe.ready(function() {
                                         ? window[`destroy${method.id}Gateway`]
                                         : null
                             };
+                            
+                            // Update button state after loading template
+                            setTimeout(() => {
+                                this.updatePaymentButtonState();
+                            }, 100);
                         } catch (e) {
                             console.error('Error loading payment template:', e);
                             frappe.msgprint({
@@ -2083,6 +2168,111 @@ frappe.ready(function() {
                     }
                 }
             });
+        }
+
+        // Global payment lock methods
+        startPaymentProcessing() {
+            if (this.isProcessingPayment) {
+                console.log("Payment already in progress, blocking new payment attempt");
+                return false;
+            }
+            
+            this.isProcessingPayment = true;
+            
+            // Disable ALL payment buttons
+            $('.btn-submit-payment').prop('disabled', true);
+            
+            // Set a safety timeout to re-enable buttons after 60 seconds
+            this.paymentTimeout = setTimeout(() => {
+                console.warn("Payment timeout reached, re-enabling buttons");
+                this.stopPaymentProcessing();
+            }, 60000); // 60 seconds timeout
+            
+            return true;
+        }
+
+        stopPaymentProcessing() {
+            // Prevent recursive calls
+            if (this._isResetting) {
+                return;
+            }
+            this._isResetting = true;
+            
+            this.isProcessingPayment = false;
+            
+            // Clear timeout if exists
+            if (this.paymentTimeout) {
+                clearTimeout(this.paymentTimeout);
+                this.paymentTimeout = null;
+            }
+            
+            // Reset idempotency token for next payment attempt
+            this.resetIdempotencyToken();
+            
+            // Reset all payment buttons to their original state
+            $('.btn-submit-payment').each(function() {
+                const $btn = $(this);
+                // Remove spinner and restore original text based on button ID
+                if ($btn.find('.spinner-border').length > 0) {
+                    if ($btn.attr('id').includes('twint')) {
+                        $btn.html($btn.data('original-text') || 'Pay');
+                    } else if ($btn.attr('id').includes('stripe')) {
+                        $btn.html($btn.data('original-text') || 'Pay');
+                    } else if ($btn.attr('id').includes('paypal')) {
+                        $btn.html($btn.data('original-text') || 'Pay with PayPal');
+                    } else if ($btn.attr('id').includes('validate_zero_amount')) {
+                        $btn.html($btn.data('original-text') || 'Validate Order');
+                    } else {
+                        $btn.html($btn.data('original-text') || 'Validate my order');
+                    }
+                }
+            });
+            
+            // Re-enable payment buttons based on their terms acceptance state
+            if (this.updatePaymentButtonState) {
+                this.updatePaymentButtonState();
+            } else {
+                $('.payment-method-item').each(function() {
+                    const $item = $(this);
+                    const $submitBtn = $item.find('.btn-submit-payment');
+                    const $termsCheckbox = $item.find('#terms-acceptance');
+                    
+                    if ($item.hasClass('selected') && $termsCheckbox.prop('checked')) {
+                        $submitBtn.prop('disabled', false);
+                    }
+                });
+            }
+            
+            // Clear the resetting flag
+            this._isResetting = false;
+        }
+
+        // Check if payment is in progress
+        isPaymentInProgress() {
+            return this.isProcessingPayment;
+        }
+
+        // Generate idempotency token
+        generateIdempotencyToken() {
+            // Generate a unique token using timestamp and random string
+            const timestamp = Date.now();
+            const randomString = Math.random().toString(36).substring(2, 15);
+            const sessionId = frappe.session.user || 'guest';
+            return `${sessionId}-${timestamp}-${randomString}`;
+        }
+
+        // Get current idempotency token
+        getIdempotencyToken() {
+            // Generate a new token if payment was completed or failed
+            if (!this.paymentIdempotencyToken || !this.isProcessingPayment) {
+                this.paymentIdempotencyToken = this.generateIdempotencyToken();
+            }
+            return this.paymentIdempotencyToken;
+        }
+
+        // Reset idempotency token after payment completion
+        resetIdempotencyToken() {
+            this.paymentIdempotencyToken = this.generateIdempotencyToken();
         }
     }
 

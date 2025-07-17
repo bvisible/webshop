@@ -8,14 +8,49 @@ class PaymentHandler:
     def __init__(self):
         self.settings = frappe.get_doc("Webshop Settings")
         
-    def create_payment_request(self, quotation_id=None, gateway_settings=None):
+    def create_payment_request(self, quotation_id=None, gateway_settings=None, idempotency_token=None):
         """Create a payment request for a quotation
         
         Args:
             quotation_id (str, optional): ID of the quotation. If not provided, uses the cart.
             gateway_settings (str, optional): Name of the Gateway Settings to use. If provided, bypasses the default payment method.
+            idempotency_token (str, optional): Token to prevent duplicate payment requests.
         """
         try:
+            # Check for idempotency token to prevent duplicate requests
+            if idempotency_token:
+                # Check if a payment request already exists with this token
+                existing_pr = frappe.db.get_value(
+                    "Payment Request",
+                    {"custom_idempotency_token": idempotency_token},
+                    ["name", "status", "reference_name"],
+                    as_dict=True
+                )
+                
+                if existing_pr:
+                    # If payment request exists and is not failed, return existing one
+                    if existing_pr.status != "Failed":
+                        frappe.log_error(f"Duplicate payment request prevented. Token: {idempotency_token}", "Payment Idempotency")
+                        
+                        # Check if a Sales Order was already created for this quotation
+                        sales_order = frappe.db.get_value(
+                            "Sales Order",
+                            {"quotation": existing_pr.reference_name},
+                            "name"
+                        )
+                        
+                        if sales_order:
+                            return {
+                                "status": "error",
+                                "message": _("This order has already been processed. Order ID: {0}").format(sales_order),
+                                "existing_order": sales_order
+                            }
+                        
+                        return {
+                            "status": "success",
+                            "payment_request_id": existing_pr.name,
+                            "message": _("Using existing payment request")
+                        }
             # if not quotation, get cart quotation
             if not quotation_id:
                 quotation = _get_cart_quotation()
@@ -109,7 +144,7 @@ class PaymentHandler:
             })
             
             # Create payment request with transaction date
-            payment_request = frappe.get_doc({
+            pr_data = {
                 "doctype": "Payment Request",
                 "payment_gateway_account": gateway_account.name,
                 "payment_request_type": "Inward",
@@ -124,8 +159,13 @@ class PaymentHandler:
                 "party_type": "Customer",
                 "party": quotation.party_name,
                 "from_checkout": 1
-                
-            })
+            }
+            
+            # Add idempotency token if provided
+            if idempotency_token:
+                pr_data["custom_idempotency_token"] = idempotency_token
+            
+            payment_request = frappe.get_doc(pr_data)
             payment_request.flags.ignore_permissions = True
             payment_request.insert(ignore_permissions=True)
             
@@ -256,9 +296,22 @@ class PaymentHandler:
         payment_methods = settings.get("payment_methods", [])
         return payment_methods[0].name if payment_methods else None
 
-    def handle_direct_order(self):
+    def handle_direct_order(self, idempotency_token=None):
         """Handle direct order validation without payment"""
         try:
+            # Check for existing order with idempotency token
+            if idempotency_token:
+                # Check in cache or database for existing order with this token
+                cache_key = f"direct_order_{idempotency_token}"
+                existing_order = frappe.cache().get_value(cache_key)
+                
+                if existing_order:
+                    frappe.log_error(f"Duplicate direct order prevented. Token: {idempotency_token}", "Order Idempotency")
+                    return {
+                        "status": "error",
+                        "message": _("This order has already been processed. Order ID: {0}").format(existing_order),
+                        "existing_order": existing_order
+                    }
             # Create sales order
             from webshop.webshop.shopping_cart.cart import place_order
             sales_order_name = place_order()
@@ -268,6 +321,12 @@ class PaymentHandler:
                     "status": "error",
                     "message": _("Error creating order")
                 }
+            
+            # Store order in cache with idempotency token
+            if idempotency_token:
+                cache_key = f"direct_order_{idempotency_token}"
+                # Store for 24 hours
+                frappe.cache().set_value(cache_key, sales_order_name, expires_in_sec=86400)
             
             # Create invoice
             from erpnext.accounts.doctype.payment_request.payment_request import make_payment_entry
@@ -297,16 +356,21 @@ class PaymentHandler:
             }
 
 @frappe.whitelist(allow_guest=True)
-def create_payment_request(quotation_id=None, gateway_settings=None):
+def create_payment_request(quotation_id=None, gateway_settings=None, idempotency_token=None):
     """Create a payment request for a quotation
     
     Args:
         quotation_id (str, optional): Quotation ID
         gateway_settings (str, optional): Gateway Settings name
+        idempotency_token (str, optional): Token to prevent duplicate payment requests
     """
     try:
         handler = PaymentHandler()
-        return handler.create_payment_request(quotation_id=quotation_id, gateway_settings=gateway_settings)
+        return handler.create_payment_request(
+            quotation_id=quotation_id, 
+            gateway_settings=gateway_settings,
+            idempotency_token=idempotency_token
+        )
     except Exception as e:
         frappe.log_error("Error creating payment request", e)
         return {
@@ -341,11 +405,11 @@ def handle_payment_failure(payment_request_id, error_message=None):
         }
 
 @frappe.whitelist(allow_guest=True)
-def handle_direct_order():
+def handle_direct_order(idempotency_token=None):
     """Handle direct order validation without payment"""
     try:
         handler = PaymentHandler()
-        return handler.handle_direct_order()
+        return handler.handle_direct_order(idempotency_token=idempotency_token)
     except Exception as e:
         frappe.log_error("Error while validating order", str(e))
         return {

@@ -2,9 +2,47 @@ import frappe
 from frappe import _
 
 @frappe.whitelist(allow_guest=True)
-def create_paypal_payment_request(quotation_id):
+def create_paypal_payment_request(quotation_id, idempotency_token=None):
     """Create a payment request for PayPal"""
     try:
+        # Check for idempotency token to prevent duplicate requests
+        if idempotency_token:
+            # Check if a payment request already exists with this token
+            existing_pr = frappe.db.get_value(
+                "Payment Request",
+                {"custom_idempotency_token": idempotency_token},
+                ["name", "status", "reference_name"],
+                as_dict=True
+            )
+            
+            if existing_pr:
+                # If payment request exists and is not failed, return existing one
+                if existing_pr.status != "Failed":
+                    frappe.log_error(f"Duplicate PayPal payment request prevented. Token: {idempotency_token}", "Payment Idempotency")
+                    
+                    # Check if a Sales Order was already created for this quotation
+                    sales_order = frappe.db.get_value(
+                        "Sales Order",
+                        {"quotation": existing_pr.reference_name},
+                        "name"
+                    )
+                    
+                    if sales_order:
+                        return {
+                            "status": "error",
+                            "message": _("This order has already been processed. Order ID: {0}").format(sales_order),
+                            "existing_order": sales_order
+                        }
+                    
+                    # Get the payment URL from the existing payment request
+                    pr_doc = frappe.get_doc("Payment Request", existing_pr.name)
+                    if pr_doc.payment_url:
+                        return {
+                            "status": "success",
+                            "payment_url": pr_doc.payment_url
+                        }
+                        
+        # Rest of the code continues...
         # Get quotation
         quotation = frappe.get_doc("Quotation", quotation_id)
         
@@ -56,7 +94,7 @@ def create_paypal_payment_request(quotation_id):
                 frappe.db.commit()
                 
                 # Create new payment request
-                payment_request = frappe.get_doc({
+                pr_data = {
                     "doctype": "Payment Request",
                     "payment_request_type": "Inward",
                     "transaction_date": frappe.utils.now(),
@@ -71,13 +109,18 @@ def create_paypal_payment_request(quotation_id):
                     "party_type": "Customer",
                     "party": quotation.party_name,
                     "from_checkout": 1
-                })
+                }
+                # Add idempotency token if provided
+                if idempotency_token:
+                    pr_data["custom_idempotency_token"] = idempotency_token
+                    
+                payment_request = frappe.get_doc(pr_data)
                 payment_request.flags.ignore_permissions = True
                 payment_request.insert(ignore_permissions=True)
                 payment_request.save(ignore_permissions=True)
         else:
             # Create new payment request
-            payment_request = frappe.get_doc({
+            pr_data = {
                 "doctype": "Payment Request",
                 "payment_request_type": "Inward",
                 "transaction_date": frappe.utils.now(),
@@ -92,7 +135,12 @@ def create_paypal_payment_request(quotation_id):
                 "party_type": "Customer",
                 "party": quotation.party_name,
                 "from_checkout": 1
-            })
+            }
+            # Add idempotency token if provided
+            if idempotency_token:
+                pr_data["custom_idempotency_token"] = idempotency_token
+                
+            payment_request = frappe.get_doc(pr_data)
             payment_request.flags.ignore_permissions = True
             payment_request.insert(ignore_permissions=True)
             payment_request.save(ignore_permissions=True)        
