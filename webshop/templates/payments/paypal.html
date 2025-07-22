@@ -87,7 +87,7 @@
     const resetButtonState = function() {
         isProcessingPayment = false;
         submitButton.prop('disabled', false);
-        const originalButtonText = '{{_("Pay with PayPal")}} {{format_currency_value(amount, currency)}}';
+        const originalButtonText = '{{_("Pay with PayPal")}} {{format_currency_value(amount, currency)|replace("'", "\\'")}}';
         submitButton.html(originalButtonText);
         // Re-enable button only if terms are still accepted
         const termsAccepted = $('#{{ payment_form_id }}').closest('.payment-method-item').find('#terms-acceptance').prop('checked');
