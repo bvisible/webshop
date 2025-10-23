@@ -32,7 +32,14 @@
                 {% if nav_data and nav_data.success and nav_data.nav_content %}
                     {{ nav_data.nav_content|safe }}
                 {% else %}
-                    <p>{{ _("Navigation not available") }}</p>
+                    <div class="mobile-menu-fallback">
+                        <p style="color: #999; padding: 20px; text-align: center;">
+                            {{ _("Navigation not available") }}
+                        </p>
+                        <a href="/" style="display: block; padding: 12px 15px; text-align: center; background: #f5f5f5; margin: 10px; border-radius: 6px; text-decoration: none; color: #383838;">
+                            {{ _("Return to Home") }}
+                        </a>
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -160,15 +167,15 @@
         overflow-y: auto;
     }
     
-    /* Mobile navigation styles */
+    /* Mobile navigation styles - v2.10.5 */
     .mobile-navigation-wrapper nav {
         display: flex;
         flex-direction: column !important;
         width: 100% !important;
     }
-    
+
     .mobile-navigation-wrapper nav a {
-        padding: 12px 15px !important;
+        padding: 15px 20px !important; /* v2.10.5: Increased for touch-friendly (min 44px) */
         text-decoration: none;
         color: #383838 !important;
         border-bottom: 1px solid #f5f5f5;
@@ -176,14 +183,32 @@
         display: block !important;
         width: 100% !important;
         text-align: left !important;
+        transition: background-color 0.2s ease; /* v2.10.5: Smooth hover */
+        min-height: 44px; /* v2.10.5: Touch target minimum */
+        display: flex;
+        align-items: center;
     }
-    
+
+    .mobile-navigation-wrapper nav a:hover,
+    .mobile-navigation-wrapper nav a:active {
+        background-color: #f8f9fa; /* v2.10.5: Visual feedback */
+    }
+
     .mobile-navigation-wrapper nav a p {
         margin: 0 !important;
     }
+
+    /* v2.10.5: Fallback message styling */
+    .mobile-menu-fallback {
+        width: 100%;
+        padding: 20px;
+    }
 </style>
 <script>
+    // v2.10.5: Mobile Menu with Debug Logging
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('[Mobile Menu v2.10.5] Initializing...');
+
       // -- Sélecteurs principaux
       const mobileMenuContainer = document.getElementById('mobile-menu-container');
       const mobileMenuToggle    = document.getElementById('mobileMenuToggle');
@@ -192,6 +217,16 @@
       const mobileMenu          = document.getElementById('mobileMenu');
       const mobileAuthWrapper   = document.getElementById('mobileAuthWrapper');
       const headerAuth          = document.getElementById('header-auth');
+      const navWrapper          = document.getElementById('mobileNavigationWrapper');
+
+      // Debug: Log navigation content
+      if (navWrapper) {
+        const navContent = navWrapper.innerHTML.trim();
+        console.log('[Mobile Menu] Navigation content length:', navContent.length);
+        console.log('[Mobile Menu] Navigation links found:', navWrapper.querySelectorAll('a').length);
+      } else {
+        console.warn('[Mobile Menu] Navigation wrapper not found!');
+      }
     
       // -- Original location of #header-auth
       let originalParent      = null;
@@ -255,12 +290,19 @@
        * Opens the mobile menu.
        */
       function openMobileMenu() {
+        console.log('[Mobile Menu] Opening menu...');
         mobileMenu.classList.add('open');
         mobileMenuOverlay.classList.add('open');
         document.body.style.overflow = 'hidden'; // Prevent scrolling in the background
-    
+
         // Ensure that #header-auth is moved into the menu
         moveHeaderAuthToMobile();
+
+        // v2.10.5: Debug check after opening
+        setTimeout(() => {
+          const linksCount = navWrapper ? navWrapper.querySelectorAll('a').length : 0;
+          console.log('[Mobile Menu] Menu opened. Links visible:', linksCount);
+        }, 100);
       }
     
       /**

@@ -172,96 +172,167 @@ def find_nav_block(block):
                 
     return None
 
+def find_all_links(block, depth=0, max_depth=10):
+    """
+    v2.10.5: Recursively find ALL link blocks (<a>) at ANY depth level.
+    Ignores webshop shortcodes ({% include ... %}).
+
+    Args:
+        block: Current block to process
+        depth: Current recursion depth
+        max_depth: Maximum recursion depth (protection against infinite loops)
+
+    Returns:
+        list: All link blocks found
+    """
+    links = []
+
+    # Protection against infinite loops
+    if depth > max_depth or not block or not isinstance(block, dict):
+        return links
+
+    # If it's a direct link, add it
+    if block.get("element") == "a":
+        # Check if it has valid content (href or innerHTML)
+        href = block.get("attributes", {}).get("href")
+        innerHTML = block.get("innerHTML")
+
+        # Only add links with href or content
+        if href or innerHTML:
+            links.append(block)
+
+    # Recursively search ALL children
+    if "children" in block and isinstance(block["children"], list):
+        for child in block["children"]:
+            if isinstance(child, dict):
+                # Ignore webshop shortcodes ({% include "webshop/..." %})
+                child_html = str(child.get("innerHTML", ""))
+                if "{% include" in child_html and "webshop" in child_html:
+                    continue
+
+                # Recursion
+                links.extend(find_all_links(child, depth + 1, max_depth))
+
+    return links
+
 def generate_nav_html(nav_block):
     """
-    Generates minimal HTML for a nav block
+    v2.10.5: Generates minimal HTML for a nav block with recursive link extraction
     """
     try:
         if not nav_block:
             return "<nav><a href='/'>Home</a></nav>"
-            
+
         # Extract basic attributes
         attributes = {}
-        
+
         # Classes
         classes = nav_block.get("classes", [])
         if classes and isinstance(classes, list):
             attributes["class"] = " ".join(classes)
-            
+
         # Other block attributes
         if "attributes" in nav_block and isinstance(nav_block["attributes"], dict):
             for key, value in nav_block["attributes"].items():
                 if key and value is not None:
                     attributes[key] = value
-        
+
         # Generate attribute string
         attrs_str = ""
         for key, value in attributes.items():
             attrs_str += f" {key}=\"{value}\""
-        
-        # Generate content of child elements (links)
+
+        # v2.10.5: Use recursive extraction to find ALL links
+        all_links = find_all_links(nav_block)
+
+        # Generate HTML for each link
         links_html = ""
-        
-        if "children" in nav_block and isinstance(nav_block["children"], list):
-            for child in nav_block["children"]:
-                link_html = generate_link_html(child)
-                if link_html:
-                    links_html += link_html
-        
-        # Si aucun enfant n'a été trouvé, vérifier s'il y a des 'items'
+        for link_block in all_links:
+            link_html = generate_link_html(link_block)
+            if link_html:
+                links_html += link_html
+
+        # Fallback: If no links found recursively, check 'items' array
         if not links_html and "items" in nav_block and isinstance(nav_block["items"], list):
             for item in nav_block["items"]:
                 link_html = generate_item_html(item)
                 if link_html:
                     links_html += link_html
-        
+
         # If no links found, use default link
         if not links_html:
             links_html = "<a href='/'>Home</a>"
-        
+
         # Construct final HTML
         return f"<nav{attrs_str}>{links_html}</nav>"
-    
+
     except Exception as e:
         frappe.log_error("Error generating nav HTML", str(e))
         return "<nav><a href='/'>Home</a></nav>"
 
 def generate_link_html(link_block):
     """
-    Generates HTML for a link block (a)
+    v2.10.5: Generates HTML for a link block (a) with improved text extraction
     """
     try:
         if not link_block:
             return ""
-            
+
         # If not a link, ignore
         if link_block.get("element") != "a":
             return ""
-            
+
         # Extract attributes
         href = "#"
         if "attributes" in link_block and isinstance(link_block["attributes"], dict):
             href = link_block["attributes"].get("href", "#")
-        
-        # Extract text
+
+        # v2.10.5: Extract text with better handling of innerHTML
         text = ""
-        if "innerHTML" in link_block:
-            text = link_block["innerHTML"]
-        
-        # If no text and children, use first child as text
+
+        # Try innerHTML first
+        if "innerHTML" in link_block and link_block["innerHTML"]:
+            innerHTML_value = link_block["innerHTML"]
+
+            # Handle None case
+            if innerHTML_value is None:
+                innerHTML_value = ""
+
+            # Convert to string and clean
+            text = str(innerHTML_value).strip()
+
+            # Remove HTML tags (like <p></p>) if present
+            import re
+            text = re.sub(r'<[^>]+>', '', text).strip()
+
+        # If no text and children, recursively extract text from children
         if not text and "children" in link_block and link_block["children"]:
-            first_child = link_block["children"][0]
-            if "innerHTML" in first_child:
-                text = first_child["innerHTML"]
-        
-        # If still no text, use URL as text
+            for child in link_block["children"]:
+                if isinstance(child, dict):
+                    # Skip if child is an image (logo links)
+                    if child.get("element") == "img":
+                        continue
+
+                    if "innerHTML" in child:
+                        child_text = str(child.get("innerHTML", "")).strip()
+                        child_text = re.sub(r'<[^>]+>', '', child_text).strip()
+                        if child_text:
+                            text = child_text
+                            break
+
+        # v2.10.5: Skip links without valid text (logo links with only images)
+        # Don't use href as text fallback - just skip the link entirely
         if not text:
-            text = href
-            
-        # Generate HTML
-        return f"<a href=\"{href}\">{text}</a>"
-    
+            return ""
+
+        # Generate HTML (only if we have valid text and href)
+        if text and text != "#" and href and href != "#":
+            return f"<a href=\"{href}\">{text}</a>"
+
+        return ""
+
     except Exception as e:
+        frappe.log_error("Error generating link HTML", str(e))
         return ""
 
 def generate_item_html(item):

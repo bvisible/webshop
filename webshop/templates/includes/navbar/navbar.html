@@ -1,4 +1,5 @@
-{% set builder_data = frappe.call("webshop.webshop.utils.builder.get_builder_page_content", route="navbar", use_cache=False) %}
+{# v2.8.5: Cache enabled for performance (was False before) #}
+{% set builder_data = frappe.call("webshop.webshop.utils.builder.get_builder_page_content", route="navbar", use_cache=True) %}
 {% if builder_data and builder_data.success %}
     <style>
         {{ builder_data.global_style }}
