@@ -32,8 +32,9 @@
     
     {% if website_items and website_items|length > 0 %}
       <button class="carousel-btn left" aria-label="{{_("Previous")}}">←</button>
-      <div class="carousel-wrapper">
-        <div class="carousel-inner">
+      <div class="carousel-clip-container">
+        <div class="carousel-wrapper">
+          <div class="carousel-inner">
           {% for item in website_items %}
             <div class="item-card">
               <div class="card text-left">
@@ -104,6 +105,7 @@
               </div>
             </div>
           {% endfor %}
+          </div>
         </div>
       </div>
       <button class="carousel-btn right" aria-label="{{_("Next")}}">→</button>
@@ -119,6 +121,7 @@
         max-width: 1200px;
         width: 100%;
         overflow: visible;
+        min-height: 500px;
       }
 
       /* Carousel header */
@@ -155,17 +158,24 @@
         transform: translateX(2px);
       }
 
-      .carousel-wrapper {
+      .carousel-clip-container {
         overflow-x: hidden;
-        overflow-y: visible !important;
+        overflow-y: visible;
+        position: relative;
+      }
+
+      .carousel-wrapper {
+        overflow: visible !important;
         padding: 10px;
         height: auto !important;
+        position: relative;
       }
 
       .carousel-inner {
         display: flex;
         transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
         padding: 10px 0;
+        overflow: visible !important;
       }
 
       .item-card {
