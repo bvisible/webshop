@@ -246,7 +246,8 @@ def get_fields_indexed():
 	fields_to_index = frappe.db.get_single_value("Webshop Settings", "search_index_fields")
 	fields_to_index = fields_to_index.split(",") if fields_to_index else []
 
-	mandatory_fields = ["name", "web_item_name", "route", "thumbnail", "ranking"]
+	# item_code is required for price lookup in search results
+	mandatory_fields = ["name", "web_item_name", "item_code", "route", "thumbnail", "ranking"]
 	fields_to_index = fields_to_index + mandatory_fields
 
 	return fields_to_index
