@@ -55,12 +55,10 @@
 			{% if show_recommended_items and recommended_items %}
 				{% set rec_inner_col = 'col-12' if recommendations_col_class == 'col-lg-3' else 'col-md-6' %}
 				<div class="col-12 {{ rec_inner_col }} recommended-item-section">
-					<span class="recommendation-header">{{ _("Recommended") }}</span>
-					<div class="product-container mt-2 recommendation-container">
-						{% for item in recommended_items %}
-							{{ recommended_item_row(item) }}
-						{% endfor %}
-					</div>
+					{% set website_items = recommended_items %}
+					{% set carousel_title = _("Recommended") %}
+					{% set carousel_id = "recommended-products-carousel" %}
+					{% include "templates/includes/product_carousel.html" %}
 				</div>
 			{% endif %}
 

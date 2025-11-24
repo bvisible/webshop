@@ -617,7 +617,11 @@ class WebsiteItem(WebsiteGenerator):
 			.join(wi)
 			.on(ri.item_code == wi.item_code)
 			.select(
-				ri.item_code, ri.route, ri.website_item_name, ri.website_item_thumbnail
+				ri.item_code,
+				ri.route,
+				ri.website_item_name.as_("web_item_name"),
+				ri.website_item_thumbnail.as_("website_image"),
+				wi.item_group,
 			)
 			.where((ri.parent == self.name) & (wi.published == 1))
 			.orderby(ri.idx)
@@ -642,13 +646,30 @@ class WebsiteItem(WebsiteGenerator):
 					settings.company,
 					party=party,
 				)
-				# Override formatted_price with our custom formatting
-				if item.price_info and item.price_info.get("price_list_rate") is not None:
+				# Flatten price_info fields for carousel compatibility
+				if item.price_info:
 					from webshop.webshop.utils.utils import format_currency_value
-					item.price_info["formatted_price"] = format_currency_value(
-						item.price_info.get("price_list_rate"),
-						currency=item.price_info.get("currency")
-					)
+
+					# Add formatted_price
+					if item.price_info.get("price_list_rate") is not None:
+						item.price_info["formatted_price"] = format_currency_value(
+							item.price_info.get("price_list_rate"),
+							currency=item.price_info.get("currency")
+						)
+						item["formatted_price"] = item.price_info["formatted_price"]
+
+					# Add price and currency at item level
+					item["price"] = item.price_info.get("price_list_rate")
+					item["currency"] = item.price_info.get("currency")
+
+					# Add MRP and discount fields
+					if item.price_info.get("formatted_mrp"):
+						item["formatted_mrp"] = item.price_info.get("formatted_mrp")
+						item["mrp"] = item.price_info.get("mrp")
+
+					if item.price_info.get("formatted_discount_percent"):
+						item["discount"] = item.price_info.get("formatted_discount_percent")
+						item["discount_percent"] = item.price_info.get("discount_percent_number", 0)
 
 		return items
 
