@@ -330,25 +330,23 @@ class WebsiteItem(WebsiteGenerator):
 			
 			# If no manual recommendations, get auto recommendations with prices
 			if not context.recommended_items:
-				auto_items = frappe.get_all("Website Item", 
+				auto_items = frappe.get_all("Website Item",
 					filters={
 						"published": 1,
 						"item_group": self.item_group,
 						"name": ["!=", self.name]
 					},
-					fields=["item_code", "web_item_name as website_item_name", "route", "thumbnail as website_item_thumbnail", "website_image"],
+					fields=["item_code", "web_item_name", "route", "website_image", "item_group"],
 					limit=4,
 					order_by="RAND()"
 				)
-				
+
 				if auto_items and settings.show_price:
 					from erpnext.utilities.product import get_price
+					from webshop.webshop.utils.utils import format_currency_value
 					selling_price_list = settings.price_list
-					
+
 					for item in auto_items:
-						if not item.website_item_thumbnail:
-							item.website_item_thumbnail = item.website_image
-						
 						price_obj = get_price(
 							item.item_code,
 							selling_price_list,
@@ -356,18 +354,21 @@ class WebsiteItem(WebsiteGenerator):
 							settings.company
 						)
 						if price_obj:
-							from webshop.webshop.utils.utils import format_currency_value
 							price_list_rate = price_obj.get("price_list_rate") or price_obj.get("rate")
 							currency = price_obj.get("currency")
+
+							# Set price info
 							item.price_info = {
 								"price_list_rate": price_list_rate,
 								"currency": currency,
-								"formatted_price": format_currency_value(
-									price_list_rate,
-									currency=currency
-								)
+								"formatted_price": format_currency_value(price_list_rate, currency=currency)
 							}
-				
+
+							# Flatten price fields for carousel compatibility
+							item["price"] = price_list_rate
+							item["currency"] = currency
+							item["formatted_price"] = item.price_info["formatted_price"]
+
 				context.recommended_items = auto_items
 		
 		context.frequently_bought_together = None
