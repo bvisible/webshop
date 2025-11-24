@@ -134,7 +134,7 @@ def product_search(query, limit=10, fuzzy_search=True):
 
 	search_results["results"] = list(map(convert_to_dict, results.docs))
 	search_results["results"] = sorted(
-		search_results["results"], key=lambda k: frappe.utils.cint(k["ranking"]), reverse=True
+		search_results["results"], key=lambda k: frappe.utils.cint(k.get("ranking", 0)), reverse=True
 	)
 
 	return search_results

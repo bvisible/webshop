@@ -55,6 +55,7 @@ class PaymentHandler:
             if not quotation_id:
                 quotation = _get_cart_quotation()
                 if not quotation:
+                    frappe.log_error(_("Cart Error"), _("Error during quotation retrieval: Cart is empty or quotation not found"))
                     frappe.throw(_("Cart is empty"))
             else:
                 quotation = frappe.get_doc("Quotation", quotation_id)
@@ -122,8 +123,6 @@ class PaymentHandler:
                     grand_total=quotation.rounded_total or quotation.grand_total,
                     base_grand_total=quotation.base_rounded_total or quotation.base_grand_total
                 )
-                frappe.log_error("Payment schedule", payment_schedule)
-                
                 if payment_schedule:
                     quotation.set("payment_schedule", payment_schedule)
                     quotation.save(ignore_permissions=True)
