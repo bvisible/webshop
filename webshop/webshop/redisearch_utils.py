@@ -236,6 +236,34 @@ def reindex_all_web_items():
 		for field, value in web_item.items():
 			super(RedisWrapper, cache).hset(key, field, value)
 
+		# For RediSearch 1.x compatibility, explicitly add document to index
+		# RediSearch 2.0+ auto-indexes with ON HASH PREFIX, but 1.x requires FT.ADD
+		try:
+			add_document_to_index(cache, key, web_item)
+		except Exception:
+			pass  # Ignore errors for RediSearch 2.0+ which doesn't need FT.ADD
+
+
+def add_document_to_index(cache, key, web_item):
+	"""Add document to RediSearch index using FT.ADD (for RediSearch 1.x compatibility)."""
+	index_name = make_key(WEBSITE_ITEM_INDEX)
+	# Build fields list for FT.ADD: field1 value1 field2 value2 ...
+	fields = []
+	for field, value in web_item.items():
+		if value:  # Only add non-empty fields
+			fields.extend([field, str(value)])
+
+	if fields:
+		try:
+			# FT.ADD index docId score [REPLACE] FIELDS field1 value1 ...
+			super(RedisWrapper, cache).execute_command(
+				"FT.ADD", index_name, key, 1.0, "REPLACE", "FIELDS", *fields
+			)
+		except ResponseError as e:
+			# RediSearch 2.0+ doesn't support FT.ADD, ignore
+			if "unknown command" not in str(e).lower():
+				raise
+
 
 def get_cache_key(name):
 	name = frappe.scrub(name)
