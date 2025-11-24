@@ -177,11 +177,11 @@
       }
 
       .item-card {
-        flex: 0 0 calc(25% - 30px);
+        flex: 0 0 calc(50% - 30px);
         margin: 15px;
         box-sizing: border-box;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
-        width: calc(25% - 30px);
+        width: calc(50% - 30px);
       }
 
       .item-card:hover {
@@ -489,26 +489,6 @@
         transform: scale(1.2);
       }
 
-      @media (max-width: 1200px) {
-        .item-card {
-          flex: 0 0 calc(33.333% - 30px);
-        }
-        #product-carousel {
-          padding: 30px 20px;
-          overflow: hidden;
-        }
-      }
-
-      @media (max-width: 992px) {
-        .item-card {
-          flex: 0 0 calc(50% - 30px);
-          width: calc(50% - 30px);
-        }
-        #product-carousel {
-          padding: 30px 25px;
-        }
-      }
-
       @media (max-width: 576px) {
         .item-card {
           flex: 0 0 calc(100% - 30px);
@@ -567,15 +547,11 @@
         
         function updateItemsPerView() {
           const width = window.innerWidth;
-          
+
           if (width < 576) {
             itemsPerView = 1;
-          } else if (width < 992) {
-            itemsPerView = 2;
-          } else if (width < 1200) {
-            itemsPerView = 3;
           } else {
-            itemsPerView = 4;
+            itemsPerView = 2;
           }
           
           updateIndicators();
