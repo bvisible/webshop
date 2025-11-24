@@ -617,10 +617,10 @@ class WebsiteItem(WebsiteGenerator):
 			.join(wi)
 			.on(ri.item_code == wi.item_code)
 			.select(
-				ri.item_code,
-				ri.route,
-				ri.website_item_name.as_("web_item_name"),
-				ri.website_item_thumbnail.as_("website_image"),
+				wi.item_code,
+				wi.route,
+				wi.web_item_name,
+				wi.website_image,
 				wi.item_group,
 			)
 			.where((ri.parent == self.name) & (wi.published == 1))
