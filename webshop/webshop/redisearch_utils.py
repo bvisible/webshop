@@ -43,7 +43,9 @@ def is_search_module_loaded():
 	try:
 		cache = frappe.cache()
 		for module in cache.module_list():
-			if module.get(b"name") == b"search":
+			# RediSearch module can be named "search" (older versions) or "ft" (newer versions)
+			module_name = module.get(b"name")
+			if module_name in (b"search", b"ft"):
 				return True
 	except Exception:
 		return False  # handling older redis versions
