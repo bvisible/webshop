@@ -1764,14 +1764,19 @@ def get_party(user=None):
 			if user and "@" in user:
 				contact = frappe.new_doc("Contact")
 				contact.update({
-					"first_name": user_doc.first_name or "", 
-					"last_name": user_doc.last_name or "", 
+					"first_name": user_doc.first_name or "",
+					"last_name": user_doc.last_name or "",
+					"is_primary_contact": 1,
+					"is_billing_contact": 1,
 					"email_ids": [{"email_id": user, "is_primary": 1}]
 				})
 				contact.append("links", dict(link_doctype="Customer", link_name=customer.name))
 				contact.flags.ignore_mandatory = True
 				try:
 					contact.insert(ignore_permissions=True)
+					# Update customer with primary contact reference
+					customer.customer_primary_contact = contact.name
+					customer.save(ignore_permissions=True)
 				except Exception as contact_error:
 					frappe.log_error("Shopping Cart Contact Creation Error", f"Error inserting contact for {user}: {str(contact_error)}")
 		except Exception as e:
