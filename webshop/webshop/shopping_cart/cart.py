@@ -1034,6 +1034,16 @@ def add_new_address(doc):
 	address = frappe.get_doc(doc)
 	address.save(ignore_permissions=True)
 
+	# Update customer's primary address if this is a primary address
+	if address.is_primary_address:
+		# Find the linked customer from address links
+		for link in address.links:
+			if link.link_doctype == "Customer":
+				customer = frappe.get_doc("Customer", link.link_name)
+				customer.customer_primary_address = address.name
+				customer.save(ignore_permissions=True)
+				break
+
 	return address
 
 @frappe.whitelist(allow_guest=True)
