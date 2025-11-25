@@ -193,9 +193,31 @@
 	// Loyalty points display
 	.loyalty-points-info {
 		font-size: 0.875rem;
-		
+
 		.fa-star {
 			color: #ffc107;
 		}
 	}
+}
+
+// Form input styles for webshop
+input[type=text],
+input:where(:not([type])),
+input[type=email],
+input[type=url],
+input[type=password],
+input[type=number],
+input[type=date],
+input[type=datetime-local],
+input[type=month],
+input[type=search],
+input[type=tel],
+input[type=time],
+input[type=week],
+select[multiple],
+textarea,
+select {
+	background-color: #f8f8f8;
+	border-radius: 8px;
+	border: 1px solid #999 !important;
 }
