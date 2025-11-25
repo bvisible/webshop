@@ -221,3 +221,8 @@ select {
 	border-radius: 8px;
 	border: 1px solid #999 !important;
 }
+
+// Checkout page styles
+body[data-path=checkout] #page-checkout .order-summary-wrapper .order-summary .order-summary-title {
+	font-size: 15px;
+}
