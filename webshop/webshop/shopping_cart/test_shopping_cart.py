@@ -230,6 +230,53 @@ class TestShoppingCart(unittest.TestCase):
 
 		self.assertEqual(quote_doctstatus, 1)
 
+	def test_new_customer_has_primary_contact(self):
+		"""Test that a new customer created from webshop has primary contact set correctly."""
+		# Create a new user that doesn't have a customer yet
+		test_email = "test_new_customer_primary@example.com"
+
+		# Clean up any existing data
+		if frappe.db.exists("User", test_email):
+			# Delete associated contacts first
+			contacts = frappe.get_all("Contact", filters={"email_id": test_email})
+			for c in contacts:
+				frappe.delete_doc("Contact", c.name, force=True)
+			# Delete customer if exists
+			customers = frappe.get_all("Customer", filters={"customer_name": ["like", "%test_new_customer%"]})
+			for cust in customers:
+				frappe.delete_doc("Customer", cust.name, force=True)
+			frappe.delete_doc("User", test_email, force=True)
+
+		# Create user
+		user = frappe.get_doc({
+			"doctype": "User",
+			"user_type": "Website User",
+			"email": test_email,
+			"first_name": "Test",
+			"last_name": "NewCustomer",
+			"send_welcome_email": 0
+		}).insert(ignore_permissions=True)
+		user.add_roles("Customer")
+
+		# Login as new user and get party (this should create customer + contact)
+		frappe.set_user(test_email)
+		party = get_party()
+
+		# Verify customer was created
+		self.assertTrue(frappe.db.exists("Customer", party.name))
+
+		# Verify customer has primary contact set
+		customer = frappe.get_doc("Customer", party.name)
+		self.assertTrue(customer.customer_primary_contact, "Customer should have primary contact set")
+
+		# Verify the contact has is_primary_contact flag
+		contact = frappe.get_doc("Contact", customer.customer_primary_contact)
+		self.assertEqual(contact.is_primary_contact, 1, "Contact should be marked as primary")
+		self.assertEqual(contact.is_billing_contact, 1, "Contact should be marked as billing contact")
+
+		# Cleanup
+		frappe.set_user("Administrator")
+
 	def create_tax_rule(self):
 		tax_rule = frappe.get_test_records("Tax Rule")[0]
 		try:
