@@ -2181,16 +2181,19 @@ def update_contact_info(first_name, last_name, email=None, phone=None, company_n
 			else:
 				contact.email_ids[0].email_id = email
 		
-		# Update or add phone
+		# Update or add phone (as mobile number)
 		if phone:
 			contact.phone = phone  # Set the main phone field
+			contact.mobile_no = phone  # Also set mobile_no field
 			if not contact.phone_nos:
 				contact.append("phone_nos", {
 					"phone": phone,
-					"is_primary_phone": 1
+					"is_primary_mobile_no": 1
 				})
 			else:
 				contact.phone_nos[0].phone = phone
+				contact.phone_nos[0].is_primary_mobile_no = 1
+				contact.phone_nos[0].is_primary_phone = 0
 
 		# Set billing address
 		if quotation.customer_address:
