@@ -40,7 +40,12 @@
 					{% if enabled_checkout and (doc.doctype != "Sales Invoice" or doc.outstanding_amount > 0) %}
 					<a href="/api/method/erpnext.accounts.doctype.payment_request.payment_request.make_payment_request?dn={{ doc.name }}&dt={{ doc.doctype }}&submit_doc=1&order_type=Shopping Cart"
 						class="btn btn-primary btn-sm" id="pay-for-order">
-						{{ _("Pay") }} {{doc.get_formatted("grand_total") }}
+						{# For Sales Invoice, show outstanding amount; for others show grand total #}
+						{% if doc.doctype == "Sales Invoice" and doc.outstanding_amount > 0 %}
+							{{ _("Pay") }} {{ doc.get_formatted("outstanding_amount") }}
+						{% else %}
+							{{ _("Pay") }} {{ doc.get_formatted("grand_total") }}
+						{% endif %}
 					</a>
 					{% endif %}
 				</p>
@@ -130,8 +135,8 @@
 		</div>
 	</div>
 
-	{% if enabled_checkout and ((doc.doctype=="Sales Order" and doc.per_billed <= 0)
-		or (doc.doctype=="Sales Invoice" and doc.outstanding_amount> 0)) %}
+	{# Loyalty points only for Sales Order, not for Sales Invoice #}
+	{% if enabled_checkout and doc.doctype == "Sales Order" and doc.per_billed <= 0 %}
 		<div class="panel panel-default">
 			<div class="panel-collapse">
 				<div class="panel-body text-muted small">
