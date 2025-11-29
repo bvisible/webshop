@@ -136,8 +136,16 @@ class WebshopSettings(Document):
 		if not (self.enable_attribute_filters and self.filter_attributes):
 			return
 
-		# if attribute filters are enabled, hide_variants should be disabled
-		self.hide_variants = 0
+		# if attribute filters are enabled with filter_attributes configured,
+		# hide_variants cannot be enabled - they are mutually exclusive features
+		if self.hide_variants:
+			frappe.throw(
+				_("Cannot enable 'Hide Variants' when 'Attribute Filters' are enabled with filter attributes configured. "
+				  "These features are mutually exclusive: Attribute filters allow customers to filter by variant attributes "
+				  "(like Size, Color), which requires variants to be visible. "
+				  "Please disable 'Enable Attribute Filters' or remove all Filter Attributes first."),
+				title=_("Configuration Conflict")
+			)
 
 	def validate_checkout(self):
 		if self.enable_checkout and not self.payment_gateway_account:
