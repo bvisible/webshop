@@ -133,10 +133,12 @@ def get_user_header_info():
         result["avatar"] = get_user_avatar_html(user)
 
     # Get cart count from cookie or calculate
-    cart_count = frappe.request.cookies.get("cart_count", "0")
+    cart_count = "0"
     try:
+        if hasattr(frappe, 'request') and frappe.request and hasattr(frappe.request, 'cookies'):
+            cart_count = frappe.request.cookies.get("cart_count", "0")
         result["cart_count"] = int(cart_count)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, RuntimeError):
         result["cart_count"] = 0
 
     return result
