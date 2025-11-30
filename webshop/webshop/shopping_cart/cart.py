@@ -1036,11 +1036,15 @@ def add_new_address(doc):
 
 	# Update customer's primary address if this is a primary address
 	if address.is_primary_address:
+		from frappe.contacts.doctype.address.address import get_address_display
+
 		# Find the linked customer from address links
 		for link in address.links:
 			if link.link_doctype == "Customer":
 				customer = frappe.get_doc("Customer", link.link_name)
 				customer.customer_primary_address = address.name
+				# Also set the formatted address text for display in lists
+				customer.primary_address = get_address_display(address.name)
 				customer.save(ignore_permissions=True)
 				break
 
