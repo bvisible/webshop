@@ -1,26 +1,27 @@
-<!-- Component for authentication -->
+<!-- Component for authentication - Dynamic loading to avoid cache issues -->
 {% from "frappe/templates/includes/avatar_macro.html" import avatar %}
 
 <div class="header-auth" id="header-auth">
     <div class="auth-wrapper" id="authButton">
       <div class="auth-button">
-        {% if frappe.session.user == 'Guest' %}
+        <!-- Default: show login icon (will be replaced by JS if logged in) -->
+        <span id="auth-login-view">
             <svg class="login-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M9.76 0C15.417 0 20 4.477 20 10S15.416 20 9.76 20c-3.191 0-6.142-1.437-8.07-3.846a.644.644 0 0 1 .115-.918a.68.68 0 0 1 .94.113a8.96 8.96 0 0 0 7.016 3.343c4.915 0 8.9-3.892 8.9-8.692c0-4.8-3.985-8.692-8.9-8.692a8.961 8.961 0 0 0-6.944 3.255a.68.68 0 0 1-.942.101a.644.644 0 0 1-.103-.92C3.703 1.394 6.615 0 9.761 0Zm.545 6.862l2.707 2.707c.262.262.267.68.011.936L10.38 13.15a.662.662 0 0 1-.937-.011a.662.662 0 0 1-.01-.937l1.547-1.548l-10.31.001A.662.662 0 0 1 0 10c0-.361.3-.654.67-.654h10.268L9.38 7.787a.662.662 0 0 1-.01-.937a.662.662 0 0 1 .935.011Z"/></svg>
             <span id="authText">{{ _("Log in") }}</span>
-        {% else %}
-            <span class="my-account-avatar">
-                {{avatar(frappe.session.user)}}
-            </span>
-            <span id="authText">{{ _("Hi") }} {{ get_first_name(frappe.session.user) }}</span>
+        </span>
+        <!-- Logged in view (hidden by default, shown by JS) -->
+        <span id="auth-user-view" style="display: none;">
+            <span class="my-account-avatar" id="user-avatar"></span>
+            <span id="authText-user"></span>
+        </span>
 
-            <div class="dropdown-menu dropdown-menu-right" id="user-dropdown">
-                <a class="dropdown-item" href="/me">{{ _('My account') }}</a>
-                <a class="dropdown-item" href="/orders">{{ _('My orders') }}</a>
-                <a class="dropdown-item" href="/wishlist">{{ _('My wishlist') }}</a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item logout-link" href="javascript:void(0);">{{ _('Logout') }}</a>
-            </div>
-        {% endif %}
+        <div class="dropdown-menu dropdown-menu-right" id="user-dropdown" style="display: none;">
+            <a class="dropdown-item" href="/me">{{ _('My account') }}</a>
+            <a class="dropdown-item" href="/orders">{{ _('My orders') }}</a>
+            <a class="dropdown-item" href="/wishlist">{{ _('My wishlist') }}</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item logout-link" href="javascript:void(0);">{{ _('Logout') }}</a>
+        </div>
         </div>
     </div>
 </div>
@@ -57,7 +58,7 @@
         margin-right: 8px;
     }
 
-    #authText {
+    #authText, #authText-user {
         font-size: 14px;
         margin-left: 5px;
     }
@@ -168,7 +169,7 @@
         line-height: 1;
     }
 
-    /* Styles pour le menu déroulant */
+    /* Styles for dropdown menu */
     .dropdown-menu {
         position: absolute;
         top: 100%;
@@ -188,16 +189,16 @@
         border-radius: 0.375rem;
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
     }
-    
+
     .dropdown-menu.show {
         display: block;
     }
-    
+
     .dropdown-menu-right {
         right: 0;
         left: auto;
     }
-    
+
     .dropdown-item {
         display: block;
         width: 100%;
@@ -212,77 +213,136 @@
         text-decoration: none;
         transition: background-color 0.2s;
     }
-    
+
     .dropdown-item:hover, .dropdown-item:focus {
         color: #16181b;
         text-decoration: none;
         background-color: #f8f9fa;
     }
-    
+
     .dropdown-divider {
         height: 0;
         margin: 0.5rem 0;
         overflow: hidden;
         border-top: 1px solid #e9ecef;
     }
-    
+
     .auth-wrapper {
         position: relative;
     }
 </style>
 {% endblock %}
 <script>
-const authButton = document.getElementById('authButton');
-
-{% if frappe.session.user == 'Guest' %}
-    // User is not logged in - configure login button
-    authButton.onclick = function() {
-        frappe.showLoginDialog();
-    };
-    {% include 'webshop/public/js/utils/frappe-mock.js'  %}
-    {% include 'webshop/public/js/auth_dialog.js' %}
-{% else %}
-    // User is logged in - configure dropdown toggle
+// Dynamic user header loading to avoid cache issues
+(function() {
+    const authButton = document.getElementById('authButton');
+    const loginView = document.getElementById('auth-login-view');
+    const userView = document.getElementById('auth-user-view');
     const userDropdown = document.getElementById('user-dropdown');
-    
-    authButton.onclick = function(event) {
-        event.stopPropagation();
-        userDropdown.classList.toggle('show');
-    };
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(event) {
-        if (!authButton.contains(event.target) && userDropdown.classList.contains('show')) {
-            userDropdown.classList.remove('show');
-        }
-    });
-    
-    // Configure logout link
-    const logoutLink = document.querySelector('.logout-link');
-    if (logoutLink) {
-        logoutLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Create an XHR request for compatibility
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', '/api/method/logout', true);
-            xhr.setRequestHeader('Accept', 'application/json');
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            
-            xhr.onload = function() {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    window.location.reload();
-                } else {
-                    console.error('Error during logout');
+    const userAvatar = document.getElementById('user-avatar');
+    const authTextUser = document.getElementById('authText-user');
+
+    // Fetch user info via API (bypasses page cache)
+    function loadUserInfo() {
+        fetch('/api/method/webshop.webshop.utils.utils.get_user_header_info', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message && data.message.is_logged_in) {
+                // User is logged in - show user view
+                loginView.style.display = 'none';
+                userView.style.display = 'flex';
+                userView.style.alignItems = 'center';
+
+                // Set avatar
+                if (userAvatar && data.message.avatar) {
+                    userAvatar.innerHTML = data.message.avatar;
                 }
-            };
-            
-            xhr.onerror = function() {
-                console.error('Network error during logout');
-            };
-            
-            xhr.send();
+
+                // Set greeting text
+                if (authTextUser) {
+                    authTextUser.textContent = '{{ _("Hi") }} ' + (data.message.first_name || '');
+                }
+
+                // Setup dropdown toggle
+                setupLoggedInBehavior();
+            } else {
+                // User is guest - show login view (already default)
+                setupGuestBehavior();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading user info:', error);
+            // On error, default to guest behavior
+            setupGuestBehavior();
         });
     }
-{% endif %}
+
+    function setupGuestBehavior() {
+        authButton.onclick = function() {
+            if (typeof frappe !== 'undefined' && frappe.showLoginDialog) {
+                frappe.showLoginDialog();
+            } else {
+                window.location.href = '/login';
+            }
+        };
+        {% include 'webshop/public/js/utils/frappe-mock.js'  %}
+        {% include 'webshop/public/js/auth_dialog.js' %}
+    }
+
+    function setupLoggedInBehavior() {
+        // Configure dropdown toggle
+        authButton.onclick = function(event) {
+            event.stopPropagation();
+            userDropdown.classList.toggle('show');
+        };
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!authButton.contains(event.target) && userDropdown.classList.contains('show')) {
+                userDropdown.classList.remove('show');
+            }
+        });
+
+        // Configure logout link
+        const logoutLink = document.querySelector('.logout-link');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', '/api/method/logout', true);
+                xhr.setRequestHeader('Accept', 'application/json');
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        window.location.reload();
+                    } else {
+                        console.error('Error during logout');
+                    }
+                };
+
+                xhr.onerror = function() {
+                    console.error('Network error during logout');
+                };
+
+                xhr.send();
+            });
+        }
+    }
+
+    // Load user info on page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadUserInfo);
+    } else {
+        loadUserInfo();
+    }
+})();
 </script>

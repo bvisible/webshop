@@ -95,6 +95,65 @@ def get_gateway_configuration(payment_method, payment_gateway_account=None):
 def get_first_name(user):
     return frappe.db.get_value("User", user, "first_name")
 
+@frappe.whitelist(allow_guest=True)
+def get_user_header_info():
+    """
+    Get user information for the header component.
+    This is called via JavaScript to avoid caching user-specific data in the navbar HTML.
+
+    Returns:
+        dict: User information including:
+            - is_logged_in: bool
+            - user: str (email)
+            - first_name: str
+            - full_name: str
+            - avatar: str (HTML for avatar)
+            - cart_count: int
+    """
+    user = frappe.session.user
+    is_logged_in = user != "Guest"
+
+    result = {
+        "is_logged_in": is_logged_in,
+        "user": user,
+        "first_name": "",
+        "full_name": "",
+        "avatar": "",
+        "cart_count": 0
+    }
+
+    if is_logged_in:
+        # Get user details
+        user_doc = frappe.get_cached_doc("User", user)
+        result["first_name"] = user_doc.first_name or user.split("@")[0]
+        result["full_name"] = user_doc.full_name or result["first_name"]
+
+        # Generate avatar HTML
+        from frappe.utils.html_utils import get_icon_html
+        result["avatar"] = get_user_avatar_html(user)
+
+    # Get cart count from cookie or calculate
+    cart_count = frappe.request.cookies.get("cart_count", "0")
+    try:
+        result["cart_count"] = int(cart_count)
+    except (ValueError, TypeError):
+        result["cart_count"] = 0
+
+    return result
+
+def get_user_avatar_html(user):
+    """Generate avatar HTML for a user."""
+    user_doc = frappe.get_cached_doc("User", user)
+
+    if user_doc.user_image:
+        return f'<span class="avatar avatar-small"><span class="avatar-frame" style="background-image: url(\'{user_doc.user_image}\')"></span></span>'
+    else:
+        # Generate initials
+        first_name = user_doc.first_name or ""
+        last_name = user_doc.last_name or ""
+        initials = (first_name[:1] + last_name[:1]).upper() or user[:1].upper()
+        return f'<span class="avatar avatar-small"><div class="standard-image">{initials}</div></span>'
+
 def webshop_fmt_money(value, currency=None, precision=None):
     """
     Template helper function for formatting money in webshop templates.
