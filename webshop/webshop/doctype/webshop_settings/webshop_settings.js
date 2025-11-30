@@ -293,5 +293,27 @@ frappe.ui.form.on("Webshop Settings", {
 				});
 			}
 		);
+	},
+	hide_variants: function(frm) {
+		// Hide Variants and Enable Attribute Filters are mutually exclusive
+		if (frm.doc.hide_variants && frm.doc.enable_attribute_filters && frm.doc.filter_attributes && frm.doc.filter_attributes.length > 0) {
+			frm.set_value('enable_attribute_filters', 0);
+			frappe.msgprint({
+				title: __('Configuration Conflict'),
+				message: __("'Enable Attribute Filters' has been automatically disabled. These two features are mutually exclusive: Attribute filters allow customers to filter by variant attributes (like Size, Color), which requires variants to be visible."),
+				indicator: 'orange'
+			});
+		}
+	},
+	enable_attribute_filters: function(frm) {
+		// Hide Variants and Enable Attribute Filters are mutually exclusive
+		if (frm.doc.enable_attribute_filters && frm.doc.hide_variants) {
+			frm.set_value('hide_variants', 0);
+			frappe.msgprint({
+				title: __('Configuration Conflict'),
+				message: __("'Hide Variants' has been automatically disabled. These two features are mutually exclusive: Attribute filters allow customers to filter by variant attributes (like Size, Color), which requires variants to be visible."),
+				indicator: 'orange'
+			});
+		}
 	}
 });
