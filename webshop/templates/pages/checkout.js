@@ -329,13 +329,41 @@ frappe.ready(function() {
             const attrs = result.attrs;
 
             // Parse the detail field: "street number postal_code city ... country_code canton_code"
-            // Example: "rue du lac 10 1207 geneve 6621 geneve ch ge"
+            // Example: "rue du lac 1 1400 yverdon-les-bains 5938 yverdon-les-bains ch vd"
             const detail = attrs.detail || '';
-            const parts = detail.toLowerCase().split(' ');
+            const parts = detail.split(' ');
+
+            // Extract postal code (4-digit number) and city from detail
+            let postalCode = '';
+            let city = '';
+            let cantonCode = '';
+
+            // Find postal code (4 digits) and get city name after it
+            for (let i = 0; i < parts.length; i++) {
+                if (/^\d{4}$/.test(parts[i])) {
+                    postalCode = parts[i];
+                    // City is the next part(s) until we hit another number or 'ch'
+                    let cityParts = [];
+                    for (let j = i + 1; j < parts.length; j++) {
+                        if (/^\d+$/.test(parts[j]) || parts[j].toLowerCase() === 'ch') {
+                            break;
+                        }
+                        cityParts.push(parts[j]);
+                    }
+                    if (cityParts.length > 0) {
+                        // Capitalize city name properly
+                        city = cityParts.map(part =>
+                            part.split('-').map(word =>
+                                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                            ).join('-')
+                        ).join(' ');
+                    }
+                    break;
+                }
+            }
 
             // Extract canton code (last part after 'ch')
-            let cantonCode = '';
-            const chIndex = parts.indexOf('ch');
+            const chIndex = parts.map(p => p.toLowerCase()).indexOf('ch');
             if (chIndex !== -1 && chIndex < parts.length - 1) {
                 cantonCode = parts[chIndex + 1].toLowerCase();
             }
@@ -356,17 +384,17 @@ frappe.ready(function() {
 
             // Extract street and number from label (first part before postal code)
             let streetAddress = label;
-            if (attrs.detail) {
+            if (postalCode) {
                 // Try to extract street address from label up to postal code
-                const postalMatch = label.match(/^(.+?)\s+(\d{4})\s+/);
+                const postalMatch = label.match(new RegExp(`^(.+?)\\s+${postalCode}\\s+`));
                 if (postalMatch) {
                     streetAddress = postalMatch[1].trim();
                 }
             }
 
             setFieldValue('address_1', streetAddress);
-            setFieldValue('postcode', attrs.postalcode || '');
-            setFieldValue('city', attrs.city || attrs.gemeinde || '');
+            setFieldValue('postcode', postalCode);
+            setFieldValue('city', city);
             setFieldValue('state', canton);
 
             // Set country to Switzerland
