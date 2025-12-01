@@ -182,6 +182,207 @@ frappe.ready(function() {
             this.handleShippingAddressToggle();
             this.bindEvents();
             this.setupCompanyField();
+            this.setupGeoAdminAutocomplete();
+        }
+
+        // Swiss GeoAdmin address autocomplete
+        setupGeoAdminAutocomplete() {
+            const self = this;
+
+            // Swiss canton codes to full names mapping
+            const cantonMap = {
+                'ag': 'Aargau',
+                'ai': 'Appenzell Innerrhoden',
+                'ar': 'Appenzell Ausserrhoden',
+                'be': 'Bern',
+                'bl': 'Basel-Landschaft',
+                'bs': 'Basel-Stadt',
+                'fr': 'Fribourg',
+                'ge': 'Genève',
+                'gl': 'Glarus',
+                'gr': 'Graubünden',
+                'ju': 'Jura',
+                'lu': 'Luzern',
+                'ne': 'Neuchâtel',
+                'nw': 'Nidwalden',
+                'ow': 'Obwalden',
+                'sg': 'St. Gallen',
+                'sh': 'Schaffhausen',
+                'so': 'Solothurn',
+                'sz': 'Schwyz',
+                'tg': 'Thurgau',
+                'ti': 'Ticino',
+                'ur': 'Uri',
+                'vd': 'Vaud',
+                'vs': 'Valais',
+                'zg': 'Zug',
+                'zh': 'Zürich'
+            };
+
+            // Setup autocomplete for both billing and shipping address fields
+            this.setupAddressAutocomplete('#billing_address_1', 'billing', cantonMap);
+            this.setupAddressAutocomplete('#shipping_address_1', 'shipping', cantonMap);
+        }
+
+        setupAddressAutocomplete(inputSelector, prefix, cantonMap) {
+            const self = this;
+            const $input = $(inputSelector);
+            if (!$input.length) return;
+
+            // Create dropdown container
+            const $dropdown = $('<div class="geoadmin-dropdown"></div>').css({
+                position: 'absolute',
+                width: '100%',
+                maxHeight: '200px',
+                overflowY: 'auto',
+                backgroundColor: 'var(--card-bg, #fff)',
+                border: '1px solid var(--border-color, #d1d8dd)',
+                borderRadius: '8px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                zIndex: 1050,
+                display: 'none'
+            });
+
+            // Wrap input and add dropdown
+            $input.parent().css('position', 'relative');
+            $input.after($dropdown);
+
+            let debounceTimer;
+
+            // Input event for search
+            $input.on('input', function() {
+                clearTimeout(debounceTimer);
+                const query = $(this).val();
+
+                if (query.length < 3) {
+                    $dropdown.hide();
+                    return;
+                }
+
+                debounceTimer = setTimeout(() => {
+                    self.searchGeoAdmin(query, $dropdown, $input, prefix, cantonMap);
+                }, 300);
+            });
+
+            // Hide dropdown on blur (with delay for click)
+            $input.on('blur', function() {
+                setTimeout(() => $dropdown.hide(), 200);
+            });
+
+            // Show dropdown on focus if has results
+            $input.on('focus', function() {
+                if ($dropdown.children().length > 0) {
+                    $dropdown.show();
+                }
+            });
+        }
+
+        searchGeoAdmin(query, $dropdown, $input, prefix, cantonMap) {
+            const self = this;
+
+            $.ajax({
+                url: 'https://api3.geo.admin.ch/rest/services/api/SearchServer',
+                data: {
+                    searchText: query,
+                    type: 'locations',
+                    origins: 'address',
+                    limit: 10
+                },
+                success: function(response) {
+                    $dropdown.empty();
+
+                    if (response.results && response.results.length > 0) {
+                        response.results.forEach(function(result) {
+                            const item = $('<div class="geoadmin-item"></div>')
+                                .css({
+                                    padding: '10px 12px',
+                                    cursor: 'pointer',
+                                    borderBottom: '1px solid var(--border-color, #eee)',
+                                    fontSize: '13px'
+                                })
+                                .text(result.attrs.label.replace(/<[^>]*>/g, ''))
+                                .hover(
+                                    function() { $(this).css('backgroundColor', 'var(--control-bg, #f5f7fa)'); },
+                                    function() { $(this).css('backgroundColor', ''); }
+                                )
+                                .on('mousedown', function(e) {
+                                    e.preventDefault();
+                                    self.fillAddressFromGeoAdmin(result, prefix, cantonMap);
+                                    $dropdown.hide();
+                                });
+
+                            $dropdown.append(item);
+                        });
+
+                        $dropdown.show();
+                    } else {
+                        $dropdown.hide();
+                    }
+                },
+                error: function() {
+                    $dropdown.hide();
+                }
+            });
+        }
+
+        fillAddressFromGeoAdmin(result, prefix, cantonMap) {
+            const attrs = result.attrs;
+
+            // Parse the detail field: "street number postal_code city ... country_code canton_code"
+            // Example: "rue du lac 10 1207 geneve 6621 geneve ch ge"
+            const detail = attrs.detail || '';
+            const parts = detail.toLowerCase().split(' ');
+
+            // Extract canton code (last part after 'ch')
+            let cantonCode = '';
+            const chIndex = parts.indexOf('ch');
+            if (chIndex !== -1 && chIndex < parts.length - 1) {
+                cantonCode = parts[chIndex + 1].toLowerCase();
+            }
+
+            // Get full canton name from code
+            const canton = cantonMap[cantonCode] || '';
+
+            // Fill address fields based on prefix (billing or shipping)
+            const setFieldValue = (fieldName, value) => {
+                const $field = $(`#${prefix}_${fieldName}`);
+                if ($field.length && value) {
+                    $field.val(value).trigger('change');
+                }
+            };
+
+            // Clean and format the label for street address
+            const label = attrs.label.replace(/<[^>]*>/g, '');
+
+            // Extract street and number from label (first part before postal code)
+            let streetAddress = label;
+            if (attrs.detail) {
+                // Try to extract street address from label up to postal code
+                const postalMatch = label.match(/^(.+?)\s+(\d{4})\s+/);
+                if (postalMatch) {
+                    streetAddress = postalMatch[1].trim();
+                }
+            }
+
+            setFieldValue('address_1', streetAddress);
+            setFieldValue('postcode', attrs.postalcode || '');
+            setFieldValue('city', attrs.city || attrs.gemeinde || '');
+            setFieldValue('state', canton);
+
+            // Set country to Switzerland
+            const $countryField = $(`#${prefix}_country`);
+            if ($countryField.length) {
+                // Try to find and select Switzerland option
+                const switzerlandOption = $countryField.find('option').filter(function() {
+                    return $(this).val().toLowerCase().includes('switzerland') ||
+                           $(this).text().toLowerCase().includes('switzerland') ||
+                           $(this).text().toLowerCase().includes('suisse') ||
+                           $(this).text().toLowerCase().includes('schweiz');
+                });
+                if (switzerlandOption.length) {
+                    $countryField.val(switzerlandOption.val()).trigger('change');
+                }
+            }
         }
 
         setupLeavePageConfirmation() {
