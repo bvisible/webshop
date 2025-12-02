@@ -32,7 +32,7 @@ class PaymentRequest(OriginalPaymentRequest):
             payment_request = self
             # 1. Get quotation
             quotation = frappe.get_doc("Quotation", self.reference_name)
-            
+
             # 2. Check if Sales Order already exists for this Quotation
             linked_docs = frappe.get_all(
                 "Sales Order",
@@ -44,7 +44,7 @@ class PaymentRequest(OriginalPaymentRequest):
                 fields=["name"],
                 limit=1
             )
-            
+
             if linked_docs:
                 sales_order_name = linked_docs[0].name
             else:
@@ -53,17 +53,37 @@ class PaymentRequest(OriginalPaymentRequest):
                 sales_order_name = place_order()
                 if not sales_order_name:
                     frappe.throw(_("Error creating order"))
-                            
+
             # Update payment request with Sales Order reference
             payment_request.db_set('reference_doctype', 'Sales Order', update_modified=False)
             payment_request.db_set('reference_name', sales_order_name, update_modified=False)
-            
+
             # Submit Payment Request before marking as paid
             if payment_request.docstatus == 0:
                 payment_request.flags.ignore_permissions = True
                 payment_request.save(ignore_permissions=True)
                 payment_request.submit()
-                
+
+        # If it's a Sales Invoice, only create payment entry (invoice already exists)
+        if self.reference_doctype == "Sales Invoice":
+            frappe.set_user("Administrator")
+            # Only create payment entry, skip make_invoice
+            self.create_payment_entry()
+
+            success_url = cart_settings.payment_success_url
+            redirect_to = get_url("/invoices/{0}".format(self.reference_name))
+
+            if success_url:
+                redirect_to = (
+                    {
+                        "Orders": "/orders",
+                        "Invoices": "/invoices",
+                        "My Account": "/me",
+                    }
+                ).get(success_url, "/me")
+
+            return redirect_to
+
         success_url = cart_settings.payment_success_url
         redirect_to = get_url("/orders/{0}".format(self.reference_name))
 
