@@ -11,29 +11,30 @@
     {# Transform the data and add product count #}
     {% set transformed_brands = [] %}
     {% for b in all_brands %}
-        {# Skip brands without image if hide_without_image is set #}
+        {# Skip brands without image if hide_without_image is set, or with private images #}
+        {% set skip_brand = false %}
         {% if hide_without_image and not b.image %}
-            {% continue %}
+            {% set skip_brand = true %}
+        {% elif b.image and '/private/' in b.image %}
+            {% set skip_brand = true %}
         {% endif %}
-        {# Skip brands with private images (not accessible) #}
-        {% if b.image and '/private/' in b.image %}
-            {% continue %}
-        {% endif %}
-        {% set brand_filter = '{"brand":["' + b.name + '"]}' %}
-        {% set product_count = 0 %}
-        {% if carousel_sort_by == "product_count" or show_product_count %}
-            {% set product_count = frappe.db.count("Website Item", {"brand": b.name, "published": 1}) %}
-        {% endif %}
-        {% if product_count > 0 or not carousel_sort_by == "product_count" %}
-            {% set brand_item = {
-                "brand_name": b.brand,
-                "logo": b.image,
-                "route": "all-products?field_filters=" + brand_filter.replace(' ', '%20').replace('"', '%22'),
-                "description": b.description or "",
-                "product_count": product_count,
-                "_name": b.name
-            } %}
-            {% set _ = transformed_brands.append(brand_item) %}
+        {% if not skip_brand %}
+            {% set brand_filter = '{"brand":["' + b.name + '"]}' %}
+            {% set product_count = 0 %}
+            {% if carousel_sort_by == "product_count" or show_product_count %}
+                {% set product_count = frappe.db.count("Website Item", {"brand": b.name, "published": 1}) %}
+            {% endif %}
+            {% if product_count > 0 or not carousel_sort_by == "product_count" %}
+                {% set brand_item = {
+                    "brand_name": b.brand,
+                    "logo": b.image,
+                    "route": "all-products?field_filters=" + brand_filter.replace(' ', '%20').replace('"', '%22'),
+                    "description": b.description or "",
+                    "product_count": product_count,
+                    "_name": b.name
+                } %}
+                {% set _ = transformed_brands.append(brand_item) %}
+            {% endif %}
         {% endif %}
     {% endfor %}
     
