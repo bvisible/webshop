@@ -1002,3 +1002,61 @@ def import_gift_cards(file_content=None, dry_run=False):
 def download_gift_card_template():
 	"""API endpoint to download gift card import template"""
 	return get_gift_card_import_template()
+
+
+@frappe.whitelist()
+def clear_webshop_cache():
+	"""
+	Manually clear all webshop caches.
+
+	Requires System Manager role.
+	Clears carousel cache, product price cache, discount cache, etc.
+
+	Returns:
+		dict: Status and message
+	"""
+	if "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Only System Manager can clear webshop cache"))
+
+	try:
+		# Clear carousel cache
+		from webshop.webshop.utils.carousel_cache import CarouselCacheManager
+		cache_manager = CarouselCacheManager()
+		cache_manager.clear_cache()
+
+		# Clear promotion cache
+		cache_manager.clear_promotion_cache()
+
+		# Clear brand carousel cache
+		try:
+			from webshop.webshop.utils.brand_carousel_helper import clear_brand_carousel_cache
+			clear_brand_carousel_cache()
+		except ImportError:
+			pass
+
+		# Clear product price caches
+		cache_keys = frappe.cache().get_keys("discount_preview:*")
+		for key in cache_keys:
+			frappe.cache().delete_value(key)
+
+		cache_keys = frappe.cache().get_keys("product_info:*")
+		for key in cache_keys:
+			frappe.cache().delete_value(key)
+
+		cache_keys = frappe.cache().get_keys("webshop_item:*")
+		for key in cache_keys:
+			frappe.cache().delete_value(key)
+
+		frappe.logger().info("Webshop cache manually cleared by " + frappe.session.user)
+
+		return {
+			"status": "success",
+			"message": _("Webshop cache cleared successfully")
+		}
+
+	except Exception as e:
+		frappe.log_error(f"Error clearing webshop cache: {str(e)}", "Webshop Cache Clear Error")
+		return {
+			"status": "error",
+			"message": str(e)
+		}

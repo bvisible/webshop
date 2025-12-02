@@ -106,6 +106,16 @@ doc_events = {
 	"Payment Entry": {
 		"on_submit": ["webshop.webshop.shopping_cart.cart.check_gift_cards_from_payment"]
 	},
+	"Pricing Rule": {
+		"on_update": "webshop.webshop.crud_events.pricing_rule.invalidate_discount_cache.execute",
+		"after_insert": "webshop.webshop.crud_events.pricing_rule.invalidate_discount_cache.execute",
+		"on_trash": "webshop.webshop.crud_events.pricing_rule.invalidate_discount_cache.execute",
+	},
+	"Item Price": {
+		"on_update": "webshop.webshop.crud_events.item_price.invalidate_price_cache.execute",
+		"after_insert": "webshop.webshop.crud_events.item_price.invalidate_price_cache.execute",
+		"on_trash": "webshop.webshop.crud_events.item_price.invalidate_price_cache.execute",
+	},
 }
 
 has_website_permission = {
