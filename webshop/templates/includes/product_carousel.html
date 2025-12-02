@@ -36,6 +36,9 @@
         <div class="carousel-wrapper">
           <div class="carousel-inner">
           {% for item in website_items %}
+            {% if hide_without_image and not item.website_image %}
+              {% continue %}
+            {% endif %}
             <div class="item-card">
               <div class="card text-left">
                 <div class="card-img-container">

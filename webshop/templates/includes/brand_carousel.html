@@ -1,16 +1,24 @@
 {% if not brands %}
     {# Get brands automatically if not provided #}
-    
+
     {# First, get all brands #}
     {% set all_brands = frappe.get_all(
         "Brand",
         fields=["name", "brand", "image", "description"],
         limit=100
     ) %}
-    
+
     {# Transform the data and add product count #}
     {% set transformed_brands = [] %}
     {% for b in all_brands %}
+        {# Skip brands without image if hide_without_image is set #}
+        {% if hide_without_image and not b.image %}
+            {% continue %}
+        {% endif %}
+        {# Skip brands with private images (not accessible) #}
+        {% if b.image and '/private/' in b.image %}
+            {% continue %}
+        {% endif %}
         {% set brand_filter = '{"brand":["' + b.name + '"]}' %}
         {% set product_count = 0 %}
         {% if carousel_sort_by == "product_count" or show_product_count %}
