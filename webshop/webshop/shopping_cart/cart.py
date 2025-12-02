@@ -820,7 +820,64 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 	# Only check if price_list_rate is explicitly passed and not None
 	if price_list_rate and not is_gift_card:
 		frappe.throw(_("Price can only be modified for gift cards"))
-	
+
+	# Validate stock availability before adding to cart
+	if qty > 0 and not is_gift_card:
+		cart_settings = frappe.get_cached_doc("Webshop Settings")
+		if not cint(cart_settings.allow_items_not_in_stock):
+			# Check if item is a stock item
+			is_stock_item = frappe.db.get_value("Item", item_code, "is_stock_item")
+			if is_stock_item:
+				item_stock = get_web_item_qty_in_stock(item_code, "website_warehouse")
+				if not cint(item_stock.in_stock):
+					frappe.throw(_("{0} is not in stock").format(item_code))
+
+				# Calculate the total quantity (existing + new)
+				existing_qty = 0
+				if frappe.session.user == "Guest":
+					guest_session_id = frappe.request.cookies.get('guest_session_id') if frappe.request else None
+					if guest_session_id:
+						existing_quotation = frappe.db.get_value(
+							'Quotation',
+							{'guest_session_id': guest_session_id, 'docstatus': 0, 'status': 'Draft'},
+							'name'
+						)
+						if existing_quotation:
+							existing_qty = frappe.db.get_value(
+								'Quotation Item',
+								{'parent': existing_quotation, 'item_code': item_code},
+								'qty'
+							) or 0
+				else:
+					party = get_party()
+					if party:
+						existing_quotation = frappe.db.get_value(
+							'Quotation',
+							{'party_name': party.name, 'contact_email': frappe.session.user, 'order_type': 'Shopping Cart', 'docstatus': 0},
+							'name'
+						)
+						if existing_quotation:
+							existing_qty = frappe.db.get_value(
+								'Quotation Item',
+								{'parent': existing_quotation, 'item_code': item_code},
+								'qty'
+							) or 0
+
+				# Calculate total quantity based on add_qty flag
+				if isinstance(add_qty, str):
+					add_qty_bool = add_qty.lower() == 'true'
+				else:
+					add_qty_bool = add_qty
+
+				total_qty = (existing_qty + qty) if add_qty_bool else qty
+
+				if total_qty > item_stock.stock_qty:
+					frappe.throw(
+						_("Only {0} units available in stock for {1}. You cannot add {2} units to your cart.").format(
+							int(item_stock.stock_qty), item_code, int(total_qty)
+						)
+					)
+
 	# Check if user is a guest and if guest cart is enabled
 	if frappe.session.user == "Guest":
 		if not frappe.db.get_single_value("Webshop Settings", "enable_guest_cart"):
