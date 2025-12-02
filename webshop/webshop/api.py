@@ -5,6 +5,7 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.utils import cint
 
 from webshop.webshop.product_data_engine.filters import ProductFiltersBuilder
