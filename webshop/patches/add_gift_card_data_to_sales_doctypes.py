@@ -15,6 +15,8 @@ def add_gift_card_data_field(doctype, insert_after):
             "label": "Gift Card Data",
             "fieldtype": "JSON",
             "insert_after": insert_after,
+            "hidden": 1,
+            "read_only": 1,
             "owner": "Administrator"
         })
         custom_field.insert(ignore_permissions=True)
