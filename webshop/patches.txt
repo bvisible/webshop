@@ -23,4 +23,3 @@ webshop.patches.add_index_to_item_price_for_performance
 webshop.patches.add_stock_filter_fields
 webshop.patches.add_idempotency_token_to_payment_request
 webshop.patches.update_gift_card_data_field_properties
-webshop.patches.move_page_break_under_description
