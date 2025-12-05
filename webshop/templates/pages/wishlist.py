@@ -28,6 +28,7 @@ def get_context(context):
 
 def get_stock_availability(item_code, warehouse):
 	from erpnext.stock.doctype.warehouse.warehouse import get_child_warehouses
+	from webshop.webshop.utils.product import get_pos_reserved_qty
 
 	if warehouse and frappe.get_cached_value("Warehouse", warehouse, "is_group") == 1:
 		warehouses = get_child_warehouses(warehouse)
@@ -35,10 +36,13 @@ def get_stock_availability(item_code, warehouse):
 		warehouses = [warehouse] if warehouse else []
 
 	stock_qty = 0.0
-	for warehouse in warehouses:
-		stock_qty += frappe.utils.flt(
-			frappe.db.get_value("Bin", {"item_code": item_code, "warehouse": warehouse}, "actual_qty")
+	for wh in warehouses:
+		bin_qty = frappe.utils.flt(
+			frappe.db.get_value("Bin", {"item_code": item_code, "warehouse": wh}, "actual_qty")
 		)
+		# Subtract POS reserved quantities (unconsolidated POS Invoices)
+		pos_reserved = get_pos_reserved_qty(item_code, wh)
+		stock_qty += max(0, bin_qty - pos_reserved)
 
 	return bool(stock_qty)
 
@@ -72,12 +76,17 @@ def set_stock_price_details(items, settings, selling_price_list):
 
 		party = get_party()
 
+		# Get website_warehouse for Pricing Rule matching
+		website_warehouse = frappe.db.get_value(
+			"Website Item", {"item_code": item.item_code}, "website_warehouse"
+		)
 		price_details = get_price(
 			item.item_code,
 			selling_price_list,
 			settings.default_customer_group,
 			settings.company,
 			party=party,
+			warehouse=website_warehouse,
 		)
 
 		if price_details:

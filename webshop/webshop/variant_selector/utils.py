@@ -195,10 +195,14 @@ def get_next_attribute_and_values(item_code, selected_attributes):
 	else:
 		warehouses = [warehouse] if warehouse else []
 
-	for warehouse in warehouses:
-		available_qty += flt(
-			frappe.db.get_value("Bin", {"item_code": product_id, "warehouse": warehouse}, "actual_qty")
+	for wh in warehouses:
+		bin_qty = flt(
+			frappe.db.get_value("Bin", {"item_code": product_id, "warehouse": wh}, "actual_qty")
 		)
+		# Subtract POS reserved quantities (unconsolidated POS Invoices)
+		from webshop.webshop.utils.product import get_pos_reserved_qty
+		pos_reserved = get_pos_reserved_qty(product_id, wh)
+		available_qty += max(0, bin_qty - pos_reserved)
 
 	return {
 		"next_attribute": next_attribute,
@@ -251,8 +255,13 @@ def get_item_variant_price_dict(item_code, cart_settings):
 		# If not logged in, check if price is hidden for guest.
 		if not is_guest or not cart_settings.hide_price_for_guest:
 			price_list = cart_settings.price_list if not cart_settings.enable_guest_cart else _set_price_list(cart_settings, None)
+			# Get website_warehouse for Pricing Rule matching
+			website_warehouse = frappe.db.get_value(
+				"Website Item", {"item_code": item_code}, "website_warehouse"
+			)
 			price = get_price(
-				item_code, price_list, cart_settings.default_customer_group, cart_settings.company
+				item_code, price_list, cart_settings.default_customer_group, cart_settings.company,
+				warehouse=website_warehouse
 			)
 			return {"price": price}
 

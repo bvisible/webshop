@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import getdate, nowdate
+from frappe.utils import flt, getdate, nowdate
 
 from erpnext.stock.doctype.batch.batch import get_batch_qty
 from erpnext.stock.doctype.warehouse.warehouse import get_child_warehouses
@@ -26,7 +26,7 @@ def get_web_item_qty_in_stock(item_code, item_warehouse_field, warehouse=None):
 
 	total_stock = 0.0
 	if warehouses:
-		for warehouse in warehouses:
+		for wh in warehouses:
 			stock_qty = frappe.db.sql(
 				"""
 				select (S.actual_qty - S.reserved_qty) / IFNULL(C.conversion_factor, 1)
@@ -34,17 +34,36 @@ def get_web_item_qty_in_stock(item_code, item_warehouse_field, warehouse=None):
 				inner join `tabItem` I on S.item_code = I.Item_code
 				left join `tabUOM Conversion Detail` C on I.sales_uom = C.uom and C.parent = I.Item_code
 				where S.item_code=%s and S.warehouse=%s""",
-				(item_code, warehouse),
+				(item_code, wh),
 			)
 
 			if stock_qty:
-				total_stock += adjust_qty_for_expired_items(item_code, stock_qty, warehouse)
+				qty = adjust_qty_for_expired_items(item_code, stock_qty, wh)
+				# Subtract POS reserved quantities (unconsolidated POS Invoices)
+				pos_reserved = get_pos_reserved_qty(item_code, wh)
+				qty = max(0, qty - pos_reserved)
+				total_stock += qty
 
 		in_stock = total_stock > 0 and 1 or 0
 
 	return frappe._dict(
 		{"in_stock": in_stock, "stock_qty": total_stock, "is_stock_item": is_stock_item}
 	)
+
+
+def get_pos_reserved_qty(item_code, warehouse):
+	"""
+	Get reserved quantity from unconsolidated POS Invoices.
+	This prevents overselling when POS and webshop share the same inventory.
+	"""
+	try:
+		from erpnext.accounts.doctype.pos_invoice.pos_invoice import (
+			get_pos_reserved_qty as _get_pos_reserved_qty,
+		)
+		return flt(_get_pos_reserved_qty(item_code, warehouse))
+	except ImportError:
+		# Fallback if function not available in older ERPNext versions
+		return 0.0
 
 
 def adjust_qty_for_expired_items(item_code, stock_qty, warehouse):
