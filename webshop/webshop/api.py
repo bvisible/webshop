@@ -393,43 +393,43 @@ def get_all_variants_info(item_code):
 				variant_data["in_stock"] = True
 				variant_data["stock_qty"] = None
 			
-			# Get price
+			# Get price with Pricing Rules applied
 			if price_list:
-				price_obj = frappe.db.get_value(
-					"Item Price",
-					{
-						"item_code": variant.item_code,
-						"price_list": price_list,
-						"selling": 1
-					},
-					["price_list_rate", "currency"],
-					as_dict=True
+				from erpnext.utilities.product import get_price
+				from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
+
+				cart_settings = get_shopping_cart_settings()
+				price_obj = get_price(
+					variant.item_code,
+					price_list,
+					cart_settings.default_customer_group,
+					cart_settings.company
 				)
-				
+
 				if price_obj:
-					from webshop.webshop.utils.utils import format_currency_value
-					formatted_price = format_currency_value(
-						price_obj.price_list_rate,
-						currency=price_obj.currency
-					)
-					
 					variant_data["price"] = {
-						"price_list_rate": price_obj.price_list_rate,
-						"formatted_price": formatted_price,
-						"currency": price_obj.currency
+						"price_list_rate": price_obj.get("price_list_rate"),
+						"formatted_price": price_obj.get("formatted_price"),
+						"currency": price_obj.get("currency"),
+						"formatted_mrp": price_obj.get("formatted_mrp"),
+						"discount_percent": price_obj.get("discount_percent"),
+						"formatted_discount_percent": price_obj.get("formatted_discount_percent")
 					}
-					
-					# Track min/max prices
-					if price_min is None or price_obj.price_list_rate < price_min:
-						price_min = price_obj.price_list_rate
-					if price_max is None or price_obj.price_list_rate > price_max:
-						price_max = price_obj.price_list_rate
+
+					# Track min/max prices (use discounted price)
+					actual_price = price_obj.get("price_list_rate")
+					if actual_price:
+						if price_min is None or actual_price < price_min:
+							price_min = actual_price
+						if price_max is None or actual_price > price_max:
+							price_max = actual_price
 		
 		variants_data.append(variant_data)
 	
 	# Build price range
 	price_range = None
 	if price_min is not None and price_max is not None:
+		from webshop.webshop.utils.utils import format_currency_value
 		currency = frappe.db.get_value("Price List", price_list, "currency") if price_list else None
 		if price_min == price_max:
 			price_range = {
