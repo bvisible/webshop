@@ -351,7 +351,8 @@ class WebsiteItem(WebsiteGenerator):
 							item.item_code,
 							selling_price_list,
 							settings.default_customer_group,
-							settings.company
+							settings.company,
+							warehouse=item.get("website_warehouse")
 						)
 						if price_obj:
 							price_list_rate = price_obj.get("price_list_rate") or price_obj.get("rate")
@@ -478,12 +479,17 @@ class WebsiteItem(WebsiteGenerator):
 					customer_group = frappe.db.get_single_value("Selling Settings", "customer_group") or "All Customer Groups"
 				
 				if selling_price_list and company:
+					# Get website_warehouse for bundle item
+					bundle_warehouse = frappe.db.get_value(
+						"Website Item", {"item_code": bundle_item.item_code}, "website_warehouse"
+					)
 					price_obj = get_price(
 						bundle_item.item_code,
 						selling_price_list,
 						customer_group,
 						company,
-						bundle_item.qty or 1
+						bundle_item.qty or 1,
+						warehouse=bundle_warehouse
 					)
 					if price_obj:
 						item_info["price"] = price_obj.get("price_list_rate") or price_obj.get("rate")
@@ -646,6 +652,7 @@ class WebsiteItem(WebsiteGenerator):
 					settings.default_customer_group,
 					settings.company,
 					party=party,
+					warehouse=item.get("website_warehouse"),
 				)
 				# Flatten price_info fields for carousel compatibility
 				if item.price_info:

@@ -373,14 +373,14 @@ def get_all_variants_info(item_code):
 		website_item = frappe.db.get_value(
 			"Website Item",
 			{"item_code": variant.item_code},
-			["name", "published", "website_image", "on_backorder"],
+			["name", "published", "website_image", "on_backorder", "website_warehouse"],
 			as_dict=True
 		)
-		
+
 		if website_item and website_item.published:
 			variant_data["website_item"] = True
 			variant_data["image"] = website_item.website_image
-			
+
 			# Get stock info
 			if not website_item.on_backorder:
 				# Get actual stock
@@ -392,7 +392,7 @@ def get_all_variants_info(item_code):
 				# On backorder items are considered in stock
 				variant_data["in_stock"] = True
 				variant_data["stock_qty"] = None
-			
+
 			# Get price with Pricing Rules applied
 			if price_list:
 				from erpnext.utilities.product import get_price
@@ -403,7 +403,8 @@ def get_all_variants_info(item_code):
 					variant.item_code,
 					price_list,
 					cart_settings.default_customer_group,
-					cart_settings.company
+					cart_settings.company,
+					warehouse=website_item.website_warehouse
 				)
 
 				if price_obj:
@@ -495,19 +496,24 @@ def get_product_price_info(items):
 	
 	# Get pricing rules if any
 	from erpnext.utilities.product import get_price
-	
+
 	for item_code in items:
 		# Get base price
 		base_price = price_map.get(item_code, 0)
-		
+
 		if base_price:
+			# Get website_warehouse for Pricing Rule matching
+			website_warehouse = frappe.db.get_value(
+				"Website Item", {"item_code": item_code}, "website_warehouse"
+			)
 			# Get price with pricing rules
 			price_obj = get_price(
 				item_code,
 				price_list,
 				customer_group=frappe.db.get_single_value("Webshop Settings", "default_customer_group"),
 				company=frappe.db.get_single_value("Webshop Settings", "company"),
-				qty=1
+				qty=1,
+				warehouse=website_warehouse
 			)
 			
 			if price_obj:

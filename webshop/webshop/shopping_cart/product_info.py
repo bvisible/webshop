@@ -48,6 +48,11 @@ def get_product_info_for_website(item_code, skip_quotation_creation=False):
 			# Check if item is a template with variants
 			has_variants = frappe.db.get_value("Item", item_code, "has_variants")
 
+			# Get website_warehouse for Pricing Rule matching
+			website_warehouse = frappe.db.get_value(
+				"Website Item", {"item_code": item_code}, "website_warehouse"
+			)
+
 			if has_variants:
 				# Get price from variants for template items
 				price = get_template_price_from_variants(
@@ -56,6 +61,7 @@ def get_product_info_for_website(item_code, skip_quotation_creation=False):
 					cart_settings.default_customer_group,
 					cart_settings.company,
 					party=party,
+					warehouse=website_warehouse,
 				)
 			else:
 				price = get_price(
@@ -64,6 +70,7 @@ def get_product_info_for_website(item_code, skip_quotation_creation=False):
 					cart_settings.default_customer_group,
 					cart_settings.company,
 					party=party,
+					warehouse=website_warehouse,
 				)
 
 	stock_status = None
@@ -131,7 +138,7 @@ def get_website_item_name(item_code):
 	return frappe.db.get_value("Website Item", {"item_code": item_code}, "item_name")
 
 
-def get_template_price_from_variants(item_code, price_list, customer_group, company, qty=1, party=None):
+def get_template_price_from_variants(item_code, price_list, customer_group, company, qty=1, party=None, warehouse=None):
 	"""
 	Get price information for a template item based on its variants' prices.
 	Applies Pricing Rules to get actual selling prices with discounts.
@@ -147,6 +154,7 @@ def get_template_price_from_variants(item_code, price_list, customer_group, comp
 		company: Company
 		qty: Quantity (default 1)
 		party: Customer party object
+		warehouse: Warehouse for Pricing Rule matching (optional)
 
 	Returns:
 		dict: Price object similar to get_price() output, with additional
@@ -182,6 +190,12 @@ def get_template_price_from_variants(item_code, price_list, customer_group, comp
 	currency = variants[0].currency
 
 	for variant in variants:
+		# Get variant's website_warehouse if not provided
+		variant_warehouse = warehouse
+		if not variant_warehouse:
+			variant_warehouse = frappe.db.get_value(
+				"Website Item", {"item_code": variant.item_code}, "website_warehouse"
+			)
 		variant_price = get_price(
 			variant.item_code,
 			price_list,
@@ -189,6 +203,7 @@ def get_template_price_from_variants(item_code, price_list, customer_group, comp
 			company,
 			qty=qty,
 			party=party,
+			warehouse=variant_warehouse,
 		)
 		if variant_price and variant_price.get("price_list_rate"):
 			prices_with_discount.append(flt(variant_price.get("price_list_rate")))

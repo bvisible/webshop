@@ -118,7 +118,8 @@ def get_frequently_bought_together(item_code, limit=4):
                 item.item_code,
                 selling_price_list,
                 settings.default_customer_group,
-                settings.company
+                settings.company,
+                warehouse=item.get("website_warehouse")
             )
             if price_obj:
                 from webshop.webshop.utils.utils import format_currency_value
