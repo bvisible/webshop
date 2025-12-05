@@ -134,6 +134,7 @@ def get_website_item_name(item_code):
 def get_template_price_from_variants(item_code, price_list, customer_group, company, qty=1, party=None):
 	"""
 	Get price information for a template item based on its variants' prices.
+	Applies Pricing Rules to get actual selling prices with discounts.
 
 	Returns price object with:
 	- If all variants have same price: standard price display
@@ -154,33 +155,52 @@ def get_template_price_from_variants(item_code, price_list, customer_group, comp
 	if not price_list:
 		return {}
 
-	# Get min and max prices from variants
-	variant_prices = frappe.db.sql(
+	# Get all variants with their base prices
+	variants = frappe.db.sql(
 		"""
 		SELECT
-			MIN(ip.price_list_rate) as min_price,
-			MAX(ip.price_list_rate) as max_price,
+			i.name as item_code,
+			ip.price_list_rate,
 			ip.currency
-		FROM `tabItem Price` ip
-		INNER JOIN `tabItem` i ON i.name = ip.item_code
+		FROM `tabItem` i
+		INNER JOIN `tabItem Price` ip ON i.name = ip.item_code
 		WHERE i.variant_of = %s
 			AND ip.selling = 1
 			AND ip.price_list = %s
 			AND ip.price_list_rate > 0
-		GROUP BY ip.currency
-		LIMIT 1
 		""",
 		(item_code, price_list),
 		as_dict=True,
 	)
 
-	if not variant_prices:
+	if not variants:
 		return {}
 
-	price_data = variant_prices[0]
-	min_price = flt(price_data.min_price)
-	max_price = flt(price_data.max_price)
-	currency = price_data.currency
+	# Get prices with Pricing Rules applied for each variant
+	prices_with_discount = []
+	mrp_prices = []
+	currency = variants[0].currency
+
+	for variant in variants:
+		variant_price = get_price(
+			variant.item_code,
+			price_list,
+			customer_group,
+			company,
+			qty=qty,
+			party=party,
+		)
+		if variant_price and variant_price.get("price_list_rate"):
+			prices_with_discount.append(flt(variant_price.get("price_list_rate")))
+			# Track MRP (original price before discount) if available
+			if variant_price.get("formatted_mrp"):
+				mrp_prices.append(flt(variant.price_list_rate))
+
+	if not prices_with_discount:
+		return {}
+
+	min_price = min(prices_with_discount)
+	max_price = max(prices_with_discount)
 
 	# Determine if prices vary
 	is_range = min_price != max_price
@@ -191,6 +211,16 @@ def get_template_price_from_variants(item_code, price_list, customer_group, comp
 		"currency": currency,
 		"is_range": is_range,
 	})
+
+	# Add MRP info if there are discounts
+	if mrp_prices:
+		min_mrp = min(mrp_prices)
+		if min_mrp > min_price:
+			price_obj["mrp"] = min_mrp
+			price_obj["formatted_mrp"] = fmt_money(min_mrp, currency=currency)
+			discount_percent = ((min_mrp - min_price) / min_mrp) * 100
+			price_obj["discount_percent"] = flt(discount_percent, 0)
+			price_obj["formatted_discount_percent"] = str(int(discount_percent)) + "%"
 
 	# Format the price with "from" prefix if prices vary
 	if is_range:
