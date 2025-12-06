@@ -267,7 +267,7 @@
 
                 // Set greeting text
                 if (authTextUser) {
-                    authTextUser.textContent = '{{ _("Hi") }} ' + (data.message.first_name || '');
+                    authTextUser.textContent = '{{ _("Hello") }} ' + (data.message.first_name || '');
                 }
 
                 // Setup dropdown toggle
@@ -300,13 +300,18 @@
         // Configure dropdown toggle
         authButton.onclick = function(event) {
             event.stopPropagation();
-            userDropdown.classList.toggle('show');
+            // Toggle display style directly (inline style has higher priority than CSS class)
+            if (userDropdown.style.display === 'none' || userDropdown.style.display === '') {
+                userDropdown.style.display = 'block';
+            } else {
+                userDropdown.style.display = 'none';
+            }
         };
 
         // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
-            if (!authButton.contains(event.target) && userDropdown.classList.contains('show')) {
-                userDropdown.classList.remove('show');
+            if (!authButton.contains(event.target) && userDropdown.style.display === 'block') {
+                userDropdown.style.display = 'none';
             }
         });
 
