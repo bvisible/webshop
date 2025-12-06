@@ -37,10 +37,12 @@ def get_stock_availability(item_code, warehouse):
 
 	stock_qty = 0.0
 	for wh in warehouses:
+		# Use projected_qty which accounts for reserved quantities from Sales Orders
 		bin_qty = frappe.utils.flt(
-			frappe.db.get_value("Bin", {"item_code": item_code, "warehouse": wh}, "actual_qty")
+			frappe.db.get_value("Bin", {"item_code": item_code, "warehouse": wh}, "projected_qty")
 		)
 		# Subtract POS reserved quantities (unconsolidated POS Invoices)
+		# POS reservations are not included in projected_qty
 		pos_reserved = get_pos_reserved_qty(item_code, wh)
 		stock_qty += max(0, bin_qty - pos_reserved)
 

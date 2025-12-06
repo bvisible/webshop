@@ -196,10 +196,12 @@ def get_next_attribute_and_values(item_code, selected_attributes):
 		warehouses = [warehouse] if warehouse else []
 
 	for wh in warehouses:
+		# Use projected_qty which accounts for reserved quantities from Sales Orders
 		bin_qty = flt(
-			frappe.db.get_value("Bin", {"item_code": product_id, "warehouse": wh}, "actual_qty")
+			frappe.db.get_value("Bin", {"item_code": product_id, "warehouse": wh}, "projected_qty")
 		)
 		# Subtract POS reserved quantities (unconsolidated POS Invoices)
+		# POS reservations are not included in projected_qty
 		from webshop.webshop.utils.product import get_pos_reserved_qty
 		pos_reserved = get_pos_reserved_qty(product_id, wh)
 		available_qty += max(0, bin_qty - pos_reserved)
