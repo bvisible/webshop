@@ -2023,5 +2023,16 @@ if (sideCart) {
   });
 }
 
-// Initialize cart interface
+// Initialize cart interface with cached data first
 updateCartUI();
+
+// Load fresh cart data from API to bypass page cache
+// This is necessary because page caching can cause stale cart data
+// Similar fix was applied to user_header.html for user authentication display
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        refreshCart();
+    });
+} else {
+    refreshCart();
+}
