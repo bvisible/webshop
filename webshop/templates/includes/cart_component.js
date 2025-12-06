@@ -586,17 +586,21 @@ function removeCartItem(itemCode, cartItem, button) {
 }
 
 function refreshCart(forceRender = false) {
+  console.log('[CART CACHE FIX] refreshCart() called, forceRender:', forceRender);
+
   // Display loading indicator
   if (cartLoading) cartLoading.style.display = 'block';
-  
+
   // Variable to track if a refresh is already in progress
   if (window.isRefreshing && !forceRender) {
+    console.log('[CART CACHE FIX] Refresh already in progress, skipping...');
     return;
   }
-  
+
   window.isRefreshing = true;
-  
+
   // Use Frappe API to fetch current cart data
+  console.log('[CART CACHE FIX] Calling API: get_cart_quotation...');
   frappe.call({
     method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
     args: {
@@ -604,10 +608,12 @@ function refreshCart(forceRender = false) {
     },
     freeze: false,
     callback: function(r) {
-      if (r.message && r.message.doc) {        
+      console.log('[CART CACHE FIX] API response received:', r.message ? 'has data' : 'no data');
+      if (r.message && r.message.doc) {
         try {
           // Extract relevant data
           const quotation = r.message.doc;
+          console.log('[CART CACHE FIX] Cart items count:', quotation.total_qty || 0);
           
           // Update base data
           pageData.cart_items = quotation.items || [];
@@ -2024,15 +2030,20 @@ if (sideCart) {
 }
 
 // Initialize cart interface with cached data first
+console.log('[CART CACHE FIX] Initializing cart with cached data...');
 updateCartUI();
 
 // Load fresh cart data from API to bypass page cache
 // This is necessary because page caching can cause stale cart data
 // Similar fix was applied to user_header.html for user authentication display
+console.log('[CART CACHE FIX] Loading fresh cart data from API...');
 if (document.readyState === 'loading') {
+    console.log('[CART CACHE FIX] Document still loading, waiting for DOMContentLoaded...');
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('[CART CACHE FIX] DOMContentLoaded fired, calling refreshCart()...');
         refreshCart();
     });
 } else {
+    console.log('[CART CACHE FIX] Document ready, calling refreshCart() immediately...');
     refreshCart();
 }
