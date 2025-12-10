@@ -1,0 +1,10 @@
+{
+  "required_settings": [
+    "space_id",
+    "user_id"
+  ],
+  "context_ids": {
+    "payment_form_id": "wallee-payment-form",
+    "submit_id": "wallee-submit"
+  }
+}

@@ -1,0 +1,154 @@
+<div class="payment-form" id="{{ payment_form_id }}">
+    <div class="form-row row">
+        <div class="col-md-6 mb-3">
+            <label for="cardholder-name">{{ _("Cardholder Name") }}</label>
+            <input type="text" id="cardholder-name" name="cardholder-name" class="form-control mr-3 w-100 font-md" placeholder="{{ _('John Doe') }}"/>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="cardholder-email">{{ _("Cardholder Email") }}</label>
+            <input type="email" id="cardholder-email" name="cardholder-email" class="form-control mr-3 w-100 font-md" placeholder="{{ _('john@doe.com') }}"/>
+        </div>
+    </div>
+    <div class="outcome text-center mb-4">
+        <div class="error payment-message wallee-error-{{ submit_id }}" role="alert"></div>
+        <div class="success payment-message wallee-success-{{ submit_id }}" role="alert"></div>
+    </div>
+    <div class="mt-4 d-flex justify-content-between align-items-center">
+        <div class="form-check mb-3" id="terms-acceptance-container">
+            <input type="checkbox" class="form-check-input cursor-pointer" id="terms-acceptance" required>
+            <label class="form-check-label cursor-pointer" for="terms-acceptance">
+                {{ _("I accept the") }} <a href="#terms-title" class="terms-link">{{ cgv_tc_name or _("terms and conditions") }}</a>
+            </label>
+        </div>
+        <div class="mt-4 d-flex justify-content-end">
+            <button type="button"
+                class="btn btn-primary btn-submit-payment"
+                id="{{ submit_id }}"
+                disabled
+                data-toggle="tooltip"
+                data-placement="top"
+                title="{{ _('Please accept the terms and conditions to continue') }}">
+                {{_('Pay with Wallee')}} {{format_currency_value(amount, currency)}}
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    if (window.wallee_payment_initialized) return;
+    window.wallee_payment_initialized = true;
+
+    let formData = checkout_manager.initPaymentForm('{{ payment_form_id }}');
+    let cardholderName = $('#{{ payment_form_id }} input[name="cardholder-name"]');
+    let cardholderEmail = $('#{{ payment_form_id }} input[name="cardholder-email"]');
+    let submitButton = $('#{{ submit_id }}');
+    let isProcessingPayment = false;
+
+    // Pre-fill with existing data
+    if (cardholderName.val() === '') {
+        let firstName = $('#contact_first_name').val();
+        let lastName = $('#contact_last_name').val();
+        cardholderName.val(firstName + ' ' + lastName);
+    }
+    if (cardholderEmail.val() === '') {
+        cardholderEmail.val($('#contact_email').val());
+    }
+
+    function showError(message) {
+        $('.wallee-error-{{ submit_id }}').text(message).show().addClass('show');
+        $('.wallee-success-{{ submit_id }}').hide().removeClass('show');
+    }
+
+    function showSuccess(message) {
+        $('.wallee-success-{{ submit_id }}').text(message).show().addClass('show');
+        $('.wallee-error-{{ submit_id }}').hide().removeClass('show');
+    }
+
+    function validateForm() {
+        const name = cardholderName.val();
+        const email = cardholderEmail.val();
+
+        if (!name || !email) {
+            console.error("Missing name or email:", name, email);
+            showError("{{ _('Please fill in all fields') }}");
+            return false;
+        }
+
+        if (!checkout_manager.isValidEmail(email)) {
+            console.error("Invalid email:", email);
+            showError("{{ _('Please enter a valid email address') }}");
+            return false;
+        }
+
+        return true;
+    }
+
+    // Reset button state function
+    const resetButtonState = function() {
+        isProcessingPayment = false;
+        submitButton.prop('disabled', false);
+        const originalButtonText = '{{_("Pay with Wallee")}} {{format_currency_value(amount, currency)|replace("'", "\\'")}}';
+        submitButton.html(originalButtonText);
+        // Re-enable button only if terms are still accepted
+        const termsAccepted = $('#{{ payment_form_id }}').closest('.payment-method-item').find('#terms-acceptance').prop('checked');
+        if (!termsAccepted) {
+            submitButton.prop('disabled', true);
+        }
+        // Call global stop processing after local reset
+        if (checkout_manager && !checkout_manager._isResetting) {
+            checkout_manager.stopPaymentProcessing();
+        }
+    };
+
+    // Handle click on payment button
+    submitButton.on('click', function(e) {
+        e.preventDefault();
+
+        // Prevent multiple clicks - use both local and global locks
+        if (isProcessingPayment || !checkout_manager.startPaymentProcessing()) {
+            console.log("Payment already in progress, ignoring click");
+            return false;
+        }
+
+        if (!validateForm()) {
+            checkout_manager.stopPaymentProcessing();
+            return;
+        }
+
+        // Set processing state and disable button
+        isProcessingPayment = true;
+        submitButton.prop('disabled', true);
+
+        // Add loading state
+        const originalButtonText = submitButton.html();
+        submitButton.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' + __('Redirecting to Wallee...'));
+
+        showSuccess("{{ _('Redirecting to payment page...') }}");
+
+        // Create payment request via Wallee
+        frappe.call({
+            method: 'webshop.templates.payments.wallee.create_wallee_payment_request',
+            args: {
+                quotation_id: '{{ doc.name }}',
+                idempotency_token: checkout_manager.getIdempotencyToken()
+            },
+            callback: function(r) {
+                if (r.message && r.message.status === 'success') {
+                    // Redirect to Wallee payment page
+                    window.location.href = r.message.payment_url;
+                } else {
+                    showError(r.message.message || "{{ _('Error creating payment request') }}");
+                    resetButtonState();
+                }
+            },
+            error: function(r) {
+                console.error("Error:", r);
+                showError("{{ _('Error communicating with server') }}");
+                resetButtonState();
+            }
+        });
+    });
+
+    // Initial button state
+    submitButton.addClass('disabled').attr('disabled', 'disabled');
+</script>
