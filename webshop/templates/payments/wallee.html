@@ -181,6 +181,9 @@
         const containerId = 'wallee-iframe-container-{{ submit_id }}';
         const $container = $('#' + containerId);
 
+        // Hide cardholder fields immediately for iFrame mode (Wallee handles them)
+        $('#' + formId + ' .form-row.row').first().hide();
+
         // If we have payment methods, show selector first
         if (paymentMethods && paymentMethods.length > 0) {
             let html = '<div class="payment-method-selector mb-3">';
@@ -254,8 +257,6 @@
                         iframeReady = true;
                         $innerContainer.find('.spinner-border').parent().remove();
                         clearMessages();
-                        // Hide cardholder fields for iFrame mode (Wallee handles them in the form)
-                        $('#' + formId + ' .form-row.row').first().hide();
                         // Update button text for iFrame mode
                         submitButton.html('{{_("Confirm Payment")}} {{format_currency_value(amount, currency)}}');
                         resetButtonState();
