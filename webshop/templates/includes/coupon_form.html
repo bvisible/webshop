@@ -1,7 +1,7 @@
 {% set show_coupon_code = cart_settings.show_apply_coupon_code_in_website and cart_settings.enable_checkout %}
 {% if show_coupon_code == 1%}
 <div class="form-group frappe-card p-5">
-    <h6 class="mb-3">{{ _("You have a coupon code or gift card?") }}</h6>
+    <h6 class="mb-3" style="font-size: 16px;">{{ _("You have a coupon code or gift card?") }}</h6>
     <div class="mb-0">
         <div class="row no-gutters">
             <input type="text" class="txtcoupon form-control mr-3 w-50 font-md" 

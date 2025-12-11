@@ -72,7 +72,7 @@ def create_wallee_payment_request(quotation_id, idempotency_token=None):
                 payment_gateway_account = pga
                 payment_terms_template = method.payment_terms_template
                 # Get the specific payment method ID if configured
-                wallee_payment_method_id = pga.get("wallee_payment_method_id")
+                wallee_payment_method_id = getattr(pga, "wallee_payment_method_id", None)
                 break
 
         if not payment_gateway_account:
