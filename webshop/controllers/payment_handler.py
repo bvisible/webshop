@@ -223,6 +223,11 @@ class PaymentHandler:
                 # Create Sales Order from quotation directly (not place_order which uses session cart)
                 frappe.flags.ignore_permissions = True
 
+                # Submit quotation first if not already submitted (required for make_sales_order)
+                if quotation.docstatus == 0:
+                    quotation.flags.ignore_permissions = True
+                    quotation.submit()
+
                 # Use make_sales_order from quotation
                 from erpnext.selling.doctype.quotation.quotation import make_sales_order
                 sales_order = make_sales_order(quotation.name)
