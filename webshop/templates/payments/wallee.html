@@ -304,8 +304,10 @@
                 if (r.message) {
                     walleePaymentMode = r.message;
 
-                    // For iFrame mode, create transaction immediately
+                    // For iFrame mode, hide cardholder fields immediately and create transaction
                     if (walleePaymentMode === 'iFrame') {
+                        // Hide cardholder fields immediately - Wallee handles them in the iFrame
+                        $('#' + formId + ' .form-row.row').first().hide();
                         createTransactionAndInitialize();
                     }
                 }

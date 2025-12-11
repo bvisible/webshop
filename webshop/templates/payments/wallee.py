@@ -190,6 +190,33 @@ def create_wallee_payment_request(quotation_id, idempotency_token=None):
                     "type": "FEE"
                 })
 
+            # Build billing address from quotation data
+            billing_address = None
+            if quotation.contact_display or quotation.customer_address:
+                billing_address = {
+                    "email_address": quotation.contact_email
+                }
+
+                # Parse contact name (first name / last name)
+                if quotation.contact_display:
+                    name_parts = quotation.contact_display.strip().split(" ", 1)
+                    billing_address["given_name"] = name_parts[0] if name_parts else ""
+                    billing_address["family_name"] = name_parts[1] if len(name_parts) > 1 else ""
+
+                # Get address details
+                if quotation.customer_address:
+                    try:
+                        addr = frappe.get_doc("Address", quotation.customer_address)
+                        billing_address["street"] = addr.address_line1
+                        billing_address["city"] = addr.city
+                        billing_address["postcode"] = addr.pincode
+                        # Convert country name to ISO code (e.g., "Switzerland" -> "CH")
+                        if addr.country:
+                            country_code = frappe.db.get_value("Country", addr.country, "code")
+                            billing_address["country"] = (country_code or "").upper()
+                    except Exception:
+                        pass  # Address not found, continue without it
+
             # Create transaction in Wallee
             wallee_response = create_transaction(
                 amount=float(quotation.rounded_total or quotation.grand_total),
@@ -199,7 +226,8 @@ def create_wallee_payment_request(quotation_id, idempotency_token=None):
                 merchant_reference=payment_request.name,
                 success_url=success_url,
                 failed_url=failed_url,
-                line_items=line_items
+                line_items=line_items,
+                billing_address=billing_address
             )
 
             if not wallee_response or not wallee_response.get("transaction_id"):
