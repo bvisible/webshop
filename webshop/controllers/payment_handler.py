@@ -197,9 +197,16 @@ class PaymentHandler:
             if payment_request.docstatus == 0:  # If not already submitted
                 payment_request.submit()
             
-            # Check if payment request is not already processed
+            # Check if payment request is already processed - redirect to thank you page
             if payment_request.status in ["Paid", "Completed"]:
-                return
+                # Already processed, find the Sales Order and redirect
+                if payment_request.reference_doctype == "Sales Order":
+                    return {
+                        "status": "success",
+                        "redirect_to": f"/thank_you?sales_order={payment_request.reference_name}",
+                        "message": _("Payment already processed")
+                    }
+                return {"status": "success", "message": _("Payment already processed")}
             
             # 1. Get quotation
             quotation = frappe.get_doc("Quotation", payment_request.reference_name)
