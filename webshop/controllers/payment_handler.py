@@ -270,7 +270,7 @@ class PaymentHandler:
             }
             
         except Exception as e:
-            frappe.log_error("Detailed error while processing payment", e)
+            frappe.log_error(message=f"{str(e)}\n{frappe.get_traceback()}", title="Detailed error while processing payment")
             return {
                 "status": "error",
                 "message": _("Error processing payment")
