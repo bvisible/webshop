@@ -184,17 +184,21 @@ class PaymentHandler:
     
     def handle_payment_success(self, **kwargs):
         try:
+            # Bypass all permission checks - payment is confirmed by payment provider
+            frappe.flags.ignore_permissions = True
+
             # Get and validate payment request
             payment_request_id = kwargs.get('payment_request_id')
             if not payment_request_id:
                 return self.handle_error("Missing payment request ID")
-            
+
             payment_request = frappe.get_doc("Payment Request", payment_request_id)
             payment_request.flags.ignore_permissions = True
             self.payment_request = payment_request
-            
+
             # Submit payment request now that payment is successful
             if payment_request.docstatus == 0:  # If not already submitted
+                payment_request.flags.ignore_permissions = True
                 payment_request.submit()
             
             # Check if payment request is already processed - redirect to thank you page
@@ -210,8 +214,9 @@ class PaymentHandler:
             
             # 1. Get quotation
             quotation = frappe.get_doc("Quotation", payment_request.reference_name)
+            quotation.flags.ignore_permissions = True
             self.quotation = quotation
-            
+
             # 2. Check if Sales Order already exists for this Quotation
             linked_docs = frappe.get_all(
                 "Sales Order",
@@ -221,15 +226,13 @@ class PaymentHandler:
                     "prevdoc_docname": quotation.name
                 },
                 fields=["name"],
-                limit=1
+                limit=1,
+                ignore_permissions=True
             )
-            
+
             if linked_docs:
                 sales_order_name = linked_docs[0].name
             else:
-                # Create Sales Order from quotation directly (not place_order which uses session cart)
-                frappe.flags.ignore_permissions = True
-
                 # Submit quotation first if not already submitted (required for make_sales_order)
                 if quotation.docstatus == 0:
                     quotation.flags.ignore_permissions = True
