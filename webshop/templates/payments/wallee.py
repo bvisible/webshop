@@ -61,6 +61,7 @@ def create_wallee_payment_request(quotation_id, idempotency_token=None):
         settings = frappe.get_cached_doc("Webshop Settings")
         payment_gateway_account = None
         payment_terms_template = None
+        wallee_payment_method_id = None
 
         for method in settings.payment_methods:
             pga = frappe.get_doc("Payment Gateway Account", method.payment_gateway_account)
@@ -70,6 +71,8 @@ def create_wallee_payment_request(quotation_id, idempotency_token=None):
             if "wallee" in gateway_type:
                 payment_gateway_account = pga
                 payment_terms_template = method.payment_terms_template
+                # Get the specific payment method ID if configured
+                wallee_payment_method_id = pga.get("wallee_payment_method_id")
                 break
 
         if not payment_gateway_account:
@@ -285,8 +288,13 @@ def create_wallee_payment_request(quotation_id, idempotency_token=None):
                 result["payment_url"] = payment_url
             else:
                 result["javascript_url"] = javascript_url
-                if payment_mode == "iFrame" and payment_methods:
-                    result["payment_methods"] = payment_methods
+                if payment_mode == "iFrame":
+                    # If a specific payment method ID is configured, use it directly
+                    # Otherwise, use the first available method
+                    if wallee_payment_method_id:
+                        result["payment_method_id"] = wallee_payment_method_id
+                    elif payment_methods:
+                        result["payment_method_id"] = payment_methods[0].get("id")
 
             return result
 

@@ -176,27 +176,26 @@
         return String(value);
     }
 
-    // Initialize iFrame payment - use first available payment method (usually "Credit / Debit Card")
-    // Wallee auto-detects card brand (Visa, Mastercard, etc.) from the card number
-    function initIframePayment(javascriptUrl, transactionId, paymentMethods) {
+    // Initialize iFrame payment with specific payment method ID
+    // The payment_method_id comes from Payment Gateway Account configuration
+    function initIframePayment(javascriptUrl, paymentMethodId) {
         const containerId = 'wallee-iframe-container-{{ submit_id }}';
         const $container = $('#' + containerId);
 
         // Hide cardholder fields immediately for iFrame mode (Wallee handles them)
         $('#' + formId + ' .form-row.row').first().hide();
 
-        if (paymentMethods && paymentMethods.length > 0) {
-            // Use the first payment method (generic card method that auto-detects brand)
-            selectedPaymentMethodId = paymentMethods[0].id;
+        if (paymentMethodId) {
+            selectedPaymentMethodId = paymentMethodId;
 
             // Create container for iframe
             $container.show().html('<div id="wallee-iframe-inner-{{ submit_id }}" style="min-height: 200px;"></div>');
 
-            // Load iframe directly
+            // Load iframe directly with the specific payment method
             loadIframeForMethod(javascriptUrl, selectedPaymentMethodId);
         } else {
-            // No methods available, show error
-            $container.show().html('<div class="alert alert-warning">{{ _("No payment methods available") }}</div>');
+            // No payment method ID available, show error
+            $container.show().html('<div class="alert alert-warning">{{ _("No payment method configured") }}</div>');
         }
     }
 
@@ -274,7 +273,8 @@
                     walleePaymentMode = r.message.payment_mode;
 
                     if (walleePaymentMode === 'iFrame') {
-                        initIframePayment(r.message.javascript_url, r.message.transaction_id, r.message.payment_methods);
+                        // Use payment_method_id from backend (configured in Payment Gateway Account)
+                        initIframePayment(r.message.javascript_url, r.message.payment_method_id);
                     } else {
                         // Not iFrame mode - hide container and reset
                         $container.hide();
