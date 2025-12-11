@@ -176,7 +176,8 @@
         return String(value);
     }
 
-    // Initialize iFrame payment with payment method selection
+    // Initialize iFrame payment - use first available payment method (usually "Credit / Debit Card")
+    // Wallee auto-detects card brand (Visa, Mastercard, etc.) from the card number
     function initIframePayment(javascriptUrl, transactionId, paymentMethods) {
         const containerId = 'wallee-iframe-container-{{ submit_id }}';
         const $container = $('#' + containerId);
@@ -184,42 +185,15 @@
         // Hide cardholder fields immediately for iFrame mode (Wallee handles them)
         $('#' + formId + ' .form-row.row').first().hide();
 
-        // If we have payment methods, show selector first
         if (paymentMethods && paymentMethods.length > 0) {
-            let html = '<div class="payment-method-selector mb-3">';
-            html += '<label class="mb-2"><strong>{{ _("Select Payment Method") }}</strong></label>';
-            html += '<div class="payment-methods-list">';
-
-            paymentMethods.forEach(function(method, index) {
-                const checked = index === 0 ? 'checked' : '';
-                // Extract localized title from resolved_title object
-                const title = getLocalizedString(method.resolved_title) || method.name || 'Payment Method ' + method.id;
-                html += `
-                    <div class="form-check payment-method-option mb-2">
-                        <input class="form-check-input" type="radio" name="wallee-payment-method"
-                               id="wallee-method-${method.id}" value="${method.id}" ${checked}>
-                        <label class="form-check-label" for="wallee-method-${method.id}">
-                            ${method.image_url ? `<img src="${method.image_url}" alt="" style="height:24px;margin-right:8px;">` : ''}
-                            ${title}
-                        </label>
-                    </div>
-                `;
-            });
-
-            html += '</div></div>';
-            html += '<div id="wallee-iframe-inner-{{ submit_id }}" style="min-height: 200px;"></div>';
-
-            $container.show().html(html);
-
-            // Load iframe for first method
+            // Use the first payment method (generic card method that auto-detects brand)
             selectedPaymentMethodId = paymentMethods[0].id;
-            loadIframeForMethod(javascriptUrl, selectedPaymentMethodId);
 
-            // Handle method change
-            $container.find('input[name="wallee-payment-method"]').on('change', function() {
-                selectedPaymentMethodId = parseInt($(this).val());
-                loadIframeForMethod(javascriptUrl, selectedPaymentMethodId);
-            });
+            // Create container for iframe
+            $container.show().html('<div id="wallee-iframe-inner-{{ submit_id }}" style="min-height: 200px;"></div>');
+
+            // Load iframe directly
+            loadIframeForMethod(javascriptUrl, selectedPaymentMethodId);
         } else {
             // No methods available, show error
             $container.show().html('<div class="alert alert-warning">{{ _("No payment methods available") }}</div>');
