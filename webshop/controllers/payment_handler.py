@@ -220,9 +220,17 @@ class PaymentHandler:
             if linked_docs:
                 sales_order_name = linked_docs[0].name
             else:
-                # Create Sales Order using place_order
+                # Create Sales Order from quotation directly (not place_order which uses session cart)
                 frappe.flags.ignore_permissions = True
-                sales_order_name = place_order()
+
+                # Use make_sales_order from quotation
+                from erpnext.selling.doctype.quotation.quotation import make_sales_order
+                sales_order = make_sales_order(quotation.name)
+                sales_order.flags.ignore_permissions = True
+                sales_order.order_type = "Shopping Cart"
+                sales_order.submit()
+                sales_order_name = sales_order.name
+
                 if not sales_order_name:
                     return self.handle_error("Error creating order")
                             
