@@ -189,11 +189,31 @@ def create_wallee_payment_request(quotation_id, idempotency_token=None):
                 line_items=line_items
             )
 
-            if not wallee_response or not wallee_response.get("payment_url"):
+            if not wallee_response or not wallee_response.get("transaction_id"):
                 frappe.throw(_("Unable to create Wallee transaction"))
 
-            payment_url = wallee_response.get("payment_url")
             wallee_transaction_id = wallee_response.get("transaction_id")
+
+            # Get payment mode from settings (Redirect, Lightbox, or iFrame)
+            payment_mode = wallee_settings.payment_mode or "Redirect"
+
+            # Get the appropriate URL based on payment mode
+            from wallee_integration.wallee_integration.api.transaction import (
+                get_payment_page_url,
+                get_lightbox_javascript_url,
+                get_iframe_javascript_url
+            )
+
+            if payment_mode == "Lightbox":
+                javascript_url = get_lightbox_javascript_url(wallee_transaction_id)
+                payment_url = None  # No redirect for Lightbox
+            elif payment_mode == "iFrame":
+                javascript_url = get_iframe_javascript_url(wallee_transaction_id)
+                payment_url = None  # No redirect for iFrame
+            else:
+                # Redirect mode (default)
+                payment_url = wallee_response.get("payment_url") or get_payment_page_url(wallee_transaction_id)
+                javascript_url = None
 
             # Update payment request with Wallee data
             payment_request.payment_url = payment_url
@@ -234,12 +254,20 @@ def create_wallee_payment_request(quotation_id, idempotency_token=None):
 
             frappe.db.commit()
 
-            return {
+            result = {
                 "status": "success",
-                "payment_url": payment_url,
+                "payment_mode": payment_mode,
                 "payment_request": payment_request.name,
-                "wallee_transaction": wallee_tx.name
+                "wallee_transaction": wallee_tx.name,
+                "transaction_id": wallee_transaction_id
             }
+
+            if payment_mode == "Redirect":
+                result["payment_url"] = payment_url
+            else:
+                result["javascript_url"] = javascript_url
+
+            return result
 
         except Exception as inner_e:
             frappe.log_error(

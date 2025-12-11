@@ -9,6 +9,10 @@
             <input type="email" id="cardholder-email" name="cardholder-email" class="form-control mr-3 w-100 font-md" placeholder="{{ _('john@doe.com') }}"/>
         </div>
     </div>
+
+    <!-- iFrame container (hidden by default, shown for iFrame mode) -->
+    <div id="wallee-iframe-container-{{ submit_id }}" class="wallee-iframe-container mb-3" style="display: none; min-height: 300px;"></div>
+
     <div class="outcome text-center mb-4">
         <div class="error payment-message wallee-error-{{ submit_id }}" role="alert"></div>
         <div class="success payment-message wallee-success-{{ submit_id }}" role="alert"></div>
@@ -43,6 +47,8 @@
     let cardholderEmail = $('#{{ payment_form_id }} input[name="cardholder-email"]');
     let submitButton = $('#{{ submit_id }}');
     let isProcessingPayment = false;
+    let walleeHandler = null;
+    let walleePaymentMode = null;
 
     // Pre-fill with existing data
     if (cardholderName.val() === '') {
@@ -100,9 +106,102 @@
         }
     };
 
+    // Load Wallee JavaScript for Lightbox/iFrame modes
+    function loadWalleeScript(javascriptUrl, callback) {
+        // Remove any existing Wallee script
+        $('script[src*="lightbox"], script[src*="iframe"]').remove();
+
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = javascriptUrl;
+        script.onload = callback;
+        script.onerror = function() {
+            showError("{{ _('Failed to load payment form') }}");
+            resetButtonState();
+        };
+        document.head.appendChild(script);
+    }
+
+    // Initialize Lightbox payment
+    function initLightboxPayment(javascriptUrl) {
+        loadWalleeScript(javascriptUrl, function() {
+            if (window.LightboxCheckoutHandler) {
+                showSuccess("{{ _('Opening payment form...') }}");
+                // Start payment without specific payment method (let user choose)
+                window.LightboxCheckoutHandler.startPayment(null, function() {
+                    showError("{{ _('An error occurred during payment initialization') }}");
+                    resetButtonState();
+                });
+            } else {
+                showError("{{ _('Payment form not available') }}");
+                resetButtonState();
+            }
+        });
+    }
+
+    // Initialize iFrame payment
+    function initIframePayment(javascriptUrl, transactionId) {
+        const containerId = 'wallee-iframe-container-{{ submit_id }}';
+        const $container = $('#' + containerId);
+        $container.show().html('<div class="text-center p-4"><span class="spinner-border"></span> {{ _("Loading payment form...") }}</div>');
+
+        loadWalleeScript(javascriptUrl, function() {
+            if (window.IframeCheckoutHandler) {
+                try {
+                    // Create handler without specific payment method (let user choose)
+                    walleeHandler = window.IframeCheckoutHandler(null);
+
+                    walleeHandler.setValidationCallback(function(validationResult) {
+                        if (validationResult.success) {
+                            showSuccess("{{ _('Processing payment...') }}");
+                            walleeHandler.submit();
+                        } else {
+                            showError(validationResult.message || "{{ _('Please check your payment details') }}");
+                            resetButtonState();
+                        }
+                    });
+
+                    walleeHandler.setInitializeCallback(function() {
+                        $container.find('.spinner-border').parent().remove();
+                        showSuccess("{{ _('Enter your payment details below') }}");
+                        // Update button text for iFrame mode
+                        submitButton.html('{{_("Confirm Payment")}} {{format_currency_value(amount, currency)}}');
+                        resetButtonState();
+                    });
+
+                    walleeHandler.setHeightChangeCallback(function(height) {
+                        $container.css('min-height', height + 'px');
+                    });
+
+                    // Create the iframe in the container
+                    walleeHandler.create(containerId);
+                } catch (e) {
+                    console.error('iFrame initialization error:', e);
+                    showError("{{ _('Failed to initialize payment form') }}");
+                    resetButtonState();
+                }
+            } else {
+                showError("{{ _('Payment form not available') }}");
+                resetButtonState();
+            }
+        });
+    }
+
     // Handle click on payment button
     submitButton.on('click', function(e) {
         e.preventDefault();
+
+        // For iFrame mode with initialized handler, validate and submit
+        if (walleePaymentMode === 'iFrame' && walleeHandler) {
+            if (!checkout_manager.startPaymentProcessing()) {
+                return false;
+            }
+            isProcessingPayment = true;
+            submitButton.prop('disabled', true);
+            submitButton.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' + __('Processing...'));
+            walleeHandler.validate();
+            return;
+        }
 
         // Prevent multiple clicks - use both local and global locks
         if (isProcessingPayment || !checkout_manager.startPaymentProcessing()) {
@@ -121,9 +220,9 @@
 
         // Add loading state
         const originalButtonText = submitButton.html();
-        submitButton.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' + __('Redirecting to Wallee...'));
+        submitButton.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' + __('Processing...'));
 
-        showSuccess("{{ _('Redirecting to payment page...') }}");
+        showSuccess("{{ _('Preparing payment...') }}");
 
         // Create payment request via Wallee
         frappe.call({
@@ -134,8 +233,20 @@
             },
             callback: function(r) {
                 if (r.message && r.message.status === 'success') {
-                    // Redirect to Wallee payment page
-                    window.location.href = r.message.payment_url;
+                    walleePaymentMode = r.message.payment_mode;
+
+                    if (walleePaymentMode === 'Redirect') {
+                        // Redirect mode - go to Wallee payment page
+                        submitButton.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' + __('Redirecting to Wallee...'));
+                        showSuccess("{{ _('Redirecting to payment page...') }}");
+                        window.location.href = r.message.payment_url;
+                    } else if (walleePaymentMode === 'Lightbox') {
+                        // Lightbox mode - open modal overlay
+                        initLightboxPayment(r.message.javascript_url);
+                    } else if (walleePaymentMode === 'iFrame') {
+                        // iFrame mode - embed payment form
+                        initIframePayment(r.message.javascript_url, r.message.transaction_id);
+                    }
                 } else {
                     showError(r.message.message || "{{ _('Error creating payment request') }}");
                     resetButtonState();
