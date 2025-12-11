@@ -81,6 +81,11 @@
     }
 
     function validateForm() {
+        // Skip cardholder validation for iFrame mode (Wallee handles it)
+        if (walleePaymentMode === 'iFrame') {
+            return true;
+        }
+
         const name = cardholderName.val();
         const email = cardholderEmail.val();
 
@@ -160,10 +165,24 @@
         });
     }
 
+    // Helper to extract localized string from dict (e.g. {"en-US": "Credit Card"} -> "Credit Card")
+    function getLocalizedString(value) {
+        if (!value) return '';
+        if (typeof value === 'string') return value;
+        if (typeof value === 'object') {
+            // Try common locales in order of preference
+            return value['fr-FR'] || value['en-US'] || value['de-DE'] || Object.values(value)[0] || '';
+        }
+        return String(value);
+    }
+
     // Initialize iFrame payment with payment method selection
     function initIframePayment(javascriptUrl, transactionId, paymentMethods) {
         const containerId = 'wallee-iframe-container-{{ submit_id }}';
         const $container = $('#' + containerId);
+
+        // Hide cardholder fields for iFrame mode (Wallee handles them)
+        $('#' + formId + ' .form-row.row').first().hide();
 
         // If we have payment methods, show selector first
         if (paymentMethods && paymentMethods.length > 0) {
@@ -173,7 +192,8 @@
 
             paymentMethods.forEach(function(method, index) {
                 const checked = index === 0 ? 'checked' : '';
-                const title = method.resolved_title || method.name || 'Payment Method ' + method.id;
+                // Extract localized title from resolved_title object
+                const title = getLocalizedString(method.resolved_title) || method.name || 'Payment Method ' + method.id;
                 html += `
                     <div class="form-check payment-method-option mb-2">
                         <input class="form-check-input" type="radio" name="wallee-payment-method"
