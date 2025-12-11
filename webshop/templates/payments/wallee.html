@@ -39,16 +39,21 @@
 </div>
 
 <script>
-    if (window.wallee_payment_initialized) return;
-    window.wallee_payment_initialized = true;
+(function() {
+    // Prevent double initialization
+    const formId = '{{ payment_form_id }}';
+    if (window['wallee_initialized_' + formId]) return;
+    window['wallee_initialized_' + formId] = true;
 
-    let formData = checkout_manager.initPaymentForm('{{ payment_form_id }}');
-    let cardholderName = $('#{{ payment_form_id }} input[name="cardholder-name"]');
-    let cardholderEmail = $('#{{ payment_form_id }} input[name="cardholder-email"]');
+    let formData = checkout_manager.initPaymentForm(formId);
+    let cardholderName = $('#' + formId + ' input[name="cardholder-name"]');
+    let cardholderEmail = $('#' + formId + ' input[name="cardholder-email"]');
     let submitButton = $('#{{ submit_id }}');
     let isProcessingPayment = false;
     let walleeHandler = null;
     let walleePaymentMode = null;
+    let iframeReady = false;
+    let transactionCreated = false;
 
     // Pre-fill with existing data
     if (cardholderName.val() === '') {
@@ -68,6 +73,11 @@
     function showSuccess(message) {
         $('.wallee-success-{{ submit_id }}').text(message).show().addClass('show');
         $('.wallee-error-{{ submit_id }}').hide().removeClass('show');
+    }
+
+    function clearMessages() {
+        $('.wallee-error-{{ submit_id }}').hide().removeClass('show');
+        $('.wallee-success-{{ submit_id }}').hide().removeClass('show');
     }
 
     function validateForm() {
@@ -93,10 +103,18 @@
     const resetButtonState = function() {
         isProcessingPayment = false;
         submitButton.prop('disabled', false);
-        const originalButtonText = '{{_("Pay with Wallee")}} {{format_currency_value(amount, currency)|replace("'", "\\'")}}';
-        submitButton.html(originalButtonText);
+
+        // Use appropriate button text based on mode
+        let buttonText;
+        if (walleePaymentMode === 'iFrame' && iframeReady) {
+            buttonText = '{{_("Confirm Payment")}} {{format_currency_value(amount, currency)|replace("'", "\\'")}}';
+        } else {
+            buttonText = '{{_("Pay with Wallee")}} {{format_currency_value(amount, currency)|replace("'", "\\'")}}';
+        }
+        submitButton.html(buttonText);
+
         // Re-enable button only if terms are still accepted
-        const termsAccepted = $('#{{ payment_form_id }}').closest('.payment-method-item').find('#terms-acceptance').prop('checked');
+        const termsAccepted = $('#' + formId).closest('.payment-method-item').find('#terms-acceptance').prop('checked');
         if (!termsAccepted) {
             submitButton.prop('disabled', true);
         }
@@ -109,7 +127,9 @@
     // Load Wallee JavaScript for Lightbox/iFrame modes
     function loadWalleeScript(javascriptUrl, callback) {
         // Remove any existing Wallee script
-        $('script[src*="lightbox"], script[src*="iframe"]').remove();
+        $('script[src*="wallee"]').filter(function() {
+            return this.src.includes('lightbox') || this.src.includes('iframe');
+        }).remove();
 
         const script = document.createElement('script');
         script.type = 'text/javascript';
@@ -162,8 +182,9 @@
                     });
 
                     walleeHandler.setInitializeCallback(function() {
+                        iframeReady = true;
                         $container.find('.spinner-border').parent().remove();
-                        showSuccess("{{ _('Enter your payment details below') }}");
+                        clearMessages();
                         // Update button text for iFrame mode
                         submitButton.html('{{_("Confirm Payment")}} {{format_currency_value(amount, currency)}}');
                         resetButtonState();
@@ -187,12 +208,74 @@
         });
     }
 
+    // Create transaction and initialize payment form (for iFrame mode on load)
+    function createTransactionAndInitialize() {
+        if (transactionCreated) return;
+        transactionCreated = true;
+
+        const containerId = 'wallee-iframe-container-{{ submit_id }}';
+        const $container = $('#' + containerId);
+        $container.show().html('<div class="text-center p-4"><span class="spinner-border"></span> {{ _("Loading payment form...") }}</div>');
+
+        frappe.call({
+            method: 'webshop.templates.payments.wallee.create_wallee_payment_request',
+            args: {
+                quotation_id: '{{ doc.name }}',
+                idempotency_token: checkout_manager.getIdempotencyToken()
+            },
+            callback: function(r) {
+                if (r.message && r.message.status === 'success') {
+                    walleePaymentMode = r.message.payment_mode;
+
+                    if (walleePaymentMode === 'iFrame') {
+                        initIframePayment(r.message.javascript_url, r.message.transaction_id);
+                    } else {
+                        // Not iFrame mode - hide container and reset
+                        $container.hide();
+                        transactionCreated = false; // Allow re-creation on click
+                    }
+                } else {
+                    showError(r.message.message || "{{ _('Error creating payment request') }}");
+                    $container.hide();
+                    transactionCreated = false;
+                }
+            },
+            error: function(r) {
+                console.error("Error:", r);
+                showError("{{ _('Error communicating with server') }}");
+                const $container = $('#' + containerId);
+                $container.hide();
+                transactionCreated = false;
+            }
+        });
+    }
+
+    // Get payment mode and initialize appropriately
+    function initializePaymentMode() {
+        frappe.call({
+            method: 'webshop.templates.payments.wallee.get_payment_mode',
+            callback: function(r) {
+                if (r.message) {
+                    walleePaymentMode = r.message;
+
+                    // For iFrame mode, create transaction immediately
+                    if (walleePaymentMode === 'iFrame') {
+                        createTransactionAndInitialize();
+                    }
+                }
+            }
+        });
+    }
+
     // Handle click on payment button
     submitButton.on('click', function(e) {
         e.preventDefault();
 
         // For iFrame mode with initialized handler, validate and submit
-        if (walleePaymentMode === 'iFrame' && walleeHandler) {
+        if (walleePaymentMode === 'iFrame' && walleeHandler && iframeReady) {
+            if (!validateForm()) {
+                return;
+            }
             if (!checkout_manager.startPaymentProcessing()) {
                 return false;
             }
@@ -219,7 +302,6 @@
         submitButton.prop('disabled', true);
 
         // Add loading state
-        const originalButtonText = submitButton.html();
         submitButton.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' + __('Processing...'));
 
         showSuccess("{{ _('Preparing payment...') }}");
@@ -244,7 +326,7 @@
                         // Lightbox mode - open modal overlay
                         initLightboxPayment(r.message.javascript_url);
                     } else if (walleePaymentMode === 'iFrame') {
-                        // iFrame mode - embed payment form
+                        // iFrame mode - embed payment form (fallback if not pre-loaded)
                         initIframePayment(r.message.javascript_url, r.message.transaction_id);
                     }
                 } else {
@@ -262,4 +344,8 @@
 
     // Initial button state
     submitButton.addClass('disabled').attr('disabled', 'disabled');
+
+    // Initialize payment mode on load
+    initializePaymentMode();
+})();
 </script>

@@ -3,6 +3,16 @@ from frappe import _
 
 
 @frappe.whitelist(allow_guest=True)
+def get_payment_mode():
+    """Get the configured payment mode from Wallee Settings"""
+    try:
+        wallee_settings = frappe.get_single("Wallee Settings")
+        return wallee_settings.payment_mode or "Redirect"
+    except Exception:
+        return "Redirect"
+
+
+@frappe.whitelist(allow_guest=True)
 def create_wallee_payment_request(quotation_id, idempotency_token=None):
     """Create a payment request for Wallee"""
     try:
