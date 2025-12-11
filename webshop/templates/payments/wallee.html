@@ -147,8 +147,9 @@
         loadWalleeScript(javascriptUrl, function() {
             if (window.LightboxCheckoutHandler) {
                 showSuccess("{{ _('Opening payment form...') }}");
-                // Start payment without specific payment method (let user choose)
-                window.LightboxCheckoutHandler.startPayment(null, function() {
+                // Start payment without specific payment method (let user choose in lightbox)
+                // Pass undefined to show all available payment methods
+                window.LightboxCheckoutHandler.startPayment(undefined, function() {
                     showError("{{ _('An error occurred during payment initialization') }}");
                     resetButtonState();
                 });
@@ -159,17 +160,68 @@
         });
     }
 
-    // Initialize iFrame payment
-    function initIframePayment(javascriptUrl, transactionId) {
+    // Initialize iFrame payment with payment method selection
+    function initIframePayment(javascriptUrl, transactionId, paymentMethods) {
         const containerId = 'wallee-iframe-container-{{ submit_id }}';
         const $container = $('#' + containerId);
-        $container.show().html('<div class="text-center p-4"><span class="spinner-border"></span> {{ _("Loading payment form...") }}</div>');
+
+        // If we have payment methods, show selector first
+        if (paymentMethods && paymentMethods.length > 0) {
+            let html = '<div class="payment-method-selector mb-3">';
+            html += '<label class="mb-2"><strong>{{ _("Select Payment Method") }}</strong></label>';
+            html += '<div class="payment-methods-list">';
+
+            paymentMethods.forEach(function(method, index) {
+                const checked = index === 0 ? 'checked' : '';
+                const title = method.resolved_title || method.name || 'Payment Method ' + method.id;
+                html += `
+                    <div class="form-check payment-method-option mb-2">
+                        <input class="form-check-input" type="radio" name="wallee-payment-method"
+                               id="wallee-method-${method.id}" value="${method.id}" ${checked}>
+                        <label class="form-check-label" for="wallee-method-${method.id}">
+                            ${method.image_url ? `<img src="${method.image_url}" alt="" style="height:24px;margin-right:8px;">` : ''}
+                            ${title}
+                        </label>
+                    </div>
+                `;
+            });
+
+            html += '</div></div>';
+            html += '<div id="wallee-iframe-inner-{{ submit_id }}" style="min-height: 200px;"></div>';
+
+            $container.show().html(html);
+
+            // Load iframe for first method
+            selectedPaymentMethodId = paymentMethods[0].id;
+            loadIframeForMethod(javascriptUrl, selectedPaymentMethodId);
+
+            // Handle method change
+            $container.find('input[name="wallee-payment-method"]').on('change', function() {
+                selectedPaymentMethodId = parseInt($(this).val());
+                loadIframeForMethod(javascriptUrl, selectedPaymentMethodId);
+            });
+        } else {
+            // No methods available, show error
+            $container.show().html('<div class="alert alert-warning">{{ _("No payment methods available") }}</div>');
+        }
+    }
+
+    let selectedPaymentMethodId = null;
+
+    function loadIframeForMethod(javascriptUrl, paymentMethodId) {
+        const innerContainerId = 'wallee-iframe-inner-{{ submit_id }}';
+        const $innerContainer = $('#' + innerContainerId);
+        $innerContainer.html('<div class="text-center p-4"><span class="spinner-border"></span> {{ _("Loading payment form...") }}</div>');
+
+        // Reset handler
+        walleeHandler = null;
+        iframeReady = false;
 
         loadWalleeScript(javascriptUrl, function() {
             if (window.IframeCheckoutHandler) {
                 try {
-                    // Create handler without specific payment method (let user choose)
-                    walleeHandler = window.IframeCheckoutHandler(null);
+                    // Create handler with specific payment method
+                    walleeHandler = window.IframeCheckoutHandler(paymentMethodId);
 
                     walleeHandler.setValidationCallback(function(validationResult) {
                         if (validationResult.success) {
@@ -183,7 +235,7 @@
 
                     walleeHandler.setInitializeCallback(function() {
                         iframeReady = true;
-                        $container.find('.spinner-border').parent().remove();
+                        $innerContainer.find('.spinner-border').parent().remove();
                         clearMessages();
                         // Update button text for iFrame mode
                         submitButton.html('{{_("Confirm Payment")}} {{format_currency_value(amount, currency)}}');
@@ -191,11 +243,11 @@
                     });
 
                     walleeHandler.setHeightChangeCallback(function(height) {
-                        $container.css('min-height', height + 'px');
+                        $innerContainer.css('min-height', height + 'px');
                     });
 
-                    // Create the iframe in the container
-                    walleeHandler.create(containerId);
+                    // Create the iframe in the inner container
+                    walleeHandler.create(innerContainerId);
                 } catch (e) {
                     console.error('iFrame initialization error:', e);
                     showError("{{ _('Failed to initialize payment form') }}");
@@ -228,7 +280,7 @@
                     walleePaymentMode = r.message.payment_mode;
 
                     if (walleePaymentMode === 'iFrame') {
-                        initIframePayment(r.message.javascript_url, r.message.transaction_id);
+                        initIframePayment(r.message.javascript_url, r.message.transaction_id, r.message.payment_methods);
                     } else {
                         // Not iFrame mode - hide container and reset
                         $container.hide();
@@ -327,7 +379,7 @@
                         initLightboxPayment(r.message.javascript_url);
                     } else if (walleePaymentMode === 'iFrame') {
                         // iFrame mode - embed payment form (fallback if not pre-loaded)
-                        initIframePayment(r.message.javascript_url, r.message.transaction_id);
+                        initIframePayment(r.message.javascript_url, r.message.transaction_id, r.message.payment_methods);
                     }
                 } else {
                     showError(r.message.message || "{{ _('Error creating payment request') }}");

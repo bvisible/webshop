@@ -217,13 +217,22 @@ def create_wallee_payment_request(quotation_id, idempotency_token=None):
             if payment_mode == "Lightbox":
                 javascript_url = get_lightbox_javascript_url(wallee_transaction_id)
                 payment_url = None  # No redirect for Lightbox
+                payment_methods = None
             elif payment_mode == "iFrame":
                 javascript_url = get_iframe_javascript_url(wallee_transaction_id)
                 payment_url = None  # No redirect for iFrame
+                # Get available payment methods for iFrame
+                from wallee_integration.wallee_integration.api.transaction import get_payment_method_configurations
+                try:
+                    payment_methods = get_payment_method_configurations(wallee_transaction_id, "IFRAME")
+                except Exception as e:
+                    frappe.log_error(f"Error getting payment methods: {str(e)}", "Wallee Payment Methods")
+                    payment_methods = []
             else:
                 # Redirect mode (default)
                 payment_url = wallee_response.get("payment_url") or get_payment_page_url(wallee_transaction_id)
                 javascript_url = None
+                payment_methods = None
 
             # Update payment request with Wallee data
             payment_request.payment_url = payment_url
@@ -276,6 +285,8 @@ def create_wallee_payment_request(quotation_id, idempotency_token=None):
                 result["payment_url"] = payment_url
             else:
                 result["javascript_url"] = javascript_url
+                if payment_mode == "iFrame" and payment_methods:
+                    result["payment_methods"] = payment_methods
 
             return result
 
