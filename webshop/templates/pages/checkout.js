@@ -1880,18 +1880,24 @@ frappe.ready(function() {
                     if (r.message) {
                         // Update cart count
                         webshop.webshop.shopping_cart.set_cart_count(false);
-                        
-                        // Get updated cart data
-                        frappe.call({
-                            method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
-                            callback: (result) => {
-                                if (result.message && result.message.doc) {
-                                    this.updateOrderSummaryFromDoc(result.message.doc);
+
+                        // Get updated cart data - use fresh call to ensure we get latest data
+                        // The update_cart response may not include all fields needed for summary
+                        setTimeout(() => {
+                            frappe.call({
+                                method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
+                                async: false,
+                                callback: (result) => {
+                                    if (result.message && result.message.doc) {
+                                        this.updateOrderSummaryFromDoc(result.message.doc);
+                                    }
+                                    this.unfreezeElements(['order-summary']);
                                 }
-                            }
-                        });
+                            });
+                        }, 100);
+                    } else {
+                        this.unfreezeElements(['order-summary']);
                     }
-                    this.unfreezeElements(['order-summary']);
                 }
             });
         }
