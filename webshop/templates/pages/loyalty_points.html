@@ -31,7 +31,7 @@
 						</div>
 					</div>
 
-					<div class="points-balance text-center py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
+					<div class="points-balance text-center py-4" style="background: black; border-radius: 12px; color: white;">
 						<div class="points-number" style="font-size: 3rem; font-weight: bold;">{{ total_points }}</div>
 						<div class="points-label">{{ _("Available Points") }}</div>
 						{% if points_value %}
@@ -149,20 +149,20 @@
 
 <style>
 .loyalty-points-container .badge-primary {
-	background-color: #667eea;
+	background-color: black;
 }
 
 .loyalty-points-container .btn-primary {
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	background: black;
 	border: none;
 }
 
 .loyalty-points-container .btn-primary:hover {
-	background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+	background: #333;
 }
 
 .loyalty-points-container .points-balance {
-	box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .loyalty-points-container .table th {
