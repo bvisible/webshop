@@ -10,7 +10,6 @@ def execute():
         add_portal_menu_item_if_not_exists(
             title="Loyalty Points",
             route="/loyalty_points",
-            reference_doctype="Loyalty Point Entry",
             role="Customer"
         )
 
@@ -19,12 +18,11 @@ def execute():
         add_portal_menu_item_if_not_exists(
             title="Gift cards",
             route="/gift-cards",
-            reference_doctype="Coupon Code",
             role="Customer"
         )
 
 
-def add_portal_menu_item_if_not_exists(title, route, reference_doctype, role):
+def add_portal_menu_item_if_not_exists(title, route, role):
     """Add a Portal Menu Item if it doesn't already exist"""
     exists = frappe.db.exists("Portal Menu Item", {
         "route": route,
@@ -45,7 +43,6 @@ def add_portal_menu_item_if_not_exists(title, route, reference_doctype, role):
             "title": title,
             "enabled": 1,
             "route": route,
-            "reference_doctype": reference_doctype,
             "role": role,
             "idx": last_idx + 1
         })

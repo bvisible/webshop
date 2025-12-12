@@ -98,7 +98,6 @@ class WebshopSettings(Document):
 				"title": "Gift cards",
 				"enabled": 1,
 				"route": "/gift-cards",
-				"reference_doctype": "Coupon Code",
 				"role": "Customer",
 				"idx": last_idx + 1
 			})
@@ -138,7 +137,6 @@ class WebshopSettings(Document):
 				"title": "Loyalty Points",
 				"enabled": 1,
 				"route": "/loyalty_points",
-				"reference_doctype": "Loyalty Point Entry",
 				"role": "Customer",
 				"idx": last_idx + 1
 			})
