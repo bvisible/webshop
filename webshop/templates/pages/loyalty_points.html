@@ -1,0 +1,229 @@
+{% extends "templates/web.html" %}
+
+{% block title %} {{ _("Loyalty Points") }} {% endblock %}
+
+{% block header %}<h3 class="shopping-cart-header mt-2 mb-6">{{ _("Loyalty Points") }}</h3>{% endblock %}
+
+{% block page_content %}
+<div class="loyalty-points-container">
+	{% if not enabled %}
+		<div class="alert alert-info">
+			{{ _("Loyalty program is not enabled.") }}
+		</div>
+	{% elif not customer %}
+		<div class="alert alert-warning">
+			{{ _("Please log in to view your loyalty points.") }}
+		</div>
+	{% elif not loyalty_program %}
+		<div class="alert alert-info">
+			{{ _("You are not enrolled in a loyalty program yet. Make a purchase to start earning points!") }}
+		</div>
+	{% else %}
+		<!-- Points Summary Card -->
+		<div class="row">
+			<div class="col-md-6">
+				<div class="frappe-card p-5 mb-4">
+					<div class="d-flex align-items-center mb-4">
+						<img src="/assets/webshop/icons/loyalty_icon.svg" alt="Loyalty Points" class="mr-3" style="width: 48px; height: 48px;">
+						<div>
+							<h4 class="mb-0">{{ loyalty_program_name }}</h4>
+							<small class="text-muted">{{ _("Your loyalty program") }}</small>
+						</div>
+					</div>
+
+					<div class="points-balance text-center py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
+						<div class="points-number" style="font-size: 3rem; font-weight: bold;">{{ total_points }}</div>
+						<div class="points-label">{{ _("Available Points") }}</div>
+						{% if points_value %}
+							<div class="points-value mt-2" style="font-size: 1.2rem; opacity: 0.9;">
+								{{ _("Worth") }} <strong>{{ points_value }}</strong>
+							</div>
+						{% endif %}
+					</div>
+
+					{% if conversion_factor %}
+						<div class="conversion-info mt-3 text-center text-muted">
+							<small>{{ _("1 point = {0}").format(conversion_rate) }}</small>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+
+			<div class="col-md-6">
+				<div class="frappe-card p-5 mb-4">
+					<h5 class="mb-4">{{ _("How to earn points") }}</h5>
+					<ul class="list-unstyled">
+						<li class="d-flex align-items-start mb-3">
+							<span class="badge badge-primary mr-3" style="padding: 8px 12px;">1</span>
+							<div>
+								<strong>{{ _("Shop") }}</strong>
+								<p class="text-muted mb-0 small">{{ _("Earn points on every purchase") }}</p>
+							</div>
+						</li>
+						<li class="d-flex align-items-start mb-3">
+							<span class="badge badge-primary mr-3" style="padding: 8px 12px;">2</span>
+							<div>
+								<strong>{{ _("Accumulate") }}</strong>
+								<p class="text-muted mb-0 small">{{ _("Points are credited after order completion") }}</p>
+							</div>
+						</li>
+						<li class="d-flex align-items-start mb-3">
+							<span class="badge badge-primary mr-3" style="padding: 8px 12px;">3</span>
+							<div>
+								<strong>{{ _("Redeem") }}</strong>
+								<p class="text-muted mb-0 small">{{ _("Use your points at checkout for discounts") }}</p>
+							</div>
+						</li>
+					</ul>
+
+					<a href="/all-products" class="btn btn-primary btn-block mt-4">
+						{{ _("Start Shopping") }}
+					</a>
+				</div>
+			</div>
+		</div>
+
+		<!-- Points History -->
+		{% if points_history %}
+			<div class="frappe-card p-5">
+				<h5 class="mb-4">{{ _("Points History") }}</h5>
+				<div class="table-responsive">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>{{ _("Date") }}</th>
+								<th>{{ _("Description") }}</th>
+								<th>{{ _("Invoice") }}</th>
+								<th class="text-right">{{ _("Points") }}</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for entry in points_history %}
+								<tr>
+									<td>{{ frappe.utils.format_date(entry.posting_date) }}</td>
+									<td>
+										{% if entry.loyalty_points > 0 %}
+											<span class="text-success">{{ _("Earned") }}</span>
+										{% else %}
+											<span class="text-danger">{{ _("Redeemed") }}</span>
+										{% endif %}
+									</td>
+									<td>
+										{% if entry.invoice %}
+											<a href="/invoices/{{ entry.invoice }}">{{ entry.invoice }}</a>
+										{% else %}
+											-
+										{% endif %}
+									</td>
+									<td class="text-right">
+										{% if entry.loyalty_points > 0 %}
+											<span class="text-success">+{{ entry.loyalty_points }}</span>
+										{% else %}
+											<span class="text-danger">{{ entry.loyalty_points }}</span>
+										{% endif %}
+									</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+
+				{% if has_more_entries %}
+					<div class="text-center mt-3">
+						<button class="btn btn-outline-primary btn-sm" id="load-more-history" data-offset="{{ points_history|length }}">
+							{{ _("Load More") }}
+						</button>
+					</div>
+				{% endif %}
+			</div>
+		{% else %}
+			<div class="frappe-card p-5 text-center">
+				<div class="empty-state py-4">
+					<img src="/assets/webshop/images/cart-empty-state.png" alt="No history" style="max-width: 150px; opacity: 0.5;">
+					<p class="text-muted mt-3">{{ _("No points history yet. Start shopping to earn points!") }}</p>
+				</div>
+			</div>
+		{% endif %}
+	{% endif %}
+</div>
+
+<style>
+.loyalty-points-container .badge-primary {
+	background-color: #667eea;
+}
+
+.loyalty-points-container .btn-primary {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	border: none;
+}
+
+.loyalty-points-container .btn-primary:hover {
+	background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+}
+
+.loyalty-points-container .points-balance {
+	box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.loyalty-points-container .table th {
+	border-top: none;
+	font-weight: 600;
+	color: #6c757d;
+	font-size: 0.85rem;
+	text-transform: uppercase;
+}
+
+.loyalty-points-container .table td {
+	vertical-align: middle;
+}
+</style>
+
+{% endblock %}
+
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	const loadMoreBtn = document.getElementById('load-more-history');
+	if (loadMoreBtn) {
+		loadMoreBtn.addEventListener('click', function() {
+			const offset = parseInt(this.dataset.offset) || 0;
+
+			frappe.call({
+				method: 'webshop.templates.pages.loyalty_points.get_loyalty_points_history',
+				args: {
+					offset: offset,
+					limit: 10
+				},
+				callback: function(r) {
+					if (r.message && r.message.entries && r.message.entries.length > 0) {
+						const tbody = document.querySelector('.loyalty-points-container table tbody');
+						r.message.entries.forEach(function(entry) {
+							const row = document.createElement('tr');
+							const pointsClass = entry.loyalty_points > 0 ? 'text-success' : 'text-danger';
+							const pointsPrefix = entry.loyalty_points > 0 ? '+' : '';
+							const description = entry.loyalty_points > 0 ? '{{ _("Earned") }}' : '{{ _("Redeemed") }}';
+
+							row.innerHTML = `
+								<td>${entry.posting_date}</td>
+								<td><span class="${pointsClass}">${description}</span></td>
+								<td>${entry.invoice ? '<a href="/invoices/' + entry.invoice + '">' + entry.invoice + '</a>' : '-'}</td>
+								<td class="text-right"><span class="${pointsClass}">${pointsPrefix}${entry.loyalty_points}</span></td>
+							`;
+							tbody.appendChild(row);
+						});
+
+						loadMoreBtn.dataset.offset = offset + r.message.entries.length;
+
+						if (!r.message.has_more) {
+							loadMoreBtn.style.display = 'none';
+						}
+					} else {
+						loadMoreBtn.style.display = 'none';
+					}
+				}
+			});
+		});
+	}
+});
+</script>
+{% endblock %}

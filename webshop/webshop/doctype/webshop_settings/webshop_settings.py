@@ -58,8 +58,14 @@ class WebshopSettings(Document):
 			"Webshop Settings", "enable_gift_cards"
 		)
 
+		# Save current state of enable_loyalty_points for comparison
+		self.enable_loyalty_points_pre_save = frappe.db.get_single_value(
+			"Webshop Settings", "enable_loyalty_points"
+		)
+
 		self.update_gift_card_template()
 		self.update_gift_cards_menu()
+		self.update_loyalty_points_menu()
 
 	def after_save(self):
 		self.create_redisearch_indexes()
@@ -103,6 +109,46 @@ class WebshopSettings(Document):
 			# Delete menu entry
 			frappe.db.delete("Portal Menu Item", {
 				"route": "/gift-cards",
+				"parenttype": "Portal Settings"
+			})
+			frappe.db.commit()
+
+	def update_loyalty_points_menu(self):
+		"""Updates loyalty points menu in Portal Settings based on enable_loyalty_points"""
+		if self.enable_loyalty_points == self.enable_loyalty_points_pre_save:
+			return
+
+		# Check if entry already exists
+		exists = frappe.db.exists("Portal Menu Item", {
+			"route": "/loyalty_points",
+			"parenttype": "Portal Settings"
+		})
+
+		if self.enable_loyalty_points and not exists:
+			# Get last idx
+			last_idx = frappe.db.sql("""
+				SELECT MAX(idx)
+				FROM `tabPortal Menu Item`
+				WHERE parenttype='Portal Settings'
+			""")[0][0] or 0
+
+			# Create menu entry
+			portal_settings = frappe.get_doc("Portal Settings")
+			portal_settings.append("menu", {
+				"title": "Loyalty Points",
+				"enabled": 1,
+				"route": "/loyalty_points",
+				"reference_doctype": "Loyalty Point Entry",
+				"role": "Customer",
+				"idx": last_idx + 1
+			})
+
+			portal_settings.save()
+
+		elif not self.enable_loyalty_points and exists:
+			# Delete menu entry
+			frappe.db.delete("Portal Menu Item", {
+				"route": "/loyalty_points",
 				"parenttype": "Portal Settings"
 			})
 			frappe.db.commit()
