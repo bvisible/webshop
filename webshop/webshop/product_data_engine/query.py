@@ -46,6 +46,9 @@ class ProductQuery:
 			"is_gift_card",
 		]
 		self._total_count_cache = None
+		# For multi-word search with custom SQL
+		self._search_sql_condition = None
+		self._search_values = []
 
 	def query(self, attributes=None, fields=None, search_term=None, start=0, item_group=None, price_condition=None, sort_order=None):
 		"""
@@ -147,7 +150,11 @@ class ProductQuery:
 					if isinstance(or_filter, list) and len(or_filter) >= 3:
 						field, operator, value = or_filter[0], or_filter[1], or_filter[2]
 						if operator == "like":
-							or_conditions.append(f"`{field}` LIKE %s")
+							# Check if field contains LOWER() function call
+							if field.startswith("LOWER("):
+								or_conditions.append(f"{field} LIKE %s")
+							else:
+								or_conditions.append(f"`{field}` LIKE %s")
 							values.append(value)
 						elif operator == "=":
 							or_conditions.append(f"`{field}` = %s")
@@ -157,12 +164,21 @@ class ProductQuery:
 								placeholders = ", ".join(["%s"] * len(value))
 								or_conditions.append(f"`{field}` IN ({placeholders})")
 								values.extend(value)
-			
+
 			# Build final WHERE clause
 			where_clause = ""
 			if conditions:
 				where_clause = " WHERE " + " AND ".join(conditions)
-			if or_conditions:
+
+			# Handle multi-word search with custom SQL condition
+			if self._search_sql_condition:
+				search_clause = f"({self._search_sql_condition})"
+				values.extend(self._search_values)
+				if where_clause:
+					where_clause += " AND " + search_clause
+				else:
+					where_clause = " WHERE " + search_clause
+			elif or_conditions:
 				or_clause = " (" + " OR ".join(or_conditions) + ")"
 				if where_clause:
 					where_clause += " AND " + or_clause
@@ -204,17 +220,77 @@ class ProductQuery:
 		page_length = self.page_length
 		effective_start = start
 
-		items = frappe.db.get_all(
-			"Website Item",
-			fields=self.fields,
-			filters=self.filters,
-			or_filters=self.or_filters,
-			limit_page_length=page_length,
-			limit_start=effective_start,
-			order_by=order_by,
-		)
+		# If we have a custom SQL search condition (multi-word search), use SQL query
+		if self._search_sql_condition:
+			items = self._query_items_with_custom_search(
+				page_length, effective_start, order_by
+			)
+		else:
+			items = frappe.db.get_all(
+				"Website Item",
+				fields=self.fields,
+				filters=self.filters,
+				or_filters=self.or_filters,
+				limit_page_length=page_length,
+				limit_start=effective_start,
+				order_by=order_by,
+			)
 
 		return items, count
+
+	def _query_items_with_custom_search(self, page_length, start, order_by):
+		"""Execute query with custom SQL search condition for multi-word search.
+
+		Args:
+			page_length (int): Number of items per page
+			start (int): Offset for pagination
+			order_by (str): ORDER BY clause
+
+		Returns:
+			list: List of Website Item dicts
+		"""
+		# Build field list
+		field_list = ", ".join([f"`{field}`" for field in self.fields])
+
+		# Build WHERE conditions from self.filters
+		conditions = []
+		values = []
+
+		for filter_item in self.filters:
+			if isinstance(filter_item, list) and len(filter_item) >= 3:
+				field, operator, value = filter_item[0], filter_item[1], filter_item[2]
+				if operator == "=":
+					conditions.append(f"`{field}` = %s")
+					values.append(value)
+				elif operator == "in":
+					if isinstance(value, list):
+						placeholders = ", ".join(["%s"] * len(value))
+						conditions.append(f"`{field}` IN ({placeholders})")
+						values.extend(value)
+				elif operator == "is":
+					if value == "not set":
+						conditions.append(f"`{field}` IS NULL")
+
+		# Add the custom search condition
+		if self._search_sql_condition:
+			conditions.append(f"({self._search_sql_condition})")
+			values.extend(self._search_values)
+
+		# Build WHERE clause
+		where_clause = " AND ".join(conditions) if conditions else "1=1"
+
+		# Build and execute query
+		query = f"""
+			SELECT {field_list}
+			FROM `tabWebsite Item`
+			WHERE {where_clause}
+			ORDER BY {order_by}
+			LIMIT %s OFFSET %s
+		"""
+		values.extend([page_length, start])
+
+		results = frappe.db.sql(query, values, as_dict=True)
+		return results
 	
 	def query_items_with_discount_filter(self, start=0):
 		"""Query items that have active discounts using optimized SQL."""
@@ -683,18 +759,29 @@ class ProductQuery:
 		# and is not included in the count query for performance reasons
 
 	def build_search_filters(self, search_term):
-		"""Query search term in specified fields
+		"""Query search term in specified fields with fuzzy multi-word matching.
+
+		Improvements over simple LIKE search:
+		- Case-insensitive matching
+		- Multi-word search (each word is searched independently)
+		- Order-independent (words can appear in any order)
+		- Tolerant of extra spaces
 
 		Args:
 		        search_term (str): Search candidate
 		"""
-		# First check if search term matches an exact item_code
+		if not search_term or not search_term.strip():
+			return
+
+		search_term = search_term.strip()
+
+		# First check if search term matches an exact item_code (case-insensitive)
 		exact_match = frappe.db.exists("Website Item", {"item_code": search_term})
 		if exact_match:
 			# If exact item_code match found, only filter by that
 			self.filters.append(["item_code", "=", search_term])
 			return
-		
+
 		# Default fields to search from
 		default_fields = {"item_code", "item_name", "web_long_description", "item_group"}
 
@@ -707,10 +794,49 @@ class ProductQuery:
 		if frappe.db.count("Website Item", cache=True) > 50000:
 			search_fields.discard("web_long_description")
 
-		# Build or filters for query
-		search = "%{}%".format(search_term)
-		for field in search_fields:
-			self.or_filters.append([field, "like", search])
+		# Split search term into individual words and normalize
+		# This allows "glock 17" to match "Glock 17 Gen5" regardless of order or case
+		words = [w.strip().lower() for w in search_term.split() if w.strip()]
+
+		if not words:
+			return
+
+		# For single word search, use simple LIKE with case-insensitive matching
+		if len(words) == 1:
+			search = "%{}%".format(words[0])
+			for field in search_fields:
+				# Use case-insensitive LIKE by comparing lowercase
+				self.or_filters.append([f"LOWER(`{field}`)", "like", search])
+		else:
+			# For multi-word search, we need ALL words to match in ANY of the fields
+			# This is done by building a custom SQL condition stored in _search_sql_condition
+			# The condition will be: (field1 LIKE %word1% OR field2 LIKE %word1% ...) AND (field1 LIKE %word2% OR ...)
+			self._build_multiword_search_condition(words, search_fields)
+
+	def _build_multiword_search_condition(self, words, search_fields):
+		"""Build SQL condition for multi-word search where ALL words must match.
+
+		Args:
+			words (list): List of search words (already lowercased)
+			search_fields (set): Fields to search in
+		"""
+		# Store the condition for use in query methods
+		# Each word must be found in at least one field
+		word_conditions = []
+		self._search_values = []
+
+		for word in words:
+			field_conditions = []
+			search_pattern = f"%{word}%"
+			for field in search_fields:
+				field_conditions.append(f"LOWER(`{field}`) LIKE %s")
+				self._search_values.append(search_pattern)
+
+			# This word must match at least one field
+			word_conditions.append(f"({' OR '.join(field_conditions)})")
+
+		# ALL words must match (AND between word conditions)
+		self._search_sql_condition = " AND ".join(word_conditions)
 			
 	def build_price_filters(self, price_condition):
 		"""Build price filters to filter products by price range.
