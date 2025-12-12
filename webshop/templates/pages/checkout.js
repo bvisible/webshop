@@ -185,7 +185,7 @@ frappe.ready(function() {
             this.setupGeoAdminAutocomplete();
         }
 
-        // Swiss GeoAdmin address autocomplete
+        // Address autocomplete - Swiss GeoAdmin + European Photon (OpenStreetMap)
         setupGeoAdminAutocomplete() {
             const self = this;
 
@@ -224,13 +224,28 @@ frappe.ready(function() {
             this.setupAddressAutocomplete('#shipping_address_1', 'shipping', cantonMap);
         }
 
+        // Check if selected country is Switzerland
+        isSwissCountry(prefix) {
+            const $countryField = $(`#${prefix}_country`);
+            if (!$countryField.length) return true; // Default to Swiss if no country field
+
+            const selectedCountry = ($countryField.val() || '').toLowerCase();
+            const selectedText = ($countryField.find('option:selected').text() || '').toLowerCase();
+
+            // Check various Swiss identifiers
+            const swissIdentifiers = ['switzerland', 'suisse', 'schweiz', 'svizzera', 'ch'];
+            return swissIdentifiers.some(id =>
+                selectedCountry.includes(id) || selectedText.includes(id)
+            ) || !selectedCountry; // Default to Swiss if nothing selected
+        }
+
         setupAddressAutocomplete(inputSelector, prefix, cantonMap) {
             const self = this;
             const $input = $(inputSelector);
             if (!$input.length) return;
 
             // Create dropdown container
-            const $dropdown = $('<div class="geoadmin-dropdown"></div>').css({
+            const $dropdown = $('<div class="address-autocomplete-dropdown"></div>').css({
                 position: 'absolute',
                 width: '100%',
                 maxHeight: '200px',
@@ -260,7 +275,12 @@ frappe.ready(function() {
                 }
 
                 debounceTimer = setTimeout(() => {
-                    self.searchGeoAdmin(query, $dropdown, $input, prefix, cantonMap);
+                    // Choose API based on selected country
+                    if (self.isSwissCountry(prefix)) {
+                        self.searchGeoAdmin(query, $dropdown, $input, prefix, cantonMap);
+                    } else {
+                        self.searchPhoton(query, $dropdown, $input, prefix);
+                    }
                 }, 300);
             });
 
@@ -277,6 +297,7 @@ frappe.ready(function() {
             });
         }
 
+        // Swiss GeoAdmin API search
         searchGeoAdmin(query, $dropdown, $input, prefix, cantonMap) {
             const self = this;
 
@@ -293,7 +314,7 @@ frappe.ready(function() {
 
                     if (response.results && response.results.length > 0) {
                         response.results.forEach(function(result) {
-                            const item = $('<div class="geoadmin-item"></div>')
+                            const item = $('<div class="address-autocomplete-item"></div>')
                                 .css({
                                     padding: '10px 12px',
                                     cursor: 'pointer',
@@ -323,6 +344,124 @@ frappe.ready(function() {
                     $dropdown.hide();
                 }
             });
+        }
+
+        // European Photon (OpenStreetMap) API search
+        searchPhoton(query, $dropdown, $input, prefix) {
+            const self = this;
+
+            // Get selected country for filtering results
+            const $countryField = $(`#${prefix}_country`);
+            const selectedCountry = $countryField.length ? $countryField.val() : '';
+
+            $.ajax({
+                url: 'https://photon.komoot.io/api/',
+                data: {
+                    q: query,
+                    limit: 10,
+                    lang: 'fr' // Default to French for European addresses
+                },
+                success: function(response) {
+                    $dropdown.empty();
+
+                    if (response.features && response.features.length > 0) {
+                        response.features.forEach(function(feature) {
+                            const props = feature.properties;
+
+                            // Build display label
+                            let label = '';
+                            if (props.name) label += props.name;
+                            if (props.housenumber) label += ' ' + props.housenumber;
+                            if (props.street) {
+                                if (label && !props.name) label = props.street + ' ' + label;
+                                else if (!label) label = props.street;
+                            }
+                            if (props.postcode) label += ', ' + props.postcode;
+                            if (props.city) label += ' ' + props.city;
+                            if (props.country) label += ' (' + props.country + ')';
+
+                            if (!label.trim()) return; // Skip empty results
+
+                            const item = $('<div class="address-autocomplete-item"></div>')
+                                .css({
+                                    padding: '10px 12px',
+                                    cursor: 'pointer',
+                                    borderBottom: '1px solid var(--border-color, #eee)',
+                                    fontSize: '13px'
+                                })
+                                .text(label)
+                                .hover(
+                                    function() { $(this).css('backgroundColor', 'var(--control-bg, #f5f7fa)'); },
+                                    function() { $(this).css('backgroundColor', ''); }
+                                )
+                                .on('mousedown', function(e) {
+                                    e.preventDefault();
+                                    self.fillAddressFromPhoton(feature, prefix);
+                                    $dropdown.hide();
+                                });
+
+                            $dropdown.append(item);
+                        });
+
+                        $dropdown.show();
+                    } else {
+                        $dropdown.hide();
+                    }
+                },
+                error: function() {
+                    $dropdown.hide();
+                }
+            });
+        }
+
+        // Fill address fields from Photon (OpenStreetMap) result
+        fillAddressFromPhoton(feature, prefix) {
+            const props = feature.properties;
+
+            // Fill address fields based on prefix (billing or shipping)
+            const setFieldValue = (fieldName, value) => {
+                const $field = $(`#${prefix}_${fieldName}`);
+                if ($field.length && value) {
+                    $field.val(value).trigger('change');
+                }
+            };
+
+            // Build street address
+            let streetAddress = '';
+            if (props.street) {
+                streetAddress = props.street;
+                if (props.housenumber) {
+                    streetAddress += ' ' + props.housenumber;
+                }
+            } else if (props.name) {
+                streetAddress = props.name;
+                if (props.housenumber) {
+                    streetAddress += ' ' + props.housenumber;
+                }
+            }
+
+            setFieldValue('address_1', streetAddress);
+            setFieldValue('postcode', props.postcode || '');
+            setFieldValue('city', props.city || props.town || props.village || props.municipality || '');
+            setFieldValue('state', props.state || props.county || '');
+
+            // Set country if available
+            if (props.country) {
+                const $countryField = $(`#${prefix}_country`);
+                if ($countryField.length) {
+                    // Try to find matching country option
+                    const countryLower = props.country.toLowerCase();
+                    const countryOption = $countryField.find('option').filter(function() {
+                        const optVal = ($(this).val() || '').toLowerCase();
+                        const optText = ($(this).text() || '').toLowerCase();
+                        return optVal.includes(countryLower) || optText.includes(countryLower) ||
+                               countryLower.includes(optVal) || countryLower.includes(optText);
+                    });
+                    if (countryOption.length) {
+                        $countryField.val(countryOption.first().val()).trigger('change');
+                    }
+                }
+            }
         }
 
         fillAddressFromGeoAdmin(result, prefix, cantonMap) {
