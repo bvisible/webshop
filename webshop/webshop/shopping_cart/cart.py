@@ -1154,10 +1154,11 @@ def update_cart_address(address_type, address_name):
 		quotation = _get_cart_quotation()
 		if not quotation:
 			frappe.throw(_("Cart not found"))
-			
+
 		address_doc = frappe.get_doc("Address", address_name).as_dict()
 		address_display = get_address_display(address_doc)
-	
+		new_country = address_doc.get("country")
+
 		if address_type.lower() == "billing":
 			quotation.customer_address = address_name
 			quotation.address_display = address_display
@@ -1192,6 +1193,12 @@ def update_cart_address(address_type, address_name):
 					(doc for doc in get_shipping_addresses() if doc["name"] == address_name),
 					None,
 				)
+
+			# Check if current shipping rule is valid for the new country
+			# If not, clear it so the user can select a compatible one
+			if quotation.shipping_rule and new_country:
+				if not _is_shipping_rule_valid_for_country(quotation.shipping_rule, new_country):
+					quotation.shipping_rule = None
 			
 		# Set ignore_permissions flag early to avoid permission errors
 		quotation.flags.ignore_permissions = True
@@ -1490,6 +1497,13 @@ def apply_cart_settings(party=None, quotation=None):
 	cart_settings = frappe.get_cached_doc("Webshop Settings")
 
 	set_price_list_and_rate(quotation, cart_settings)
+
+	# Validate shipping rule before calculating taxes
+	# If the current shipping rule is not valid for the shipping address country, clear it
+	if quotation.shipping_rule and quotation.shipping_address_name:
+		shipping_country = frappe.db.get_value("Address", quotation.shipping_address_name, "country")
+		if shipping_country and not _is_shipping_rule_valid_for_country(quotation.shipping_rule, shipping_country):
+			quotation.shipping_rule = None
 
 	quotation.run_method("calculate_taxes_and_totals")
 
@@ -1971,6 +1985,23 @@ def apply_shipping_rule(shipping_rule):
 	quotation.save()
 
 	return get_cart_quotation(quotation)
+
+def _is_shipping_rule_valid_for_country(shipping_rule_name, country):
+	"""Check if a shipping rule is valid for the given country"""
+	if not shipping_rule_name or not country:
+		return True
+
+	# Check if the shipping rule has the country in its list
+	sr_country = frappe.qb.DocType("Shipping Rule Country")
+	query = (
+		frappe.qb.from_(sr_country)
+		.select(sr_country.country)
+		.where(sr_country.parent == shipping_rule_name)
+		.where(sr_country.country == country)
+	)
+	result = query.run()
+	return len(result) > 0
+
 
 def _apply_shipping_rule(party=None, quotation=None, cart_settings=None):
 	# Check if all items are gift cards

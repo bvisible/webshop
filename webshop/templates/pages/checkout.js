@@ -1457,8 +1457,15 @@ frappe.ready(function() {
                         container.html(html);
                         // Reattach events
                         this.attachShippingMethodEvents();
+
+                        // If a shipping method is auto-selected (e.g., only one available),
+                        // apply it to the quotation to ensure the order summary is updated
+                        const checkedMethod = $('input[name="shipping_method"]:checked');
+                        if (checkedMethod.length && checkedMethod.val() !== this.currentShippingMethod) {
+                            this.updateShippingMethod(checkedMethod.val(), true);
+                        }
                     }
-                    
+
                 } else {
                     container.html(`<div class="alert alert-warning">${__('No shipping methods available for your location')}</div>`);
                 }
@@ -1790,30 +1797,45 @@ frappe.ready(function() {
         bindQuantityControls() {
             // Bind quantity change events
             $('.order-items').on('change', '.cart-qty', (e) => {
+                e.stopPropagation();
+                e.stopImmediatePropagation();
                 const $input = $(e.target);
                 const item_code = $input.attr('data-item-code');
                 const newVal = $input.val();
-                
+
                 this.updateItemQuantity(item_code, newVal);
             });
 
             // Bind + and - buttons
-            $('.order-items').on('click', '.number-spinner button', (e) => {
-                const $btn = $(e.target);
-                const $input = $btn.closest('.number-spinner').find('input');
-                const oldValue = parseInt($input.val().trim());
-                let newVal = oldValue;
+            // Use capture phase to intercept before cart_component.js handler
+            const orderItems = document.querySelector('.order-items');
+            if (orderItems) {
+                orderItems.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.number-spinner button');
+                    if (!btn) return;
 
-                if ($btn.attr('data-dir') === 'up') {
-                    newVal = oldValue + 1;
-                } else if (oldValue > 1) {
-                    newVal = oldValue - 1;
-                }
+                    // Stop propagation to prevent cart_component.js from handling this
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
 
-                $input.val(newVal);
-                const item_code = $input.attr('data-item-code');
-                this.updateItemQuantity(item_code, newVal);
-            });
+                    const spinner = btn.closest('.number-spinner');
+                    const input = spinner ? spinner.querySelector('input') : null;
+                    if (!input) return;
+
+                    const oldValue = parseInt(input.value.trim()) || 1;
+                    let newVal = oldValue;
+
+                    if (btn.getAttribute('data-dir') === 'up') {
+                        newVal = oldValue + 1;
+                    } else if (oldValue > 1) {
+                        newVal = oldValue - 1;
+                    }
+
+                    input.value = newVal;
+                    const item_code = input.getAttribute('data-item-code');
+                    this.updateItemQuantity(item_code, newVal);
+                }, true); // Use capture phase
+            }
         }
 
         updateItemQuantity(item_code, qty) {
