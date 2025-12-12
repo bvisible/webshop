@@ -183,9 +183,6 @@ class PaymentHandler:
             }
     
     def handle_payment_success(self, **kwargs):
-        # Save original user to restore later
-        original_user = frappe.session.user
-
         try:
             # Bypass all permission checks - payment is confirmed by payment provider
             # We need to run as Administrator because get_mapped_doc checks permissions
@@ -293,9 +290,6 @@ class PaymentHandler:
                 "status": "error",
                 "message": _("Error processing payment")
             }
-        finally:
-            # Restore original user
-            frappe.set_user(original_user)
 
     def handle_error(self, message):
         error_url = "/payment-failed"
