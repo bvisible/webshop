@@ -243,6 +243,19 @@ class PaymentHandler:
                 sales_order = make_sales_order(quotation.name)
                 sales_order.flags.ignore_permissions = True
                 sales_order.order_type = "Shopping Cart"
+
+                # Update transaction_date to today and recalculate payment schedule
+                # This fixes the "Due Date cannot be before Posting Date" error
+                # when quotation was created on a previous day
+                today = frappe.utils.today()
+                sales_order.transaction_date = today
+                sales_order.delivery_date = today
+                # Clear and recalculate payment schedule with today's date
+                if sales_order.payment_schedule:
+                    for ps in sales_order.payment_schedule:
+                        if ps.due_date and str(ps.due_date) < today:
+                            ps.due_date = today
+
                 sales_order.submit()
                 sales_order_name = sales_order.name
 
