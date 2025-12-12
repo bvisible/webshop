@@ -2741,14 +2741,37 @@ def create_gift_cards_from_invoice(doc, method=None):
 			# Create a gift card for each quantity
 			for i in range(cint(item.qty)):
 				try:
-					# Get coupon_code in gift_card_data field 
+					# Get coupon_code in gift_card_data field
 					gift_card_data = json.loads(item.gift_card_data) if item.gift_card_data else None
-					coupon_code = gift_card_data.get("code") if gift_card_data else None
-					coupon_name = _("Gift card {0} - {1} - {2}").format(
-						format_currency_value(item.rate, currency=sales_invoice.currency),
-						sales_invoice.customer,
-						coupon_code
-					)
+					base_coupon_code = gift_card_data.get("code") if gift_card_data else None
+
+					# Generate unique coupon_code for each quantity
+					# If qty > 1, append index to make it unique
+					if cint(item.qty) > 1 and base_coupon_code:
+						coupon_code = f"{base_coupon_code}-{i+1}"
+					elif not base_coupon_code:
+						# Generate a random unique code if none provided
+						import random
+						import string
+						coupon_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+					else:
+						coupon_code = base_coupon_code
+
+					# Build unique coupon_name with index when qty > 1
+					if cint(item.qty) > 1:
+						coupon_name = _("Gift card {0} - {1} - {2} ({3}/{4})").format(
+							format_currency_value(item.rate, currency=sales_invoice.currency),
+							sales_invoice.customer,
+							coupon_code,
+							i + 1,
+							cint(item.qty)
+						)
+					else:
+						coupon_name = _("Gift card {0} - {1} - {2}").format(
+							format_currency_value(item.rate, currency=sales_invoice.currency),
+							sales_invoice.customer,
+							coupon_code
+						)
 
 					customer = frappe.get_doc("Customer", sales_invoice.customer)
 
