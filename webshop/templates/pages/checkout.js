@@ -1869,33 +1869,33 @@ frappe.ready(function() {
         }
         
         performItemQuantityUpdate(item_code, qty) {
-            // Use Promise chain to ensure proper sequencing
+            // Use nested callback to ensure get_cart_quotation runs AFTER update_cart completes
             frappe.call({
                 method: 'webshop.webshop.shopping_cart.cart.update_cart',
                 args: {
                     item_code: item_code,
                     qty: qty,
                     with_items: true
-                }
-            }).then((r) => {
-                if (r.message) {
-                    // Update cart count
-                    webshop.webshop.shopping_cart.set_cart_count(false);
+                },
+                callback: (r) => {
+                    if (r.message) {
+                        // Update cart count
+                        webshop.webshop.shopping_cart.set_cart_count(false);
 
-                    // Now get fresh cart data AFTER update_cart has completed
-                    return frappe.call({
-                        method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation'
-                    });
+                        // Now get fresh cart data - this call starts AFTER update_cart callback fires
+                        frappe.call({
+                            method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
+                            callback: (result) => {
+                                if (result.message && result.message.doc) {
+                                    this.updateOrderSummaryFromDoc(result.message.doc);
+                                }
+                                this.unfreezeElements(['order-summary']);
+                            }
+                        });
+                    } else {
+                        this.unfreezeElements(['order-summary']);
+                    }
                 }
-                return null;
-            }).then((result) => {
-                if (result && result.message && result.message.doc) {
-                    this.updateOrderSummaryFromDoc(result.message.doc);
-                }
-                this.unfreezeElements(['order-summary']);
-            }).catch((err) => {
-                console.error('Error updating cart quantity:', err);
-                this.unfreezeElements(['order-summary']);
             });
         }
 
