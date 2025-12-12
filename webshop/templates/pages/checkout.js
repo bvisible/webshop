@@ -1869,36 +1869,33 @@ frappe.ready(function() {
         }
         
         performItemQuantityUpdate(item_code, qty) {
+            // Use Promise chain to ensure proper sequencing
             frappe.call({
                 method: 'webshop.webshop.shopping_cart.cart.update_cart',
                 args: {
                     item_code: item_code,
                     qty: qty,
                     with_items: true
-                },
-                callback: (r) => {
-                    if (r.message) {
-                        // Update cart count
-                        webshop.webshop.shopping_cart.set_cart_count(false);
-
-                        // Get updated cart data - use fresh call to ensure we get latest data
-                        // The update_cart response may not include all fields needed for summary
-                        setTimeout(() => {
-                            frappe.call({
-                                method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
-                                async: false,
-                                callback: (result) => {
-                                    if (result.message && result.message.doc) {
-                                        this.updateOrderSummaryFromDoc(result.message.doc);
-                                    }
-                                    this.unfreezeElements(['order-summary']);
-                                }
-                            });
-                        }, 100);
-                    } else {
-                        this.unfreezeElements(['order-summary']);
-                    }
                 }
+            }).then((r) => {
+                if (r.message) {
+                    // Update cart count
+                    webshop.webshop.shopping_cart.set_cart_count(false);
+
+                    // Now get fresh cart data AFTER update_cart has completed
+                    return frappe.call({
+                        method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation'
+                    });
+                }
+                return null;
+            }).then((result) => {
+                if (result && result.message && result.message.doc) {
+                    this.updateOrderSummaryFromDoc(result.message.doc);
+                }
+                this.unfreezeElements(['order-summary']);
+            }).catch((err) => {
+                console.error('Error updating cart quantity:', err);
+                this.unfreezeElements(['order-summary']);
             });
         }
 
