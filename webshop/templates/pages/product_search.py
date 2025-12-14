@@ -85,58 +85,62 @@ def search(query):
 
 @frappe.whitelist(allow_guest=True)
 def product_search(query, limit=10, fuzzy_search=True):
-	search_results = {"from_redisearch": True, "results": []}
+	"""Search products with priority: name > item_code > description.
 
-	if not is_redisearch_enabled():
-		# Redisearch module not enabled
-		search_results["from_redisearch"] = False
-		search_results["results"] = get_product_data(query, 0, limit)
-		return search_results
+	Uses SQL search for comprehensive results across all fields.
+	RediSearch autocomplete is limited to product names only.
+	"""
+	search_results = {"from_redisearch": False, "results": []}
 
 	if not query:
 		return search_results
 
-	# First check if query matches an exact item_code
-	exact_match = frappe.db.get_value(
-		"Website Item", 
-		{"item_code": query, "published": 1}, 
-		["web_item_name", "item_name", "item_code", "brand", "route",
-		 "website_image", "thumbnail", "item_group", "description",
-		 "web_long_description as website_description", "website_warehouse", "ranking"],
-		as_dict=1
-	)
-	
-	if exact_match:
-		search_results["results"] = [exact_match]
+	query = cstr(query).strip()
+	if not query:
 		return search_results
 
-	redis = frappe.cache()
-	query = clean_up_query(query)
+	# Use comprehensive SQL search for better results
+	# This searches in: web_item_name, item_name, item_code, brand, description
+	# with proper ordering (name matches first, then item_code, then description)
+	search_pattern = f"%{query}%"
 
-	# TODO: Check perf/correctness with Suggestions & Query vs only Query
-	# TODO: Use Levenshtein Distance in Query (max=3)
-	redisearch = redis.ft(WEBSITE_ITEM_INDEX)
-	suggestions = redisearch.sugget(
-		WEBSITE_ITEM_NAME_AUTOCOMPLETE,
-		query,
-		num=limit,
-		fuzzy=fuzzy_search and len(query) > 3,
-	)
+	sql_query = """
+		SELECT
+			web_item_name, item_name, item_code, brand, route,
+			website_image, thumbnail, item_group, description,
+			web_long_description as website_description,
+			website_warehouse, ranking,
+			CASE
+				WHEN web_item_name LIKE %(search)s THEN 1
+				WHEN item_name LIKE %(search)s THEN 2
+				WHEN item_code LIKE %(search)s THEN 3
+				WHEN brand LIKE %(search)s THEN 4
+				WHEN web_long_description LIKE %(search)s THEN 5
+				ELSE 6
+			END as match_priority
+		FROM `tabWebsite Item`
+		WHERE published = 1
+		AND (
+			web_item_name LIKE %(search)s
+			OR item_name LIKE %(search)s
+			OR item_code LIKE %(search)s
+			OR brand LIKE %(search)s
+			OR web_long_description LIKE %(search)s
+		)
+		ORDER BY match_priority ASC, ranking DESC, modified DESC
+		LIMIT %(limit)s
+	"""
 
-	# Build a query
-	query_string = query
+	results = frappe.db.sql(sql_query, {
+		"search": search_pattern,
+		"limit": cint(limit)
+	}, as_dict=1)
 
-	for s in suggestions:
-		query_string += f"|('{clean_up_query(s.string)}')"
+	# Remove the match_priority field from results (internal use only)
+	for r in results:
+		r.pop("match_priority", None)
 
-	q = Query(query_string)
-	results = redisearch.search(q)
-
-	search_results["results"] = list(map(convert_to_dict, results.docs))
-	search_results["results"] = sorted(
-		search_results["results"], key=lambda k: frappe.utils.cint(k.get("ranking", 0)), reverse=True
-	)
-
+	search_results["results"] = results
 	return search_results
 
 
