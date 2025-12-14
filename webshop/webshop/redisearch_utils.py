@@ -22,6 +22,57 @@ WEBSITE_ITEM_NAME_AUTOCOMPLETE = "website_items_name_dict"
 WEBSITE_ITEM_CATEGORY_AUTOCOMPLETE = "website_items_category_dict"
 
 
+def rebuild_index_after_clear_cache():
+	"""
+	Wrapper function called by after_clear_cache hook.
+	Ensures index is rebuilt even if decorator would normally skip.
+	"""
+	try:
+		if not is_search_module_loaded():
+			return
+
+		is_enabled = frappe.db.get_single_value("Webshop Settings", "is_redisearch_enabled")
+		if not is_enabled:
+			return
+
+		# Directly call the index creation without decorator check
+		_create_website_items_index_internal()
+	except Exception as e:
+		# Log error but don't break the clear-cache operation
+		frappe.log_error(f"Failed to rebuild search index after clear-cache: {e}", "Redisearch Index Rebuild")
+
+
+def _create_website_items_index_internal():
+	"""Internal function to create index without decorator."""
+	redis = frappe.cache()
+	index = redis.ft(WEBSITE_ITEM_INDEX)
+
+	try:
+		index.dropindex()
+	except ResponseError:
+		pass
+	except Exception:
+		raise_redisearch_error()
+
+	idx_def = IndexDefinition([make_key(WEBSITE_ITEM_KEY_PREFIX)])
+
+	idx_fields = frappe.db.get_single_value("Webshop Settings", "search_index_fields")
+	idx_fields = idx_fields.split(",") if idx_fields else []
+
+	if "web_item_name" in idx_fields:
+		idx_fields.remove("web_item_name")
+
+	idx_fields = [to_search_field(f) for f in idx_fields]
+
+	index.create_index(
+		[TextField("web_item_name", sortable=True)] + idx_fields,
+		definition=idx_def,
+	)
+
+	_reindex_all_web_items_internal()
+	_define_autocomplete_dictionary_internal()
+
+
 def get_indexable_web_fields():
 	"Return valid fields from Website Item that can be searched for."
 	web_item_meta = frappe.get_meta("Website Item", cached=True)
@@ -289,3 +340,55 @@ def raise_redisearch_error():
 	frappe.throw(
 		msg=_("Something went wrong. Check {0}").format(log_link), title=_("Redisearch Error")
 	)
+
+
+def _reindex_all_web_items_internal():
+	"""Internal reindex function without decorator."""
+	items = frappe.get_all("Website Item", fields=get_fields_indexed(), filters={"published": True})
+
+	cache = frappe.cache()
+	for item in items:
+		web_item = create_web_item_map(item)
+		key = make_key(get_cache_key(item.name))
+
+		for field, value in web_item.items():
+			super(RedisWrapper, cache).hset(key, field, value)
+
+		try:
+			add_document_to_index(cache, key, web_item)
+		except Exception:
+			pass
+
+
+def _define_autocomplete_dictionary_internal():
+	"""Internal autocomplete dictionary function without decorator."""
+	cache = frappe.cache()
+
+	try:
+		cache.delete(make_key(WEBSITE_ITEM_NAME_AUTOCOMPLETE))
+		cache.delete(make_key(WEBSITE_ITEM_CATEGORY_AUTOCOMPLETE))
+	except Exception:
+		pass
+
+	# Create items autocomplete
+	ac = cache.ft()
+	items = frappe.get_all(
+		"Website Item", fields=["web_item_name", "item_group"], filters={"published": 1}
+	)
+	for item in items:
+		ac.sugadd(WEBSITE_ITEM_NAME_AUTOCOMPLETE, Suggestion(item.web_item_name))
+
+	# Create item groups autocomplete
+	published_item_groups = frappe.get_all(
+		"Item Group", fields=["name", "route", "weightage"], filters={"show_in_website": 1}
+	)
+	for item_group in published_item_groups:
+		payload = json.dumps({"name": item_group.name, "route": item_group.route})
+		ac.sugadd(
+			WEBSITE_ITEM_CATEGORY_AUTOCOMPLETE,
+			Suggestion(
+				string=item_group.name,
+				score=frappe.utils.flt(item_group.weightage) or 1.0,
+				payload=payload,
+			),
+		)
