@@ -581,22 +581,22 @@
         let autoplayInterval = null;
 
         function updateItemsPerView() {
-          const width = window.innerWidth;
           const carouselWidth = carousel.offsetWidth;
 
-          // Check if carousel is in a narrow container (compact mode)
+          // Use carousel width for breakpoints (not window width)
+          // This ensures proper display when carousel is in a narrow container
           if (carouselWidth < 400) {
             carousel.classList.add('compact-carousel');
             itemsPerView = 1;
+          } else if (carouselWidth < 576) {
+            carousel.classList.remove('compact-carousel');
+            itemsPerView = 1;
+          } else if (carouselWidth < 768) {
+            carousel.classList.remove('compact-carousel');
+            itemsPerView = 2;
           } else {
             carousel.classList.remove('compact-carousel');
-            if (width < 576) {
-              itemsPerView = 1;
-            } else if (width < 992) {
-              itemsPerView = 2;
-            } else {
-              itemsPerView = 3;
-            }
+            itemsPerView = 3;
           }
 
           updateIndicators();
