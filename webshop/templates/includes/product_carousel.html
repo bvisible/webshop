@@ -583,20 +583,18 @@
         function updateItemsPerView() {
           const carouselWidth = carousel.offsetWidth;
 
-          // Use carousel width for breakpoints (not window width)
-          // This ensures proper display when carousel is in a narrow container
-          if (carouselWidth < 400) {
+          // Calculate how many items can fit based on actual carousel width
+          // Each item is ~33.33% of container + 10px margin
+          const itemSlotWidth = Math.floor(carouselWidth * 0.3333) + 10;
+
+          if (carouselWidth < 350) {
+            // Very narrow container - compact mode
             carousel.classList.add('compact-carousel');
             itemsPerView = 1;
-          } else if (carouselWidth < 576) {
-            carousel.classList.remove('compact-carousel');
-            itemsPerView = 1;
-          } else if (carouselWidth < 768) {
-            carousel.classList.remove('compact-carousel');
-            itemsPerView = 2;
           } else {
             carousel.classList.remove('compact-carousel');
-            itemsPerView = 3;
+            // Calculate items that can fit, max 3
+            itemsPerView = Math.min(3, Math.max(1, Math.floor(carouselWidth / itemSlotWidth)));
           }
 
           updateIndicators();
