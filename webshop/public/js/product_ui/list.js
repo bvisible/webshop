@@ -4,9 +4,14 @@ webshop.ProductList = class {
 		- settings: Webshop Settings
 		- products_section: Products Wrapper
 		- preference: If preference is not list view, render but hide
+		- no_render: If true, don't render on construction (for infinite scroll)
 	*/
 	constructor(options) {
 		Object.assign(this, options);
+
+		if (this.no_render) {
+			return; // Don't render, just create instance for get_item_html
+		}
 
 		if (this.preference !== "List View") {
 			this.products_section.addClass("hidden");
@@ -21,17 +26,23 @@ webshop.ProductList = class {
 		let html = `<br><br>`;
 
 		this.items.forEach(item => {
-			let title = item.web_item_name || item.item_name || item.item_code || "";
-			title =  title.length > 200 ? title.substr(0, 200) + "..." : title;
-
-			html += `<div class='row list-row w-100 mb-4'>`;
-			html += me.get_image_html(item, title, me.settings);
-			html += me.get_row_body_html(item, title, me.settings);
-			html += `</div>`;
+			html += me.get_item_html(item);
 		});
 
 		let $product_wrapper = this.products_section;
 		$product_wrapper.append(html);
+	}
+
+	get_item_html(item) {
+		let title = item.web_item_name || item.item_name || item.item_code || "";
+		title = title.length > 200 ? title.substr(0, 200) + "..." : title;
+
+		let html = `<div class='row list-row w-100 mb-4'>`;
+		html += this.get_image_html(item, title, this.settings);
+		html += this.get_row_body_html(item, title, this.settings);
+		html += `</div>`;
+
+		return html;
 	}
 
 	get_image_html(item, title, settings) {

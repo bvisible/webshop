@@ -9,6 +9,7 @@
   "column_break_cysa",
   "default_view_type",
   "default_product_sort",
+  "enable_infinite_scroll",
   "filter_categories_section",
   "enable_field_filters",
   "filter_fields",
@@ -118,6 +119,13 @@
    "fieldtype": "Select",
    "label": "Default Product Sort Order",
    "options": "relevance\nprice_low_to_high\nprice_high_to_low\nnew_arrivals\nrating"
+  },
+  {
+   "default": "0",
+   "description": "Replace pagination with infinite scroll - automatically load more products when scrolling",
+   "fieldname": "enable_infinite_scroll",
+   "fieldtype": "Check",
+   "label": "Enable Infinite Scroll"
   },
   {
    "fieldname": "filter_categories_section",

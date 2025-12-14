@@ -226,3 +226,28 @@ select {
 body[data-path=checkout] #page-checkout .order-summary-wrapper .order-summary .order-summary-title {
 	font-size: 15px;
 }
+
+// Infinite scroll styles
+.infinite-scroll-loader {
+	width: 100%;
+	padding: 2rem 1rem;
+	text-align: center;
+
+	.infinite-scroll-spinner {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+
+		.spinner-border {
+			width: 2rem;
+			height: 2rem;
+			border-width: 0.2em;
+		}
+	}
+
+	.text-muted {
+		color: var(--gray-600);
+		font-size: 0.875rem;
+	}
+}

@@ -4,9 +4,14 @@ webshop.ProductGrid = class {
 		- settings: Webshop Settings
 		- products_section: Products Wrapper
 		- preference: If preference is not grid view, render but hide
+		- no_render: If true, don't render on construction (for infinite scroll)
 	*/
 	constructor(options) {
 		Object.assign(this, options);
+
+		if (this.no_render) {
+			return; // Don't render, just create instance for get_item_html
+		}
 
 		if (this.preference !== "Grid View") {
 			this.products_section.addClass("hidden");
@@ -21,17 +26,23 @@ webshop.ProductGrid = class {
 		let html = ``;
 
 		this.items.forEach(item => {
-			let title = item.web_item_name || item.item_name || item.item_code || "";
-			title =  title.length > 90 ? title.substr(0, 90) + "..." : title;
-
-			html += `<div class="col-sm-4 item-card"><div class="card text-left">`;
-			html += me.get_image_html(item, title);
-			html += me.get_card_body_html(item, title, me.settings);
-			html += `</div></div>`;
+			html += me.get_item_html(item);
 		});
 
 		let $product_wrapper = this.products_section;
 		$product_wrapper.append(html);
+	}
+
+	get_item_html(item) {
+		let title = item.web_item_name || item.item_name || item.item_code || "";
+		title = title.length > 90 ? title.substr(0, 90) + "..." : title;
+
+		let html = `<div class="col-sm-4 item-card"><div class="card text-left">`;
+		html += this.get_image_html(item, title);
+		html += this.get_card_body_html(item, title, this.settings);
+		html += `</div></div>`;
+
+		return html;
 	}
 
 	get_image_html(item, title) {

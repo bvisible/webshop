@@ -84,6 +84,16 @@ webshop.ProductView =  class {
 
 	make(from_filters=false) {
 		this.products_section.empty();
+
+		// Reset infinite scroll state when filters change or on initial load
+		if (from_filters || !this.infinite_scroll_state) {
+			this.infinite_scroll_state = null;
+			if (this.infinite_scroll_observer) {
+				this.infinite_scroll_observer.disconnect();
+				this.infinite_scroll_observer = null;
+			}
+		}
+
 		this.prepare_toolbar();
 		this.get_item_filter_data(from_filters);
 	}
@@ -610,15 +620,22 @@ webshop.ProductView =  class {
 
 	add_paging_section(settings) {
 		$(".product-paging-area").remove();
+		$(".infinite-scroll-loader").remove();
 
 		if (!this.products) return;
+
+		// Check if infinite scroll is enabled
+		if (settings.enable_infinite_scroll) {
+			this.add_infinite_scroll(settings);
+			return;
+		}
 
 		let query_params = frappe.utils.get_query_params();
 		let start = query_params.start ? cint(JSON.parse(query_params.start)) : 0;
 		let page_length = settings.products_per_page || 0;
 		let current_page = Math.floor(start / page_length) + 1;
 		let total_count = this.total_count || this.product_count;
-		
+
 		let total_pages = Math.ceil(total_count / page_length);
 		
 		// Check if discount filter is active
@@ -838,6 +855,206 @@ webshop.ProductView =  class {
 			query_params.start = start;
 			window.location.search = me.get_query_string(query_params);
 		});
+	}
+
+	add_infinite_scroll(settings) {
+		let me = this;
+		let page_length = settings.products_per_page || 12;
+		let total_count = this.total_count || this.product_count;
+		let current_loaded = this.products ? this.products.length : 0;
+
+		// Initialize infinite scroll state
+		if (!this.infinite_scroll_state) {
+			this.infinite_scroll_state = {
+				start: 0,
+				loading: false,
+				all_loaded: false
+			};
+		}
+
+		// Update start position based on currently loaded products
+		this.infinite_scroll_state.start = current_loaded;
+
+		// Check if all products are loaded
+		if (current_loaded >= total_count) {
+			this.infinite_scroll_state.all_loaded = true;
+		}
+
+		// Add loader element at the bottom
+		const translations = window.product_translations || {};
+		const loadingText = translations["Loading more products..."] || "Loading more products...";
+		const allLoadedText = translations["All products loaded"] || "All products loaded";
+		const productsText = translations["products"] || "products";
+
+		let loader_html = `
+			<div class="infinite-scroll-loader text-center py-4">
+				${this.infinite_scroll_state.all_loaded ?
+					`<div class="text-muted">${allLoadedText} (${total_count} ${productsText})</div>` :
+					`<div class="infinite-scroll-spinner" style="display: none;">
+						<div class="spinner-border text-primary" role="status">
+							<span class="sr-only">${loadingText}</span>
+						</div>
+						<div class="mt-2 text-muted">${loadingText}</div>
+					</div>
+					<div class="infinite-scroll-sentinel" style="height: 1px;"></div>`
+				}
+			</div>
+		`;
+
+		this.products_section.append(loader_html);
+
+		// Set up IntersectionObserver for infinite scroll
+		if (!this.infinite_scroll_state.all_loaded && !this.infinite_scroll_observer) {
+			this.setup_infinite_scroll_observer(settings);
+		}
+	}
+
+	setup_infinite_scroll_observer(settings) {
+		let me = this;
+
+		// Clean up existing observer
+		if (this.infinite_scroll_observer) {
+			this.infinite_scroll_observer.disconnect();
+		}
+
+		const sentinel = document.querySelector('.infinite-scroll-sentinel');
+		if (!sentinel) return;
+
+		const options = {
+			root: null,
+			rootMargin: '200px', // Load before reaching the bottom
+			threshold: 0
+		};
+
+		this.infinite_scroll_observer = new IntersectionObserver((entries) => {
+			entries.forEach(entry => {
+				if (entry.isIntersecting && !me.infinite_scroll_state.loading && !me.infinite_scroll_state.all_loaded) {
+					me.load_next_page(settings);
+				}
+			});
+		}, options);
+
+		this.infinite_scroll_observer.observe(sentinel);
+	}
+
+	load_next_page(settings) {
+		let me = this;
+
+		if (this.infinite_scroll_state.loading || this.infinite_scroll_state.all_loaded) {
+			return;
+		}
+
+		this.infinite_scroll_state.loading = true;
+
+		// Show spinner
+		$('.infinite-scroll-spinner').show();
+
+		let args = this.get_query_filters();
+		args.start = this.infinite_scroll_state.start;
+
+		frappe.call({
+			method: "webshop.webshop.api.get_product_filter_data",
+			args: {
+				query_args: args
+			},
+			callback: function(result) {
+				me.infinite_scroll_state.loading = false;
+				$('.infinite-scroll-spinner').hide();
+
+				if (!result || result.exc || !result.message || result.message.exc) {
+					return;
+				}
+
+				const new_items = result.message["items"] || [];
+
+				if (new_items.length === 0) {
+					me.infinite_scroll_state.all_loaded = true;
+					me.update_infinite_scroll_status();
+					return;
+				}
+
+				// Append new products to existing ones
+				me.products = me.products.concat(new_items);
+				me.infinite_scroll_state.start += new_items.length;
+
+				// Check if all products are loaded
+				const total_count = me.total_count || result.message["total_count"];
+				if (me.infinite_scroll_state.start >= total_count) {
+					me.infinite_scroll_state.all_loaded = true;
+				}
+
+				// Append new items to the view
+				me.append_products(new_items, settings);
+
+				// Update status
+				me.update_infinite_scroll_status();
+			},
+			error: function() {
+				me.infinite_scroll_state.loading = false;
+				$('.infinite-scroll-spinner').hide();
+			}
+		});
+	}
+
+	append_products(items, settings) {
+		// Append to grid view
+		if (this.preference === "Grid View") {
+			const $grid = $("#products-grid-area");
+			items.forEach(item => {
+				const html = this.get_grid_item_html(item, settings);
+				$grid.append(html);
+			});
+		} else {
+			// Append to list view
+			const $list = $("#products-list-area");
+			items.forEach(item => {
+				const html = this.get_list_item_html(item, settings);
+				$list.append(html);
+			});
+		}
+	}
+
+	get_grid_item_html(item, settings) {
+		// Reuse ProductGrid logic for consistency
+		const grid = new webshop.ProductGrid({
+			items: [item],
+			products_section: $('<div>'),
+			settings: settings,
+			preference: this.preference,
+			no_render: true
+		});
+		return grid.get_item_html(item);
+	}
+
+	get_list_item_html(item, settings) {
+		// Reuse ProductList logic for consistency
+		const list = new webshop.ProductList({
+			items: [item],
+			products_section: $('<div>'),
+			settings: settings,
+			preference: this.preference,
+			no_render: true
+		});
+		return list.get_item_html(item);
+	}
+
+	update_infinite_scroll_status() {
+		const translations = window.product_translations || {};
+		const allLoadedText = translations["All products loaded"] || "All products loaded";
+		const productsText = translations["products"] || "products";
+		const total_count = this.total_count || this.product_count;
+
+		if (this.infinite_scroll_state.all_loaded) {
+			$('.infinite-scroll-loader').html(
+				`<div class="text-muted py-3">${allLoadedText} (${total_count} ${productsText})</div>`
+			);
+
+			// Disconnect observer
+			if (this.infinite_scroll_observer) {
+				this.infinite_scroll_observer.disconnect();
+				this.infinite_scroll_observer = null;
+			}
+		}
 	}
 
 	re_render_discount_filters() {
