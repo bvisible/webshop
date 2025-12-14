@@ -105,16 +105,20 @@ webshop.ProductView =  class {
 		// Update document title
 		document.title = searchText;
 
-		// Update breadcrumb - find the "All Products" text and replace it
-		const $breadcrumb = $('nav[aria-label="breadcrumb"], .breadcrumb, nav.breadcrumb');
-		if ($breadcrumb.length) {
-			// Find the last breadcrumb item (usually "All Products")
-			const $lastItem = $breadcrumb.find('li:last, span:last').filter(function() {
-				return $(this).text().trim() === __("All Products");
-			});
-			if ($lastItem.length) {
-				$lastItem.text(searchText);
-			}
+		// Update breadcrumb - add search item after Shop
+		const $breadcrumbList = $('nav[aria-label="breadcrumb"] ol.breadcrumb');
+		if ($breadcrumbList.length && !$breadcrumbList.hasClass('search-updated')) {
+			// Add search breadcrumb item at the end
+			const position = $breadcrumbList.find('li').length + 1;
+			$breadcrumbList.append(`
+				<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item active" aria-current="page">
+					<span itemprop="item">
+						<span itemprop="name">${searchText}</span>
+						<meta itemprop="position" content="${position}"/>
+					</span>
+				</li>
+			`);
+			$breadcrumbList.addClass('search-updated');
 		}
 
 		// Pre-fill search box with search term

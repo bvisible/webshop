@@ -1,0 +1,51 @@
+{%- if not no_breadcrumbs -%}
+<div class="breadcrumb-container container">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
+			{# Home link #}
+			<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item">
+				<a itemprop="item" href="/">
+					<span itemprop="name">{{ _("Home") }}</span>
+					<meta itemprop="position" content="1" />
+				</a>
+			</li>
+
+			{# Shop link - always present in webshop pages #}
+			<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item">
+				<a itemprop="item" href="/all-products">
+					<span itemprop="name">{{ _("Shop") }}</span>
+					<meta itemprop="position" content="2" />
+				</a>
+			</li>
+
+			{# Additional parents (excluding Home since we already added it) #}
+			{%- if parents -%}
+				{%- set filtered_parents = [] -%}
+				{%- for parent in parents -%}
+					{%- if parent.route not in ['', '/', 'home', 'all-products'] -%}
+						{%- set _ = filtered_parents.append(parent) -%}
+					{%- endif -%}
+				{%- endfor -%}
+				{%- for parent in filtered_parents[-2:] %}
+				<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item">
+					<a itemprop="item" href="{{ url_prefix }}{{ parent.route | abs_url }}">
+						<span itemprop="name">{{ parent.title or parent.label or parent.name or "" }}</span>
+						<meta itemprop="position" content="{{ loop.index + 2 }}" />
+					</a>
+				</li>
+				{% endfor -%}
+			{%- endif -%}
+
+			{# Current page (if not the all-products page itself) #}
+			{%- if title and title != _("All Products") -%}
+			<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item active" aria-current="page">
+				<span itemprop="item">
+					<span itemprop="name">{{ _(title) }}</span>
+					<meta itemprop="position" content="{{ (filtered_parents|length if filtered_parents is defined else 0) + 3 }}"/>
+				</span>
+			</li>
+			{%- endif -%}
+		</ol>
+	</nav>
+</div>
+{%- endif -%}
