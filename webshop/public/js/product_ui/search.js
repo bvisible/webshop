@@ -84,11 +84,12 @@ webshop.ProductSearch = class {
 		});
 
 		// Handle Enter key to navigate to search results page
-		this.searchBox.on("keypress", (e) => {
-			if (e.key === "Enter") {
+		this.searchBox.on("keydown", (e) => {
+			if (e.key === "Enter" || e.keyCode === 13) {
 				e.preventDefault();
+				e.stopPropagation();
 				let query = e.target.value.trim();
-				if (query.length >= 3) {
+				if (query.length >= 1) {
 					// Hide dropdown and navigate to all-products page with search parameter
 					this.search_dropdown.addClass("hidden");
 					window.location.href = `/all-products?search=${encodeURIComponent(query)}`;
