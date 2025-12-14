@@ -179,32 +179,25 @@
       }
 
       .item-card {
-        flex: 0 0 calc(25% - 30px);
-        margin: 15px;
+        flex: 0 0 calc(33.33% - 10px);
+        margin: 5px;
         box-sizing: border-box;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
-        width: calc(25% - 30px);
-      }
-
-      @media (max-width: 1200px) {
-        .item-card {
-          flex: 0 0 calc(33.33% - 30px);
-          width: calc(33.33% - 30px);
-        }
+        width: calc(33.33% - 10px);
       }
 
       @media (max-width: 992px) {
         .item-card {
-          flex: 0 0 calc(50% - 30px);
-          width: calc(50% - 30px);
+          flex: 0 0 calc(50% - 10px);
+          width: calc(50% - 10px);
         }
       }
 
       /* Compact mode for narrow containers (sidebar recommendations) */
       #{{ unique_carousel_id }}.compact-carousel .item-card {
-        flex: 0 0 calc(100% - 30px) !important;
-        width: calc(100% - 30px) !important;
-        min-width: calc(100% - 30px) !important;
+        flex: 0 0 calc(100% - 10px) !important;
+        width: calc(100% - 10px) !important;
+        min-width: calc(100% - 10px) !important;
       }
 
       #{{ unique_carousel_id }}.compact-carousel .carousel-title {
@@ -529,9 +522,9 @@
 
       @media (max-width: 576px) {
         #{{ unique_carousel_id }} .item-card {
-          flex: 0 0 calc(100% - 30px) !important;
-          width: calc(100% - 30px) !important;
-          min-width: calc(100% - 30px) !important;
+          flex: 0 0 calc(100% - 10px) !important;
+          width: calc(100% - 10px) !important;
+          min-width: calc(100% - 10px) !important;
         }
         #{{ unique_carousel_id }} .carousel-btn {
           width: 35px;
@@ -581,12 +574,12 @@
         const items = carousel.querySelectorAll('.item-card');
         const itemCount = items.length;
         
-        let itemsPerView = 4;
+        let itemsPerView = 3;
         let currentIndex = 0;
         let touchStartX = 0;
         let touchEndX = 0;
         let autoplayInterval = null;
-        
+
         function updateItemsPerView() {
           const width = window.innerWidth;
           const carouselWidth = carousel.offsetWidth;
@@ -601,10 +594,8 @@
               itemsPerView = 1;
             } else if (width < 992) {
               itemsPerView = 2;
-            } else if (width < 1200) {
-              itemsPerView = 3;
             } else {
-              itemsPerView = 4;
+              itemsPerView = 3;
             }
           }
 
@@ -659,7 +650,7 @@
           
           // Calculate the offset in pixels rather than percentage for better precision
           const itemWidth = items[0].offsetWidth;
-          const marginWidth = 30; // Margin of 15px on each side
+          const marginWidth = 10; // Margin of 5px on each side
           const totalItemWidth = itemWidth + marginWidth;
           const offset = currentIndex * totalItemWidth;
           
