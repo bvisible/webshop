@@ -15,9 +15,20 @@ def execute():
 
     # Add gift cards menu if enabled
     if settings.enable_gift_cards:
+        # Remove old route with hyphen if exists
+        old_exists = frappe.db.exists("Portal Menu Item", {
+            "route": "/gift-cards",
+            "parenttype": "Portal Settings"
+        })
+        if old_exists:
+            frappe.db.delete("Portal Menu Item", {
+                "route": "/gift-cards",
+                "parenttype": "Portal Settings"
+            })
+
         add_portal_menu_item_if_not_exists(
             title="Gift cards",
-            route="/gift-cards",
+            route="/gift_cards",
             role="Customer"
         )
 

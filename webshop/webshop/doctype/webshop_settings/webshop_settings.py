@@ -78,38 +78,57 @@ class WebshopSettings(Document):
 		if self.enable_gift_cards == self.enable_gift_cards_pre_save:
 			return
 
-		# Check if entry already exists
+		# Check if entry already exists (check both old and new routes)
 		exists = frappe.db.exists("Portal Menu Item", {
+			"route": "/gift_cards",
+			"parenttype": "Portal Settings"
+		})
+
+		# Also check for old route with hyphen
+		old_exists = frappe.db.exists("Portal Menu Item", {
 			"route": "/gift-cards",
 			"parenttype": "Portal Settings"
 		})
 
 		if self.enable_gift_cards and not exists:
+			# Delete old route if exists
+			if old_exists:
+				frappe.db.delete("Portal Menu Item", {
+					"route": "/gift-cards",
+					"parenttype": "Portal Settings"
+				})
+
 			# Get last idx
 			last_idx = frappe.db.sql("""
-				SELECT MAX(idx) 
-				FROM `tabPortal Menu Item` 
+				SELECT MAX(idx)
+				FROM `tabPortal Menu Item`
 				WHERE parenttype='Portal Settings'
 			""")[0][0] or 0
 
-			# Create menu entry
+			# Create menu entry with new route
 			portal_settings = frappe.get_doc("Portal Settings")
 			portal_settings.append("menu", {
 				"title": "Gift cards",
 				"enabled": 1,
-				"route": "/gift-cards",
+				"route": "/gift_cards",
 				"role": "Customer",
 				"idx": last_idx + 1
 			})
-			
+
 			portal_settings.save()
 
-		elif not self.enable_gift_cards and exists:
-			# Delete menu entry
-			frappe.db.delete("Portal Menu Item", {
-				"route": "/gift-cards",
-				"parenttype": "Portal Settings"
-			})
+		elif not self.enable_gift_cards:
+			# Delete both old and new routes if they exist
+			if exists:
+				frappe.db.delete("Portal Menu Item", {
+					"route": "/gift_cards",
+					"parenttype": "Portal Settings"
+				})
+			if old_exists:
+				frappe.db.delete("Portal Menu Item", {
+					"route": "/gift-cards",
+					"parenttype": "Portal Settings"
+				})
 			frappe.db.commit()
 
 	def update_loyalty_points_menu(self):

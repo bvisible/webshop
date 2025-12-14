@@ -200,6 +200,28 @@
         }
       }
 
+      /* Compact mode for narrow containers (sidebar recommendations) */
+      #{{ unique_carousel_id }}.compact-carousel .item-card {
+        flex: 0 0 calc(100% - 30px) !important;
+        width: calc(100% - 30px) !important;
+        min-width: calc(100% - 30px) !important;
+      }
+
+      #{{ unique_carousel_id }}.compact-carousel .carousel-title {
+        font-size: 1.4em;
+      }
+
+      #{{ unique_carousel_id }}.compact-carousel .card-img-container {
+        padding-top: 100%;
+        min-height: 150px;
+      }
+
+      #{{ unique_carousel_id }}.compact-carousel .carousel-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.9em;
+      }
+
       .item-card:hover {
         transform: translateY(-5px);
       }
@@ -506,32 +528,36 @@
       }
 
       @media (max-width: 576px) {
-        .item-card {
-          flex: 0 0 calc(100% - 30px);
-          width: calc(100% - 30px);
+        #{{ unique_carousel_id }} .item-card {
+          flex: 0 0 calc(100% - 30px) !important;
+          width: calc(100% - 30px) !important;
+          min-width: calc(100% - 30px) !important;
         }
-        .carousel-btn {
+        #{{ unique_carousel_id }} .carousel-btn {
           width: 35px;
           height: 35px;
           font-size: 1em;
         }
-        .product-title {
+        #{{ unique_carousel_id }} .product-title {
           height: auto;
           max-height: none;
           -webkit-line-clamp: 3;
           line-clamp: 3;
         }
-        .carousel-header {
+        #{{ unique_carousel_id }} .carousel-header {
           justify-content: center;
         }
-        .carousel-title {
+        #{{ unique_carousel_id }} .carousel-title {
           font-size: 1.8em;
           text-align: center;
           width: 100%;
         }
-        .btn-view-more {
+        #{{ unique_carousel_id }} .btn-view-more {
           width: 100%;
           text-align: center;
+        }
+        #{{ unique_carousel_id }} .card-img-container {
+          min-height: 200px;
         }
       }
       </style>
@@ -563,15 +589,23 @@
         
         function updateItemsPerView() {
           const width = window.innerWidth;
+          const carouselWidth = carousel.offsetWidth;
 
-          if (width < 576) {
+          // Check if carousel is in a narrow container (compact mode)
+          if (carouselWidth < 400) {
+            carousel.classList.add('compact-carousel');
             itemsPerView = 1;
-          } else if (width < 992) {
-            itemsPerView = 2;
-          } else if (width < 1200) {
-            itemsPerView = 3;
           } else {
-            itemsPerView = 4;
+            carousel.classList.remove('compact-carousel');
+            if (width < 576) {
+              itemsPerView = 1;
+            } else if (width < 992) {
+              itemsPerView = 2;
+            } else if (width < 1200) {
+              itemsPerView = 3;
+            } else {
+              itemsPerView = 4;
+            }
           }
 
           updateIndicators();

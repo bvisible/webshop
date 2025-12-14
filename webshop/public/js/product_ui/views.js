@@ -88,6 +88,48 @@ webshop.ProductView =  class {
 		this.get_item_filter_data(from_filters);
 	}
 
+	update_page_header_for_search() {
+		// Update page header and breadcrumb when search term is present
+		if (!this.search_term) return;
+
+		const searchLabel = __("Search");
+		const searchText = `${searchLabel}: "${this.search_term}"`;
+
+		// Update main page header (first div inside .mb-6 header section)
+		const $header = $('.mb-6.d-flex > div:first-child');
+		if ($header.length && !$header.hasClass('search-updated')) {
+			$header.text(searchText);
+			$header.addClass('search-updated');
+		}
+
+		// Update document title
+		document.title = searchText;
+
+		// Update breadcrumb - find the "All Products" text and replace it
+		const $breadcrumb = $('nav[aria-label="breadcrumb"], .breadcrumb, nav.breadcrumb');
+		if ($breadcrumb.length) {
+			// Find the last breadcrumb item (usually "All Products")
+			const $lastItem = $breadcrumb.find('li:last, span:last').filter(function() {
+				return $(this).text().trim() === __("All Products");
+			});
+			if ($lastItem.length) {
+				$lastItem.text(searchText);
+			}
+		}
+
+		// Pre-fill search box with search term
+		const $searchBox = $('#search-box');
+		if ($searchBox.length && !$searchBox.val()) {
+			$searchBox.val(this.search_term);
+		}
+
+		// Also update the no-jquery search box if present
+		const $searchBoxNoJq = $('#search-box-nojq');
+		if ($searchBoxNoJq.length && !$searchBoxNoJq.val()) {
+			$searchBoxNoJq.val(this.search_term);
+		}
+	}
+
 	prepare_toolbar() {
 		this.products_section.append(`
 			<div class="toolbar d-flex flex-column flex-md-row align-items-center">
@@ -353,6 +395,9 @@ webshop.ProductView =  class {
 		this.from_filters = from_filters;
 		let args = this.get_query_filters();
 
+		// Update page header for search (if search term present)
+		this.update_page_header_for_search();
+
 		this.disable_view_toggler(true);
 		this.show_product_loader();
 
@@ -540,6 +585,12 @@ webshop.ProductView =  class {
 			}
 		}
 
+		// Get search parameter from URL
+		const search = filters.search || null;
+
+		// Store search term for later use (title update, search box prefill)
+		this.search_term = search;
+
 		const result = {
 			field_filters: field_filters,
 			attribute_filters: attribute_filters,
@@ -547,7 +598,8 @@ webshop.ProductView =  class {
 			start: filters.start || null,
 			from_filters: this.from_filters || false,
 			price_range: price_range || null, // Add the price_range parameter to the query
-			sort_order: this.current_sort || 'relevance' // Add sort order
+			sort_order: this.current_sort || 'relevance', // Add sort order
+			search: search // Add search parameter to the query
 		};
 		return result;
 	}

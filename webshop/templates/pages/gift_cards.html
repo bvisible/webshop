@@ -1,0 +1,228 @@
+{% extends "templates/web.html" %}
+
+{% block title %} {{ _("Gift Cards") }} {% endblock %}
+
+{% block header %}<h3 class="shopping-cart-header mt-2 mb-6">{{ _("Gift Cards") }}</h3>{% endblock %}
+
+{% block page_content %}
+<div class="gift-cards-container">
+	{% if not enabled %}
+		<div class="alert alert-info">
+			{{ _("Gift cards feature is not enabled.") }}
+		</div>
+	{% elif not customer %}
+		<div class="alert alert-warning">
+			{{ _("Please log in to view your gift cards.") }}
+		</div>
+	{% elif not has_gift_cards %}
+		<div class="frappe-card p-5 text-center">
+			<div class="empty-state py-4">
+				<img src="/assets/webshop/images/cart-empty-state.png" alt="No gift cards" style="max-width: 150px; opacity: 0.5;">
+				<h5 class="mt-4">{{ _("No gift cards yet") }}</h5>
+				<p class="text-muted">{{ _("You don't have any gift cards in your account.") }}</p>
+				<a href="{{ gift_card_product_url or '/all-products' }}" class="btn btn-primary mt-3">
+					{{ _("Buy a gift card") }}
+				</a>
+			</div>
+		</div>
+	{% else %}
+		<!-- Gift Cards Summary -->
+		<div class="row mb-4">
+			<div class="col-12">
+				<div class="frappe-card p-4">
+					<div class="d-flex align-items-center justify-content-between flex-wrap">
+						<div class="d-flex align-items-center">
+							<div class="gift-card-icon mr-3" style="width: 48px; height: 48px; background: black; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<rect x="3" y="8" width="18" height="12" rx="2" ry="2"></rect>
+									<line x1="12" y1="8" x2="12" y2="20"></line>
+									<path d="M12 8c-2-2-4-4-4-4s2-2 4 0c2-2 4 0 4 0s-2 2-4 4"></path>
+								</svg>
+							</div>
+							<div>
+								<h4 class="mb-0">{{ _("Your Gift Cards") }}</h4>
+								<small class="text-muted">{{ _("Manage your gift cards") }}</small>
+							</div>
+						</div>
+						<div class="mt-3 mt-md-0">
+							<span class="badge badge-dark px-3 py-2" style="font-size: 1rem;">
+								{{ gift_cards|length }} {{ _("card(s)") }}
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Gift Cards List -->
+		<div class="row">
+			{% for card in gift_cards %}
+			<div class="col-md-6 col-lg-4 mb-4">
+				<div class="frappe-card h-100 gift-card-item {{ 'gift-card-expired' if card.status == 'expired' else ('gift-card-used' if card.status == 'used' else '') }}">
+					<div class="gift-card-header p-4 {{ 'bg-secondary' if card.status != 'active' else '' }}" style="{{ 'background: black; color: white;' if card.status == 'active' else '' }}">
+						<div class="d-flex justify-content-between align-items-start">
+							<div>
+								<small class="d-block {{ 'text-light' if card.status == 'active' else 'text-muted' }}" style="{{ 'opacity: 0.8;' if card.status == 'active' else '' }}">{{ _("Gift Card") }}</small>
+								<h3 class="mb-0 mt-1">{{ card.formatted_amount }}</h3>
+							</div>
+							<span class="badge {{ 'badge-success' if card.status == 'active' else ('badge-danger' if card.status == 'expired' else 'badge-secondary') }}">
+								{{ card.status_label }}
+							</span>
+						</div>
+					</div>
+					<div class="gift-card-body p-4">
+						<div class="mb-3">
+							<label class="text-muted small d-block">{{ _("Code") }}</label>
+							<div class="d-flex align-items-center">
+								<code class="gift-card-code mr-2" style="font-size: 1rem; background: #f5f5f5; padding: 4px 8px; border-radius: 4px;">{{ card.coupon_code }}</code>
+								{% if card.status == 'active' %}
+								<button class="btn btn-sm btn-outline-secondary copy-code-btn" data-code="{{ card.coupon_code }}" title="{{ _('Copy code') }}">
+									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+										<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+										<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+									</svg>
+								</button>
+								{% endif %}
+							</div>
+						</div>
+						<div class="row">
+							{% if card.formatted_valid_from %}
+							<div class="col-6 mb-2">
+								<label class="text-muted small d-block">{{ _("Valid from") }}</label>
+								<span>{{ card.formatted_valid_from }}</span>
+							</div>
+							{% endif %}
+							{% if card.formatted_valid_upto %}
+							<div class="col-6 mb-2">
+								<label class="text-muted small d-block">{{ _("Valid until") }}</label>
+								<span class="{{ 'text-danger' if card.status == 'expired' else '' }}">{{ card.formatted_valid_upto }}</span>
+							</div>
+							{% endif %}
+						</div>
+						{% if card.sales_invoice %}
+						<div class="mt-2">
+							<label class="text-muted small d-block">{{ _("Invoice") }}</label>
+							<a href="/invoices/{{ card.sales_invoice }}">{{ card.sales_invoice }}</a>
+						</div>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+			{% endfor %}
+		</div>
+
+		<!-- How to use section -->
+		<div class="frappe-card p-5 mt-4">
+			<h5 class="mb-4">{{ _("How to use your gift card") }}</h5>
+			<div class="row">
+				<div class="col-md-4 mb-3 mb-md-0">
+					<div class="d-flex align-items-start">
+						<span class="badge badge-primary mr-3" style="padding: 8px 12px; background-color: black;">1</span>
+						<div>
+							<strong>{{ _("Shop") }}</strong>
+							<p class="text-muted mb-0 small">{{ _("Add items to your cart") }}</p>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4 mb-3 mb-md-0">
+					<div class="d-flex align-items-start">
+						<span class="badge badge-primary mr-3" style="padding: 8px 12px; background-color: black;">2</span>
+						<div>
+							<strong>{{ _("Apply") }}</strong>
+							<p class="text-muted mb-0 small">{{ _("Enter your gift card code at checkout") }}</p>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="d-flex align-items-start">
+						<span class="badge badge-primary mr-3" style="padding: 8px 12px; background-color: black;">3</span>
+						<div>
+							<strong>{{ _("Save") }}</strong>
+							<p class="text-muted mb-0 small">{{ _("The amount will be deducted from your total") }}</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="text-center mt-4">
+				<a href="/all-products" class="btn btn-primary">
+					{{ _("Start Shopping") }}
+				</a>
+			</div>
+		</div>
+	{% endif %}
+</div>
+
+<style>
+.gift-cards-container .btn-primary {
+	background: black;
+	border: none;
+}
+
+.gift-cards-container .btn-primary:hover {
+	background: #333;
+}
+
+.gift-card-item {
+	transition: transform 0.2s, box-shadow 0.2s;
+	overflow: hidden;
+}
+
+.gift-card-item:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.gift-card-expired,
+.gift-card-used {
+	opacity: 0.7;
+}
+
+.gift-card-header {
+	border-radius: 8px 8px 0 0;
+}
+
+.copy-code-btn {
+	padding: 4px 8px;
+}
+
+.copy-code-btn:hover {
+	background: #e9ecef;
+}
+
+.badge-dark {
+	background-color: black;
+}
+</style>
+
+{% endblock %}
+
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	// Copy code functionality
+	document.querySelectorAll('.copy-code-btn').forEach(function(btn) {
+		btn.addEventListener('click', function() {
+			const code = this.dataset.code;
+			navigator.clipboard.writeText(code).then(function() {
+				frappe.toast({
+					message: __('Code copied to clipboard'),
+					indicator: 'green'
+				});
+			}).catch(function() {
+				// Fallback for older browsers
+				const textarea = document.createElement('textarea');
+				textarea.value = code;
+				document.body.appendChild(textarea);
+				textarea.select();
+				document.execCommand('copy');
+				document.body.removeChild(textarea);
+				frappe.toast({
+					message: __('Code copied to clipboard'),
+					indicator: 'green'
+				});
+			});
+		});
+	});
+});
+</script>
+{% endblock %}
