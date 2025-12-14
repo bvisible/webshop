@@ -119,37 +119,174 @@ webshop.ProductView =  class {
 		const $display = $('.active-filters-display');
 		const $badges = $('.active-filter-badges');
 		$badges.empty();
-		
+
 		let hasActiveFilters = false;
-		
+		const self = this;
+
 		// Check localStorage filters
 		const stockFilter = localStorage.getItem('stock_filter_checked') === 'true';
 		const discountFilter = localStorage.getItem('discount_filter_checked') === 'true';
-		
+
 		if (stockFilter) {
 			hasActiveFilters = true;
 			$badges.append(`
-				<span class="badge badge-info">
-					<i class="fa fa-check"></i> In Stock Only
+				<span class="badge badge-info active-filter-badge" data-filter-type="stock" style="cursor: pointer;">
+					<i class="fa fa-check"></i> ${__("In Stock Only")}
+					<i class="fa fa-times ml-1"></i>
 				</span>
 			`);
 		}
-		
+
 		if (discountFilter) {
 			hasActiveFilters = true;
 			$badges.append(`
-				<span class="badge badge-warning">
-					<i class="fa fa-tag"></i> Discounted Only
+				<span class="badge badge-warning active-filter-badge" data-filter-type="discount" style="cursor: pointer;">
+					<i class="fa fa-tag"></i> ${__("Discounted Only")}
+					<i class="fa fa-times ml-1"></i>
 				</span>
 			`);
 		}
-		
+
+		// Parse URL filters (field_filters, attribute_filters)
+		const urlParams = frappe.utils.get_query_params();
+
+		// Field filters from URL
+		if (urlParams.field_filters) {
+			try {
+				const fieldFilters = JSON.parse(decodeURIComponent(urlParams.field_filters));
+				for (let fieldName in fieldFilters) {
+					const values = fieldFilters[fieldName];
+					if (Array.isArray(values)) {
+						values.forEach(value => {
+							hasActiveFilters = true;
+							// Get display label from checkbox if available
+							const $checkbox = $(`input[data-filter-name="${fieldName}"][data-filter-value="${value}"]`);
+							const displayLabel = $checkbox.length ? $checkbox.next('label').text().trim() || value : value;
+							$badges.append(`
+								<span class="badge badge-secondary active-filter-badge" data-filter-type="field" data-filter-name="${fieldName}" data-filter-value="${value}" style="cursor: pointer;">
+									${displayLabel}
+									<i class="fa fa-times ml-1"></i>
+								</span>
+							`);
+						});
+					}
+				}
+			} catch (e) {
+				console.error("Error parsing field_filters for display:", e);
+			}
+		}
+
+		// Attribute filters from URL
+		if (urlParams.attribute_filters) {
+			try {
+				const attrFilters = JSON.parse(decodeURIComponent(urlParams.attribute_filters));
+				for (let attrName in attrFilters) {
+					const values = attrFilters[attrName];
+					if (Array.isArray(values)) {
+						values.forEach(value => {
+							hasActiveFilters = true;
+							$badges.append(`
+								<span class="badge badge-primary active-filter-badge" data-filter-type="attribute" data-filter-name="${attrName}" data-filter-value="${value}" style="cursor: pointer;">
+									${attrName}: ${value}
+									<i class="fa fa-times ml-1"></i>
+								</span>
+							`);
+						});
+					}
+				}
+			} catch (e) {
+				console.error("Error parsing attribute_filters for display:", e);
+			}
+		}
+
+		// Price range from URL
+		if (urlParams.price_range) {
+			try {
+				const priceRange = JSON.parse(decodeURIComponent(urlParams.price_range));
+				if (priceRange.min || priceRange.max) {
+					hasActiveFilters = true;
+					const minLabel = priceRange.min ? priceRange.min : '0';
+					const maxLabel = priceRange.max ? priceRange.max : '∞';
+					$badges.append(`
+						<span class="badge badge-success active-filter-badge" data-filter-type="price" style="cursor: pointer;">
+							<i class="fa fa-money"></i> ${minLabel} - ${maxLabel}
+							<i class="fa fa-times ml-1"></i>
+						</span>
+					`);
+				}
+			} catch (e) {
+				console.error("Error parsing price_range for display:", e);
+			}
+		}
+
+		// Bind click handlers for removal
+		$badges.find('.active-filter-badge').off('click').on('click', function() {
+			self.remove_active_filter($(this));
+		});
+
 		// Show/hide the display based on active filters
 		if (hasActiveFilters) {
 			$display.show();
 		} else {
 			$display.hide();
 		}
+	}
+
+	remove_active_filter($badge) {
+		const filterType = $badge.data('filter-type');
+		const filterName = $badge.data('filter-name');
+		const filterValue = $badge.data('filter-value');
+
+		if (filterType === 'stock') {
+			// Remove stock filter
+			localStorage.setItem('stock_filter_checked', 'false');
+			$('.stock-filter input').prop('checked', false);
+			if (this.field_filters && this.field_filters['in_stock']) {
+				delete this.field_filters['in_stock'];
+			}
+		} else if (filterType === 'discount') {
+			// Remove discount filter
+			localStorage.setItem('discount_filter_checked', 'false');
+			$('.discount-filter input').prop('checked', false);
+			if (this.field_filters && this.field_filters['discount']) {
+				delete this.field_filters['discount'];
+			}
+		} else if (filterType === 'field') {
+			// Remove field filter
+			if (this.field_filters && this.field_filters[filterName]) {
+				const idx = this.field_filters[filterName].indexOf(filterValue);
+				if (idx > -1) {
+					this.field_filters[filterName].splice(idx, 1);
+				}
+				if (this.field_filters[filterName].length === 0) {
+					delete this.field_filters[filterName];
+				}
+			}
+			// Uncheck the checkbox
+			$(`input[data-filter-name="${filterName}"][data-filter-value="${filterValue}"]`).prop('checked', false);
+		} else if (filterType === 'attribute') {
+			// Remove attribute filter
+			if (this.attribute_filters && this.attribute_filters[filterName]) {
+				const idx = this.attribute_filters[filterName].indexOf(filterValue);
+				if (idx > -1) {
+					this.attribute_filters[filterName].splice(idx, 1);
+				}
+				if (this.attribute_filters[filterName].length === 0) {
+					delete this.attribute_filters[filterName];
+				}
+			}
+			// Uncheck the checkbox
+			$(`input[data-attribute-name="${filterName}"][data-attribute-value="${filterValue}"]`).prop('checked', false);
+		} else if (filterType === 'price') {
+			// Clear price range
+			this.price_range = {};
+			$('#min-price').val('');
+			$('#max-price').val('');
+		}
+
+		// Refresh products with updated filters
+		this.from_filters = true;
+		this.change_route_with_filters();
 	}
 
 	prepare_view_toggler() {
