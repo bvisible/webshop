@@ -115,8 +115,9 @@ def product_search(query, limit=10, fuzzy_search=True):
 				WHEN item_name LIKE %(search)s THEN 2
 				WHEN item_code LIKE %(search)s THEN 3
 				WHEN brand LIKE %(search)s THEN 4
-				WHEN web_long_description LIKE %(search)s THEN 5
-				ELSE 6
+				WHEN description LIKE %(search)s THEN 5
+				WHEN web_long_description LIKE %(search)s THEN 6
+				ELSE 7
 			END as match_priority
 		FROM `tabWebsite Item`
 		WHERE published = 1
@@ -125,6 +126,7 @@ def product_search(query, limit=10, fuzzy_search=True):
 			OR item_name LIKE %(search)s
 			OR item_code LIKE %(search)s
 			OR brand LIKE %(search)s
+			OR description LIKE %(search)s
 			OR web_long_description LIKE %(search)s
 		)
 		ORDER BY match_priority ASC, ranking DESC, modified DESC
