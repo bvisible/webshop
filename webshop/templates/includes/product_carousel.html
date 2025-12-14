@@ -632,14 +632,15 @@
           btnLeft.style.display = '';
           btnRight.style.display = '';
           indicators.style.display = '';
-          
-          // Disable buttons at boundaries
-          btnLeft.disabled = currentIndex === 0;
-          btnRight.disabled = currentIndex >= Math.max(0, itemCount - itemsPerView);
-          
+
+          // Infinite loop - buttons always enabled when there are more items than visible
+          const hasMultiplePages = itemCount > itemsPerView;
+          btnLeft.disabled = !hasMultiplePages;
+          btnRight.disabled = !hasMultiplePages;
+
           // Update button opacity for visual feedback
-          btnLeft.style.opacity = currentIndex === 0 ? '0.5' : '1';
-          btnRight.style.opacity = currentIndex >= Math.max(0, itemCount - itemsPerView) ? '0.5' : '1';
+          btnLeft.style.opacity = hasMultiplePages ? '1' : '0.5';
+          btnRight.style.opacity = hasMultiplePages ? '1' : '0.5';
         }
         
         function updateCarousel() {
@@ -671,17 +672,23 @@
         btnLeft.addEventListener('click', function() {
           if (currentIndex > 0) {
             currentIndex--;
-            updateCarousel();
-            resetAutoplay();
+          } else {
+            // Infinite loop: go to the end
+            currentIndex = Math.max(0, itemCount - itemsPerView);
           }
+          updateCarousel();
+          resetAutoplay();
         });
-        
+
         btnRight.addEventListener('click', function() {
           if (currentIndex < itemCount - itemsPerView) {
             currentIndex++;
-            updateCarousel();
-            resetAutoplay();
+          } else {
+            // Infinite loop: go back to start
+            currentIndex = 0;
           }
+          updateCarousel();
+          resetAutoplay();
         });
         
         carouselInner.addEventListener('touchstart', function(e) {
@@ -695,21 +702,27 @@
         
         function handleSwipe() {
           const swipeThreshold = 50; // Swipe detection threshold
-          
+
           if (touchEndX < touchStartX - swipeThreshold) {
             // Swipe left (next)
             if (currentIndex < itemCount - itemsPerView) {
               currentIndex++;
-              updateCarousel();
+            } else {
+              // Infinite loop: go back to start
+              currentIndex = 0;
             }
+            updateCarousel();
           }
-          
+
           if (touchEndX > touchStartX + swipeThreshold) {
             // Swipe right (previous)
             if (currentIndex > 0) {
               currentIndex--;
-              updateCarousel();
+            } else {
+              // Infinite loop: go to the end
+              currentIndex = Math.max(0, itemCount - itemsPerView);
             }
+            updateCarousel();
           }
         }
         
