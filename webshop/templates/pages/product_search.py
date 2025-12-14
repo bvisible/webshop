@@ -58,6 +58,7 @@ def get_product_data(search=None, start=0, limit=12):
 					or web_item_name like %(search)s
 					or item_code like %(search)s
 					or brand like %(search)s
+					or item_group like %(search)s
 					or web_long_description like %(search)s)"""
 			search_params = {"search": "%" + cstr(search) + "%"}
 	else:
@@ -100,7 +101,7 @@ def product_search(query, limit=10, fuzzy_search=True):
 		return search_results
 
 	# Use comprehensive SQL search for better results
-	# This searches in: web_item_name, item_name, item_code, brand, description
+	# This searches in: web_item_name, item_name, item_code, brand, item_group, description
 	# with proper ordering (name matches first, then item_code, then description)
 	search_pattern = f"%{query}%"
 
@@ -115,9 +116,10 @@ def product_search(query, limit=10, fuzzy_search=True):
 				WHEN item_name LIKE %(search)s THEN 2
 				WHEN item_code LIKE %(search)s THEN 3
 				WHEN brand LIKE %(search)s THEN 4
-				WHEN description LIKE %(search)s THEN 5
-				WHEN web_long_description LIKE %(search)s THEN 6
-				ELSE 7
+				WHEN item_group LIKE %(search)s THEN 5
+				WHEN description LIKE %(search)s THEN 6
+				WHEN web_long_description LIKE %(search)s THEN 7
+				ELSE 8
 			END as match_priority
 		FROM `tabWebsite Item`
 		WHERE published = 1
@@ -126,6 +128,7 @@ def product_search(query, limit=10, fuzzy_search=True):
 			OR item_name LIKE %(search)s
 			OR item_code LIKE %(search)s
 			OR brand LIKE %(search)s
+			OR item_group LIKE %(search)s
 			OR description LIKE %(search)s
 			OR web_long_description LIKE %(search)s
 		)

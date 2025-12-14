@@ -248,8 +248,22 @@ webshop.ProductSearch = class {
 
 	populateResults(product_results) {
 		if (!product_results || product_results.length === 0) {
-			let empty_html = ``;
-			this.products_container.html(empty_html);
+			// Show "no results" message only if there's a search query
+			const searchQuery = this.searchBox.val().trim();
+			if (searchQuery.length >= 3) {
+				let empty_html = `
+					<div class="no-results-message" style="padding: 20px; text-align: center; color: var(--gray-600);">
+						<div style="font-size: 24px; margin-bottom: 10px;">🔍</div>
+						<div>${__("No products found for")} "<strong>${frappe.utils.escape_html(searchQuery)}</strong>"</div>
+						<div style="font-size: 12px; margin-top: 5px; color: var(--gray-500);">
+							${__("Try a different search term")}
+						</div>
+					</div>
+				`;
+				this.products_container.html(empty_html);
+			} else {
+				this.products_container.html('');
+			}
 			return;
 		}
 
