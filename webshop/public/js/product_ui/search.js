@@ -57,7 +57,7 @@ webshop.ProductSearch = class {
 
 					// Populate product results
 					product_results = data.message ? data.message.product_results : null;
-					
+
 					// Si nous avons des résultats de produits, récupérer les informations de prix
 					if (product_results && product_results.length > 0) {
 						me.fetchProductPrices(product_results, () => {
@@ -81,6 +81,19 @@ webshop.ProductSearch = class {
 			});
 
 			this.search_dropdown.removeClass("hidden");
+		});
+
+		// Handle Enter key to navigate to search results page
+		this.searchBox.on("keypress", (e) => {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				let query = e.target.value.trim();
+				if (query.length >= 3) {
+					// Hide dropdown and navigate to all-products page with search parameter
+					this.search_dropdown.addClass("hidden");
+					window.location.href = `/all-products?search=${encodeURIComponent(query)}`;
+				}
+			}
 		});
 	}
 
@@ -243,12 +256,12 @@ webshop.ProductSearch = class {
 
 		product_results.forEach((res) => {
 			let thumbnail = res.thumbnail || '/assets/webshop/images/cart-empty-state.png';
-			
+
 			// Préparer l'affichage du prix
 			let priceHtml = '';
 			if (res.formatted_price) {
 				priceHtml = `<div class="product-price">${res.formatted_price}`;
-				
+
 				// Ajouter le prix barré et la réduction si disponibles
 				if (res.formatted_mrp) {
 					priceHtml += `
@@ -260,12 +273,12 @@ webshop.ProductSearch = class {
 						</small>
 					`;
 				}
-				
+
 				priceHtml += '</div>';
 			} else if (res.price_stock_uom) {
 				priceHtml = `<div class="product-price">${res.price_stock_uom}</div>`;
 			}
-			
+
 			html += `
 				<div class="dropdown-item" style="display: flex;">
 					<img class="item-thumb col-2" src=${encodeURI(thumbnail)} />
@@ -277,6 +290,17 @@ webshop.ProductSearch = class {
 				</div>
 			`;
 		});
+
+		// Add "View all results" link
+		const searchQuery = this.searchBox.val().trim();
+		html += `
+			<div class="see-all-results" style="padding: 10px 15px; border-top: 1px solid #ededed; text-align: center;">
+				<a href="/all-products?search=${encodeURIComponent(searchQuery)}"
+				   style="text-decoration: none; color: var(--primary, #007bff); font-weight: 500;">
+					${__("View all results")} &rarr;
+				</a>
+			</div>
+		`;
 
 		this.products_container.html(html);
 	}
