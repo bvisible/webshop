@@ -801,12 +801,12 @@ class ProductQuery:
 		if not words:
 			return
 
-		# For single word search, use simple LIKE with case-insensitive matching
+		# For single word search, use simple LIKE
+		# Note: MariaDB/MySQL LIKE is case-insensitive by default with utf8 collations
 		if len(words) == 1:
 			search = "%{}%".format(words[0])
 			for field in search_fields:
-				# Use case-insensitive LIKE by comparing lowercase
-				self.or_filters.append([f"LOWER(`{field}`)", "like", search])
+				self.or_filters.append([field, "like", search])
 		else:
 			# For multi-word search, we need ALL words to match in ANY of the fields
 			# This is done by building a custom SQL condition stored in _search_sql_condition
