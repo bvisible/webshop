@@ -670,12 +670,15 @@
         }
         
         btnLeft.addEventListener('click', function() {
+          console.log('Previous clicked - before:', currentIndex, 'itemCount:', itemCount, 'itemsPerView:', itemsPerView);
           if (currentIndex > 0) {
             currentIndex--;
           } else {
             // Infinite loop: go to the end
             currentIndex = Math.max(0, itemCount - itemsPerView);
+            console.log('Looping to end:', currentIndex);
           }
+          console.log('Previous clicked - after:', currentIndex);
           updateCarousel();
           resetAutoplay();
         });
