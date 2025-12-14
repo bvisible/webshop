@@ -47,12 +47,20 @@ def _create_website_items_index_internal():
 	redis = frappe.cache()
 	index = redis.ft(WEBSITE_ITEM_INDEX)
 
+	# Drop existing index - try both RediSearch 2.x and 1.x methods
 	try:
-		index.dropindex()
-	except ResponseError:
-		pass
+		index.dropindex()  # RediSearch 2.x
+	except ResponseError as e:
+		if "unknown command" in str(e).lower():
+			try:
+				# RediSearch 1.x uses FT.DROP
+				from frappe.utils.redis_wrapper import RedisWrapper
+				super(RedisWrapper, redis).execute_command("FT.DROP", redis.make_key(WEBSITE_ITEM_INDEX))
+			except ResponseError:
+				pass  # Index might not exist
+		# else: index doesn't exist, which is fine
 	except Exception:
-		raise_redisearch_error()
+		pass  # Ignore other errors
 
 	idx_def = IndexDefinition([make_key(WEBSITE_ITEM_KEY_PREFIX)])
 
