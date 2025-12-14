@@ -18,11 +18,14 @@
 				</a>
 			</li>
 
-			{# Additional parents (excluding Home since we already added it) #}
+			{# Additional parents (excluding Home and All Products since we already have Shop link) #}
 			{%- if parents -%}
 				{%- set filtered_parents = [] -%}
+				{%- set excluded_routes = ['', '/', 'home', 'all-products', '/all-products'] -%}
+				{%- set excluded_titles = ['Home', 'All Products', 'Shop'] -%}
 				{%- for parent in parents -%}
-					{%- if parent.route not in ['', '/', 'home', 'all-products'] -%}
+					{%- set parent_title = parent.title or parent.label or parent.name or '' -%}
+					{%- if parent.route not in excluded_routes and parent_title not in excluded_titles -%}
 						{%- set _ = filtered_parents.append(parent) -%}
 					{%- endif -%}
 				{%- endfor -%}
