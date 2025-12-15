@@ -49,6 +49,8 @@ class ProductQuery:
 		# For multi-word search with custom SQL
 		self._search_sql_condition = None
 		self._search_values = []
+		# Store search term for match priority ordering
+		self._search_term = None
 
 	def query(self, attributes=None, fields=None, search_term=None, start=0, item_group=None, price_condition=None, sort_order=None):
 		"""
@@ -220,8 +222,8 @@ class ProductQuery:
 		page_length = self.page_length
 		effective_start = start
 
-		# If we have a custom SQL search condition (multi-word search), use SQL query
-		if self._search_sql_condition:
+		# If we have a search term, use custom SQL to support match priority ordering
+		if self._search_term:
 			items = self._query_items_with_custom_search(
 				page_length, effective_start, order_by
 			)
@@ -256,6 +258,11 @@ class ProductQuery:
 		conditions = []
 		values = []
 
+		# Add match priority values first (they come before WHERE clause values)
+		priority_sql, priority_values = self._get_match_priority_sql()
+		if priority_sql:
+			values.extend(priority_values)
+
 		for filter_item in self.filters:
 			if isinstance(filter_item, list) and len(filter_item) >= 3:
 				field, operator, value = filter_item[0], filter_item[1], filter_item[2]
@@ -271,25 +278,51 @@ class ProductQuery:
 					if value == "not set":
 						conditions.append(f"`{field}` IS NULL")
 
-		# Add the custom search condition
+		# Add the custom search condition (for multi-word search)
 		if self._search_sql_condition:
 			conditions.append(f"({self._search_sql_condition})")
 			values.extend(self._search_values)
+		# Handle single-word search with or_filters
+		elif self.or_filters:
+			or_conditions = []
+			for or_filter in self.or_filters:
+				if isinstance(or_filter, list) and len(or_filter) >= 3:
+					field, operator, value = or_filter[0], or_filter[1], or_filter[2]
+					if operator == "like":
+						or_conditions.append(f"`{field}` LIKE %s")
+						values.append(value)
+			if or_conditions:
+				conditions.append(f"({' OR '.join(or_conditions)})")
 
 		# Build WHERE clause
 		where_clause = " AND ".join(conditions) if conditions else "1=1"
 
-		# Build and execute query
-		query = f"""
-			SELECT {field_list}
-			FROM `tabWebsite Item`
-			WHERE {where_clause}
-			ORDER BY {order_by}
-			LIMIT %s OFFSET %s
-		"""
+		# Build ORDER BY with match priority if search is active
+		if priority_sql:
+			final_order_by = f"match_priority ASC, {order_by}"
+			query = f"""
+				SELECT {field_list}, {priority_sql} as match_priority
+				FROM `tabWebsite Item`
+				WHERE {where_clause}
+				ORDER BY {final_order_by}
+				LIMIT %s OFFSET %s
+			"""
+		else:
+			query = f"""
+				SELECT {field_list}
+				FROM `tabWebsite Item`
+				WHERE {where_clause}
+				ORDER BY {order_by}
+				LIMIT %s OFFSET %s
+			"""
 		values.extend([page_length, start])
 
 		results = frappe.db.sql(query, values, as_dict=True)
+
+		# Remove match_priority from results (internal use only)
+		for r in results:
+			r.pop("match_priority", None)
+
 		return results
 	
 	def query_items_with_discount_filter(self, start=0):
@@ -774,6 +807,8 @@ class ProductQuery:
 			return
 
 		search_term = search_term.strip()
+		# Store for match priority ordering
+		self._search_term = search_term
 
 		# First check if search term matches an exact item_code (case-insensitive)
 		exact_match = frappe.db.exists("Website Item", {"item_code": search_term})
@@ -837,7 +872,47 @@ class ProductQuery:
 
 		# ALL words must match (AND between word conditions)
 		self._search_sql_condition = " AND ".join(word_conditions)
-			
+
+	def _get_match_priority_sql(self, table_alias=""):
+		"""Generate SQL CASE WHEN clause for search match priority.
+
+		Priority order (lower is better):
+		1. web_item_name match
+		2. item_name match
+		3. item_code match
+		4. brand match
+		5. item_group match
+		6. description match
+		7. web_long_description match
+		8. No match (fallback)
+
+		Args:
+			table_alias (str): Table alias prefix (e.g., "wi." or "")
+
+		Returns:
+			tuple: (case_sql, values) or (None, []) if no search term
+		"""
+		if not self._search_term:
+			return None, []
+
+		search_pattern = f"%{self._search_term}%"
+		prefix = f"{table_alias}." if table_alias else ""
+
+		case_sql = f"""
+			CASE
+				WHEN {prefix}`web_item_name` LIKE %s THEN 1
+				WHEN {prefix}`item_name` LIKE %s THEN 2
+				WHEN {prefix}`item_code` LIKE %s THEN 3
+				WHEN {prefix}`brand` LIKE %s THEN 4
+				WHEN {prefix}`item_group` LIKE %s THEN 5
+				WHEN {prefix}`description` LIKE %s THEN 6
+				WHEN {prefix}`web_long_description` LIKE %s THEN 7
+				ELSE 8
+			END
+		"""
+		values = [search_pattern] * 7
+		return case_sql, values
+
 	def build_price_filters(self, price_condition):
 		"""Build price filters to filter products by price range.
 		
