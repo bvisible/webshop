@@ -92,11 +92,6 @@
   "hide_price_for_guest",
   "redirect_on_action",
   "tab_advanced",
-  "item_search_settings_section",
-  "redisearch_warning",
-  "search_index_fields",
-  "is_redisearch_enabled",
-  "is_redisearch_loaded",
   "sitemap_section",
   "sitemap_info",
   "column_break_sitemap",
@@ -512,32 +507,6 @@
    "label": "Enable Reviews and Ratings"
   },
   {
-   "fieldname": "search_index_fields",
-   "fieldtype": "Small Text",
-   "label": "Search Index Fields",
-   "mandatory_depends_on": "is_redisearch_enabled",
-   "read_only_depends_on": "eval:!doc.is_redisearch_loaded"
-  },
-  {
-   "fieldname": "item_search_settings_section",
-   "fieldtype": "Section Break",
-   "label": "Item Search Settings"
-  },
-  {
-   "default": "0",
-   "fieldname": "is_redisearch_loaded",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Is Redisearch Loaded"
-  },
-  {
-   "depends_on": "eval:!doc.is_redisearch_loaded",
-   "fieldname": "redisearch_warning",
-   "fieldtype": "HTML",
-   "label": "Redisearch Warning",
-   "options": "<p class=\"alert alert-warning\">Redisearch is not loaded. If you want to use the advanced product search feature, refer <a class=\"alert-link\" href=\"https://docs.frappe.io/erpnext/user/manual/en/installing_redisearch_to_enable_super_fast_e_commerce_search\" target=\"_blank\">here</a>.</p>"
-  },
-  {
    "default": "0",
    "depends_on": "eval:doc.show_price",
    "fieldname": "hide_price_for_guest",
@@ -585,13 +554,6 @@
    "fieldname": "show_price_in_quotation",
    "fieldtype": "Check",
    "label": "Show Price in Quotation"
-  },
-  {
-   "default": "0",
-   "fieldname": "is_redisearch_enabled",
-   "fieldtype": "Check",
-   "label": "Enable Redisearch",
-   "read_only_depends_on": "eval:!doc.is_redisearch_loaded"
   },
   {
    "default": "0",
