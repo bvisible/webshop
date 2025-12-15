@@ -335,6 +335,12 @@ function render_category_order_tree(frm) {
 				<button class="btn btn-default btn-sm btn-refresh-tree ml-2">
 					<i class="fa fa-refresh"></i> ${__('Refresh')}
 				</button>
+				<button class="btn btn-default btn-sm btn-collapse-all ml-2">
+					<i class="fa fa-compress"></i> ${__('Collapse All')}
+				</button>
+				<button class="btn btn-default btn-sm btn-expand-all ml-2">
+					<i class="fa fa-expand"></i> ${__('Expand All')}
+				</button>
 				<span class="ml-3 text-muted category-order-help">
 					${__('Drag and drop categories to reorder. Higher weightage = displayed first.')}
 				</span>
@@ -393,6 +399,32 @@ function render_category_order_tree(frm) {
 			.category-order-container .category-tree-item:not(.is-group) .item-label::before {
 				content: '📄 ';
 			}
+			.category-order-container .category-tree-item .toggle-children {
+				cursor: pointer;
+				margin-right: 8px;
+				color: var(--text-muted);
+				font-size: 11px;
+				width: 20px;
+				text-align: center;
+				user-select: none;
+				padding: 2px 4px;
+				border-radius: 3px;
+				transition: background-color 0.2s, color 0.2s;
+			}
+			.category-order-container .category-tree-item .toggle-children:hover {
+				color: var(--primary);
+				background: var(--hover-bg);
+			}
+			.category-order-container .category-children {
+				transition: max-height 0.3s ease-out;
+				overflow: hidden;
+			}
+			.category-order-container .category-children.collapsed {
+				display: none;
+			}
+			.category-order-container .category-tree-item.has-children {
+				background: var(--subtle-fg);
+			}
 			.category-order-container .drop-zone {
 				min-height: 10px;
 				transition: all 0.2s;
@@ -418,6 +450,17 @@ function render_category_order_tree(frm) {
 
 	wrapper.find('.btn-save-order').on('click', function() {
 		save_category_order(wrapper);
+	});
+
+	// Collapse/Expand all buttons
+	wrapper.find('.btn-collapse-all').on('click', function() {
+		wrapper.find('.category-children').addClass('collapsed');
+		wrapper.find('.toggle-children').text('▶');
+	});
+
+	wrapper.find('.btn-expand-all').on('click', function() {
+		wrapper.find('.category-children').removeClass('collapsed');
+		wrapper.find('.toggle-children').text('▼');
 	});
 }
 
@@ -458,14 +501,16 @@ function render_tree_nodes(container, nodes, level) {
 	nodes.forEach((node, index) => {
 		// Calculate weightage based on position (higher position = higher weightage)
 		const baseWeightage = (nodes.length - index) * 10;
+		const hasChildren = node.children && node.children.length > 0;
 
 		const item = $(`
-			<div class="category-tree-item ${node.is_group ? 'is-group' : ''}"
+			<div class="category-tree-item ${node.is_group ? 'is-group' : ''} ${hasChildren ? 'has-children' : ''}"
 				 data-name="${node.name}"
 				 data-level="${level}"
 				 data-weightage="${node.weightage || baseWeightage}"
 				 draggable="true">
 				<span class="drag-handle">☰</span>
+				${hasChildren ? '<span class="toggle-children">▼</span>' : '<span class="toggle-placeholder" style="width: 24px; display: inline-block;"></span>'}
 				<span class="item-label">${node.label}</span>
 				<input type="number" class="item-weightage" value="${node.weightage || baseWeightage}"
 					   title="${__('Weightage - higher values appear first')}" />
@@ -475,8 +520,8 @@ function render_tree_nodes(container, nodes, level) {
 		container.append(item);
 
 		// Render children if any
-		if (node.children && node.children.length > 0) {
-			const children_container = $('<div class="category-children"></div>');
+		if (hasChildren) {
+			const children_container = $('<div class="category-children" data-parent="' + node.name + '"></div>');
 			container.append(children_container);
 			render_tree_nodes(children_container, node.children, level + 1);
 		}
@@ -553,6 +598,20 @@ function init_drag_and_drop(wrapper) {
 	// Also handle weightage input changes
 	wrapper.find('.item-weightage').on('change', function() {
 		wrapper.find('.btn-save-order').prop('disabled', false);
+	});
+
+	// Handle individual toggle button clicks
+	wrapper.find('.toggle-children').on('click', function(e) {
+		e.stopPropagation();
+		const toggle = $(this);
+		const parent_item = toggle.closest('.category-tree-item');
+		const parent_name = parent_item.data('name');
+		const children_container = parent_item.next('.category-children');
+
+		if (children_container.length) {
+			children_container.toggleClass('collapsed');
+			toggle.text(children_container.hasClass('collapsed') ? '▶' : '▼');
+		}
 	});
 }
 
