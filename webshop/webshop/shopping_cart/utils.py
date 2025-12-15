@@ -45,14 +45,6 @@ def update_website_context(context):
 	if frappe.db.get_single_value("Webshop Settings", "enable_wishlist"):
 		context["include_wishlist"] = True
 
-	# Hide breadcrumb on login, signup, forgot password pages
-	try:
-		path = frappe.local.request.path if frappe.local.request else ""
-		if path in ["/login", "/signup", "/forgot-password", "/update-password"]:
-			context["no_breadcrumbs"] = True
-	except Exception:
-		pass
-
 
 def is_customer():
 	if frappe.session.user and frappe.session.user != "Guest":
