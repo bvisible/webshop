@@ -25,21 +25,9 @@ WEBSITE_ITEM_CATEGORY_AUTOCOMPLETE = "website_items_category_dict"
 def rebuild_index_after_clear_cache():
 	"""
 	Wrapper function called by after_clear_cache hook.
-	Ensures index is rebuilt even if decorator would normally skip.
+	RediSearch is currently disabled - search uses SQL directly.
 	"""
-	try:
-		if not is_search_module_loaded():
-			return
-
-		is_enabled = frappe.db.get_single_value("Webshop Settings", "is_redisearch_enabled")
-		if not is_enabled:
-			return
-
-		# Directly call the index creation without decorator check
-		_create_website_items_index_internal()
-	except Exception as e:
-		# Log error but don't break the clear-cache operation
-		frappe.log_error(f"Failed to rebuild search index after clear-cache: {e}", "Redisearch Index Rebuild")
+	return
 
 
 def _create_website_items_index_internal():
@@ -93,9 +81,8 @@ def get_indexable_web_fields():
 
 
 def is_redisearch_enabled():
-	"Return True only if redisearch is loaded and enabled."
-	is_redisearch_enabled = frappe.db.get_single_value("Webshop Settings", "is_redisearch_enabled")
-	return is_search_module_loaded() and is_redisearch_enabled
+	"Return True only if redisearch is loaded and enabled. Currently disabled - search uses SQL."
+	return False
 
 
 def is_search_module_loaded():
