@@ -441,10 +441,11 @@ def get_category_tree():
 	tree = []
 	group_map = {g.name: g for g in item_groups}
 
-	# Find root groups (parent is "All Item Groups" or empty)
+	# Find root groups (parent not in visible groups = root level for this tree)
 	for group in item_groups:
 		parent = group.parent_item_group
-		if not parent or parent == "All Item Groups":
+		# If parent is not in our visible groups, this is a root node for our tree
+		if not parent or parent not in group_map:
 			tree.append(build_tree_node(group, group_map, item_groups))
 
 	# Sort root level by weightage desc
