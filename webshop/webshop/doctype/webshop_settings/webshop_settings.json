@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "tab_general",
+  "general_settings_section",
   "products_per_page",
   "column_break_cysa",
   "default_view_type",
@@ -135,6 +136,11 @@
    "fieldname": "tab_advanced",
    "fieldtype": "Tab Break",
    "label": "Advanced"
+  },
+  {
+   "fieldname": "general_settings_section",
+   "fieldtype": "Section Break",
+   "label": "General Settings"
   },
   {
    "collapsible": 1,
