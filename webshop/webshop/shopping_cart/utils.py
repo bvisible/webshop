@@ -40,10 +40,18 @@ def clear_cart_count(login_manager):
 def update_website_context(context):
 	cart_enabled = is_cart_enabled()
 	context["shopping_cart_enabled"] = cart_enabled
-	
+
 	# Include wishlist component in all pages
 	if frappe.db.get_single_value("Webshop Settings", "enable_wishlist"):
 		context["include_wishlist"] = True
+
+	# Hide breadcrumb on login, signup, forgot password pages
+	try:
+		path = frappe.local.request.path if frappe.local.request else ""
+		if path in ["/login", "/signup", "/forgot-password", "/update-password"]:
+			context["no_breadcrumbs"] = True
+	except Exception:
+		pass
 
 
 def is_customer():
