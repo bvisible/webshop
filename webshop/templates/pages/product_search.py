@@ -59,6 +59,7 @@ def get_product_data(search=None, start=0, limit=12):
 					or item_code like %(search)s
 					or brand like %(search)s
 					or item_group like %(search)s
+					or description like %(search)s
 					or web_long_description like %(search)s)"""
 			search_params = {"search": "%" + cstr(search) + "%"}
 	else:
