@@ -421,3 +421,90 @@ def check_shopping_cart_enabled():
 
 def show_attachments():
 	return get_shopping_cart_settings().show_attachments
+
+
+@frappe.whitelist()
+def get_category_tree():
+	"""
+	Get all Item Groups in a tree structure for ordering.
+	Returns hierarchical data with current weightage values.
+	"""
+	# Get all item groups that are shown on website
+	item_groups = frappe.get_all(
+		"Item Group",
+		filters={"show_in_website": 1},
+		fields=["name", "item_group_name", "parent_item_group", "weightage", "is_group", "lft", "rgt"],
+		order_by="lft"
+	)
+
+	# Build tree structure
+	tree = []
+	group_map = {g.name: g for g in item_groups}
+
+	# Find root groups (parent is "All Item Groups" or empty)
+	for group in item_groups:
+		parent = group.parent_item_group
+		if not parent or parent == "All Item Groups":
+			tree.append(build_tree_node(group, group_map, item_groups))
+
+	# Sort root level by weightage desc
+	tree.sort(key=lambda x: (-(x.get("weightage") or 0), x.get("name", "")))
+
+	return tree
+
+
+def build_tree_node(group, group_map, all_groups):
+	"""Build a tree node with children recursively."""
+	node = {
+		"name": group.name,
+		"label": group.item_group_name or group.name,
+		"weightage": group.weightage or 0,
+		"is_group": group.is_group,
+		"children": []
+	}
+
+	# Find children
+	for g in all_groups:
+		if g.parent_item_group == group.name:
+			child_node = build_tree_node(g, group_map, all_groups)
+			node["children"].append(child_node)
+
+	# Sort children by weightage desc
+	node["children"].sort(key=lambda x: (-(x.get("weightage") or 0), x.get("name", "")))
+
+	return node
+
+
+@frappe.whitelist()
+def save_category_order(order_data):
+	"""
+	Save the category order by updating weightage on Item Groups.
+
+	Args:
+		order_data: JSON string with array of {name, weightage} objects
+	"""
+	import json
+
+	if isinstance(order_data, str):
+		order_data = json.loads(order_data)
+
+	# Validate permissions
+	if not frappe.has_permission("Item Group", "write"):
+		frappe.throw(_("You don't have permission to modify Item Groups"))
+
+	updated = []
+	for item in order_data:
+		name = item.get("name")
+		weightage = item.get("weightage", 0)
+
+		if name and frappe.db.exists("Item Group", name):
+			frappe.db.set_value("Item Group", name, "weightage", weightage, update_modified=False)
+			updated.append(name)
+
+	frappe.db.commit()
+
+	return {
+		"success": True,
+		"message": _("{0} categories updated").format(len(updated)),
+		"updated": updated
+	}

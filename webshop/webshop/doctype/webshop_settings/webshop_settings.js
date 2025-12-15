@@ -9,12 +9,14 @@ frappe.ui.form.on("Webshop Settings", {
 		}
 
 		frm.set_query('payment_gateway_account', function() {
-			return { 'filters': { 
-				'payment_channel': ['in', ["Email", "Phone"]] 
+			return { 'filters': {
+				'payment_channel': ['in', ["Email", "Phone"]]
 			 } };
 		});
 	},
 	refresh: function(frm) {
+		// Initialize Category Order Tree
+		render_category_order_tree(frm);
 		if (frm.doc.enabled) {
 			frm.get_field('store_page_docs').$wrapper.removeClass('hide-control').html(
 				`<div>${__("Follow these steps to create a landing page for your store")}:
@@ -317,3 +319,284 @@ frappe.ui.form.on("Webshop Settings", {
 		}
 	}
 });
+
+// Category Order Tree Functions
+function render_category_order_tree(frm) {
+	const wrapper = frm.fields_dict.category_order_html.$wrapper;
+	wrapper.empty();
+
+	// Create container
+	const container = $(`
+		<div class="category-order-container">
+			<div class="category-order-toolbar mb-3">
+				<button class="btn btn-primary btn-sm btn-save-order" disabled>
+					<i class="fa fa-save"></i> ${__('Save Order')}
+				</button>
+				<button class="btn btn-default btn-sm btn-refresh-tree ml-2">
+					<i class="fa fa-refresh"></i> ${__('Refresh')}
+				</button>
+				<span class="ml-3 text-muted category-order-help">
+					${__('Drag and drop categories to reorder. Higher weightage = displayed first.')}
+				</span>
+			</div>
+			<div class="category-tree-wrapper" style="border: 1px solid var(--border-color); border-radius: 4px; padding: 10px; min-height: 100px; background: var(--fg-color);">
+				<div class="category-tree-loading text-center text-muted py-4">
+					<i class="fa fa-spinner fa-spin"></i> ${__('Loading categories...')}
+				</div>
+				<div class="category-tree"></div>
+			</div>
+		</div>
+		<style>
+			.category-order-container .category-tree-item {
+				padding: 8px 12px;
+				margin: 4px 0;
+				background: var(--bg-color);
+				border: 1px solid var(--border-color);
+				border-radius: 4px;
+				cursor: move;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+			}
+			.category-order-container .category-tree-item:hover {
+				background: var(--hover-bg);
+			}
+			.category-order-container .category-tree-item.dragging {
+				opacity: 0.5;
+				border: 2px dashed var(--primary);
+			}
+			.category-order-container .category-tree-item .item-label {
+				flex: 1;
+				font-weight: 500;
+			}
+			.category-order-container .category-tree-item .item-weightage {
+				width: 60px;
+				text-align: center;
+				padding: 2px 6px;
+				border: 1px solid var(--border-color);
+				border-radius: 3px;
+				font-size: 12px;
+			}
+			.category-order-container .category-tree-item .drag-handle {
+				cursor: move;
+				color: var(--text-muted);
+				margin-right: 10px;
+			}
+			.category-order-container .category-children {
+				margin-left: 25px;
+				border-left: 2px solid var(--border-color);
+				padding-left: 10px;
+			}
+			.category-order-container .category-tree-item.is-group .item-label::before {
+				content: '📁 ';
+			}
+			.category-order-container .category-tree-item:not(.is-group) .item-label::before {
+				content: '📄 ';
+			}
+			.category-order-container .drop-zone {
+				min-height: 10px;
+				transition: all 0.2s;
+			}
+			.category-order-container .drop-zone.drag-over {
+				background: var(--primary-light);
+				min-height: 40px;
+				border: 2px dashed var(--primary);
+				border-radius: 4px;
+			}
+		</style>
+	`);
+
+	wrapper.append(container);
+
+	// Load the tree
+	load_category_tree(wrapper);
+
+	// Bind events
+	wrapper.find('.btn-refresh-tree').on('click', function() {
+		load_category_tree(wrapper);
+	});
+
+	wrapper.find('.btn-save-order').on('click', function() {
+		save_category_order(wrapper);
+	});
+}
+
+function load_category_tree(wrapper) {
+	const tree_container = wrapper.find('.category-tree');
+	const loading = wrapper.find('.category-tree-loading');
+
+	tree_container.empty();
+	loading.show();
+
+	frappe.call({
+		method: 'webshop.webshop.doctype.webshop_settings.webshop_settings.get_category_tree',
+		callback: function(r) {
+			loading.hide();
+			if (r.message && r.message.length) {
+				render_tree_nodes(tree_container, r.message, 0);
+				init_drag_and_drop(wrapper);
+			} else {
+				tree_container.html(`
+					<div class="text-center text-muted py-4">
+						${__('No categories found. Make sure Item Groups have "Show in Website" enabled.')}
+					</div>
+				`);
+			}
+		},
+		error: function() {
+			loading.hide();
+			tree_container.html(`
+				<div class="text-center text-danger py-4">
+					${__('Error loading categories')}
+				</div>
+			`);
+		}
+	});
+}
+
+function render_tree_nodes(container, nodes, level) {
+	nodes.forEach((node, index) => {
+		// Calculate weightage based on position (higher position = higher weightage)
+		const baseWeightage = (nodes.length - index) * 10;
+
+		const item = $(`
+			<div class="category-tree-item ${node.is_group ? 'is-group' : ''}"
+				 data-name="${node.name}"
+				 data-level="${level}"
+				 data-weightage="${node.weightage || baseWeightage}"
+				 draggable="true">
+				<span class="drag-handle">☰</span>
+				<span class="item-label">${node.label}</span>
+				<input type="number" class="item-weightage" value="${node.weightage || baseWeightage}"
+					   title="${__('Weightage - higher values appear first')}" />
+			</div>
+		`);
+
+		container.append(item);
+
+		// Render children if any
+		if (node.children && node.children.length > 0) {
+			const children_container = $('<div class="category-children"></div>');
+			container.append(children_container);
+			render_tree_nodes(children_container, node.children, level + 1);
+		}
+	});
+}
+
+function init_drag_and_drop(wrapper) {
+	const items = wrapper.find('.category-tree-item');
+
+	items.each(function() {
+		const item = $(this);
+
+		item.on('dragstart', function(e) {
+			e.originalEvent.dataTransfer.setData('text/plain', item.data('name'));
+			item.addClass('dragging');
+			wrapper.find('.category-tree-item').not(item).addClass('drop-zone');
+		});
+
+		item.on('dragend', function(e) {
+			item.removeClass('dragging');
+			wrapper.find('.category-tree-item').removeClass('drop-zone drag-over');
+			update_weightages(wrapper);
+		});
+
+		item.on('dragover', function(e) {
+			e.preventDefault();
+			const dragging = wrapper.find('.dragging');
+			const target = $(this);
+
+			// Only allow drop on same level
+			if (dragging.data('level') === target.data('level') && !target.hasClass('dragging')) {
+				target.addClass('drag-over');
+			}
+		});
+
+		item.on('dragleave', function(e) {
+			$(this).removeClass('drag-over');
+		});
+
+		item.on('drop', function(e) {
+			e.preventDefault();
+			const dragging = wrapper.find('.dragging');
+			const target = $(this);
+
+			// Only allow drop on same level
+			if (dragging.data('level') === target.data('level') && !target.hasClass('dragging')) {
+				// Insert before or after based on position
+				const rect = this.getBoundingClientRect();
+				const midY = rect.top + rect.height / 2;
+
+				if (e.originalEvent.clientY < midY) {
+					dragging.insertBefore(target);
+				} else {
+					// Check if there's a children container after target
+					const nextEl = target.next();
+					if (nextEl.hasClass('category-children')) {
+						dragging.insertAfter(nextEl);
+					} else {
+						dragging.insertAfter(target);
+					}
+				}
+			}
+
+			target.removeClass('drag-over');
+		});
+	});
+
+	// Also handle weightage input changes
+	wrapper.find('.item-weightage').on('change', function() {
+		wrapper.find('.btn-save-order').prop('disabled', false);
+	});
+}
+
+function update_weightages(wrapper) {
+	// Update weightages based on new positions
+	const containers = wrapper.find('.category-tree, .category-children');
+
+	containers.each(function() {
+		const container = $(this);
+		const items = container.children('.category-tree-item');
+		const count = items.length;
+
+		items.each(function(index) {
+			// Higher position (lower index) = higher weightage
+			const newWeightage = (count - index) * 10;
+			$(this).find('.item-weightage').val(newWeightage);
+			$(this).data('weightage', newWeightage);
+		});
+	});
+
+	// Enable save button
+	wrapper.find('.btn-save-order').prop('disabled', false);
+}
+
+function save_category_order(wrapper) {
+	const order_data = [];
+
+	wrapper.find('.category-tree-item').each(function() {
+		const item = $(this);
+		order_data.push({
+			name: item.data('name'),
+			weightage: parseInt(item.find('.item-weightage').val()) || 0
+		});
+	});
+
+	frappe.call({
+		method: 'webshop.webshop.doctype.webshop_settings.webshop_settings.save_category_order',
+		args: {
+			order_data: JSON.stringify(order_data)
+		},
+		freeze: true,
+		freeze_message: __('Saving category order...'),
+		callback: function(r) {
+			if (r.message && r.message.success) {
+				frappe.show_alert({
+					message: r.message.message,
+					indicator: 'green'
+				});
+				wrapper.find('.btn-save-order').prop('disabled', true);
+			}
+		}
+	});
+}

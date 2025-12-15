@@ -78,6 +78,8 @@
   "is_redisearch_loaded",
   "shop_by_category_section",
   "slideshow",
+  "category_order_section",
+  "category_order_html",
   "guest_display_settings_section",
   "hide_price_for_guest",
   "redirect_on_action",
@@ -396,6 +398,17 @@
    "fieldtype": "Link",
    "label": "Slideshow",
    "options": "Website Slideshow"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "category_order_section",
+   "fieldtype": "Section Break",
+   "label": "Category Display Order"
+  },
+  {
+   "fieldname": "category_order_html",
+   "fieldtype": "HTML",
+   "label": "Category Order"
   },
   {
    "fieldname": "add_ons_section",
