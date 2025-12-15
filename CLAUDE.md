@@ -227,17 +227,56 @@ message = _("Product added to cart")
 frappe.msgprint(_("Order placed successfully"))
 ```
 
-**JavaScript**:
+**JavaScript (Website Pages)**:
+
+For website pages (like all-products), use `window.product_translations` which is populated server-side via Jinja:
 ```javascript
-frappe.msgprint(__("Product added to cart"));
-let title = __("Order Details");
+// In the HTML template (index.html), translations are loaded like this:
+window.product_translations = {
+    "Search": {{ _("Search")|json }},
+    "Add to Cart": {{ _("Add to Cart")|json }}
+};
+
+// In JavaScript, use:
+const translations = window.product_translations || {};
+const searchText = translations["Search"] || "Search";
 ```
+
+**Note**: The `__()` function only works on Frappe Desk pages, NOT on website pages. Website pages must use `window.product_translations`.
 
 **Jinja Templates**:
 ```html
 <h1>{{ _("Welcome to our store") }}</h1>
 <button>{{ _("Add to Cart") }}</button>
 ```
+
+### Translation Files Workflow (PO/POT)
+
+Translation files are stored in `webshop/locale/` and **MUST be committed to git**:
+- `main.pot` - Template file with all translatable strings
+- `fr.po` - French translations (and other language files)
+
+**Commands**:
+```bash
+# Generate/update POT template (extracts all translatable strings)
+bench generate-pot-file --app webshop
+
+# Update PO files from POT template
+bench --site sitename update-po-files --app webshop
+
+# Compile PO to MO (binary format used at runtime)
+bench --site sitename compile-po-to-mo --app webshop
+```
+
+**Adding new translatable strings**:
+1. Add the string with `_()` in Python/Jinja or add to `window.product_translations` in HTML templates
+2. Run `bench generate-pot-file --app webshop` to update `main.pot`
+3. Run `bench --site sitename update-po-files --app webshop` to update language PO files
+4. Translate new strings in the PO file (e.g., `webshop/locale/fr.po`)
+5. **Commit and push** the updated PO/POT files to git
+6. On server: `bench --site sitename compile-po-to-mo --app webshop && bench --site sitename clear-cache`
+
+**IMPORTANT**: Always commit translation files (`*.po`, `*.pot`) to git after making changes!
 
 ## Important Conventions
 
