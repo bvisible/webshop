@@ -123,7 +123,7 @@ class ProductFiltersBuilder:
 		# Get all categories with their parent/child information
 		all_item_groups = frappe.get_all(
 			"Item Group",
-			fields=["name", "parent_item_group", "lft", "rgt"],
+			fields=["name", "parent_item_group", "lft", "rgt", "weightage"],
 			filters={
 				"show_in_website": 1,
 				"name": ["in", item_group_values]
@@ -182,8 +182,8 @@ class ProductFiltersBuilder:
 		
 		# Recursive function to build the tree
 		def build_tree(groups):
-			# Sort groups alphabetically before processing
-			sorted_groups = sorted(groups, key=lambda x: x.name.lower())
+			# Sort groups by weightage descending (higher = first), then alphabetically
+			sorted_groups = sorted(groups, key=lambda x: (-(x.weightage or 0), x.name.lower()))
 			result = []
 			for group in sorted_groups:
 				group_data = {
