@@ -5,14 +5,9 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import comma_and, flt, unique
+from frappe.utils import flt
 
-from webshop.webshop.redisearch_utils import (
-	create_website_items_index,
-	define_autocomplete_dictionary,
-	get_indexable_web_fields,
-	is_search_module_loaded,
-)
+from webshop.webshop.redisearch_utils import is_search_module_loaded
 from webshop.webshop.utils.frequently_bought_together import calculate_frequently_bought_together
 
 
@@ -31,7 +26,6 @@ class WebshopSettings(Document):
 		self.validate_field_filters(self.filter_fields, self.enable_field_filters)
 		self.validate_attribute_filters()
 		self.validate_checkout()
-		self.validate_search_index_fields()
 
 		# Désactiver les options en cascade
 		if not self.enabled:
@@ -49,10 +43,6 @@ class WebshopSettings(Document):
 
 		frappe.clear_document_cache("Webshop Settings", "Webshop Settings")
 
-		self.is_redisearch_enabled_pre_save = frappe.db.get_single_value(
-			"Webshop Settings", "is_redisearch_enabled"
-		)
-		
 		# Save current state of enable_gift_cards for comparison in after_save
 		self.enable_gift_cards_pre_save = frappe.db.get_single_value(
 			"Webshop Settings", "enable_gift_cards"
@@ -68,8 +58,6 @@ class WebshopSettings(Document):
 		self.update_loyalty_points_menu()
 
 	def after_save(self):
-		self.create_redisearch_indexes()
-		
 		# Clear currency symbol cache when settings change
 		frappe.cache().delete_value("webshop_hide_currency_symbol")
 	
@@ -170,13 +158,6 @@ class WebshopSettings(Document):
 			})
 			frappe.db.commit()
 
-	def create_redisearch_indexes(self):
-		# if redisearch is enabled (value changed) create indexes and dictionary
-		value_changed = self.is_redisearch_enabled != self.is_redisearch_enabled_pre_save
-		if self.is_redisearch_loaded and self.is_redisearch_enabled and value_changed:
-			define_autocomplete_dictionary()
-			create_website_items_index()
-
 	@staticmethod
 	def validate_field_filters(filter_fields, enable_field_filters):
 		if not (enable_field_filters and filter_fields):
@@ -213,32 +194,6 @@ class WebshopSettings(Document):
 	def validate_checkout(self):
 		if self.enable_checkout and not self.payment_gateway_account:
 			self.enable_checkout = 0
-
-	def validate_search_index_fields(self):
-		if not self.search_index_fields:
-			return
-
-		fields = self.search_index_fields.replace(" ", "")
-		fields = unique(fields.strip(",").split(","))  # Remove extra ',' and remove duplicates
-
-		# All fields should be indexable
-		allowed_indexable_fields = get_indexable_web_fields()
-
-		if not (set(fields).issubset(allowed_indexable_fields)):
-			invalid_fields = list(set(fields).difference(allowed_indexable_fields))
-			num_invalid_fields = len(invalid_fields)
-			invalid_fields = comma_and(invalid_fields)
-
-			if num_invalid_fields > 1:
-				frappe.throw(
-					_("{0} are not valid options for Search Index Field.").format(frappe.bold(invalid_fields))
-				)
-			else:
-				frappe.throw(
-					_("{0} is not a valid option for Search Index Field.").format(frappe.bold(invalid_fields))
-				)
-
-		self.search_index_fields = ",".join(fields)
 
 	def validate_price_list_exchange_rate(self):
 		"Check if exchange rate exists for Price List currency (to Company's currency)."
@@ -321,17 +276,6 @@ class WebshopSettings(Document):
 			)
 
 		return shipping_rules
-
-	def on_change(self):
-		old_doc = self.get_doc_before_save()
-
-		if old_doc:
-			old_fields = old_doc.search_index_fields
-			new_fields = self.search_index_fields
-
-			# if search index fields get changed
-			if not (new_fields == old_fields):
-				create_website_items_index()
 
 	@frappe.whitelist()
 	def calculate_frequently_bought_together_items(self):
