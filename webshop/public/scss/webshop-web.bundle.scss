@@ -251,3 +251,17 @@ body[data-path=checkout] #page-checkout .order-summary-wrapper .order-summary .o
 		font-size: 0.875rem;
 	}
 }
+
+// Hide breadcrumb on login, signup, forgot password pages
+body:has(.for-login) .page-breadcrumbs,
+body:has(.for-signup) .page-breadcrumbs,
+body:has(.for-forgot) .page-breadcrumbs,
+body:has(.for-login-with-email-link) .page-breadcrumbs {
+	display: none;
+}
+
+// Login page logo styling
+.for-login .page-card-head img.app-logo {
+	width: min-content;
+	margin: auto;
+}
