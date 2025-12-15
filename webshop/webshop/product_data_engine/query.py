@@ -783,7 +783,7 @@ class ProductQuery:
 			return
 
 		# Default fields to search from
-		default_fields = {"item_code", "item_name", "web_long_description", "item_group"}
+		default_fields = {"item_code", "item_name", "description", "web_long_description", "item_group"}
 
 		# Get meta search fields
 		meta = frappe.get_meta("Website Item")
