@@ -5,20 +5,12 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "tab_general",
   "products_per_page",
   "column_break_cysa",
   "default_view_type",
   "default_product_sort",
   "enable_infinite_scroll",
-  "filter_categories_section",
-  "enable_field_filters",
-  "filter_fields",
-  "enable_attribute_filters",
-  "filter_attributes",
-  "enable_tag_filters",
-  "enable_price_filter",
-  "enable_stock_filter",
-  "stock_filter_default_checked",
   "display_settings_section",
   "hide_variants",
   "enable_variants",
@@ -33,6 +25,21 @@
   "show_apply_coupon_code_in_website",
   "show_contact_us_button",
   "show_attachments",
+  "tab_filters",
+  "filter_categories_section",
+  "enable_field_filters",
+  "filter_fields",
+  "enable_attribute_filters",
+  "filter_attributes",
+  "enable_tag_filters",
+  "enable_price_filter",
+  "enable_stock_filter",
+  "stock_filter_default_checked",
+  "shop_by_category_section",
+  "slideshow",
+  "category_order_section",
+  "category_order_html",
+  "tab_cart",
   "section_break_18",
   "company",
   "price_list",
@@ -58,31 +65,21 @@
   "b2b_customer_group",
   "payment_methods_section",
   "payment_methods",
+  "tab_features",
   "add_ons_section",
   "enable_wishlist",
+  "column_break_22",
+  "enable_reviews",
+  "column_break_23",
+  "enable_recommendations",
+  "enable_frequently_bought_together",
+  "gift_cards_section",
   "enable_gift_cards",
   "gift_card_template",
   "enable_custom_amount",
   "gift_card_amounts",
   "number_of_valid_months",
   "gift_card_notification",
-  "column_break_22",
-  "enable_reviews",
-  "column_break_23",
-  "enable_recommendations",
-  "enable_frequently_bought_together",
-  "item_search_settings_section",
-  "redisearch_warning",
-  "search_index_fields",
-  "is_redisearch_enabled",
-  "is_redisearch_loaded",
-  "shop_by_category_section",
-  "slideshow",
-  "category_order_section",
-  "category_order_html",
-  "guest_display_settings_section",
-  "hide_price_for_guest",
-  "redirect_on_action",
   "loyalty_program_section",
   "enable_loyalty_points",
   "loyalty_program",
@@ -90,6 +87,20 @@
   "column_break_loyalty",
   "loyalty_points_conversion_text",
   "loyalty_points_earned_text",
+  "guest_display_settings_section",
+  "hide_price_for_guest",
+  "redirect_on_action",
+  "tab_advanced",
+  "item_search_settings_section",
+  "redisearch_warning",
+  "search_index_fields",
+  "is_redisearch_enabled",
+  "is_redisearch_loaded",
+  "sitemap_section",
+  "sitemap_info",
+  "column_break_sitemap",
+  "sitemap_last_generated",
+  "regenerate_sitemap",
   "maintenance_mode_section",
   "maintenance_website",
   "maintenance_webshop",
@@ -100,6 +111,37 @@
   "maintenance_end_time"
  ],
  "fields": [
+  {
+   "fieldname": "tab_general",
+   "fieldtype": "Tab Break",
+   "label": "General"
+  },
+  {
+   "fieldname": "tab_filters",
+   "fieldtype": "Tab Break",
+   "label": "Filters & Categories"
+  },
+  {
+   "fieldname": "tab_cart",
+   "fieldtype": "Tab Break",
+   "label": "Cart & Checkout"
+  },
+  {
+   "fieldname": "tab_features",
+   "fieldtype": "Tab Break",
+   "label": "Features"
+  },
+  {
+   "fieldname": "tab_advanced",
+   "fieldtype": "Tab Break",
+   "label": "Advanced"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "gift_cards_section",
+   "fieldtype": "Section Break",
+   "label": "Gift Cards"
+  },
   {
    "default": "6",
    "fieldname": "products_per_page",
@@ -132,7 +174,7 @@
   {
    "fieldname": "filter_categories_section",
    "fieldtype": "Section Break",
-   "label": "Filters and Categories"
+   "label": "Filter Options"
   },
   {
    "default": "0",
@@ -413,7 +455,7 @@
   {
    "fieldname": "add_ons_section",
    "fieldtype": "Section Break",
-   "label": "Add-ons"
+   "label": "Core Features"
   },
   {
    "default": "0",
@@ -618,9 +660,10 @@
    "fieldtype": "Column Break"
   },
   {
+   "collapsible": 1,
    "fieldname": "loyalty_program_section",
    "fieldtype": "Section Break",
-   "label": "Loyalty Program Settings"
+   "label": "Loyalty Program"
   },
   {
    "default": "0",
