@@ -102,7 +102,8 @@ webshop.ProductView =  class {
 		// Update page header and breadcrumb when search term is present
 		if (!this.search_term) return;
 
-		const searchLabel = __("Search");
+		const translations = window.product_translations || {};
+		const searchLabel = translations["Search"] || "Search";
 		const searchText = `${searchLabel}: "${this.search_term}"`;
 
 		// Update main page header (first div inside .mb-6 header section)
@@ -182,12 +183,13 @@ webshop.ProductView =  class {
 		// Check localStorage filters
 		const stockFilter = localStorage.getItem('stock_filter_checked') === 'true';
 		const discountFilter = localStorage.getItem('discount_filter_checked') === 'true';
+		const translations = window.product_translations || {};
 
 		if (stockFilter) {
 			hasActiveFilters = true;
 			$badges.append(`
 				<span class="badge badge-info active-filter-badge" data-filter-type="stock" style="cursor: pointer;">
-					<i class="fa fa-check"></i> ${__("In Stock Only")}
+					<i class="fa fa-check"></i> ${translations["In Stock Only"] || "In Stock Only"}
 					<i class="fa fa-times ml-1"></i>
 				</span>
 			`);
@@ -197,7 +199,7 @@ webshop.ProductView =  class {
 			hasActiveFilters = true;
 			$badges.append(`
 				<span class="badge badge-warning active-filter-badge" data-filter-type="discount" style="cursor: pointer;">
-					<i class="fa fa-tag"></i> ${__("Discounted Only")}
+					<i class="fa fa-tag"></i> ${translations["Discounted Only"] || "Discounted Only"}
 					<i class="fa fa-times ml-1"></i>
 				</span>
 			`);
@@ -362,7 +364,7 @@ webshop.ProductView =  class {
 		
 		this.current_sort = saved_sort;
 		
-		// Use server-side translations if available
+		// Use translations from window.product_translations
 		const translations = window.product_translations || {};
 		const sortByLabel = translations["Sort by:"] || "Sort by:";
 		const mostRelevant = translations["Most Relevant"] || "Most Relevant";
@@ -732,11 +734,11 @@ webshop.ProductView =  class {
 		const pageText = translations["Page"] || "Page";
 		const ofText = translations["of"] || "of";
 		const productsText = translations["products"] || "products";
-		
+
 		paging_html += `
 					</div>
 					<div class="mt-3 text-muted">
-						${pageText} ${current_page} ${ofText} ${total_pages} 
+						${pageText} ${current_page} ${ofText} ${total_pages}
 						<i>(${total_count} ${productsText})</i>
 					</div>
 				</div>
@@ -766,7 +768,6 @@ webshop.ProductView =  class {
 	}
 
 	prepare_search() {
-		// Use server-side translations if available, fallback to default text
 		const searchPlaceholder = (window.product_translations && window.product_translations["Search for Products"]) || "Search for Products";
 		
 		$(".toolbar").append(`
@@ -1071,23 +1072,20 @@ webshop.ProductView =  class {
 
 	get_discount_filter_html() {
 		$("#discount-filters").remove();
-		
+		const translations = window.product_translations || {};
+
 		// Find the stock filter section
 		const $stockFilter = $('#product-filters').find('.filter-block').filter(function() {
 			return $(this).find('.filter-label').text().includes('Availability');
 		});
-		
-		// Use server-side translations
-		const translations = window.product_translations || {};
-		const discountsLabel = translations["Discounts"] || "Discounts";
-		
+
 		// Always show the discount filter section before stock filter
 		const discountSection = `
 			<div id="discount-filters" class="mb-4 filter-block pb-5">
-				<div class="filter-label mb-3">${ discountsLabel }</div>
+				<div class="filter-label mb-3">${ translations["Discounts"] || "Discounts" }</div>
 			</div>
 		`;
-		
+
 		if ($stockFilter.length) {
 			$stockFilter.before(discountSection);
 		} else {
@@ -1096,7 +1094,7 @@ webshop.ProductView =  class {
 		}
 
 		let html = `<div class="filter-options">`;
-		
+
 		// Only add "Show only products with discount" checkbox
 		html += `
 			<div class="checkbox">
