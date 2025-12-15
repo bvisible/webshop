@@ -1,0 +1,4115 @@
+# Translations template for Webshop.
+# Copyright (C) 2025 Frappe Technologies Pvt. Ltd.
+# This file is distributed under the same license as the Webshop project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Webshop VERSION\n"
+"Report-Msgid-Bugs-To: contact@frappe.io\n"
+"POT-Creation-Date: 2025-12-15 15:24+0034\n"
+"PO-Revision-Date: 2025-12-15 15:24+0034\n"
+"Last-Translator: contact@frappe.io\n"
+"Language-Team: contact@frappe.io\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.13.1\n"
+
+#: webshop/webshop/crud_events/tax_rule/validate_use_for_cart.py:28
+msgid ""
+"\n"
+"            Enabling 'Use for Shopping Cart', as Shopping Cart is enabled\n"
+"            and there should be at least one Tax Rule for Shopping Cart\n"
+"            "
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_payment_summary.html:14
+msgid " Items)"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:305
+msgid "'Enable Attribute Filters' has been automatically disabled. These two features are mutually exclusive: Attribute filters allow customers to filter by variant attributes (like Size, Color), which requires variants to be visible."
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:316
+msgid "'Hide Variants' has been automatically disabled. These two features are mutually exclusive: Attribute filters allow customers to filter by variant attributes (like Size, Color), which requires variants to be visible."
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:46
+msgid "1 point = {0}"
+msgstr ""
+
+#. Content of the 'sitemap_info' (HTML) field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "<p>The sitemap is automatically generated and cached for 6 hours. You can access it at:</p><ul><li><a href=\"/sitemap_index.xml\" target=\"_blank\">/sitemap_index.xml</a> - Main sitemap index</li><li><a href=\"/sitemap.xml\" target=\"_blank\">/sitemap.xml</a> - All content</li><li><a href=\"/sitemap_products.xml\" target=\"_blank\">/sitemap_products.xml</a> - Products only</li><li><a href=\"/sitemap_categories.xml\" target=\"_blank\">/sitemap_categories.xml</a> - Categories only</li><li><a href=\"/sitemap_brands.xml\" target=\"_blank\">/sitemap_brands.xml</a> - Brands only</li><li><a href=\"/sitemap_blog.xml\" target=\"_blank\">/sitemap_blog.xml</a> - Blog posts only</li><li><a href=\"/sitemap_pages.xml\" target=\"_blank\">/sitemap_pages.xml</a> - Pages only</li></ul>"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:3031
+msgid "A new gift card has been created with the remaining amount of {0}. Card code: {1}"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:326
+msgid "A system error occurred while processing payment failure"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:707 webshop/public/js/auth_dialog.js:713
+msgid "Account created successfully! Please check your email to activate your account."
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:66
+msgid "Accumulate"
+msgstr ""
+
+#: webshop/public/js/override/item.js:142 webshop/templates/pages/order.html:20
+msgid "Actions"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Activate B2B checkout"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.py:134
+msgid "Active"
+msgstr ""
+
+#. Label of a Check field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Add Section with Tabs"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:11
+#: webshop/templates/includes/cart/cart_address.html:40
+msgid "Add a new address"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:123
+msgid "Add items to your cart"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_items.html:66
+msgid "Add notes"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:195
+#: webshop/templates/generators/item/item_add_to_cart.html:251
+#: webshop/templates/generators/item/item_configure.js:214
+#: webshop/templates/generators/item/item_configure_grid.html:28
+#: webshop/templates/generators/item/item_configure_grid.js:366
+#: webshop/templates/generators/item/item_configure_grid.js:371
+#: webshop/templates/generators/item/item_configure_grid.js:432
+#: webshop/templates/generators/item/item_configure_grid.js:437
+#: webshop/templates/generators/item_group.html:107
+#: webshop/www/all-products/index.html:97
+msgid "Add to Cart"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:195
+#: webshop/templates/generators/item/item_add_to_cart.html:251
+#: webshop/templates/generators/item_group.html:108
+#: webshop/www/all-products/index.html:98
+msgid "Add to Quote"
+msgstr ""
+
+#: webshop/templates/includes/cart_component.js:1244
+msgid "Added"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure_grid.js:335
+#: webshop/templates/generators/item/item_configure_grid.js:401
+#: webshop/templates/includes/cart_component.js:1792
+msgid "Added to cart"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure_grid.js:308
+#: webshop/templates/includes/cart_component.js:1223
+msgid "Adding..."
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:102
+#: webshop/templates/pages/checkout.js:663
+msgid "Address"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:82
+#: webshop/templates/pages/checkout.html:107
+#: webshop/templates/pages/checkout.html:208
+msgid "Address Line 1"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:88
+#: webshop/templates/pages/checkout.html:117
+#: webshop/templates/pages/checkout.html:217
+msgid "Address Line 2"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:76
+msgid "Address Title"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:117
+msgid "Address Type"
+msgstr ""
+
+#. Label of a Tab Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Advanced"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Advanced Display Content"
+msgstr ""
+
+#. Description of the 'Payment Success Url' (Select) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "After payment completion redirect user to selected page."
+msgstr ""
+
+#. Name of a role
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "All"
+msgstr ""
+
+#: webshop/templates/includes/breadcrumbs.html:43
+#: webshop/webshop/doctype/override_doctype/item_group.py:127
+#: webshop/www/all-products/index.html:4 webshop/www/all-products/index.html:7
+msgid "All Products"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:226
+msgid "All data is valid. You can proceed with the actual import."
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:321
+msgid "All transactions are secure and encrypted."
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Allow Non Website Items in Cart Quotation"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Allow System Users During Maintenance"
+msgstr ""
+
+#. Description of the 'Enable Custom Amount' (Check) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Allow customers to enter a custom amount for gift cards"
+msgstr ""
+
+#. Description of the 'Enable Gift Cards' (Check) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Allow customers to purchase gift cards"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Allow items not in stock to be added to cart"
+msgstr ""
+
+#. Description of the 'Enable Guest Cart' (Check) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Allow non-logged users to create cart"
+msgstr ""
+
+#. Description of the 'Allow System Users During Maintenance' (Check) field in
+#. DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Allow users with System Manager or Website Manager roles to access the site during maintenance"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.py:98
+#: webshop/webshop/doctype/website_item/website_item.py:787
+msgid "Already Published"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Gift Card Amount'
+#: webshop/templates/pages/order.html:109
+#: webshop/templates/pages/thank_you.html:79
+#: webshop/templates/pages/thank_you.html:154
+#: webshop/webshop/doctype/gift_card_amount/gift_card_amount.json
+msgid "Amount"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:47
+msgid "Amount Paid:"
+msgstr ""
+
+#: webshop/webshop/utils/import_gift_cards.py:201
+msgid "Amount must be greater than 0"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:942
+msgid "An email containing the connection link has been sent to you. Please check your inbox."
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:791 webshop/public/js/auth_dialog.js:833
+msgid "An error occurred"
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:158
+msgid "An error occurred during payment initialization"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:2110
+msgid "An error occurred while loading payment methods"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.py:114
+msgid "An error occurred while loading the order."
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:955
+msgid "An error occurred while sending the login link"
+msgstr ""
+
+#: webshop/templates/pages/checkout.py:640
+msgid "An error occurred while updating the shipping method. Please try again."
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:392
+#: webshop/controllers/payment_handler.py:454
+msgid "An error occurred while validating the order"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:123
+#: webshop/templates/pages/checkout.html:223
+msgid "Apartment, suite, etc. (optional)"
+msgstr ""
+
+#: webshop/templates/includes/order/order_taxes.html:70
+msgid "Applied Coupon Code"
+msgstr ""
+
+#: webshop/templates/includes/coupon_form.html:29
+#: webshop/templates/includes/loyalty_points_form.html:27
+#: webshop/templates/pages/gift_cards.html:131
+msgid "Apply"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:563
+#: webshop/templates/pages/checkout.js:574
+msgid "Are you sure you want to leave this page? Your order has not been finalized."
+msgstr ""
+
+#: webshop/templates/pages/order.html:178
+msgid "Attachments"
+msgstr ""
+
+#. Label of a Table field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Attributes"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:192
+msgid "Aucune méthode de livraison disponible pour votre emplacement"
+msgstr ""
+
+#. Description of the 'Is Gift Card' (Check) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Automatically set when this item is selected as gift card template in Webshop Settings"
+msgstr ""
+
+#: webshop/templates/includes/macros.html:45
+msgid "Availability"
+msgstr ""
+
+#. Label of a Table field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Available Amounts"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:36
+#: webshop/templates/pages/order.html:161
+msgid "Available Points"
+msgstr ""
+
+#: webshop/templates/includes/loyalty_points_form.html:31
+msgid "Available Points:"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:56
+#: webshop/templates/generators/item/item_bundle_components.html:44
+#: webshop/templates/generators/item_group.html:112
+#: webshop/www/all-products/index.html:102
+msgid "Available on backorder"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:2
+#: webshop/templates/pages/checkout_b2b.html:15
+msgid "B2B Checkout"
+msgstr ""
+
+#. Name of a DocType
+#. Label of a Table MultiSelect field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/b2b_customer_group/b2b_customer_group.json
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "B2B Customer Group"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:49
+msgid "Back to Cart"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:309
+msgid "Back to information"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:371
+msgid "Back to shipping"
+msgstr ""
+
+#: webshop/templates/includes/macros.html:333
+msgid "Based on"
+msgstr ""
+
+#: webshop/templates/generators/item/item_reviews.html:59
+msgid "Be the first to review this product"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:38
+msgid "Billing Address"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:31
+msgid "Billing Address is same as Shipping Address"
+msgstr ""
+
+#. Label of a Link field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Brand"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:24
+msgid "Buy a gift card"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:55
+msgid "Calculate Frequently Bought Together"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:60
+msgid "Calculating frequently bought together items..."
+msgstr ""
+
+#: webshop/webshop/crud_events/item/validate_duplicate_website_item.py:33
+#: webshop/webshop/doctype/override_doctype/item.py:39
+msgid "Cannot Merge"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:187
+msgid "Cannot enable 'Hide Variants' when 'Attribute Filters' are enabled with filter attributes configured. These features are mutually exclusive: Attribute filters allow customers to filter by variant attributes (like Size, Color), which requires variants to be visible. Please disable 'Enable Attribute Filters' or remove all Filter Attributes first."
+msgstr ""
+
+#: webshop/templates/includes/product_page.js:114
+msgid "Cannot find a matching Item. Please select some other value for {0}."
+msgstr ""
+
+#: webshop/templates/payments/stripe.html:12
+msgid "Card Details"
+msgstr ""
+
+#: webshop/templates/payments/paypal.html:8
+#: webshop/templates/payments/stripe.html:8
+#: webshop/templates/payments/wallee.html:8
+msgid "Cardholder Email"
+msgstr ""
+
+#: webshop/templates/payments/paypal.html:4
+#: webshop/templates/payments/stripe.html:4
+#: webshop/templates/payments/wallee.html:4
+msgid "Cardholder Name"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:15
+msgid "Cart"
+msgstr ""
+
+#. Label of a Tab Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Cart & Checkout"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:58
+msgid "Cart Error"
+msgstr ""
+
+#: webshop/public/js/shopping_cart.js:117
+#: webshop/templates/includes/cart/cart_dropdown.html:25
+msgid "Cart is Empty"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:59
+msgid "Cart is empty"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:1156
+msgid "Cart not found"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:766
+msgid "Carte Cadeau Divisée"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:759
+msgid "Carte cadeau {0} valeur ({1}) excède le total de la commande ({2}). Une nouvelle carte cadeau ({3}) a été créée pour le montant utilisé. Le montant restant ({4}) est disponible sur la carte originale."
+msgstr ""
+
+#: webshop/public/js/product_ui/search.js:335
+#: webshop/public/js/product_ui/search_no_jquery.js:377
+msgid "Categories"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Category Display Order"
+msgstr ""
+
+#. Label of a HTML field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Category Order"
+msgstr ""
+
+#: webshop/www/shop-by-category/index.html:2
+#: webshop/www/shop-by-category/index.py:42
+msgid "Category and Brands"
+msgstr ""
+
+#: webshop/templates/includes/cart/address_card.html:3
+msgid "Change"
+msgstr ""
+
+#: webshop/public/js/override/item.js:54
+msgid "Change Warehouse"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:116
+msgid "Chargement des méthodes de livraison..."
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:132
+msgid "Check this to validate data without creating gift cards"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_dropdown.html:6
+#: webshop/templates/includes/cart_component.html:81
+#: webshop/templates/pages/checkout.html:2
+msgid "Checkout"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Checkout Settings"
+msgstr ""
+
+#: webshop/templates/pages/checkout.py:93
+msgid "Checkout is disabled. Please enable it in Webshop Settings."
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:303
+msgid "Choose Shipping Method"
+msgstr ""
+
+#. Description of the 'Default View Type' (Select) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Choose the default display type for products"
+msgstr ""
+
+#. Description of the 'Default Product Sort Order' (Select) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Choose the default sort order for products"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:137
+#: webshop/templates/pages/checkout.html:236
+#: webshop/templates/pages/checkout.js:664
+msgid "City"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:93
+msgid "City/Town"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure.js:41
+msgid "Clear"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:45
+#: webshop/www/all-products/index.html:29
+msgid "Clear All"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure.js:234
+msgid "Clear Values"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure.js:242
+msgid "Clear values"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:289
+msgid "Clearing sitemap cache..."
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure_grid.html:13
+msgid "Click on a variant to see details"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:75
+#: webshop/templates/pages/thank_you.html:155
+msgid "Code"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:208
+#: webshop/templates/pages/gift_cards.html:220
+msgid "Code copied to clipboard"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:329
+msgid "Collapse All"
+msgstr ""
+
+#. Label of a Small Text field in DocType 'Item Review'
+#: webshop/webshop/doctype/item_review/item_review.json
+msgid "Comment"
+msgstr ""
+
+#. Label of a Link field in DocType 'Webshop Settings'
+#: webshop/templates/pages/checkout.html:69
+#: webshop/templates/pages/checkout_b2b.html:24
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Company"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:19
+msgid "Company Information"
+msgstr ""
+
+#: webshop/templates/pages/cgv.py:18 webshop/templates/pages/cgv.py:25
+#: webshop/templates/pages/cgv.py:26 webshop/templates/pages/checkout.html:351
+msgid "Conditions Générales de Vente"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:304
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:315
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:191
+msgid "Configuration Conflict"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1309
+msgid "Confirm Changes"
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:115
+#: webshop/templates/payments/wallee.html:234
+msgid "Confirm Payment"
+msgstr ""
+
+#: webshop/templates/generators/item/item_inquiry.js:3
+msgid "Contact Us"
+msgstr ""
+
+#. Label of a HTML Editor field in DocType 'Website Item Tabbed Section'
+#: webshop/webshop/doctype/website_item_tabbed_section/website_item_tabbed_section.json
+msgid "Content"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:116
+msgid "Continue"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure.js:327
+msgid "Continue Selection"
+msgstr ""
+
+#: webshop/templates/pages/cart.html:65
+#: webshop/templates/pages/thank_you.html:179
+msgid "Continue Shopping"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:312
+msgid "Continue to Payment"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:295
+msgid "Continue to shipping"
+msgstr ""
+
+#: webshop/templates/pages/cgv.html:34
+msgid "Continuer mes achats"
+msgstr ""
+
+#. Description of the 'Hide Currency Symbol in Shop' (Select) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Control currency symbol display in the webshop. If empty, uses the global ERPNext setting. 'Yes' hides the symbol, 'No' shows it."
+msgstr ""
+
+#. Label of a Button field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Copy From Item Group"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:79
+msgid "Copy code"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Core Features"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:104
+#: webshop/templates/pages/checkout.html:157
+#: webshop/templates/pages/checkout.html:254
+#: webshop/templates/pages/checkout.js:666
+msgid "Country"
+msgstr ""
+
+#. Label of a field in the gift-card Web Form
+#: webshop/webshop/web_form/gift_card/gift_card.json
+msgid "Coupon Code"
+msgstr ""
+
+#. Label of a field in the gift-card Web Form
+#: webshop/webshop/web_form/gift_card/gift_card.json
+msgid "Coupon Description"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_payment_summary.html:40
+#: webshop/templates/includes/order_summary.html:128
+#: webshop/templates/pages/checkout.js:1647
+#: webshop/templates/pages/checkout_b2b.html:434
+msgid "Coupon Discount"
+msgstr ""
+
+#. Label of a field in the gift-card Web Form
+#: webshop/webshop/web_form/gift_card/gift_card.json
+msgid "Coupon Name"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:2081
+msgid "Coupon code applied successfully"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:2058
+msgid "Coupon code removed"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_payment_summary.html:122
+msgid "Coupons"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:631
+msgid "Create account"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2980
+msgid "Created from gift card: {0} (remaining amount after order {1})"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:699
+msgid "Created from split of {0} in webshop. Used in order {1}. Original amount: {2}, Used: {3}, Remaining on original card: {4}"
+msgstr ""
+
+#: webshop/webshop/utils/import_gift_cards.py:249
+msgid "Created successfully"
+msgstr ""
+
+#: webshop/public/js/override/item.js:20
+msgid "Creating Website Item..."
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:143
+msgid "Custom Amount"
+msgstr ""
+
+#. Label of a Link field in DocType 'Item Review'
+#. Name of a role
+#: webshop/webshop/doctype/item_review/item_review.json
+msgid "Customer"
+msgstr ""
+
+#. Label of a Link field in DocType 'B2B Customer Group'
+#: webshop/webshop/doctype/b2b_customer_group/b2b_customer_group.json
+msgid "Customer Group"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:92
+#: webshop/www/all-products/index.html:82
+msgid "Customer Rating"
+msgstr ""
+
+#: webshop/templates/generators/item/item_reviews.html:8
+#: webshop/templates/pages/customer_reviews.html:4
+#: webshop/templates/pages/customer_reviews.html:12
+msgid "Customer Reviews"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:139
+msgid "Customer to use when none is specified or found"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:94
+msgid "Date"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:35
+msgid "Date :"
+msgstr ""
+
+#: webshop/www/maintenance.html:348
+msgid "Days"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:1893
+msgid "Debtors ({0})"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:137
+msgid "Default Customer"
+msgstr ""
+
+#. Label of a Link field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Default Customer Group"
+msgstr ""
+
+#. Label of a Select field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Default Product Sort Order"
+msgstr ""
+
+#. Description of the 'Terms and Conditions for Quotations' (Link) field in
+#. DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Default Terms and Conditions for all quotations generated from the webshop"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:144
+msgid "Default Validity Date"
+msgstr ""
+
+#. Label of a Select field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Default View Type"
+msgstr ""
+
+#. Description of the 'Guest Customer' (Link) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Default customer used for guest cart"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:145
+msgid "Default expiry date (uses 2999-12-31 if not set)"
+msgstr ""
+
+#. Description of the 'Available Amounts' (Table) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Define the available amounts for gift cards"
+msgstr ""
+
+#. Label of a Text Editor field in DocType 'Homepage Featured Product'
+#. Label of a Text Editor field in DocType 'Wishlist Item'
+#: webshop/templates/pages/loyalty_points.html:95
+#: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json
+#: webshop/webshop/doctype/wishlist_item/wishlist_item.json
+msgid "Description"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2420
+msgid "Discount value cannot exceed total amount"
+msgstr ""
+
+#: webshop/public/js/product_ui/views.js:198
+msgid "Discounted Only"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:98
+#: webshop/www/all-products/index.html:88
+msgid "Discounts"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Display Additional Information"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Display Images"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Display Information"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Display Settings"
+msgstr ""
+
+#: webshop/www/shop-by-category/index.py:98
+msgid "DocType {} not found"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:91
+msgid "Download Template"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:329
+msgid "Drag and drop categories to reorder. Higher weightage = displayed first."
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:130
+msgid "Dry Run (Validate Only)"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_payment_summary.html:77
+#: webshop/templates/includes/cart_component.html:65
+#: webshop/templates/includes/order_summary.html:179
+msgid "Earn"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:60
+msgid "Earn points on every purchase"
+msgstr ""
+
+#: webshop/templates/includes/cart_component.js:1966
+msgid "Earn {0} points worth {1}"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:106
+#: webshop/templates/pages/loyalty_points.html:204
+msgid "Earned"
+msgstr ""
+
+#: webshop/templates/includes/cart/address_card.html:14
+#: webshop/templates/includes/cart/address_picker_card.html:10
+msgid "Edit"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:116
+#: webshop/templates/generators/item/item_inquiry.js:18
+#: webshop/templates/pages/checkout.html:81
+#: webshop/templates/pages/checkout.html:173
+#: webshop/templates/pages/checkout.html:269
+#: webshop/templates/pages/checkout.js:661
+msgid "Email"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Attribute Filters"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Checkout"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Checkout Page"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Custom Amount"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Field Filters (Categories)"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Frequently Bought Together"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Gift Cards"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Guest Cart"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Infinite Scroll"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Price Filter"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Recommendations"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Reviews and Ratings"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Shopping Cart"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Stock Filter"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Tag Filters"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Variant Selection"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Wishlist"
+msgstr ""
+
+#. Description of the 'Maintenance Mode - Website' (Check) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable maintenance mode for the entire website"
+msgstr ""
+
+#. Description of the 'Maintenance Mode - Webshop' (Check) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable maintenance mode for webshop features only (requires Website maintenance to be enabled)"
+msgstr ""
+
+#: webshop/templates/pages/order.html:155
+msgid "Enter Loyalty Points"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:151
+msgid "Enter amount"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure.js:126
+msgid "Enter value betweeen {0} and {1}"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:116
+msgid "Enter your email address to sign in or create an account"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:132
+msgid "Enter your gift card code at checkout"
+msgstr ""
+
+#: webshop/templates/includes/loyalty_points_form.html:33
+msgid "Equivalent Value:"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:201
+msgid "Erreur lors du chargement des méthodes de livraison. Veuillez réessayer."
+msgstr ""
+
+#: webshop/public/js/shopping_cart.js:258
+#: webshop/templates/includes/cart_component.js:1312
+#: webshop/templates/includes/cart_component.js:1335
+#: webshop/templates/includes/product_page.js:70
+#: webshop/templates/pages/checkout.js:1298
+#: webshop/templates/pages/checkout.js:2196
+#: webshop/templates/pages/checkout.js:2419
+#: webshop/templates/pages/checkout.js:2427
+msgid "Error"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:266
+#: webshop/templates/pages/checkout_b2b.html:274
+msgid "Error applying shipping method. Please try again."
+msgstr ""
+
+#: webshop/webshop/utils/frequently_bought_together.py:79
+msgid "Error calculating frequently bought together: {0}"
+msgstr ""
+
+#: webshop/templates/payments/paypal.html:146
+#: webshop/templates/payments/wallee.html:291
+#: webshop/templates/payments/wallee.html:387
+msgid "Error communicating with server"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:359
+#: webshop/webshop/doctype/override_doctype/payment_request.py:55
+msgid "Error creating order"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:182
+#: webshop/templates/payments/paypal.html:140
+#: webshop/templates/payments/wallee.html:284
+#: webshop/templates/payments/wallee.html:381
+msgid "Error creating payment request"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:58
+msgid "Error during quotation retrieval: Cart is empty or quotation not found"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:445
+msgid "Error generating gift card code"
+msgstr ""
+
+#: webshop/webshop/utils/import_gift_cards.py:264
+msgid "Error importing gift cards: {0}"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:491
+msgid "Error loading categories"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:2420
+#: webshop/templates/pages/checkout.js:2428
+msgid "Error loading payment template"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1475
+msgid "Error loading shipping methods"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure_grid.js:76
+msgid "Error loading variants. Please try again."
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:589
+msgid "Error processing gift card for Sales Order {0}"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:291
+#: webshop/controllers/payment_handler.py:428
+msgid "Error processing payment"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:441
+msgid "Error processing payment failure"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:193
+msgid "Error reading file: {0}"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:1257
+msgid "Error updating address. Please try again or contact support."
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:770
+msgid "Error while creating new gift card during split. Original: {0}, Amount: {1}"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:217
+msgid "Errors"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:119
+msgid "Excel File"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:329
+msgid "Expand All"
+msgstr ""
+
+#. Label of a Datetime field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Expected End Time"
+msgstr ""
+
+#: webshop/www/maintenance.html:339
+msgid "Expected to be back by:"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.py:128
+msgid "Expired"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:106
+#: webshop/templates/includes/product_carousel.html:101
+#: webshop/www/all-products/index.html:96
+msgid "Explore"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_items.html:17
+msgid "FREE"
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:246
+msgid "Failed to initialize payment form"
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:144
+msgid "Failed to load payment form"
+msgstr ""
+
+#. Label of a Tab Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Features"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:174
+msgid "Filter Fields Row #{0}: Fieldname {1} must be of type 'Link' or 'Table MultiSelect'"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Filter Options"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:44
+#: webshop/www/all-products/index.html:10
+#: webshop/www/all-products/index.html:27
+msgid "Filters"
+msgstr ""
+
+#. Label of a Tab Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Filters & Categories"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:116
+#: webshop/templates/pages/checkout.html:49
+#: webshop/templates/pages/checkout.js:659
+msgid "First Name"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:22
+msgid "Follow these steps to create a landing page for your store"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:116
+msgid "Forgot Password?"
+msgstr ""
+
+#. Label of a Int field in DocType 'Frequently Bought Together'
+#: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
+msgid "Frequency"
+msgstr ""
+
+#. Name of a DocType
+#: webshop/templates/generators/item/item.html:69
+#: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
+msgid "Frequently Bought Together"
+msgstr ""
+
+#: webshop/templates/generators/item/item_inquiry.js:7
+msgid "Full Name"
+msgstr ""
+
+#. Label of a Tab Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "General"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "General Settings"
+msgstr ""
+
+#. Description of the 'Terms and conditions for Checkout' (Link) field in
+#. DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "General Terms and Conditions (GTC) to be displayed on the checkout page"
+msgstr ""
+
+#. Title of the gift-card Web Form
+#: webshop/templates/pages/gift_cards.html:65
+#: webshop/webshop/shopping_cart/cart.py:684
+#: webshop/webshop/web_form/gift_card/gift_card.json
+msgid "Gift Card"
+msgstr ""
+
+#. Name of a DocType
+#. Label of a field in the gift-card Web Form
+#: webshop/webshop/doctype/gift_card_amount/gift_card_amount.json
+#: webshop/webshop/web_form/gift_card/gift_card.json
+msgid "Gift Card Amount"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:103
+msgid "Gift Card Code"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:112
+msgid "Gift Card Options"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:3035
+msgid "Gift Card Split"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2954
+msgid "Gift Card {0} - {1} - {2}"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/templates/pages/gift_cards.html:3
+#: webshop/templates/pages/gift_cards.html:5
+#: webshop/templates/pages/thank_you.html:148
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:198
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Gift Cards"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2398
+msgid "Gift card amount ({0}) exceeds order total ({1}). The excess amount ({2}) will be converted to a new gift card upon order submission."
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:499
+msgid "Gift card amount ({0}) is less than required discount amount ({1})"
+msgstr ""
+
+#: webshop/webshop/utils/import_gift_cards.py:54
+msgid "Gift card code cannot be empty"
+msgstr ""
+
+#: webshop/webshop/utils/import_gift_cards.py:57
+msgid "Gift card code must be at least 4 characters long"
+msgstr ""
+
+#: webshop/webshop/utils/import_gift_cards.py:60
+msgid "Gift card code {0} already exists"
+msgstr ""
+
+#. Label of a Link field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Gift card notification"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:3040
+msgid "Gift card split successfully"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2770
+msgid "Gift card {0} - {1} - {2}"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2762
+msgid "Gift card {0} - {1} - {2} ({3}/{4})"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:749
+msgid "Gift card {0} split: amount utilisé {1} transféré à une nouvelle carte cadeau {2}. Montant restant sur la carte originale: {3}."
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:11
+msgid "Gift cards feature is not enabled."
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:109
+#: webshop/www/all-products/index.html:99
+msgid "Go to Cart"
+msgstr ""
+
+#: webshop/www/maintenance.html:370
+msgid "Go to Login"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:110
+#: webshop/www/all-products/index.html:100
+msgid "Go to Quote"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_payment_summary.html:108
+#: webshop/templates/includes/order/order_taxes.html:105
+#: webshop/templates/includes/order_summary.html:155
+msgid "Grand Total"
+msgstr ""
+
+#. Option for the 'Default View Type' (Select) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Grid"
+msgstr ""
+
+#. Label of a Link field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Guest Customer"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Guest Display Settings"
+msgstr ""
+
+#. Label of a Check field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Has Variants"
+msgstr ""
+
+#: webshop/templates/generators/item/item_reviews.html:81
+msgid "Headline"
+msgstr ""
+
+#: webshop/templates/pages/checkout.py:470
+msgid "Height"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:7 webshop/public/js/auth_dialog.js:116
+#: webshop/templates/includes/user_header.html:275
+#: webshop/templates/pages/checkout.html:39
+msgid "Hello"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:578
+msgid "Hide"
+msgstr ""
+
+#. Label of a Select field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Hide Currency Symbol in Shop"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Hide Price for Guest"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Hide Variants"
+msgstr ""
+
+#: webshop/templates/includes/breadcrumbs.html:8
+#: webshop/templates/includes/navbar/navbar.html:50
+#: webshop/webshop/doctype/override_doctype/item_group.py:137
+#: webshop/www/all-products/index.py:12
+msgid "Home"
+msgstr ""
+
+#. Name of a DocType
+#: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json
+msgid "Homepage Featured Product"
+msgstr ""
+
+#: webshop/www/maintenance.html:353
+msgid "Hours"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:54
+msgid "How to earn points"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:116
+msgid "How to use your gift card"
+msgstr ""
+
+#: webshop/templates/payments/paypal.html:20
+#: webshop/templates/payments/stripe.html:25
+#: webshop/templates/payments/wallee.html:24
+msgid "I accept the"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:2145
+msgid "I agree to the"
+msgstr ""
+
+#. Description of the 'Number of valid months' (Int) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "If 0, no expiry date"
+msgstr ""
+
+#. Description of the 'Enable Checkout Page' (Check) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "If enabled, customers will be redirected to a dedicated checkout page instead of showing address and terms in cart"
+msgstr ""
+
+#. Label of a Attach Image field in DocType 'Homepage Featured Product'
+#. Label of a Attach field in DocType 'Wishlist Item'
+#: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json
+#: webshop/webshop/doctype/wishlist_item/wishlist_item.json
+msgid "Image"
+msgstr ""
+
+#. Description of the 'Image Description' (Data) field in DocType 'Website
+#. Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Image Alternative Text"
+msgstr ""
+
+#. Label of a Data field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Image Description"
+msgstr ""
+
+#. Label of a Image field in DocType 'Wishlist Item'
+#: webshop/webshop/doctype/wishlist_item/wishlist_item.json
+msgid "Image View"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:148
+msgid "Import"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:230
+msgid "Import Complete"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:74
+msgid "Import Gift Cards"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:77
+msgid "Import Gift Cards from Excel"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:202
+msgid "Import Results"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:200
+msgid "Impossible de charger les méthodes de livraison"
+msgstr ""
+
+#: webshop/public/js/product_ui/views.js:188
+msgid "In Stock Only"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:64
+#: webshop/templates/generators/item/item_bundle_components.html:52
+#: webshop/templates/generators/item_group.html:104
+#: webshop/templates/includes/product_page.js:36
+#: webshop/www/all-products/index.html:94
+msgid "In stock"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:899
+msgid "Incorrect email or password. Please try again."
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:874
+msgid "Incorrect password. Please try again."
+msgstr ""
+
+#. Description of the 'On Backorder' (Check) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Indicate that Item is available on backorder and not usually pre-stocked"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:20
+msgid "Information"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1160
+msgid "Information updated successfully"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/guest_cart.py:39
+msgid "Invalid items format"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:104
+#: webshop/templates/pages/loyalty_points.html:96
+msgid "Invoice"
+msgstr ""
+
+#. Option for the 'Payment Success Url' (Select) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Invoices"
+msgstr ""
+
+#. Label of a Check field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Is Gift Card"
+msgstr ""
+
+#. Label of a Link field in DocType 'Homepage Featured Product'
+#. Label of a Link field in DocType 'Item Review'
+#: webshop/templates/includes/cart/cart_dropdown.html:11
+#: webshop/templates/pages/cart.html:24 webshop/templates/pages/order.html:100
+#: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json
+#: webshop/webshop/doctype/item_review/item_review.json
+msgid "Item"
+msgstr ""
+
+#. Label of a Link field in DocType 'Frequently Bought Together'
+#. Label of a Data field in DocType 'Recommended Items'
+#. Label of a Link field in DocType 'Website Item'
+#. Label of a Link field in DocType 'Wishlist Item'
+#: webshop/templates/generators/item/item_details.html:44
+#: webshop/templates/generators/item_group.html:111
+#: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
+#: webshop/webshop/doctype/recommended_items/recommended_items.json
+#: webshop/webshop/doctype/website_item/website_item.json
+#: webshop/webshop/doctype/wishlist_item/wishlist_item.json
+#: webshop/www/all-products/index.html:101
+msgid "Item Code"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.py:59
+msgid "Item Code is required"
+msgstr ""
+
+#. Label of a Text Editor field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Item Description"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Wishlist Item'
+#: webshop/webshop/doctype/wishlist_item/wishlist_item.json
+msgid "Item Details"
+msgstr ""
+
+#. Label of a Link field in DocType 'Website Item'
+#. Label of a Link field in DocType 'Wishlist Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+#: webshop/webshop/doctype/wishlist_item/wishlist_item.json
+msgid "Item Group"
+msgstr ""
+
+#. Description of the 'Website Image' (Attach Image) field in DocType 'Website
+#. Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Item Image (if not slideshow)"
+msgstr ""
+
+#. Label of a Data field in DocType 'Frequently Bought Together'
+#. Label of a Data field in DocType 'Homepage Featured Product'
+#. Label of a Data field in DocType 'Website Item'
+#. Label of a Data field in DocType 'Wishlist Item'
+#: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
+#: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json
+#: webshop/webshop/doctype/website_item/website_item.json
+#: webshop/webshop/doctype/wishlist_item/wishlist_item.json
+msgid "Item Name"
+msgstr ""
+
+#. Name of a DocType
+#: webshop/webshop/doctype/item_review/item_review.json
+msgid "Item Review"
+msgstr ""
+
+#. Label of a Table field in DocType 'Wishlist'
+#: webshop/templates/includes/order_summary.html:8
+#: webshop/templates/includes/order_summary.html:87
+#: webshop/templates/pages/checkout.js:1602
+#: webshop/templates/pages/checkout.js:1603
+#: webshop/templates/pages/checkout_b2b.html:389
+#: webshop/templates/pages/checkout_b2b.html:390
+#: webshop/templates/pages/thank_you.html:76
+#: webshop/webshop/doctype/wishlist/wishlist.json
+msgid "Items"
+msgstr ""
+
+#. Description of the 'Ranking' (Int) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Items with higher ranking will be shown higher"
+msgstr ""
+
+#: webshop/templates/payments/paypal.html:5
+#: webshop/templates/payments/stripe.html:5
+#: webshop/templates/payments/wallee.html:5
+msgid "John Doe"
+msgstr ""
+
+#. Label of a Data field in DocType 'Website Item Tabbed Section'
+#: webshop/webshop/doctype/website_item_tabbed_section/website_item_tabbed_section.json
+msgid "Label"
+msgstr ""
+
+#. Label of a Datetime field in DocType 'Frequently Bought Together'
+#: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
+msgid "Last Calculated"
+msgstr ""
+
+#. Label of a Datetime field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Last Generated"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:116
+#: webshop/templates/pages/checkout.html:58
+#: webshop/templates/pages/checkout.js:660
+msgid "Last Name"
+msgstr ""
+
+#: webshop/templates/includes/cart_component.js:287
+msgid "Le coupon a été supprimé pour mettre à jour la quantité"
+msgstr ""
+
+#: webshop/templates/includes/cart_component.js:465
+msgid "Le coupon a été supprimé pour retirer le produit"
+msgstr ""
+
+#: webshop/templates/pages/checkout.py:462
+msgid "Length"
+msgstr ""
+
+#: webshop/templates/pages/cgv.html:30
+msgid "Les conditions générales de vente ne sont pas encore configurées."
+msgstr ""
+
+#: webshop/templates/includes/cart_component.js:302
+msgid "Les points de fidélité ont été supprimés pour mettre à jour la quantité"
+msgstr ""
+
+#: webshop/templates/includes/cart_component.js:480
+msgid "Les points de fidélité ont été supprimés pour retirer le produit"
+msgstr ""
+
+#. Description of the 'Redirect on Action' (Data) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Link to redirect Guest on actions that need login such as add to cart, wishlist, etc. <b>E.g.: /login</b>"
+msgstr ""
+
+#. Option for the 'Default View Type' (Select) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "List"
+msgstr ""
+
+#. Description of the 'Website Item Groups' (Table) field in DocType 'Website
+#. Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "List this Item in multiple groups on the website."
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:134
+msgid "Load More"
+msgstr ""
+
+#: webshop/templates/includes/cart_component.html:30
+msgid "Loading Cart..."
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:329
+msgid "Loading categories..."
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:207
+#: webshop/templates/payments/wallee.html:263
+msgid "Loading payment form..."
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:346
+msgid "Loading payment methods..."
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:292
+msgid "Loading shipping methods"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1403
+msgid "Loading shipping methods..."
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure_grid.html:40
+msgid "Loading variants..."
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure.js:177
+#: webshop/templates/generators/item/item_configure_grid.html:38
+msgid "Loading..."
+msgstr ""
+
+#: webshop/templates/includes/user_header.html:10
+msgid "Log in"
+msgstr ""
+
+#: webshop/templates/pages/cart.html:47
+msgid "Login"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Login Required to View Products"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:33
+msgid "Login successful! Redirecting to cart..."
+msgstr ""
+
+#: webshop/templates/generators/item/item_reviews.html:23
+msgid "Login to Review"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:519
+msgid "Login with {0}"
+msgstr ""
+
+#: webshop/templates/includes/user_header.html:23
+msgid "Logout"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:103
+#: webshop/www/all-products/index.html:93
+msgid "Low stock"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_payment_summary.html:52
+#: webshop/templates/includes/order_summary.html:140
+#: webshop/templates/pages/checkout.js:1660
+#: webshop/templates/pages/checkout_b2b.html:445
+#: webshop/templates/pages/loyalty_points.html:3
+#: webshop/templates/pages/loyalty_points.html:5
+#: webshop/templates/pages/order.html:149
+msgid "Loyalty Points"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#. Label of a Link field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Loyalty Program"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:2000
+msgid "Loyalty points applied successfully"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1968
+msgid "Loyalty points removed"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2550
+msgid "Loyalty points value cannot exceed total amount"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:11
+msgid "Loyalty program is not enabled."
+msgstr ""
+
+#. Label of a Small Text field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Maintenance Message"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Maintenance Mode"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Maintenance Mode - Webshop"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Maintenance Mode - Website"
+msgstr ""
+
+#: webshop/templates/pages/order.html:27
+msgid "Make Purchase Invoice"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:44
+msgid "Manage your gift cards"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.py:59
+#: webshop/webshop/shopping_cart/cart.py:1887
+msgid "Mandatory"
+msgstr ""
+
+#. Label of a field in the gift-card Web Form
+#: webshop/webshop/web_form/gift_card/gift_card.json
+msgid "Maximum Use"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:312
+#: webshop/templates/generators/item/item_add_to_cart.html:337
+#: webshop/templates/generators/item/item_add_to_cart.html:360
+msgid "Maximum available quantity is {0}"
+msgstr ""
+
+#: webshop/templates/web.html:59 webshop/templates/web.html:81
+msgid "Menu"
+msgstr ""
+
+#: webshop/templates/generators/item/item_inquiry.js:38
+msgid "Message"
+msgstr ""
+
+#: webshop/www/maintenance.html:358
+msgid "Minutes"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:224
+msgid "Missing"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:210
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:214
+msgid "Missing Currency"
+msgstr ""
+
+#: webshop/webshop/utils/import_gift_cards.py:171
+msgid "Missing required columns: {0}"
+msgstr ""
+
+#. Label of a Link field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Model Gift Card"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:99
+msgid "More"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Recommended Items'
+#: webshop/webshop/doctype/recommended_items/recommended_items.json
+msgid "More Information"
+msgstr ""
+
+#: webshop/templates/includes/macros.html:124
+msgid "More details"
+msgstr ""
+
+#: webshop/templates/pages/product_search.html:28
+msgid "More..."
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:88
+#: webshop/www/all-products/index.html:78
+msgid "Most Relevant"
+msgstr ""
+
+#: webshop/templates/includes/macros.html:290
+msgid "Move to Cart"
+msgstr ""
+
+#. Option for the 'Payment Success Url' (Select) field in DocType 'Webshop
+#. Settings'
+#: webshop/templates/pages/thank_you.html:176
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "My Account"
+msgstr ""
+
+#: webshop/templates/includes/user_header.html:19
+msgid "My account"
+msgstr ""
+
+#: webshop/templates/includes/user_header.html:20
+msgid "My orders"
+msgstr ""
+
+#: webshop/templates/includes/user_header.html:21
+msgid "My wishlist"
+msgstr ""
+
+#. Label of a Select field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Naming Series"
+msgstr ""
+
+#: webshop/webshop/utils/mobile_menu.py:79
+msgid "Navigation fallback generated"
+msgstr ""
+
+#: webshop/templates/includes/mobile_menu.html:37
+msgid "Navigation not available"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_items_total.html:5
+#: webshop/templates/includes/order/order_taxes.html:5
+#: webshop/templates/pages/checkout.js:1603
+msgid "Net Total"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_payment_summary.html:14
+msgid "Net Total ("
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:73
+msgid "New Address"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:91
+#: webshop/www/all-products/index.html:81
+msgid "New Arrivals"
+msgstr ""
+
+#: webshop/templates/includes/brand_carousel.html:112
+#: webshop/templates/includes/product_carousel.html:111
+#: webshop/webshop/web_template/hero_slider/hero_slider.html:73
+msgid "Next"
+msgstr ""
+
+#. Option for the 'Hide Currency Symbol in Shop' (Select) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "No"
+msgstr ""
+
+#: webshop/templates/pages/customer_reviews.html:44
+#: webshop/templates/pages/customer_reviews.html:52
+msgid "No Reviews"
+msgstr ""
+
+#: webshop/templates/generators/item/item_reviews.html:58
+msgid "No Reviews Yet"
+msgstr ""
+
+#: webshop/templates/includes/brand_carousel.html:569
+msgid "No brands available at the moment"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:992
+msgid "No cart found"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:482
+msgid "No categories found. Make sure Item Groups have \"Show in Website\" enabled."
+msgstr ""
+
+#: webshop/templates/pages/checkout.py:600
+msgid "No conversion factor found between {0} and {1}"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:21
+msgid "No gift cards yet"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:100
+#: webshop/www/all-products/index.html:90
+msgid "No more discounted products. Returning to first page."
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:198
+msgid "No payment method configured"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:143
+msgid "No points history yet. Start shopping to earn points!"
+msgstr ""
+
+#: webshop/templates/includes/product_carousel.html:801
+msgid "No products available"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:96
+#: webshop/www/all-products/index.html:86
+#: webshop/www/all-products/not_found.html:1
+msgid "No products found"
+msgstr ""
+
+#: webshop/public/js/product_ui/search.js:254
+msgid "No products found for"
+msgstr ""
+
+#: webshop/templates/includes/product_carousel.html:799
+msgid "No products on sale at the moment"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:64
+msgid "No shipping address specified"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1470
+msgid "No shipping methods available for your location"
+msgstr ""
+
+#: webshop/templates/includes/macros.html:464
+#: webshop/templates/includes/macros.html:534
+msgid "No values"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure_grid.js:66
+msgid "No variants available for this product"
+msgstr ""
+
+#: webshop/templates/pages/order.py:39
+msgid "Not Permitted"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item_list.js:17
+msgid "Not Published"
+msgstr ""
+
+#: webshop/public/js/utils/frappe-mock.js:255
+msgid "Not found"
+msgstr ""
+
+#: webshop/templates/includes/product_page.js:33
+msgid "Not in stock"
+msgstr ""
+
+#: webshop/public/js/utils/frappe-mock.js:261
+msgid "Not permitted"
+msgstr ""
+
+#: webshop/public/js/wishlist.js:191
+msgid "Note"
+msgstr ""
+
+#. Label of a Int field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Number of valid months"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:713
+msgid "OK"
+msgstr ""
+
+#. Label of a Text Editor field in DocType 'Website Offer'
+#: webshop/webshop/doctype/website_offer/website_offer.json
+msgid "Offer Details"
+msgstr ""
+
+#. Label of a Data field in DocType 'Website Offer'
+#: webshop/webshop/doctype/website_offer/website_offer.json
+msgid "Offer Subtitle"
+msgstr ""
+
+#. Label of a Data field in DocType 'Website Offer'
+#: webshop/webshop/doctype/website_offer/website_offer.json
+msgid "Offer Title"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Offers"
+msgstr ""
+
+#. Label of a Table field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Offers to Display"
+msgstr ""
+
+#. Label of a Check field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "On Backorder"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:101
+#: webshop/www/all-products/index.html:91
+msgid "On backorder"
+msgstr ""
+
+#: webshop/webshop/api.py:1026
+msgid "Only System Manager can clear webshop cache"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:532
+msgid "Only {0} in Stock for item {1}"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:876
+msgid "Only {0} units available in stock for {1}. You cannot add {2} units to your cart."
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:154
+msgid "Opening payment form..."
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:75
+msgid "Optional"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:82
+msgid "Optional columns: name, owner, client_email, valid_until"
+msgstr ""
+
+#. Description of the 'Expected End Time' (Datetime) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Optional: When maintenance is expected to end"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:31
+msgid "Order Details"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:34
+msgid "Order Number:"
+msgstr ""
+
+#: webshop/templates/includes/order_summary.html:6
+msgid "Order Summary"
+msgstr ""
+
+#: webshop/templates/includes/order_summary.html:87
+#: webshop/templates/pages/checkout_b2b.html:389
+msgid "Order Total"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:385
+msgid "Order validated successfully"
+msgstr ""
+
+#. Option for the 'Payment Success Url' (Select) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Orders"
+msgstr ""
+
+#: webshop/templates/generators/item/item_inquiry.js:13
+msgid "Organization Name"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:60
+#: webshop/templates/generators/item/item_bundle_components.html:48
+#: webshop/templates/generators/item_group.html:102
+#: webshop/templates/includes/macros.html:295
+#: webshop/www/all-products/index.html:92
+msgid "Out of stock"
+msgstr ""
+
+#: webshop/templates/generators/item/item_reviews.html:82
+msgid "Overall Rating"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:93
+#: webshop/www/all-products/index.html:83
+msgid "Page"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:116
+msgid "Password"
+msgstr ""
+
+#: webshop/templates/pages/cart.html:52
+msgid "Past Orders"
+msgstr ""
+
+#: webshop/templates/pages/cart.html:56
+msgid "Past Quotes"
+msgstr ""
+
+#. Description of the 'Payment Methods' (Table) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Path to the payment template. If left empty, the default template in webshop/templates/payments will be used. To use a template from another app, specify the path starting with 'apps/myapp/...' (e.g., apps/myapp/templates/payments/custom.html)"
+msgstr ""
+
+#: webshop/templates/pages/order.html:45 webshop/templates/pages/order.html:47
+#: webshop/templates/payments/stripe.html:36
+#: webshop/templates/payments/stripe.html:141
+msgid "Pay"
+msgstr ""
+
+#: webshop/templates/pages/order.js:57
+msgid "Pay Remaining"
+msgstr ""
+
+#: webshop/templates/payments/paypal.html:31
+#: webshop/templates/payments/paypal.html:90
+msgid "Pay with PayPal"
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:35
+#: webshop/templates/payments/wallee.html:117
+msgid "Pay with Wallee"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:28
+#: webshop/templates/pages/checkout.html:320
+msgid "Payment"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:45
+msgid "Payment Date :"
+msgstr ""
+
+#. Label of a Link field in DocType 'Webshop Payment Method'
+#. Label of a Link field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Payment Gateway Account"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:1887
+msgid "Payment Gateway Account not set"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:77
+msgid "Payment Gateway not found for settings: {0}"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:333
+msgid "Payment Method"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:40
+msgid "Payment Method :"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#. Label of a Table field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Payment Methods"
+msgstr ""
+
+#. Label of a Select field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Payment Success Url"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_payment_summary.html:4
+msgid "Payment Summary"
+msgstr ""
+
+#. Label of a Link field in DocType 'Webshop Payment Method'
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "Payment Terms Template"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:213
+#: webshop/controllers/payment_handler.py:215
+msgid "Payment already processed"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:311
+#: webshop/controllers/payment_handler.py:318
+msgid "Payment failed"
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:162
+#: webshop/templates/payments/wallee.html:250
+msgid "Payment form not available"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:284
+msgid "Payment processed successfully"
+msgstr ""
+
+#: webshop/templates/pages/payment-success.html:15
+#: webshop/templates/pages/payment-success.html:38
+#: webshop/templates/payments/stripe.html:293
+msgid "Payment successful!"
+msgstr ""
+
+#: webshop/templates/pages/order.html:73
+msgid "Pending"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:136
+#: webshop/templates/pages/checkout.html:91
+#: webshop/templates/pages/checkout.html:182
+#: webshop/templates/pages/checkout.html:278
+#: webshop/templates/pages/checkout.js:662
+msgid "Phone"
+msgstr ""
+
+#: webshop/templates/generators/item/item_inquiry.js:25
+msgid "Phone Number"
+msgstr ""
+
+#: webshop/templates/includes/cart/place_order.html:16
+#: webshop/templates/pages/checkout_b2b.html:48
+#: webshop/templates/pages/checkout_b2b.html:237
+#: webshop/templates/pages/checkout_b2b.html:249
+#: webshop/templates/pages/checkout_b2b.html:273
+#: webshop/templates/pages/checkout_b2b.html:322
+msgid "Place Order"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:803
+#: webshop/templates/pages/checkout.js:833
+#: webshop/templates/pages/checkout.js:2154
+#: webshop/templates/payments/paypal.html:30
+#: webshop/templates/payments/stripe.html:35
+#: webshop/templates/payments/wallee.html:34
+msgid "Please accept the terms and conditions to continue"
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:224
+msgid "Please check your payment details"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:284
+msgid "Please enable 'Frequently Bought Together' first"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:2019
+#: webshop/webshop/shopping_cart/cart.py:2317
+msgid "Please enter a coupon code"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:375
+msgid "Please enter a valid amount"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2321
+msgid "Please enter a valid coupon code"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:597
+#: webshop/templates/payments/paypal.html:79
+#: webshop/templates/payments/stripe.html:382
+#: webshop/templates/payments/wallee.html:100
+msgid "Please enter a valid email address"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1929
+msgid "Please enter a valid number of points"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:922
+msgid "Please enter your email"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:679
+msgid "Please enter your email address"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:685
+msgid "Please enter your first and last name"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:799
+msgid "Please enter your password"
+msgstr ""
+
+#: webshop/templates/payments/paypal.html:73
+#: webshop/templates/payments/wallee.html:94
+msgid "Please fill in all fields"
+msgstr ""
+
+#: webshop/templates/payments/stripe.html:376
+msgid "Please fill in all required fields"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:677
+#: webshop/templates/pages/checkout.js:698
+msgid "Please fill in the following required fields: {0}"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:884
+msgid "Please log in to add items to cart"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:15
+msgid "Please log in to continue with checkout"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2524
+msgid "Please log in to use your loyalty points"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:15
+#: webshop/templates/pages/gift_cards.py:147
+msgid "Please log in to view your gift cards."
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:15
+#: webshop/templates/pages/loyalty_points.py:143
+msgid "Please log in to view your loyalty points."
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1779
+msgid "Please remove coupon code first"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1769
+msgid "Please remove loyalty points first"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:41
+msgid "Please select a shipping address first"
+msgstr ""
+
+#: webshop/templates/pages/checkout.py:608
+msgid "Please select a shipping method"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:304
+msgid "Please select a shipping method before placing the order"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:730
+msgid "Please select a shipping method before proceeding to payment"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1424
+msgid "Please select a shipping method to continue"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:151
+msgid "Please upload an Excel file"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:293
+msgid "Please wait while shipping methods are loaded"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:97
+msgid "Points"
+msgstr ""
+
+#. Label of a Data field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Points Conversion Text"
+msgstr ""
+
+#. Label of a Data field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Points Earned Text"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:89
+msgid "Points History"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:67
+msgid "Points are credited after order completion"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:128
+#: webshop/templates/pages/checkout.html:128
+#: webshop/templates/pages/checkout.html:228
+#: webshop/templates/pages/checkout.js:665
+msgid "Postal Code"
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:355
+msgid "Preparing payment..."
+msgstr ""
+
+#: webshop/templates/includes/brand_carousel.html:67
+#: webshop/templates/includes/product_carousel.html:34
+#: webshop/webshop/web_template/hero_slider/hero_slider.html:65
+msgid "Previous"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_dropdown.html:14
+#: webshop/templates/includes/macros.html:4
+#: webshop/templates/pages/checkout.py:458
+msgid "Price"
+msgstr ""
+
+#. Label of a Link field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Price List"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:822
+msgid "Price can only be modified for gift cards"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:90
+#: webshop/www/all-products/index.html:80
+msgid "Price: High to Low"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:89
+#: webshop/www/all-products/index.html:79
+msgid "Price: Low to High"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.js:11
+msgid "Prices"
+msgstr ""
+
+#. Description of the 'Price List' (Link) field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Prices will not be shown if Price List is not set"
+msgstr ""
+
+#: webshop/templates/pages/order.html:33
+msgid "Print"
+msgstr ""
+
+#: webshop/templates/includes/cart/place_order.html:7
+#: webshop/templates/includes/cart/place_order.html:11
+msgid "Proceed to Checkout"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:156
+msgid "Processing file..."
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:312
+msgid "Processing order..."
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:221
+msgid "Processing payment..."
+msgstr ""
+
+#: webshop/templates/payments/stripe.html:392
+#: webshop/templates/payments/wallee.html:332
+#: webshop/templates/payments/wallee.html:353
+msgid "Processing..."
+msgstr ""
+
+#: webshop/templates/generators/item/item_specifications.html:7
+#: webshop/webshop/doctype/website_item/website_item.py:603
+msgid "Product Details"
+msgstr ""
+
+#: webshop/templates/pages/product_search.html:3
+#: webshop/templates/pages/product_search.html:5
+msgid "Product Search"
+msgstr ""
+
+#: webshop/setup/install.py:204 webshop/templates/pages/thank_you.html:72
+msgid "Products"
+msgstr ""
+
+#. Label of a Int field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Products per Page"
+msgstr ""
+
+#: webshop/webshop/utils/product_carousel_helper.py:303
+msgid "Produits en vedette"
+msgstr ""
+
+#: webshop/public/js/override/item.js:5
+msgid "Publish in Website"
+msgstr ""
+
+#. Label of a Check field in DocType 'Website Item'
+#: webshop/public/js/override/item.js:62
+#: webshop/webshop/doctype/website_item/website_item.json
+#: webshop/webshop/doctype/website_item/website_item_list.js:15
+msgid "Published"
+msgstr ""
+
+#. Label of a Data field in DocType 'Item Review'
+#: webshop/webshop/doctype/item_review/item_review.json
+msgid "Published on"
+msgstr ""
+
+#: webshop/templates/includes/order/order_macros.html:22
+msgid "Qty "
+msgstr ""
+
+#: webshop/templates/generators/item/item_bundle_components.html:33
+#: webshop/templates/pages/cart.html:25 webshop/templates/pages/order.html:103
+#: webshop/templates/pages/thank_you.html:77
+msgid "Quantity"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:804
+#: webshop/webshop/utils/cart_helpers.py:269
+msgid "Quantity must be a valid number"
+msgstr ""
+
+#. Label of a Select field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Quotation Series"
+msgstr ""
+
+#. Label of a Int field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Ranking"
+msgstr ""
+
+#: webshop/templates/pages/order.html:106
+#: webshop/templates/pages/thank_you.html:78
+msgid "Rate"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_items.html:23
+msgid "Rate:"
+msgstr ""
+
+#. Label of a Rating field in DocType 'Item Review'
+#: webshop/webshop/doctype/item_review/item_review.json
+msgid "Rating"
+msgstr ""
+
+#: webshop/public/js/product_ui/search.js:134
+#: webshop/public/js/product_ui/search_no_jquery.js:190
+msgid "Recent"
+msgstr ""
+
+#: webshop/templates/generators/item/item.html:59
+msgid "Recommended"
+msgstr ""
+
+#. Name of a DocType
+#. Label of a Section Break field in DocType 'Website Item'
+#: webshop/webshop/doctype/recommended_items/recommended_items.json
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Recommended Items"
+msgstr ""
+
+#. Label of a Table field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Recommended/Similar Items"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:73
+msgid "Redeem"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:108
+#: webshop/templates/pages/loyalty_points.html:204
+msgid "Redeemed"
+msgstr ""
+
+#. Description of the 'Redirect to Login' (Check) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Redirect directly to login page instead of showing maintenance page"
+msgstr ""
+
+#. Label of a Data field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Redirect on Action"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Redirect to Login"
+msgstr ""
+
+#: webshop/templates/payments/paypal.html:124
+#: webshop/templates/payments/paypal.html:126
+msgid "Redirecting to PayPal..."
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:370
+msgid "Redirecting to Wallee..."
+msgstr ""
+
+#: webshop/templates/payments/wallee.html:371
+msgid "Redirecting to payment page..."
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:15
+msgid "Redirecting to your account in"
+msgstr ""
+
+#: webshop/webshop/redisearch_utils.py:336
+msgid "Redisearch Error"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:42
+msgid "Reference:"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:329
+msgid "Refresh"
+msgstr ""
+
+#. Label of a Button field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Regenerate Sitemap Now"
+msgstr ""
+
+#. Label of a Link field in DocType 'Frequently Bought Together'
+#: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
+msgid "Related Item Code"
+msgstr ""
+
+#. Label of a Data field in DocType 'Frequently Bought Together'
+#: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
+msgid "Related Item Name"
+msgstr ""
+
+#: webshop/templates/includes/coupon_form.html:21
+msgid "Remove"
+msgstr ""
+
+#: webshop/templates/includes/loyalty_points_form.html:8
+msgid "Remove Points"
+msgstr ""
+
+#. Description of the 'Enable Infinite Scroll' (Check) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Replace pagination with infinite scroll - automatically load more products when scrolling"
+msgstr ""
+
+#: webshop/templates/includes/cart/place_order.html:21
+msgid "Request for Quote"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:82
+msgid "Required columns: code, value"
+msgstr ""
+
+#: webshop/templates/pages/cgv.html:23
+msgid "Retour au checkout"
+msgstr ""
+
+#: webshop/templates/includes/mobile_menu.html:40
+msgid "Return to Home"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:292
+msgid "Return to cart"
+msgstr ""
+
+#: webshop/public/js/customer_reviews.js:44
+#: webshop/templates/generators/item/item_reviews.html:102
+msgid "Review Submitted"
+msgstr ""
+
+#. Label of a Data field in DocType 'Item Review'
+#: webshop/webshop/doctype/item_review/item_review.json
+msgid "Review Title"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Item Review'
+#: webshop/webshop/doctype/item_review/item_review.json
+msgid "Reviews"
+msgstr ""
+
+#. Label of a Small Text field in DocType 'Homepage Featured Product'
+#. Label of a Small Text field in DocType 'Recommended Items'
+#. Label of a Small Text field in DocType 'Website Item'
+#. Label of a Small Text field in DocType 'Wishlist Item'
+#: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json
+#: webshop/webshop/doctype/recommended_items/recommended_items.json
+#: webshop/webshop/doctype/website_item/website_item.json
+#: webshop/webshop/doctype/wishlist_item/wishlist_item.json
+msgid "Route"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:210
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:220
+msgid "Row"
+msgstr ""
+
+#: webshop/webshop/crud_events/quotation/validate_shopping_cart_items.py:20
+msgid "Row #{0}: Item {1} must have a Website Item for Shopping Cart Quotations"
+msgstr ""
+
+#. Label of a field in the gift-card Web Form
+#: webshop/webshop/web_form/gift_card/gift_card.json
+msgid "Sales Invoice"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:140
+#: webshop/templates/pages/gift_cards.html:140
+msgid "Save"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:329
+msgid "Save Order"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Save Quotations as Draft"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:671
+msgid "Saving category order..."
+msgstr ""
+
+#: webshop/templates/includes/order/order_taxes.html:34
+#: webshop/templates/includes/order/order_taxes.html:85
+msgid "Savings"
+msgstr ""
+
+#: webshop/public/js/product_ui/views.js:105
+#: webshop/templates/includes/macros.html:422
+#: webshop/templates/includes/macros.html:513
+#: webshop/www/all-products/index.html:75
+msgid "Search"
+msgstr ""
+
+#: webshop/templates/pages/product_search.html:21
+msgid "Search Results"
+msgstr ""
+
+#: webshop/templates/includes/macros.html:547
+msgid "Search Tags"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Search and SEO"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:86
+#: webshop/templates/includes/search_box.html:5
+#: webshop/www/all-products/index.html:76
+msgid "Search for Products"
+msgstr ""
+
+#: webshop/templates/pages/product_search.html:13
+msgid "Search results for"
+msgstr ""
+
+#: webshop/www/maintenance.html:363
+msgid "Seconds"
+msgstr ""
+
+#: webshop/templates/includes/macros.html:456
+msgid "See all brands"
+msgstr ""
+
+#: webshop/templates/includes/macros.html:460
+msgid "See all item groups"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:364
+msgid "See full page"
+msgstr ""
+
+#: webshop/templates/pages/cart.html:114
+msgid "See past orders"
+msgstr ""
+
+#: webshop/templates/pages/cart.html:118
+msgid "See past quotations"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:116
+msgid "Select Amount"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure.html:10
+#: webshop/templates/generators/item/item_configure.js:329
+#: webshop/templates/generators/item/item_configure_grid.html:10
+msgid "Select Variant"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure.js:32
+msgid "Select Variant for {0}"
+msgstr ""
+
+#: webshop/public/js/override/item.js:81
+msgid "Select Warehouse"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:162
+#: webshop/templates/pages/checkout.html:258
+msgid "Select a country"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure_grid.html:24
+msgid "Selected"
+msgstr ""
+
+#: webshop/templates/generators/item/item_inquiry.js:44
+msgid "Send"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:116
+msgid "Send login link"
+msgstr ""
+
+#: webshop/webshop/page_renderers/maintenance_renderer.py:30
+msgid "Service temporarily unavailable due to maintenance"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:201
+msgid "Set Address"
+msgstr ""
+
+#. Label of a Button field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Set Meta Tags"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:309
+msgid "Set Shipping Address or Billing Address"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:228
+msgid "Set Tax Rule for shopping cart"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:200
+msgid "Ship to a different address?"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:24
+#: webshop/templates/payments/wallee.py:178
+msgid "Shipping"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:9
+#: webshop/templates/includes/cart/cart_address_picker.html:2
+#: webshop/templates/pages/checkout.html:194
+#: webshop/templates/pages/checkout.js:684
+#: webshop/templates/pages/checkout_b2b.html:31
+#: webshop/templates/pages/thank_you.html:54
+msgid "Shipping Address"
+msgstr ""
+
+#: webshop/templates/includes/order_summary.html:98
+#: webshop/templates/pages/checkout.js:1616
+#: webshop/templates/pages/checkout_b2b.html:412
+msgid "Shipping Charges"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:685
+msgid "Shipping City"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:687
+msgid "Shipping Country"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:39
+msgid "Shipping Method"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:729
+msgid "Shipping Method Required"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:686
+msgid "Shipping Postal Code"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:303
+msgid "Shipping method required"
+msgstr ""
+
+#: webshop/templates/pages/checkout.py:544
+msgid "Shipping to {0}"
+msgstr ""
+
+#: webshop/templates/includes/breadcrumbs.html:16
+#: webshop/templates/pages/gift_cards.html:122
+#: webshop/templates/pages/loyalty_points.html:59
+msgid "Shop"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/override_doctype/item_group.py:125
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Shop by Category"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/templates/pages/cart.html:3 webshop/templates/pages/cart.html:5
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Shopping Cart"
+msgstr ""
+
+#. Description of the 'Short Website Description' (Small Text) field in DocType
+#. 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Short Description for List View"
+msgstr ""
+
+#. Label of a Small Text field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Short Website Description"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:116 webshop/public/js/auth_dialog.js:578
+msgid "Show"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Show Apply Coupon Code"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Show Contact Us Button"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Show Loyalty Points for Guests"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Show Loyalty Points on Shop"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Show Price"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Show Price in Quotation"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Show Public Attachments"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Show Stock Availability"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Show Stock Quantity"
+msgstr ""
+
+#. Description of the 'Website Warehouse' (Link) field in DocType 'Website
+#. Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Show Stock availability based on this warehouse."
+msgstr ""
+
+#. Description of the 'Slideshow' (Link) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Show a slideshow at the top of the page"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:218
+msgid "Show errors"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:753
+#: webshop/templates/pages/checkout.js:772
+msgid "Show less"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:361
+#: webshop/templates/pages/checkout.js:757
+msgid "Show more"
+msgstr ""
+
+#: webshop/templates/includes/macros.html:59
+msgid "Show only items in stock"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:99
+#: webshop/www/all-products/index.html:89
+msgid "Show only products with discount"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:208
+msgid "Show successful imports"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:618
+msgid "Sign in"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:34
+msgid "Sitemap"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Sitemap Settings"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:318
+msgid "Sitemap cache has been cleared successfully. The sitemaps will be regenerated on next access."
+msgstr ""
+
+#. Label of a Link field in DocType 'Webshop Settings'
+#. Label of a Link field in DocType 'Website Item'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Slideshow"
+msgstr ""
+
+#: webshop/templates/pages/cart.js:159 webshop/templates/pages/cart.js:186
+#: webshop/templates/pages/checkout_b2b.html:332
+msgid "Something went wrong!"
+msgstr ""
+
+#: webshop/webshop/redisearch_utils.py:336
+msgid "Something went wrong. Check {0}"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:97
+#: webshop/www/all-products/index.html:87
+msgid "Something went wrong. Please refresh or contact us."
+msgstr ""
+
+#: webshop/public/js/wishlist.js:190
+msgid "Sorry, something went wrong. Please refresh."
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:87
+#: webshop/www/all-products/index.html:77
+msgid "Sort by:"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:148
+#: webshop/templates/pages/loyalty_points.html:80
+msgid "Start Shopping"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_address.html:99
+#: webshop/templates/pages/checkout.html:146
+#: webshop/templates/pages/checkout.html:244
+msgid "State"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:36
+msgid "Status :"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:21
+msgid "Status : "
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.js:15
+msgid "Stock"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Stock Filter Checked by Default"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Stock Information"
+msgstr ""
+
+#. Name of a role
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Stock Manager"
+msgstr ""
+
+#. Label of a Link field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Stock UOM"
+msgstr ""
+
+#. Name of a role
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Stock User"
+msgstr ""
+
+#: webshop/templates/generators/item/item_inquiry.js:32
+msgid "Subject"
+msgstr ""
+
+#: webshop/public/js/customer_reviews.js:53
+#: webshop/templates/generators/item/item_reviews.html:111
+msgid "Submit"
+msgstr ""
+
+#: webshop/templates/pages/order.html:75
+msgid "Submitted"
+msgstr ""
+
+#: webshop/public/js/customer_reviews.js:39
+#: webshop/templates/generators/item/item_reviews.html:97
+msgid "Submitting Review ..."
+msgstr ""
+
+#: webshop/templates/includes/cart_component.html:42
+#: webshop/templates/pages/cart.html:27
+#: webshop/templates/pages/thank_you.html:123
+msgid "Subtotal"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:713
+msgid "Success!"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:206
+msgid "Successful"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:824 webshop/public/js/auth_dialog.js:848
+msgid "Successful connection!"
+msgstr ""
+
+#: webshop/webshop/utils/frequently_bought_together.py:71
+msgid "Successfully calculated {0} product associations"
+msgstr ""
+
+#. Name of a role
+#: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
+#: webshop/webshop/doctype/item_review/item_review.json
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+#: webshop/webshop/doctype/website_item/website_item.json
+#: webshop/webshop/doctype/wishlist/wishlist.json
+msgid "System Manager"
+msgstr ""
+
+#. Label of a Table field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Tabs"
+msgstr ""
+
+#: webshop/templates/includes/macros.html:544
+msgid "Tags"
+msgstr ""
+
+#: webshop/templates/payments/wallee.py:187
+msgid "Taxes"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:129
+msgid "Taxes and Charges"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item_list.js:7
+#: webshop/webshop/doctype/website_item/website_item_list.js:9
+msgid "Template"
+msgstr ""
+
+#. Label of a Data field in DocType 'Webshop Payment Method'
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "Template Path"
+msgstr ""
+
+#: webshop/templates/pages/cart.html:77
+msgid "Terms and Conditions"
+msgstr ""
+
+#. Label of a Link field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Terms and Conditions for Quotations"
+msgstr ""
+
+#. Label of a Link field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Terms and conditions for Checkout"
+msgstr ""
+
+#: webshop/public/js/customer_reviews.js:43
+msgid "Thank you for submitting your review"
+msgstr ""
+
+#: webshop/templates/generators/item/item_reviews.html:101
+msgid "Thank you for the review"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:2
+msgid "Thank you for your order"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:16
+msgid "Thank you for your order!"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:141
+msgid "The amount will be deducted from your total"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1523
+msgid "The coupon has been removed to apply shipping rule"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1858
+msgid "The coupon has been removed to update item quantity"
+msgstr ""
+
+#: webshop/public/js/shopping_cart.js:158
+msgid "The coupon has been removed to update the cart"
+msgstr ""
+
+#. Description of the 'Enable Field Filters (Categories)' (Check) field in
+#. DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "The field filters will also work as categories in the <b>Shop by Category</b> page."
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1310
+msgid "The following changes will be applied:"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1538
+msgid "The loyalty points have been removed to apply shipping rule"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:1873
+msgid "The loyalty points have been removed to update item quantity"
+msgstr ""
+
+#: webshop/public/js/shopping_cart.js:173
+msgid "The loyalty points have been removed to update the cart"
+msgstr ""
+
+#: webshop/public/js/override/item.js:41
+msgid "The product {0} has been published on the website."
+msgstr ""
+
+#: webshop/public/js/override/item.js:47
+msgid "The product's warehouse is"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.py:20
+#: webshop/templates/pages/thank_you.py:109
+msgid "The specified order does not exist."
+msgstr ""
+
+#: webshop/templates/generators/item/item_bundle_components.html:3
+msgid "This bundle includes:"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2348
+msgid "This coupon code has expired"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2332
+msgid "This coupon code has reached its maximum usage limit"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2345
+msgid "This coupon code is not yet valid"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2337
+msgid "This gift card has already been used and cannot be applied again"
+msgstr ""
+
+#: webshop/templates/payments/paypal.py:87
+#: webshop/templates/payments/wallee.py:112
+msgid "This order has already been paid"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:45
+#: webshop/controllers/payment_handler.py:349
+#: webshop/templates/payments/paypal.py:33
+#: webshop/templates/payments/wallee.py:45
+msgid "This order has already been processed. Order ID: {0}"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:284
+msgid "This will clear the sitemap cache and force regeneration. Continue?"
+msgstr ""
+
+#. Label of a Attach Image field in DocType 'Homepage Featured Product'
+#. Label of a Data field in DocType 'Website Item'
+#: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Thumbnail"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:182
+#: webshop/templates/generators/item/item_add_to_cart.html:219
+#: webshop/templates/generators/item/item_configure.js:202
+#: webshop/templates/includes/macros.html:280
+msgid "To add to cart, please log in"
+msgstr ""
+
+#: webshop/templates/includes/cart_component.html:50
+#: webshop/templates/pages/thank_you.html:135
+msgid "Total"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:37
+msgid "Total :"
+msgstr ""
+
+#: webshop/templates/includes/order/order_taxes.html:54
+msgid "Total Amount"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:203
+msgid "Total rows"
+msgstr ""
+
+#: webshop/public/js/product_ui/search.js:254
+msgid "Try a different search term"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:49
+msgid "UOM"
+msgstr ""
+
+#: webshop/templates/payments/wallee.py:234
+msgid "Unable to create Wallee transaction"
+msgstr ""
+
+#: webshop/templates/payments/paypal.py:171
+msgid "Unable to obtain PayPal payment URL"
+msgstr ""
+
+#: webshop/webshop/maintenance.py:50 webshop/webshop/maintenance.py:128
+#: webshop/webshop/page_renderers/maintenance_renderer.py:76
+#: webshop/www/maintenance.html:8
+msgid "Under Maintenance"
+msgstr ""
+
+#: webshop/webshop/crud_events/quotation/validate_shopping_cart_items.py:23
+msgid "Unpublished Item"
+msgstr ""
+
+#: webshop/public/js/override/item.js:89
+msgid "Update"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:82
+msgid "Upload an Excel file with gift card data."
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:74
+msgid "Use your points at checkout for discounts"
+msgstr ""
+
+#. Description of the 'Points Earned Text' (Data) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Use {points} for points count and {value} for monetary value"
+msgstr ""
+
+#. Label of a field in the gift-card Web Form
+#: webshop/templates/pages/gift_cards.py:131
+#: webshop/webshop/web_form/gift_card/gift_card.json
+msgid "Used"
+msgstr ""
+
+#. Label of a Link field in DocType 'Item Review'
+#. Label of a Link field in DocType 'Wishlist'
+#: webshop/webshop/doctype/item_review/item_review.json
+#: webshop/webshop/doctype/wishlist/wishlist.json
+msgid "User"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:52
+msgid "Using existing payment request"
+msgstr ""
+
+#: webshop/webshop/utils/import_gift_cards.py:213
+msgid "Valid - ready to import"
+msgstr ""
+
+#. Label of a field in the gift-card Web Form
+#: webshop/webshop/web_form/gift_card/gift_card.json
+msgid "Valid From"
+msgstr ""
+
+#: webshop/templates/pages/order.html:64
+msgid "Valid Till"
+msgstr ""
+
+#. Label of a field in the gift-card Web Form
+#: webshop/webshop/web_form/gift_card/gift_card.json
+msgid "Valid Upto"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:91
+#: webshop/templates/pages/thank_you.html:156
+msgid "Valid from"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:97
+msgid "Valid until"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:2155
+msgid "Validate Order"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:230
+msgid "Validation Complete"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:202
+msgid "Validation Results"
+msgstr ""
+
+#. Label of a field in the gift-card Web Form
+#: webshop/webshop/web_form/gift_card/gift_card.json
+msgid "Validity and Usage"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure.js:132
+msgid "Value must be between {0} and {1}"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item_list.js:11
+#: webshop/webshop/doctype/website_item/website_item_list.js:13
+msgid "Variant"
+msgstr ""
+
+#. Label of a Link field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Variant Of"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_items.html:58
+msgid "Variant of"
+msgstr ""
+
+#: webshop/templates/includes/macros.html:385
+msgid "Verified Purchase"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:104
+msgid "Veuillez sélectionner une adresse de livraison"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:151
+msgid "Veuillez sélectionner une méthode de livraison pour continuer"
+msgstr ""
+
+#. Label of a Button field in DocType 'Homepage Featured Product'
+#: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json
+#: webshop/webshop/doctype/website_item/website_item.js:13
+#: webshop/webshop/doctype/website_item/website_item.js:20
+#: webshop/webshop/doctype/website_item/website_item.js:24
+msgid "View"
+msgstr ""
+
+#: webshop/templates/includes/cart_component.html:80
+#: webshop/templates/includes/cart_component.js:1799
+msgid "View Cart"
+msgstr ""
+
+#: webshop/templates/pages/customer_reviews.html:38
+msgid "View More"
+msgstr ""
+
+#: webshop/public/js/override/item.js:54
+msgid "View Product"
+msgstr ""
+
+#: webshop/templates/includes/brand_carousel.html:104
+msgid "View Products"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:32
+msgid "View Sitemap"
+msgstr ""
+
+#: webshop/public/js/override/item.js:144
+msgid "View Website Item"
+msgstr ""
+
+#: webshop/templates/generators/item/item_reviews.html:45
+msgid "View all"
+msgstr ""
+
+#: webshop/public/js/product_ui/search.js:311
+#: webshop/public/js/product_ui/search_no_jquery.js:353
+msgid "View all results"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:202
+#: webshop/templates/generators/item/item_add_to_cart.html:214
+msgid "View in Cart"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:202
+#: webshop/templates/generators/item/item_add_to_cart.html:214
+msgid "View in Quote"
+msgstr ""
+
+#: webshop/templates/payments/wallee.py:154
+msgid "Wallee Integration is not enabled"
+msgstr ""
+
+#: webshop/templates/payments/wallee.py:79
+msgid "Wallee payment gateway not configured"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Wishlist Item'
+#. Label of a Link field in DocType 'Wishlist Item'
+#: webshop/public/js/override/item.js:83
+#: webshop/webshop/doctype/wishlist_item/wishlist_item.json
+msgid "Warehouse"
+msgstr ""
+
+#: webshop/webshop/utils/warehouse_update.py:17
+#: webshop/webshop/utils/warehouse_update.py:91
+msgid "Warehouse name is required"
+msgstr ""
+
+#: webshop/public/js/override/item.js:104
+#: webshop/public/js/override/item.js:131
+msgid "Warehouse updated successfully"
+msgstr ""
+
+#: webshop/webshop/utils/warehouse_update.py:21
+#: webshop/webshop/utils/warehouse_update.py:95
+msgid "Warehouse {0} does not exist"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.py:238
+msgid "Warning: Invalid SSL certificate on attachment {0}"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.py:234
+msgid "Warning: Invalid attachment {0}"
+msgstr ""
+
+#: webshop/www/maintenance.html:331
+msgid "We are currently performing scheduled maintenance."
+msgstr ""
+
+#: webshop/webshop/maintenance.py:23
+msgid "We are currently performing scheduled maintenance. We'll be back shortly!"
+msgstr ""
+
+#: webshop/www/maintenance.html:333
+msgid "We hope to be back online very soon. Thank you for your patience and we apologize for any inconvenience caused."
+msgstr ""
+
+#. Name of a DocType
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "Webshop Payment Method"
+msgstr ""
+
+#. Name of a DocType
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+#: webshop/webshop/doctype/website_item/website_item.js:22
+msgid "Webshop Settings"
+msgstr ""
+
+#: webshop/webshop/api.py:1061
+msgid "Webshop cache cleared successfully"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:273
+msgid "Webshop maintenance mode cannot be enabled without website maintenance mode"
+msgstr ""
+
+#. Label of a HTML Editor field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Website Content"
+msgstr ""
+
+#. Label of a Text Editor field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Website Description"
+msgstr ""
+
+#. Label of a Attach Image field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Website Image"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.py:162
+msgid "Website Image should be a public file or website URL"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.py:154
+msgid "Website Image {0} attached to Item {1} cannot be found"
+msgstr ""
+
+#. Label of a Link field in DocType 'Item Review'
+#. Label of a Link field in DocType 'Recommended Items'
+#. Name of a DocType
+#. Label of a Link field in DocType 'Wishlist Item'
+#: webshop/webshop/doctype/item_review/item_review.json
+#: webshop/webshop/doctype/recommended_items/recommended_items.json
+#: webshop/webshop/doctype/website_item/website_item.json
+#: webshop/webshop/doctype/wishlist_item/wishlist_item.json
+msgid "Website Item"
+msgstr ""
+
+#. Label of a Table field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Website Item Fields"
+msgstr ""
+
+#. Label of a Table field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Website Item Groups"
+msgstr ""
+
+#. Label of a Attach field in DocType 'Recommended Items'
+#: webshop/webshop/doctype/recommended_items/recommended_items.json
+msgid "Website Item Image"
+msgstr ""
+
+#. Label of a Data field in DocType 'Recommended Items'
+#. Label of a Data field in DocType 'Website Item'
+#. Label of a Data field in DocType 'Wishlist Item'
+#: webshop/webshop/doctype/recommended_items/recommended_items.json
+#: webshop/webshop/doctype/website_item/website_item.json
+#: webshop/webshop/doctype/wishlist_item/wishlist_item.json
+msgid "Website Item Name"
+msgstr ""
+
+#. Name of a DocType
+#: webshop/webshop/doctype/website_item_tabbed_section/website_item_tabbed_section.json
+msgid "Website Item Tabbed Section"
+msgstr ""
+
+#. Label of a Data field in DocType 'Recommended Items'
+#: webshop/webshop/doctype/recommended_items/recommended_items.json
+msgid "Website Item Thumbnail"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.py:95
+msgid "Website Item already exists against Item {0}"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.py:784
+msgid "Website Item already exists against {0}"
+msgstr ""
+
+#: webshop/public/js/override/item.js:146
+msgid "Website Item not found"
+msgstr ""
+
+#. Name of a role
+#: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
+#: webshop/webshop/doctype/item_review/item_review.json
+#: webshop/webshop/doctype/website_item/website_item.json
+#: webshop/webshop/doctype/wishlist/wishlist.json
+msgid "Website Manager"
+msgstr ""
+
+#. Name of a DocType
+#: webshop/webshop/doctype/website_offer/website_offer.json
+msgid "Website Offer"
+msgstr ""
+
+#. Label of a Table field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Website Specifications"
+msgstr ""
+
+#. Label of a Link field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Website Warehouse"
+msgstr ""
+
+#. Description of the 'Website Item Name' (Data) field in DocType 'Website
+#. Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Website display name"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:279
+msgid "Website maintenance mode has been automatically enabled"
+msgstr ""
+
+#: webshop/templates/pages/checkout.py:454
+msgid "Weight"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:40
+msgid "Welcome in checkout. Please fill in your information below."
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:16
+msgid "Welcome to the B2B checkout process."
+msgstr ""
+
+#: webshop/templates/pages/checkout.py:466
+msgid "Width"
+msgstr ""
+
+#. Name of a DocType
+#: webshop/templates/pages/wishlist.html:3
+#: webshop/templates/pages/wishlist.html:5
+#: webshop/webshop/doctype/wishlist/wishlist.json
+msgid "Wishlist"
+msgstr ""
+
+#. Name of a DocType
+#: webshop/webshop/doctype/wishlist_item/wishlist_item.json
+msgid "Wishlist Item"
+msgstr ""
+
+#: webshop/public/js/wishlist.js:208
+msgid "Wishlist is empty !"
+msgstr ""
+
+#: webshop/templates/pages/wishlist.html:24
+msgid "Wishlist is empty!"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:39
+msgid "Worth"
+msgstr ""
+
+#: webshop/public/js/customer_reviews.js:21
+#: webshop/templates/generators/item/item_reviews.html:19
+#: webshop/templates/generators/item/item_reviews.html:79
+#: webshop/templates/pages/customer_reviews.html:20
+msgid "Write a Review"
+msgstr ""
+
+#: webshop/templates/generators/item/item_reviews.html:63
+msgid "Write the First Review"
+msgstr ""
+
+#. Option for the 'Hide Currency Symbol in Shop' (Select) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Yes"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:15
+msgid "You are already logged in."
+msgstr ""
+
+#: webshop/webshop/doctype/item_review/item_review.py:152
+msgid "You are not a verified customer yet. Please contact us to proceed."
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:19
+msgid "You are not enrolled in a loyalty program yet. Make a purchase to start earning points!"
+msgstr ""
+
+#: webshop/webshop/doctype/item_review/item_review.py:111
+msgid "You are not verified to write a review yet."
+msgstr ""
+
+#. Description of the 'Website Content' (HTML Editor) field in DocType 'Website
+#. Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "You can use any valid Bootstrap 4 markup in this field. It will be shown on your Item Page."
+msgstr ""
+
+#: webshop/templates/includes/coupon_form.html:17
+#: webshop/templates/includes/coupon_form.html:27
+msgid "You cannot use a promo code when loyalty points are applied"
+msgstr ""
+
+#: webshop/templates/includes/loyalty_points_form.html:16
+#: webshop/templates/includes/loyalty_points_form.html:25
+msgid "You cannot use loyalty points when a promo code is applied"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2529
+msgid "You do not have an active loyalty program"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:2541
+msgid "You do not have enough loyalty points ({0} points available)"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:22
+msgid "You don't have any gift cards in your account."
+msgstr ""
+
+#: webshop/webshop/utils/import_gift_cards.py:148
+msgid "You don't have permission to create gift cards"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:438
+msgid "You don't have permission to modify Item Groups"
+msgstr ""
+
+#: webshop/templates/includes/coupon_form.html:4
+msgid "You have a coupon code or gift card?"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:363
+msgid "You need to enable Shopping Cart"
+msgstr ""
+
+#: webshop/templates/includes/loyalty_points_form.html:3
+msgid "You want to use your loyalty points?"
+msgstr ""
+
+#: webshop/templates/pages/payment-success.html:16
+#: webshop/templates/pages/payment-success.html:39
+msgid "You will be redirected to your orders in a few seconds..."
+msgstr ""
+
+#: webshop/templates/includes/cart_component.html:26
+msgid "Your Cart"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:43
+msgid "Your Gift Cards"
+msgstr ""
+
+#: webshop/templates/generators/item/item_reviews.html:84
+msgid "Your Review"
+msgstr ""
+
+#: webshop/templates/pages/checkout.py:618
+#: webshop/templates/pages/checkout.py:816
+msgid "Your basket is empty"
+msgstr ""
+
+#: webshop/templates/pages/cart.html:111
+msgid "Your cart is Empty"
+msgstr ""
+
+#: webshop/templates/includes/cart_component.html:34
+msgid "Your cart is empty"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:107
+msgid "Your gift card code will be available once the invoice has been paid in full."
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:151
+msgid "Your gift card codes are available :"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:165
+msgid "Your gift card codes will be available once the invoice has been paid in full."
+msgstr ""
+
+#: webshop/webshop/shopping_cart/guest_cart.py:346
+msgid "Your guest cart has been assigned to your account"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:44
+msgid "Your information"
+msgstr ""
+
+#: webshop/templates/pages/loyalty_points.html:30
+msgid "Your loyalty program"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:19
+msgid "Your order #"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:24
+msgid "Your order has been confirmed."
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:21
+msgid "Your order will be processed according to your B2B account settings."
+msgstr ""
+
+#: webshop/templates/payments/stripe.html:290
+msgid "Your payment has been processed successfully. Redirecting..."
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:105
+#: webshop/www/all-products/index.html:95
+msgid "available"
+msgstr ""
+
+#: webshop/templates/pages/gift_cards.html:49
+msgid "card(s)"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/product_info.py:242
+#: webshop/webshop/shopping_cart/product_info.py:243
+msgid "from"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html:19
+msgid "has been confirmed."
+msgstr ""
+
+#: webshop/templates/payments/paypal.html:9
+#: webshop/templates/payments/stripe.html:9
+#: webshop/templates/payments/wallee.html:9
+msgid "john@doe.com"
+msgstr ""
+
+#: webshop/www/maintenance.html:330
+msgid "maintenance"
+msgstr ""
+
+#. Option for the 'Default Product Sort Order' (Select) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "new_arrivals"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:94
+#: webshop/www/all-products/index.html:84
+msgid "of"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:116
+msgid "or"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_payment_summary.html:52
+#: webshop/templates/includes/order_summary.html:140
+#: webshop/templates/pages/checkout.js:1660
+#: webshop/templates/pages/checkout_b2b.html:445
+msgid "points"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_payment_summary.html:77
+#: webshop/templates/includes/cart_component.html:65
+#: webshop/templates/includes/order_summary.html:179
+msgid "points worth"
+msgstr ""
+
+#. Option for the 'Default Product Sort Order' (Select) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "price_high_to_low"
+msgstr ""
+
+#. Option for the 'Default Product Sort Order' (Select) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "price_low_to_high"
+msgstr ""
+
+#: webshop/templates/includes/brand_carousel.html:94
+msgid "product"
+msgstr ""
+
+#: webshop/templates/generators/item_group.html:95
+#: webshop/templates/includes/brand_carousel.html:94
+#: webshop/www/all-products/index.html:85
+msgid "products"
+msgstr ""
+
+#. Option for the 'Default Product Sort Order' (Select) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "rating"
+msgstr ""
+
+#. Option for the 'Default Product Sort Order' (Select) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "relevance"
+msgstr ""
+
+#: webshop/templates/generators/item/item_reviews.html:45
+#: webshop/templates/includes/macros.html:333
+msgid "reviews"
+msgstr ""
+
+#: webshop/public/js/auth_dialog.js:15
+msgid "seconds"
+msgstr ""
+
+#: webshop/templates/pages/checkout.js:2145
+#: webshop/templates/payments/paypal.html:20
+#: webshop/templates/payments/stripe.html:25
+#: webshop/templates/payments/wallee.html:24
+msgid "terms and conditions"
+msgstr ""
+
+#: webshop/templates/includes/macros.html:25
+#: webshop/templates/pages/thank_you.html:158
+msgid "to"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:529
+msgid "{0} Not in Stock"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:453
+msgid "{0} categories updated"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/cart.py:833
+msgid "{0} is not in stock"
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure.js:220
+msgid "{0} item found."
+msgstr ""
+
+#: webshop/templates/generators/item/item_configure.js:221
+msgid "{0} items found."
+msgstr ""
+
+#: webshop/webshop/product_data_engine/filters.py:313
+msgid "{0}% and below"
+msgstr ""
+
