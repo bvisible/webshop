@@ -27,13 +27,16 @@ def get_web_item_qty_in_stock(item_code, item_warehouse_field, warehouse=None):
 	total_stock = 0.0
 	if warehouses:
 		for wh in warehouses:
-			# Use projected_qty which accounts for:
-			# - Reserved qty from Sales Orders
-			# - Ordered qty from Purchase Orders
-			# - Planned qty from Work Orders
+			# Use actual_qty - reserved_qty to get available stock
+			# This excludes:
+			# - ordered_qty from Purchase Orders (not yet received)
+			# - planned_qty from Work Orders (not yet produced)
+			# And properly accounts for:
+			# - Physical stock (actual_qty)
+			# - Reserved for Sales Orders (reserved_qty)
 			stock_qty = frappe.db.sql(
 				"""
-				select S.projected_qty / IFNULL(C.conversion_factor, 1)
+				select (S.actual_qty - S.reserved_qty) / IFNULL(C.conversion_factor, 1)
 				from tabBin S
 				inner join `tabItem` I on S.item_code = I.Item_code
 				left join `tabUOM Conversion Detail` C on I.sales_uom = C.uom and C.parent = I.Item_code
