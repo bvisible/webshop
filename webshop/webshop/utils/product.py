@@ -25,6 +25,13 @@ def get_web_item_qty_in_stock(item_code, item_warehouse_field, warehouse=None):
 		warehouses = [warehouse] if warehouse else []
 
 	total_stock = 0.0
+
+	# Non-stock items are always considered in stock
+	if not is_stock_item:
+		return frappe._dict(
+			{"in_stock": 1, "stock_qty": 0, "is_stock_item": is_stock_item}
+		)
+
 	if warehouses:
 		for wh in warehouses:
 			# Use actual_qty - reserved_qty to get available stock
