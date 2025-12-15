@@ -518,6 +518,7 @@ function init_drag_and_drop(wrapper) {
 
 		item.on('drop', function(e) {
 			e.preventDefault();
+			e.stopPropagation();
 			const dragging = wrapper.find('.dragging');
 			const target = $(this);
 
@@ -538,6 +539,11 @@ function init_drag_and_drop(wrapper) {
 						dragging.insertAfter(target);
 					}
 				}
+
+				// Immediately update weightages after successful drop
+				setTimeout(() => {
+					update_weightages(wrapper);
+				}, 50);
 			}
 
 			target.removeClass('drag-over');
@@ -551,24 +557,39 @@ function init_drag_and_drop(wrapper) {
 }
 
 function update_weightages(wrapper) {
-	// Update weightages based on new positions
+	// Update weightages based on new visual positions
+	// Higher position (top of list) = higher weightage
 	const containers = wrapper.find('.category-tree, .category-children');
 
 	containers.each(function() {
 		const container = $(this);
+		// Get direct children items only (not nested)
 		const items = container.children('.category-tree-item');
 		const count = items.length;
 
+		if (count === 0) return;
+
 		items.each(function(index) {
+			const $item = $(this);
 			// Higher position (lower index) = higher weightage
+			// Use larger increments for clearer ordering
 			const newWeightage = (count - index) * 10;
-			$(this).find('.item-weightage').val(newWeightage);
-			$(this).data('weightage', newWeightage);
+
+			// Update both the input and data attribute
+			$item.find('.item-weightage').val(newWeightage);
+			$item.attr('data-weightage', newWeightage);
+			$item.data('weightage', newWeightage);
 		});
 	});
 
-	// Enable save button
+	// Enable save button to indicate changes
 	wrapper.find('.btn-save-order').prop('disabled', false);
+
+	// Visual feedback that order was updated
+	wrapper.find('.btn-save-order').addClass('btn-primary-dark');
+	setTimeout(() => {
+		wrapper.find('.btn-save-order').removeClass('btn-primary-dark');
+	}, 300);
 }
 
 function save_category_order(wrapper) {
