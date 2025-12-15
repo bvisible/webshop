@@ -143,7 +143,6 @@
    "label": "General Settings"
   },
   {
-   "collapsible": 1,
    "fieldname": "gift_cards_section",
    "fieldtype": "Section Break",
    "label": "Gift Cards"
@@ -354,8 +353,6 @@
    "mandatory_depends_on": "eval: doc.enabled === 1"
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.enable_checkout",
    "depends_on": "enabled",
    "fieldname": "checkout_settings_section",
    "fieldtype": "Section Break",
@@ -435,7 +432,6 @@
    "options": "Terms and Conditions"
   },
   {
-   "collapsible": 1,
    "depends_on": "enable_field_filters",
    "fieldname": "shop_by_category_section",
    "fieldtype": "Section Break",
@@ -448,7 +444,6 @@
    "options": "Website Slideshow"
   },
   {
-   "collapsible": 1,
    "fieldname": "category_order_section",
    "fieldtype": "Section Break",
    "label": "Category Display Order"
@@ -524,7 +519,6 @@
    "read_only_depends_on": "eval:!doc.is_redisearch_loaded"
   },
   {
-   "collapsible": 1,
    "fieldname": "item_search_settings_section",
    "fieldtype": "Section Break",
    "label": "Item Search Settings"
@@ -555,7 +549,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "collapsible": 1,
    "fieldname": "guest_display_settings_section",
    "fieldtype": "Section Break",
    "label": "Guest Display Settings"
@@ -666,7 +659,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "collapsible": 1,
    "fieldname": "loyalty_program_section",
    "fieldtype": "Section Break",
    "label": "Loyalty Program"
