@@ -25,3 +25,4 @@ webshop.patches.add_idempotency_token_to_payment_request
 webshop.patches.update_gift_card_data_field_properties
 webshop.patches.add_portal_menu_items
 webshop.patches.disable_gift_card_web_form
+webshop.patches.add_missing_gift_card_fields
