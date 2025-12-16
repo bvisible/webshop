@@ -514,9 +514,6 @@ webshop.ProductView =  class {
 		// loop over data and add grid html to it
 		let me = this;
 
-		// Clear existing products before rendering new ones
-		$('#products-grid-area').empty();
-
 		this.prepare_product_area_wrapper("grid");
 
 		new webshop.ProductGrid({
@@ -530,9 +527,6 @@ webshop.ProductView =  class {
 	render_list_view(items, settings) {
 		let me = this;
 
-		// Clear existing products before rendering new ones
-		$('#products-list-area').empty();
-
 		this.prepare_product_area_wrapper("list");
 
 		new webshop.ProductList({
@@ -544,6 +538,14 @@ webshop.ProductView =  class {
 	}
 
 	prepare_product_area_wrapper(view) {
+		// Check if the area already exists - if so, just clear it and return
+		const existingArea = $(`#products-${view}-area`);
+		if (existingArea.length) {
+			existingArea.empty();
+			return existingArea;
+		}
+
+		// Create new area only if it doesn't exist
 		let left_margin = view == "list" ? "ml-2" : "";
 		let top_margin = view == "list" ? "mt-2" : "mt-minus-1";
 		return this.products_section.append(`
@@ -642,6 +644,13 @@ webshop.ProductView =  class {
 	add_paging_section(settings) {
 		$(".product-paging-area").remove();
 		$(".infinite-scroll-loader").remove();
+
+		// Reset infinite scroll state when paging section is rebuilt (e.g., after filter change)
+		if (this.infinite_scroll_observer) {
+			this.infinite_scroll_observer.disconnect();
+			this.infinite_scroll_observer = null;
+		}
+		this.infinite_scroll_state = null;
 
 		if (!this.products) return;
 
