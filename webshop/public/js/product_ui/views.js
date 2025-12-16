@@ -980,6 +980,8 @@ webshop.ProductView =  class {
 
 		let args = this.get_query_filters();
 		args.start = this.infinite_scroll_state.start;
+		// IMPORTANT: Don't send from_filters=true for pagination - it resets start to 0 in backend
+		args.from_filters = false;
 
 		frappe.call({
 			method: "webshop.webshop.api.get_product_filter_data",
