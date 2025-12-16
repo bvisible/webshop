@@ -1931,24 +1931,7 @@ webshop.ProductView =  class {
 		// Determine view type from user preference
 		const isGridView = this.preference === "Grid View";
 
-		// Check if there are existing products
-		const hasExistingProducts = $('#products-grid-area .item-card:not(.skeleton-item)').length > 0 ||
-			$('#products-list-area .list-row:not(.skeleton-item)').length > 0;
-
-		// If products exist, show loading overlay instead of skeleton
-		if (hasExistingProducts) {
-			// Add loading overlay to existing products
-			if (!$('.product-loading-overlay').length) {
-				const targetContainer = isGridView ? $('#products-grid-area') : $('#products-list-area');
-				targetContainer.css('position', 'relative');
-				targetContainer.append(`
-					<div class="product-loading-overlay">
-						<div class="loading-spinner"></div>
-					</div>
-				`);
-			}
-			return; // Don't show skeletons, just the overlay
-		}
+		// Always use skeleton loading - provides better visual feedback than overlay spinner
 
 		// First ensure the containers exist (only on initial load)
 		if (!$('#products-grid-area').length) {
