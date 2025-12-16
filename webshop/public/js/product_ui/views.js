@@ -309,14 +309,16 @@ webshop.ProductView =  class {
 		if (filterType === 'stock') {
 			// Remove stock filter
 			localStorage.setItem('stock_filter_checked', 'false');
-			$('.stock-filter input').prop('checked', false);
+			// The stock-filter class is ON the input itself, not a parent wrapper
+			$('input.stock-filter').prop('checked', false);
 			if (this.field_filters && this.field_filters['in_stock']) {
 				delete this.field_filters['in_stock'];
 			}
 		} else if (filterType === 'discount') {
 			// Remove discount filter
 			localStorage.setItem('discount_filter_checked', 'false');
-			$('.discount-filter input').prop('checked', false);
+			// The discount-filter class is ON the input itself, not a parent wrapper
+			$('input.discount-filter').prop('checked', false);
 			if (this.field_filters && this.field_filters['discount']) {
 				delete this.field_filters['discount'];
 			}
