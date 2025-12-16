@@ -83,7 +83,14 @@ webshop.ProductView =  class {
 	}
 
 	make(from_filters=false) {
-		this.products_section.empty();
+		// Don't empty products_section immediately - keep existing products visible during loading
+		// Only empty on initial load (when there are no products yet)
+		const hasExistingProducts = $('#products-grid-area').length || $('#products-list-area').length;
+
+		if (!hasExistingProducts) {
+			// Initial load - empty the section
+			this.products_section.empty();
+		}
 
 		// Reset infinite scroll state when filters change or on initial load
 		if (from_filters || !this.infinite_scroll_state) {
@@ -94,7 +101,11 @@ webshop.ProductView =  class {
 			}
 		}
 
-		this.prepare_toolbar();
+		// Only prepare toolbar on initial load
+		if (!hasExistingProducts) {
+			this.prepare_toolbar();
+		}
+
 		this.get_item_filter_data(from_filters);
 	}
 
@@ -502,6 +513,10 @@ webshop.ProductView =  class {
 	render_grid_view(items, settings) {
 		// loop over data and add grid html to it
 		let me = this;
+
+		// Clear existing products before rendering new ones
+		$('#products-grid-area').empty();
+
 		this.prepare_product_area_wrapper("grid");
 
 		new webshop.ProductGrid({
@@ -514,6 +529,10 @@ webshop.ProductView =  class {
 
 	render_list_view(items, settings) {
 		let me = this;
+
+		// Clear existing products before rendering new ones
+		$('#products-list-area').empty();
+
 		this.prepare_product_area_wrapper("list");
 
 		new webshop.ProductList({
@@ -1898,15 +1917,34 @@ webshop.ProductView =  class {
 	show_product_loader() {
 		// Determine view type from user preference
 		const isGridView = this.preference === "Grid View";
-		
-		// First ensure the containers exist
+
+		// Check if there are existing products
+		const hasExistingProducts = $('#products-grid-area .item-card:not(.skeleton-item)').length > 0 ||
+			$('#products-list-area .list-row:not(.skeleton-item)').length > 0;
+
+		// If products exist, show loading overlay instead of skeleton
+		if (hasExistingProducts) {
+			// Add loading overlay to existing products
+			if (!$('.product-loading-overlay').length) {
+				const targetContainer = isGridView ? $('#products-grid-area') : $('#products-list-area');
+				targetContainer.css('position', 'relative');
+				targetContainer.append(`
+					<div class="product-loading-overlay">
+						<div class="loading-spinner"></div>
+					</div>
+				`);
+			}
+			return; // Don't show skeletons, just the overlay
+		}
+
+		// First ensure the containers exist (only on initial load)
 		if (!$('#products-grid-area').length) {
 			this.products_section.append(`
 				<div id="products-list-area" class="row products-list mt-6 ml-2 ${!isGridView ? '' : 'hidden'}" itemscope itemtype="https://schema.org/Product"></div>
 				<div id="products-grid-area" class="row products-list mt-minus-1 ${isGridView ? '' : 'hidden'}" itemscope itemtype="https://schema.org/Product"></div>
 			`);
 		}
-		
+
 		// Make sure the correct view is visible
 		if (isGridView) {
 			$('#products-list-area').addClass('hidden');
@@ -1915,11 +1953,11 @@ webshop.ProductView =  class {
 			$('#products-grid-area').addClass('hidden');
 			$('#products-list-area').removeClass('hidden');
 		}
-		
+
 		// Get the target container
 		const targetContainer = isGridView ? $('#products-grid-area') : $('#products-list-area');
-		
-		// Clear existing content
+
+		// Clear existing content (only for initial skeleton load)
 		targetContainer.empty();
 		
 		// Create skeleton loader HTML
@@ -2088,6 +2126,36 @@ webshop.ProductView =  class {
 						margin-top: 10px;
 						position: relative;
 					}
+
+					/* Loading overlay styles */
+					.product-loading-overlay {
+						position: absolute;
+						top: 0;
+						left: 0;
+						right: 0;
+						bottom: 0;
+						background: rgba(255, 255, 255, 0.7);
+						display: flex;
+						justify-content: center;
+						align-items: flex-start;
+						padding-top: 100px;
+						z-index: 100;
+						min-height: 200px;
+					}
+
+					.loading-spinner {
+						width: 40px;
+						height: 40px;
+						border: 3px solid #f3f3f3;
+						border-top: 3px solid var(--primary-color, #171717);
+						border-radius: 50%;
+						animation: spin 1s linear infinite;
+					}
+
+					@keyframes spin {
+						0% { transform: rotate(0deg); }
+						100% { transform: rotate(360deg); }
+					}
 				</style>
 			`);
 		}
@@ -2096,7 +2164,11 @@ webshop.ProductView =  class {
 	hide_product_loader() {
 		// Remove all skeleton items
 		$('.skeleton-item').remove();
-		
+
+		// Remove loading overlay
+		$('.product-loading-overlay').remove();
+		$('#products-grid-area, #products-list-area').css('position', '');
+
 		// Also ensure both product areas are properly cleaned if no products will be shown
 		if (!this.products || this.products.length === 0) {
 			$('#products-grid-area').empty();
