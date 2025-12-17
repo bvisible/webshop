@@ -145,20 +145,20 @@
 		}
 
 		// Sticky header detection on mobile
-		const pageHeaderWrapper = document.querySelector('.page-header-wrapper');
-		if (pageHeaderWrapper && window.innerWidth < 768) {
+		const stickyHeader = document.querySelector('.page-header-wrapper > .page-header > div');
+		if (stickyHeader && window.innerWidth < 768) {
 			// Create a sentinel element to detect when header becomes sticky
 			const sentinel = document.createElement('div');
 			sentinel.style.cssText = 'position: absolute; top: 0; left: 0; width: 1px; height: 1px; pointer-events: none;';
-			pageHeaderWrapper.parentNode.insertBefore(sentinel, pageHeaderWrapper);
+			stickyHeader.parentNode.insertBefore(sentinel, stickyHeader);
 
 			const observer = new IntersectionObserver(
 				(entries) => {
 					entries.forEach(entry => {
 						if (!entry.isIntersecting) {
-							pageHeaderWrapper.classList.add('is-sticky');
+							stickyHeader.classList.add('is-sticky');
 						} else {
-							pageHeaderWrapper.classList.remove('is-sticky');
+							stickyHeader.classList.remove('is-sticky');
 						}
 					});
 				},
@@ -210,20 +210,18 @@
 </script>
 
 <style>
-	/* Sticky header wrapper on mobile */
+	/* Sticky filter header on mobile */
 	@media (max-width: 767.98px) {
-		.page-header-wrapper {
+		.page-header-wrapper > .page-header > div {
 			position: sticky;
 			top: 0;
 			z-index: 100;
-			padding: 10px 0;
+			padding: 10px 15px;
 			margin: 0 -15px;
-			padding-left: 15px;
-			padding-right: 15px;
 			transition: background-color 0.2s ease, box-shadow 0.2s ease;
 		}
 
-		.page-header-wrapper.is-sticky {
+		.page-header-wrapper > .page-header > div.is-sticky {
 			background-color: var(--bg-color, #fff);
 			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		}
