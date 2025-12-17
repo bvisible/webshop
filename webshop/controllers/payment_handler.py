@@ -258,6 +258,17 @@ class PaymentHandler:
                         if ps.due_date and str(ps.due_date) < today:
                             ps.due_date = today
 
+                # Preserve gift card discount from quotation
+                if quotation.discount_amount:
+                    sales_order.apply_discount_on = quotation.apply_discount_on or "Grand Total"
+                    sales_order.discount_amount = quotation.discount_amount
+
+                # Preserve gift card coupon code if quotation has one
+                if hasattr(quotation, 'gift_card_coupon') and quotation.gift_card_coupon:
+                    coupon_code = quotation.gift_card_coupon
+                    if frappe.db.exists("Coupon Code", coupon_code):
+                        sales_order.coupon_code = coupon_code
+
                 sales_order.submit()
                 sales_order_name = sales_order.name
 
