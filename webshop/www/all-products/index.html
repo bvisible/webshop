@@ -3,7 +3,7 @@
 
 {% block title %}{{ _("All Products") }}{% endblock %}
 {% block header %}
-<div class="mb-6 d-flex justify-content-between align-items-center">
+<div class="mb-6 d-flex justify-content-between align-items-center sticky-filter-header">
   <div>{{ _("All Products") }}</div>
   <button id="filterButton" class="filter-button d-md-none">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
@@ -145,10 +145,11 @@
 		}
 
 		// Sticky header detection on mobile
-		const stickyHeader = document.querySelector('.page-header-wrapper > .page-header > div');
+		const stickyHeader = document.querySelector('.sticky-filter-header');
 		if (stickyHeader && window.innerWidth < 768) {
 			// Create a sentinel element to detect when header becomes sticky
 			const sentinel = document.createElement('div');
+			sentinel.className = 'sticky-sentinel';
 			sentinel.style.cssText = 'position: absolute; top: 0; left: 0; width: 1px; height: 1px; pointer-events: none;';
 			stickyHeader.parentNode.insertBefore(sentinel, stickyHeader);
 
@@ -212,7 +213,7 @@
 <style>
 	/* Sticky filter header on mobile */
 	@media (max-width: 767.98px) {
-		.page-header-wrapper > .page-header > div {
+		.sticky-filter-header {
 			position: sticky;
 			top: 0;
 			z-index: 100;
@@ -221,7 +222,7 @@
 			transition: background-color 0.2s ease, box-shadow 0.2s ease;
 		}
 
-		.page-header-wrapper > .page-header > div.is-sticky {
+		.sticky-filter-header.is-sticky {
 			background-color: var(--bg-color, #fff);
 			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		}
