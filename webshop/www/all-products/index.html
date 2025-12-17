@@ -144,29 +144,32 @@
 			});
 		}
 
-		// Sticky header detection on mobile
+		// Sticky header on mobile using fixed positioning
 		const stickyHeader = document.querySelector('.sticky-filter-header');
 		if (stickyHeader && window.innerWidth < 768) {
-			// Create a sentinel element to detect when header becomes sticky
-			const sentinel = document.createElement('div');
-			sentinel.className = 'sticky-sentinel';
-			sentinel.style.cssText = 'position: absolute; top: 0; left: 0; width: 1px; height: 1px; pointer-events: none;';
-			stickyHeader.parentNode.insertBefore(sentinel, stickyHeader);
+			const headerRect = stickyHeader.getBoundingClientRect();
+			const headerTop = headerRect.top + window.scrollY;
 
-			const observer = new IntersectionObserver(
-				(entries) => {
-					entries.forEach(entry => {
-						if (!entry.isIntersecting) {
-							stickyHeader.classList.add('is-sticky');
-						} else {
-							stickyHeader.classList.remove('is-sticky');
-						}
-					});
-				},
-				{ threshold: 0, rootMargin: '0px 0px 0px 0px' }
-			);
+			// Create placeholder to prevent content jump
+			const placeholder = document.createElement('div');
+			placeholder.className = 'sticky-placeholder';
+			placeholder.style.display = 'none';
+			placeholder.style.height = headerRect.height + 'px';
+			stickyHeader.parentNode.insertBefore(placeholder, stickyHeader);
 
-			observer.observe(sentinel);
+			window.addEventListener('scroll', () => {
+				if (window.scrollY > headerTop) {
+					if (!stickyHeader.classList.contains('is-sticky')) {
+						stickyHeader.classList.add('is-sticky');
+						placeholder.style.display = 'block';
+					}
+				} else {
+					if (stickyHeader.classList.contains('is-sticky')) {
+						stickyHeader.classList.remove('is-sticky');
+						placeholder.style.display = 'none';
+					}
+				}
+			}, { passive: true });
 		}
 
 		// Function to open the sidebar filters
@@ -214,15 +217,18 @@
 	/* Sticky filter header on mobile */
 	@media (max-width: 767.98px) {
 		.sticky-filter-header {
-			position: sticky;
-			top: 0;
-			z-index: 100;
 			padding: 10px 15px;
 			margin: 0 -15px;
-			transition: background-color 0.2s ease, box-shadow 0.2s ease;
+			transition: background-color 0.2s ease, box-shadow 0.2s ease, position 0s;
 		}
 
 		.sticky-filter-header.is-sticky {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			z-index: 100;
+			padding: 10px 15px;
 			background-color: var(--bg-color, #fff);
 			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		}
