@@ -158,14 +158,24 @@
 	font-size: 0.75rem;
 }
 #address-form-container {
-	border: 2px solid var(--primary);
+	border: none;
+	border-radius: 8px;
+	overflow: hidden;
 }
 #address-form-container .card-header {
-	background-color: var(--primary);
-	color: white;
+	background-color: var(--primary, #000);
+	border-radius: 0;
+}
+#address-form-container .card-header h5,
+#address-form-container .card-header #address-form-title {
+	color: white !important;
 }
 #address-form-container .btn-close {
 	filter: invert(1);
+}
+#address-form-container .form-select {
+	width: 100%;
+	max-width: 100%;
 }
 </style>
 {% endblock %}
