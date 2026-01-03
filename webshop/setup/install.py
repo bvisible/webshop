@@ -243,7 +243,7 @@ def setup_address_permissions():
 		"read": 1,
 		"write": 1,
 		"create": 1,
-		"delete": 0,
+		"delete": 1,
 		"if_owner": 1,
 		"idx": 10
 	})
