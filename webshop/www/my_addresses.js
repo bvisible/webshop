@@ -38,7 +38,7 @@ function clearAddressForm() {
 
 function editAddress(addressName) {
 	frappe.call({
-		method: 'webshop.webshop.www.my_addresses.get_address',
+		method: 'webshop.webshop.api.get_address',
 		args: { address_name: addressName },
 		freeze: true,
 		freeze_message: __('Loading...'),
@@ -72,7 +72,7 @@ function editAddress(addressName) {
 function deleteAddress(addressName) {
 	if (confirm(__('Are you sure you want to delete this address?'))) {
 		frappe.call({
-			method: 'webshop.webshop.www.my_addresses.delete_address',
+			method: 'webshop.webshop.api.delete_address',
 			args: { address_name: addressName },
 			freeze: true,
 			freeze_message: __('Deleting...'),
@@ -142,7 +142,7 @@ function saveAddress() {
 	if (currentAddressName) {
 		// Update existing address
 		frappe.call({
-			method: 'webshop.webshop.www.my_addresses.update_address',
+			method: 'webshop.webshop.api.update_address',
 			args: {
 				address_name: currentAddressName,
 				address_data: addressData
