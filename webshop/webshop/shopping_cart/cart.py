@@ -1089,20 +1089,27 @@ def add_new_address(doc):
 	# Temporarily ignore permissions for address creation
 	frappe.flags.ignore_permissions = True
 	try:
+		frappe.log_error("add_new_address START", f"User: {frappe.session.user}, ignore_permissions: {frappe.flags.ignore_permissions}")
 		doc = frappe.parse_json(doc)
 		doc.update({"doctype": "Address"})
+		frappe.log_error("add_new_address PARSED", f"Doc: {doc}")
 		address = frappe.get_doc(doc)
+		frappe.log_error("add_new_address GOT_DOC", f"Address created in memory")
 
 		# Add link to current customer if not already provided
 		if not address.links:
+			frappe.log_error("add_new_address GET_PARTY", "Getting party...")
 			party = get_party(ignore_permissions=True)
+			frappe.log_error("add_new_address GOT_PARTY", f"Party: {party}")
 			if party:
 				address.append("links", {
 					"link_doctype": "Customer",
 					"link_name": party.name
 				})
 
+		frappe.log_error("add_new_address SAVING", "About to save...")
 		address.save(ignore_permissions=True)
+		frappe.log_error("add_new_address SAVED", f"Address saved: {address.name}")
 
 		# Update customer's primary address if this is a primary address
 		if address.is_primary_address:
