@@ -162,7 +162,7 @@
 										<option value="">{{ _("Select a country") }}</option>
 										{% for country in frappe.get_all("Country", fields=["name", "country_name"]) %}
 										<option value="{{ country.name }}" {% if billing_country == country.name %}selected{% endif %}>
-											{{ country.country_name }}
+											{{ _(country.country_name) }}
 										</option>
 										{% endfor %}
 									</select>
@@ -258,7 +258,7 @@
 										<option value="">{{ _("Select a country") }}</option>
 										{% for country in frappe.get_all("Country", fields=["name", "country_name"]) %}
 										<option value="{{ country.name }}" {% if shipping_country == country.name %}selected{% endif %}>
-											{{ country.country_name }}
+											{{ _(country.country_name) }}
 										</option>
 										{% endfor %}
 									</select>

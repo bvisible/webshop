@@ -209,7 +209,13 @@ def get_context(context):
 			# Use customer's contact info if address doesn't have it
 			context.billing_phone = billing_address.phone or (customer.mobile_no if customer else '')
 			context.billing_email = billing_address.email_id or (customer.email_id if customer else '')
-	
+
+	# Set default country if not already set
+	if not context.get('billing_country'):
+		context.billing_country = frappe.db.get_single_value("System Settings", "country") or "Switzerland"
+	if not context.get('shipping_country'):
+		context.shipping_country = context.billing_country
+
 	# Get shipping address
 	if quotation.get('shipping_address_name'):
 		shipping_address = frappe.get_doc('Address', quotation.shipping_address_name)
