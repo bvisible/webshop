@@ -1086,26 +1086,41 @@ def get_shopping_cart_menu(context=None):
 
 @frappe.whitelist()
 def add_new_address(doc):
-	doc = frappe.parse_json(doc)
-	doc.update({"doctype": "Address"})
-	address = frappe.get_doc(doc)
-	address.save(ignore_permissions=True)
+	# Temporarily ignore permissions for address creation
+	frappe.flags.ignore_permissions = True
+	try:
+		doc = frappe.parse_json(doc)
+		doc.update({"doctype": "Address"})
+		address = frappe.get_doc(doc)
 
-	# Update customer's primary address if this is a primary address
-	if address.is_primary_address:
-		from frappe.contacts.doctype.address.address import get_address_display
+		# Add link to current customer if not already provided
+		if not address.links:
+			party = get_party(ignore_permissions=True)
+			if party:
+				address.append("links", {
+					"link_doctype": "Customer",
+					"link_name": party.name
+				})
 
-		# Find the linked customer from address links
-		for link in address.links:
-			if link.link_doctype == "Customer":
-				customer = frappe.get_doc("Customer", link.link_name)
-				customer.customer_primary_address = address.name
-				# Also set the formatted address text for display in lists
-				customer.primary_address = get_address_display(address.name)
-				customer.save(ignore_permissions=True)
-				break
+		address.save(ignore_permissions=True)
 
-	return address
+		# Update customer's primary address if this is a primary address
+		if address.is_primary_address:
+			from frappe.contacts.doctype.address.address import get_address_display
+
+			# Find the linked customer from address links
+			for link in address.links:
+				if link.link_doctype == "Customer":
+					customer = frappe.get_doc("Customer", link.link_name)
+					customer.customer_primary_address = address.name
+					# Also set the formatted address text for display in lists
+					customer.primary_address = get_address_display(address.name)
+					customer.save(ignore_permissions=True)
+					break
+
+		return address
+	finally:
+		frappe.flags.ignore_permissions = False
 
 @frappe.whitelist(allow_guest=True)
 def create_lead_for_item_inquiry(lead, subject, message):
@@ -1151,6 +1166,9 @@ def get_terms_and_conditions(terms_name):
 @frappe.whitelist(allow_guest=True)
 def update_cart_address(address_type, address_name):
 	try:
+		# Temporarily ignore permissions to allow reading addresses
+		frappe.flags.ignore_permissions = True
+
 		quotation = _get_cart_quotation()
 		if not quotation:
 			frappe.throw(_("Cart not found"))
@@ -1253,8 +1271,11 @@ def update_cart_address(address_type, address_name):
 			),
 		}
 	except Exception as e:
-		frappe.log_error(f"Error updating cart address: {str(e)}", "Cart Address Update Error")
+		frappe.log_error("Cart Address Update Error", f"Error updating cart address: {str(e)}")
 		frappe.throw(_("Error updating address. Please try again or contact support."))
+	finally:
+		# Reset the permissions flag
+		frappe.flags.ignore_permissions = False
 
 def guess_territory():
 	territory = None
@@ -1651,7 +1672,7 @@ def apply_loyalty_points_tax(quotation):
         for i, tax in enumerate(quotation.taxes):
             tax.idx = i + 1
 				
-def get_party(user=None):
+def get_party(user=None, ignore_permissions=False):
 	"""Return the customer (Customer) for the current user"""
 	if not user:
 		user = frappe.session.user
@@ -1683,6 +1704,8 @@ def get_party(user=None):
 		customer_name = existing_customers[0].parent
 		# Verify the customer still exists and is not disabled
 		if frappe.db.exists("Customer", {"name": customer_name, "disabled": 0}):
+			if ignore_permissions:
+				return frappe.get_cached_doc("Customer", customer_name)
 			return frappe.get_doc("Customer", customer_name)
 
 	# Try to find via Contact
@@ -1690,7 +1713,7 @@ def get_party(user=None):
 	party = None
 
 	if contact_name:
-		contact = frappe.get_doc("Contact", contact_name)
+		contact = frappe.get_cached_doc("Contact", contact_name) if ignore_permissions else frappe.get_doc("Contact", contact_name)
 		if contact.links:
 			party_doctype = contact.links[0].link_doctype
 			party = contact.links[0].link_name
@@ -1722,7 +1745,7 @@ def get_party(user=None):
 		debtors_account = get_debtors_account(cart_settings)
 
 	if party:
-		doc = frappe.get_doc(party_doctype, party)
+		doc = frappe.get_cached_doc(party_doctype, party) if ignore_permissions else frappe.get_doc(party_doctype, party)
 		if doc.doctype in ["Customer", "Supplier"]:
 			if not frappe.db.exists("Portal User", {"parent": doc.name, "user": user}):
 				doc.append("portal_users", {"user": user})
