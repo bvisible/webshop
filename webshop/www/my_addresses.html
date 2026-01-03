@@ -1,0 +1,86 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("My Addresses") }}{% endblock %}
+
+{% block page_content %}
+<div class="container my-4">
+	<div class="d-flex justify-content-between align-items-center mb-4">
+		<h2 class="m-0">{{ _("My Addresses") }}</h2>
+		<button class="btn btn-primary btn-sm" onclick="showAddressForm()">
+			<i class="fa fa-plus"></i> {{ _("Add New Address") }}
+		</button>
+	</div>
+
+	<!-- Address List -->
+	<div class="row" id="addresses-list">
+		{% if addresses %}
+			{% for address in addresses %}
+			<div class="col-md-6 mb-4" id="address-card-{{ address.name }}">
+				<div class="card h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<h5 class="card-title">{{ address.address_title or address.name }}</h5>
+							<div>
+								{% if address.is_primary_address %}
+								<span class="badge bg-success">{{ _("Primary") }}</span>
+								{% endif %}
+								{% if address.is_shipping_address %}
+								<span class="badge bg-info">{{ _("Shipping") }}</span>
+								{% endif %}
+							</div>
+						</div>
+						<p class="card-text">
+							{{ address.address_line1 }}<br>
+							{% if address.address_line2 %}{{ address.address_line2 }}<br>{% endif %}
+							{{ address.pincode }} {{ address.city }}
+							{% if address.state %}, {{ address.state }}{% endif %}<br>
+							{{ _(address.country) }}
+							{% if address.phone %}<br><i class="fa fa-phone"></i> {{ address.phone }}{% endif %}
+							{% if address.email_id %}<br><i class="fa fa-envelope"></i> {{ address.email_id }}{% endif %}
+						</p>
+					</div>
+					<div class="card-footer bg-transparent">
+						<button class="btn btn-sm btn-outline-primary" onclick="editAddress('{{ address.name }}')">
+							<i class="fa fa-edit"></i> {{ _("Edit") }}
+						</button>
+						<button class="btn btn-sm btn-outline-danger" onclick="deleteAddress('{{ address.name }}')">
+							<i class="fa fa-trash"></i> {{ _("Delete") }}
+						</button>
+					</div>
+				</div>
+			</div>
+			{% endfor %}
+		{% else %}
+			<div class="col-12">
+				<div class="alert alert-info">
+					{{ _("You don't have any saved addresses yet.") }}
+				</div>
+			</div>
+		{% endif %}
+	</div>
+</div>
+
+<style>
+.card {
+	border-radius: 8px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.card:hover {
+	box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+.card-title {
+	color: #333;
+	font-weight: 600;
+}
+.badge {
+	font-size: 0.75rem;
+}
+</style>
+{% endblock %}
+
+{% block script %}
+<script>
+window.default_country = "{{ default_country }}";
+{% include "www/my_addresses.js" %}
+</script>
+{% endblock %}

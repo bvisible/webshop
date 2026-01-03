@@ -10,7 +10,7 @@ def get_context(context):
 
 	# Check if user is logged in
 	if frappe.session.user == "Guest":
-		frappe.local.flags.redirect_location = "/login?redirect-to=/my-addresses"
+		frappe.local.flags.redirect_location = "/login?redirect-to=/my_addresses"
 		raise frappe.Redirect
 
 	# Get current customer
