@@ -6,6 +6,7 @@ from webshop.webshop.shopping_cart.cart import get_party, get_address_docs
 def get_context(context):
 	"""Context for the addresses management page"""
 	context.no_cache = 1
+	context.show_sidebar = True
 
 	# Check if user is logged in
 	if frappe.session.user == "Guest":
