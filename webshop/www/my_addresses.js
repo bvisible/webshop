@@ -1,24 +1,39 @@
 // Address Management Page JavaScript
 
-let addressDialog = null;
 let currentAddressName = null;
 
 frappe.ready(function() {
-	// Dialog will be created on demand
+	// Nothing to initialize on load
 });
-
-function getCountryOptions() {
-	let countrySelect = document.getElementById('country-options');
-	if (countrySelect) {
-		return countrySelect.innerHTML;
-	}
-	return '';
-}
 
 function showAddressForm() {
 	currentAddressName = null;
-	createAddressDialog(__('Add New Address'));
-	addressDialog.show();
+	$('#address-form-title').text(__('Add New Address'));
+	clearAddressForm();
+	$('#address-form-container').slideDown();
+	$('html, body').animate({
+		scrollTop: $('#address-form-container').offset().top - 100
+	}, 300);
+}
+
+function hideAddressForm() {
+	$('#address-form-container').slideUp();
+	clearAddressForm();
+	currentAddressName = null;
+}
+
+function clearAddressForm() {
+	$('#address_title').val('');
+	$('#address_line1').val('');
+	$('#address_line2').val('');
+	$('#pincode').val('');
+	$('#city').val('');
+	$('#state').val('');
+	$('#country').val(window.default_country || 'Switzerland');
+	$('#phone').val('');
+	$('#email_id').val('');
+	$('#is_primary_address').prop('checked', false);
+	$('#is_shipping_address').prop('checked', false);
 }
 
 function editAddress(addressName) {
@@ -30,159 +45,98 @@ function editAddress(addressName) {
 		callback: function(r) {
 			if (r.message) {
 				currentAddressName = addressName;
-				createAddressDialog(__('Edit Address'), r.message);
-				addressDialog.show();
-			}
-		}
-	});
-}
+				$('#address-form-title').text(__('Edit Address'));
 
-function createAddressDialog(title, data) {
-	data = data || {};
+				// Fill form with data
+				$('#address_title').val(r.message.address_title || '');
+				$('#address_line1').val(r.message.address_line1 || '');
+				$('#address_line2').val(r.message.address_line2 || '');
+				$('#pincode').val(r.message.pincode || '');
+				$('#city').val(r.message.city || '');
+				$('#state').val(r.message.state || '');
+				$('#country').val(r.message.country || window.default_country || 'Switzerland');
+				$('#phone').val(r.message.phone || '');
+				$('#email_id').val(r.message.email_id || '');
+				$('#is_primary_address').prop('checked', r.message.is_primary_address ? true : false);
+				$('#is_shipping_address').prop('checked', r.message.is_shipping_address ? true : false);
 
-	addressDialog = new frappe.ui.Dialog({
-		title: title,
-		size: 'large',
-		fields: [
-			{
-				fieldname: 'address_title',
-				label: __('Address Title'),
-				fieldtype: 'Data',
-				reqd: 1,
-				default: data.address_title || '',
-				placeholder: __('e.g., Home, Office')
-			},
-			{
-				fieldtype: 'Section Break'
-			},
-			{
-				fieldname: 'address_line1',
-				label: __('Address Line 1'),
-				fieldtype: 'Data',
-				reqd: 1,
-				default: data.address_line1 || ''
-			},
-			{
-				fieldname: 'address_line2',
-				label: __('Address Line 2'),
-				fieldtype: 'Data',
-				default: data.address_line2 || '',
-				placeholder: __('Apartment, suite, etc. (optional)')
-			},
-			{
-				fieldtype: 'Column Break'
-			},
-			{
-				fieldname: 'pincode',
-				label: __('Postal Code'),
-				fieldtype: 'Data',
-				reqd: 1,
-				default: data.pincode || ''
-			},
-			{
-				fieldname: 'city',
-				label: __('City'),
-				fieldtype: 'Data',
-				reqd: 1,
-				default: data.city || ''
-			},
-			{
-				fieldtype: 'Section Break'
-			},
-			{
-				fieldname: 'state',
-				label: __('State/Region'),
-				fieldtype: 'Data',
-				default: data.state || ''
-			},
-			{
-				fieldname: 'country',
-				label: __('Country'),
-				fieldtype: 'Link',
-				options: 'Country',
-				reqd: 1,
-				default: data.country || window.default_country || 'Switzerland'
-			},
-			{
-				fieldtype: 'Column Break'
-			},
-			{
-				fieldname: 'phone',
-				label: __('Phone'),
-				fieldtype: 'Data',
-				default: data.phone || ''
-			},
-			{
-				fieldname: 'email_id',
-				label: __('Email'),
-				fieldtype: 'Data',
-				default: data.email_id || ''
-			},
-			{
-				fieldtype: 'Section Break'
-			},
-			{
-				fieldname: 'is_primary_address',
-				label: __('Set as primary address'),
-				fieldtype: 'Check',
-				default: data.is_primary_address || 0
-			},
-			{
-				fieldname: 'is_shipping_address',
-				label: __('Set as shipping address'),
-				fieldtype: 'Check',
-				default: data.is_shipping_address || 0
+				$('#address-form-container').slideDown();
+				$('html, body').animate({
+					scrollTop: $('#address-form-container').offset().top - 100
+				}, 300);
 			}
-		],
-		primary_action_label: __('Save'),
-		primary_action: function() {
-			saveAddress();
 		}
 	});
 }
 
 function deleteAddress(addressName) {
-	frappe.confirm(
-		__('Are you sure you want to delete this address?'),
-		function() {
-			// Yes
-			frappe.call({
-				method: 'webshop.webshop.www.my_addresses.delete_address',
-				args: { address_name: addressName },
-				freeze: true,
-				freeze_message: __('Deleting...'),
-				callback: function(r) {
-					if (r.message && r.message.success) {
-						frappe.show_alert({
-							message: __('Address deleted successfully'),
-							indicator: 'green'
-						});
-						setTimeout(function() {
-							window.location.reload();
-						}, 500);
-					}
+	if (confirm(__('Are you sure you want to delete this address?'))) {
+		frappe.call({
+			method: 'webshop.webshop.www.my_addresses.delete_address',
+			args: { address_name: addressName },
+			freeze: true,
+			freeze_message: __('Deleting...'),
+			callback: function(r) {
+				if (r.message && r.message.success) {
+					frappe.show_alert({
+						message: __('Address deleted successfully'),
+						indicator: 'green'
+					});
+					setTimeout(function() {
+						window.location.reload();
+					}, 500);
 				}
-			});
-		}
-	);
+			}
+		});
+	}
 }
 
 function saveAddress() {
-	let values = addressDialog.get_values();
-	if (!values) return;
+	// Validate required fields
+	let address_title = $('#address_title').val().trim();
+	let address_line1 = $('#address_line1').val().trim();
+	let pincode = $('#pincode').val().trim();
+	let city = $('#city').val().trim();
+	let country = $('#country').val();
+
+	if (!address_title) {
+		frappe.show_alert({ message: __('Address Title is required'), indicator: 'red' });
+		$('#address_title').focus();
+		return;
+	}
+	if (!address_line1) {
+		frappe.show_alert({ message: __('Address Line 1 is required'), indicator: 'red' });
+		$('#address_line1').focus();
+		return;
+	}
+	if (!pincode) {
+		frappe.show_alert({ message: __('Postal Code is required'), indicator: 'red' });
+		$('#pincode').focus();
+		return;
+	}
+	if (!city) {
+		frappe.show_alert({ message: __('City is required'), indicator: 'red' });
+		$('#city').focus();
+		return;
+	}
+	if (!country) {
+		frappe.show_alert({ message: __('Country is required'), indicator: 'red' });
+		$('#country').focus();
+		return;
+	}
 
 	let addressData = {
-		address_title: values.address_title,
-		address_line1: values.address_line1,
-		address_line2: values.address_line2,
-		city: values.city,
-		state: values.state,
-		country: values.country,
-		pincode: values.pincode,
-		phone: values.phone,
-		email_id: values.email_id,
-		is_primary_address: values.is_primary_address ? 1 : 0,
-		is_shipping_address: values.is_shipping_address ? 1 : 0
+		address_title: address_title,
+		address_line1: address_line1,
+		address_line2: $('#address_line2').val().trim(),
+		city: city,
+		state: $('#state').val().trim(),
+		country: country,
+		pincode: pincode,
+		phone: $('#phone').val().trim(),
+		email_id: $('#email_id').val().trim(),
+		is_primary_address: $('#is_primary_address').is(':checked') ? 1 : 0,
+		is_shipping_address: $('#is_shipping_address').is(':checked') ? 1 : 0
 	};
 
 	if (currentAddressName) {
@@ -197,7 +151,7 @@ function saveAddress() {
 			freeze_message: __('Saving...'),
 			callback: function(r) {
 				if (r.message && r.message.success) {
-					addressDialog.hide();
+					hideAddressForm();
 					frappe.show_alert({
 						message: __('Address updated successfully'),
 						indicator: 'green'
@@ -219,7 +173,7 @@ function saveAddress() {
 			freeze_message: __('Saving...'),
 			callback: function(r) {
 				if (r.message) {
-					addressDialog.hide();
+					hideAddressForm();
 					frappe.show_alert({
 						message: __('Address created successfully'),
 						indicator: 'green'
