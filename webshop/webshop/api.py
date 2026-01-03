@@ -1213,8 +1213,8 @@ def delete_address(address_name):
 		for q in quotations_shipping:
 			frappe.db.set_value("Quotation", q.name, "shipping_address_name", None)
 
-	# Delete the address
-	frappe.delete_doc("Address", address_name)
+	# Delete the address (ignore_permissions because we already verified ownership via customer link)
+	frappe.delete_doc("Address", address_name, ignore_permissions=True)
 	frappe.db.commit()
 
 	return {"success": True, "message": _("Address deleted successfully")}
