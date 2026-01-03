@@ -214,6 +214,45 @@ def say_thanks():
 	click.secho("Thank you for installing Frappe Webshop!", color="green")
 
 
+def after_migrate():
+	"""Ensure Customer role has permission to create addresses in checkout."""
+	setup_address_permissions()
+
+
+def setup_address_permissions():
+	"""
+	Add Custom DocPerm for Customer role on Address DocType.
+	This is required for webshop checkout to work properly when customers
+	create new addresses.
+	"""
+	# Check if Customer permission already exists
+	existing = frappe.db.exists("Custom DocPerm", {
+		"parent": "Address",
+		"role": "Customer"
+	})
+
+	if existing:
+		return
+
+	# Create permission for Customer role
+	perm = frappe.get_doc({
+		"doctype": "Custom DocPerm",
+		"parent": "Address",
+		"role": "Customer",
+		"permlevel": 0,
+		"read": 1,
+		"write": 1,
+		"create": 1,
+		"delete": 0,
+		"if_owner": 1,
+		"idx": 10
+	})
+	perm.insert(ignore_permissions=True)
+	frappe.db.commit()
+
+	click.secho("Added Customer permission on Address for webshop checkout", fg="green")
+
+
 patches = [
 	"create_website_items",
 	"populate_e_commerce_settings",

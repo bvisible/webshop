@@ -1086,48 +1086,36 @@ def get_shopping_cart_menu(context=None):
 
 @frappe.whitelist()
 def add_new_address(doc):
-	# Temporarily ignore permissions for address creation
-	frappe.flags.ignore_permissions = True
-	try:
-		frappe.log_error("add_new_address START", f"User: {frappe.session.user}, ignore_permissions: {frappe.flags.ignore_permissions}")
-		doc = frappe.parse_json(doc)
-		doc.update({"doctype": "Address"})
-		frappe.log_error("add_new_address PARSED", f"Doc: {doc}")
-		address = frappe.get_doc(doc)
-		frappe.log_error("add_new_address GOT_DOC", f"Address created in memory")
+	doc = frappe.parse_json(doc)
+	doc.update({"doctype": "Address"})
+	address = frappe.get_doc(doc)
 
-		# Add link to current customer if not already provided
-		if not address.links:
-			frappe.log_error("add_new_address GET_PARTY", "Getting party...")
-			party = get_party(ignore_permissions=True)
-			frappe.log_error("add_new_address GOT_PARTY", f"Party: {party}")
-			if party:
-				address.append("links", {
-					"link_doctype": "Customer",
-					"link_name": party.name
-				})
+	# Add link to current customer if not already provided
+	if not address.links:
+		party = get_party()
+		if party:
+			address.append("links", {
+				"link_doctype": "Customer",
+				"link_name": party.name
+			})
 
-		frappe.log_error("add_new_address SAVING", "About to save...")
-		address.save(ignore_permissions=True)
-		frappe.log_error("add_new_address SAVED", f"Address saved: {address.name}")
+	address.save()
 
-		# Update customer's primary address if this is a primary address
-		if address.is_primary_address:
-			from frappe.contacts.doctype.address.address import get_address_display
+	# Update customer's primary address if this is a primary address
+	if address.is_primary_address:
+		from frappe.contacts.doctype.address.address import get_address_display
 
-			# Find the linked customer from address links
-			for link in address.links:
-				if link.link_doctype == "Customer":
-					customer = frappe.get_doc("Customer", link.link_name)
-					customer.customer_primary_address = address.name
-					# Also set the formatted address text for display in lists
-					customer.primary_address = get_address_display(address.name)
-					customer.save(ignore_permissions=True)
-					break
+		# Find the linked customer from address links
+		for link in address.links:
+			if link.link_doctype == "Customer":
+				customer = frappe.get_doc("Customer", link.link_name)
+				customer.customer_primary_address = address.name
+				# Also set the formatted address text for display in lists
+				customer.primary_address = get_address_display(address.name)
+				customer.save(ignore_permissions=True)
+				break
 
-		return address
-	finally:
-		frappe.flags.ignore_permissions = False
+	return address
 
 @frappe.whitelist(allow_guest=True)
 def create_lead_for_item_inquiry(lead, subject, message):
