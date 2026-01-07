@@ -11,20 +11,28 @@ class MaintenancePageRenderer(BaseRenderer):
 		
 	def can_render(self):
 		"""Check if maintenance mode is active and should block this request"""
-		
+
 		if not self.is_maintenance_active():
 			return False
-			
+
 		maintenance_mode = self.get_maintenance_mode()
-		
+
 		# Always allow login page
 		if self.path in ['login', 'api/method/login', 'api/method/logout']:
 			return False
-			
+
+		# Always allow print/PDF related paths (internal requests for document printing)
+		if self.path == 'printview' or self.path.startswith('printview?'):
+			return False
+
 		# Check if request is for API
 		if self.path.startswith('api/'):
 			# Allow auth endpoints
 			if any(endpoint in self.path for endpoint in ['login', 'logout', 'auth']):
+				return False
+			# Allow print/PDF related API endpoints
+			print_endpoints = ['print_format', 'printview', 'download_pdf', 'weasyprint']
+			if any(endpoint in self.path for endpoint in print_endpoints):
 				return False
 			# Block other API calls during maintenance
 			frappe.throw(_("Service temporarily unavailable due to maintenance"), frappe.ServiceUnavailableError)
