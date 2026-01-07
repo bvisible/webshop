@@ -453,3 +453,10 @@ def save_category_order(order_data):
 		"message": _("{0} categories updated").format(len(updated)),
 		"updated": updated
 	}
+
+
+@frappe.whitelist()
+def regenerate_sitemap():
+	"""Standalone wrapper for the document method - required for frm.call()"""
+	doc = frappe.get_doc("Webshop Settings")
+	return doc.regenerate_sitemap()
