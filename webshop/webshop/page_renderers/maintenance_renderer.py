@@ -15,52 +15,46 @@ class MaintenancePageRenderer(BaseRenderer):
 		if not self.is_maintenance_active():
 			return False
 
+		# Always allow these paths regardless of maintenance mode
+		always_allowed = [
+			'login', 'assets', 'files', 'private/files',
+			'api/method/login', 'api/method/logout',
+			'printview',  # PDF generation
+		]
+		if self.path in ['login', 'printview'] or any(self.path.startswith(p) for p in always_allowed):
+			return False
+
+		# For logged-in users: allow desk, apps, and API access
+		if frappe.session.user != "Guest":
+			# Always allow desk/app paths for logged-in users
+			desk_paths = ['app', 'drive', 'crm', 'insights', 'raven', 'builder']
+			if any(self.path.startswith(p) for p in desk_paths):
+				return False
+
+			# Always allow API calls for logged-in users
+			if self.path.startswith('api/'):
+				return False
+
+			# Check if user can fully bypass maintenance (access website too)
+			if self.can_user_bypass_maintenance():
+				return False
+
+		# For Guest users or non-desk paths: apply maintenance restrictions
 		maintenance_mode = self.get_maintenance_mode()
 
-		# Always allow login page
-		if self.path in ['login', 'api/method/login', 'api/method/logout']:
-			return False
-
-		# Always allow print/PDF related paths (internal requests for document printing)
-		if self.path == 'printview' or self.path.startswith('printview?'):
-			return False
-
-		# Check if request is for API
-		if self.path.startswith('api/'):
-			# Allow auth endpoints
-			if any(endpoint in self.path for endpoint in ['login', 'logout', 'auth']):
-				return False
-			# Allow print/PDF related API endpoints
-			print_endpoints = ['print_format', 'printview', 'download_pdf', 'weasyprint']
-			if any(endpoint in self.path for endpoint in print_endpoints):
-				return False
-			# Block other API calls during maintenance
-			frappe.throw(_("Service temporarily unavailable due to maintenance"), frappe.ServiceUnavailableError)
-			
-		# Check if user can bypass maintenance
-		if self.can_user_bypass_maintenance():
-			return False
-			
-		# Check which paths to block based on maintenance mode
-		maintenance_mode = self.get_maintenance_mode()
-		
 		if maintenance_mode == "Webshop Only":
 			# Block only webshop related paths
 			webshop_paths = [
-				'products', 'all-products', 'cart', 'checkout', 
-				'orders', 'invoices', 'addresses', 'wishlist', 
+				'products', 'all-products', 'cart', 'checkout',
+				'orders', 'invoices', 'addresses', 'wishlist',
 				'gift-cards', 'product-search', 'shop-by-category'
 			]
 			return any(self.path.startswith(p) for p in webshop_paths)
-			
+
 		elif maintenance_mode == "Website and Webshop":
-			# Block all paths except excluded ones
-			excluded_paths = ['login', 'assets', 'files', 'private/files', 'api/method/login', 'api/method/logout']
-			# Check exact match for login or prefix match for other paths
-			if self.path == 'login' or any(self.path.startswith(p) for p in excluded_paths):
-				return False
+			# Block public website paths for guests
 			return True
-			
+
 		return False
 		
 	def render(self):
