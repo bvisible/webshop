@@ -288,13 +288,12 @@ class WebshopSettings(Document):
 	@frappe.whitelist()
 	def regenerate_sitemap(self):
 		"""Clear sitemap cache and regenerate all sitemaps"""
-		from frappe.utils.caching import clear_cache
 		from frappe.utils import now_datetime
-		
+
 		# List of cache keys to clear
-		cache_functions = [
+		cache_keys = [
 			"webshop.www.sitemap.get_published_doctype_pages",
-			"webshop.www.sitemap.get_builder_pages", 
+			"webshop.www.sitemap.get_builder_pages",
 			"webshop.www.sitemap.get_web_pages",
 			"webshop.www.sitemap_products.get_product_links",
 			"webshop.www.sitemap_categories.get_category_links",
@@ -303,11 +302,12 @@ class WebshopSettings(Document):
 			"webshop.www.sitemap_pages.get_builder_page_links",
 			"webshop.www.sitemap_pages.get_web_page_links"
 		]
-		
-		# Clear each cache
-		for func in cache_functions:
+
+		# Clear each cache using frappe.cache()
+		cache = frappe.cache()
+		for key in cache_keys:
 			try:
-				clear_cache(func)
+				cache.delete_key(key)
 			except Exception:
 				pass
 		
