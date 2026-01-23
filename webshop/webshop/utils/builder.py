@@ -222,22 +222,36 @@ def get_builder_page_content(route=None, page_name=None, content_only=False, ski
         content, style, fonts = get_block_html(blocks)
         
         # Process page data and context only if needed
-        if "{% " in content or "{{ " in content:
+        # Skip render_template if content has {% include %} - those should be rendered by parent template
+        has_jinja = "{% " in content or "{{ " in content
+        has_includes = "{% include" in content
+
+        if has_jinja and not has_includes:
+            # Only render if there's Jinja but NO includes (includes must be rendered by parent)
             # Get page data
             page_data = {}
             if page.page_data_script:
                 _locals = dict(data=frappe._dict())
                 execute_script(page.page_data_script, _locals, page.name)
                 page_data = _locals["data"]
-            
+
             # Create context and render template
             context = frappe._dict()
             context.update(page_data)
-            
+
             # Get HTML and style with context
             from frappe.utils.jinja import render_template
             content = render_template(content, context)
-            
+
+            if not content_only:
+                result["page_data"] = page_data
+        elif has_jinja and has_includes:
+            # Has includes - pass page_data but don't render (parent template will handle includes)
+            page_data = {}
+            if page.page_data_script:
+                _locals = dict(data=frappe._dict())
+                execute_script(page.page_data_script, _locals, page.name)
+                page_data = _locals["data"]
             if not content_only:
                 result["page_data"] = page_data
         
