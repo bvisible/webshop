@@ -225,6 +225,15 @@ def get_builder_page_content(route=None, page_name=None, content_only=False, ski
             return cached_result
 
     try:
+        # For navbar/footer routes, use Builder Settings component as PRIORITY
+        # This ensures consistent header/footer across all pages
+        if route in ("navbar", "footer") and not page_name:
+            component_result = get_builder_component_content(route, use_cache)
+            if component_result and component_result.get("success"):
+                if use_cache and cache_key:
+                    frappe.cache().set_value(cache_key, component_result, expires_in_sec=300)
+                return component_result
+
         # Get page_name from route if provided
         if route and not page_name:
             page_list = frappe.get_all(
@@ -239,14 +248,6 @@ def get_builder_page_content(route=None, page_name=None, content_only=False, ski
             )
 
             if not page_list:
-                # Try to use Builder Settings component as fallback for navbar/footer
-                if route in ("navbar", "footer"):
-                    component_result = get_builder_component_content(route, use_cache)
-                    if component_result and component_result.get("success"):
-                        if use_cache and cache_key:
-                            frappe.cache().set_value(cache_key, component_result, expires_in_sec=300)
-                        return component_result
-
                 result = {
                     "content": f"<div>Error: Page not found for route: {route}</div>",
                     "success": False,
