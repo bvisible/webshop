@@ -87,6 +87,81 @@ def get_builder_component_by_route(route, use_cache=True):
                         f"Error: {str(e)}\nTraceback: {frappe.get_traceback()}")
         return None
         
+def get_builder_component_content(component_type, use_cache=True):
+    """
+    Get rendered content from a Builder Component configured in Builder Settings.
+
+    This is used as a fallback when no page exists for navbar/footer routes.
+    It looks up the component from Builder Settings (editor_header_component or editor_footer_component).
+
+    Args:
+        component_type (str): Either "navbar" or "footer"
+        use_cache (bool): Whether to use caching
+
+    Returns:
+        dict: Rendered content with success flag, or None if component not found
+    """
+    cache_key = None
+    if use_cache:
+        cache_key = f"builder_component_content:{component_type}"
+        cached_result = frappe.cache().get_value(cache_key)
+        if cached_result:
+            return cached_result
+
+    try:
+        # Get Builder Settings
+        builder_settings = frappe.get_cached_doc("Builder Settings", "Builder Settings")
+
+        # Determine which component to use based on type
+        if component_type == "navbar":
+            component_name = builder_settings.get("editor_header_component")
+        elif component_type == "footer":
+            component_name = builder_settings.get("editor_footer_component")
+        else:
+            return None
+
+        if not component_name:
+            return None
+
+        # Get the component
+        component = frappe.get_cached_doc("Builder Component", component_name)
+        if not component:
+            return None
+
+        # Parse blocks
+        blocks = component.block
+        if isinstance(blocks, str):
+            blocks = json.loads(blocks)
+
+        # Render the component HTML
+        content, style, fonts = get_block_html(blocks)
+
+        # Post-process content (same as page rendering)
+        content = re.sub(r'<body([^>]*)>', r'<div\1 class="builder-body-container">', content)
+        content = re.sub(r'</body>', '</div>', content)
+
+        result = {
+            "success": True,
+            "content": content,
+            "style": style,
+            "fonts": fonts,
+            "global_style": builder_settings.style or "",
+            "global_script": builder_settings.script or "",
+            "client_scripts": [],
+            "client_styles": [],
+            "page_data": {}
+        }
+
+        if use_cache and cache_key:
+            frappe.cache().set_value(cache_key, result, expires_in_sec=300)
+
+        return result
+
+    except Exception as e:
+        frappe.log_error("Error getting builder component content", str(e))
+        return None
+
+
 def find_component_id(blocks):
     """
     Recursively find the ID of the first extended component in the blocks.
@@ -130,7 +205,7 @@ def find_component_id(blocks):
 def get_builder_page_content(route=None, page_name=None, content_only=False, skip_scripts=False, skip_styles=False, use_cache=True):
     """
     Render a Builder Page and return the HTML and CSS content with all global settings.
-    
+
     Parameters:
         route (str, optional): Route of the page to render
         page_name (str, optional): Name of the page to render
@@ -139,7 +214,7 @@ def get_builder_page_content(route=None, page_name=None, content_only=False, ski
         skip_styles (bool, optional): If True, skip loading client styles
         use_cache (bool, optional): If True, try to use cached version if available
     """
-    
+
     # Define cache key if caching is enabled
     cache_key = None
     if use_cache:
@@ -148,12 +223,12 @@ def get_builder_page_content(route=None, page_name=None, content_only=False, ski
         cached_result = frappe.cache().get_value(cache_key)
         if cached_result:
             return cached_result
-    
+
     try:
         # Get page_name from route if provided
         if route and not page_name:
             page_list = frappe.get_all(
-                "Builder Page", 
+                "Builder Page",
                 filters={
                     "route": route,
                     "published": 1  # Only get published pages
@@ -162,8 +237,16 @@ def get_builder_page_content(route=None, page_name=None, content_only=False, ski
                 order_by="modified desc",
                 limit=1
             )
-            
+
             if not page_list:
+                # Try to use Builder Settings component as fallback for navbar/footer
+                if route in ("navbar", "footer"):
+                    component_result = get_builder_component_content(route, use_cache)
+                    if component_result and component_result.get("success"):
+                        if use_cache and cache_key:
+                            frappe.cache().set_value(cache_key, component_result, expires_in_sec=300)
+                        return component_result
+
                 result = {
                     "content": f"<div>Error: Page not found for route: {route}</div>",
                     "success": False,
@@ -179,7 +262,7 @@ def get_builder_page_content(route=None, page_name=None, content_only=False, ski
                         "fonts": {}
                     })
                 return result
-                
+
             page_name = page_list[0].name
             
         # If no route or page_name provided
