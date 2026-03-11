@@ -1,0 +1,9 @@
+{# v3.0.0: Simplified - Website Header Footer Config only #}
+{# Renders footer from Website Header Footer Config DocType #}
+
+{%- set hf_config = frappe.call("builder.hf_utils.header_footer.get_header_footer_config") -%}
+
+{%- if hf_config and hf_config.footer_template -%}
+    {% include "builder/templates/includes/header_footer/footer_styles.html" ignore missing %}
+    {{ frappe.call("builder.hf_utils.header_footer.render_footer", config=hf_config) | safe }}
+{%- endif -%}

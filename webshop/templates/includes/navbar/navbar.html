@@ -1,0 +1,10 @@
+{# v3.2.0: Updated - Sets colors context for header_styles.html #}
+{# Renders header from Website Header Footer Config DocType #}
+
+{%- set hf_config = frappe.call("builder.hf_utils.header_footer.get_header_footer_config") -%}
+
+{%- if hf_config and hf_config.header_layout -%}
+    {%- set colors = hf_config.get_header_colors() -%}
+    {% include "builder/templates/includes/header_footer/header_styles.html" ignore missing %}
+    {{ frappe.call("builder.hf_utils.header_footer.render_header", config=hf_config) | safe }}
+{%- endif -%}
