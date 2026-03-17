@@ -1,9 +1,28 @@
-{# v3.0.0: Simplified - Website Header Footer Config only #}
-{# Renders footer from Website Header Footer Config DocType #}
+{# v3.1.0: Fix PermissionError on www pages for guest users #}
+{# frappe.call() in safe_exec Jinja context goes through handler.execute_cmd #}
+{# which rejects GET requests for guests. Use frappe.get_doc() + include instead. #}
 
-{%- set hf_config = frappe.call("builder.hf_utils.header_footer.get_header_footer_config") -%}
+{%- set hf_config = frappe.get_doc("Website Header Footer Config") if frappe.db.exists("DocType", "Website Header Footer Config") else None -%}
 
 {%- if hf_config and hf_config.footer_template -%}
+    {%- set config = hf_config -%}
+    {%- set template = hf_config.footer_template -%}
+    {%- set logo = hf_config.get_footer_logo_data() if hf_config.show_footer_logo else None -%}
+    {%- set description = hf_config.footer_description -%}
+    {%- set copyright_text = hf_config.get_copyright_text() -%}
+    {%- set social_links = hf_config.get_social_links() -%}
+    {%- set show_newsletter = hf_config.show_newsletter -%}
+    {%- set newsletter_title = hf_config.newsletter_title -%}
+    {%- set newsletter_placeholder = hf_config.newsletter_placeholder -%}
+    {%- set footer_colors = hf_config.get_footer_colors() -%}
+    {%- set footer_columns = {} -%}
+    {%- for link in (hf_config.footer_links or []) -%}
+        {%- set col = link.column_name or "Links" -%}
+        {%- if col not in footer_columns -%}
+            {%- set _ = footer_columns.update({col: []}) -%}
+        {%- endif -%}
+        {%- set _ = footer_columns[col].append(link) -%}
+    {%- endfor -%}
     {% include "builder/templates/includes/header_footer/footer_styles.html" ignore missing %}
-    {{ frappe.call("builder.hf_utils.header_footer.render_footer", config=hf_config) | safe }}
+    {% include "builder/templates/includes/header_footer/footer.html" ignore missing %}
 {%- endif -%}

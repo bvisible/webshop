@@ -1,10 +1,21 @@
-{# v3.2.0: Updated - Sets colors context for header_styles.html #}
-{# Renders header from Website Header Footer Config DocType #}
+{# v3.3.0: Fix PermissionError on www pages for guest users #}
+{# frappe.call() in safe_exec Jinja context goes through handler.execute_cmd #}
+{# which rejects GET requests for guests. Use frappe.get_doc() + include instead. #}
 
-{%- set hf_config = frappe.call("builder.hf_utils.header_footer.get_header_footer_config") -%}
+{%- set hf_config = frappe.get_doc("Website Header Footer Config") if frappe.db.exists("DocType", "Website Header Footer Config") else None -%}
 
 {%- if hf_config and hf_config.header_layout -%}
+    {%- set config = hf_config -%}
     {%- set colors = hf_config.get_header_colors() -%}
+    {%- set theme = hf_config.get_theme_data() -%}
+    {%- set layout = hf_config.get_layout_type() -%}
+    {%- set menu_position = hf_config.get_menu_position() -%}
+    {%- set icons = hf_config.get_visible_icons() -%}
+    {%- set logo = hf_config.get_logo_data() -%}
+    {%- set cta = hf_config.get_cta_data() -%}
+    {%- set menu_items = hf_config.menu_items or [] -%}
+    {%- set sticky = hf_config.sticky_header -%}
+    {% include "builder/templates/includes/header_footer/theme_variables.html" ignore missing %}
     {% include "builder/templates/includes/header_footer/header_styles.html" ignore missing %}
-    {{ frappe.call("builder.hf_utils.header_footer.render_header", config=hf_config) | safe }}
+    {% include "builder/templates/includes/header_footer/header.html" ignore missing %}
 {%- endif -%}
