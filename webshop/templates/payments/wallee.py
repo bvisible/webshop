@@ -162,6 +162,10 @@ def create_wallee_payment_request(quotation_id, idempotency_token=None):
             from wallee_integration.wallee_integration.api.transaction import create_transaction
 
             # Build line items from quotation
+            # Extract tax rates for TaxCreate (only percentage-based taxes, not Actual charges)
+            from wallee_integration.wallee_integration.api.tax_utils import get_taxes_for_line_items
+            taxes_data = get_taxes_for_line_items("Quotation", quotation.name)
+
             line_items = []
             for item in quotation.items:
                 line_items.append({
@@ -169,26 +173,24 @@ def create_wallee_payment_request(quotation_id, idempotency_token=None):
                     "sku": item.item_code,
                     "quantity": item.qty,
                     "amount_including_tax": item.amount,
-                    "type": "PRODUCT"
+                    "type": "PRODUCT",
+                    "taxes": taxes_data or None
                 })
 
-            # Add shipping if present
-            if quotation.get("shipping_amount") and quotation.shipping_amount > 0:
-                line_items.append({
-                    "name": _("Shipping"),
-                    "quantity": 1,
-                    "amount_including_tax": quotation.shipping_amount,
-                    "type": "SHIPPING"
-                })
-
-            # Add taxes if present
-            if quotation.get("total_taxes_and_charges") and quotation.total_taxes_and_charges > 0:
-                line_items.append({
-                    "name": _("Taxes"),
-                    "quantity": 1,
-                    "amount_including_tax": quotation.total_taxes_and_charges,
-                    "type": "FEE"
-                })
+            # Add "Actual" charges as separate line items (shipping, fees, etc.)
+            # These are charges NOT included in item prices (charge_type = "Actual")
+            for tax_row in (quotation.taxes or []):
+                if tax_row.charge_type == "Actual" and tax_row.tax_amount > 0:
+                    # Determine if this is a shipping charge or a fee
+                    desc_lower = (tax_row.description or "").lower()
+                    is_shipping = any(kw in desc_lower for kw in ["ship", "post", "livraison", "envoi", "frais de port"])
+                    line_type = "SHIPPING" if is_shipping else "FEE"
+                    line_items.append({
+                        "name": tax_row.description or _("Fee"),
+                        "quantity": 1,
+                        "amount_including_tax": tax_row.tax_amount,
+                        "type": line_type
+                    })
 
             # Build billing address from quotation data
             billing_address = None
