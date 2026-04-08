@@ -25,17 +25,54 @@ def check_email(email):
 @frappe.whitelist(allow_guest=True)
 def create_account():
     try:
-        email = frappe.form_dict.get('email')
-        first_name = frappe.form_dict.get('first_name')
-        last_name = frappe.form_dict.get('last_name')
+        email = (frappe.form_dict.get('email') or "").strip().lower()
+        first_name = (frappe.form_dict.get('first_name') or "").strip()
+        last_name = (frappe.form_dict.get('last_name') or "").strip()
 
         if not email or not first_name or not last_name:
             return {
                 "message": "error",
-                "reason": "Please fill in all required fields"
+                "reason": _("Please fill in all required fields"),
+                "reason_code": "missing_fields",
             }
 
-        # Create user
+        # Validate email format
+        try:
+            validate_email_address(email, throw=True)
+        except Exception:
+            return {
+                "message": "error",
+                "reason": _("Please enter a valid email address"),
+                "reason_code": "invalid_email",
+            }
+
+        # Check if a User already exists with this email.
+        # In Frappe, User.name is the email, so checking by name is sufficient
+        # and covers both the PRIMARY key constraint and any orphan cases.
+        existing_user_type = frappe.db.get_value("User", email, "user_type")
+        if existing_user_type:
+            if existing_user_type == "System User":
+                # Never allow the shop to touch a System User account — this
+                # prevents privilege confusion and accidental account hijack.
+                return {
+                    "message": "error",
+                    "reason": _(
+                        "This email is already linked to an administrator account. "
+                        "Please contact your administrator or use a different email."
+                    ),
+                    "reason_code": "account_exists_system",
+                }
+            # Website User already exists — ask the customer to sign in instead.
+            return {
+                "message": "error",
+                "reason": _("An account already exists with this email. Please sign in instead."),
+                "reason_code": "account_exists_website",
+            }
+
+        # Create user as a Website User (never System User). We disable the
+        # built-in welcome email here and send it manually afterwards, so that
+        # a misconfigured SMTP server cannot prevent the account from being
+        # reported as successfully created.
         user = frappe.get_doc({
             "doctype": "User",
             "email": email,
@@ -43,25 +80,47 @@ def create_account():
             "last_name": last_name,
             "enabled": 1,
             "user_type": "Website User",
-            "send_welcome_email": 1,
+            "send_welcome_email": 0,
             "roles": [{
                 "role": "Customer",
                 "doctype": "Has Role"
             }]
         })
-        
-        user.insert(ignore_permissions=True)
-        
+
+        try:
+            user.insert(ignore_permissions=True)
+        except frappe.DuplicateEntryError:
+            # Race condition: a parallel request created the account between
+            # our existence check and the insert. Report cleanly instead of
+            # leaking the raw IntegrityError payload.
+            frappe.clear_messages()
+            return {
+                "message": "error",
+                "reason": _("An account already exists with this email. Please sign in instead."),
+                "reason_code": "account_exists_website",
+            }
+
+        # Best-effort welcome email: never block account creation on a mail failure.
+        try:
+            user.reload()
+            user.send_welcome_mail_to_user()
+        except Exception:
+            frappe.log_error("Webshop welcome email failed", frappe.get_traceback())
+            frappe.clear_messages()
+
         return {
             "message": "success",
-            "reason": "Account created successfully"
+            "reason": _("Account created successfully"),
         }
-        
+
     except Exception as e:
+        frappe.log_error("Webshop create_account failed", frappe.get_traceback())
         frappe.clear_messages()
         return {
             "message": "error",
-            "reason": str(e)
+            "reason": _("An error occurred while creating your account. Please try again."),
+            "reason_code": "unknown_error",
+            "detail": str(e),
         }
 
 @frappe.whitelist(allow_guest=True)

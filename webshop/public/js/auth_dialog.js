@@ -787,10 +787,24 @@ frappe.showLoginDialog = function(opts) {
                             successOverlay.classList.add('show');
                         });
                     } else {
-                        frappe.show_alert({
-                            message: r.message.reason || __('An error occurred'),
-                            indicator: 'red'
-                        });
+                        // If the account already exists as a Website User,
+                        // automatically switch the dialog to login mode so the
+                        // customer can sign in without retyping their email.
+                        if (r.message && r.message.reason_code === 'account_exists_website') {
+                            frappe.show_alert({
+                                message: r.message.reason || __('An account already exists with this email. Please sign in instead.'),
+                                indicator: 'orange'
+                            });
+                            showSection(passwordSection);
+                            passwordInput.focus();
+                            fullnameSection.style.display = 'none';
+                            submitBtn.textContent = __('Sign in');
+                        } else {
+                            frappe.show_alert({
+                                message: (r.message && r.message.reason) || __('An error occurred'),
+                                indicator: 'red'
+                            });
+                        }
                     }
                 }
             });
