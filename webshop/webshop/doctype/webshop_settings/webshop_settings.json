@@ -26,6 +26,9 @@
   "show_apply_coupon_code_in_website",
   "show_contact_us_button",
   "show_attachments",
+  "product_image_section",
+  "product_image_fit",
+  "product_image_aspect_ratio",
   "tab_filters",
   "filter_categories_section",
   "enable_field_filters",
@@ -248,6 +251,27 @@
    "fieldname": "show_attachments",
    "fieldtype": "Check",
    "label": "Show Public Attachments"
+  },
+  {
+   "fieldname": "product_image_section",
+   "fieldtype": "Section Break",
+   "label": "Product Image Display"
+  },
+  {
+   "default": "Contain",
+   "description": "How the image fills the product card. 'Cover' crops to fill without distortion; 'Contain' keeps the whole image visible with padding.",
+   "fieldname": "product_image_fit",
+   "fieldtype": "Select",
+   "label": "Product Image Fit",
+   "options": "Contain\nCover"
+  },
+  {
+   "default": "1/1",
+   "depends_on": "eval:doc.product_image_fit == \"Cover\"",
+   "description": "Aspect ratio (width/height) of product cards. Only applied when fit is Cover. Examples: 1/1 (square), 3/4 (portrait), 4/3 (landscape).",
+   "fieldname": "product_image_aspect_ratio",
+   "fieldtype": "Data",
+   "label": "Product Card Aspect Ratio"
   },
   {
    "description": "Control currency symbol display in the webshop. If empty, uses the global ERPNext setting. 'Yes' hides the symbol, 'No' shows it.",

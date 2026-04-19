@@ -25,6 +25,7 @@
      "display_section",
      "website_image",
      "website_image_alt",
+     "image_focus",
      "column_break_13",
      "slideshow",
      "thumbnail",
@@ -210,6 +211,15 @@
       "fieldname": "website_image_alt",
       "fieldtype": "Data",
       "label": "Image Description"
+     },
+     {
+      "default": "Center",
+      "depends_on": "website_image",
+      "description": "Where the image anchors when 'Product Image Fit' is set to Cover in Webshop Settings. Pick the area that must stay visible when the image is cropped.",
+      "fieldname": "image_focus",
+      "fieldtype": "Select",
+      "label": "Image Focus",
+      "options": "Center\nTop\nBottom\nLeft\nRight\nTop Left\nTop Right\nBottom Left\nBottom Right"
      },
      {
       "fieldname": "thumbnail",

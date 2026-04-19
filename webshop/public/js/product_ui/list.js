@@ -49,7 +49,7 @@ webshop.ProductList = class {
 		let image = item.website_image;
 		let wishlist_enabled = !item.has_variants && settings.enable_wishlist;
 		let image_html = ``;
-		
+
 		// Add discount badge if item has discount
 		let discount_badge = '';
 		if (item.discount_percent && item.discount_percent > 0) {
@@ -60,13 +60,29 @@ webshop.ProductList = class {
 			`;
 		}
 
+		const fit = (settings && settings.product_image_fit) || 'Contain';
+		const focus_map = {
+			'Center': 'center center',
+			'Top': 'center top',
+			'Bottom': 'center bottom',
+			'Left': 'left center',
+			'Right': 'right center',
+			'Top Left': 'left top',
+			'Top Right': 'right top',
+			'Bottom Left': 'left bottom',
+			'Bottom Right': 'right bottom',
+		};
+		const img_style = fit === 'Cover'
+			? ` style="object-fit: cover; object-position: ${focus_map[item.image_focus] || 'center center'};"`
+			: '';
+
 		if (image) {
 			image_html += `
 				<div class="col-2 border text-center rounded list-image" style="position: relative; overflow: hidden;">
 					${discount_badge}
 					<a class="product-link product-list-link" href="/${ item.route || '#' }">
 						<img itemprop="image" class="website-image h-100 w-100" alt="${ title }"
-							src="${ image }">
+							src="${ image }"${img_style}>
 					</a>
 					${ wishlist_enabled ? this.get_wishlist_icon(item): '' }
 				</div>

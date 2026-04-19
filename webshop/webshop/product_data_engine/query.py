@@ -34,6 +34,7 @@ class ProductQuery:
 			"item_name",
 			"item_code",
 			"website_image",
+			"image_focus",
 			"variant_of",
 			"has_variants",
 			"item_group",

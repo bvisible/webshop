@@ -48,7 +48,7 @@ webshop.ProductGrid = class {
 	get_image_html(item, title) {
 		let image = item.website_image;
 		let discount_badge = '';
-		
+
 		// Add discount badge if item has discount
 		if (item.discount_percent && item.discount_percent > 0) {
 			discount_badge = `
@@ -58,18 +58,23 @@ webshop.ProductGrid = class {
 			`;
 		}
 
+		const {
+			container_style: container_style,
+			img_style: img_style,
+		} = this.get_image_fit_styles(item);
+
 		if (image) {
 			return `
-				<div class="card-img-container">
+				<div class="card-img-container"${container_style ? ` style="${container_style}"` : ''}>
 					${discount_badge}
 					<a href="/${ item.route || '#' }" style="text-decoration: none;">
-						<img itemprop="image" class="card-img" src="${ image }" alt="${ title }">
+						<img itemprop="image" class="card-img" src="${ image }" alt="${ title }"${img_style ? ` style="${img_style}"` : ''}>
 					</a>
 				</div>
 			`;
 		} else {
 			return `
-				<div class="card-img-container">
+				<div class="card-img-container"${container_style ? ` style="${container_style}"` : ''}>
 					${discount_badge}
 					<a href="/${ item.route || '#' }" style="text-decoration: none;">
 						<div class="card-img-top no-image">
@@ -79,6 +84,34 @@ webshop.ProductGrid = class {
 				</div>
 			`;
 		}
+	}
+
+	// Compute inline styles for Cover/Contain fit + per-item focus.
+	// Keeping it here (not SCSS) lets the Webshop Settings toggle take
+	// effect without a fresh `bench build`.
+	get_image_fit_styles(item) {
+		const settings = this.settings || {};
+		const fit = settings.product_image_fit || 'Contain';
+		if (fit !== 'Cover') {
+			return { container_style: '', img_style: '' };
+		}
+		const ratio = (settings.product_image_aspect_ratio || '1/1').trim();
+		const focus_map = {
+			'Center': 'center center',
+			'Top': 'center top',
+			'Bottom': 'center bottom',
+			'Left': 'left center',
+			'Right': 'right center',
+			'Top Left': 'left top',
+			'Top Right': 'right top',
+			'Bottom Left': 'left bottom',
+			'Bottom Right': 'right bottom',
+		};
+		const position = focus_map[item.image_focus] || 'center center';
+		return {
+			container_style: `aspect-ratio: ${ratio};`,
+			img_style: `object-fit: cover; object-position: ${position}; width: 100%; height: 100%;`,
+		};
 	}
 
 	get_card_body_html(item, title, settings) {
