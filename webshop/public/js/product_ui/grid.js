@@ -115,7 +115,7 @@ webshop.ProductGrid = class {
 			// the image's height: 100% resolves to the container's aspect-ratio
 			// height instead of the image's intrinsic height.
 			anchor_style: 'display: block; width: 100%; height: 100%;',
-			img_style: `object-fit: cover; object-position: ${position}; width: 100%; height: 100%;`,
+			img_style: `object-fit: cover; object-position: ${position}; width: 100%; height: 100%; max-height: none;`,
 		};
 	}
 
