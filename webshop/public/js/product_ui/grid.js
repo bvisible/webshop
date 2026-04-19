@@ -60,6 +60,7 @@ webshop.ProductGrid = class {
 
 		const {
 			container_style: container_style,
+			anchor_style: anchor_style,
 			img_style: img_style,
 		} = this.get_image_fit_styles(item);
 
@@ -67,7 +68,7 @@ webshop.ProductGrid = class {
 			return `
 				<div class="card-img-container"${container_style ? ` style="${container_style}"` : ''}>
 					${discount_badge}
-					<a href="/${ item.route || '#' }" style="text-decoration: none;">
+					<a href="/${ item.route || '#' }" style="text-decoration: none;${anchor_style}">
 						<img itemprop="image" class="card-img" src="${ image }" alt="${ title }"${img_style ? ` style="${img_style}"` : ''}>
 					</a>
 				</div>
@@ -76,7 +77,7 @@ webshop.ProductGrid = class {
 			return `
 				<div class="card-img-container"${container_style ? ` style="${container_style}"` : ''}>
 					${discount_badge}
-					<a href="/${ item.route || '#' }" style="text-decoration: none;">
+					<a href="/${ item.route || '#' }" style="text-decoration: none;${anchor_style}">
 						<div class="card-img-top no-image">
 							${ frappe.get_abbr(title) }
 						</div>
@@ -93,7 +94,7 @@ webshop.ProductGrid = class {
 		const settings = this.settings || {};
 		const fit = settings.product_image_fit || 'Contain';
 		if (fit !== 'Cover') {
-			return { container_style: '', img_style: '' };
+			return { container_style: '', anchor_style: '', img_style: '' };
 		}
 		const ratio = (settings.product_image_aspect_ratio || '1/1').trim();
 		const focus_map = {
@@ -110,6 +111,10 @@ webshop.ProductGrid = class {
 		const position = focus_map[item.image_focus] || 'center center';
 		return {
 			container_style: `aspect-ratio: ${ratio};`,
+			// The anchor is inline by default — force it to fill the container so
+			// the image's height: 100% resolves to the container's aspect-ratio
+			// height instead of the image's intrinsic height.
+			anchor_style: 'display: block; width: 100%; height: 100%;',
 			img_style: `object-fit: cover; object-position: ${position}; width: 100%; height: 100%;`,
 		};
 	}
