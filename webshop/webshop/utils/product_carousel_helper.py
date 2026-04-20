@@ -61,16 +61,22 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
     currency = frappe.get_cached_value("Price List", price_list, "currency") or "CHF"
     
     # Build conditions
-    conditions = ["wi.published = 1"]
+    # Exclude variants: show only templates (has_variants=1) and standalone
+    # items (variant_of is NULL). Otherwise each size/color becomes its own
+    # carousel card and we get 8x "Alpine Parka" instead of one.
+    conditions = [
+        "wi.published = 1",
+        "(wi.variant_of IS NULL OR wi.variant_of = '')",
+    ]
     params = {
         "price_list": price_list,
         "limit": limit + 10  # Get a few extra in case of filtering
     }
-    
+
     if item_group:
         conditions.append("wi.item_group = %(item_group)s")
         params["item_group"] = item_group
-    
+
     where_clause = " AND ".join(conditions)
     
     # Optimized query for new arrivals with prices
