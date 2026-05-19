@@ -1,0 +1,96 @@
+<div class="payment-form" id="{{ payment_form_id }}">
+    <div class="outcome text-center mb-4">
+        <div class="error payment-message twint-error-{{ submit_id }}" role="alert"></div>
+        <div class="success payment-message twint-success-{{ submit_id }}" role="alert"></div>
+    </div>
+    <div class="mt-4 d-flex justify-content-between align-items-center">
+        <div class="form-check mb-3" id="terms-acceptance-container">
+            <input type="checkbox" class="form-check-input cursor-pointer" id="terms-acceptance" required>
+            <label class="form-check-label cursor-pointer" for="terms-acceptance">
+                {{ _("I accept the") }} <a href="#terms-title" class="terms-link">{{ cgv_tc_name or _("terms and conditions") }}</a>
+            </label>
+        </div>
+        <div class="d-flex justify-content-end">
+            <button type="button"
+                class="btn btn-primary btn-submit-payment"
+                id="{{ submit_id }}"
+                disabled
+                data-toggle="tooltip"
+                data-placement="top"
+                title="{{ _('Please accept the terms and conditions to continue') }}">
+                {{_('Pay with TWINT')}} {{format_currency_value(amount, currency)}}
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    // Prevent double initialization across multiple payment method tabs.
+    const formId = '{{ payment_form_id }}';
+    if (window['twint_initialized_' + formId]) return;
+    window['twint_initialized_' + formId] = true;
+
+    const submitButton = $('#{{ submit_id }}');
+    let isProcessingPayment = false;
+
+    function resetButtonState() {
+        isProcessingPayment = false;
+        submitButton.prop('disabled', false);
+        const originalButtonText = '{{_("Pay with TWINT")}} {{format_currency_value(amount, currency)|replace("\'", "\\\'")}}';
+        submitButton.html(originalButtonText);
+        const termsAccepted = $('#' + formId).closest('.payment-method-item').find('#terms-acceptance').prop('checked');
+        if (!termsAccepted) submitButton.prop('disabled', true);
+        if (window.checkout_manager && !window.checkout_manager._isResetting) {
+            window.checkout_manager.stopPaymentProcessing();
+        }
+    }
+
+    function showError(message) {
+        $('.twint-error-{{ submit_id }}').text(message).show().addClass('show');
+        $('.twint-success-{{ submit_id }}').hide();
+    }
+
+    submitButton.on('click', function (e) {
+        e.preventDefault();
+        if (isProcessingPayment || !window.checkout_manager.startPaymentProcessing()) return false;
+        isProcessingPayment = true;
+        submitButton.prop('disabled', true);
+        submitButton.html(
+            '<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' +
+            __('Opening TWINT…')
+        );
+
+        // Single entry — the overlay handles the 2-step backend flow
+        // (payment_handler.create_payment_request + create_web_transaction),
+        // SocketIO subscription, and redirect on success.
+        if (!window.frappe || !window.frappe.twint || !window.frappe.twint.processPayment) {
+            showError("{{ _('TWINT module not loaded — refresh the page') }}");
+            resetButtonState();
+            return;
+        }
+
+        window.frappe.twint.processPayment(
+            {{ amount }},                    // amount in CHF (major units)
+            "{{ reference_docname }}",        // legacy positional — unused by v2
+            "Quotation",                       // legacy positional — unused by v2
+            "{{ reference_docname }}",        // quotation name (the actual key v2 needs)
+            {
+                onSuccess: function (result) {
+                    // Navigation is handled inside the overlay; this is just a hook.
+                    if (result && result.redirect_to && window.location.href.indexOf(result.redirect_to) === -1) {
+                        window.location.href = result.redirect_to;
+                    }
+                },
+                onError: function (error) {
+                    showError((error && error.message) || "{{ _('Payment failed') }}");
+                    resetButtonState();
+                },
+                onCancel: function () {
+                    resetButtonState();
+                },
+            }
+        );
+    });
+})();
+</script>

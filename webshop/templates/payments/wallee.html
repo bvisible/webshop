@@ -253,6 +253,56 @@
         });
     }
 
+    // Two-step Wallee transaction creation (post-fusion: payment_handler →
+    // payments.integrations.wallee.api). Mirrors the Stripe template pattern.
+    //
+    // Returns a Promise resolving to the create_web_transaction message
+    // ({status, payment_mode, payment_url|javascript_url, payment_method_id, transaction_id})
+    // or rejecting with an error string.
+    function createWalleeTransaction(mode) {
+        return new Promise(function(resolve, reject) {
+            // Step 1: create the generic Payment Request via the webshop handler.
+            frappe.call({
+                method: 'webshop.controllers.payment_handler.create_payment_request',
+                args: {
+                    quotation_id: '{{ doc.name }}',
+                    gateway_settings: 'Wallee Settings',
+                    idempotency_token: checkout_manager.getIdempotencyToken()
+                },
+                callback: function(r) {
+                    if (!r.message || r.message.status !== 'success') {
+                        return reject((r.message && r.message.message) || "{{ _('Error creating payment request') }}");
+                    }
+                    const payment_request_id = r.message.payment_request_id;
+
+                    // Step 2: create the Wallee transaction for the given mode.
+                    frappe.call({
+                        method: 'payments.integrations.wallee.api.create_web_transaction',
+                        args: {
+                            payment_request_id: payment_request_id,
+                            mode: mode,
+                            success_url: window.location.origin + '/wallee/success?payment_request=' + encodeURIComponent(payment_request_id),
+                            failed_url: window.location.origin + '/wallee/failed?payment_request=' + encodeURIComponent(payment_request_id)
+                        },
+                        callback: function(r2) {
+                            if (r2.message && r2.message.status === 'success') {
+                                resolve(r2.message);
+                            } else {
+                                reject((r2.message && r2.message.message) || "{{ _('Error creating Wallee transaction') }}");
+                            }
+                        },
+                        error: function() {
+                            reject("{{ _('Error communicating with server') }}");
+                        }
+                    });
+                },
+                error: function() {
+                    reject("{{ _('Error communicating with server') }}");
+                }
+            });
+        });
+    }
+
     // Create transaction and initialize payment form (for iFrame mode on load)
     function createTransactionAndInitialize() {
         if (transactionCreated) return;
@@ -262,37 +312,18 @@
         const $container = $('#' + containerId);
         $container.show().html('<div class="text-center p-4"><span class="spinner-border"></span> {{ _("Loading payment form...") }}</div>');
 
-        frappe.call({
-            method: 'webshop.templates.payments.wallee.create_wallee_payment_request',
-            args: {
-                quotation_id: '{{ doc.name }}',
-                idempotency_token: checkout_manager.getIdempotencyToken()
-            },
-            callback: function(r) {
-                if (r.message && r.message.status === 'success') {
-                    walleePaymentMode = r.message.payment_mode;
-
-                    if (walleePaymentMode === 'iFrame') {
-                        // Use payment_method_id from backend (configured in Payment Gateway Account)
-                        initIframePayment(r.message.javascript_url, r.message.payment_method_id);
-                    } else {
-                        // Not iFrame mode - hide container and reset
-                        $container.hide();
-                        transactionCreated = false; // Allow re-creation on click
-                    }
-                } else {
-                    showError(r.message.message || "{{ _('Error creating payment request') }}");
-                    $container.hide();
-                    transactionCreated = false;
-                }
-            },
-            error: function(r) {
-                console.error("Error:", r);
-                showError("{{ _('Error communicating with server') }}");
-                const $container = $('#' + containerId);
+        createWalleeTransaction('iFrame').then(function(msg) {
+            walleePaymentMode = msg.payment_mode;
+            if (walleePaymentMode === 'iFrame') {
+                initIframePayment(msg.javascript_url, msg.payment_method_id);
+            } else {
                 $container.hide();
                 transactionCreated = false;
             }
+        }).catch(function(err) {
+            showError(err);
+            $container.hide();
+            transactionCreated = false;
         });
     }
 
@@ -354,39 +385,22 @@
 
         showSuccess("{{ _('Preparing payment...') }}");
 
-        // Create payment request via Wallee
-        frappe.call({
-            method: 'webshop.templates.payments.wallee.create_wallee_payment_request',
-            args: {
-                quotation_id: '{{ doc.name }}',
-                idempotency_token: checkout_manager.getIdempotencyToken()
-            },
-            callback: function(r) {
-                if (r.message && r.message.status === 'success') {
-                    walleePaymentMode = r.message.payment_mode;
-
-                    if (walleePaymentMode === 'Redirect') {
-                        // Redirect mode - go to Wallee payment page
-                        submitButton.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' + __('Redirecting to Wallee...'));
-                        showSuccess("{{ _('Redirecting to payment page...') }}");
-                        window.location.href = r.message.payment_url;
-                    } else if (walleePaymentMode === 'Lightbox') {
-                        // Lightbox mode - open modal overlay
-                        initLightboxPayment(r.message.javascript_url);
-                    } else if (walleePaymentMode === 'iFrame') {
-                        // iFrame mode - embed payment form (fallback if not pre-loaded)
-                        initIframePayment(r.message.javascript_url, r.message.transaction_id, r.message.payment_methods);
-                    }
-                } else {
-                    showError(r.message.message || "{{ _('Error creating payment request') }}");
-                    resetButtonState();
-                }
-            },
-            error: function(r) {
-                console.error("Error:", r);
-                showError("{{ _('Error communicating with server') }}");
-                resetButtonState();
+        // Create payment request + Wallee transaction (2-step pattern)
+        createWalleeTransaction(walleePaymentMode || 'Redirect').then(function(msg) {
+            walleePaymentMode = msg.payment_mode;
+            if (walleePaymentMode === 'Redirect') {
+                submitButton.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' + __('Redirecting to Wallee...'));
+                showSuccess("{{ _('Redirecting to payment page...') }}");
+                window.location.href = msg.payment_url;
+            } else if (walleePaymentMode === 'Lightbox') {
+                initLightboxPayment(msg.javascript_url);
+            } else if (walleePaymentMode === 'iFrame') {
+                // iFrame fallback if not pre-loaded
+                initIframePayment(msg.javascript_url, msg.payment_method_id);
             }
+        }).catch(function(err) {
+            showError(err);
+            resetButtonState();
         });
     });
 
