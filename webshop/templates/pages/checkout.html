@@ -1,6 +1,10 @@
 {% extends "templates/web.html" %}
 {% block title %} {{ _("Checkout") }} {% endblock %}
 {% block header %}{% endblock %}
+{# Suppress the site breadcrumb (Accueil > Boutique > Paiement) on checkout —
+   the page already shows its own 4-step progress bar, the site breadcrumb is
+   redundant clutter on a linear checkout flow. #}
+{% block breadcrumbs %}{% endblock %}
 
 {% from "webshop/templates/includes/macros.html" import product_image %}
 
