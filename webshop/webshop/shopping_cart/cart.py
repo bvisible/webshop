@@ -2467,8 +2467,10 @@ def remove_coupon_code():
 		quotation.base_discount_amount = 0
 	quotation.flags.ignore_permissions = True
 	quotation.save()
-	return True
-	
+	# Return the updated quotation doc so the checkout JS can refresh the
+	# order summary (drop the coupon row).
+	return quotation
+
 @frappe.whitelist(allow_guest=True)
 def get_coupon_html():
 	quotation = _get_cart_quotation()
@@ -2608,11 +2610,13 @@ def apply_loyalty_points(points):
 	
 	# Recalculate taxes and totals
 	quotation.calculate_taxes_and_totals()
-	
+
 	quotation.flags.ignore_permissions = True
 	quotation.save()
-	
-	return True
+
+	# Return the updated quotation doc — the checkout JS feeds it to
+	# updateOrderSummaryFromDoc() to render the loyalty discount row.
+	return quotation
 
 @frappe.whitelist(allow_guest=True)
 def remove_loyalty_points():
@@ -2635,11 +2639,17 @@ def remove_loyalty_points():
 		if not tax.is_loyalty_points_reduction:
 			taxes_to_keep.append(tax)
 	quotation.taxes = taxes_to_keep
-	
+
+	# Force a full recalculation so rounded_total / grand_total drop the
+	# loyalty discount — symmetric with apply_loyalty_points above.
+	quotation.calculate_taxes_and_totals()
+
 	quotation.flags.ignore_permissions = True
 	quotation.save()
-	
-	return True
+
+	# Return the updated quotation doc so the checkout JS can refresh the
+	# order summary (drop the loyalty row).
+	return quotation
 
 @frappe.whitelist(allow_guest=True)
 def is_gift_card_item(item_code):
