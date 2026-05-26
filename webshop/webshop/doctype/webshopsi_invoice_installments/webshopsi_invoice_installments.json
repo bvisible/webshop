@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-17 17:03:33.181055",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "payment_terms_template",
+  "minimum_amount",
+  "maximum_amount",
+  "fee_percentage",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "payment_terms_template",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Payment Terms Template",
+   "options": "Payment Terms Template",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "minimum_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Minimum Amount",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "maximum_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Maximum Amount",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "fee_percentage",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Fee Percentage",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-02-17 17:06:45.003225",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "WebshopSI Invoice Installments",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

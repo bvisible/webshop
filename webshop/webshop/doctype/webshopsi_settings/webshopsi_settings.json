@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-17 17:00:27.808714",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "installment_plans",
+  "settings_section",
+  "fee_account",
+  "fee_cost_center",
+  "column_break_jkmq",
+  "display_specific_conditions",
+  "terms_and_conditions",
+  "introduction_text",
+  "restriction_section",
+  "age_control",
+  "min_age",
+  "restricted_countries"
+ ],
+ "fields": [
+  {
+   "fieldname": "installment_plans",
+   "fieldtype": "Table",
+   "label": "Installment Plans",
+   "options": "WebshopSI Invoice Installments"
+  },
+  {
+   "fieldname": "settings_section",
+   "fieldtype": "Section Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "restriction_section",
+   "fieldtype": "Section Break",
+   "label": "Restriction"
+  },
+  {
+   "default": "0",
+   "fieldname": "age_control",
+   "fieldtype": "Check",
+   "label": "Age control"
+  },
+  {
+   "default": "18",
+   "depends_on": "eval:doc.age_control",
+   "fieldname": "min_age",
+   "fieldtype": "Int",
+   "label": "Minimum age",
+   "mandatory_depends_on": "eval:doc.age_control"
+  },
+  {
+   "description": "Available for these countries only, if empty, accepts all countries",
+   "fieldname": "restricted_countries",
+   "fieldtype": "Table",
+   "label": "Restricted Countries",
+   "options": "WebshopSI Country"
+  },
+  {
+   "default": "0",
+   "description": "Display text and button to display specific conditions for sales invoices",
+   "fieldname": "display_specific_conditions",
+   "fieldtype": "Check",
+   "label": "Display specific conditions"
+  },
+  {
+   "fieldname": "column_break_jkmq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.display_specific_conditions",
+   "fieldname": "terms_and_conditions",
+   "fieldtype": "Link",
+   "label": "Terms and Conditions",
+   "mandatory_depends_on": "eval:doc.display_specific_conditions",
+   "options": "Terms and Conditions"
+  },
+  {
+   "depends_on": "eval:doc.display_specific_conditions",
+   "fieldname": "introduction_text",
+   "fieldtype": "Small Text",
+   "label": "Introduction Text",
+   "mandatory_depends_on": "eval:doc.display_specific_conditions"
+  },
+  {
+   "fieldname": "fee_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Fee Account",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fee_cost_center",
+   "fieldtype": "Link",
+   "label": "Fee Cost Center",
+   "options": "Cost Center",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-02-17 18:58:53.672971",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "WebshopSI Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -1,0 +1,625 @@
+{% set payment_context = frappe.call('webshop.webshop.doctype.webshopsi_settings.webshopsi_settings.get_payment_context', 
+    reference_doctype=reference_doctype, 
+    reference_docname=reference_docname) %}
+
+<div class="payment-form" id="{{ payment_context.payment_form_id }}">
+    <div class="outcome text-center mb-2" style="margin-top: -10px;">
+        <div class="error payment-message webshopsi-error-{{ submit_id }}" role="alert"></div>
+        <div class="success payment-message webshopsi-success-{{ submit_id }}" role="alert"></div>
+    </div>
+
+    {% if payment_context.age_control %}
+    <div class="mb-3 birthday-container">
+        <label for="birthday" class="form-label"><strong>{{ _("Date of birth") }}</strong> <span class="text-danger">*</span></label>
+        <input type="date" class="form-control" id="birthday" name="birthday" required 
+               max="{{ payment_context.today }}"
+               data-min-age="{{ payment_context.min_age or 18 }}">
+        <div class="invalid-feedback">
+            {{ _("You must be at least {0} years old to order").format(payment_context.min_age or 18) }}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if payment_context.installments %}
+    <div class="mb-4 installments-container">
+        <label class="form-label"><strong>{{ _("Payment options") }}</strong></label>
+        {% for installment in payment_context.installments %}
+        {% set is_disabled = (installment.min_amount and amount < installment.min_amount) or (installment.max_amount and amount > installment.max_amount) %}
+        {% set total_amount = amount + (amount * (installment.fee_percentage or 0) / 100) %}
+        {% set payment_amount = total_amount / installment.num_payments %}
+        <div class="form-check mb-2 w-100">
+            <div class="d-flex align-items-start cursor-pointer frappe-card {% if is_disabled %}payment-method-disabled{% endif %}" onclick="{% if not is_disabled %}document.getElementById('installment_{{ loop.index }}').click(){% endif %}">
+                <input type="radio" 
+                       class="cursor-pointer installment-option me-2 mt-2" 
+                       name="payment_installment" 
+                       id="installment_{{ loop.index }}" 
+                       value="{{ installment.payment_terms_template }}"
+                       data-num-payments="{{ installment.num_payments }}"
+                       data-min-amount="{{ installment.min_amount or 0.0 }}"
+                       data-max-amount="{{ installment.max_amount or 'inf' }}"
+                       data-fee-percentage="{{ installment.fee_percentage }}"
+                       data-total-amount="{{ total_amount }}"
+                       {% if is_disabled %}disabled{% endif %}>
+                <div class="flex-grow-1">
+                    <div>
+                        {% if installment.num_payments == 1 %}
+                            {{ _("Single payment") }} - {{ format_currency_value(total_amount, currency) }}
+                        {% else %}
+                            {{ installment.num_payments }} {{ _("payments of") }} {{ format_currency_value(payment_amount, currency) }}
+                            <small class="text-muted d-block">
+                                {{ _("Total:") }} {{ format_currency_value(total_amount, currency) }}
+                            </small>
+                        {% endif %}
+                    </div>
+                    
+                    {% if installment.fee_percentage %}
+                    <small class="text-muted d-block">
+                        {{ _("Payment fees:") }} {{ installment.fee_percentage }}% ({{ format_currency_value(amount * installment.fee_percentage / 100, currency) }})
+                    </small>
+                    {% endif %}
+                    
+                    <small class="text-muted d-block">{{ installment.description or '' }}</small>
+                    
+                    {% if is_disabled %}
+                        <small class="text-danger d-block">
+                            {{ _("Minimum amount required:") }} {{ format_currency_value(installment.min_amount, currency) }}
+                        </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="invalid-feedback payment-option-error"></div>
+    </div>
+    {% endif %}
+
+    <div class="mt-4 terms-container">
+        {% if payment_context.display_specific_conditions and payment_context.introduction_text %}
+        <div class="mb-3 ">
+            <p class="text-muted">{{ payment_context.introduction_text }}</p>
+
+            <div class="mb-3">
+                <button type="button" class="btn btn-link btn-sm btn-primary-light" onclick="showSpecialTerms()">
+                    {{ _("View") }} {{ _( payment_context.terms_title ) }}
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="mt-4 d-flex justify-content-between align-items-center">
+            <div class="form-check mb-3" id="terms-acceptance-container">
+                <input type="checkbox" class="form-check-input cursor-pointer" id="terms-acceptance" required>
+                <label class="form-check-label cursor-pointer" for="terms-acceptance">
+                    {% if payment_context.terms_title and payment_context.display_specific_conditions %}
+                        {{ _("I accept the") }} <a href="#terms-title" class="terms-link">{{ cgv_tc_name or _("terms and conditions") }}</a> & {{ _("I accept the") }} {{ _( payment_context.terms_title ) }}
+                    {% else %}
+                        {{ _("I accept the") }} <a href="#terms-title" class="terms-link">{{ cgv_tc_name or _("terms and conditions") }}</a>
+                    {% endif %}
+                </label>
+            </div>
+            <div class="d-flex justify-content-end">
+                <button type="submit" 
+                    class="btn btn-primary btn-submit-payment" 
+                    id="{{ submit_id }}" 
+                    disabled
+                    data-toggle="tooltip"
+                    data-placement="top"
+                    title="{{ _('Please accept the terms and conditions to continue') }}">
+                    {{_("Validate my order")}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .payment-method-disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+    .payment-method-disabled input[type="radio"] {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>
+
+<script>
+    const checkout_manager = window.checkout_manager;
+    let submitButton = $('#{{ submit_id }}');
+    let birthdayInput = $('#{{ payment_context.payment_form_id }} #birthday');
+    let installmentOptions = $('#{{ payment_context.payment_form_id }} .installment-option');
+    let termsModal = $('#{{ payment_context.payment_form_id }} #termsModal');
+    let termsLink = $('#{{ payment_context.payment_form_id }} .accept-terms');
+    let termsCheckbox = $('#{{ payment_context.payment_form_id }} #terms-acceptance');
+    let paymentFormId = "{{ payment_context.form_id }}";
+    const savedBirthday = localStorage.getItem('webshopsi_birthday');
+    let isCleaningUp = false;
+    let lastSelectedMethod = null;
+    const billingCountry = $("#billing_country").val();
+    const contactName = $("#contact_name").val();
+    const restrictedCountries = {{ payment_context.restricted_countries|tojson }};
+    let isProcessingPayment = false;
+    
+    // Store the gateway account name for this WebshopSI instance
+    const webshopsiGatewayAccount = '{{ payment_context.gateway_account }}';
+    
+    // Initialize lastSelectedMethod with current payment method
+    setTimeout(() => {
+        // Check if this form is currently visible/selected
+        const isWebshopSISelected = $('#{{ payment_context.payment_form_id }}').closest('.payment-method-item').hasClass('selected');
+        if (isWebshopSISelected) {
+            lastSelectedMethod = webshopsiGatewayAccount || 'WebshopSI';
+        } else {
+            // Get the current selected payment method from checkout manager
+            const currentMethod = $('input[name="payment_method"]:checked').val();
+            if (currentMethod) {
+                lastSelectedMethod = currentMethod;
+            }
+        }
+    }, 500);
+
+    window.showSpecialTerms = function() {
+        frappe.msgprint({
+            title: __("{{ payment_context.terms_title }}"),
+            message: `{{ payment_context.terms_content or _("No special conditions defined.") }}`,
+            wide: true
+        });
+    };
+
+    // Function to clean up when leaving WebshopSI
+    function cleanupWebshopSI() {
+        if (isCleaningUp) {
+            return; // Avoid multiple calls
+        }
+        
+        if (!checkout_manager || !checkout_manager.quotationName) {
+            return;
+        }
+        
+        isCleaningUp = true;
+        checkout_manager.freezeElements(['step-section', 'order-summary']);
+        
+        // Uncheck all installment options
+        installmentOptions.prop('checked', false);
+        
+        frappe.call({
+            method: 'webshop.webshop.shopping_cart.webshopsi_cart.remove_webshopsi_fees',
+            args: {
+                quotation: checkout_manager.quotationName
+            },
+            callback: function(r) {
+                if (!r.exc && r.message) {
+                    if (r.message.had_changes) {
+                        checkout_manager._updateOrderSummary(r.message.doc, true);
+                    }
+                }
+                checkout_manager.unfreezeElements(['step-section', 'order-summary']);
+                isCleaningUp = false;
+            },
+            error: function(err) {
+                console.error('Error removing fees:', err);
+                checkout_manager.unfreezeElements(['step-section', 'order-summary']);
+                isCleaningUp = false;
+            }
+        });
+    }
+    
+    // Function to reset installment selection
+    function resetInstallmentSelection() {
+        console.log('Resetting installment selection');
+        // Uncheck all installment options
+        installmentOptions.prop('checked', false);
+        
+        // Clear any payment terms template from the quotation
+        if (checkout_manager && checkout_manager.quotationName) {
+            frappe.call({
+                method: 'webshop.webshop.shopping_cart.webshopsi_cart.update_payment_terms',
+                args: {
+                    'quotation_name': checkout_manager.quotationName,
+                    'payment_terms_template': '' // Empty to clear - this will call remove_webshopsi_fees
+                },
+                callback: function(r) {
+                    console.log('Reset installment response:', r);
+                    // When payment_terms_template is empty, it returns the result from remove_webshopsi_fees
+                    if (!r.exc && r.message) {
+                        if (r.message.doc) {
+                            // Use the document returned by remove_webshopsi_fees
+                            console.log('Updating order summary with doc from remove_webshopsi_fees');
+                            checkout_manager._updateOrderSummary(r.message.doc, true);
+                        } else if (r.message.had_changes) {
+                            // If no doc returned but changes were made, fetch updated cart
+                            console.log('Fees were removed, fetching updated cart');
+                            frappe.call({
+                                method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
+                                callback: (result) => {
+                                    if (result.message && result.message.doc) {
+                                        checkout_manager._updateOrderSummary(result.message.doc, true);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                },
+                error: function(err) {
+                    console.error('Error resetting installments:', err);
+                }
+            });
+        }
+    }
+
+    // Function to check if country is restricted
+    function isCountryRestricted(billingCountry, restrictedCountries) {
+        if (!billingCountry || !restrictedCountries) {
+            return true; // If no country or no list, restrict for safety
+        }
+
+        // Parse restrictedCountries if it's a JSON string
+        if (typeof restrictedCountries === 'string') {
+            try {
+                restrictedCountries = JSON.parse(restrictedCountries);
+            } catch (e) {
+                console.error("Error parsing restrictedCountries:", e);
+                return true; // In case of error, restrict for safety
+            }
+        }
+
+        // Check if it's an array
+        if (!Array.isArray(restrictedCountries)) {
+            console.error("restrictedCountries is not an array:", restrictedCountries);
+            return true; // If not an array, restrict for safety
+        }
+
+        // If array is empty, accept all countries
+        if (restrictedCountries.length === 0) {
+            return false;
+        }
+
+        // Return true if country is NOT in allowed countries list
+        return !restrictedCountries.includes(billingCountry);
+    }
+
+    // Function to check age
+    function checkAge() {
+        // If age control is disabled, return true
+        if (!{{ payment_context.age_control }}) {
+            return true;
+        }
+
+        const birthDate = birthdayInput.val();
+        const minAge = parseInt(birthdayInput.data('min-age'));
+
+        if (!birthDate || !minAge) {
+            $('.webshopsi-error-{{ submit_id }}').html("{{ _('Please enter your date of birth') }}").show().css('opacity', 1);
+            return false;
+        }
+
+        const birth = new Date(birthDate);
+        const today = new Date();
+        
+        let age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+
+        const isValid = age >= minAge;
+        
+        if (!isValid) {
+            birthdayInput.addClass('is-invalid');
+            $('.webshopsi-error-{{ submit_id }}').html(`{{ _('You must be at least') }} ${minAge} {{ _('years old to order') }}`).show().css('opacity', 1);
+            frappe.show_alert({
+                message: __(`You must be at least ${minAge} years old to order`),
+                indicator: 'red'
+            });
+        } else {
+            birthdayInput.removeClass('is-invalid');
+            $('.webshopsi-error-{{ submit_id }}').hide();
+            localStorage.setItem('webshopsi_birthday', birthDate);
+        }
+
+        return isValid;
+    }
+
+    // Check age on load if a date is already present
+    if (contactName && !savedBirthday) {
+        frappe.call({
+            method: 'webshop.webshop.doctype.webshopsi_settings.webshopsi_settings.get_contact_birthday',
+            args: {
+                contact_name: contactName
+            },
+            callback: function(r) {
+                if (!r.exc && r.message) {
+                    birthdayInput.val(r.message);
+                    localStorage.setItem('webshopsi_birthday', r.message);
+                    checkAge();
+                }
+            }
+        });
+    }
+
+    // Check age if a date is already present
+    if (savedBirthday) {
+        birthdayInput.val(savedBirthday);
+        checkAge();
+    }
+
+    // Check age on change
+    birthdayInput.on('change', function() {
+        checkAge();
+    });
+
+    // Open date picker on click
+    birthdayInput.on('click', function(e) {
+        e.preventDefault();
+        this.showPicker();
+    });
+
+    // Open date picker on focus
+    birthdayInput.on('focus', function(e) {
+        e.preventDefault();
+        this.showPicker();
+    });
+
+    // Manage change in payment installment option
+    installmentOptions.on('change', function() {
+        checkout_manager.freezeElements(['step-section', 'order-summary']);
+        const selectedOption = $('input[name="payment_installment"]:checked');
+        const selectedValue = selectedOption.val();
+
+        // Save the selected option
+        frappe.call({
+            method: 'webshop.webshop.shopping_cart.webshopsi_cart.update_payment_terms',
+            args: {
+                'quotation_name': '{{ doc.name }}',
+                'payment_terms_template': selectedValue || ''
+            },
+            callback: function(r) {
+                if (r.message) {
+                    // Update totals without reloading the page
+                    const quotation = r.message;
+                    const grandTotal = quotation.rounded_total || quotation.grand_total;
+                    
+                    // Update displayed amounts
+                    $('.grand-total-value').text(format_currency(grandTotal, '{{ currency }}'));
+                    
+                    // Update installment amounts
+                    $('.installment-option').each(function() {
+                        const numPayments = $(this).data('num-payments');
+                        if (numPayments > 1) {
+                            const monthlyAmount = grandTotal / numPayments;
+                            $(this).closest('.form-check').find('.payment-amount').text(
+                                format_currency(monthlyAmount, '{{ currency }}')
+                            );
+                        }
+                    });
+                    
+                    // Update submit button text
+                    //submitButton.text("{{ _('Validate my order') }} " + format_currency(grandTotal, '{{ currency }}'));
+                    
+                    frappe.call({
+                        method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
+                        callback: (result) => {
+                            if (result.message && result.message.doc) {
+                                checkout_manager._updateOrderSummary(result.message.doc, true);
+                                // Show success message
+                                frappe.show_alert({
+                                    message: __('Fees have been updated'),
+                                    indicator: 'green'
+                                });
+                                //$('.webshopsi-success-{{ submit_id }}').html("{{ _('Fees have been updated') }}").show().css('opacity', 1).delay(3000).fadeOut();
+                            } else {
+                                // Show error message
+                                frappe.show_alert({
+                                    message: __('An error occurred'),
+                                    indicator: 'red'
+                                })
+                                //$('.webshopsi-error-{{ submit_id }}').html("{{ _('An error occurred') }}").show().css('opacity', 1);
+                            }
+                            checkout_manager.unfreezeElements(['step-section', 'order-summary']);
+                        }
+                    });
+                }
+            }
+        });
+    });
+        
+    if (isCountryRestricted(billingCountry, restrictedCountries)) {
+        submitButton.prop('disabled', true);
+        submitButton.attr('title', "{{ _('Orders from your country cannot be processed through invoice payment') }}");
+        frappe.show_alert({
+            message: "{{ _('Orders from your country cannot be processed through invoice payment') }}",
+            indicator: 'red'
+        })
+        $('.webshopsi-error-{{ submit_id }}').html("{{ _('Orders from your country cannot be processed through invoice payment') }}").show().css('opacity', 1);
+        $('#{{ payment_context.payment_form_id }} .birthday-container').hide();
+        $('#{{ payment_context.payment_form_id }} .terms-container').hide();
+        $('#{{ payment_context.payment_form_id }} .installments-container').hide();
+    }
+
+    // Reset button state function
+    const resetButtonState = function() {
+        isProcessingPayment = false;
+        submitButton.prop('disabled', false);
+        submitButton.html('{{_("Validate my order")}}');
+        // Re-enable button only if terms are still accepted
+        const termsAccepted = $('#{{ payment_context.payment_form_id }}').closest('.payment-method-item').find('#terms-acceptance').prop('checked');
+        if (!termsAccepted) {
+            submitButton.prop('disabled', true);
+        }
+        // Call global stop processing after local reset
+        if (checkout_manager && !checkout_manager._isResetting) {
+            checkout_manager.stopPaymentProcessing();
+        }
+    };
+
+    // Handle payment submission
+    submitButton.on('click', function(e) {
+        e.preventDefault();
+
+        // Prevent multiple clicks - use both local and global locks
+        if (isProcessingPayment || !checkout_manager.startPaymentProcessing()) {
+            return false;
+        }
+
+        if (isCountryRestricted(billingCountry, restrictedCountries)) {
+            frappe.show_alert({
+                message: "{{ _('Orders from your country cannot be processed through invoice payment') }}",
+                indicator: 'red'
+            })
+            $('.webshopsi-error-{{ submit_id }}').html("{{ _('Orders from your country cannot be processed through invoice payment') }}").show().css('opacity', 1);
+            resetButtonState();
+            return;
+        }
+
+        // Check age
+        if ({{ payment_context.age_control }} && birthdayInput.length && !checkAge()) {
+            birthdayInput.focus();
+            $('.webshopsi-error-{{ submit_id }}').html("{{ _('Please enter your date of birth') }}").show().css('opacity', 1);
+            frappe.show_alert({
+                message: "{{ _('Please enter your date of birth') }}",
+                indicator: 'red'
+            })
+            resetButtonState();
+            return;
+        }
+
+        // Check payment option
+        const selectedInstallment = $('input[name="payment_installment"]:checked');
+        if (!selectedInstallment.length) {
+            $('.webshopsi-error-{{ submit_id }}').text("{{ _('Please select a payment option') }}").show().css('opacity', 1);
+            frappe.show_alert({
+                message: "{{ _('Please select a payment option') }}",
+                indicator: 'red'
+            })
+            resetButtonState();
+            return;
+        }
+
+        // Set processing state and disable button
+        isProcessingPayment = true;
+        submitButton.prop('disabled', true);
+        
+        // Add loading state
+        const originalButtonText = submitButton.html();
+        submitButton.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' + __('Processing...'));
+
+        checkout_manager.freezeElements(['payment-method-item']);
+
+        frappe.call({
+            method: "webshop.webshop.doctype.webshopsi_settings.webshopsi_settings.on_payment_authorized",
+            args: {
+                gateway_settings: "WebshopSI Settings",
+                birthday: birthdayInput.val(),
+                contactName: contactName,
+                idempotency_token: checkout_manager.getIdempotencyToken()
+            },
+            callback: function(r) {
+                if (!r.exc) {
+                    if (r.message.redirect_to) {
+                        window.location.href = r.message.redirect_to;
+                        frappe.show_alert({
+                            message: __("Order confirmed with success"),
+                            indicator: 'green'
+                        })
+                    } else if (r.message.name) {
+                        window.location.href = "/orders/" + r.message.name;
+                    }
+                } else {
+                    $('.webshopsi-error-{{ submit_id }}').text(r.exc).show().css('opacity', 1);
+                    frappe.show_alert({
+                        message: r.exc,
+                        indicator: 'red'
+                    });
+                    checkout_manager.unfreezeElements(['payment-method-item']);
+                    resetButtonState();
+                }
+            },
+            error: function(r) {
+                console.error("Error:", r);
+                frappe.show_alert({
+                    message: __("An error occurred during payment processing"),
+                    indicator: 'red'
+                });
+                checkout_manager.unfreezeElements(['payment-method-item']);
+                resetButtonState();
+            }
+        });
+    });
+
+    // Check terms
+    termsLink.on('click', function(e) {
+        e.preventDefault();
+        termsModal.modal('show');
+    });
+
+    // Check birthday
+    termsCheckbox.on('change', function() {
+        if (!birthdayInput.length || !birthdayInput.hasClass('is-invalid')) {
+            submitButton.prop('disabled', !$(this).prop('checked'));
+        }
+    });
+
+    if (window.webshopsi) return;
+    window.webshopsi = true;
+
+    // Helper function to check if a payment method is WebshopSI
+    function isWebshopSIMethod(method) {
+        if (!method) return false;
+        // Check various possible names for WebshopSI
+        const webshopsiNames = [
+            'WebshopSI', 
+            'Facture', 
+            'webshopsi', 
+            'facture', 
+            '{{ payment_context.payment_form_id }}',
+            '{{ payment_context.gateway_account }}',
+            webshopsiGatewayAccount
+        ];
+        // Also check if the method contains these keywords or matches exactly
+        const methodLower = method.toLowerCase();
+        return webshopsiNames.some(name => name && (name.toLowerCase() === methodLower || method === name)) || 
+               methodLower.includes('webshopsi') || 
+               methodLower.includes('facture');
+    }
+    
+    // Listen for payment method changes through checkout manager
+    // Override the handlePaymentMethodChange to detect when leaving WebshopSI
+    if (checkout_manager) {
+        const originalHandlePaymentMethodChange = checkout_manager.handlePaymentMethodChange;
+        checkout_manager.handlePaymentMethodChange = function(methodId) {
+            
+            // Check if we're switching away from WebshopSI/Facture
+            const wasWebshopSI = isWebshopSIMethod(lastSelectedMethod);
+            const isWebshopSI = isWebshopSIMethod(methodId);
+            
+            if (wasWebshopSI && !isWebshopSI) {
+                // Switching away from WebshopSI - clean up
+                cleanupWebshopSI();
+            } else if (!wasWebshopSI && isWebshopSI) {
+                // Switching TO WebshopSI - reset installment selection
+                setTimeout(() => {
+                    resetInstallmentSelection();
+                }, 100);
+            }
+            
+            // Call the original method
+            originalHandlePaymentMethodChange.call(this, methodId);
+            
+            // Update last selected method
+            lastSelectedMethod = methodId;
+        };
+    }
+    
+    // Also reset installments when the form is first shown
+    $(document).on('DOMNodeInserted', '#{{ payment_context.payment_form_id }}', function() {
+        // Check if this is the first time the form is shown
+        if (!$(this).data('initialized')) {
+            $(this).data('initialized', true);
+            setTimeout(() => {
+                resetInstallmentSelection();
+            }, 100);
+        }
+    });
+
+</script>

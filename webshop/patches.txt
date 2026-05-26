@@ -26,3 +26,6 @@ webshop.patches.update_gift_card_data_field_properties
 webshop.patches.add_portal_menu_items
 webshop.patches.disable_gift_card_web_form
 webshop.patches.add_missing_gift_card_fields
+webshop.patches.add_birthday_field_to_contact
+webshop.patches.add_webshopsi_fee_field
+webshop.patches.migrate_webshopsi_into_webshop
