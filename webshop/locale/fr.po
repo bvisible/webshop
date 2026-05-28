@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2025-12-15 15:24+0034\n"
+"POT-Creation-Date: 2026-05-28 13:52+0034\n"
 "PO-Revision-Date: 2025-12-15 15:24+0034\n"
 "Last-Translator: contact@frappe.io\n"
 "Language: fr\n"
@@ -51,13 +51,17 @@ msgstr "1 point = {0}"
 msgid "<p>The sitemap is automatically generated and cached for 6 hours. You can access it at:</p><ul><li><a href=\"/sitemap_index.xml\" target=\"_blank\">/sitemap_index.xml</a> - Main sitemap index</li><li><a href=\"/sitemap.xml\" target=\"_blank\">/sitemap.xml</a> - All content</li><li><a href=\"/sitemap_products.xml\" target=\"_blank\">/sitemap_products.xml</a> - Products only</li><li><a href=\"/sitemap_categories.xml\" target=\"_blank\">/sitemap_categories.xml</a> - Categories only</li><li><a href=\"/sitemap_brands.xml\" target=\"_blank\">/sitemap_brands.xml</a> - Brands only</li><li><a href=\"/sitemap_blog.xml\" target=\"_blank\">/sitemap_blog.xml</a> - Blog posts only</li><li><a href=\"/sitemap_pages.xml\" target=\"_blank\">/sitemap_pages.xml</a> - Pages only</li></ul>"
 msgstr "<p>Le sitemap est généré automatiquement et mis en cache pendant 6 heures. Vous pouvez y accéder à :</p><ul><li><a href=\"/sitemap_index.xml\" target=\"_blank\">/sitemap_index.xml</a> - Index principal du sitemap</li><li><a href=\"/sitemap.xml\" target=\"_blank\">/sitemap.xml</a> - Tout le contenu</li><li><a href=\"/sitemap_products.xml\" target=\"_blank\">/sitemap_products.xml</a> - Produits uniquement</li><li><a href=\"/sitemap_categories.xml\" target=\"_blank\">/sitemap_categories.xml</a> - Catégories uniquement</li><li><a href=\"/sitemap_brands.xml\" target=\"_blank\">/sitemap_brands.xml</a> - Marques uniquement</li><li><a href=\"/sitemap_blog.xml\" target=\"_blank\">/sitemap_blog.xml</a> - Articles de blog uniquement</li><li><a href=\"/sitemap_pages.xml\" target=\"_blank\">/sitemap_pages.xml</a> - Pages uniquement</li></ul>"
 
-#: webshop/webshop/shopping_cart/cart.py:3031
+#: webshop/webshop/shopping_cart/cart.py:3059
 msgid "A new gift card has been created with the remaining amount of {0}. Card code: {1}"
 msgstr "Une nouvelle carte cadeau a été créée avec le montant restant de {0}. Code de la carte : {1}"
 
-#: webshop/controllers/payment_handler.py:326
+#: webshop/controllers/payment_handler.py:337
 msgid "A system error occurred while processing payment failure"
 msgstr "Une erreur système s'est produite lors du traitement de l'échec du paiement"
+
+#: webshop/webshop/auth/api.py:113
+msgid "Account created successfully"
+msgstr "Compte créé avec succès"
 
 #: webshop/public/js/auth_dialog.js:707 webshop/public/js/auth_dialog.js:713
 msgid "Account created successfully! Please check your email to activate your account."
@@ -79,6 +83,11 @@ msgstr "Activer le paiement B2B"
 #: webshop/templates/pages/gift_cards.py:134
 msgid "Active"
 msgstr "Actif"
+
+#: webshop/www/my_addresses.html:10 webshop/www/my_addresses.html:17
+#: webshop/www/my_addresses.js:11
+msgid "Add New Address"
+msgstr "Ajouter une nouvelle adresse"
 
 #. Label of a Check field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
@@ -106,14 +115,14 @@ msgstr "Ajouter des notes"
 #: webshop/templates/generators/item/item_configure_grid.js:371
 #: webshop/templates/generators/item/item_configure_grid.js:432
 #: webshop/templates/generators/item/item_configure_grid.js:437
-#: webshop/templates/generators/item_group.html:107
+#: webshop/templates/generators/item_group.html:119
 #: webshop/www/all-products/index.html:97
 msgid "Add to Cart"
 msgstr "Ajouter au panier"
 
 #: webshop/templates/generators/item/item_add_to_cart.html:195
 #: webshop/templates/generators/item/item_add_to_cart.html:251
-#: webshop/templates/generators/item_group.html:108
+#: webshop/templates/generators/item_group.html:120
 #: webshop/www/all-products/index.html:98
 msgid "Add to Quote"
 msgstr "Ajouter au devis"
@@ -133,30 +142,56 @@ msgstr "Ajouté au panier"
 msgid "Adding..."
 msgstr "Ajout en cours..."
 
-#: webshop/templates/pages/checkout.html:102
+#: webshop/templates/pages/checkout.html:106
 #: webshop/templates/pages/checkout.js:663
 msgid "Address"
 msgstr "Adresse"
 
 #: webshop/templates/includes/cart/cart_address.html:82
-#: webshop/templates/pages/checkout.html:107
-#: webshop/templates/pages/checkout.html:208
+#: webshop/templates/pages/checkout.html:111
+#: webshop/templates/pages/checkout.html:212 webshop/www/my_addresses.html:30
 msgid "Address Line 1"
 msgstr "Adresse ligne 1"
 
+#: webshop/www/my_addresses.js:108
+msgid "Address Line 1 is required"
+msgstr "La ligne d'adresse 1 est requise"
+
 #: webshop/templates/includes/cart/cart_address.html:88
-#: webshop/templates/pages/checkout.html:117
-#: webshop/templates/pages/checkout.html:217
+#: webshop/templates/pages/checkout.html:121
+#: webshop/templates/pages/checkout.html:221 webshop/www/my_addresses.html:34
 msgid "Address Line 2"
 msgstr "Adresse ligne 2"
 
 #: webshop/templates/includes/cart/cart_address.html:76
+#: webshop/www/my_addresses.html:24
 msgid "Address Title"
 msgstr "Titre de l'adresse"
+
+#: webshop/www/my_addresses.js:103
+msgid "Address Title is required"
+msgstr "Le titre de l'adresse est requis"
 
 #: webshop/templates/includes/cart/cart_address.html:117
 msgid "Address Type"
 msgstr "Type d'adresse"
+
+#: webshop/www/my_addresses.js:178
+msgid "Address created successfully"
+msgstr "Adresse créée avec succès"
+
+#: webshop/webshop/api.py:1220 webshop/www/my_addresses.js:82
+msgid "Address deleted successfully"
+msgstr "Adresse supprimée avec succès"
+
+#: webshop/webshop/api.py:1094 webshop/webshop/api.py:1137
+#: webshop/webshop/api.py:1188
+msgid "Address not found or access denied"
+msgstr "Adresse introuvable ou accès refusé"
+
+#: webshop/webshop/api.py:1164 webshop/www/my_addresses.js:156
+msgid "Address updated successfully"
+msgstr "Adresse mise à jour avec succès"
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -174,6 +209,11 @@ msgstr "Contenu d'affichage avancé"
 msgid "After payment completion redirect user to selected page."
 msgstr "Après le paiement, rediriger l'utilisateur vers la page sélectionnée."
 
+#. Label of a Check field in DocType 'WebshopSI Settings'
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
+msgid "Age control"
+msgstr "Contrôle d'âge"
+
 #. Name of a role
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "All"
@@ -189,7 +229,11 @@ msgstr "Tous les produits"
 msgid "All data is valid. You can proceed with the actual import."
 msgstr "Toutes les données sont valides. Vous pouvez procéder à l'import."
 
-#: webshop/templates/pages/checkout.html:321
+#: webshop/www/all-products/index.html:104
+msgid "All products loaded"
+msgstr "Tous les produits chargés"
+
+#: webshop/templates/pages/checkout.html:325
 msgid "All transactions are secure and encrypted."
 msgstr "Toutes les transactions sont sécurisées et cryptées."
 
@@ -249,21 +293,52 @@ msgstr "Montant"
 msgid "Amount Paid:"
 msgstr "Montant payé :"
 
+#: webshop/webshop/shopping_cart/cart.py:457
+#: webshop/webshop/shopping_cart/cart.py:459
+#: webshop/webshop/shopping_cart/cart.py:717
+#: webshop/webshop/shopping_cart/cart.py:719
+#: webshop/webshop/shopping_cart/cart.py:3026
+#: webshop/webshop/shopping_cart/cart.py:3028
+msgid "Amount adjusted on"
+msgstr "Montant ajusté sur"
+
 #: webshop/webshop/utils/import_gift_cards.py:201
 msgid "Amount must be greater than 0"
 msgstr "Le montant doit être supérieur à 0"
 
-#: webshop/public/js/auth_dialog.js:942
+#: webshop/webshop/shopping_cart/cart.py:457
+#: webshop/webshop/shopping_cart/cart.py:459
+#: webshop/webshop/shopping_cart/cart.py:717
+#: webshop/webshop/shopping_cart/cart.py:719
+msgid "Amount used"
+msgstr "Montant utilisé"
+
+#: webshop/public/js/auth_dialog.js:795 webshop/webshop/auth/api.py:68
+#: webshop/webshop/auth/api.py:99
+msgid "An account already exists with this email. Please sign in instead."
+msgstr "Un compte existe déjà avec cet e-mail. Veuillez vous connecter."
+
+#: webshop/public/js/auth_dialog.js:956
 msgid "An email containing the connection link has been sent to you. Please check your inbox."
 msgstr "Un e-mail contenant le lien de connexion vous a été envoyé. Veuillez vérifier votre boîte de réception."
 
-#: webshop/public/js/auth_dialog.js:791 webshop/public/js/auth_dialog.js:833
+#: webshop/public/js/auth_dialog.js:804 webshop/public/js/auth_dialog.js:847
+#: webshop/templates/payments/webshopsi.html:414
+#: webshop/templates/payments/webshopsi.html:417
 msgid "An error occurred"
 msgstr "Une erreur s'est produite"
 
 #: webshop/templates/payments/wallee.html:158
 msgid "An error occurred during payment initialization"
 msgstr "Une erreur s'est produite lors de l'initialisation du paiement"
+
+#: webshop/templates/payments/webshopsi.html:541
+msgid "An error occurred during payment processing"
+msgstr "Une erreur s'est produite lors du traitement du paiement"
+
+#: webshop/webshop/auth/api.py:121
+msgid "An error occurred while creating your account. Please try again."
+msgstr "Une erreur s'est produite lors de la création de votre compte. Veuillez réessayer."
 
 #: webshop/templates/pages/checkout.js:2110
 msgid "An error occurred while loading payment methods"
@@ -273,21 +348,21 @@ msgstr "Une erreur s'est produite lors du chargement des méthodes de paiement"
 msgid "An error occurred while loading the order."
 msgstr "Une erreur s'est produite lors du chargement de la commande."
 
-#: webshop/public/js/auth_dialog.js:955
+#: webshop/public/js/auth_dialog.js:969
 msgid "An error occurred while sending the login link"
 msgstr "Une erreur s'est produite lors de l'envoi du lien de connexion"
 
-#: webshop/templates/pages/checkout.py:640
+#: webshop/templates/pages/checkout.py:646
 msgid "An error occurred while updating the shipping method. Please try again."
 msgstr "Une erreur s'est produite lors de la mise à jour de la méthode de livraison. Veuillez réessayer."
 
-#: webshop/controllers/payment_handler.py:392
-#: webshop/controllers/payment_handler.py:454
+#: webshop/controllers/payment_handler.py:403
+#: webshop/controllers/payment_handler.py:465
 msgid "An error occurred while validating the order"
 msgstr "Une erreur s'est produite lors de la validation de la commande"
 
-#: webshop/templates/pages/checkout.html:123
-#: webshop/templates/pages/checkout.html:223
+#: webshop/templates/pages/checkout.html:127
+#: webshop/templates/pages/checkout.html:227 webshop/www/my_addresses.html:35
 msgid "Apartment, suite, etc. (optional)"
 msgstr "Appartement, suite, etc. (optionnel)"
 
@@ -301,10 +376,20 @@ msgstr "Code promo appliqué"
 msgid "Apply"
 msgstr "Appliquer"
 
+#: webshop/www/my_addresses.js:73
+msgid "Are you sure you want to delete this address?"
+msgstr "Êtes-vous sûr de vouloir supprimer cette adresse ?"
+
 #: webshop/templates/pages/checkout.js:563
 #: webshop/templates/pages/checkout.js:574
 msgid "Are you sure you want to leave this page? Your order has not been finalized."
 msgstr "Êtes-vous sûr de vouloir quitter cette page ? Votre commande n'a pas été finalisée."
+
+#. Description of the 'Product Card Aspect Ratio' (Data) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Aspect ratio (width/height) of product cards. Only applied when fit is Cover. Examples: 1/1 (square), 3/4 (portrait), 4/3 (landscape)."
+msgstr "Ratio d'aspect (largeur/hauteur) des cartes produit. Appliqué uniquement quand l'ajustement est « Remplir ». Exemples : 1/1 (carré), 3/4 (portrait), 4/3 (paysage)."
 
 #: webshop/templates/pages/order.html:178
 msgid "Attachments"
@@ -342,9 +427,15 @@ msgstr "Points disponibles"
 msgid "Available Points:"
 msgstr "Points disponibles :"
 
+#. Description of the 'Restricted Countries' (Table) field in DocType
+#. 'WebshopSI Settings'
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
+msgid "Available for these countries only, if empty, accepts all countries"
+msgstr "Disponible pour ces pays uniquement ; si vide, accepte tous les pays"
+
 #: webshop/templates/generators/item/item_add_to_cart.html:56
 #: webshop/templates/generators/item/item_bundle_components.html:44
-#: webshop/templates/generators/item_group.html:112
+#: webshop/templates/generators/item_group.html:124
 #: webshop/www/all-products/index.html:102
 msgid "Available on backorder"
 msgstr "Disponible sur commande"
@@ -365,11 +456,11 @@ msgstr "Groupe de clients B2B"
 msgid "Back to Cart"
 msgstr "Retour au panier"
 
-#: webshop/templates/pages/checkout.html:309
+#: webshop/templates/pages/checkout.html:313
 msgid "Back to information"
 msgstr "Retour aux informations"
 
-#: webshop/templates/pages/checkout.html:371
+#: webshop/templates/pages/checkout.html:375
 msgid "Back to shipping"
 msgstr "Retour à la livraison"
 
@@ -389,6 +480,21 @@ msgstr "Adresse de facturation"
 msgid "Billing Address is same as Shipping Address"
 msgstr "L'adresse de facturation est identique à l'adresse de livraison"
 
+#. Option for the 'Image Focus' (Select) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Bottom"
+msgstr "Bas"
+
+#. Option for the 'Image Focus' (Select) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Bottom Left"
+msgstr "Bas gauche"
+
+#. Option for the 'Image Focus' (Select) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Bottom Right"
+msgstr "Bas droite"
+
 #. Label of a Link field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
 msgid "Brand"
@@ -405,6 +511,10 @@ msgstr "Calculer les produits fréquemment achetés ensemble"
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:60
 msgid "Calculating frequently bought together items..."
 msgstr "Calcul des produits fréquemment achetés ensemble..."
+
+#: webshop/www/my_addresses.html:89
+msgid "Cancel"
+msgstr "Annuler"
 
 #: webshop/webshop/crud_events/item/validate_duplicate_website_item.py:33
 #: webshop/webshop/doctype/override_doctype/item.py:39
@@ -435,7 +545,7 @@ msgstr "E-mail du titulaire de la carte"
 msgid "Cardholder Name"
 msgstr "Nom du titulaire de la carte"
 
-#: webshop/templates/pages/checkout.html:15
+#: webshop/templates/pages/checkout.html:19
 msgid "Cart"
 msgstr "Panier"
 
@@ -457,7 +567,7 @@ msgstr "Le panier est vide"
 msgid "Cart is empty"
 msgstr "Le panier est vide"
 
-#: webshop/webshop/shopping_cart/cart.py:1156
+#: webshop/webshop/shopping_cart/cart.py:1169
 msgid "Cart not found"
 msgstr "Panier non trouvé"
 
@@ -489,6 +599,11 @@ msgstr "Ordre des catégories"
 msgid "Category and Brands"
 msgstr "Catégories et marques"
 
+#. Option for the 'Image Focus' (Select) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Center"
+msgstr "Centre"
+
 #: webshop/templates/includes/cart/address_card.html:3
 msgid "Change"
 msgstr "Modifier"
@@ -506,7 +621,6 @@ msgid "Check this to validate data without creating gift cards"
 msgstr "Cochez pour valider les données sans créer de cartes cadeaux"
 
 #: webshop/templates/includes/cart/cart_dropdown.html:6
-#: webshop/templates/includes/cart_component.html:81
 #: webshop/templates/pages/checkout.html:2
 msgid "Checkout"
 msgstr "Paiement"
@@ -520,7 +634,7 @@ msgstr "Paramètres de paiement"
 msgid "Checkout is disabled. Please enable it in Webshop Settings."
 msgstr "Le paiement est désactivé. Veuillez l'activer dans les paramètres de la boutique."
 
-#: webshop/templates/pages/checkout.html:303
+#: webshop/templates/pages/checkout.html:307
 msgid "Choose Shipping Method"
 msgstr "Choisir la méthode de livraison"
 
@@ -536,11 +650,15 @@ msgstr "Choisir le type d'affichage par défaut des produits"
 msgid "Choose the default sort order for products"
 msgstr "Choisir l'ordre de tri par défaut des produits"
 
-#: webshop/templates/pages/checkout.html:137
-#: webshop/templates/pages/checkout.html:236
-#: webshop/templates/pages/checkout.js:664
+#: webshop/templates/pages/checkout.html:141
+#: webshop/templates/pages/checkout.html:240
+#: webshop/templates/pages/checkout.js:664 webshop/www/my_addresses.html:44
 msgid "City"
 msgstr "Ville"
+
+#: webshop/www/my_addresses.js:118
+msgid "City is required"
+msgstr "La ville est requise"
 
 #: webshop/templates/includes/cart/cart_address.html:93
 msgid "City/Town"
@@ -550,7 +668,7 @@ msgstr "Ville"
 msgid "Clear"
 msgstr "Effacer"
 
-#: webshop/templates/generators/item_group.html:45
+#: webshop/templates/generators/item_group.html:53
 #: webshop/www/all-products/index.html:29
 msgid "Clear All"
 msgstr "Tout effacer"
@@ -591,7 +709,7 @@ msgid "Comment"
 msgstr "Commentaire"
 
 #. Label of a Link field in DocType 'Webshop Settings'
-#: webshop/templates/pages/checkout.html:69
+#: webshop/templates/pages/checkout.html:73
 #: webshop/templates/pages/checkout_b2b.html:24
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Company"
@@ -602,7 +720,7 @@ msgid "Company Information"
 msgstr "Informations de l'entreprise"
 
 #: webshop/templates/pages/cgv.py:18 webshop/templates/pages/cgv.py:25
-#: webshop/templates/pages/cgv.py:26 webshop/templates/pages/checkout.html:351
+#: webshop/templates/pages/cgv.py:26 webshop/templates/pages/checkout.html:355
 msgid "Conditions Générales de Vente"
 msgstr "Conditions Générales de Vente"
 
@@ -625,6 +743,12 @@ msgstr "Confirmer le paiement"
 msgid "Contact Us"
 msgstr "Nous contacter"
 
+#. Option for the 'Product Image Fit' (Select) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Contain"
+msgstr "Contenir"
+
 #. Label of a HTML Editor field in DocType 'Website Item Tabbed Section'
 #: webshop/webshop/doctype/website_item_tabbed_section/website_item_tabbed_section.json
 msgid "Content"
@@ -643,11 +767,11 @@ msgstr "Continuer la sélection"
 msgid "Continue Shopping"
 msgstr "Continuer les achats"
 
-#: webshop/templates/pages/checkout.html:312
+#: webshop/templates/pages/checkout.html:316
 msgid "Continue to Payment"
 msgstr "Continuer vers le paiement"
 
-#: webshop/templates/pages/checkout.html:295
+#: webshop/templates/pages/checkout.html:299
 msgid "Continue to shipping"
 msgstr "Continuer vers la livraison"
 
@@ -675,12 +799,19 @@ msgstr "Copier le code"
 msgid "Core Features"
 msgstr "Fonctionnalités principales"
 
+#. Label of a Link field in DocType 'WebshopSI Country'
 #: webshop/templates/includes/cart/cart_address.html:104
-#: webshop/templates/pages/checkout.html:157
-#: webshop/templates/pages/checkout.html:254
+#: webshop/templates/pages/checkout.html:161
+#: webshop/templates/pages/checkout.html:258
 #: webshop/templates/pages/checkout.js:666
+#: webshop/webshop/doctype/webshopsi_country/webshopsi_country.json
+#: webshop/www/my_addresses.html:54
 msgid "Country"
 msgstr "Pays"
+
+#: webshop/www/my_addresses.js:123
+msgid "Country is required"
+msgstr "Le pays est requis"
 
 #. Label of a field in the gift-card Web Form
 #: webshop/webshop/web_form/gift_card/gift_card.json
@@ -716,11 +847,21 @@ msgstr "Code promo supprimé"
 msgid "Coupons"
 msgstr "Coupons"
 
+#. Option for the 'Product Image Fit' (Select) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Cover"
+msgstr "Remplir"
+
 #: webshop/public/js/auth_dialog.js:631
 msgid "Create account"
 msgstr "Créer un compte"
 
-#: webshop/webshop/shopping_cart/cart.py:2980
+#: webshop/webshop/shopping_cart/cart.py:405
+msgid "Created from gift card"
+msgstr "Créé depuis la carte cadeau"
+
+#: webshop/webshop/shopping_cart/cart.py:3008
 msgid "Created from gift card: {0} (remaining amount after order {1})"
 msgstr "Créé à partir de la carte cadeau : {0} (montant restant après la commande {1})"
 
@@ -743,6 +884,8 @@ msgstr "Montant personnalisé"
 #. Label of a Link field in DocType 'Item Review'
 #. Name of a role
 #: webshop/webshop/doctype/item_review/item_review.json
+#: webshop/webshop/shopping_cart/cart.py:389
+#: webshop/webshop/shopping_cart/cart.py:684
 msgid "Customer"
 msgstr "Client"
 
@@ -751,7 +894,7 @@ msgstr "Client"
 msgid "Customer Group"
 msgstr "Groupe de clients"
 
-#: webshop/templates/generators/item_group.html:92
+#: webshop/templates/generators/item_group.html:104
 #: webshop/www/all-products/index.html:82
 msgid "Customer Rating"
 msgstr "Note client"
@@ -774,11 +917,15 @@ msgstr "Date"
 msgid "Date :"
 msgstr "Date :"
 
+#: webshop/templates/payments/webshopsi.html:13
+msgid "Date of birth"
+msgstr "Date de naissance"
+
 #: webshop/www/maintenance.html:348
 msgid "Days"
 msgstr "Jours"
 
-#: webshop/webshop/shopping_cart/cart.py:1893
+#: webshop/webshop/shopping_cart/cart.py:1911
 msgid "Debtors ({0})"
 msgstr "Débiteurs ({0})"
 
@@ -827,23 +974,33 @@ msgstr "Date d'expiration par défaut (utilise 2999-12-31 si non défini)"
 msgid "Define the available amounts for gift cards"
 msgstr "Définir les montants disponibles pour les cartes cadeaux"
 
+#: webshop/www/my_addresses.html:129
+msgid "Delete"
+msgstr "Supprimer"
+
+#: webshop/www/my_addresses.js:78
+msgid "Deleting..."
+msgstr "Suppression en cours..."
+
 #. Label of a Text Editor field in DocType 'Homepage Featured Product'
+#. Label of a Small Text field in DocType 'WebshopSI Invoice Installments'
 #. Label of a Text Editor field in DocType 'Wishlist Item'
 #: webshop/templates/pages/loyalty_points.html:95
 #: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json
+#: webshop/webshop/doctype/webshopsi_invoice_installments/webshopsi_invoice_installments.json
 #: webshop/webshop/doctype/wishlist_item/wishlist_item.json
 msgid "Description"
 msgstr "Description"
 
-#: webshop/webshop/shopping_cart/cart.py:2420
+#: webshop/webshop/shopping_cart/cart.py:2438
 msgid "Discount value cannot exceed total amount"
 msgstr "La valeur de la réduction ne peut pas dépasser le montant total"
 
-#: webshop/public/js/product_ui/views.js:198
+#: webshop/www/all-products/index.html:106
 msgid "Discounted Only"
 msgstr "En promotion uniquement"
 
-#: webshop/templates/generators/item_group.html:98
+#: webshop/templates/generators/item_group.html:110
 #: webshop/www/all-products/index.html:88
 msgid "Discounts"
 msgstr "Réductions"
@@ -868,6 +1025,17 @@ msgstr "Informations d'affichage"
 msgid "Display Settings"
 msgstr "Paramètres d'affichage"
 
+#. Label of a Check field in DocType 'WebshopSI Settings'
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
+msgid "Display specific conditions"
+msgstr "Afficher les conditions spécifiques"
+
+#. Description of the 'Display specific conditions' (Check) field in DocType
+#. 'WebshopSI Settings'
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
+msgid "Display text and button to display specific conditions for sales invoices"
+msgstr "Affiche un texte et un bouton pour consulter les conditions spécifiques aux factures de vente"
+
 #: webshop/www/shop-by-category/index.py:98
 msgid "DocType {} not found"
 msgstr "DocType {} non trouvé"
@@ -885,7 +1053,6 @@ msgid "Dry Run (Validate Only)"
 msgstr "Test (validation uniquement)"
 
 #: webshop/templates/includes/cart/cart_payment_summary.html:77
-#: webshop/templates/includes/cart_component.html:65
 #: webshop/templates/includes/order_summary.html:179
 msgid "Earn"
 msgstr "Gagner"
@@ -905,15 +1072,20 @@ msgstr "Gagnés"
 
 #: webshop/templates/includes/cart/address_card.html:14
 #: webshop/templates/includes/cart/address_picker_card.html:10
+#: webshop/www/my_addresses.html:126
 msgid "Edit"
 msgstr "Modifier"
 
+#: webshop/www/my_addresses.js:48
+msgid "Edit Address"
+msgstr "Modifier l'adresse"
+
 #: webshop/public/js/auth_dialog.js:116
 #: webshop/templates/generators/item/item_inquiry.js:18
-#: webshop/templates/pages/checkout.html:81
-#: webshop/templates/pages/checkout.html:173
-#: webshop/templates/pages/checkout.html:269
-#: webshop/templates/pages/checkout.js:661
+#: webshop/templates/pages/checkout.html:85
+#: webshop/templates/pages/checkout.html:177
+#: webshop/templates/pages/checkout.html:273
+#: webshop/templates/pages/checkout.js:661 webshop/www/my_addresses.html:66
 msgid "Email"
 msgstr "E-mail"
 
@@ -1063,20 +1235,28 @@ msgid "Error calculating frequently bought together: {0}"
 msgstr "Erreur lors du calcul des produits fréquemment achetés ensemble : {0}"
 
 #: webshop/templates/payments/paypal.html:146
-#: webshop/templates/payments/wallee.html:291
-#: webshop/templates/payments/wallee.html:387
+#: webshop/templates/payments/wallee.html:295
+#: webshop/templates/payments/wallee.html:300
 msgid "Error communicating with server"
 msgstr "Erreur de communication avec le serveur"
 
-#: webshop/controllers/payment_handler.py:359
+#: webshop/templates/payments/wallee.html:291
+msgid "Error creating Wallee transaction"
+msgstr "Erreur lors de la création de la transaction Wallee"
+
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:234
+msgid "Error creating invoice"
+msgstr "Erreur lors de la création de la facture"
+
+#: webshop/controllers/payment_handler.py:370
 #: webshop/webshop/doctype/override_doctype/payment_request.py:55
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:221
 msgid "Error creating order"
 msgstr "Erreur lors de la création de la commande"
 
 #: webshop/controllers/payment_handler.py:182
 #: webshop/templates/payments/paypal.html:140
-#: webshop/templates/payments/wallee.html:284
-#: webshop/templates/payments/wallee.html:381
+#: webshop/templates/payments/wallee.html:274
 msgid "Error creating payment request"
 msgstr "Erreur lors de la création de la demande de paiement"
 
@@ -1113,12 +1293,12 @@ msgstr "Erreur lors du chargement des variantes. Veuillez réessayer."
 msgid "Error processing gift card for Sales Order {0}"
 msgstr "Erreur lors du traitement de la carte cadeau pour la commande {0}"
 
-#: webshop/controllers/payment_handler.py:291
-#: webshop/controllers/payment_handler.py:428
+#: webshop/controllers/payment_handler.py:302
+#: webshop/controllers/payment_handler.py:439
 msgid "Error processing payment"
 msgstr "Erreur lors du traitement du paiement"
 
-#: webshop/controllers/payment_handler.py:441
+#: webshop/controllers/payment_handler.py:452
 msgid "Error processing payment failure"
 msgstr "Erreur lors du traitement de l'échec du paiement"
 
@@ -1126,7 +1306,7 @@ msgstr "Erreur lors du traitement de l'échec du paiement"
 msgid "Error reading file: {0}"
 msgstr "Erreur lors de la lecture du fichier : {0}"
 
-#: webshop/webshop/shopping_cart/cart.py:1257
+#: webshop/webshop/shopping_cart/cart.py:1270
 msgid "Error updating address. Please try again or contact support."
 msgstr "Erreur lors de la mise à jour de l'adresse. Veuillez réessayer ou contacter le support."
 
@@ -1151,7 +1331,7 @@ msgstr "Tout développer"
 msgid "Expected End Time"
 msgstr "Heure de fin prévue"
 
-#: webshop/www/maintenance.html:339
+#: webshop/webshop/maintenance.py:67 webshop/www/maintenance.html:339
 msgid "Expected to be back by:"
 msgstr "Retour prévu pour :"
 
@@ -1159,7 +1339,7 @@ msgstr "Retour prévu pour :"
 msgid "Expired"
 msgstr "Expiré"
 
-#: webshop/templates/generators/item_group.html:106
+#: webshop/templates/generators/item_group.html:118
 #: webshop/templates/includes/product_carousel.html:101
 #: webshop/www/all-products/index.html:96
 msgid "Explore"
@@ -1168,6 +1348,14 @@ msgstr "Explorer"
 #: webshop/templates/includes/cart/cart_items.html:17
 msgid "FREE"
 msgstr "GRATUIT"
+
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:328
+msgid "Failed to get payment context"
+msgstr "Échec de la récupération du contexte de paiement"
+
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:329
+msgid "Failed to get payment context: {0}"
+msgstr "Échec de la récupération du contexte de paiement : {0}"
 
 #: webshop/templates/payments/wallee.html:246
 msgid "Failed to initialize payment form"
@@ -1182,6 +1370,26 @@ msgstr "Échec du chargement du formulaire de paiement"
 msgid "Features"
 msgstr "Fonctionnalités"
 
+#. Label of a Link field in DocType 'WebshopSI Settings'
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
+msgid "Fee Account"
+msgstr "Compte de frais"
+
+#. Label of a Link field in DocType 'WebshopSI Settings'
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
+msgid "Fee Cost Center"
+msgstr "Centre de coûts des frais"
+
+#. Label of a Percent field in DocType 'WebshopSI Invoice Installments'
+#: webshop/webshop/doctype/webshopsi_invoice_installments/webshopsi_invoice_installments.json
+msgid "Fee Percentage"
+msgstr "Pourcentage de frais"
+
+#: webshop/templates/payments/webshopsi.html:407
+#: webshop/templates/payments/webshopsi.html:410
+msgid "Fees have been updated"
+msgstr "Les frais ont été mis à jour"
+
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:174
 msgid "Filter Fields Row #{0}: Fieldname {1} must be of type 'Link' or 'Table MultiSelect'"
 msgstr "Ligne de champs de filtre #{0} : Le champ {1} doit être de type 'Link' ou 'Table MultiSelect'"
@@ -1191,7 +1399,8 @@ msgstr "Ligne de champs de filtre #{0} : Le champ {1} doit être de type 'Link' 
 msgid "Filter Options"
 msgstr "Options de filtre"
 
-#: webshop/templates/generators/item_group.html:44
+#: webshop/templates/generators/item_group.html:9
+#: webshop/templates/generators/item_group.html:51
 #: webshop/www/all-products/index.html:10
 #: webshop/www/all-products/index.html:27
 msgid "Filters"
@@ -1203,7 +1412,7 @@ msgid "Filters & Categories"
 msgstr "Filtres et catégories"
 
 #: webshop/public/js/auth_dialog.js:116
-#: webshop/templates/pages/checkout.html:49
+#: webshop/templates/pages/checkout.html:53
 #: webshop/templates/pages/checkout.js:659
 msgid "First Name"
 msgstr "Prénom"
@@ -1249,7 +1458,13 @@ msgstr "Conditions générales de vente (CGV) à afficher sur la page de paiemen
 
 #. Title of the gift-card Web Form
 #: webshop/templates/pages/gift_cards.html:65
+#: webshop/webshop/shopping_cart/cart.py:379
+#: webshop/webshop/shopping_cart/cart.py:389
+#: webshop/webshop/shopping_cart/cart.py:443
+#: webshop/webshop/shopping_cart/cart.py:671
 #: webshop/webshop/shopping_cart/cart.py:684
+#: webshop/webshop/shopping_cart/cart.py:2757
+#: webshop/webshop/shopping_cart/cart.py:2969
 #: webshop/webshop/web_form/gift_card/gift_card.json
 msgid "Gift Card"
 msgstr "Carte cadeau"
@@ -1269,11 +1484,11 @@ msgstr "Code de la carte cadeau"
 msgid "Gift Card Options"
 msgstr "Options de carte cadeau"
 
-#: webshop/webshop/shopping_cart/cart.py:3035
+#: webshop/webshop/shopping_cart/cart.py:3063
 msgid "Gift Card Split"
 msgstr "Division de carte cadeau"
 
-#: webshop/webshop/shopping_cart/cart.py:2954
+#: webshop/webshop/shopping_cart/cart.py:2982
 msgid "Gift Card {0} - {1} - {2}"
 msgstr "Carte cadeau {0} - {1} - {2}"
 
@@ -1286,7 +1501,7 @@ msgstr "Carte cadeau {0} - {1} - {2}"
 msgid "Gift Cards"
 msgstr "Cartes cadeaux"
 
-#: webshop/webshop/shopping_cart/cart.py:2398
+#: webshop/webshop/shopping_cart/cart.py:2416
 msgid "Gift card amount ({0}) exceeds order total ({1}). The excess amount ({2}) will be converted to a new gift card upon order submission."
 msgstr "Le montant de la carte cadeau ({0}) dépasse le total de la commande ({1}). Le montant excédentaire ({2}) sera converti en une nouvelle carte cadeau lors de la validation."
 
@@ -1311,15 +1526,15 @@ msgstr "Le code de carte cadeau {0} existe déjà"
 msgid "Gift card notification"
 msgstr "Notification de carte cadeau"
 
-#: webshop/webshop/shopping_cart/cart.py:3040
+#: webshop/webshop/shopping_cart/cart.py:3068
 msgid "Gift card split successfully"
 msgstr "Carte cadeau divisée avec succès"
 
-#: webshop/webshop/shopping_cart/cart.py:2770
+#: webshop/webshop/shopping_cart/cart.py:2798
 msgid "Gift card {0} - {1} - {2}"
 msgstr "Carte cadeau {0} - {1} - {2}"
 
-#: webshop/webshop/shopping_cart/cart.py:2762
+#: webshop/webshop/shopping_cart/cart.py:2790
 msgid "Gift card {0} - {1} - {2} ({3}/{4})"
 msgstr "Carte cadeau {0} - {1} - {2} ({3}/{4})"
 
@@ -1331,7 +1546,7 @@ msgstr "Carte cadeau {0} divisée : montant utilisé {1} transféré à une nouv
 msgid "Gift cards feature is not enabled."
 msgstr "La fonctionnalité cartes cadeaux n'est pas activée."
 
-#: webshop/templates/generators/item_group.html:109
+#: webshop/templates/generators/item_group.html:121
 #: webshop/www/all-products/index.html:99
 msgid "Go to Cart"
 msgstr "Voir le panier"
@@ -1340,7 +1555,7 @@ msgstr "Voir le panier"
 msgid "Go to Login"
 msgstr "Aller à la connexion"
 
-#: webshop/templates/generators/item_group.html:110
+#: webshop/templates/generators/item_group.html:122
 #: webshop/www/all-products/index.html:100
 msgid "Go to Quote"
 msgstr "Voir le devis"
@@ -1376,13 +1591,12 @@ msgstr "A des variantes"
 msgid "Headline"
 msgstr "Titre"
 
-#: webshop/templates/pages/checkout.py:470
+#: webshop/templates/pages/checkout.py:476
 msgid "Height"
 msgstr "Hauteur"
 
 #: webshop/public/js/auth_dialog.js:7 webshop/public/js/auth_dialog.js:116
-#: webshop/templates/includes/user_header.html:275
-#: webshop/templates/pages/checkout.html:39
+#: webshop/templates/pages/checkout.html:43
 msgid "Hello"
 msgstr "Bonjour"
 
@@ -1406,7 +1620,6 @@ msgid "Hide Variants"
 msgstr "Masquer les variantes"
 
 #: webshop/templates/includes/breadcrumbs.html:8
-#: webshop/templates/includes/navbar/navbar.html:50
 #: webshop/webshop/doctype/override_doctype/item_group.py:137
 #: webshop/www/all-products/index.py:12
 msgid "Home"
@@ -1421,6 +1634,12 @@ msgstr "Produit vedette de la page d'accueil"
 msgid "Hours"
 msgstr "Heures"
 
+#. Description of the 'Product Image Fit' (Select) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "How the image fills the product card. 'Cover' crops to fill without distortion; 'Contain' keeps the whole image visible with padding."
+msgstr "Définit comment l'image remplit la carte produit. « Remplir » recadre sans déformation ; « Contenir » affiche l'image entière avec des marges."
+
 #: webshop/templates/pages/loyalty_points.html:54
 msgid "How to earn points"
 msgstr "Comment gagner des points"
@@ -1431,7 +1650,10 @@ msgstr "Comment utiliser votre carte cadeau"
 
 #: webshop/templates/payments/paypal.html:20
 #: webshop/templates/payments/stripe.html:25
+#: webshop/templates/payments/twint.html:10
 #: webshop/templates/payments/wallee.html:24
+#: webshop/templates/payments/webshopsi.html:94
+#: webshop/templates/payments/webshopsi.html:96
 msgid "I accept the"
 msgstr "J'accepte les"
 
@@ -1469,6 +1691,11 @@ msgstr "Texte alternatif de l'image"
 msgid "Image Description"
 msgstr "Description de l'image"
 
+#. Label of a Select field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Image Focus"
+msgstr "Point focal de l'image"
+
 #. Label of a Image field in DocType 'Wishlist Item'
 #: webshop/webshop/doctype/wishlist_item/wishlist_item.json
 msgid "Image View"
@@ -1498,23 +1725,23 @@ msgstr "Résultats de l'import"
 msgid "Impossible de charger les méthodes de livraison"
 msgstr "Impossible de charger les méthodes de livraison"
 
-#: webshop/public/js/product_ui/views.js:188
+#: webshop/www/all-products/index.html:105
 msgid "In Stock Only"
 msgstr "En stock uniquement"
 
 #: webshop/templates/generators/item/item_add_to_cart.html:64
 #: webshop/templates/generators/item/item_bundle_components.html:52
-#: webshop/templates/generators/item_group.html:104
+#: webshop/templates/generators/item_group.html:116
 #: webshop/templates/includes/product_page.js:36
 #: webshop/www/all-products/index.html:94
 msgid "In stock"
 msgstr "En stock"
 
-#: webshop/public/js/auth_dialog.js:899
+#: webshop/public/js/auth_dialog.js:913
 msgid "Incorrect email or password. Please try again."
 msgstr "E-mail ou mot de passe incorrect. Veuillez réessayer."
 
-#: webshop/public/js/auth_dialog.js:874
+#: webshop/public/js/auth_dialog.js:888
 msgid "Incorrect password. Please try again."
 msgstr "Mot de passe incorrect. Veuillez réessayer."
 
@@ -1523,7 +1750,7 @@ msgstr "Mot de passe incorrect. Veuillez réessayer."
 msgid "Indicate that Item is available on backorder and not usually pre-stocked"
 msgstr "Indique que l'article est disponible sur commande et n'est pas habituellement en stock"
 
-#: webshop/templates/pages/checkout.html:20
+#: webshop/templates/pages/checkout.html:24
 msgid "Information"
 msgstr "Informations"
 
@@ -1531,9 +1758,23 @@ msgstr "Informations"
 msgid "Information updated successfully"
 msgstr "Informations mises à jour avec succès"
 
+#. Label of a Table field in DocType 'WebshopSI Settings'
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
+msgid "Installment Plans"
+msgstr "Plans de versements"
+
+#. Label of a Small Text field in DocType 'WebshopSI Settings'
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
+msgid "Introduction Text"
+msgstr "Texte d'introduction"
+
 #: webshop/webshop/shopping_cart/guest_cart.py:39
 msgid "Invalid items format"
 msgstr "Format d'articles invalide"
+
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:194
+msgid "Invalid payment option"
+msgstr "Option de paiement invalide"
 
 #: webshop/templates/pages/gift_cards.html:104
 #: webshop/templates/pages/loyalty_points.html:96
@@ -1565,7 +1806,7 @@ msgstr "Article"
 #. Label of a Link field in DocType 'Website Item'
 #. Label of a Link field in DocType 'Wishlist Item'
 #: webshop/templates/generators/item/item_details.html:44
-#: webshop/templates/generators/item_group.html:111
+#: webshop/templates/generators/item_group.html:123
 #: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
 #: webshop/webshop/doctype/recommended_items/recommended_items.json
 #: webshop/webshop/doctype/website_item/website_item.json
@@ -1656,7 +1897,7 @@ msgid "Last Generated"
 msgstr "Dernière génération"
 
 #: webshop/public/js/auth_dialog.js:116
-#: webshop/templates/pages/checkout.html:58
+#: webshop/templates/pages/checkout.html:62
 #: webshop/templates/pages/checkout.js:660
 msgid "Last Name"
 msgstr "Nom"
@@ -1669,7 +1910,12 @@ msgstr "Le coupon a été supprimé pour mettre à jour la quantité"
 msgid "Le coupon a été supprimé pour retirer le produit"
 msgstr "Le coupon a été supprimé pour retirer le produit"
 
-#: webshop/templates/pages/checkout.py:462
+#. Option for the 'Image Focus' (Select) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Left"
+msgstr "Gauche"
+
+#: webshop/templates/pages/checkout.py:468
 msgid "Length"
 msgstr "Longueur"
 
@@ -1707,20 +1953,20 @@ msgstr "Lister cet article dans plusieurs groupes sur le site."
 msgid "Load More"
 msgstr "Charger plus"
 
-#: webshop/templates/includes/cart_component.html:30
-msgid "Loading Cart..."
-msgstr "Chargement du panier..."
-
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:329
 msgid "Loading categories..."
 msgstr "Chargement des catégories..."
 
+#: webshop/www/all-products/index.html:103
+msgid "Loading more products..."
+msgstr "Chargement des produits suivants..."
+
 #: webshop/templates/payments/wallee.html:207
-#: webshop/templates/payments/wallee.html:263
+#: webshop/templates/payments/wallee.html:313
 msgid "Loading payment form..."
 msgstr "Chargement du formulaire de paiement..."
 
-#: webshop/templates/pages/checkout.html:346
+#: webshop/templates/pages/checkout.html:350
 msgid "Loading payment methods..."
 msgstr "Chargement des méthodes de paiement..."
 
@@ -1738,12 +1984,9 @@ msgstr "Chargement des variantes..."
 
 #: webshop/templates/generators/item/item_configure.js:177
 #: webshop/templates/generators/item/item_configure_grid.html:38
+#: webshop/www/my_addresses.js:44
 msgid "Loading..."
 msgstr "Chargement..."
-
-#: webshop/templates/includes/user_header.html:10
-msgid "Log in"
-msgstr "Se connecter"
 
 #: webshop/templates/pages/cart.html:47
 msgid "Login"
@@ -1766,11 +2009,7 @@ msgstr "Connectez-vous pour donner un avis"
 msgid "Login with {0}"
 msgstr "Se connecter avec {0}"
 
-#: webshop/templates/includes/user_header.html:23
-msgid "Logout"
-msgstr "Déconnexion"
-
-#: webshop/templates/generators/item_group.html:103
+#: webshop/templates/generators/item_group.html:115
 #: webshop/www/all-products/index.html:93
 msgid "Low stock"
 msgstr "Stock faible"
@@ -1799,7 +2038,7 @@ msgstr "Points de fidélité appliqués avec succès"
 msgid "Loyalty points removed"
 msgstr "Points de fidélité supprimés"
 
-#: webshop/webshop/shopping_cart/cart.py:2550
+#: webshop/webshop/shopping_cart/cart.py:2570
 msgid "Loyalty points value cannot exceed total amount"
 msgstr "La valeur des points de fidélité ne peut pas dépasser le montant total"
 
@@ -1836,9 +2075,14 @@ msgid "Manage your gift cards"
 msgstr "Gérer vos cartes cadeaux"
 
 #: webshop/webshop/doctype/website_item/website_item.py:59
-#: webshop/webshop/shopping_cart/cart.py:1887
+#: webshop/webshop/shopping_cart/cart.py:1905
 msgid "Mandatory"
 msgstr "Obligatoire"
+
+#. Label of a Currency field in DocType 'WebshopSI Invoice Installments'
+#: webshop/webshop/doctype/webshopsi_invoice_installments/webshopsi_invoice_installments.json
+msgid "Maximum Amount"
+msgstr "Montant maximum"
 
 #. Label of a field in the gift-card Web Form
 #: webshop/webshop/web_form/gift_card/gift_card.json
@@ -1858,6 +2102,20 @@ msgstr "Menu"
 #: webshop/templates/generators/item/item_inquiry.js:38
 msgid "Message"
 msgstr "Message"
+
+#. Label of a Currency field in DocType 'WebshopSI Invoice Installments'
+#: webshop/webshop/doctype/webshopsi_invoice_installments/webshopsi_invoice_installments.json
+msgid "Minimum Amount"
+msgstr "Montant minimum"
+
+#. Label of a Int field in DocType 'WebshopSI Settings'
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
+msgid "Minimum age"
+msgstr "Âge minimum"
+
+#: webshop/templates/payments/webshopsi.html:65
+msgid "Minimum amount required:"
+msgstr "Montant minimum requis :"
 
 #: webshop/www/maintenance.html:358
 msgid "Minutes"
@@ -1898,7 +2156,7 @@ msgstr "Plus de détails"
 msgid "More..."
 msgstr "Plus..."
 
-#: webshop/templates/generators/item_group.html:88
+#: webshop/templates/generators/item_group.html:100
 #: webshop/www/all-products/index.html:78
 msgid "Most Relevant"
 msgstr "Plus pertinent"
@@ -1914,17 +2172,9 @@ msgstr "Déplacer vers le panier"
 msgid "My Account"
 msgstr "Mon compte"
 
-#: webshop/templates/includes/user_header.html:19
-msgid "My account"
-msgstr "Mon compte"
-
-#: webshop/templates/includes/user_header.html:20
-msgid "My orders"
-msgstr "Mes commandes"
-
-#: webshop/templates/includes/user_header.html:21
-msgid "My wishlist"
-msgstr "Ma liste de souhaits"
+#: webshop/www/my_addresses.html:3 webshop/www/my_addresses.html:8
+msgid "My Addresses"
+msgstr "Mes adresses"
 
 #. Label of a Select field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
@@ -1953,7 +2203,7 @@ msgstr "Total net ("
 msgid "New Address"
 msgstr "Nouvelle adresse"
 
-#: webshop/templates/generators/item_group.html:91
+#: webshop/templates/generators/item_group.html:103
 #: webshop/www/all-products/index.html:81
 msgid "New Arrivals"
 msgstr "Nouveautés"
@@ -1979,6 +2229,10 @@ msgstr "Aucun avis"
 msgid "No Reviews Yet"
 msgstr "Aucun avis pour le moment"
 
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:133
+msgid "No active quotation found"
+msgstr "Aucun devis actif trouvé"
+
 #: webshop/templates/includes/brand_carousel.html:569
 msgid "No brands available at the moment"
 msgstr "Aucune marque disponible pour le moment"
@@ -1991,15 +2245,20 @@ msgstr "Aucun panier trouvé"
 msgid "No categories found. Make sure Item Groups have \"Show in Website\" enabled."
 msgstr "Aucune catégorie trouvée. Assurez-vous que les groupes d'articles ont \"Afficher sur le site\" activé."
 
-#: webshop/templates/pages/checkout.py:600
+#: webshop/templates/pages/checkout.py:606
 msgid "No conversion factor found between {0} and {1}"
 msgstr "Aucun facteur de conversion trouvé entre {0} et {1}"
+
+#: webshop/webshop/api.py:1083 webshop/webshop/api.py:1122
+#: webshop/webshop/api.py:1177 webshop/www/my_addresses.py:19
+msgid "No customer account found"
+msgstr "Aucun compte client trouvé"
 
 #: webshop/templates/pages/gift_cards.html:21
 msgid "No gift cards yet"
 msgstr "Pas encore de cartes cadeaux"
 
-#: webshop/templates/generators/item_group.html:100
+#: webshop/templates/generators/item_group.html:112
 #: webshop/www/all-products/index.html:90
 msgid "No more discounted products. Returning to first page."
 msgstr "Plus de produits en promotion. Retour à la première page."
@@ -2012,11 +2271,11 @@ msgstr "Aucune méthode de paiement configurée"
 msgid "No points history yet. Start shopping to earn points!"
 msgstr "Aucun historique de points. Commencez vos achats pour gagner des points !"
 
-#: webshop/templates/includes/product_carousel.html:801
+#: webshop/templates/includes/product_carousel.html:802
 msgid "No products available"
 msgstr "Aucun produit disponible"
 
-#: webshop/templates/generators/item_group.html:96
+#: webshop/templates/generators/item_group.html:108
 #: webshop/www/all-products/index.html:86
 #: webshop/www/all-products/not_found.html:1
 msgid "No products found"
@@ -2026,7 +2285,7 @@ msgstr "Aucun produit trouvé"
 msgid "No products found for"
 msgstr "Aucun produit trouvé pour"
 
-#: webshop/templates/includes/product_carousel.html:799
+#: webshop/templates/includes/product_carousel.html:800
 msgid "No products on sale at the moment"
 msgstr "Aucun produit en promotion pour le moment"
 
@@ -2037,6 +2296,10 @@ msgstr "Aucune adresse de livraison spécifiée"
 #: webshop/templates/pages/checkout.js:1470
 msgid "No shipping methods available for your location"
 msgstr "Aucune méthode de livraison disponible pour votre emplacement"
+
+#: webshop/templates/payments/webshopsi.html:164
+msgid "No special conditions defined."
+msgstr "Aucune condition spécifique définie."
 
 #: webshop/templates/includes/macros.html:464
 #: webshop/templates/includes/macros.html:534
@@ -2110,7 +2373,7 @@ msgstr "Offres à afficher"
 msgid "On Backorder"
 msgstr "En réapprovisionnement"
 
-#: webshop/templates/generators/item_group.html:101
+#: webshop/templates/generators/item_group.html:113
 #: webshop/www/all-products/index.html:91
 msgid "On backorder"
 msgstr "En réapprovisionnement"
@@ -2127,11 +2390,15 @@ msgstr "Seulement {0} en stock pour l'article {1}"
 msgid "Only {0} units available in stock for {1}. You cannot add {2} units to your cart."
 msgstr "Seulement {0} unités disponibles en stock pour {1}. Vous ne pouvez pas ajouter {2} unités à votre panier."
 
+#: webshop/templates/payments/twint.html:61
+msgid "Opening TWINT…"
+msgstr "Ouverture de TWINT…"
+
 #: webshop/templates/payments/wallee.html:154
 msgid "Opening payment form..."
 msgstr "Ouverture du formulaire de paiement..."
 
-#: webshop/templates/pages/checkout.html:75
+#: webshop/templates/pages/checkout.html:79
 msgid "Optional"
 msgstr "Optionnel"
 
@@ -2162,7 +2429,11 @@ msgstr "Résumé de la commande"
 msgid "Order Total"
 msgstr "Total de la commande"
 
-#: webshop/controllers/payment_handler.py:385
+#: webshop/templates/payments/webshopsi.html:522
+msgid "Order confirmed with success"
+msgstr "Commande confirmée avec succès"
+
+#: webshop/controllers/payment_handler.py:396
 msgid "Order validated successfully"
 msgstr "Commande validée avec succès"
 
@@ -2172,13 +2443,21 @@ msgstr "Commande validée avec succès"
 msgid "Orders"
 msgstr "Commandes"
 
+#: webshop/templates/payments/webshopsi.html:429
+#: webshop/templates/payments/webshopsi.html:431
+#: webshop/templates/payments/webshopsi.html:434
+#: webshop/templates/payments/webshopsi.html:467
+#: webshop/templates/payments/webshopsi.html:470
+msgid "Orders from your country cannot be processed through invoice payment"
+msgstr "Les commandes depuis votre pays ne peuvent pas être traitées par paiement sur facture"
+
 #: webshop/templates/generators/item/item_inquiry.js:13
 msgid "Organization Name"
 msgstr "Nom de l'organisation"
 
 #: webshop/templates/generators/item/item_add_to_cart.html:60
 #: webshop/templates/generators/item/item_bundle_components.html:48
-#: webshop/templates/generators/item_group.html:102
+#: webshop/templates/generators/item_group.html:114
 #: webshop/templates/includes/macros.html:295
 #: webshop/www/all-products/index.html:92
 msgid "Out of stock"
@@ -2188,7 +2467,7 @@ msgstr "Rupture de stock"
 msgid "Overall Rating"
 msgstr "Note globale"
 
-#: webshop/templates/generators/item_group.html:93
+#: webshop/templates/generators/item_group.html:105
 #: webshop/www/all-products/index.html:83
 msgid "Page"
 msgstr "Page"
@@ -2226,13 +2505,18 @@ msgstr "Payer le reste"
 msgid "Pay with PayPal"
 msgstr "Payer avec PayPal"
 
+#: webshop/templates/payments/twint.html:21
+#: webshop/templates/payments/twint.html:40
+msgid "Pay with TWINT"
+msgstr "Payer avec TWINT"
+
 #: webshop/templates/payments/wallee.html:35
 #: webshop/templates/payments/wallee.html:117
 msgid "Pay with Wallee"
 msgstr "Payer avec Wallee"
 
-#: webshop/templates/pages/checkout.html:28
-#: webshop/templates/pages/checkout.html:320
+#: webshop/templates/pages/checkout.html:32
+#: webshop/templates/pages/checkout.html:324
 msgid "Payment"
 msgstr "Paiement"
 
@@ -2247,15 +2531,21 @@ msgstr "Date de paiement :"
 msgid "Payment Gateway Account"
 msgstr "Compte de passerelle de paiement"
 
-#: webshop/webshop/shopping_cart/cart.py:1887
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:151
+msgid "Payment Gateway Account not found"
+msgstr "Compte de passerelle de paiement introuvable"
+
+#: webshop/webshop/shopping_cart/cart.py:1905
 msgid "Payment Gateway Account not set"
 msgstr "Compte de passerelle de paiement non configuré"
 
 #: webshop/controllers/payment_handler.py:77
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:138
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:291
 msgid "Payment Gateway not found for settings: {0}"
 msgstr "Passerelle de paiement non trouvée pour les paramètres : {0}"
 
-#: webshop/templates/pages/checkout.html:333
+#: webshop/templates/pages/checkout.html:337
 msgid "Payment Method"
 msgstr "Méthode de paiement"
 
@@ -2279,7 +2569,9 @@ msgid "Payment Summary"
 msgstr "Résumé du paiement"
 
 #. Label of a Link field in DocType 'Webshop Payment Method'
+#. Label of a Link field in DocType 'WebshopSI Invoice Installments'
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+#: webshop/webshop/doctype/webshopsi_invoice_installments/webshopsi_invoice_installments.json
 msgid "Payment Terms Template"
 msgstr "Modèle de conditions de paiement"
 
@@ -2288,19 +2580,32 @@ msgstr "Modèle de conditions de paiement"
 msgid "Payment already processed"
 msgstr "Paiement déjà traité"
 
-#: webshop/controllers/payment_handler.py:311
-#: webshop/controllers/payment_handler.py:318
+#: webshop/controllers/payment_handler.py:322
+#: webshop/controllers/payment_handler.py:329
+#: webshop/templates/payments/twint.html:86
 msgid "Payment failed"
 msgstr "Échec du paiement"
+
+#: webshop/templates/payments/webshopsi.html:57
+msgid "Payment fees:"
+msgstr "Frais de paiement :"
 
 #: webshop/templates/payments/wallee.html:162
 #: webshop/templates/payments/wallee.html:250
 msgid "Payment form not available"
 msgstr "Formulaire de paiement non disponible"
 
-#: webshop/controllers/payment_handler.py:284
+#: webshop/templates/payments/webshopsi.html:25
+msgid "Payment options"
+msgstr "Options de paiement"
+
+#: webshop/controllers/payment_handler.py:295
 msgid "Payment processed successfully"
 msgstr "Paiement traité avec succès"
+
+#: webshop/webshop/shopping_cart/webshopsi_cart.py:117
+msgid "Payment processing fee ({0}%)"
+msgstr "Frais de traitement ({0} %)"
 
 #: webshop/templates/pages/payment-success.html:15
 #: webshop/templates/pages/payment-success.html:38
@@ -2313,10 +2618,10 @@ msgid "Pending"
 msgstr "En attente"
 
 #: webshop/templates/includes/cart/cart_address.html:136
-#: webshop/templates/pages/checkout.html:91
-#: webshop/templates/pages/checkout.html:182
-#: webshop/templates/pages/checkout.html:278
-#: webshop/templates/pages/checkout.js:662
+#: webshop/templates/pages/checkout.html:95
+#: webshop/templates/pages/checkout.html:186
+#: webshop/templates/pages/checkout.html:282
+#: webshop/templates/pages/checkout.js:662 webshop/www/my_addresses.html:62
 msgid "Phone"
 msgstr "Téléphone"
 
@@ -2338,7 +2643,9 @@ msgstr "Passer la commande"
 #: webshop/templates/pages/checkout.js:2154
 #: webshop/templates/payments/paypal.html:30
 #: webshop/templates/payments/stripe.html:35
+#: webshop/templates/payments/twint.html:20
 #: webshop/templates/payments/wallee.html:34
+#: webshop/templates/payments/webshopsi.html:107
 msgid "Please accept the terms and conditions to continue"
 msgstr "Veuillez accepter les conditions générales pour continuer"
 
@@ -2351,7 +2658,7 @@ msgid "Please enable 'Frequently Bought Together' first"
 msgstr "Veuillez d'abord activer 'Fréquemment achetés ensemble'"
 
 #: webshop/templates/pages/checkout.js:2019
-#: webshop/webshop/shopping_cart/cart.py:2317
+#: webshop/webshop/shopping_cart/cart.py:2335
 msgid "Please enter a coupon code"
 msgstr "Veuillez entrer un code promo"
 
@@ -2359,14 +2666,14 @@ msgstr "Veuillez entrer un code promo"
 msgid "Please enter a valid amount"
 msgstr "Veuillez entrer un montant valide"
 
-#: webshop/webshop/shopping_cart/cart.py:2321
+#: webshop/webshop/shopping_cart/cart.py:2339
 msgid "Please enter a valid coupon code"
 msgstr "Veuillez entrer un code promo valide"
 
 #: webshop/public/js/auth_dialog.js:597
 #: webshop/templates/payments/paypal.html:79
 #: webshop/templates/payments/stripe.html:382
-#: webshop/templates/payments/wallee.html:100
+#: webshop/templates/payments/wallee.html:100 webshop/webshop/auth/api.py:45
 msgid "Please enter a valid email address"
 msgstr "Veuillez entrer une adresse e-mail valide"
 
@@ -2374,7 +2681,13 @@ msgstr "Veuillez entrer une adresse e-mail valide"
 msgid "Please enter a valid number of points"
 msgstr "Veuillez entrer un nombre de points valide"
 
-#: webshop/public/js/auth_dialog.js:922
+#: webshop/templates/payments/webshopsi.html:292
+#: webshop/templates/payments/webshopsi.html:478
+#: webshop/templates/payments/webshopsi.html:480
+msgid "Please enter your date of birth"
+msgstr "Veuillez saisir votre date de naissance"
+
+#: webshop/public/js/auth_dialog.js:936
 msgid "Please enter your email"
 msgstr "Veuillez entrer votre e-mail"
 
@@ -2386,7 +2699,7 @@ msgstr "Veuillez entrer votre adresse e-mail"
 msgid "Please enter your first and last name"
 msgstr "Veuillez entrer votre prénom et nom"
 
-#: webshop/public/js/auth_dialog.js:799
+#: webshop/public/js/auth_dialog.js:813
 msgid "Please enter your password"
 msgstr "Veuillez entrer votre mot de passe"
 
@@ -2395,7 +2708,7 @@ msgstr "Veuillez entrer votre mot de passe"
 msgid "Please fill in all fields"
 msgstr "Veuillez remplir tous les champs"
 
-#: webshop/templates/payments/stripe.html:376
+#: webshop/templates/payments/stripe.html:376 webshop/webshop/auth/api.py:35
 msgid "Please fill in all required fields"
 msgstr "Veuillez remplir tous les champs obligatoires"
 
@@ -2412,7 +2725,7 @@ msgstr "Veuillez vous connecter pour ajouter des articles au panier"
 msgid "Please log in to continue with checkout"
 msgstr "Veuillez vous connecter pour continuer le paiement"
 
-#: webshop/webshop/shopping_cart/cart.py:2524
+#: webshop/webshop/shopping_cart/cart.py:2544
 msgid "Please log in to use your loyalty points"
 msgstr "Veuillez vous connecter pour utiliser vos points de fidélité"
 
@@ -2426,6 +2739,11 @@ msgstr "Veuillez vous connecter pour voir vos cartes cadeaux."
 msgid "Please log in to view your loyalty points."
 msgstr "Veuillez vous connecter pour voir vos points de fidélité."
 
+#: webshop/webshop/api.py:1079 webshop/webshop/api.py:1118
+#: webshop/webshop/api.py:1173
+msgid "Please login to continue"
+msgstr "Veuillez vous connecter pour continuer"
+
 #: webshop/templates/pages/checkout.js:1779
 msgid "Please remove coupon code first"
 msgstr "Veuillez d'abord retirer le code promo"
@@ -2434,11 +2752,16 @@ msgstr "Veuillez d'abord retirer le code promo"
 msgid "Please remove loyalty points first"
 msgstr "Veuillez d'abord retirer les points de fidélité"
 
+#: webshop/templates/payments/webshopsi.html:490
+#: webshop/templates/payments/webshopsi.html:492
+msgid "Please select a payment option"
+msgstr "Veuillez sélectionner une option de paiement"
+
 #: webshop/templates/pages/checkout_b2b.html:41
 msgid "Please select a shipping address first"
 msgstr "Veuillez d'abord sélectionner une adresse de livraison"
 
-#: webshop/templates/pages/checkout.py:608
+#: webshop/templates/pages/checkout.py:614
 msgid "Please select a shipping method"
 msgstr "Veuillez sélectionner une méthode de livraison"
 
@@ -2485,13 +2808,17 @@ msgid "Points are credited after order completion"
 msgstr "Les points sont crédités après la finalisation de la commande"
 
 #: webshop/templates/includes/cart/cart_address.html:128
-#: webshop/templates/pages/checkout.html:128
-#: webshop/templates/pages/checkout.html:228
-#: webshop/templates/pages/checkout.js:665
+#: webshop/templates/pages/checkout.html:132
+#: webshop/templates/pages/checkout.html:232
+#: webshop/templates/pages/checkout.js:665 webshop/www/my_addresses.html:40
 msgid "Postal Code"
 msgstr "Code postal"
 
-#: webshop/templates/payments/wallee.html:355
+#: webshop/www/my_addresses.js:113
+msgid "Postal Code is required"
+msgstr "Le code postal est requis"
+
+#: webshop/templates/payments/wallee.html:386
 msgid "Preparing payment..."
 msgstr "Préparation du paiement..."
 
@@ -2503,7 +2830,7 @@ msgstr "Précédent"
 
 #: webshop/templates/includes/cart/cart_dropdown.html:14
 #: webshop/templates/includes/macros.html:4
-#: webshop/templates/pages/checkout.py:458
+#: webshop/templates/pages/checkout.py:464
 msgid "Price"
 msgstr "Prix"
 
@@ -2516,12 +2843,12 @@ msgstr "Liste de prix"
 msgid "Price can only be modified for gift cards"
 msgstr "Le prix ne peut être modifié que pour les cartes cadeaux"
 
-#: webshop/templates/generators/item_group.html:90
+#: webshop/templates/generators/item_group.html:102
 #: webshop/www/all-products/index.html:80
 msgid "Price: High to Low"
 msgstr "Prix : du plus cher au moins cher"
 
-#: webshop/templates/generators/item_group.html:89
+#: webshop/templates/generators/item_group.html:101
 #: webshop/www/all-products/index.html:79
 msgid "Price: Low to High"
 msgstr "Prix : du moins cher au plus cher"
@@ -2534,6 +2861,10 @@ msgstr "Prix"
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Prices will not be shown if Price List is not set"
 msgstr "Les prix ne seront pas affichés si la liste de prix n'est pas définie"
+
+#: webshop/www/my_addresses.html:107
+msgid "Primary"
+msgstr "Principal"
 
 #: webshop/templates/pages/order.html:33
 msgid "Print"
@@ -2557,15 +2888,31 @@ msgid "Processing payment..."
 msgstr "Traitement du paiement..."
 
 #: webshop/templates/payments/stripe.html:392
-#: webshop/templates/payments/wallee.html:332
-#: webshop/templates/payments/wallee.html:353
+#: webshop/templates/payments/wallee.html:363
+#: webshop/templates/payments/wallee.html:384
+#: webshop/templates/payments/webshopsi.html:505
 msgid "Processing..."
 msgstr "Traitement en cours..."
+
+#. Label of a Data field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Product Card Aspect Ratio"
+msgstr "Ratio d'aspect de la carte produit"
 
 #: webshop/templates/generators/item/item_specifications.html:7
 #: webshop/webshop/doctype/website_item/website_item.py:603
 msgid "Product Details"
 msgstr "Détails du produit"
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Product Image Display"
+msgstr "Affichage de l'image produit"
+
+#. Label of a Select field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Product Image Fit"
+msgstr "Ajustement de l'image produit"
 
 #: webshop/templates/pages/product_search.html:3
 #: webshop/templates/pages/product_search.html:5
@@ -2581,7 +2928,7 @@ msgstr "Produits"
 msgid "Products per Page"
 msgstr "Produits par page"
 
-#: webshop/webshop/utils/product_carousel_helper.py:303
+#: webshop/webshop/utils/product_carousel_helper.py:309
 msgid "Produits en vedette"
 msgstr "Produits en vedette"
 
@@ -2691,11 +3038,11 @@ msgstr "Rediriger vers la connexion"
 msgid "Redirecting to PayPal..."
 msgstr "Redirection vers PayPal..."
 
-#: webshop/templates/payments/wallee.html:370
+#: webshop/templates/payments/wallee.html:392
 msgid "Redirecting to Wallee..."
 msgstr "Redirection vers Wallee..."
 
-#: webshop/templates/payments/wallee.html:371
+#: webshop/templates/payments/wallee.html:393
 msgid "Redirecting to payment page..."
 msgstr "Redirection vers la page de paiement..."
 
@@ -2706,6 +3053,10 @@ msgstr "Redirection vers votre compte dans"
 #: webshop/webshop/redisearch_utils.py:336
 msgid "Redisearch Error"
 msgstr "Erreur Redisearch"
+
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:280
+msgid "Reference document is required"
+msgstr "Le document de référence est requis"
 
 #: webshop/templates/pages/thank_you.html:42
 msgid "Reference:"
@@ -2730,6 +3081,11 @@ msgstr "Code article lié"
 msgid "Related Item Name"
 msgstr "Nom article lié"
 
+#: webshop/webshop/shopping_cart/cart.py:3026
+#: webshop/webshop/shopping_cart/cart.py:3028
+msgid "Remaining amount"
+msgstr "Montant restant"
+
 #: webshop/templates/includes/coupon_form.html:21
 msgid "Remove"
 msgstr "Supprimer"
@@ -2752,6 +3108,16 @@ msgstr "Demande de devis"
 msgid "Required columns: code, value"
 msgstr "Colonnes requises : code, valeur"
 
+#. Label of a Table field in DocType 'WebshopSI Settings'
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
+msgid "Restricted Countries"
+msgstr "Pays restreints"
+
+#. Label of a Section Break field in DocType 'WebshopSI Settings'
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
+msgid "Restriction"
+msgstr "Restriction"
+
 #: webshop/templates/pages/cgv.html:23
 msgid "Retour au checkout"
 msgstr "Retour au checkout"
@@ -2760,7 +3126,7 @@ msgstr "Retour au checkout"
 msgid "Return to Home"
 msgstr "Retour à l'accueil"
 
-#: webshop/templates/pages/checkout.html:292
+#: webshop/templates/pages/checkout.html:296
 msgid "Return to cart"
 msgstr "Retour au panier"
 
@@ -2778,6 +3144,11 @@ msgstr "Titre de l'avis"
 #: webshop/webshop/doctype/item_review/item_review.json
 msgid "Reviews"
 msgstr "Avis"
+
+#. Option for the 'Image Focus' (Select) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Right"
+msgstr "Droite"
 
 #. Label of a Small Text field in DocType 'Homepage Featured Product'
 #. Label of a Small Text field in DocType 'Recommended Items'
@@ -2805,7 +3176,7 @@ msgid "Sales Invoice"
 msgstr "Facture de vente"
 
 #: webshop/templates/includes/cart/cart_address.html:140
-#: webshop/templates/pages/gift_cards.html:140
+#: webshop/templates/pages/gift_cards.html:140 webshop/www/my_addresses.html:86
 msgid "Save"
 msgstr "Enregistrer"
 
@@ -2822,12 +3193,15 @@ msgstr "Enregistrer les devis comme brouillons"
 msgid "Saving category order..."
 msgstr "Enregistrement de l'ordre des catégories..."
 
+#: webshop/www/my_addresses.js:151 webshop/www/my_addresses.js:173
+msgid "Saving..."
+msgstr "Enregistrement en cours..."
+
 #: webshop/templates/includes/order/order_taxes.html:34
 #: webshop/templates/includes/order/order_taxes.html:85
 msgid "Savings"
 msgstr "Économies"
 
-#: webshop/public/js/product_ui/views.js:105
 #: webshop/templates/includes/macros.html:422
 #: webshop/templates/includes/macros.html:513
 #: webshop/www/all-products/index.html:75
@@ -2847,8 +3221,7 @@ msgstr "Tags de recherche"
 msgid "Search and SEO"
 msgstr "Recherche et SEO"
 
-#: webshop/templates/generators/item_group.html:86
-#: webshop/templates/includes/search_box.html:5
+#: webshop/templates/generators/item_group.html:98
 #: webshop/www/all-products/index.html:76
 msgid "Search for Products"
 msgstr "Rechercher des produits"
@@ -2869,7 +3242,7 @@ msgstr "Voir toutes les marques"
 msgid "See all item groups"
 msgstr "Voir tous les groupes d'articles"
 
-#: webshop/templates/pages/checkout.html:364
+#: webshop/templates/pages/checkout.html:368
 msgid "See full page"
 msgstr "Voir la page complète"
 
@@ -2899,8 +3272,8 @@ msgstr "Sélectionner la variante pour {0}"
 msgid "Select Warehouse"
 msgstr "Sélectionner l'entrepôt"
 
-#: webshop/templates/pages/checkout.html:162
-#: webshop/templates/pages/checkout.html:258
+#: webshop/templates/pages/checkout.html:166
+#: webshop/templates/pages/checkout.html:262
 msgid "Select a country"
 msgstr "Sélectionner un pays"
 
@@ -2915,10 +3288,6 @@ msgstr "Envoyer"
 #: webshop/public/js/auth_dialog.js:116
 msgid "Send login link"
 msgstr "Envoyer le lien de connexion"
-
-#: webshop/webshop/page_renderers/maintenance_renderer.py:30
-msgid "Service temporarily unavailable due to maintenance"
-msgstr "Service temporairement indisponible pour maintenance"
 
 #: webshop/templates/includes/cart/cart_address.html:201
 msgid "Set Address"
@@ -2937,18 +3306,30 @@ msgstr "Définir l'adresse de livraison ou de facturation"
 msgid "Set Tax Rule for shopping cart"
 msgstr "Définir la règle fiscale pour le panier"
 
-#: webshop/templates/pages/checkout.html:200
+#: webshop/www/my_addresses.html:74
+msgid "Set as primary address"
+msgstr "Définir comme adresse principale"
+
+#: webshop/www/my_addresses.html:80
+msgid "Set as shipping address"
+msgstr "Définir comme adresse de livraison"
+
+#. Label of a Section Break field in DocType 'WebshopSI Settings'
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
+msgid "Settings"
+msgstr "Paramètres"
+
+#: webshop/templates/pages/checkout.html:204
 msgid "Ship to a different address?"
 msgstr "Livrer à une adresse différente ?"
 
-#: webshop/templates/pages/checkout.html:24
-#: webshop/templates/payments/wallee.py:178
+#: webshop/templates/pages/checkout.html:28 webshop/www/my_addresses.html:110
 msgid "Shipping"
 msgstr "Livraison"
 
 #: webshop/templates/includes/cart/cart_address.html:9
 #: webshop/templates/includes/cart/cart_address_picker.html:2
-#: webshop/templates/pages/checkout.html:194
+#: webshop/templates/pages/checkout.html:198
 #: webshop/templates/pages/checkout.js:684
 #: webshop/templates/pages/checkout_b2b.html:31
 #: webshop/templates/pages/thank_you.html:54
@@ -2985,7 +3366,7 @@ msgstr "Code postal de livraison"
 msgid "Shipping method required"
 msgstr "Méthode de livraison requise"
 
-#: webshop/templates/pages/checkout.py:544
+#: webshop/templates/pages/checkout.py:550
 msgid "Shipping to {0}"
 msgstr "Livraison vers {0}"
 
@@ -3087,7 +3468,7 @@ msgstr "Afficher les erreurs"
 msgid "Show less"
 msgstr "Afficher moins"
 
-#: webshop/templates/pages/checkout.html:361
+#: webshop/templates/pages/checkout.html:365
 #: webshop/templates/pages/checkout.js:757
 msgid "Show more"
 msgstr "Afficher plus"
@@ -3096,7 +3477,7 @@ msgstr "Afficher plus"
 msgid "Show only items in stock"
 msgstr "Afficher uniquement les articles en stock"
 
-#: webshop/templates/generators/item_group.html:99
+#: webshop/templates/generators/item_group.html:111
 #: webshop/www/all-products/index.html:89
 msgid "Show only products with discount"
 msgstr "Afficher uniquement les produits en promotion"
@@ -3105,9 +3486,14 @@ msgstr "Afficher uniquement les produits en promotion"
 msgid "Show successful imports"
 msgstr "Afficher les importations réussies"
 
-#: webshop/public/js/auth_dialog.js:618
+#: webshop/public/js/auth_dialog.js:618 webshop/public/js/auth_dialog.js:801
 msgid "Sign in"
 msgstr "Se connecter"
+
+#: webshop/templates/payments/webshopsi.html:46
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:43
+msgid "Single payment"
+msgstr "Paiement unique"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:34
 msgid "Sitemap"
@@ -3138,7 +3524,7 @@ msgstr "Une erreur s'est produite !"
 msgid "Something went wrong. Check {0}"
 msgstr "Une erreur s'est produite. Vérifiez {0}"
 
-#: webshop/templates/generators/item_group.html:97
+#: webshop/templates/generators/item_group.html:109
 #: webshop/www/all-products/index.html:87
 msgid "Something went wrong. Please refresh or contact us."
 msgstr "Une erreur s'est produite. Veuillez rafraîchir la page ou nous contacter."
@@ -3147,7 +3533,7 @@ msgstr "Une erreur s'est produite. Veuillez rafraîchir la page ou nous contacte
 msgid "Sorry, something went wrong. Please refresh."
 msgstr "Désolé, une erreur s'est produite. Veuillez rafraîchir la page."
 
-#: webshop/templates/generators/item_group.html:87
+#: webshop/templates/generators/item_group.html:99
 #: webshop/www/all-products/index.html:77
 msgid "Sort by:"
 msgstr "Trier par :"
@@ -3158,9 +3544,13 @@ msgid "Start Shopping"
 msgstr "Commencer vos achats"
 
 #: webshop/templates/includes/cart/cart_address.html:99
-#: webshop/templates/pages/checkout.html:146
-#: webshop/templates/pages/checkout.html:244
+#: webshop/templates/pages/checkout.html:150
+#: webshop/templates/pages/checkout.html:248
 msgid "State"
+msgstr "État/Région"
+
+#: webshop/www/my_addresses.html:48
+msgid "State/Region"
 msgstr "État/Région"
 
 #: webshop/templates/pages/thank_you.html:36
@@ -3218,7 +3608,6 @@ msgstr "Validé"
 msgid "Submitting Review ..."
 msgstr "Envoi de l'avis..."
 
-#: webshop/templates/includes/cart_component.html:42
 #: webshop/templates/pages/cart.html:27
 #: webshop/templates/pages/thank_you.html:123
 msgid "Subtotal"
@@ -3232,7 +3621,7 @@ msgstr "Succès !"
 msgid "Successful"
 msgstr "Réussi"
 
-#: webshop/public/js/auth_dialog.js:824 webshop/public/js/auth_dialog.js:848
+#: webshop/public/js/auth_dialog.js:838 webshop/public/js/auth_dialog.js:862
 msgid "Successful connection!"
 msgstr "Connexion réussie !"
 
@@ -3244,10 +3633,15 @@ msgstr "{0} associations de produits calculées avec succès"
 #: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
 #: webshop/webshop/doctype/item_review/item_review.json
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
 #: webshop/webshop/doctype/website_item/website_item.json
 #: webshop/webshop/doctype/wishlist/wishlist.json
 msgid "System Manager"
 msgstr "Administrateur système"
+
+#: webshop/templates/payments/twint.html:68
+msgid "TWINT module not loaded — refresh the page"
+msgstr "Module TWINT non chargé — veuillez rafraîchir la page"
 
 #. Label of a Table field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
@@ -3258,9 +3652,9 @@ msgstr "Onglets"
 msgid "Tags"
 msgstr "Tags"
 
-#: webshop/templates/payments/wallee.py:187
-msgid "Taxes"
-msgstr "Taxes"
+#: webshop/templates/payments/wallee.py:66
+msgid "Tax"
+msgstr "Taxe"
 
 #: webshop/templates/pages/thank_you.html:129
 msgid "Taxes and Charges"
@@ -3276,7 +3670,9 @@ msgstr "Modèle"
 msgid "Template Path"
 msgstr "Chemin du modèle"
 
+#. Label of a Link field in DocType 'WebshopSI Settings'
 #: webshop/templates/pages/cart.html:77
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
 msgid "Terms and Conditions"
 msgstr "Conditions générales"
 
@@ -3344,6 +3740,10 @@ msgstr "Les points de fidélité ont été retirés pour mettre à jour la quant
 msgid "The loyalty points have been removed to update the cart"
 msgstr "Les points de fidélité ont été retirés pour mettre à jour le panier"
 
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:167
+msgid "The order amount does not match the criteria of the selected payment option"
+msgstr "Le montant de la commande ne correspond pas aux critères de l'option de paiement sélectionnée"
+
 #: webshop/public/js/override/item.js:41
 msgid "The product {0} has been published on the website."
 msgstr "Le produit {0} a été publié sur le site."
@@ -3361,31 +3761,33 @@ msgstr "La commande spécifiée n'existe pas."
 msgid "This bundle includes:"
 msgstr "Ce lot comprend :"
 
-#: webshop/webshop/shopping_cart/cart.py:2348
+#: webshop/webshop/shopping_cart/cart.py:2366
 msgid "This coupon code has expired"
 msgstr "Ce code promo a expiré"
 
-#: webshop/webshop/shopping_cart/cart.py:2332
+#: webshop/webshop/shopping_cart/cart.py:2350
 msgid "This coupon code has reached its maximum usage limit"
 msgstr "Ce code promo a atteint sa limite d'utilisation maximale"
 
-#: webshop/webshop/shopping_cart/cart.py:2345
+#: webshop/webshop/shopping_cart/cart.py:2363
 msgid "This coupon code is not yet valid"
 msgstr "Ce code promo n'est pas encore valide"
 
-#: webshop/webshop/shopping_cart/cart.py:2337
+#: webshop/webshop/auth/api.py:59
+msgid "This email is already linked to an administrator account. Please contact your administrator or use a different email."
+msgstr "Cet e-mail est déjà associé à un compte administrateur. Veuillez contacter votre administrateur ou utiliser une autre adresse e-mail."
+
+#: webshop/webshop/shopping_cart/cart.py:2355
 msgid "This gift card has already been used and cannot be applied again"
 msgstr "Cette carte cadeau a déjà été utilisée et ne peut pas être appliquée à nouveau"
 
 #: webshop/templates/payments/paypal.py:87
-#: webshop/templates/payments/wallee.py:112
 msgid "This order has already been paid"
 msgstr "Cette commande a déjà été payée"
 
 #: webshop/controllers/payment_handler.py:45
-#: webshop/controllers/payment_handler.py:349
+#: webshop/controllers/payment_handler.py:360
 #: webshop/templates/payments/paypal.py:33
-#: webshop/templates/payments/wallee.py:45
 msgid "This order has already been processed. Order ID: {0}"
 msgstr "Cette commande a déjà été traitée. N° de commande : {0}"
 
@@ -3400,6 +3802,11 @@ msgstr "Ceci va vider le cache du sitemap et forcer la regénération. Continuer
 msgid "Thumbnail"
 msgstr "Miniature"
 
+#. Label of a Data field in DocType 'WebshopSI Invoice Installments'
+#: webshop/webshop/doctype/webshopsi_invoice_installments/webshopsi_invoice_installments.json
+msgid "Title"
+msgstr "Titre"
+
 #: webshop/templates/generators/item/item_add_to_cart.html:182
 #: webshop/templates/generators/item/item_add_to_cart.html:219
 #: webshop/templates/generators/item/item_configure.js:202
@@ -3407,7 +3814,21 @@ msgstr "Miniature"
 msgid "To add to cart, please log in"
 msgstr "Pour ajouter au panier, veuillez vous connecter"
 
-#: webshop/templates/includes/cart_component.html:50
+#. Option for the 'Image Focus' (Select) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Top"
+msgstr "Haut"
+
+#. Option for the 'Image Focus' (Select) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Top Left"
+msgstr "Haut gauche"
+
+#. Option for the 'Image Focus' (Select) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Top Right"
+msgstr "Haut droite"
+
 #: webshop/templates/pages/thank_you.html:135
 msgid "Total"
 msgstr "Total"
@@ -3424,6 +3845,10 @@ msgstr "Montant total"
 msgid "Total rows"
 msgstr "Nombre de lignes"
 
+#: webshop/templates/payments/webshopsi.html:50
+msgid "Total:"
+msgstr "Total :"
+
 #: webshop/public/js/product_ui/search.js:254
 msgid "Try a different search term"
 msgstr "Essayez un autre terme de recherche"
@@ -3432,16 +3857,13 @@ msgstr "Essayez un autre terme de recherche"
 msgid "UOM"
 msgstr "Unité"
 
-#: webshop/templates/payments/wallee.py:234
-msgid "Unable to create Wallee transaction"
-msgstr "Impossible de créer la transaction Wallee"
-
 #: webshop/templates/payments/paypal.py:171
 msgid "Unable to obtain PayPal payment URL"
 msgstr "Impossible d'obtenir l'URL de paiement PayPal"
 
-#: webshop/webshop/maintenance.py:50 webshop/webshop/maintenance.py:128
-#: webshop/webshop/page_renderers/maintenance_renderer.py:76
+#: webshop/webshop/maintenance.py:50 webshop/webshop/maintenance.py:65
+#: webshop/webshop/maintenance.py:128
+#: webshop/webshop/page_renderers/maintenance_renderer.py:78
 #: webshop/www/maintenance.html:8
 msgid "Under Maintenance"
 msgstr "En maintenance"
@@ -3516,6 +3938,12 @@ msgstr "Valide jusqu'au"
 msgid "Validate Order"
 msgstr "Valider la commande"
 
+#: webshop/templates/payments/webshopsi.html:108
+#: webshop/templates/payments/webshopsi.html:398
+#: webshop/templates/payments/webshopsi.html:444
+msgid "Validate my order"
+msgstr "Valider ma commande"
+
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:230
 msgid "Validation Complete"
 msgstr "Validation terminée"
@@ -3560,6 +3988,7 @@ msgid "Veuillez sélectionner une méthode de livraison pour continuer"
 msgstr "Veuillez sélectionner une méthode de livraison pour continuer"
 
 #. Label of a Button field in DocType 'Homepage Featured Product'
+#: webshop/templates/payments/webshopsi.html:83
 #: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json
 #: webshop/webshop/doctype/website_item/website_item.js:13
 #: webshop/webshop/doctype/website_item/website_item.js:20
@@ -3567,7 +3996,6 @@ msgstr "Veuillez sélectionner une méthode de livraison pour continuer"
 msgid "View"
 msgstr "Voir"
 
-#: webshop/templates/includes/cart_component.html:80
 #: webshop/templates/includes/cart_component.js:1799
 msgid "View Cart"
 msgstr "Voir le panier"
@@ -3610,14 +4038,6 @@ msgstr "Voir dans le panier"
 #: webshop/templates/generators/item/item_add_to_cart.html:214
 msgid "View in Quote"
 msgstr "Voir dans le devis"
-
-#: webshop/templates/payments/wallee.py:154
-msgid "Wallee Integration is not enabled"
-msgstr "L'intégration Wallee n'est pas activée"
-
-#: webshop/templates/payments/wallee.py:79
-msgid "Wallee payment gateway not configured"
-msgstr "Passerelle de paiement Wallee non configurée"
 
 #. Label of a Section Break field in DocType 'Wishlist Item'
 #. Label of a Link field in DocType 'Wishlist Item'
@@ -3679,6 +4099,21 @@ msgstr "Cache de la boutique vidé avec succès"
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:273
 msgid "Webshop maintenance mode cannot be enabled without website maintenance mode"
 msgstr "Le mode maintenance de la boutique ne peut pas être activé sans le mode maintenance du site"
+
+#. Name of a DocType
+#: webshop/webshop/doctype/webshopsi_country/webshopsi_country.json
+msgid "WebshopSI Country"
+msgstr "Pays WebshopSI"
+
+#. Name of a DocType
+#: webshop/webshop/doctype/webshopsi_invoice_installments/webshopsi_invoice_installments.json
+msgid "WebshopSI Invoice Installments"
+msgstr "Versements de facture WebshopSI"
+
+#. Name of a DocType
+#: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
+msgid "WebshopSI Settings"
+msgstr "Paramètres WebshopSI"
 
 #. Label of a HTML Editor field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
@@ -3793,11 +4228,11 @@ msgstr "Nom d'affichage du site"
 msgid "Website maintenance mode has been automatically enabled"
 msgstr "Le mode maintenance du site a été activé automatiquement"
 
-#: webshop/templates/pages/checkout.py:454
+#: webshop/templates/pages/checkout.py:460
 msgid "Weight"
 msgstr "Poids"
 
-#: webshop/templates/pages/checkout.html:40
+#: webshop/templates/pages/checkout.html:44
 msgid "Welcome in checkout. Please fill in your information below."
 msgstr "Bienvenue au paiement. Veuillez remplir vos informations ci-dessous."
 
@@ -3805,7 +4240,12 @@ msgstr "Bienvenue au paiement. Veuillez remplir vos informations ci-dessous."
 msgid "Welcome to the B2B checkout process."
 msgstr "Bienvenue dans le processus de paiement B2B."
 
-#: webshop/templates/pages/checkout.py:466
+#. Description of the 'Image Focus' (Select) field in DocType 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Where the image anchors when 'Product Image Fit' is set to Cover in Webshop Settings. Pick the area that must stay visible when the image is cropped."
+msgstr "Zone d'ancrage de l'image quand l'ajustement est « Remplir » dans les paramètres de la boutique. Choisissez la zone qui doit rester visible lors du recadrage."
+
+#: webshop/templates/pages/checkout.py:472
 msgid "Width"
 msgstr "Largeur"
 
@@ -3882,17 +4322,21 @@ msgstr "Vous ne pouvez pas utiliser un code promo lorsque des points de fidélit
 msgid "You cannot use loyalty points when a promo code is applied"
 msgstr "Vous ne pouvez pas utiliser les points de fidélité lorsqu'un code promo est appliqué"
 
-#: webshop/webshop/shopping_cart/cart.py:2529
+#: webshop/webshop/shopping_cart/cart.py:2549
 msgid "You do not have an active loyalty program"
 msgstr "Vous n'avez pas de programme de fidélité actif"
 
-#: webshop/webshop/shopping_cart/cart.py:2541
+#: webshop/webshop/shopping_cart/cart.py:2561
 msgid "You do not have enough loyalty points ({0} points available)"
 msgstr "Vous n'avez pas assez de points de fidélité ({0} points disponibles)"
 
 #: webshop/templates/pages/gift_cards.html:22
 msgid "You don't have any gift cards in your account."
 msgstr "Vous n'avez aucune carte cadeau dans votre compte."
+
+#: webshop/www/my_addresses.html:138
+msgid "You don't have any saved addresses yet."
+msgstr "Vous n'avez pas encore d'adresses enregistrées."
 
 #: webshop/webshop/utils/import_gift_cards.py:148
 msgid "You don't have permission to create gift cards"
@@ -3905,6 +4349,14 @@ msgstr "Vous n'avez pas la permission de modifier les groupes d'articles"
 #: webshop/templates/includes/coupon_form.html:4
 msgid "You have a coupon code or gift card?"
 msgstr "Vous avez un code promo ou une carte cadeau ?"
+
+#: webshop/templates/payments/webshopsi.html:310
+msgid "You must be at least"
+msgstr "Vous devez avoir au moins"
+
+#: webshop/templates/payments/webshopsi.html:18
+msgid "You must be at least {0} years old to order"
+msgstr "Vous devez avoir au moins {0} ans pour passer commande"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:363
 msgid "You need to enable Shopping Cart"
@@ -3919,10 +4371,6 @@ msgstr "Vous voulez utiliser vos points de fidélité ?"
 msgid "You will be redirected to your orders in a few seconds..."
 msgstr "Vous serez redirigé vers vos commandes dans quelques secondes..."
 
-#: webshop/templates/includes/cart_component.html:26
-msgid "Your Cart"
-msgstr "Votre panier"
-
 #: webshop/templates/pages/gift_cards.html:43
 msgid "Your Gift Cards"
 msgstr "Vos cartes cadeaux"
@@ -3931,17 +4379,13 @@ msgstr "Vos cartes cadeaux"
 msgid "Your Review"
 msgstr "Votre avis"
 
-#: webshop/templates/pages/checkout.py:618
-#: webshop/templates/pages/checkout.py:816
+#: webshop/templates/pages/checkout.py:624
+#: webshop/templates/pages/checkout.py:822
 msgid "Your basket is empty"
 msgstr "Votre panier est vide"
 
 #: webshop/templates/pages/cart.html:111
 msgid "Your cart is Empty"
-msgstr "Votre panier est vide"
-
-#: webshop/templates/includes/cart_component.html:34
-msgid "Your cart is empty"
 msgstr "Votre panier est vide"
 
 #: webshop/templates/pages/thank_you.html:107
@@ -3960,7 +4404,7 @@ msgstr "Vos codes de carte cadeau seront disponibles une fois la facture payée 
 msgid "Your guest cart has been assigned to your account"
 msgstr "Votre panier invité a été attribué à votre compte"
 
-#: webshop/templates/pages/checkout.html:44
+#: webshop/templates/pages/checkout.html:48
 msgid "Your information"
 msgstr "Vos informations"
 
@@ -3984,7 +4428,11 @@ msgstr "Votre commande sera traitée selon les paramètres de votre compte B2B."
 msgid "Your payment has been processed successfully. Redirecting..."
 msgstr "Votre paiement a été traité avec succès. Redirection..."
 
-#: webshop/templates/generators/item_group.html:105
+#: webshop/webshop/shopping_cart/cart.py:405
+msgid "amount used in order from quotation"
+msgstr "montant utilisé dans la commande depuis le devis"
+
+#: webshop/templates/generators/item_group.html:117
 #: webshop/www/all-products/index.html:95
 msgid "available"
 msgstr "disponible"
@@ -3992,6 +4440,20 @@ msgstr "disponible"
 #: webshop/templates/pages/gift_cards.html:49
 msgid "card(s)"
 msgstr "carte(s)"
+
+#: webshop/www/my_addresses.html:25
+msgid "e.g., Home, Office"
+msgstr "ex. : Domicile, Bureau"
+
+#: webshop/webshop/shopping_cart/cart.py:717
+#: webshop/webshop/shopping_cart/cart.py:719
+msgid "for order"
+msgstr "pour la commande"
+
+#: webshop/webshop/shopping_cart/cart.py:457
+#: webshop/webshop/shopping_cart/cart.py:459
+msgid "for order from quotation"
+msgstr "pour la commande depuis le devis"
 
 #: webshop/webshop/shopping_cart/product_info.py:242
 #: webshop/webshop/shopping_cart/product_info.py:243
@@ -4018,7 +4480,7 @@ msgstr "maintenance"
 msgid "new_arrivals"
 msgstr "nouveautes"
 
-#: webshop/templates/generators/item_group.html:94
+#: webshop/templates/generators/item_group.html:106
 #: webshop/www/all-products/index.html:84
 msgid "of"
 msgstr "sur"
@@ -4026,6 +4488,10 @@ msgstr "sur"
 #: webshop/public/js/auth_dialog.js:116
 msgid "or"
 msgstr "ou"
+
+#: webshop/templates/payments/webshopsi.html:48
+msgid "payments of"
+msgstr "versements de"
 
 #: webshop/templates/includes/cart/cart_payment_summary.html:52
 #: webshop/templates/includes/order_summary.html:140
@@ -4035,7 +4501,6 @@ msgid "points"
 msgstr "points"
 
 #: webshop/templates/includes/cart/cart_payment_summary.html:77
-#: webshop/templates/includes/cart_component.html:65
 #: webshop/templates/includes/order_summary.html:179
 msgid "points worth"
 msgstr "points d'une valeur de"
@@ -4056,7 +4521,7 @@ msgstr "prix_croissant"
 msgid "product"
 msgstr "produit"
 
-#: webshop/templates/generators/item_group.html:95
+#: webshop/templates/generators/item_group.html:107
 #: webshop/templates/includes/brand_carousel.html:94
 #: webshop/www/all-products/index.html:85
 msgid "products"
@@ -4086,7 +4551,10 @@ msgstr "secondes"
 #: webshop/templates/pages/checkout.js:2145
 #: webshop/templates/payments/paypal.html:20
 #: webshop/templates/payments/stripe.html:25
+#: webshop/templates/payments/twint.html:10
 #: webshop/templates/payments/wallee.html:24
+#: webshop/templates/payments/webshopsi.html:94
+#: webshop/templates/payments/webshopsi.html:96
 msgid "terms and conditions"
 msgstr "conditions générales"
 
@@ -4094,6 +4562,22 @@ msgstr "conditions générales"
 #: webshop/templates/pages/thank_you.html:158
 msgid "to"
 msgstr "à"
+
+#: webshop/webshop/shopping_cart/cart.py:457
+#: webshop/webshop/shopping_cart/cart.py:459
+#: webshop/webshop/shopping_cart/cart.py:3026
+#: webshop/webshop/shopping_cart/cart.py:3028
+msgid "transferred to card"
+msgstr "transféré vers la carte"
+
+#: webshop/webshop/shopping_cart/cart.py:717
+#: webshop/webshop/shopping_cart/cart.py:719
+msgid "transferred to new card"
+msgstr "transféré vers la nouvelle carte"
+
+#: webshop/templates/payments/webshopsi.html:310
+msgid "years old to order"
+msgstr "ans pour passer commande"
 
 #: webshop/webshop/shopping_cart/cart.py:529
 msgid "{0} Not in Stock"
@@ -4118,4 +4602,8 @@ msgstr "{0} articles trouvés."
 #: webshop/webshop/product_data_engine/filters.py:313
 msgid "{0}% and below"
 msgstr "{0}% et moins"
+
+#: webshop/templates/payments/webshopsi.html:163
+msgid "{{ payment_context.terms_title }}"
+msgstr "{{ payment_context.terms_title }}"
 
