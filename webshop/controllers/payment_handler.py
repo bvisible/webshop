@@ -293,11 +293,24 @@ class PaymentHandler:
             payment_request.db_set('reference_doctype', 'Sales Order', update_modified=False)
             payment_request.db_set('reference_name', sales_order_name, update_modified=False)
         
-            # 4. Call on_payment_authorized on Payment Request
+            # 4. Mark the Payment Request as paid.
+            #    ERPNext's Payment Request no longer exposes
+            #    ``on_payment_authorized`` (it was removed in a recent upgrade),
+            #    so the previous ``run_method("on_payment_authorized", ...)``
+            #    became a SILENT no-op — the PR stayed "Requested" forever even
+            #    though the PSP (Stripe / Wallee / TWINT) had captured the money.
+            #    The payment itself is tracked on the Payment Intent; the
+            #    created Sales Order drives downstream invoicing/delivery. Here
+            #    we only need the PR to reflect Paid (same end state as the old
+            #    on_payment_authorized -> set_as_paid for "Phone" channel).
             try:
-                payment_request.run_method("on_payment_authorized", "Completed")
+                if payment_request.status not in ("Paid", "Completed"):
+                    payment_request.db_set(
+                        {"status": "Paid", "outstanding_amount": 0},
+                        update_modified=False,
+                    )
             except Exception as e:
-                frappe.log_error("Error executing on_payment_authorized on Payment Request", e)
+                frappe.log_error("Error marking Payment Request as paid", f"{e}\n{frappe.get_traceback()}")
                 return self.handle_error(str(e))
             
             # Build default success URL
