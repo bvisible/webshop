@@ -213,7 +213,21 @@ class PaymentHandler:
                         "message": _("Payment already processed")
                     }
                 return {"status": "success", "message": _("Payment already processed")}
-            
+
+            # Concurrent-finalize guard: a second call (e.g. the TWINT poller
+            # racing the consumer redirect / simulate) can arrive after the
+            # first one already swapped the PR reference from the Quotation to
+            # the created Sales Order. In that case the order is being
+            # finalised by the other call — treat it as already processed
+            # instead of trying to load the Sales Order name as a Quotation
+            # (which would raise "Quotation <SO> not found").
+            if payment_request.reference_doctype == "Sales Order":
+                return {
+                    "status": "success",
+                    "redirect_to": f"/thank_you?sales_order={payment_request.reference_name}",
+                    "message": _("Payment already processed")
+                }
+
             # 1. Get quotation
             quotation = frappe.get_doc("Quotation", payment_request.reference_name)
             quotation.flags.ignore_permissions = True
