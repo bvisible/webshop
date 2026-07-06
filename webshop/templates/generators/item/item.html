@@ -20,6 +20,33 @@
 				{% include "templates/generators/item/item_details.html" %}
 			</div>
 			
+<style>
+	/* Product page: harmonized section styling */
+	.product-section-title {
+		font-size: 1.25rem;
+		font-weight: 600;
+		margin: 8px 0 14px;
+		color: #111827;
+	}
+	.product-long-description-section { margin: 4px 0 28px; }
+	.product-long-description {
+		line-height: 1.7;
+		color: #374151;
+		max-width: 100%;
+	}
+	.product-long-description img { max-width: 100%; height: auto; border-radius: 8px; }
+	.product-long-description table { max-width: 100%; }
+	.product-long-description iframe { max-width: 100%; }
+	/* Bottom sections: consistent headings */
+	.recommended-item-section > h2, .recommended-item-section > h3, .recommended-item-section > div:first-child > h2,
+	.frequently-bought-section h2, .frequently-bought-section h3,
+	.product-container h2, .product-container h3.section-title {
+		font-size: 1.25rem !important;
+		font-weight: 600 !important;
+		color: #111827;
+	}
+	.recommendations-wrapper a:hover { text-decoration: none; }
+</style>
 			<!-- Long description: full page width, right after the image row -->
 			{% if frappe.utils.strip_html(doc.web_long_description or '') %}
 			<div class="row">
@@ -186,31 +213,3 @@
 	})();
 </script>
 {% endblock %}
-
-<style>
-	/* Product page: harmonized section styling */
-	.product-section-title {
-		font-size: 1.25rem;
-		font-weight: 600;
-		margin: 8px 0 14px;
-		color: #111827;
-	}
-	.product-long-description-section { margin: 4px 0 28px; }
-	.product-long-description {
-		line-height: 1.7;
-		color: #374151;
-		max-width: 100%;
-	}
-	.product-long-description img { max-width: 100%; height: auto; border-radius: 8px; }
-	.product-long-description table { max-width: 100%; }
-	.product-long-description iframe { max-width: 100%; }
-	/* Bottom sections: consistent headings */
-	.recommended-item-section > h2, .recommended-item-section > h3, .recommended-item-section > div:first-child > h2,
-	.frequently-bought-section h2, .frequently-bought-section h3,
-	.product-container h2, .product-container h3.section-title {
-		font-size: 1.25rem !important;
-		font-weight: 600 !important;
-		color: #111827;
-	}
-	.recommendations-wrapper a:hover { text-decoration: none; }
-</style>
