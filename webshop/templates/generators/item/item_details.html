@@ -21,6 +21,15 @@
 		{% endif %}
 	</div>
 
+	<!-- breadcrumbs under the title (moved from the top of the page) -->
+	<div class="item-breadcrumbs small text-muted product-title-breadcrumbs">
+		{% include "templates/includes/breadcrumbs.html" %}
+	</div>
+	<style>
+		.product-title-breadcrumbs { margin: 2px 0 10px; }
+		.product-title-breadcrumbs .breadcrumb { padding: 0; margin: 0; background: transparent; font-size: 0.78rem; }
+	</style>
+
 	<div itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
 	</div>
 
