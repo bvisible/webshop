@@ -154,7 +154,7 @@
 			};
 			if (!entry.route) return;
 			const priceEl = document.querySelector('.product-price');
-			if (priceEl) entry.price = ((priceEl.childNodes[0] && priceEl.childNodes[0].textContent) || priceEl.textContent || '').trim().slice(0, 24);
+			if (priceEl) entry.price = priceEl.textContent.trim().split('\n')[0].trim().slice(0, 24);
 			let list = JSON.parse(localStorage.getItem(KEY) || '[]');
 			list = list.filter(i => i && i.code !== entry.code);
 			list.unshift(entry);
@@ -163,7 +163,7 @@
 			setTimeout(function() {
 				try {
 					const el = document.querySelector('.product-price');
-					const p = el ? ((el.childNodes[0] && el.childNodes[0].textContent) || '').trim().slice(0, 24) : '';
+					const p = el ? el.textContent.trim().split('\n')[0].trim().slice(0, 24) : '';
 					if (!p) return;
 					const l2 = JSON.parse(localStorage.getItem(KEY) || '[]');
 					const idx = l2.findIndex(i => i && i.code === entry.code);
