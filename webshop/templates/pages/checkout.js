@@ -2346,6 +2346,14 @@ frappe.ready(function() {
                 },
                 callback: (r) => {
                     if (!r.error && r.message) {
+                        // Server-side failures come back as {error: true, message} inside
+                        // r.message — without this guard `r.message.html` is undefined and
+                        // gets coerced into a literal "undefined" in the form container.
+                        if (r.message.error) {
+                            console.error("Payment template error:", r.message.message);
+                            $form.html(`<div class="alert alert-danger">${r.message.message || __("Unable to load this payment method")}</div>`);
+                            return;
+                        }
                         try {
                             // Cleanup old gateway instances if they exist
                             if (window[`destroy${method.id}Gateway`]) {
