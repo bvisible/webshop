@@ -1618,23 +1618,33 @@ frappe.ready(function() {
                     </tr>`;
             }
 
-            // 2. Taxes
+            // 2. Taxes — customer-friendly labels: drop account codes ("22007 - ...")
+            // and internal ids ("Economy_2kg"), keep the "TVA x%" segment for VAT
+            // rows and merge them by rate (matches the cart/drawer summaries).
             if (doc.taxes) {
+                const mergedTaxes = {};
                 for (const tax of doc.taxes) {
-                    if (tax.tax_amount > 0) {
-                        const formattedTaxAmount = await this.format_currency_value(tax.tax_amount, doc.currency);
-                        // Format tax description to show only text before % character if % exists
-                        let taxDescription = tax.description;
-                        if (taxDescription.includes('%')) {
-                            taxDescription = taxDescription.split('%')[0] + '%';
-                        }
-                        
-                        summaryHtml += `
-                            <tr>
-                                <td class="bill-label">${taxDescription}</td>
-                                <td class="bill-content text-right">${formattedTaxAmount}</td>
-                            </tr>`;
+                    if (!(tax.tax_amount > 0)) continue;
+                    const raw = tax.description || 'Tax';
+                    const parts = raw.split(' - ').filter(p => p.trim() && !/^\d+$/.test(p.trim()) && !p.includes('_'));
+                    let label = parts.length ? parts.join(' - ') : raw;
+                    let key = label;
+                    const pct = parts.find(p => p.includes('%'));
+                    if (pct) {
+                        label = pct.trim();
+                        const m = label.match(/(\d+(?:\.\d+)?)\s*%/);
+                        if (m) key = 'vat-' + m[1];
                     }
+                    if (mergedTaxes[key]) mergedTaxes[key].amount += tax.tax_amount;
+                    else mergedTaxes[key] = { label: label, amount: tax.tax_amount };
+                }
+                for (const row of Object.values(mergedTaxes)) {
+                    const formattedTaxAmount = await this.format_currency_value(row.amount, doc.currency);
+                    summaryHtml += `
+                        <tr>
+                            <td class="bill-label">${row.label}</td>
+                            <td class="bill-content text-right">${formattedTaxAmount}</td>
+                        </tr>`;
                 }
             }
 
