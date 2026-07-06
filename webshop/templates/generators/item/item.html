@@ -57,6 +57,9 @@
 
 	/* ---- Distinct card blocks (gallery / buy box / description / info) ---- */
 	body.product-page { background: #eef0f4; }
+	/* the legacy page wrapper painted the whole product page white, hiding the
+	   gray background between the cards */
+	body.product-page .product-container.item-main { background: transparent !important; box-shadow: none !important; border: none !important; }
 	.product-hero-row { row-gap: 20px; }
 	.product-hero-row > .product-image-wrapper,
 	.product-hero-row > .product-details {

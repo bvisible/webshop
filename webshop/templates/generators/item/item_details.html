@@ -26,8 +26,16 @@
 		{% include "templates/includes/breadcrumbs.html" %}
 	</div>
 	<style>
-		.product-title-breadcrumbs { margin: 2px 0 10px; }
-		.product-title-breadcrumbs .breadcrumb { padding: 0; margin: 0; background: transparent; font-size: 0.78rem; }
+		/* hug the title: kill the title's bottom spacing and keep the trail tight */
+		.product-details > .d-flex { margin-bottom: 0 !important; }
+		.product-details .product-title { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+		.product-title-breadcrumbs { margin: 2px 0 14px; }
+		.product-title-breadcrumbs .breadcrumb,
+		.product-title-breadcrumbs ol,
+		.product-title-breadcrumbs ul { padding: 0 !important; margin: 0 !important; background: transparent !important; font-size: 0.78rem; justify-content: flex-start !important; }
+		/* the last segment repeats the product title right above it */
+		.product-title-breadcrumbs .breadcrumb li:last-child,
+		.product-title-breadcrumbs .breadcrumb-item:last-child { display: none; }
 	</style>
 
 	<div itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
