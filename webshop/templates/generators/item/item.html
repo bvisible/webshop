@@ -15,7 +15,7 @@
 	<div class="item-content">
 		<div class="product-page-content" itemscope itemtype="http://schema.org/Product">
 			<!-- Image, Description, Add to Cart -->
-			<div class="row mb-5">
+			<div class="row mb-5 product-hero-row">
 				{% include "templates/generators/item/item_image.html" %}
 				{% include "templates/generators/item/item_details.html" %}
 			</div>
@@ -56,6 +56,41 @@
 	.product-info-wrapper .ratings-reviews-section { margin-top: 0 !important; }
 	.product-info-wrapper .carousel-header { margin: 0 !important; padding: 0 !important; }
 	.recommendations-wrapper a:hover { text-decoration: none; }
+
+	/* ---- Distinct card blocks (gallery / buy box / description / info) ---- */
+	body.product-page { background: #f6f7f9; }
+	.product-hero-row { row-gap: 20px; }
+	.product-hero-row > .product-image-wrapper,
+	.product-hero-row > .product-details {
+		background: #fff;
+		border: 1px solid #ebedf0;
+		border-radius: 14px;
+		padding: 24px !important;
+		margin-bottom: 0 !important;
+	}
+	@media (min-width: 768px) {
+		.product-hero-row { display: flex; flex-wrap: nowrap; gap: 20px; }
+		.product-hero-row > .product-image-wrapper { flex: 0 0 calc(48% - 10px) !important; max-width: none !important; }
+		.product-hero-row > .product-details { flex: 1 1 auto !important; max-width: none !important; width: auto !important; }
+	}
+	.product-long-description-section {
+		background: #fff;
+		border: 1px solid #ebedf0;
+		border-radius: 14px;
+		padding: 24px 28px;
+		margin: 20px 0 28px;
+	}
+	.product-info-wrapper .product-container {
+		background: #fff;
+		border: 1px solid #ebedf0;
+		border-radius: 14px;
+		padding: 24px 28px;
+	}
+	.product-info-wrapper .frequently-bought-section .recommendation-container,
+	.product-info-wrapper .frequently-bought-section > div {
+		background: #fff;
+		border-radius: 14px;
+	}
 </style>
 			<!-- Long description: full page width, right after the image row -->
 			{% if frappe.utils.strip_html(doc.web_long_description or '') %}
