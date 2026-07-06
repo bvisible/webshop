@@ -86,7 +86,7 @@
 					/* Keep recently-viewed as the LAST sidebar block, even though the
 					   discount filter is injected later by JS (flex order beats DOM order). */
 					@media (min-width: 768px) {
-						#product-filters { display: flex; flex-direction: column; }
+						#product-filters { display: flex !important; flex-direction: column; } /* beats bootstrap d-md-block */
 						#recently-viewed-block { order: 999; }
 					}
 					#recently-viewed-items .rv-card{display:flex;align-items:center;gap:10px;padding:6px 0;text-decoration:none;color:inherit}
