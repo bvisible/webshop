@@ -107,7 +107,9 @@
   "redirect_to_login",
   "column_break_maintenance",
   "maintenance_message",
-  "maintenance_end_time"
+  "maintenance_end_time",
+  "trust_badges_section",
+  "trust_items"
  ],
  "fields": [
   {
@@ -767,6 +769,19 @@
    "fieldname": "allow_system_users_during_maintenance",
    "fieldtype": "Check",
    "label": "Allow System Users During Maintenance"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "trust_badges_section",
+   "fieldtype": "Section Break",
+   "label": "Trust Badges"
+  },
+  {
+   "description": "Shown in the product page buy box, under the Add to Cart button. Icon defaults to a check mark.",
+   "fieldname": "trust_items",
+   "fieldtype": "Table",
+   "label": "Trust Items",
+   "options": "Webshop Trust Item"
   }
  ],
  "index_web_pages_for_search": 1,
