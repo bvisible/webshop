@@ -1218,3 +1218,41 @@ def delete_address(address_name):
 	frappe.db.commit()
 
 	return {"success": True, "message": _("Address deleted successfully")}
+
+@frappe.whitelist(allow_guest=True)
+def get_cart_recommendations(item_codes=None, limit=4):
+	"""Frequently-bought-together suggestions for the cart drawer.
+
+	Takes the cart's item codes and returns up to `limit` related products
+	(pre-computed from 6 months of sales), excluding what's already in the cart.
+	"""
+	import json as _json
+
+	from webshop.webshop.utils.frequently_bought_together import get_frequently_bought_together
+
+	if isinstance(item_codes, str):
+		try:
+			item_codes = _json.loads(item_codes or "[]")
+		except ValueError:
+			item_codes = []
+	item_codes = [c for c in (item_codes or []) if c][:10]
+	if not item_codes:
+		return []
+
+	limit = min(int(limit or 4), 8)
+	seen, out = set(item_codes), []
+	for code in item_codes:
+		for it in get_frequently_bought_together(code, limit=limit):
+			if it.item_code in seen:
+				continue
+			seen.add(it.item_code)
+			out.append({
+				"item_code": it.item_code,
+				"name": it.web_item_name,
+				"route": it.route,
+				"image": it.website_image or it.thumbnail or "",
+				"price": it.get("formatted_price") or "",
+			})
+			if len(out) >= limit:
+				return out
+	return out

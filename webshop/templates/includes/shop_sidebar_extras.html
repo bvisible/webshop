@@ -1,0 +1,106 @@
+{# Shop sidebar extras: sticky sidebar, active-filter chips, live results counter.
+   Included at the end of the filters column (item_group + all-products). #}
+<style>
+	@media (min-width: 768px) {
+		#product-filters {
+			position: sticky;
+			top: 16px;
+			max-height: calc(100vh - 32px);
+			overflow-y: auto;
+			padding-right: 6px;
+		}
+	}
+	#active-filter-chips { display: none; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+	@media (min-width: 768px) { #active-filter-chips { order: -1; } }
+	#active-filter-chips.has-chips { display: flex; }
+	.afc-chip {
+		display: inline-flex; align-items: center; gap: 6px;
+		background: #1a1a1a; color: #fff; border-radius: 999px;
+		padding: 3px 10px; font-size: 0.75rem; line-height: 1.4; cursor: default;
+	}
+	.afc-chip button {
+		background: none; border: none; color: #fff; cursor: pointer;
+		font-size: 0.9rem; line-height: 1; padding: 0; opacity: 0.75;
+	}
+	.afc-chip button:hover { opacity: 1; }
+	#results-count-live { font-size: 0.8rem; color: #6b7280; font-weight: 400; margin-left: 8px; white-space: nowrap; }
+</style>
+<div id="active-filter-chips" aria-live="polite"></div>
+<script>
+(function() {
+	const pf = document.getElementById('product-filters');
+	if (!pf) return;
+
+	/* ---- live results counter (reads the listing API responses) ---- */
+	const title = pf.querySelector('.filters-title');
+	let counter = null;
+	if (title) {
+		counter = document.createElement('span');
+		counter.id = 'results-count-live';
+		title.appendChild(counter);
+	}
+	const productsWord = (window.product_translations && window.product_translations['products']) || 'produits';
+	function setCount(n) {
+		if (counter && typeof n === 'number') counter.textContent = '· ' + n + ' ' + productsWord;
+	}
+	try {
+		const origOpen = XMLHttpRequest.prototype.open;
+		XMLHttpRequest.prototype.open = function(method, url) {
+			this.__shopUrl = url || '';
+			return origOpen.apply(this, arguments);
+		};
+		const origSend = XMLHttpRequest.prototype.send;
+		XMLHttpRequest.prototype.send = function() {
+			if ((this.__shopUrl || '').indexOf('get_product_filter_data') > -1) {
+				this.addEventListener('load', function() {
+					try {
+						const m = JSON.parse(this.responseText).message || {};
+						const n = (typeof m.total_count === 'number') ? m.total_count : m.items_count;
+						if (typeof n === 'number') setCount(n);
+					} catch (e) {}
+				});
+			}
+			return origSend.apply(this, arguments);
+		};
+	} catch (e) {}
+
+	/* ---- active filter chips ---- */
+	const chipsBox = document.getElementById('active-filter-chips');
+	function labelFor(input) {
+		const lab = input.closest('label');
+		if (lab) return (lab.querySelector('.label-area') || lab).textContent.trim().split('\n')[0].trim().slice(0, 28);
+		const blockLab = input.closest('.filter-lookup-wrapper');
+		return blockLab ? blockLab.textContent.trim().slice(0, 28) : (input.dataset.filterValue || '');
+	}
+	function rebuildChips() {
+		if (!chipsBox) return;
+		const checked = [...pf.querySelectorAll('input[type="checkbox"]:checked')];
+		chipsBox.innerHTML = '';
+		checked.forEach(input => {
+			const chip = document.createElement('span');
+			chip.className = 'afc-chip';
+			const txt = document.createElement('span');
+			txt.textContent = labelFor(input);
+			const x = document.createElement('button');
+			x.type = 'button';
+			x.setAttribute('aria-label', 'Retirer');
+			x.textContent = '×';
+			x.addEventListener('click', function() {
+				input.checked = false;
+				input.dispatchEvent(new Event('change', { bubbles: true }));
+				setTimeout(rebuildChips, 50);
+			});
+			chip.appendChild(txt);
+			chip.appendChild(x);
+			chipsBox.appendChild(chip);
+		});
+		chipsBox.classList.toggle('has-chips', checked.length > 0);
+	}
+	pf.addEventListener('change', function(e) {
+		if (e.target && e.target.matches('input[type="checkbox"]')) setTimeout(rebuildChips, 50);
+	});
+	// filters restored from the URL by the listing bundle land after init
+	setTimeout(rebuildChips, 800);
+	setTimeout(rebuildChips, 2500);
+})();
+</script>

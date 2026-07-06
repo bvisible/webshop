@@ -56,6 +56,8 @@
 			
 			<!-- stock filter -->
 			{{ stock_filter_section(enable_stock_filter, stock_filter_default_checked) }}
+				{% include "templates/includes/shop_sidebar_extras.html" %}
+
 
 				<!-- recently viewed products (client-side, fed by the product page tracker) -->
 				<div class="mb-4 filter-block pb-5" id="recently-viewed-block" style="display: none;">
