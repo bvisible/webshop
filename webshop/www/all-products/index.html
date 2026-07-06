@@ -63,6 +63,12 @@
 					<div id="recently-viewed-items"></div>
 				</div>
 				<style>
+					/* Keep recently-viewed as the LAST sidebar block, even though the
+					   discount filter is injected later by JS (flex order beats DOM order). */
+					@media (min-width: 768px) {
+						#product-filters { display: flex; flex-direction: column; }
+						#recently-viewed-block { order: 999; }
+					}
 					#recently-viewed-items .rv-card{display:flex;align-items:center;gap:10px;padding:6px 0;text-decoration:none;color:inherit}
 					#recently-viewed-items .rv-card:hover{text-decoration:none;opacity:.8}
 					#recently-viewed-items .rv-card img,#recently-viewed-items .rv-card .rv-abbr{width:44px;height:44px;border-radius:6px;object-fit:cover;background:#f3f4f6;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-weight:600;font-size:.75rem;flex-shrink:0}
