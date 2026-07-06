@@ -544,6 +544,18 @@ def get_shipping_methods():
 				except:
 					pass
 			
+			# Final gate: dry-run the real ERPNext apply() so this list can never
+			# diverge from what applying the rule accepts later (the listing math
+			# above and ShippingRule.apply compute packing dimensions differently).
+			try:
+				probe = frappe.copy_doc(quotation)
+				probe.shipping_rule = rule.name
+				frappe.get_doc("Shipping Rule", rule.name).apply(probe)
+			except frappe.ValidationError:
+				continue
+			except Exception:
+				pass  # never block the listing on unexpected probe errors
+
 			available_methods.append({
 				"name": rule.name,
 				"title": rule.label or rule.name,
@@ -734,6 +746,15 @@ def get_payment_methods():
 				description = payment_gateway_account.checkout_description or ""
 				cart_info = get_cart_quotation()
 				quotation_doc = cart_info.get('doc')
+
+				# Hide installment-based methods entirely when the cart doesn't reach
+				# the smallest configured minimum (all options would be greyed out).
+				installments = (gateway_settings or {}).get("installments") or []
+				if installments and quotation_doc:
+					mins = [flt(i.get("min_amount")) for i in installments if flt(i.get("min_amount"))]
+					cart_amount = flt(quotation_doc.get("rounded_total") or quotation_doc.get("grand_total"))
+					if mins and len(mins) == len(installments) and cart_amount < min(mins):
+						continue
 				
 				# Utilisation sécurisée de mode_of_payment (sans logging d'erreur)
 				mode_of_payment = getattr(webshop_method, 'mode_of_payment', None)
