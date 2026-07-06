@@ -7,6 +7,7 @@
 			top: 16px;
 			max-height: calc(100vh - 32px);
 			overflow-y: auto;
+			overflow-x: hidden;
 			padding-right: 6px;
 		}
 	}
@@ -23,6 +24,26 @@
 		font-size: 0.9rem; line-height: 1; padding: 0; opacity: 0.75;
 	}
 	.afc-chip button:hover { opacity: 1; }
+	/* collapsible filter sections */
+	#product-filters .filter-block > .filter-label {
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		user-select: none;
+	}
+	#product-filters .filter-block > .filter-label::after {
+		content: "";
+		width: 8px; height: 8px;
+		border-right: 2px solid #9ca3af;
+		border-bottom: 2px solid #9ca3af;
+		transform: rotate(45deg);
+		transition: transform 0.15s ease;
+		margin-left: 8px; margin-top: -4px;
+		flex-shrink: 0;
+	}
+	#product-filters .filter-block.afc-collapsed > .filter-label::after { transform: rotate(-45deg); margin-top: 2px; }
+	#product-filters .filter-block.afc-collapsed > *:not(.filter-label) { display: none !important; }
 	#results-count-live { font-size: 0.8rem; color: #6b7280; font-weight: 400; margin-left: 8px; white-space: nowrap; }
 </style>
 <div id="active-filter-chips" aria-live="polite"></div>
@@ -112,5 +133,23 @@
 	// filters restored from the URL by the listing bundle land after init
 	setTimeout(rebuildChips, 800);
 	setTimeout(rebuildChips, 2500);
+
+	/* ---- collapsible sections (state remembered per label) ---- */
+	try {
+		const KEY = 'shop_sidebar_collapsed';
+		const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+		pf.querySelectorAll('.filter-block').forEach(function(block) {
+			const label = block.querySelector('.filter-label');
+			if (!label) return;
+			const id = label.textContent.trim().split('·')[0].trim().slice(0, 30);
+			if (saved[id]) block.classList.add('afc-collapsed');
+			label.addEventListener('click', function(e) {
+				if (e.target.closest('input,button,a')) return;
+				const collapsed = block.classList.toggle('afc-collapsed');
+				saved[id] = collapsed ? 1 : 0;
+				try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (err) {}
+			});
+		});
+	} catch (e) {}
 })();
 </script>
