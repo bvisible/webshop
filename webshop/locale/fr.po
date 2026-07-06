@@ -10,12 +10,12 @@ msgstr ""
 "POT-Creation-Date: 2026-05-28 13:52+0034\n"
 "PO-Revision-Date: 2025-12-15 15:24+0034\n"
 "Last-Translator: contact@frappe.io\n"
-"Language: fr\n"
 "Language-Team: contact@frappe.io\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "Generated-By: Babel 2.13.1\n"
 
 #: webshop/webshop/crud_events/tax_rule/validate_use_for_cart.py:28
@@ -35,12 +35,27 @@ msgid " Items)"
 msgstr " Articles)"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:305
-msgid "'Enable Attribute Filters' has been automatically disabled. These two features are mutually exclusive: Attribute filters allow customers to filter by variant attributes (like Size, Color), which requires variants to be visible."
-msgstr "« Activer les filtres d'attributs » a été automatiquement désactivé. Ces deux fonctionnalités sont mutuellement exclusives : les filtres d'attributs permettent aux clients de filtrer par attributs de variantes (comme Taille, Couleur), ce qui nécessite que les variantes soient visibles."
+msgid ""
+"'Enable Attribute Filters' has been automatically disabled. These two "
+"features are mutually exclusive: Attribute filters allow customers to filter"
+" by variant attributes (like Size, Color), which requires variants to be "
+"visible."
+msgstr ""
+"« Activer les filtres d'attributs » a été automatiquement désactivé. Ces "
+"deux fonctionnalités sont mutuellement exclusives : les filtres d'attributs "
+"permettent aux clients de filtrer par attributs de variantes (comme Taille, "
+"Couleur), ce qui nécessite que les variantes soient visibles."
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:316
-msgid "'Hide Variants' has been automatically disabled. These two features are mutually exclusive: Attribute filters allow customers to filter by variant attributes (like Size, Color), which requires variants to be visible."
-msgstr "« Masquer les variantes » a été automatiquement désactivé. Ces deux fonctionnalités sont mutuellement exclusives : les filtres d'attributs permettent aux clients de filtrer par attributs de variantes (comme Taille, Couleur), ce qui nécessite que les variantes soient visibles."
+msgid ""
+"'Hide Variants' has been automatically disabled. These two features are "
+"mutually exclusive: Attribute filters allow customers to filter by variant "
+"attributes (like Size, Color), which requires variants to be visible."
+msgstr ""
+"« Masquer les variantes » a été automatiquement désactivé. Ces deux "
+"fonctionnalités sont mutuellement exclusives : les filtres d'attributs "
+"permettent aux clients de filtrer par attributs de variantes (comme Taille, "
+"Couleur), ce qui nécessite que les variantes soient visibles."
 
 #: webshop/templates/pages/loyalty_points.html:46
 msgid "1 point = {0}"
@@ -48,30 +63,66 @@ msgstr "1 point = {0}"
 
 #. Content of the 'sitemap_info' (HTML) field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "<p>The sitemap is automatically generated and cached for 6 hours. You can access it at:</p><ul><li><a href=\"/sitemap_index.xml\" target=\"_blank\">/sitemap_index.xml</a> - Main sitemap index</li><li><a href=\"/sitemap.xml\" target=\"_blank\">/sitemap.xml</a> - All content</li><li><a href=\"/sitemap_products.xml\" target=\"_blank\">/sitemap_products.xml</a> - Products only</li><li><a href=\"/sitemap_categories.xml\" target=\"_blank\">/sitemap_categories.xml</a> - Categories only</li><li><a href=\"/sitemap_brands.xml\" target=\"_blank\">/sitemap_brands.xml</a> - Brands only</li><li><a href=\"/sitemap_blog.xml\" target=\"_blank\">/sitemap_blog.xml</a> - Blog posts only</li><li><a href=\"/sitemap_pages.xml\" target=\"_blank\">/sitemap_pages.xml</a> - Pages only</li></ul>"
-msgstr "<p>Le sitemap est généré automatiquement et mis en cache pendant 6 heures. Vous pouvez y accéder à :</p><ul><li><a href=\"/sitemap_index.xml\" target=\"_blank\">/sitemap_index.xml</a> - Index principal du sitemap</li><li><a href=\"/sitemap.xml\" target=\"_blank\">/sitemap.xml</a> - Tout le contenu</li><li><a href=\"/sitemap_products.xml\" target=\"_blank\">/sitemap_products.xml</a> - Produits uniquement</li><li><a href=\"/sitemap_categories.xml\" target=\"_blank\">/sitemap_categories.xml</a> - Catégories uniquement</li><li><a href=\"/sitemap_brands.xml\" target=\"_blank\">/sitemap_brands.xml</a> - Marques uniquement</li><li><a href=\"/sitemap_blog.xml\" target=\"_blank\">/sitemap_blog.xml</a> - Articles de blog uniquement</li><li><a href=\"/sitemap_pages.xml\" target=\"_blank\">/sitemap_pages.xml</a> - Pages uniquement</li></ul>"
+msgid ""
+"<p>The sitemap is automatically generated and cached for 6 hours. You can "
+"access it at:</p><ul><li><a href=\"/sitemap_index.xml\" "
+"target=\"_blank\">/sitemap_index.xml</a> - Main sitemap index</li><li><a "
+"href=\"/sitemap.xml\" target=\"_blank\">/sitemap.xml</a> - All "
+"content</li><li><a href=\"/sitemap_products.xml\" "
+"target=\"_blank\">/sitemap_products.xml</a> - Products only</li><li><a "
+"href=\"/sitemap_categories.xml\" "
+"target=\"_blank\">/sitemap_categories.xml</a> - Categories only</li><li><a "
+"href=\"/sitemap_brands.xml\" target=\"_blank\">/sitemap_brands.xml</a> - "
+"Brands only</li><li><a href=\"/sitemap_blog.xml\" "
+"target=\"_blank\">/sitemap_blog.xml</a> - Blog posts only</li><li><a "
+"href=\"/sitemap_pages.xml\" target=\"_blank\">/sitemap_pages.xml</a> - Pages"
+" only</li></ul>"
+msgstr ""
+"<p>Le sitemap est généré automatiquement et mis en cache pendant 6 heures. "
+"Vous pouvez y accéder à :</p><ul><li><a href=\"/sitemap_index.xml\" "
+"target=\"_blank\">/sitemap_index.xml</a> - Index principal du "
+"sitemap</li><li><a href=\"/sitemap.xml\" target=\"_blank\">/sitemap.xml</a> "
+"- Tout le contenu</li><li><a href=\"/sitemap_products.xml\" "
+"target=\"_blank\">/sitemap_products.xml</a> - Produits uniquement</li><li><a"
+" href=\"/sitemap_categories.xml\" "
+"target=\"_blank\">/sitemap_categories.xml</a> - Catégories "
+"uniquement</li><li><a href=\"/sitemap_brands.xml\" "
+"target=\"_blank\">/sitemap_brands.xml</a> - Marques uniquement</li><li><a "
+"href=\"/sitemap_blog.xml\" target=\"_blank\">/sitemap_blog.xml</a> - "
+"Articles de blog uniquement</li><li><a href=\"/sitemap_pages.xml\" "
+"target=\"_blank\">/sitemap_pages.xml</a> - Pages uniquement</li></ul>"
 
 #: webshop/webshop/shopping_cart/cart.py:3059
-msgid "A new gift card has been created with the remaining amount of {0}. Card code: {1}"
-msgstr "Une nouvelle carte cadeau a été créée avec le montant restant de {0}. Code de la carte : {1}"
+msgid ""
+"A new gift card has been created with the remaining amount of {0}. Card "
+"code: {1}"
+msgstr ""
+"Une nouvelle carte cadeau a été créée avec le montant restant de {0}. Code "
+"de la carte : {1}"
 
 #: webshop/controllers/payment_handler.py:337
 msgid "A system error occurred while processing payment failure"
-msgstr "Une erreur système s'est produite lors du traitement de l'échec du paiement"
+msgstr ""
+"Une erreur système s'est produite lors du traitement de l'échec du paiement"
 
 #: webshop/webshop/auth/api.py:113
 msgid "Account created successfully"
 msgstr "Compte créé avec succès"
 
 #: webshop/public/js/auth_dialog.js:707 webshop/public/js/auth_dialog.js:713
-msgid "Account created successfully! Please check your email to activate your account."
-msgstr "Compte créé avec succès ! Veuillez vérifier votre e-mail pour activer votre compte."
+msgid ""
+"Account created successfully! Please check your email to activate your "
+"account."
+msgstr ""
+"Compte créé avec succès ! Veuillez vérifier votre e-mail pour activer votre "
+"compte."
 
 #: webshop/templates/pages/loyalty_points.html:66
 msgid "Accumulate"
 msgstr "Accumuler"
 
-#: webshop/public/js/override/item.js:142 webshop/templates/pages/order.html:20
+#: webshop/public/js/override/item.js:142
+#: webshop/templates/pages/order.html:20
 msgid "Actions"
 msgstr "Actions"
 
@@ -251,7 +302,9 @@ msgstr "Autoriser les utilisateurs système pendant la maintenance"
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Allow customers to enter a custom amount for gift cards"
-msgstr "Permettre aux clients de saisir un montant personnalisé pour les cartes cadeaux"
+msgstr ""
+"Permettre aux clients de saisir un montant personnalisé pour les cartes "
+"cadeaux"
 
 #. Description of the 'Enable Gift Cards' (Check) field in DocType 'Webshop
 #. Settings'
@@ -273,8 +326,12 @@ msgstr "Permettre aux utilisateurs non connectés de créer un panier"
 #. Description of the 'Allow System Users During Maintenance' (Check) field in
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Allow users with System Manager or Website Manager roles to access the site during maintenance"
-msgstr "Permettre aux utilisateurs avec les rôles Administrateur système ou Gestionnaire de site d'accéder au site pendant la maintenance"
+msgid ""
+"Allow users with System Manager or Website Manager roles to access the site "
+"during maintenance"
+msgstr ""
+"Permettre aux utilisateurs avec les rôles Administrateur système ou "
+"Gestionnaire de site d'accéder au site pendant la maintenance"
 
 #: webshop/webshop/doctype/website_item/website_item.py:98
 #: webshop/webshop/doctype/website_item/website_item.py:787
@@ -319,8 +376,12 @@ msgid "An account already exists with this email. Please sign in instead."
 msgstr "Un compte existe déjà avec cet e-mail. Veuillez vous connecter."
 
 #: webshop/public/js/auth_dialog.js:956
-msgid "An email containing the connection link has been sent to you. Please check your inbox."
-msgstr "Un e-mail contenant le lien de connexion vous a été envoyé. Veuillez vérifier votre boîte de réception."
+msgid ""
+"An email containing the connection link has been sent to you. Please check "
+"your inbox."
+msgstr ""
+"Un e-mail contenant le lien de connexion vous a été envoyé. Veuillez "
+"vérifier votre boîte de réception."
 
 #: webshop/public/js/auth_dialog.js:804 webshop/public/js/auth_dialog.js:847
 #: webshop/templates/payments/webshopsi.html:414
@@ -338,7 +399,9 @@ msgstr "Une erreur s'est produite lors du traitement du paiement"
 
 #: webshop/webshop/auth/api.py:121
 msgid "An error occurred while creating your account. Please try again."
-msgstr "Une erreur s'est produite lors de la création de votre compte. Veuillez réessayer."
+msgstr ""
+"Une erreur s'est produite lors de la création de votre compte. Veuillez "
+"réessayer."
 
 #: webshop/templates/pages/checkout.js:2110
 msgid "An error occurred while loading payment methods"
@@ -353,8 +416,11 @@ msgid "An error occurred while sending the login link"
 msgstr "Une erreur s'est produite lors de l'envoi du lien de connexion"
 
 #: webshop/templates/pages/checkout.py:646
-msgid "An error occurred while updating the shipping method. Please try again."
-msgstr "Une erreur s'est produite lors de la mise à jour de la méthode de livraison. Veuillez réessayer."
+msgid ""
+"An error occurred while updating the shipping method. Please try again."
+msgstr ""
+"Une erreur s'est produite lors de la mise à jour de la méthode de livraison."
+" Veuillez réessayer."
 
 #: webshop/controllers/payment_handler.py:403
 #: webshop/controllers/payment_handler.py:465
@@ -382,14 +448,22 @@ msgstr "Êtes-vous sûr de vouloir supprimer cette adresse ?"
 
 #: webshop/templates/pages/checkout.js:563
 #: webshop/templates/pages/checkout.js:574
-msgid "Are you sure you want to leave this page? Your order has not been finalized."
-msgstr "Êtes-vous sûr de vouloir quitter cette page ? Votre commande n'a pas été finalisée."
+msgid ""
+"Are you sure you want to leave this page? Your order has not been finalized."
+msgstr ""
+"Êtes-vous sûr de vouloir quitter cette page ? Votre commande n'a pas été "
+"finalisée."
 
 #. Description of the 'Product Card Aspect Ratio' (Data) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Aspect ratio (width/height) of product cards. Only applied when fit is Cover. Examples: 1/1 (square), 3/4 (portrait), 4/3 (landscape)."
-msgstr "Ratio d'aspect (largeur/hauteur) des cartes produit. Appliqué uniquement quand l'ajustement est « Remplir ». Exemples : 1/1 (carré), 3/4 (portrait), 4/3 (paysage)."
+msgid ""
+"Aspect ratio (width/height) of product cards. Only applied when fit is "
+"Cover. Examples: 1/1 (square), 3/4 (portrait), 4/3 (landscape)."
+msgstr ""
+"Ratio d'aspect (largeur/hauteur) des cartes produit. Appliqué uniquement "
+"quand l'ajustement est « Remplir ». Exemples : 1/1 (carré), 3/4 (portrait), "
+"4/3 (paysage)."
 
 #: webshop/templates/pages/order.html:178
 msgid "Attachments"
@@ -406,8 +480,12 @@ msgstr "Aucune méthode de livraison disponible pour votre emplacement"
 
 #. Description of the 'Is Gift Card' (Check) field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
-msgid "Automatically set when this item is selected as gift card template in Webshop Settings"
-msgstr "Défini automatiquement lorsque cet article est sélectionné comme modèle de carte cadeau dans les paramètres de la boutique"
+msgid ""
+"Automatically set when this item is selected as gift card template in "
+"Webshop Settings"
+msgstr ""
+"Défini automatiquement lorsque cet article est sélectionné comme modèle de "
+"carte cadeau dans les paramètres de la boutique"
 
 #: webshop/templates/includes/macros.html:45
 msgid "Availability"
@@ -522,12 +600,26 @@ msgid "Cannot Merge"
 msgstr "Impossible de fusionner"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:187
-msgid "Cannot enable 'Hide Variants' when 'Attribute Filters' are enabled with filter attributes configured. These features are mutually exclusive: Attribute filters allow customers to filter by variant attributes (like Size, Color), which requires variants to be visible. Please disable 'Enable Attribute Filters' or remove all Filter Attributes first."
-msgstr "Impossible d'activer « Masquer les variantes » quand « Filtres d'attributs » est activé avec des attributs de filtre configurés. Ces fonctionnalités sont mutuellement exclusives : les filtres d'attributs permettent aux clients de filtrer par attributs de variantes (comme Taille, Couleur), ce qui nécessite que les variantes soient visibles. Veuillez désactiver « Activer les filtres d'attributs » ou supprimer d'abord tous les attributs de filtre."
+msgid ""
+"Cannot enable 'Hide Variants' when 'Attribute Filters' are enabled with "
+"filter attributes configured. These features are mutually exclusive: "
+"Attribute filters allow customers to filter by variant attributes (like "
+"Size, Color), which requires variants to be visible. Please disable 'Enable "
+"Attribute Filters' or remove all Filter Attributes first."
+msgstr ""
+"Impossible d'activer « Masquer les variantes » quand « Filtres d'attributs »"
+" est activé avec des attributs de filtre configurés. Ces fonctionnalités "
+"sont mutuellement exclusives : les filtres d'attributs permettent aux "
+"clients de filtrer par attributs de variantes (comme Taille, Couleur), ce "
+"qui nécessite que les variantes soient visibles. Veuillez désactiver « "
+"Activer les filtres d'attributs » ou supprimer d'abord tous les attributs de"
+" filtre."
 
 #: webshop/templates/includes/product_page.js:114
 msgid "Cannot find a matching Item. Please select some other value for {0}."
-msgstr "Impossible de trouver un article correspondant. Veuillez sélectionner une autre valeur pour {0}."
+msgstr ""
+"Impossible de trouver un article correspondant. Veuillez sélectionner une "
+"autre valeur pour {0}."
 
 #: webshop/templates/payments/stripe.html:12
 msgid "Card Details"
@@ -576,8 +668,14 @@ msgid "Carte Cadeau Divisée"
 msgstr "Carte Cadeau Divisée"
 
 #: webshop/webshop/shopping_cart/cart.py:759
-msgid "Carte cadeau {0} valeur ({1}) excède le total de la commande ({2}). Une nouvelle carte cadeau ({3}) a été créée pour le montant utilisé. Le montant restant ({4}) est disponible sur la carte originale."
-msgstr "Carte cadeau {0} valeur ({1}) excède le total de la commande ({2}). Une nouvelle carte cadeau ({3}) a été créée pour le montant utilisé. Le montant restant ({4}) est disponible sur la carte originale."
+msgid ""
+"Carte cadeau {0} valeur ({1}) excède le total de la commande ({2}). Une "
+"nouvelle carte cadeau ({3}) a été créée pour le montant utilisé. Le montant "
+"restant ({4}) est disponible sur la carte originale."
+msgstr ""
+"Carte cadeau {0} valeur ({1}) excède le total de la commande ({2}). Une "
+"nouvelle carte cadeau ({3}) a été créée pour le montant utilisé. Le montant "
+"restant ({4}) est disponible sur la carte originale."
 
 #: webshop/public/js/product_ui/search.js:335
 #: webshop/public/js/product_ui/search_no_jquery.js:377
@@ -632,7 +730,9 @@ msgstr "Paramètres de paiement"
 
 #: webshop/templates/pages/checkout.py:93
 msgid "Checkout is disabled. Please enable it in Webshop Settings."
-msgstr "Le paiement est désactivé. Veuillez l'activer dans les paramètres de la boutique."
+msgstr ""
+"Le paiement est désactivé. Veuillez l'activer dans les paramètres de la "
+"boutique."
 
 #: webshop/templates/pages/checkout.html:307
 msgid "Choose Shipping Method"
@@ -782,8 +882,12 @@ msgstr "Continuer mes achats"
 #. Description of the 'Hide Currency Symbol in Shop' (Select) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Control currency symbol display in the webshop. If empty, uses the global ERPNext setting. 'Yes' hides the symbol, 'No' shows it."
-msgstr "Contrôle l'affichage du symbole de devise dans la boutique. Si vide, utilise le paramètre global ERPNext. 'Oui' masque le symbole, 'Non' l'affiche."
+msgid ""
+"Control currency symbol display in the webshop. If empty, uses the global "
+"ERPNext setting. 'Yes' hides the symbol, 'No' shows it."
+msgstr ""
+"Contrôle l'affichage du symbole de devise dans la boutique. Si vide, utilise"
+" le paramètre global ERPNext. 'Oui' masque le symbole, 'Non' l'affiche."
 
 #. Label of a Button field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
@@ -863,11 +967,18 @@ msgstr "Créé depuis la carte cadeau"
 
 #: webshop/webshop/shopping_cart/cart.py:3008
 msgid "Created from gift card: {0} (remaining amount after order {1})"
-msgstr "Créé à partir de la carte cadeau : {0} (montant restant après la commande {1})"
+msgstr ""
+"Créé à partir de la carte cadeau : {0} (montant restant après la commande "
+"{1})"
 
 #: webshop/webshop/shopping_cart/cart.py:699
-msgid "Created from split of {0} in webshop. Used in order {1}. Original amount: {2}, Used: {3}, Remaining on original card: {4}"
-msgstr "Créé à partir de la division de {0} dans la boutique. Utilisé dans la commande {1}. Montant original : {2}, Utilisé : {3}, Reste sur la carte originale : {4}"
+msgid ""
+"Created from split of {0} in webshop. Used in order {1}. Original amount: "
+"{2}, Used: {3}, Remaining on original card: {4}"
+msgstr ""
+"Créé à partir de la division de {0} dans la boutique. Utilisé dans la "
+"commande {1}. Montant original : {2}, Utilisé : {3}, Reste sur la carte "
+"originale : {4}"
 
 #: webshop/webshop/utils/import_gift_cards.py:249
 msgid "Created successfully"
@@ -946,8 +1057,11 @@ msgstr "Ordre de tri des produits par défaut"
 #. Description of the 'Terms and Conditions for Quotations' (Link) field in
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Default Terms and Conditions for all quotations generated from the webshop"
-msgstr "Conditions générales par défaut pour tous les devis générés depuis la boutique"
+msgid ""
+"Default Terms and Conditions for all quotations generated from the webshop"
+msgstr ""
+"Conditions générales par défaut pour tous les devis générés depuis la "
+"boutique"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:144
 msgid "Default Validity Date"
@@ -1033,8 +1147,11 @@ msgstr "Afficher les conditions spécifiques"
 #. Description of the 'Display specific conditions' (Check) field in DocType
 #. 'WebshopSI Settings'
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
-msgid "Display text and button to display specific conditions for sales invoices"
-msgstr "Affiche un texte et un bouton pour consulter les conditions spécifiques aux factures de vente"
+msgid ""
+"Display text and button to display specific conditions for sales invoices"
+msgstr ""
+"Affiche un texte et un bouton pour consulter les conditions spécifiques aux "
+"factures de vente"
 
 #: webshop/www/shop-by-category/index.py:98
 msgid "DocType {} not found"
@@ -1045,8 +1162,11 @@ msgid "Download Template"
 msgstr "Télécharger le modèle"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:329
-msgid "Drag and drop categories to reorder. Higher weightage = displayed first."
-msgstr "Glissez-déposez les catégories pour réorganiser. Poids plus élevé = affiché en premier."
+msgid ""
+"Drag and drop categories to reorder. Higher weightage = displayed first."
+msgstr ""
+"Glissez-déposez les catégories pour réorganiser. Poids plus élevé = affiché "
+"en premier."
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:130
 msgid "Dry Run (Validate Only)"
@@ -1183,8 +1303,12 @@ msgstr "Activer le mode maintenance pour tout le site"
 #. Description of the 'Maintenance Mode - Webshop' (Check) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Enable maintenance mode for webshop features only (requires Website maintenance to be enabled)"
-msgstr "Activer le mode maintenance pour les fonctionnalités boutique uniquement (nécessite l'activation de la maintenance du site)"
+msgid ""
+"Enable maintenance mode for webshop features only (requires Website "
+"maintenance to be enabled)"
+msgstr ""
+"Activer le mode maintenance pour les fonctionnalités boutique uniquement "
+"(nécessite l'activation de la maintenance du site)"
 
 #: webshop/templates/pages/order.html:155
 msgid "Enter Loyalty Points"
@@ -1211,8 +1335,10 @@ msgid "Equivalent Value:"
 msgstr "Valeur équivalente :"
 
 #: webshop/templates/pages/checkout_b2b.html:201
-msgid "Erreur lors du chargement des méthodes de livraison. Veuillez réessayer."
-msgstr "Erreur lors du chargement des méthodes de livraison. Veuillez réessayer."
+msgid ""
+"Erreur lors du chargement des méthodes de livraison. Veuillez réessayer."
+msgstr ""
+"Erreur lors du chargement des méthodes de livraison. Veuillez réessayer."
 
 #: webshop/public/js/shopping_cart.js:258
 #: webshop/templates/includes/cart_component.js:1312
@@ -1228,7 +1354,8 @@ msgstr "Erreur"
 #: webshop/templates/pages/checkout_b2b.html:266
 #: webshop/templates/pages/checkout_b2b.html:274
 msgid "Error applying shipping method. Please try again."
-msgstr "Erreur lors de l'application de la méthode de livraison. Veuillez réessayer."
+msgstr ""
+"Erreur lors de l'application de la méthode de livraison. Veuillez réessayer."
 
 #: webshop/webshop/utils/frequently_bought_together.py:79
 msgid "Error calculating frequently bought together: {0}"
@@ -1262,7 +1389,9 @@ msgstr "Erreur lors de la création de la demande de paiement"
 
 #: webshop/controllers/payment_handler.py:58
 msgid "Error during quotation retrieval: Cart is empty or quotation not found"
-msgstr "Erreur lors de la récupération du devis : Le panier est vide ou le devis n'a pas été trouvé"
+msgstr ""
+"Erreur lors de la récupération du devis : Le panier est vide ou le devis n'a"
+" pas été trouvé"
 
 #: webshop/templates/generators/item/item_add_to_cart.html:445
 msgid "Error generating gift card code"
@@ -1308,11 +1437,16 @@ msgstr "Erreur lors de la lecture du fichier : {0}"
 
 #: webshop/webshop/shopping_cart/cart.py:1270
 msgid "Error updating address. Please try again or contact support."
-msgstr "Erreur lors de la mise à jour de l'adresse. Veuillez réessayer ou contacter le support."
+msgstr ""
+"Erreur lors de la mise à jour de l'adresse. Veuillez réessayer ou contacter "
+"le support."
 
 #: webshop/webshop/shopping_cart/cart.py:770
-msgid "Error while creating new gift card during split. Original: {0}, Amount: {1}"
-msgstr "Erreur lors de la création d'une nouvelle carte cadeau lors de la division. Originale : {0}, Montant : {1}"
+msgid ""
+"Error while creating new gift card during split. Original: {0}, Amount: {1}"
+msgstr ""
+"Erreur lors de la création d'une nouvelle carte cadeau lors de la division. "
+"Originale : {0}, Montant : {1}"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:217
 msgid "Errors"
@@ -1391,8 +1525,12 @@ msgid "Fees have been updated"
 msgstr "Les frais ont été mis à jour"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:174
-msgid "Filter Fields Row #{0}: Fieldname {1} must be of type 'Link' or 'Table MultiSelect'"
-msgstr "Ligne de champs de filtre #{0} : Le champ {1} doit être de type 'Link' ou 'Table MultiSelect'"
+msgid ""
+"Filter Fields Row #{0}: Fieldname {1} must be of type 'Link' or 'Table "
+"MultiSelect'"
+msgstr ""
+"Ligne de champs de filtre #{0} : Le champ {1} doit être de type 'Link' ou "
+"'Table MultiSelect'"
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -1453,8 +1591,10 @@ msgstr "Paramètres généraux"
 #. Description of the 'Terms and conditions for Checkout' (Link) field in
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "General Terms and Conditions (GTC) to be displayed on the checkout page"
-msgstr "Conditions générales de vente (CGV) à afficher sur la page de paiement"
+msgid ""
+"General Terms and Conditions (GTC) to be displayed on the checkout page"
+msgstr ""
+"Conditions générales de vente (CGV) à afficher sur la page de paiement"
 
 #. Title of the gift-card Web Form
 #: webshop/templates/pages/gift_cards.html:65
@@ -1502,12 +1642,19 @@ msgid "Gift Cards"
 msgstr "Cartes cadeaux"
 
 #: webshop/webshop/shopping_cart/cart.py:2416
-msgid "Gift card amount ({0}) exceeds order total ({1}). The excess amount ({2}) will be converted to a new gift card upon order submission."
-msgstr "Le montant de la carte cadeau ({0}) dépasse le total de la commande ({1}). Le montant excédentaire ({2}) sera converti en une nouvelle carte cadeau lors de la validation."
+msgid ""
+"Gift card amount ({0}) exceeds order total ({1}). The excess amount ({2}) "
+"will be converted to a new gift card upon order submission."
+msgstr ""
+"Le montant de la carte cadeau ({0}) dépasse le total de la commande ({1}). "
+"Le montant excédentaire ({2}) sera converti en une nouvelle carte cadeau "
+"lors de la validation."
 
 #: webshop/webshop/shopping_cart/cart.py:499
 msgid "Gift card amount ({0}) is less than required discount amount ({1})"
-msgstr "Le montant de la carte cadeau ({0}) est inférieur au montant de réduction requis ({1})"
+msgstr ""
+"Le montant de la carte cadeau ({0}) est inférieur au montant de réduction "
+"requis ({1})"
 
 #: webshop/webshop/utils/import_gift_cards.py:54
 msgid "Gift card code cannot be empty"
@@ -1539,8 +1686,12 @@ msgid "Gift card {0} - {1} - {2} ({3}/{4})"
 msgstr "Carte cadeau {0} - {1} - {2} ({3}/{4})"
 
 #: webshop/webshop/shopping_cart/cart.py:749
-msgid "Gift card {0} split: amount utilisé {1} transféré à une nouvelle carte cadeau {2}. Montant restant sur la carte originale: {3}."
-msgstr "Carte cadeau {0} divisée : montant utilisé {1} transféré à une nouvelle carte cadeau {2}. Montant restant sur la carte originale : {3}."
+msgid ""
+"Gift card {0} split: amount utilisé {1} transféré à une nouvelle carte "
+"cadeau {2}. Montant restant sur la carte originale: {3}."
+msgstr ""
+"Carte cadeau {0} divisée : montant utilisé {1} transféré à une nouvelle "
+"carte cadeau {2}. Montant restant sur la carte originale : {3}."
 
 #: webshop/templates/pages/gift_cards.html:11
 msgid "Gift cards feature is not enabled."
@@ -1637,8 +1788,12 @@ msgstr "Heures"
 #. Description of the 'Product Image Fit' (Select) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "How the image fills the product card. 'Cover' crops to fill without distortion; 'Contain' keeps the whole image visible with padding."
-msgstr "Définit comment l'image remplit la carte produit. « Remplir » recadre sans déformation ; « Contenir » affiche l'image entière avec des marges."
+msgid ""
+"How the image fills the product card. 'Cover' crops to fill without "
+"distortion; 'Contain' keeps the whole image visible with padding."
+msgstr ""
+"Définit comment l'image remplit la carte produit. « Remplir » recadre sans "
+"déformation ; « Contenir » affiche l'image entière avec des marges."
 
 #: webshop/templates/pages/loyalty_points.html:54
 msgid "How to earn points"
@@ -1670,8 +1825,12 @@ msgstr "Si 0, pas de date d'expiration"
 #. Description of the 'Enable Checkout Page' (Check) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "If enabled, customers will be redirected to a dedicated checkout page instead of showing address and terms in cart"
-msgstr "Si activé, les clients seront redirigés vers une page de paiement dédiée au lieu d'afficher l'adresse et les conditions dans le panier"
+msgid ""
+"If enabled, customers will be redirected to a dedicated checkout page "
+"instead of showing address and terms in cart"
+msgstr ""
+"Si activé, les clients seront redirigés vers une page de paiement dédiée au "
+"lieu d'afficher l'adresse et les conditions dans le panier"
 
 #. Label of a Attach Image field in DocType 'Homepage Featured Product'
 #. Label of a Attach field in DocType 'Wishlist Item'
@@ -1747,8 +1906,11 @@ msgstr "Mot de passe incorrect. Veuillez réessayer."
 
 #. Description of the 'On Backorder' (Check) field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
-msgid "Indicate that Item is available on backorder and not usually pre-stocked"
-msgstr "Indique que l'article est disponible sur commande et n'est pas habituellement en stock"
+msgid ""
+"Indicate that Item is available on backorder and not usually pre-stocked"
+msgstr ""
+"Indique que l'article est disponible sur commande et n'est pas "
+"habituellement en stock"
 
 #: webshop/templates/pages/checkout.html:24
 msgid "Information"
@@ -1924,8 +2086,10 @@ msgid "Les conditions générales de vente ne sont pas encore configurées."
 msgstr "Les conditions générales de vente ne sont pas encore configurées."
 
 #: webshop/templates/includes/cart_component.js:302
-msgid "Les points de fidélité ont été supprimés pour mettre à jour la quantité"
-msgstr "Les points de fidélité ont été supprimés pour mettre à jour la quantité"
+msgid ""
+"Les points de fidélité ont été supprimés pour mettre à jour la quantité"
+msgstr ""
+"Les points de fidélité ont été supprimés pour mettre à jour la quantité"
 
 #: webshop/templates/includes/cart_component.js:480
 msgid "Les points de fidélité ont été supprimés pour retirer le produit"
@@ -1934,8 +2098,12 @@ msgstr "Les points de fidélité ont été supprimés pour retirer le produit"
 #. Description of the 'Redirect on Action' (Data) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Link to redirect Guest on actions that need login such as add to cart, wishlist, etc. <b>E.g.: /login</b>"
-msgstr "Lien de redirection des visiteurs pour les actions nécessitant une connexion comme ajouter au panier, liste de souhaits, etc. <b>Ex : /login</b>"
+msgid ""
+"Link to redirect Guest on actions that need login such as add to cart, "
+"wishlist, etc. <b>E.g.: /login</b>"
+msgstr ""
+"Lien de redirection des visiteurs pour les actions nécessitant une connexion"
+" comme ajouter au panier, liste de souhaits, etc. <b>Ex : /login</b>"
 
 #. Option for the 'Default View Type' (Select) field in DocType 'Webshop
 #. Settings'
@@ -2040,7 +2208,8 @@ msgstr "Points de fidélité supprimés"
 
 #: webshop/webshop/shopping_cart/cart.py:2570
 msgid "Loyalty points value cannot exceed total amount"
-msgstr "La valeur des points de fidélité ne peut pas dépasser le montant total"
+msgstr ""
+"La valeur des points de fidélité ne peut pas dépasser le montant total"
 
 #: webshop/templates/pages/loyalty_points.html:11
 msgid "Loyalty program is not enabled."
@@ -2242,8 +2411,11 @@ msgid "No cart found"
 msgstr "Aucun panier trouvé"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:482
-msgid "No categories found. Make sure Item Groups have \"Show in Website\" enabled."
-msgstr "Aucune catégorie trouvée. Assurez-vous que les groupes d'articles ont \"Afficher sur le site\" activé."
+msgid ""
+"No categories found. Make sure Item Groups have \"Show in Website\" enabled."
+msgstr ""
+"Aucune catégorie trouvée. Assurez-vous que les groupes d'articles ont "
+"\"Afficher sur le site\" activé."
 
 #: webshop/templates/pages/checkout.py:606
 msgid "No conversion factor found between {0} and {1}"
@@ -2269,7 +2441,8 @@ msgstr "Aucune méthode de paiement configurée"
 
 #: webshop/templates/pages/loyalty_points.html:143
 msgid "No points history yet. Start shopping to earn points!"
-msgstr "Aucun historique de points. Commencez vos achats pour gagner des points !"
+msgstr ""
+"Aucun historique de points. Commencez vos achats pour gagner des points !"
 
 #: webshop/templates/includes/product_carousel.html:802
 msgid "No products available"
@@ -2387,8 +2560,12 @@ msgid "Only {0} in Stock for item {1}"
 msgstr "Seulement {0} en stock pour l'article {1}"
 
 #: webshop/webshop/shopping_cart/cart.py:876
-msgid "Only {0} units available in stock for {1}. You cannot add {2} units to your cart."
-msgstr "Seulement {0} unités disponibles en stock pour {1}. Vous ne pouvez pas ajouter {2} unités à votre panier."
+msgid ""
+"Only {0} units available in stock for {1}. You cannot add {2} units to your "
+"cart."
+msgstr ""
+"Seulement {0} unités disponibles en stock pour {1}. Vous ne pouvez pas "
+"ajouter {2} unités à votre panier."
 
 #: webshop/templates/payments/twint.html:61
 msgid "Opening TWINT…"
@@ -2404,7 +2581,8 @@ msgstr "Optionnel"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:82
 msgid "Optional columns: name, owner, client_email, valid_until"
-msgstr "Colonnes optionnelles : nom, propriétaire, email_client, valide_jusqu'à"
+msgstr ""
+"Colonnes optionnelles : nom, propriétaire, email_client, valide_jusqu'à"
 
 #. Description of the 'Expected End Time' (Datetime) field in DocType 'Webshop
 #. Settings'
@@ -2449,7 +2627,9 @@ msgstr "Commandes"
 #: webshop/templates/payments/webshopsi.html:467
 #: webshop/templates/payments/webshopsi.html:470
 msgid "Orders from your country cannot be processed through invoice payment"
-msgstr "Les commandes depuis votre pays ne peuvent pas être traitées par paiement sur facture"
+msgstr ""
+"Les commandes depuis votre pays ne peuvent pas être traitées par paiement "
+"sur facture"
 
 #: webshop/templates/generators/item/item_inquiry.js:13
 msgid "Organization Name"
@@ -2487,8 +2667,16 @@ msgstr "Devis passés"
 #. Description of the 'Payment Methods' (Table) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Path to the payment template. If left empty, the default template in webshop/templates/payments will be used. To use a template from another app, specify the path starting with 'apps/myapp/...' (e.g., apps/myapp/templates/payments/custom.html)"
-msgstr "Chemin vers le modèle de paiement. Si vide, le modèle par défaut dans webshop/templates/payments sera utilisé. Pour utiliser un modèle d'une autre application, spécifiez le chemin commençant par 'apps/monapp/...' (ex : apps/monapp/templates/payments/custom.html)"
+msgid ""
+"Path to the payment template. If left empty, the default template in "
+"webshop/templates/payments will be used. To use a template from another app,"
+" specify the path starting with 'apps/myapp/...' (e.g., "
+"apps/myapp/templates/payments/custom.html)"
+msgstr ""
+"Chemin vers le modèle de paiement. Si vide, le modèle par défaut dans "
+"webshop/templates/payments sera utilisé. Pour utiliser un modèle d'une autre"
+" application, spécifiez le chemin commençant par 'apps/monapp/...' (ex : "
+"apps/monapp/templates/payments/custom.html)"
 
 #: webshop/templates/pages/order.html:45 webshop/templates/pages/order.html:47
 #: webshop/templates/payments/stripe.html:36
@@ -2767,11 +2955,13 @@ msgstr "Veuillez sélectionner une méthode de livraison"
 
 #: webshop/templates/pages/checkout_b2b.html:304
 msgid "Please select a shipping method before placing the order"
-msgstr "Veuillez sélectionner une méthode de livraison avant de passer la commande"
+msgstr ""
+"Veuillez sélectionner une méthode de livraison avant de passer la commande"
 
 #: webshop/templates/pages/checkout.js:730
 msgid "Please select a shipping method before proceeding to payment"
-msgstr "Veuillez sélectionner une méthode de livraison avant de procéder au paiement"
+msgstr ""
+"Veuillez sélectionner une méthode de livraison avant de procéder au paiement"
 
 #: webshop/templates/pages/checkout.js:1424
 msgid "Please select a shipping method to continue"
@@ -3021,7 +3211,9 @@ msgstr "Utilisés"
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Redirect directly to login page instead of showing maintenance page"
-msgstr "Rediriger directement vers la page de connexion au lieu d'afficher la page de maintenance"
+msgstr ""
+"Rediriger directement vers la page de connexion au lieu d'afficher la page "
+"de maintenance"
 
 #. Label of a Data field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -3097,8 +3289,12 @@ msgstr "Retirer les points"
 #. Description of the 'Enable Infinite Scroll' (Check) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Replace pagination with infinite scroll - automatically load more products when scrolling"
-msgstr "Remplacer la pagination par le défilement infini - charger automatiquement plus de produits lors du défilement"
+msgid ""
+"Replace pagination with infinite scroll - automatically load more products "
+"when scrolling"
+msgstr ""
+"Remplacer la pagination par le défilement infini - charger automatiquement "
+"plus de produits lors du défilement"
 
 #: webshop/templates/includes/cart/place_order.html:21
 msgid "Request for Quote"
@@ -3167,8 +3363,11 @@ msgid "Row"
 msgstr "Ligne"
 
 #: webshop/webshop/crud_events/quotation/validate_shopping_cart_items.py:20
-msgid "Row #{0}: Item {1} must have a Website Item for Shopping Cart Quotations"
-msgstr "Ligne #{0} : L'article {1} doit avoir un article de site web pour les devis du panier"
+msgid ""
+"Row #{0}: Item {1} must have a Website Item for Shopping Cart Quotations"
+msgstr ""
+"Ligne #{0} : L'article {1} doit avoir un article de site web pour les devis "
+"du panier"
 
 #. Label of a field in the gift-card Web Form
 #: webshop/webshop/web_form/gift_card/gift_card.json
@@ -3176,7 +3375,8 @@ msgid "Sales Invoice"
 msgstr "Facture de vente"
 
 #: webshop/templates/includes/cart/cart_address.html:140
-#: webshop/templates/pages/gift_cards.html:140 webshop/www/my_addresses.html:86
+#: webshop/templates/pages/gift_cards.html:140
+#: webshop/www/my_addresses.html:86
 msgid "Save"
 msgstr "Enregistrer"
 
@@ -3388,7 +3588,8 @@ msgstr "Acheter par catégorie"
 msgid "Shopping Cart"
 msgstr "Panier"
 
-#. Description of the 'Short Website Description' (Small Text) field in DocType
+#. Description of the 'Short Website Description' (Small Text) field in
+#. DocType
 #. 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
 msgid "Short Description for List View"
@@ -3505,8 +3706,12 @@ msgid "Sitemap Settings"
 msgstr "Paramètres du sitemap"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:318
-msgid "Sitemap cache has been cleared successfully. The sitemaps will be regenerated on next access."
-msgstr "Le cache du sitemap a été vidé avec succès. Les sitemaps seront regénérés au prochain accès."
+msgid ""
+"Sitemap cache has been cleared successfully. The sitemaps will be "
+"regenerated on next access."
+msgstr ""
+"Le cache du sitemap a été vidé avec succès. Les sitemaps seront regénérés au"
+" prochain accès."
 
 #. Label of a Link field in DocType 'Webshop Settings'
 #. Label of a Link field in DocType 'Website Item'
@@ -3527,7 +3732,8 @@ msgstr "Une erreur s'est produite. Vérifiez {0}"
 #: webshop/templates/generators/item_group.html:109
 #: webshop/www/all-products/index.html:87
 msgid "Something went wrong. Please refresh or contact us."
-msgstr "Une erreur s'est produite. Veuillez rafraîchir la page ou nous contacter."
+msgstr ""
+"Une erreur s'est produite. Veuillez rafraîchir la page ou nous contacter."
 
 #: webshop/public/js/wishlist.js:190
 msgid "Sorry, something went wrong. Please refresh."
@@ -3721,8 +3927,12 @@ msgstr "Le coupon a été retiré pour mettre à jour le panier"
 #. Description of the 'Enable Field Filters (Categories)' (Check) field in
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "The field filters will also work as categories in the <b>Shop by Category</b> page."
-msgstr "Les filtres de champs fonctionneront également comme catégories dans la page <b>Acheter par catégorie</b>."
+msgid ""
+"The field filters will also work as categories in the <b>Shop by "
+"Category</b> page."
+msgstr ""
+"Les filtres de champs fonctionneront également comme catégories dans la page"
+" <b>Acheter par catégorie</b>."
 
 #: webshop/templates/pages/checkout.js:1310
 msgid "The following changes will be applied:"
@@ -3730,7 +3940,8 @@ msgstr "Les modifications suivantes seront appliquées :"
 
 #: webshop/templates/pages/checkout.js:1538
 msgid "The loyalty points have been removed to apply shipping rule"
-msgstr "Les points de fidélité ont été retirés pour appliquer la règle de livraison"
+msgstr ""
+"Les points de fidélité ont été retirés pour appliquer la règle de livraison"
 
 #: webshop/templates/pages/checkout.js:1873
 msgid "The loyalty points have been removed to update item quantity"
@@ -3741,8 +3952,11 @@ msgid "The loyalty points have been removed to update the cart"
 msgstr "Les points de fidélité ont été retirés pour mettre à jour le panier"
 
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:167
-msgid "The order amount does not match the criteria of the selected payment option"
-msgstr "Le montant de la commande ne correspond pas aux critères de l'option de paiement sélectionnée"
+msgid ""
+"The order amount does not match the criteria of the selected payment option"
+msgstr ""
+"Le montant de la commande ne correspond pas aux critères de l'option de "
+"paiement sélectionnée"
 
 #: webshop/public/js/override/item.js:41
 msgid "The product {0} has been published on the website."
@@ -3774,12 +3988,18 @@ msgid "This coupon code is not yet valid"
 msgstr "Ce code promo n'est pas encore valide"
 
 #: webshop/webshop/auth/api.py:59
-msgid "This email is already linked to an administrator account. Please contact your administrator or use a different email."
-msgstr "Cet e-mail est déjà associé à un compte administrateur. Veuillez contacter votre administrateur ou utiliser une autre adresse e-mail."
+msgid ""
+"This email is already linked to an administrator account. Please contact "
+"your administrator or use a different email."
+msgstr ""
+"Cet e-mail est déjà associé à un compte administrateur. Veuillez contacter "
+"votre administrateur ou utiliser une autre adresse e-mail."
 
 #: webshop/webshop/shopping_cart/cart.py:2355
 msgid "This gift card has already been used and cannot be applied again"
-msgstr "Cette carte cadeau a déjà été utilisée et ne peut pas être appliquée à nouveau"
+msgstr ""
+"Cette carte cadeau a déjà été utilisée et ne peut pas être appliquée à "
+"nouveau"
 
 #: webshop/templates/payments/paypal.py:87
 msgid "This order has already been paid"
@@ -3793,7 +4013,8 @@ msgstr "Cette commande a déjà été traitée. N° de commande : {0}"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:284
 msgid "This will clear the sitemap cache and force regeneration. Continue?"
-msgstr "Ceci va vider le cache du sitemap et forcer la regénération. Continuer ?"
+msgstr ""
+"Ceci va vider le cache du sitemap et forcer la regénération. Continuer ?"
 
 #. Label of a Attach Image field in DocType 'Homepage Featured Product'
 #. Label of a Data field in DocType 'Website Item'
@@ -3888,7 +4109,9 @@ msgstr "Utilisez vos points au paiement pour des réductions"
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Use {points} for points count and {value} for monetary value"
-msgstr "Utilisez {points} pour le nombre de points et {value} pour la valeur monétaire"
+msgstr ""
+"Utilisez {points} pour le nombre de points et {value} pour la valeur "
+"monétaire"
 
 #. Label of a field in the gift-card Web Form
 #: webshop/templates/pages/gift_cards.py:131
@@ -4074,12 +4297,19 @@ msgid "We are currently performing scheduled maintenance."
 msgstr "Nous effectuons actuellement une maintenance programmée."
 
 #: webshop/webshop/maintenance.py:23
-msgid "We are currently performing scheduled maintenance. We'll be back shortly!"
-msgstr "Nous effectuons actuellement une maintenance programmée. Nous serons de retour très bientôt !"
+msgid ""
+"We are currently performing scheduled maintenance. We'll be back shortly!"
+msgstr ""
+"Nous effectuons actuellement une maintenance programmée. Nous serons de "
+"retour très bientôt !"
 
 #: webshop/www/maintenance.html:333
-msgid "We hope to be back online very soon. Thank you for your patience and we apologize for any inconvenience caused."
-msgstr "Nous espérons être de retour en ligne très bientôt. Merci pour votre patience et nous nous excusons pour tout désagrément causé."
+msgid ""
+"We hope to be back online very soon. Thank you for your patience and we "
+"apologize for any inconvenience caused."
+msgstr ""
+"Nous espérons être de retour en ligne très bientôt. Merci pour votre "
+"patience et nous nous excusons pour tout désagrément causé."
 
 #. Name of a DocType
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
@@ -4097,8 +4327,11 @@ msgid "Webshop cache cleared successfully"
 msgstr "Cache de la boutique vidé avec succès"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:273
-msgid "Webshop maintenance mode cannot be enabled without website maintenance mode"
-msgstr "Le mode maintenance de la boutique ne peut pas être activé sans le mode maintenance du site"
+msgid ""
+"Webshop maintenance mode cannot be enabled without website maintenance mode"
+msgstr ""
+"Le mode maintenance de la boutique ne peut pas être activé sans le mode "
+"maintenance du site"
 
 #. Name of a DocType
 #: webshop/webshop/doctype/webshopsi_country/webshopsi_country.json
@@ -4242,8 +4475,13 @@ msgstr "Bienvenue dans le processus de paiement B2B."
 
 #. Description of the 'Image Focus' (Select) field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
-msgid "Where the image anchors when 'Product Image Fit' is set to Cover in Webshop Settings. Pick the area that must stay visible when the image is cropped."
-msgstr "Zone d'ancrage de l'image quand l'ajustement est « Remplir » dans les paramètres de la boutique. Choisissez la zone qui doit rester visible lors du recadrage."
+msgid ""
+"Where the image anchors when 'Product Image Fit' is set to Cover in Webshop "
+"Settings. Pick the area that must stay visible when the image is cropped."
+msgstr ""
+"Zone d'ancrage de l'image quand l'ajustement est « Remplir » dans les "
+"paramètres de la boutique. Choisissez la zone qui doit rester visible lors "
+"du recadrage."
 
 #: webshop/templates/pages/checkout.py:472
 msgid "Width"
@@ -4296,31 +4534,46 @@ msgstr "Vous êtes déjà connecté."
 
 #: webshop/webshop/doctype/item_review/item_review.py:152
 msgid "You are not a verified customer yet. Please contact us to proceed."
-msgstr "Vous n'êtes pas encore un client vérifié. Veuillez nous contacter pour continuer."
+msgstr ""
+"Vous n'êtes pas encore un client vérifié. Veuillez nous contacter pour "
+"continuer."
 
 #: webshop/templates/pages/loyalty_points.html:19
-msgid "You are not enrolled in a loyalty program yet. Make a purchase to start earning points!"
-msgstr "Vous n'êtes pas encore inscrit à un programme de fidélité. Effectuez un achat pour commencer à gagner des points !"
+msgid ""
+"You are not enrolled in a loyalty program yet. Make a purchase to start "
+"earning points!"
+msgstr ""
+"Vous n'êtes pas encore inscrit à un programme de fidélité. Effectuez un "
+"achat pour commencer à gagner des points !"
 
 #: webshop/webshop/doctype/item_review/item_review.py:111
 msgid "You are not verified to write a review yet."
 msgstr "Vous n'êtes pas encore vérifié pour écrire un avis."
 
-#. Description of the 'Website Content' (HTML Editor) field in DocType 'Website
+#. Description of the 'Website Content' (HTML Editor) field in DocType
+#. 'Website
 #. Item'
 #: webshop/webshop/doctype/website_item/website_item.json
-msgid "You can use any valid Bootstrap 4 markup in this field. It will be shown on your Item Page."
-msgstr "Vous pouvez utiliser n'importe quel balisage Bootstrap 4 valide dans ce champ. Il sera affiché sur la page de l'article."
+msgid ""
+"You can use any valid Bootstrap 4 markup in this field. It will be shown on "
+"your Item Page."
+msgstr ""
+"Vous pouvez utiliser n'importe quel balisage Bootstrap 4 valide dans ce "
+"champ. Il sera affiché sur la page de l'article."
 
 #: webshop/templates/includes/coupon_form.html:17
 #: webshop/templates/includes/coupon_form.html:27
 msgid "You cannot use a promo code when loyalty points are applied"
-msgstr "Vous ne pouvez pas utiliser un code promo lorsque des points de fidélité sont appliqués"
+msgstr ""
+"Vous ne pouvez pas utiliser un code promo lorsque des points de fidélité "
+"sont appliqués"
 
 #: webshop/templates/includes/loyalty_points_form.html:16
 #: webshop/templates/includes/loyalty_points_form.html:25
 msgid "You cannot use loyalty points when a promo code is applied"
-msgstr "Vous ne pouvez pas utiliser les points de fidélité lorsqu'un code promo est appliqué"
+msgstr ""
+"Vous ne pouvez pas utiliser les points de fidélité lorsqu'un code promo est "
+"appliqué"
 
 #: webshop/webshop/shopping_cart/cart.py:2549
 msgid "You do not have an active loyalty program"
@@ -4389,16 +4642,24 @@ msgid "Your cart is Empty"
 msgstr "Votre panier est vide"
 
 #: webshop/templates/pages/thank_you.html:107
-msgid "Your gift card code will be available once the invoice has been paid in full."
-msgstr "Votre code de carte cadeau sera disponible une fois la facture payée intégralement."
+msgid ""
+"Your gift card code will be available once the invoice has been paid in "
+"full."
+msgstr ""
+"Votre code de carte cadeau sera disponible une fois la facture payée "
+"intégralement."
 
 #: webshop/templates/pages/thank_you.html:151
 msgid "Your gift card codes are available :"
 msgstr "Vos codes de carte cadeau sont disponibles :"
 
 #: webshop/templates/pages/thank_you.html:165
-msgid "Your gift card codes will be available once the invoice has been paid in full."
-msgstr "Vos codes de carte cadeau seront disponibles une fois la facture payée intégralement."
+msgid ""
+"Your gift card codes will be available once the invoice has been paid in "
+"full."
+msgstr ""
+"Vos codes de carte cadeau seront disponibles une fois la facture payée "
+"intégralement."
 
 #: webshop/webshop/shopping_cart/guest_cart.py:346
 msgid "Your guest cart has been assigned to your account"
@@ -4607,3 +4868,8 @@ msgstr "{0}% et moins"
 msgid "{{ payment_context.terms_title }}"
 msgstr "{{ payment_context.terms_title }}"
 
+msgid "+ {0} more brands"
+msgstr "+ {0} autres marques"
+
+msgid "Show fewer brands"
+msgstr "Réduire la liste des marques"

@@ -432,7 +432,7 @@
 				{{ render_hierarchical_item_groups(values, item_field.fieldname) }}
 			{% else %}
 				{% for value in values %}
-				<div class="filter-lookup-wrapper checkbox" data-value="{{ value.name if item_field.fieldname == 'brand' else value }}">
+				<div class="filter-lookup-wrapper checkbox{% if item_field.fieldname == 'brand' and loop.index > 12 %} brand-extra{% endif %}" data-value="{{ value.name if item_field.fieldname == 'brand' else value }}">
 					<label for="{{ value.name if item_field.fieldname == 'brand' else value }}" class="mb-0 d-flex align-items-center">
 						<input type="checkbox"
 							class="product-filter field-filter"
@@ -452,6 +452,39 @@
 		
 		<!-- Add "See all" link for brand and item group -->
 		{% if item_field.fieldname == 'brand' %}
+		{% if values | len > 12 %}
+		{# Collapse the long brand list: show 12, expand on demand or while searching #}
+		<style>
+			.filter-block .filter-options .brand-extra{display:none}
+			.filter-block .filter-options.brands-expanded .brand-extra{display:block}
+		</style>
+		<button type="button" class="btn btn-sm btn-link p-0 mt-2 brands-toggle">{{ _("+ {0} more brands").format(values | len - 12) }}</button>
+		<script>
+		(function() {
+			const btn = document.currentScript.previousElementSibling;
+			const block = btn.closest('.filter-block');
+			const options = block.querySelector('.filter-options');
+			const moreLabel = btn.textContent;
+			const lessLabel = {{ _("Show fewer brands") | tojson }};
+			btn.addEventListener('click', function() {
+				const expanded = options.classList.toggle('brands-expanded');
+				btn.textContent = expanded ? lessLabel : moreLabel;
+			});
+			const lookup = block.querySelector('.filter-lookup-input');
+			if (lookup) lookup.addEventListener('input', function() {
+				// searching must look through ALL brands, not just the visible 12
+				if (this.value) {
+					options.classList.add('brands-expanded');
+					btn.style.display = 'none';
+				} else {
+					options.classList.remove('brands-expanded');
+					btn.style.display = '';
+					btn.textContent = moreLabel;
+				}
+			});
+		})();
+		</script>
+		{% endif %}
 		<div class="mt-3">
 			<a href="/shop-by-category?tab=brand" class="btn btn-sm btn-outline-primary">{{ _('See all brands') }}</a>
 		</div>
