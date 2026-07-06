@@ -37,14 +37,24 @@
 	.product-long-description img { max-width: 100%; height: auto; border-radius: 8px; }
 	.product-long-description table { max-width: 100%; }
 	.product-long-description iframe { max-width: 100%; }
-	/* Bottom sections: consistent headings */
-	.recommended-item-section > h2, .recommended-item-section > h3, .recommended-item-section > div:first-child > h2,
-	.frequently-bought-section h2, .frequently-bought-section h3,
-	.product-container h2, .product-container h3.section-title {
+	/* Bottom sections: one heading style for reviews / recommended / FBT */
+	.product-info-wrapper .reviews-title,
+	.product-info-wrapper .carousel-title,
+	.product-info-wrapper .recommendation-header {
 		font-size: 1.25rem !important;
 		font-weight: 600 !important;
-		color: #111827;
+		color: #111827 !important;
+		line-height: 1.3 !important;
+		display: flex !important;
+		align-items: center;
+		gap: 8px;
+		margin: 0 0 14px !important;
+		padding: 0 !important;
 	}
+	.product-info-wrapper .review-count-badge { font-size: 0.8rem; }
+	/* same top rhythm for the three blocks */
+	.product-info-wrapper .ratings-reviews-section { margin-top: 0 !important; }
+	.product-info-wrapper .carousel-header { margin: 0 !important; padding: 0 !important; }
 	.recommendations-wrapper a:hover { text-decoration: none; }
 </style>
 			<!-- Long description: full page width, right after the image row -->
