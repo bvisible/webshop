@@ -140,4 +140,26 @@
 	// for backward compatibility of some libs
 	frappe.sys_defaults = frappe.boot.sysdefaults;
 </script>
+<script>
+	// Track recently viewed products (consumed by the cart drawer and shop sidebar)
+	(function() {
+		try {
+			const KEY = 'webshop_recently_viewed';
+			const entry = {
+				code: {{ doc.item_code | tojson }},
+				name: {{ (doc.web_item_name or doc.item_name or doc.item_code) | tojson }},
+				image: {{ (doc.website_image or '') | tojson }},
+				route: {{ (doc.route or '') | tojson }},
+				price: ''
+			};
+			if (!entry.route) return;
+			const priceEl = document.querySelector('.product-price');
+			if (priceEl) entry.price = ((priceEl.childNodes[0] && priceEl.childNodes[0].textContent) || priceEl.textContent || '').trim().slice(0, 24);
+			let list = JSON.parse(localStorage.getItem(KEY) || '[]');
+			list = list.filter(i => i && i.code !== entry.code);
+			list.unshift(entry);
+			localStorage.setItem(KEY, JSON.stringify(list.slice(0, 8)));
+		} catch (e) { /* storage unavailable */ }
+	})();
+</script>
 {% endblock %}

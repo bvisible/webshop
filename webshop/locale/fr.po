@@ -4873,3 +4873,6 @@ msgstr "+ {0} autres marques"
 
 msgid "Show fewer brands"
 msgstr "Réduire la liste des marques"
+
+msgid "Recently viewed"
+msgstr "Récemment consultés"
