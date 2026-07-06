@@ -56,6 +56,12 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 
 		filter_engine = ProductFiltersBuilder(self.name)
 
+		# SEO: meta tags for category pages
+		_cat_desc = frappe.utils.strip_html(self.get("description") or "") or ("%s - %s" % (self.name, frappe.db.get_single_value("Website Settings", "app_name") or ""))
+		metatags = frappe._dict(context.get("metatags") or {})
+		metatags.update({"title": self.name, "description": " ".join(_cat_desc.split())[:158]})
+		context.metatags = metatags
+
 		context.field_filters = filter_engine.get_field_filters()
 		context.attribute_filters = filter_engine.get_attribute_filters()
 		

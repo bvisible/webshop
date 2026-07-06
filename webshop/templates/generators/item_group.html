@@ -372,3 +372,8 @@
 	}
 </style>
 {% endblock %}
+
+{% block head_include %}
+{{ super() }}
+<link rel="canonical" href="{{ frappe.utils.get_url(doc.route) }}">
+{% endblock %}

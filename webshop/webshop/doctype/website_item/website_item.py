@@ -372,6 +372,25 @@ class WebsiteItem(WebsiteGenerator):
 
 				context.recommended_items = auto_items
 		
+		# SEO: rich meta tags (frappe's meta_block renders title/description/og/twitter)
+		_desc_source = frappe.utils.strip_html(self.web_long_description or self.description or "") or self.web_item_name
+		_excerpt = " ".join((_desc_source or "").split())[:158]
+		_meta_image = self.website_image or ""
+		if _meta_image and not _meta_image.startswith("http"):
+			_meta_image = frappe.utils.get_url(_meta_image)
+		_meta_title = self.web_item_name
+		if self.get("brand"):
+			_meta_title = f"{self.web_item_name} - {self.brand}"
+		metatags = frappe._dict(context.get("metatags") or {})
+		metatags.update({
+			"title": _meta_title,
+			"description": _excerpt,
+			"og:type": "product",
+		})
+		if _meta_image:
+			metatags["image"] = _meta_image
+		context.metatags = metatags
+
 		context.frequently_bought_together = None
 		if settings and settings.enable_frequently_bought_together:
 			from webshop.webshop.utils.frequently_bought_together import get_frequently_bought_together

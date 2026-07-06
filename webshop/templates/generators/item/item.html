@@ -332,3 +332,49 @@
 	})();
 </script>
 {% endblock %}
+
+{% block head_include %}
+{{ super() }}
+<link rel="canonical" href="{{ frappe.utils.get_url(doc.route) }}">
+{%- set _pi = shopping_cart.product_info or {} %}
+{%- set _price = _pi.get('price') or {} %}
+{%- set _jsonld_desc = frappe.utils.strip_html(doc.web_long_description or doc.description or '')[:500] %}
+<script type="application/ld+json">
+{
+	"@context": "https://schema.org",
+	"@type": "Product",
+	"name": {{ doc.web_item_name | tojson }},
+	"sku": {{ doc.item_code | tojson }},
+	{%- if doc.brand %}
+	"brand": {"@type": "Brand", "name": {{ doc.brand | tojson }}},
+	{%- endif %}
+	{%- if doc.website_image %}
+	"image": [{{ frappe.utils.get_url(doc.website_image) | tojson }}],
+	{%- endif %}
+	"description": {{ _jsonld_desc | tojson }},
+	"url": {{ frappe.utils.get_url(doc.route) | tojson }}
+	{%- if _price.get('price_list_rate') %},
+	"offers": {
+		"@type": "Offer",
+		"url": {{ frappe.utils.get_url(doc.route) | tojson }},
+		"priceCurrency": {{ (_price.get('currency') or 'CHF') | tojson }},
+		"price": {{ _price.get('price_list_rate') | tojson }},
+		"availability": {{ ('https://schema.org/InStock' if _pi.get('in_stock') else 'https://schema.org/OutOfStock') | tojson }},
+		"itemCondition": "https://schema.org/NewCondition"
+	}
+	{%- endif %}
+}
+</script>
+<script type="application/ld+json">
+{
+	"@context": "https://schema.org",
+	"@type": "BreadcrumbList",
+	"itemListElement": [
+		{%- for p in parents or [] %}
+		{"@type": "ListItem", "position": {{ loop.index }}, "name": {{ (p.label or p.title or p.name) | tojson }}, "item": {{ frappe.utils.get_url(p.route or '') | tojson }}},
+		{%- endfor %}
+		{"@type": "ListItem", "position": {{ (parents | len) + 1 }}, "name": {{ doc.web_item_name | tojson }}, "item": {{ frappe.utils.get_url(doc.route) | tojson }}}
+	]
+}
+</script>
+{% endblock %}
