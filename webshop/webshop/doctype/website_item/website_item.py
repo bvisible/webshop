@@ -390,6 +390,9 @@ class WebsiteItem(WebsiteGenerator):
 		if _meta_image:
 			metatags["image"] = _meta_image
 		context.metatags = metatags
+		# the HTML <title> comes from context.title; suffix the shop name when set
+		_site_name = frappe.db.get_single_value("Website Settings", "app_name")
+		context.title = _meta_title + " | " + _site_name if _site_name and _site_name != "Frappe" else _meta_title
 
 		context.frequently_bought_together = None
 		if settings and settings.enable_frequently_bought_together:

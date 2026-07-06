@@ -61,6 +61,9 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		metatags = frappe._dict(context.get("metatags") or {})
 		metatags.update({"title": self.name, "description": " ".join(_cat_desc.split())[:158]})
 		context.metatags = metatags
+		_site_name = frappe.db.get_single_value("Website Settings", "app_name")
+		if _site_name and _site_name != "Frappe":
+			context.title = self.name + " | " + _site_name
 
 		context.field_filters = filter_engine.get_field_filters()
 		context.attribute_filters = filter_engine.get_attribute_filters()
