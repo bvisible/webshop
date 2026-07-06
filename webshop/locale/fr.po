@@ -4876,3 +4876,18 @@ msgstr "Réduire la liste des marques"
 
 msgid "Recently viewed"
 msgstr "Récemment consultés"
+
+msgid "Free pickup at the store"
+msgstr "Retrait gratuit en magasin"
+
+msgid "Fast shipping, 24-48h"
+msgstr "Expédition rapide, 24-48h"
+
+msgid "Secure payment - TWINT, credit cards"
+msgstr "Paiement sécurisé — TWINT, cartes"
+
+msgid "Sale forbidden to under-18s (Swiss weapons law)"
+msgstr "Vente interdite aux moins de 18 ans (loi sur les armes)"
+
+msgid "Read more"
+msgstr "Lire la suite"

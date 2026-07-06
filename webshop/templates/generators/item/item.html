@@ -76,6 +76,35 @@
 	/* ---- Distinct card blocks (gallery / buy box / description / info) ---- */
 	body.product-page { background: #eef0f4; }
 	.product-header-block { margin: 4px 0 16px; }
+	/* buy-box trust block + excerpt */
+	.buybox-trust {
+		margin-top: 18px;
+		padding-top: 16px;
+		border-top: 1px solid #eef0f3;
+		display: flex;
+		flex-direction: column;
+		gap: 9px;
+	}
+	.buybox-trust__item {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		font-size: 0.86rem;
+		color: #374151;
+	}
+	.buybox-trust__item svg { width: 16px; height: 16px; color: #16a34a; flex-shrink: 0; }
+	.buybox-trust__item--legal { color: #b91c1c; }
+	.buybox-trust__item--legal svg { color: #b91c1c; }
+	.buybox-excerpt {
+		margin-top: 16px;
+		padding-top: 16px;
+		border-top: 1px solid #eef0f3;
+		font-size: 0.875rem;
+		line-height: 1.65;
+		color: #4b5563;
+	}
+	.buybox-excerpt a { white-space: nowrap; font-weight: 500; }
+	html { scroll-behavior: smooth; }
 	.product-header-block .product-title-main {
 		font-size: 1.65rem;
 		font-weight: 700;
@@ -140,7 +169,7 @@
 			<!-- Long description: full page width, right after the image row -->
 			{% if frappe.utils.strip_html(doc.web_long_description or '') %}
 			<div class="row">
-				<div class="col-12 product-long-description-section">
+				<div class="col-12 product-long-description-section" id="product-long-desc" style="scroll-margin-top: 20px;">
 					<h2 class="product-section-title">{{ _("Description") }}</h2>
 					<div class="product-description product-long-description" itemprop="description">
 						{{ _(doc.web_long_description) | safe }}

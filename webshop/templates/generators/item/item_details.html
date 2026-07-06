@@ -37,16 +37,40 @@
 		<!-- add variant to cart -->
 		{% include "templates/generators/item/item_add_to_cart.html" %}
 	{% endif %}
-	<!-- description: the long one renders full-width below the images (item.html);
-	     keep the short marketing description here so the column stays compact -->
-	{% set _has_long_desc = frappe.utils.strip_html(doc.web_long_description or '') %}
-	<div class="product-description" {% if not _has_long_desc %}itemprop="description"{% endif %}>
-	{% if frappe.utils.strip_html(doc.description or '') %}
-		{{ _(doc.description) | safe }}
-	{% elif not _has_long_desc %}
-		{{ "" }}
-	{% endif %}
+	<!-- trust / reassurance block -->
+	{% set _long_text = frappe.utils.strip_html(doc.web_long_description or '') %}
+	<div class="buybox-trust">
+		<div class="buybox-trust__item">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+			{{ _("Free pickup at the store") }}
+		</div>
+		<div class="buybox-trust__item">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+			{{ _("Fast shipping, 24-48h") }}
+		</div>
+		<div class="buybox-trust__item">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+			{{ _("Secure payment - TWINT, credit cards") }}
+		</div>
+		{% if "loi sur les armes" in (_long_text | lower) %}
+		<div class="buybox-trust__item buybox-trust__item--legal">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+			{{ _("Sale forbidden to under-18s (Swiss weapons law)") }}
+		</div>
+		{% endif %}
 	</div>
+
+	<!-- short excerpt of the long description, anchored to the full one below -->
+	{% if _long_text %}
+	<div class="buybox-excerpt">
+		{{ _long_text[:210] }}&hellip;
+		<a href="#product-long-desc">{{ _("Read more") }} &darr;</a>
+	</div>
+	{% elif frappe.utils.strip_html(doc.description or '') %}
+	<div class="product-description" itemprop="description">
+		{{ _(doc.description) | safe }}
+	</div>
+	{% endif %}
 </div>
 
 <style>
