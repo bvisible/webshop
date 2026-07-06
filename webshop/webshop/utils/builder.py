@@ -134,7 +134,9 @@ def get_builder_component_content(component_type, use_cache=True):
             blocks = json.loads(blocks)
 
         # Render the component HTML
-        content, style, fonts = get_block_html(blocks)
+        # builder's get_block_html now returns 4 values (html, css, font_map,
+        # has_dual_mode_image) — take the first three to stay compatible.
+        content, style, fonts = get_block_html(blocks)[:3]
 
         # Post-process content (same as page rendering)
         content = re.sub(r'<body([^>]*)>', r'<div\1 class="builder-body-container">', content)
@@ -303,7 +305,9 @@ def get_builder_page_content(route=None, page_name=None, content_only=False, ski
             blocks = json.loads(blocks)
         
         # Get raw HTML and style
-        content, style, fonts = get_block_html(blocks)
+        # builder's get_block_html now returns 4 values (html, css, font_map,
+        # has_dual_mode_image) — take the first three to stay compatible.
+        content, style, fonts = get_block_html(blocks)[:3]
         
         # Process page data and context only if needed
         # Skip render_template if content has {% include %} - those should be rendered by parent template
