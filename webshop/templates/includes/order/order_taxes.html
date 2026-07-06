@@ -30,15 +30,24 @@
 		{% if not clean.label %}
 			{% set clean.label = (clean.parts | join(" - ")) or d.description %}
 		{% endif %}
+		{#- Merge VAT rows by their extracted rate (product VAT "TVA 8.1%" and
+		    shipping VAT "Due (8.1%)" become one line, first label wins). -#}
+		{% set key = namespace(v=clean.label) %}
+		{% if "%" in clean.label %}
+			{% set rate = clean.label.split("%")[0].split(" ") | last | replace("(", "") | replace(")", "") %}
+			{% if rate and rate.replace(".", "").isdigit() %}
+				{% set key.v = "vat-" ~ rate %}
+			{% endif %}
+		{% endif %}
 		{% set merged = namespace(done=false) %}
 		{% for row in ns.rows %}
-			{% if row.label == clean.label %}
+			{% if row.key == key.v %}
 				{% if row.update({"amount": row.amount + d.base_tax_amount}) %}{% endif %}
 				{% set merged.done = true %}
 			{% endif %}
 		{% endfor %}
 		{% if not merged.done %}
-			{% if ns.rows.append({"label": clean.label, "amount": d.base_tax_amount}) %}{% endif %}
+			{% if ns.rows.append({"key": key.v, "label": clean.label, "amount": d.base_tax_amount}) %}{% endif %}
 		{% endif %}
 	{% endif %}
 {% endfor %}
