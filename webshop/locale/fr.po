@@ -4891,3 +4891,15 @@ msgstr "Vente interdite aux moins de 18 ans (loi sur les armes)"
 
 msgid "Read more"
 msgstr "Lire la suite"
+
+msgid "In Stock"
+msgstr "En stock"
+
+msgid "Only {0} left"
+msgstr "Plus que {0} en stock"
+
+msgid "Out of Stock"
+msgstr "En rupture de stock"
+
+msgid "Not Available"
+msgstr "Indisponible"

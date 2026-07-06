@@ -258,14 +258,14 @@ class ItemConfigureGrid {
 			// Update stock info
 			let stockInfoHtml = '';
 			if (this.selected_variant.in_stock) {
-				stockInfoHtml = `<span class="badge badge-success">In Stock</span>`;
+				stockInfoHtml = `<span class="badge badge-success">{{ _("In Stock") }}</span>`;
 				if (this.selected_variant.stock_qty && this.selected_variant.stock_qty < 10) {
-					stockInfoHtml += ` <small class="text-warning">Only ${this.selected_variant.stock_qty} left</small>`;
+					stockInfoHtml += ` <small class="text-warning">${'{{ _("Only {0} left") }}'.replace('{0}', this.selected_variant.stock_qty)}</small>`;
 				}
 			} else if (this.selected_variant.exists !== false) {
-				stockInfoHtml = `<span class="badge badge-secondary">Out of Stock</span>`;
+				stockInfoHtml = `<span class="badge badge-secondary">{{ _("Out of Stock") }}</span>`;
 			} else {
-				stockInfoHtml = `<span class="badge badge-dark">Not Available</span>`;
+				stockInfoHtml = `<span class="badge badge-dark">{{ _("Not Available") }}</span>`;
 			}
 			
 			// Add stock info to footer
