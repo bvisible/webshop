@@ -4,39 +4,7 @@
 {% set price_info = product_info.get('price') or {} %}
 
 <div class="col-md-8 product-details {{ width_class }}">
-	<div class="d-flex">
-		<!-- title -->
-		<div class="product-title col-11" itemprop="name">
-			{{ _(doc.web_item_name) }}
-		</div>
-
-		<!-- Wishlist -->
-		{% if cart_settings.enable_wishlist %}
-			<div class="like-action-item-fp like-action {{ 'like-action-wished' if wished else ''}} ml-2"
-				data-item-code="{{ doc.item_code }}">
-				<svg class="icon sm">
-					<use class="{{ 'wished' if wished else 'not-wished' }} wish-icon" href="#icon-heart"></use>
-				</svg>
-			</div>
-		{% endif %}
-	</div>
-
-	<!-- breadcrumbs under the title (moved from the top of the page) -->
-	<div class="item-breadcrumbs small text-muted product-title-breadcrumbs">
-		{% include "templates/includes/breadcrumbs.html" %}
-	</div>
-	<style>
-		/* hug the title: kill the title's bottom spacing and keep the trail tight */
-		.product-details > .d-flex { margin-bottom: 0 !important; }
-		.product-details .product-title { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-		.product-title-breadcrumbs { margin: 2px 0 14px; }
-		.product-title-breadcrumbs .breadcrumb,
-		.product-title-breadcrumbs ol,
-		.product-title-breadcrumbs ul { padding: 0 !important; margin: 0 !important; background: transparent !important; font-size: 0.78rem; justify-content: flex-start !important; }
-		/* the last segment repeats the product title right above it */
-		.product-title-breadcrumbs .breadcrumb li:last-child,
-		.product-title-breadcrumbs .breadcrumb-item:last-child { display: none; }
-	</style>
+	<!-- title, wishlist and breadcrumbs render above the cards (item.html) -->
 
 	<div itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
 	</div>

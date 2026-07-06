@@ -13,6 +13,24 @@
 	<div class="item-content">
 		<div class="product-page-content" itemscope itemtype="http://schema.org/Product">
 			<!-- Image, Description, Add to Cart -->
+			<!-- Product header: title + breadcrumbs above the cards, left aligned -->
+			<div class="product-header-block">
+				<div class="d-flex align-items-start justify-content-between">
+					<h1 class="product-title-main" itemprop="name">{{ _(doc.web_item_name) }}</h1>
+					{% if shopping_cart.cart_settings.enable_wishlist %}
+						<div class="like-action-item-fp like-action {{ 'like-action-wished' if wished else '' }} ml-2"
+							data-item-code="{{ doc.item_code }}">
+							<svg class="icon sm">
+								<use class="{{ 'wished' if wished else 'not-wished' }} wish-icon" href="#icon-heart"></use>
+							</svg>
+						</div>
+					{% endif %}
+				</div>
+				<div class="item-breadcrumbs small text-muted product-title-breadcrumbs">
+					{% include "templates/includes/breadcrumbs.html" %}
+				</div>
+			</div>
+
 			<div class="row mb-5 product-hero-row">
 				{% include "templates/generators/item/item_image.html" %}
 				{% include "templates/generators/item/item_details.html" %}
@@ -57,6 +75,23 @@
 
 	/* ---- Distinct card blocks (gallery / buy box / description / info) ---- */
 	body.product-page { background: #eef0f4; }
+	.product-header-block { margin: 4px 0 16px; }
+	.product-header-block .product-title-main {
+		font-size: 1.65rem;
+		font-weight: 700;
+		color: #111827;
+		line-height: 1.25;
+		margin: 0;
+	}
+	.product-header-block .product-title-breadcrumbs { margin: 6px 0 0; }
+	.product-header-block .product-title-breadcrumbs .breadcrumb,
+	.product-header-block .product-title-breadcrumbs ol,
+	.product-header-block .product-title-breadcrumbs ul {
+		padding: 0 !important; margin: 0 !important; background: transparent !important;
+		font-size: 0.78rem; justify-content: flex-start !important;
+	}
+	.product-header-block .product-title-breadcrumbs .breadcrumb li:last-child,
+	.product-header-block .product-title-breadcrumbs .breadcrumb-item:last-child { display: none; }
 	/* the legacy page wrapper painted the whole product page white, hiding the
 	   gray background between the cards */
 	body.product-page .product-container.item-main { background: transparent !important; box-shadow: none !important; border: none !important; }
