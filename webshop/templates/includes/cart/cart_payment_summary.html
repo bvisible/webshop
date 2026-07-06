@@ -15,22 +15,46 @@
 					<td class="bill-content net-total text-right">{{ webshop_fmt_money(doc.net_total, currency=doc.currency) }}</td>
 				</tr>
 
-				<!-- taxes -->
+				<!-- taxes: cleaned labels (no account codes / internal ids), VAT rows merged by rate -->
+				{% set ns = namespace(rows=[]) %}
 				{% for d in doc.taxes %}
 					{% if d.tax_amount and not d.is_loyalty_points_reduction %}
-						<tr>
-							<td class="bill-label">
-								{% if "%" in d.description %}
-									{{ d.description.split("%")[0] }}%
-								{% else %}
-									{{ d.description }}
-								{% endif %}
-							</td>
-							<td class="bill-content text-right">
-								{{ webshop_fmt_money(d.tax_amount, currency=doc.currency) }}
-							</td>
-						</tr>
+						{% set clean = namespace(parts=[], label="") %}
+						{% for p in (d.description or "").split(" - ") %}
+							{% if p.strip() and not p.strip().isdigit() and "_" not in p %}
+								{% if clean.parts.append(p.strip()) %}{% endif %}
+							{% endif %}
+						{% endfor %}
+						{% for p in clean.parts %}
+							{% if "%" in p %}{% set clean.label = p %}{% endif %}
+						{% endfor %}
+						{% if not clean.label %}
+							{% set clean.label = (clean.parts | join(" - ")) or d.description %}
+						{% endif %}
+						{% set key = namespace(v=clean.label) %}
+						{% if "%" in clean.label %}
+							{% set rate = clean.label.split("%")[0].split(" ") | last | replace("(", "") | replace(")", "") %}
+							{% if rate and rate.replace(".", "").isdigit() %}
+								{% set key.v = "vat-" ~ rate %}
+							{% endif %}
+						{% endif %}
+						{% set merged = namespace(done=false) %}
+						{% for row in ns.rows %}
+							{% if row.key == key.v %}
+								{% if row.update({"amount": row.amount + d.tax_amount}) %}{% endif %}
+								{% set merged.done = true %}
+							{% endif %}
+						{% endfor %}
+						{% if not merged.done %}
+							{% if ns.rows.append({"key": key.v, "label": clean.label, "amount": d.tax_amount}) %}{% endif %}
+						{% endif %}
 					{% endif %}
+				{% endfor %}
+				{% for row in ns.rows %}
+					<tr>
+						<td class="bill-label">{{ row.label }}</td>
+						<td class="bill-content text-right">{{ webshop_fmt_money(row.amount, currency=doc.currency) }}</td>
+					</tr>
 				{% endfor %}
 
 				<!-- Coupon Discount -->
