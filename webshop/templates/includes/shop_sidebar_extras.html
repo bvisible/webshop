@@ -63,6 +63,26 @@
 			return origSend.apply(this, arguments);
 		};
 	} catch (e) {}
+	try {
+		// the listing bundle uses fetch(), not XHR — intercept both
+		const origFetch = window.fetch;
+		window.fetch = function(input) {
+			const url = (typeof input === 'string') ? input : ((input && input.url) || '');
+			const prom = origFetch.apply(this, arguments);
+			if (url.indexOf('get_product_filter_data') > -1) {
+				prom.then(function(resp) {
+					try {
+						resp.clone().json().then(function(d) {
+							const m = (d && d.message) || {};
+							const n = (typeof m.total_count === 'number') ? m.total_count : m.items_count;
+							if (typeof n === 'number') setCount(n);
+						}).catch(function() {});
+					} catch (e) {}
+				}).catch(function() {});
+			}
+			return prom;
+		};
+	} catch (e) {}
 
 	/* ---- active filter chips ---- */
 	const chipsBox = document.getElementById('active-filter-chips');
