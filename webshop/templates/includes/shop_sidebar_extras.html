@@ -43,46 +43,36 @@
 	function setCount(n) {
 		if (counter && typeof n === 'number') counter.textContent = '· ' + n + ' ' + productsWord;
 	}
-	try {
-		const origOpen = XMLHttpRequest.prototype.open;
-		XMLHttpRequest.prototype.open = function(method, url) {
-			this.__shopUrl = url || '';
-			return origOpen.apply(this, arguments);
-		};
-		const origSend = XMLHttpRequest.prototype.send;
-		XMLHttpRequest.prototype.send = function() {
-			if ((this.__shopUrl || '').indexOf('get_product_filter_data') > -1) {
-				this.addEventListener('load', function() {
-					try {
-						const m = JSON.parse(this.responseText).message || {};
-						const n = (typeof m.total_count === 'number') ? m.total_count : m.items_count;
-						if (typeof n === 'number') setCount(n);
-					} catch (e) {}
-				});
-			}
-			return origSend.apply(this, arguments);
-		};
-	} catch (e) {}
-	try {
-		// the listing bundle uses fetch(), not XHR — intercept both
-		const origFetch = window.fetch;
-		window.fetch = function(input) {
-			const url = (typeof input === 'string') ? input : ((input && input.url) || '');
-			const prom = origFetch.apply(this, arguments);
-			if (url.indexOf('get_product_filter_data') > -1) {
-				prom.then(function(resp) {
-					try {
-						resp.clone().json().then(function(d) {
-							const m = (d && d.message) || {};
-							const n = (typeof m.total_count === 'number') ? m.total_count : m.items_count;
-							if (typeof n === 'number') setCount(n);
-						}).catch(function() {});
-					} catch (e) {}
-				}).catch(function() {});
-			}
-			return prom;
-		};
-	} catch (e) {}
+	// The listing bundle refreshes via a full-page XHR (no JSON to sniff), so the
+	// counter makes its own lightweight call to the filter API, debounced.
+	let countTimer = null;
+	function refreshCount() {
+		clearTimeout(countTimer);
+		countTimer = setTimeout(function() {
+			const field_filters = {};
+			pf.querySelectorAll('input.field-filter:checked').forEach(function(i) {
+				const k = i.dataset.filterName, v = i.dataset.filterValue;
+				if (!k || !v) return;
+				(field_filters[k] = field_filters[k] || []).push(v);
+			});
+			fetch('/api/method/webshop.webshop.api.get_product_filter_data', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-Frappe-CSRF-Token': (window.frappe && frappe.csrf_token) || ''
+				},
+				body: JSON.stringify({ query_args: { field_filters: field_filters, attribute_filters: {}, start: 0 } })
+			}).then(function(r) { return r.json(); }).then(function(d) {
+				const m = (d && d.message) || {};
+				const n = (typeof m.total_count === 'number') ? m.total_count : m.items_count;
+				if (typeof n === 'number') setCount(n);
+			}).catch(function() {});
+		}, 400);
+	}
+	pf.addEventListener('change', function(e) {
+		if (e.target && e.target.matches('input[type="checkbox"]')) refreshCount();
+	});
+	setTimeout(refreshCount, 1200);
 
 	/* ---- active filter chips ---- */
 	const chipsBox = document.getElementById('active-filter-chips');
