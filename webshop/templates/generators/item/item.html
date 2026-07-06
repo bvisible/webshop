@@ -159,6 +159,17 @@
 			list = list.filter(i => i && i.code !== entry.code);
 			list.unshift(entry);
 			localStorage.setItem(KEY, JSON.stringify(list.slice(0, 8)));
+			// the displayed price loads async (get_product_info) — capture it once rendered
+			setTimeout(function() {
+				try {
+					const el = document.querySelector('.product-price');
+					const p = el ? ((el.childNodes[0] && el.childNodes[0].textContent) || '').trim().slice(0, 24) : '';
+					if (!p) return;
+					const l2 = JSON.parse(localStorage.getItem(KEY) || '[]');
+					const idx = l2.findIndex(i => i && i.code === entry.code);
+					if (idx > -1 && !l2[idx].price) { l2[idx].price = p; localStorage.setItem(KEY, JSON.stringify(l2)); }
+				} catch (e) {}
+			}, 1500);
 		} catch (e) { /* storage unavailable */ }
 	})();
 </script>
