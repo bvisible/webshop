@@ -102,7 +102,9 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 			context.slideshow = values
 
 		context.no_breadcrumbs = False
-		context.title = self.website_title or self.name
+		_site_name = frappe.db.get_single_value("Website Settings", "app_name")
+		_base_title = self.website_title or self.name
+		context.title = _base_title + " | " + _site_name if _site_name and _site_name != "Frappe" else _base_title
 		context.name = self.name
 		context.item_group_name = self.item_group_name
 
