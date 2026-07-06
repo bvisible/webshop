@@ -9,7 +9,16 @@
 			overflow-y: auto;
 			overflow-x: hidden;
 			padding-right: 6px;
+			/* slim, always-visible scrollbar (macOS overlay hides it otherwise) */
+			scrollbar-width: thin;
+			scrollbar-color: #c7ccd1 transparent;
 		}
+		#product-filters::-webkit-scrollbar { width: 6px; }
+		#product-filters::-webkit-scrollbar-track { background: transparent; }
+		#product-filters::-webkit-scrollbar-thumb { background: #c7ccd1; border-radius: 999px; }
+		#product-filters::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+		/* price slider: round handles were clipped by the column's overflow */
+		#product-filters #price-slider-track { margin-left: 10px; margin-right: 10px; }
 	}
 	#active-filter-chips { display: none; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 	@media (min-width: 768px) { #active-filter-chips { order: -1; } }
