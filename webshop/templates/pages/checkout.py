@@ -547,14 +547,22 @@ def get_shipping_methods():
 			# Final gate: dry-run the real ERPNext apply() so this list can never
 			# diverge from what applying the rule accepts later (the listing math
 			# above and ShippingRule.apply compute packing dimensions differently).
-			try:
-				probe = frappe.copy_doc(quotation)
-				probe.shipping_rule = rule.name
-				frappe.get_doc("Shipping Rule", rule.name).apply(probe)
-			except frappe.ValidationError:
-				continue
-			except Exception:
-				pass  # never block the listing on unexpected probe errors
+			# Free rules (e.g. in-store pickup, Fixed 0.00) are legitimately zero —
+			# apply() clears any zero-amount rule, so only dry-run paid ones.
+			if flt(shipping_amount):
+				try:
+					probe = frappe.copy_doc(quotation)
+					probe.shipping_rule = rule.name
+					# suppress the fork's "not applicable" msgprint during the dry-run
+					probe._skip_shipping_rule_notification = True
+					frappe.get_doc("Shipping Rule", rule.name).apply(probe)
+					if not probe.shipping_rule:
+						# the fork's apply() clears the field when constraints don't match
+						continue
+				except frappe.ValidationError:
+					continue
+				except Exception:
+					pass  # never block the listing on unexpected probe errors
 
 			available_methods.append({
 				"name": rule.name,
@@ -749,9 +757,19 @@ def get_payment_methods():
 
 				# Hide installment-based methods entirely when the cart doesn't reach
 				# the smallest configured minimum (all options would be greyed out).
-				installments = (gateway_settings or {}).get("installments") or []
+				installments = (gateway_settings or {}).get("installments") or (gateway_settings or {}).get("installment_plans")
+				if installments is None and payment_gateway.gateway_settings:
+					# Settings doc not resolved above (no gateway_controller) — try the
+					# Single doc of the settings doctype, like the payment template does.
+					try:
+						_sdoc = frappe.get_cached_doc(payment_gateway.gateway_settings)
+						installments = [r.as_dict() for r in (_sdoc.get("installment_plans") or _sdoc.get("installments") or [])]
+					except Exception:
+						installments = []
+				installments = installments or []
 				if installments and quotation_doc:
-					mins = [flt(i.get("min_amount")) for i in installments if flt(i.get("min_amount"))]
+					mins = [flt(i.get("min_amount") or i.get("minimum_amount")) for i in installments]
+					mins = [m for m in mins if m]
 					cart_amount = flt(quotation_doc.get("rounded_total") or quotation_doc.get("grand_total"))
 					if mins and len(mins) == len(installments) and cart_amount < min(mins):
 						continue
