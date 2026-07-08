@@ -139,7 +139,7 @@ frappe.ui.form.on("Item", {
 							});
 						}
 					});
-				}, __('Actions'));
+				});
 			} else {
 				frm.add_custom_button(__("View Website Item"), function() {
 					frappe.db.get_value("Website Item", {item_code: frm.doc.name}, "name", (d) => {
