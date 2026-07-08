@@ -330,11 +330,15 @@ class WebsiteItem(WebsiteGenerator):
 			
 			# If no manual recommendations, get auto recommendations with prices
 			if not context.recommended_items:
+				#//// Neoffice multi-site: hide items restricted to other sites
+				from webshop.webshop.multi_site import excluded_item_names
+				_excluded = excluded_item_names()
+				_name_filter = ["not in", _excluded + [self.name]] if _excluded else ["!=", self.name]
 				auto_items = frappe.get_all("Website Item",
 					filters={
 						"published": 1,
 						"item_group": self.item_group,
-						"name": ["!=", self.name]
+						"name": _name_filter
 					},
 					fields=["item_code", "web_item_name", "route", "website_image", "item_group"],
 					limit=4,
@@ -416,6 +420,9 @@ class WebsiteItem(WebsiteGenerator):
 		# Check if this item is a product bundle
 		if frappe.db.exists("Product Bundle", self.item_code):
 			bundle_doc = frappe.get_doc("Product Bundle", self.item_code)
+			#//// Neoffice multi-site: hide items restricted to other sites
+			from webshop.webshop.multi_site import excluded_item_names
+			_excluded = excluded_item_names()
 			
 			for bundle_item in bundle_doc.items:
 				item_info = {
@@ -433,9 +440,12 @@ class WebsiteItem(WebsiteGenerator):
 				}
 				
 				# Check if the bundle item has a published Website Item
+				_wi_filters = {"item_code": bundle_item.item_code, "published": 1}
+				if _excluded:
+					_wi_filters["name"] = ["not in", _excluded]
 				website_item = frappe.db.get_value(
 					"Website Item",
-					{"item_code": bundle_item.item_code, "published": 1},
+					_wi_filters,
 					["web_item_name", "route", "website_image", "thumbnail"],
 					as_dict=True
 				)
@@ -655,6 +665,11 @@ class WebsiteItem(WebsiteGenerator):
 			.where((ri.parent == self.name) & (wi.published == 1))
 			.orderby(ri.idx)
 		)
+		#//// Neoffice multi-site: hide items restricted to other sites
+		from webshop.webshop.multi_site import excluded_item_names
+		_excluded = excluded_item_names()
+		if _excluded:
+			query = query.where(wi.name.notin(_excluded))
 		items = query.run(as_dict=True)
 
 		if settings.show_price:

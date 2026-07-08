@@ -38,6 +38,11 @@ def get_discounted_items_query(price_list=None, company=None, customer_group=Non
 	
 	# Build WHERE conditions for Website Item filters
 	where_conditions = ["wi.published = 1"]
+	#//// Neoffice multi-site: scope to the current site
+	from webshop.webshop.multi_site import site_sql_predicate
+	_site_pred = site_sql_predicate("wi")
+	if _site_pred:
+		where_conditions.append(_site_pred)
 	values = []
 	
 	if filters:
@@ -196,6 +201,11 @@ def get_discounted_items_count(price_list=None, company=None, customer_group=Non
 	
 	# Build WHERE conditions
 	where_conditions = ["wi.published = 1"]
+	#//// Neoffice multi-site: scope to the current site
+	from webshop.webshop.multi_site import site_sql_predicate
+	_site_pred = site_sql_predicate("wi")
+	if _site_pred:
+		where_conditions.append(_site_pred)
 	values = []
 	
 	if filters:
@@ -296,7 +306,11 @@ def get_items_with_pricing_rule_discount(price_list=None, company=None, customer
 	
 	current_date = nowdate()
 	
-	query = """
+	#//// Neoffice multi-site: scope to the current site
+	from webshop.webshop.multi_site import site_sql_condition
+	_site_cond = site_sql_condition("wi")
+
+	query = f"""
 	SELECT DISTINCT
 		wi.name,
 		wi.item_code,
@@ -329,7 +343,7 @@ def get_items_with_pricing_rule_discount(price_list=None, company=None, customer
 	LEFT JOIN `tabPricing Rule Item Code` pric ON pr.name = pric.parent
 	LEFT JOIN `tabPricing Rule Item Group` prig ON pr.name = prig.parent
 	LEFT JOIN `tabPricing Rule Brand` prb ON pr.name = prb.parent
-	WHERE wi.published = 1
+	WHERE wi.published = 1{_site_cond}
 		AND ip.price_list = %s
 		AND ip.selling = 1
 		AND pr.disable = 0

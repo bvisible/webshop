@@ -68,6 +68,11 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
         "wi.published = 1",
         "(wi.variant_of IS NULL OR wi.variant_of = '')",
     ]
+    #//// Neoffice multi-site: scope to the current site
+    from webshop.webshop.multi_site import site_sql_predicate
+    _site_pred = site_sql_predicate("wi")
+    if _site_pred:
+        conditions.append(_site_pred)
     params = {
         "price_list": price_list,
         "limit": limit + 10  # Get a few extra in case of filtering

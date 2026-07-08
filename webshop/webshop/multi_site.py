@@ -52,16 +52,23 @@ def excluded_item_names() -> list[str]:
 	)
 
 
-def site_sql_condition(alias: str = "wi") -> str:
-	"""SQL fragment (starting with " AND ...") scoping a Website Item alias to
-	the current site. Empty string when filtering is inactive."""
+def site_sql_predicate(alias: str = "wi") -> str:
+	"""Bare SQL predicate "(...)" scoping a Website Item alias to the current
+	site — for hand-built condition lists. Empty string when inactive."""
 	if not is_active():
 		return ""
 	profile = frappe.db.escape(get_current_profile_name())
 	return (
-		f" AND (NOT EXISTS (SELECT 1 FROM `tabWebsite Item Site` nws"
+		f"(NOT EXISTS (SELECT 1 FROM `tabWebsite Item Site` nws"
 		f" WHERE nws.parenttype = 'Website Item' AND nws.parent = {alias}.name)"
 		f" OR EXISTS (SELECT 1 FROM `tabWebsite Item Site` nws"
 		f" WHERE nws.parenttype = 'Website Item' AND nws.parent = {alias}.name"
 		f" AND nws.website_profile = {profile}))"
 	)
+
+
+def site_sql_condition(alias: str = "wi") -> str:
+	"""SQL fragment (starting with " AND ...") scoping a Website Item alias to
+	the current site. Empty string when filtering is inactive."""
+	predicate = site_sql_predicate(alias)
+	return f" AND {predicate}" if predicate else ""

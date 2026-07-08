@@ -33,8 +33,12 @@ def get_brands_with_product_count(limit: int = 20, sort_by: str = "brand_name",
         if cached_brands is not None:
             return cached_brands
     
+    #//// Neoffice multi-site: scope to the current site
+    from webshop.webshop.multi_site import site_sql_condition
+    _site_cond = site_sql_condition("wi")
+
     # Get brands with product count using SQL for better performance
-    query = """
+    query = f"""
         SELECT 
             b.name as brand_name,
             b.brand,
@@ -42,7 +46,7 @@ def get_brands_with_product_count(limit: int = 20, sort_by: str = "brand_name",
             b.description,
             COUNT(DISTINCT wi.name) as product_count
         FROM `tabBrand` b
-        LEFT JOIN `tabWebsite Item` wi ON wi.brand = b.name AND wi.published = 1
+        LEFT JOIN `tabWebsite Item` wi ON wi.brand = b.name AND wi.published = 1{_site_cond}
         GROUP BY b.name, b.brand, b.image, b.description
         HAVING product_count > 0
     """
@@ -152,6 +156,10 @@ def get_featured_brands(brand_names: List[str], use_cache: bool = True,
     # Create a map for easy lookup
     brand_map = {b.name: b for b in brands_data}
     
+    #//// Neoffice multi-site: hide items restricted to other sites
+    from webshop.webshop.multi_site import excluded_item_names
+    _excluded = excluded_item_names()
+
     # Format brands in the requested order
     formatted_brands = []
     for brand_name in brand_names:
@@ -159,9 +167,12 @@ def get_featured_brands(brand_names: List[str], use_cache: bool = True,
             brand = brand_map[brand_name]
             
             # Get product count
+            count_filters = {"brand": brand_name, "published": 1}
+            if _excluded:
+                count_filters["name"] = ["not in", _excluded]
             product_count = frappe.db.count(
                 "Website Item",
-                filters={"brand": brand_name, "published": 1}
+                filters=count_filters
             )
             
             if product_count > 0:

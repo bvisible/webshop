@@ -915,8 +915,12 @@ def get_discount_items_preview(limit=20, price_list=None):
 	if not price_list:
 		return []
 	
+	#//// Neoffice multi-site: scope to the current site (also keys the cache per site)
+	from webshop.webshop.multi_site import get_current_profile_name, site_sql_condition
+	_site_cond = site_sql_condition("wi")
+
 	# Use user cache
-	cache_key = f"discount_preview:{frappe.session.user}:{price_list}:{limit}"
+	cache_key = f"discount_preview:{frappe.session.user}:{get_current_profile_name() or 'all'}:{price_list}:{limit}"
 	cached = frappe.cache().get_value(cache_key)
 	if cached:
 		return cached
@@ -926,7 +930,7 @@ def get_discount_items_preview(limit=20, price_list=None):
 	customer = party.name if party else None
 	
 	# Query with CTE for better performance
-	items = frappe.db.sql("""
+	items = frappe.db.sql(f"""
 		WITH discount_items AS (
 			SELECT 
 				wi.name, wi.item_code, wi.web_item_name,
@@ -965,7 +969,7 @@ def get_discount_items_preview(limit=20, price_list=None):
 				AND ip_mrp.selling = 1
 				AND (ip_mrp.valid_from IS NULL OR ip_mrp.valid_from <= CURDATE())
 				AND (ip_mrp.valid_upto IS NULL OR ip_mrp.valid_upto >= CURDATE())
-			WHERE wi.published = 1
+			WHERE wi.published = 1{_site_cond}
 		)
 		SELECT * FROM discount_items
 		WHERE discount_percent > 0

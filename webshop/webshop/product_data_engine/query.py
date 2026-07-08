@@ -24,6 +24,11 @@ class ProductQuery:
 
 	def __init__(self):
 		self.settings = frappe.get_doc("Webshop Settings")
+		#//// Neoffice multi-site: the resolved profile's price list drives price
+		#//// display and discount CTEs on this site (fresh doc — safe to shadow).
+		_profile = getattr(frappe.local, "website_profile_doc", None)
+		if _profile and _profile.get("price_list"):
+			self.settings.price_list = _profile["price_list"]
 		self.page_length = self.settings.products_per_page or 20
 
 		self.or_filters = []
