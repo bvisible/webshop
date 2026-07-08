@@ -86,3 +86,38 @@ def site_sql_condition(alias: str = "wi") -> str:
 	the current site. Empty string when filtering is inactive."""
 	predicate = site_sql_predicate(alias)
 	return f" AND {predicate}" if predicate else ""
+
+
+@frappe.whitelist()
+def get_active_website_profiles() -> list[dict]:
+	"""Sites available for the publish dialog. Empty when multi-site is off
+	(no Website Profile doctype or no enabled profile) — callers then keep
+	the single-site behavior untouched."""
+	try:
+		if not frappe.db.exists("DocType", "Website Profile"):
+			return []
+		return frappe.get_all(
+			"Website Profile",
+			filters={"enabled": 1},
+			fields=["name", "title", "is_default"],
+			order_by="is_default desc, title asc",
+		)
+	except Exception:
+		return []
+
+
+@frappe.whitelist()
+def set_website_item_sites(website_item: str, sites=None):
+	"""Replace the Website Item's site rows. Empty/None = visible on ALL
+	sites (the base behavior)."""
+	import json
+
+	if isinstance(sites, str):
+		sites = json.loads(sites or "[]")
+	doc = frappe.get_doc("Website Item", website_item)
+	if not hasattr(doc, "neo_website_profiles"):
+		return
+	doc.set("neo_website_profiles", [])
+	for site in sites or []:
+		doc.append("neo_website_profiles", {"website_profile": site})
+	doc.save()
