@@ -4,7 +4,9 @@
 from urllib.parse import quote
 
 import frappe
-from frappe.utils import get_url, nowdate
+from frappe.utils import nowdate
+#//// Neoffice multi-site: build absolute URLs on the current site's domain
+from webshop.webshop.multi_site import site_url as get_url
 from frappe.utils.caching import redis_cache
 from frappe.website.router import get_doctypes_with_web_view, get_pages
 from webshop.www.sitemap_utils import prepare_url_for_xml, escape_xml
@@ -15,19 +17,21 @@ base_template_path = "www/sitemap.xml"
 
 def get_context(context):
     """Generate the sitemap XML including all published content"""
+    #//// Neoffice multi-site: vary the redis cache key per site
+    from webshop.webshop.multi_site import get_current_profile_name
     links = []
-    
+
     # Get default Frappe pages
     links.extend(get_frappe_pages())
-    
+
     # Get published pages from doctypes (Website Items, Blog Posts, etc.)
-    links.extend(get_published_doctype_pages())
-    
+    links.extend(get_published_doctype_pages(website_profile=get_current_profile_name()))
+
     # Get Builder Pages
-    links.extend(get_builder_pages())
-    
+    links.extend(get_builder_pages(website_profile=get_current_profile_name()))
+
     # Get Web Pages
-    links.extend(get_web_pages())
+    links.extend(get_web_pages(website_profile=get_current_profile_name()))
     
     # Get webshop specific pages
     links.extend(get_webshop_static_pages())
@@ -61,7 +65,7 @@ def get_frappe_pages():
 
 
 @redis_cache(ttl=6 * 60 * 60)
-def get_published_doctype_pages():
+def get_published_doctype_pages(website_profile=None):
     """Get all published pages from doctypes with web view"""
     links = []
     
@@ -171,7 +175,7 @@ def get_published_doctype_pages():
 
 
 @redis_cache(ttl=6 * 60 * 60)
-def get_builder_pages():
+def get_builder_pages(website_profile=None):
     """Get all published Builder Pages"""
     links = []
     
@@ -263,7 +267,7 @@ def get_webshop_static_pages():
 
 
 @redis_cache(ttl=6 * 60 * 60)
-def get_web_pages():
+def get_web_pages(website_profile=None):
     """Get all published Web Pages"""
     links = []
     

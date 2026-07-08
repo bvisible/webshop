@@ -2,7 +2,9 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.utils import get_url, nowdate
+from frappe.utils import nowdate
+#//// Neoffice multi-site: build absolute URLs on the current site's domain
+from webshop.webshop.multi_site import site_url as get_url
 from webshop.www.sitemap_utils import prepare_url_for_xml
 
 no_cache = 1

@@ -19,6 +19,20 @@ def get_current_profile_name() -> str | None:
 	return getattr(frappe.local, "website_profile", None)
 
 
+def site_url(path: str = "") -> str:
+	"""Absolute URL on the current site's domain. Falls back to frappe's
+	get_url when no Website Profile is resolved (fleet default)."""
+	if path and path.startswith(("http://", "https://")):
+		return path
+	profile = getattr(frappe.local, "website_profile_doc", None)
+	if profile and profile.get("primary_domain"):
+		clean = (path or "").lstrip("/")
+		base = f"https://{profile['primary_domain']}"
+		return f"{base}/{clean}" if clean else base
+	from frappe.utils import get_url
+	return get_url(path)
+
+
 def _table_exists() -> bool:
 	try:
 		return frappe.db.table_exists(CHILD_TABLE)

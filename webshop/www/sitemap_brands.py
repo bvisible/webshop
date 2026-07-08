@@ -5,7 +5,8 @@ import json
 from urllib.parse import quote
 
 import frappe
-from frappe.utils import get_url
+#//// Neoffice multi-site: build absolute URLs on the current site's domain
+from webshop.webshop.multi_site import site_url as get_url
 from frappe.utils.caching import redis_cache
 from webshop.www.sitemap_utils import prepare_url_for_xml, escape_xml
 
@@ -15,7 +16,9 @@ base_template_path = "www/sitemap_brands.xml"
 
 def get_context(context):
     """Generate the brands sitemap XML"""
-    links = get_brand_links()
+    #//// Neoffice multi-site: vary the redis cache key per site
+    from webshop.webshop.multi_site import get_current_profile_name
+    links = get_brand_links(website_profile=get_current_profile_name())
     
     # Limit to 50,000 URLs per sitemap as per Google guidelines
     if len(links) > 50000:
@@ -25,7 +28,7 @@ def get_context(context):
 
 
 @redis_cache(ttl=6 * 60 * 60)
-def get_brand_links():
+def get_brand_links(website_profile=None):
     """Get all brands with their pages"""
     links = []
     
