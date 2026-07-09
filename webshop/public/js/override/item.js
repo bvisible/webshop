@@ -3,6 +3,47 @@ frappe.ui.form.on("Item", {
 		if (!frm.doc.__islocal) {
 			if (!frm.doc.published_in_website) {
 				frm.add_custom_button(__("Publish in Website"), function() {
+					//// Neoffice multi-site: with several websites, ask which ones the
+					//// product goes on. All checked (default) = visible everywhere,
+					//// which is the untouched single-site behavior.
+					frappe.call({
+						method: "webshop.webshop.multi_site.get_active_website_profiles",
+						callback: function(pr) {
+							const profiles = pr.message || [];
+							if (profiles.length < 2) {
+								neo_publish_item(null);
+								return;
+							}
+							const site_dialog = new frappe.ui.Dialog({
+								title: __("Publish on which sites?"),
+								fields: [{
+									fieldname: "sites",
+									fieldtype: "MultiCheck",
+									label: __("Sites"),
+									columns: 1,
+									options: profiles.map(p => ({
+										label: p.is_default ? `${p.title} (${__("default site")})` : p.title,
+										value: p.name,
+										checked: 1,
+									})),
+								}],
+								primary_action_label: __("Publish"),
+								primary_action(values) {
+									const sites = values.sites || [];
+									if (!sites.length) {
+										frappe.msgprint(__("Select at least one site."));
+										return;
+									}
+									site_dialog.hide();
+									// every site checked = no restriction rows (base behavior)
+									neo_publish_item(sites.length === profiles.length ? null : sites);
+								},
+							});
+							site_dialog.show();
+						}
+					});
+
+					function neo_publish_item(selected_sites) {
 					// Get warehouses with stock
 					frappe.call({
 						method: "webshop.webshop.doctype.website_item.website_item.get_item_warehouses",
@@ -19,6 +60,13 @@ frappe.ui.form.on("Item", {
 								freeze: true,
 								freeze_message: __("Creating Website Item..."),
 								callback: function(result) {
+									//// Neoffice multi-site: restrict to the selected sites
+									if (selected_sites && selected_sites.length) {
+										frappe.call({
+											method: "webshop.webshop.multi_site.set_website_item_sites",
+											args: { website_item: result.message[0], sites: selected_sites },
+										});
+									}
 									let warehouses = warehouse_result.message || [];
 									let selected_warehouse = warehouses.length > 0 ? warehouses[0].warehouse : "";
 									let warehouse_options = "";
@@ -139,6 +187,7 @@ frappe.ui.form.on("Item", {
 							});
 						}
 					});
+					}
 				});
 			} else {
 				frm.add_custom_button(__("View Website Item"), function() {

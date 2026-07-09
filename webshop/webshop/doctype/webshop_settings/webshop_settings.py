@@ -347,7 +347,16 @@ def validate_cart_settings(doc=None, method=None):
 @frappe.whitelist(allow_guest=True)
 def get_shopping_cart_settings():
     settings = frappe.get_cached_doc("Webshop Settings")
-    return settings.as_dict()
+    settings_dict = settings.as_dict()
+    #//// Neoffice multi-site: non-empty Website Profile fields shadow the global
+    #//// Single (per-site price list / guest customer); everything else falls
+    #//// back to the Single, so instances without profiles are untouched.
+    profile = getattr(frappe.local, "website_profile_doc", None)
+    if profile:
+        for field in ("price_list", "guest_customer"):
+            if profile.get(field):
+                settings_dict[field] = profile[field]
+    return settings_dict
 
 @frappe.whitelist(allow_guest=True)
 def is_cart_enabled():

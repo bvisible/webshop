@@ -2,7 +2,8 @@
 {# frappe.call() in safe_exec Jinja context goes through handler.execute_cmd #}
 {# which rejects GET requests for guests. Use frappe.get_doc() + include instead. #}
 
-{%- set hf_config = frappe.get_doc("Website Header Footer Config") if frappe.db.exists("DocType", "Website Header Footer Config") else None -%}
+{#- //// Neoffice multi-site: resolves the current site's variant, falls back to the Single -#}
+{%- set hf_config = get_header_footer_config() -%}
 
 {%- if hf_config and hf_config.header_layout -%}
     {%- set config = hf_config -%}

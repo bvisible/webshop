@@ -29,8 +29,14 @@ class ProductFiltersBuilder:
 			web_item_meta.get_field(field) for field in filter_fields if web_item_meta.has_field(field)
 		]
 
+		#//// Neoffice multi-site: hide items restricted to other sites
+		from webshop.webshop.multi_site import excluded_item_names
+		_excluded = excluded_item_names()
+
 		for df in fields:
 			item_filters, item_or_filters = {"published": 1}, []
+			if _excluded:
+				item_filters["name"] = ["not in", _excluded]
 			link_doctype_values = self.get_filtered_link_doctype_records(df)
 
 			if df.fieldtype == "Link":
@@ -120,6 +126,9 @@ class ProductFiltersBuilder:
 		
 	def get_hierarchical_item_groups(self, item_group_values):
 		"""Get categories with their hierarchical structure parent-child"""
+		#//// Neoffice multi-site: scope to the current site
+		from webshop.webshop.multi_site import site_sql_condition
+		site_cond = site_sql_condition("`tabWebsite Item`")
 		# Get all categories with their parent/child information
 		all_item_groups = frappe.get_all(
 			"Item Group",
@@ -137,10 +146,10 @@ class ProductFiltersBuilder:
 		item_counts = {}
 		
 		# First, get direct counts
-		direct_counts = frappe.db.sql("""
+		direct_counts = frappe.db.sql(f"""
 			SELECT item_group, COUNT(*) as count
 			FROM `tabWebsite Item`
-			WHERE published = 1 AND item_group IN %(groups)s
+			WHERE published = 1 AND item_group IN %(groups)s{site_cond}
 			GROUP BY item_group
 		""", {"groups": [g.name for g in all_item_groups]}, as_dict=True)
 		
@@ -157,10 +166,10 @@ class ProductFiltersBuilder:
 			
 			# Count products in this group and all descendants
 			all_groups = [item_group.name] + list(descendants)
-			total_count = frappe.db.sql("""
+			total_count = frappe.db.sql(f"""
 				SELECT COUNT(*) as count
 				FROM `tabWebsite Item`
-				WHERE published = 1 AND item_group IN %(groups)s
+				WHERE published = 1 AND item_group IN %(groups)s{site_cond}
 			""", {"groups": all_groups}, as_dict=True)[0].count
 			
 			item_counts[item_group.name] = total_count
@@ -209,14 +218,21 @@ class ProductFiltersBuilder:
 		"""Get brands with their product counts"""
 		brands_with_counts = []
 		
+		#//// Neoffice multi-site: hide items restricted to other sites
+		from webshop.webshop.multi_site import excluded_item_names
+		_excluded = excluded_item_names()
+
 		# Get the number of products for each brand
 		for brand in brand_values:
+			brand_filters = {
+				"published": 1,
+				"brand": brand
+			}
+			if _excluded:
+				brand_filters["name"] = ["not in", _excluded]
 			count = frappe.db.count(
 				"Website Item",
-				filters={
-					"published": 1,
-					"brand": brand
-				}
+				filters=brand_filters
 			)
 			
 			# Create brand data with count
@@ -414,6 +430,11 @@ class ProductFiltersBuilder:
 			
 			# Build the SQL query with all filters
 			sql_conditions = ["wi.published = 1", "wi.item_group IN %(groups)s", "ip.selling = 1"]
+			#//// Neoffice multi-site: scope to the current site
+			from webshop.webshop.multi_site import site_sql_predicate
+			_site_pred = site_sql_predicate("wi")
+			if _site_pred:
+				sql_conditions.append(_site_pred)
 			sql_params = {"groups": item_groups}
 			
 			if default_price_list:
@@ -434,6 +455,11 @@ class ProductFiltersBuilder:
 			# First, get all item codes that match the current filters (without pagination)
 			# This ensures we get prices for ALL filtered products, not just the current page
 			item_sql_conditions = ["wi.published = 1", "wi.item_group IN %(groups)s"]
+			#//// Neoffice multi-site: scope to the current site
+			from webshop.webshop.multi_site import site_sql_predicate
+			_site_pred = site_sql_predicate("wi")
+			if _site_pred:
+				item_sql_conditions.append(_site_pred)
 			item_sql_params = {"groups": item_groups}
 			
 			# Add brand filter
@@ -528,6 +554,11 @@ class ProductFiltersBuilder:
 			
 			# Get all item codes that match the current filters (without pagination)
 			item_sql_conditions = ["wi.published = 1"]
+			#//// Neoffice multi-site: scope to the current site
+			from webshop.webshop.multi_site import site_sql_predicate
+			_site_pred = site_sql_predicate("wi")
+			if _site_pred:
+				item_sql_conditions.append(_site_pred)
 			item_sql_params = {}
 			
 			# Add brand filter
@@ -713,6 +744,11 @@ class ProductFiltersBuilder:
 			return []
 
 		item_filters, item_or_filters = {"published": 1}, []
+		#//// Neoffice multi-site: hide items restricted to other sites
+		from webshop.webshop.multi_site import excluded_item_names
+		_excluded = excluded_item_names()
+		if _excluded:
+			item_filters["name"] = ["not in", _excluded]
 
 		# Apply item group filter if specified
 		if self.item_group:

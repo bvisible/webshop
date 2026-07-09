@@ -24,10 +24,22 @@ class ProductQuery:
 
 	def __init__(self):
 		self.settings = frappe.get_doc("Webshop Settings")
+		#//// Neoffice multi-site: the resolved profile's price list drives price
+		#//// display and discount CTEs on this site (fresh doc — safe to shadow).
+		_profile = getattr(frappe.local, "website_profile_doc", None)
+		if _profile and _profile.get("price_list"):
+			self.settings.price_list = _profile["price_list"]
 		self.page_length = self.settings.products_per_page or 20
 
 		self.or_filters = []
 		self.filters = [["published", "=", 1]]
+		#//// Neoffice multi-site: hide items restricted to other sites
+		#//// (empty child table = visible everywhere -> empty list = no-op).
+		from webshop.webshop.multi_site import excluded_item_names
+
+		excluded = excluded_item_names()
+		if excluded:
+			self.filters.append(["name", "not in", excluded])
 		self.fields = [
 			"web_item_name",
 			"name",
@@ -141,6 +153,12 @@ class ProductQuery:
 							if isinstance(value, list):
 								placeholders = ", ".join(["%s"] * len(value))
 								conditions.append(f"`{field}` IN ({placeholders})")
+								values.extend(value)
+						elif operator == "not in":
+							#//// Neoffice multi-site: items restricted to other sites
+							if isinstance(value, list) and value:
+								placeholders = ", ".join(["%s"] * len(value))
+								conditions.append(f"`{field}` NOT IN ({placeholders})")
 								values.extend(value)
 						elif operator == "is":
 							if value == "not set":
@@ -274,6 +292,12 @@ class ProductQuery:
 					if isinstance(value, list):
 						placeholders = ", ".join(["%s"] * len(value))
 						conditions.append(f"`{field}` IN ({placeholders})")
+						values.extend(value)
+				elif operator == "not in":
+					#//// Neoffice multi-site: items restricted to other sites
+					if isinstance(value, list) and value:
+						placeholders = ", ".join(["%s"] * len(value))
+						conditions.append(f"`{field}` NOT IN ({placeholders})")
 						values.extend(value)
 				elif operator == "is":
 					if value == "not set":
@@ -544,6 +568,11 @@ class ProductQuery:
 				elif operator == "in" and isinstance(value, list):
 					placeholders = ", ".join(["%s"] * len(value))
 					conditions.append(f"wi.`{field}` IN ({placeholders})")
+					values.extend(value)
+				elif operator == "not in" and isinstance(value, list) and value:
+					#//// Neoffice multi-site: items restricted to other sites
+					placeholders = ", ".join(["%s"] * len(value))
+					conditions.append(f"wi.`{field}` NOT IN ({placeholders})")
 					values.extend(value)
 				elif operator == "is":
 					if value == "not set":
@@ -1174,6 +1203,11 @@ class ProductQuery:
 					placeholders = ", ".join(["%s"] * len(value))
 					conditions.append(f"`{field}` IN ({placeholders})")
 					values.extend(value)
+				elif operator == "not in" and isinstance(value, list) and value:
+					#//// Neoffice multi-site: items restricted to other sites
+					placeholders = ", ".join(["%s"] * len(value))
+					conditions.append(f"`{field}` NOT IN ({placeholders})")
+					values.extend(value)
 		
 		if not conditions:
 			return None
@@ -1212,6 +1246,14 @@ class ProductQuery:
 						param_names.append(f"%({param_name})s")
 						values[param_name] = v
 					conditions.append(f"wi.`{field}` IN ({', '.join(param_names)})")
+				elif operator == "not in" and isinstance(value, list) and value:
+					#//// Neoffice multi-site: items restricted to other sites
+					param_names = []
+					for i_ni, v in enumerate(value):
+						param_name = f"ni_{field}_val_{i_ni}"
+						param_names.append(f"%({param_name})s")
+						values[param_name] = v
+					conditions.append(f"wi.`{field}` NOT IN ({', '.join(param_names)})")
 				elif operator == "is":
 					if value == "not set":
 						conditions.append(f"wi.`{field}` IS NULL")

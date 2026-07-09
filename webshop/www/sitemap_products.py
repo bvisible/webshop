@@ -4,7 +4,8 @@
 from urllib.parse import quote
 
 import frappe
-from frappe.utils import get_url
+#//// Neoffice multi-site: build absolute URLs on the current site's domain
+from webshop.webshop.multi_site import site_url as get_url
 from frappe.utils.caching import redis_cache
 from webshop.www.sitemap_utils import prepare_url_for_xml, escape_xml
 
@@ -14,7 +15,9 @@ base_template_path = "www/sitemap_products.xml"
 
 def get_context(context):
     """Generate the products sitemap XML"""
-    links = get_product_links()
+    #//// Neoffice multi-site: scope to the current site (arg varies the redis cache key per site)
+    from webshop.webshop.multi_site import get_current_profile_name
+    links = get_product_links(get_current_profile_name())
     
     # Limit to 50,000 URLs per sitemap as per Google guidelines
     if len(links) > 50000:
@@ -24,16 +27,22 @@ def get_context(context):
 
 
 @redis_cache(ttl=6 * 60 * 60)
-def get_product_links():
+def get_product_links(website_profile=None):
     """Get all published Website Items with their images"""
     links = []
     
     try:
+        #//// Neoffice multi-site: hide items restricted to other sites
+        from webshop.webshop.multi_site import excluded_item_names
+        product_filters = {"published": 1}
+        _excluded = excluded_item_names()
+        if _excluded:
+            product_filters["name"] = ["not in", _excluded]
         # Get all published Website Items
         products = frappe.get_all(
             "Website Item",
             fields=["route", "name", "modified", "web_item_name", "website_image", "ranking"],
-            filters={"published": 1},
+            filters=product_filters,
             order_by="ranking desc, modified desc"
         )
         

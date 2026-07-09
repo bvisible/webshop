@@ -4,7 +4,9 @@
 from urllib.parse import quote
 
 import frappe
-from frappe.utils import get_url, nowdate
+from frappe.utils import nowdate
+#//// Neoffice multi-site: build absolute URLs on the current site's domain
+from webshop.webshop.multi_site import site_url as get_url
 from frappe.utils.caching import redis_cache
 from webshop.www.sitemap_utils import prepare_url_for_xml, escape_xml
 
@@ -14,13 +16,15 @@ base_template_path = "www/sitemap_pages.xml"
 
 def get_context(context):
     """Generate the pages sitemap XML (Builder Pages, Web Pages, static pages)"""
+    #//// Neoffice multi-site: vary the redis cache key per site
+    from webshop.webshop.multi_site import get_current_profile_name
     links = []
-    
+
     # Get Builder Pages
-    links.extend(get_builder_page_links())
-    
+    links.extend(get_builder_page_links(website_profile=get_current_profile_name()))
+
     # Get Web Pages
-    links.extend(get_web_page_links())
+    links.extend(get_web_page_links(website_profile=get_current_profile_name()))
     
     # Get static pages
     links.extend(get_static_page_links())
@@ -43,7 +47,7 @@ def get_context(context):
 
 
 @redis_cache(ttl=6 * 60 * 60)
-def get_builder_page_links():
+def get_builder_page_links(website_profile=None):
     """Get all published Builder Pages"""
     links = []
     
@@ -97,7 +101,7 @@ def get_builder_page_links():
 
 
 @redis_cache(ttl=6 * 60 * 60)
-def get_web_page_links():
+def get_web_page_links(website_profile=None):
     """Get all published Web Pages"""
     links = []
     

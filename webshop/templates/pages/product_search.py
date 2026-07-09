@@ -46,6 +46,11 @@ def get_product_data(search=None, start=0, limit=12):
 		WHERE published = 1
 		"""
 
+	#//// Neoffice multi-site: scope the grid search to the current site
+	from webshop.webshop.multi_site import site_sql_condition
+
+	query += site_sql_condition("`tabWebsite Item`")
+
 	# search term condition
 	if search:
 		# First check if search term matches an exact item_code
@@ -106,6 +111,11 @@ def product_search(query, limit=10, fuzzy_search=True):
 	# with proper ordering (name matches first, then item_code, then description)
 	search_pattern = f"%{query}%"
 
+	#//// Neoffice multi-site: scope the live search to the current site
+	from webshop.webshop.multi_site import site_sql_condition
+
+	site_condition = site_sql_condition("`tabWebsite Item`")
+
 	sql_query = """
 		SELECT
 			web_item_name, item_name, item_code, brand, route,
@@ -124,6 +134,7 @@ def product_search(query, limit=10, fuzzy_search=True):
 			END as match_priority
 		FROM `tabWebsite Item`
 		WHERE published = 1
+		{site_condition}
 		AND (
 			web_item_name LIKE %(search)s
 			OR item_name LIKE %(search)s
@@ -135,7 +146,7 @@ def product_search(query, limit=10, fuzzy_search=True):
 		)
 		ORDER BY match_priority ASC, ranking DESC, modified DESC
 		LIMIT %(limit)s
-	"""
+	""".format(site_condition=site_condition)
 
 	results = frappe.db.sql(sql_query, {
 		"search": search_pattern,
