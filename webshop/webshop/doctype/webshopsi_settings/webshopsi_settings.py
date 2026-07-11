@@ -327,3 +327,40 @@ def get_payment_context(reference_doctype=None, reference_docname=None):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), _("Failed to get payment context"))
         frappe.throw(_("Failed to get payment context: {0}").format(str(e)))
+
+
+@frappe.whitelist()
+def migrate_installment_fees_to_templates():
+    """Idempotent migration: copy each WebshopSI installment plan's fee
+    (percentage + min/max) onto its linked Payment Terms Template, and seed every
+    Company's default_payment_fee_account from the legacy WebshopSI Settings
+    fee_account. The Payment Terms Template becomes the single source of truth for
+    the fee; the installment_plans table keeps only its role of listing which
+    plans are offered at checkout. Safe to re-run; skips if the target custom
+    fields are not synced yet."""
+    if not frappe.db.has_column("Payment Terms Template", "apply_percentage_fee"):
+        return {"skipped": "custom fields not synced yet"}
+    settings = frappe.get_single("WebshopSI Settings")
+    migrated = []
+    for plan in (settings.installment_plans or []):
+        tpl = plan.payment_terms_template
+        if not tpl or not frappe.db.exists("Payment Terms Template", tpl):
+            continue
+        fee = plan.fee_percentage or 0
+        frappe.db.set_value("Payment Terms Template", tpl, {
+            "apply_percentage_fee": 1 if fee > 0 else 0,
+            "fee_percentage": fee,
+            "fee_minimum_amount": plan.minimum_amount or 0,
+            "fee_maximum_amount": plan.maximum_amount or 0,
+        })
+        migrated.append({"template": tpl, "fee_percentage": fee})
+    acc = settings.fee_account
+    cc = settings.fee_cost_center
+    if acc:
+        for comp in frappe.get_all("Company", pluck="name"):
+            if not frappe.db.get_value("Company", comp, "default_payment_fee_account"):
+                frappe.db.set_value("Company", comp, "default_payment_fee_account", acc)
+            if cc and not frappe.db.get_value("Company", comp, "default_payment_fee_cost_center"):
+                frappe.db.set_value("Company", comp, "default_payment_fee_cost_center", cc)
+    frappe.db.commit()
+    return {"migrated": migrated, "seeded_account": acc}

@@ -68,76 +68,33 @@ def is_webshopsi_payment_method(quotation):
         return False
 
 def apply_webshopsi_payment_fees(quotation):
-    """Apply WebshopSI payment fees if necessary"""
+    """Apply the percentage payment fee to a web-cart quotation.
+
+    The fee percentage now comes from the selected Payment Terms Template
+    (single source of truth, shared with the desk via
+    ``neoffice_theme.payment_fee``); the GL account from the Company
+    default-accounts section (fallback: WebshopSI Settings). The webshop always
+    applies the fee (force=True, no per-document opt-out)."""
     if not quotation:
         return
 
-    # Check if WebshopSI is the selected payment method
     if not is_webshopsi_payment_method(quotation):
         return remove_webshopsi_fees(quotation)
-
-    # Check if a WebshopSI payment option is selected
     if not quotation.payment_terms_template:
         return remove_webshopsi_fees(quotation)
 
-    # Get the payment option details
-    settings = frappe.get_doc('WebshopSI Settings')
-    installment = None    
-    for plan in settings.installment_plans:
-        if plan.payment_terms_template == quotation.payment_terms_template:
-            installment = plan
-            break
-    
-    # Remove fees - check field names and description for compatibility
-    def is_webshopsi_fee(tax):
-        return (tax.get('is_webshopsi_fee') or 
-                tax.get('custom_is_webshopsi_fee') or 
-                "Payment processing fee" in tax.description)
-    
-    # Count and remove existing fees
-    initial_tax_count = len(quotation.taxes)
-    quotation.taxes = [tax for tax in quotation.taxes if not is_webshopsi_fee(tax)]
-    removed_count = initial_tax_count - len(quotation.taxes)
-    
-    # Recalculate totals after removing fees
-    quotation.calculate_taxes_and_totals()
+    try:
+        from neoffice_theme.payment_fee import apply_payment_fee
+    except Exception:
+        frappe.log_error("webshopsi fee", "neoffice_theme.payment_fee import failed")
+        return remove_webshopsi_fees(quotation)
 
-    # If no fees to apply, save and return
-    if not installment or not installment.fee_percentage:
-        quotation.flags.ignore_permissions = True
-        quotation.save(ignore_permissions=True)
-        return {
-            "success": True, 
-            "had_changes": removed_count > 0,
-            "doc": quotation.as_dict()
-        }
+    # force=True -> webshop always applies (ignores the desk opt-out checkbox).
+    apply_payment_fee(quotation, force=True)
 
-    # Calculate the new fees based on the recalculated grand_total
-    fee_amount = (quotation.grand_total * float(installment.fee_percentage)) / 100
-    fee_description = _("Payment processing fee ({0}%)").format(installment.fee_percentage)
-    
-    # Add the new fee line
-    quotation.append("taxes", {
-        "charge_type": "Actual",
-        "description": fee_description,
-        "account_head": settings.fee_account,
-        "cost_center": settings.fee_cost_center,
-        "tax_amount": fee_amount,
-        "is_webshopsi_fee": 1,
-        "custom_is_webshopsi_fee": 1,
-        "included_in_print_rate": 0,
-        "included_in_paid_amount": 0
-    })
-    
     quotation.flags.ignore_permissions = True
     quotation.save(ignore_permissions=True)
-    
-    # Return the updated document
-    return {
-        "success": True, 
-        "had_changes": True,
-        "doc": quotation.as_dict()
-    }
+    return {"success": True, "had_changes": True, "doc": quotation.as_dict()}
 
 @frappe.whitelist()
 def remove_webshopsi_fees(quotation):
@@ -163,9 +120,12 @@ def remove_webshopsi_fees(quotation):
 
         # Define function to check if a tax is a WebshopSI fee
         def is_webshopsi_fee(tax):
+            desc = tax.description or ""
             return (tax.get('is_webshopsi_fee') or 
                     tax.get('custom_is_webshopsi_fee') or 
-                    "Payment processing fee" in tax.description)
+                    tax.get('is_payment_fee') or 
+                    "Payment processing fee" in desc or 
+                    "Frais de paiement" in desc)
         
         # Check if there are WebshopSI fees to remove
         had_fees = any(is_webshopsi_fee(tax) for tax in quotation.taxes)
