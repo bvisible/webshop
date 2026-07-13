@@ -12,7 +12,7 @@ def execute():
             'fieldtype': 'Section Break',
             'insert_after': 'message_examples',
             'depends_on': 'eval:frappe.db.get_single_value("Webshop Settings", "enable_checkout_page")',
-            'collapsible': 1
+            'collapsible': 0
         },
         {
             'fieldname': 'checkout_title',
