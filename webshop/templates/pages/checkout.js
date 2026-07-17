@@ -521,17 +521,29 @@ frappe.ready(function() {
             // Clean and format the label for street address
             const label = attrs.label.replace(/<[^>]*>/g, '');
 
-            // Extract street and number from label (first part before postal code)
+            // Extract the "street + number" part (everything before the postal code)
             let streetAddress = label;
             if (postalCode) {
-                // Try to extract street address from label up to postal code
                 const postalMatch = label.match(new RegExp(`^(.+?)\\s+${postalCode}\\s+`));
                 if (postalMatch) {
                     streetAddress = postalMatch[1].trim();
                 }
             }
 
-            setFieldValue('address_1', streetAddress);
+            // GeoAdmin returns the house number separately in attrs.num — keep them
+            // in two distinct fields (structured address, no concatenation).
+            const houseNumber = (attrs.num || '').toString().trim();
+            let streetName = streetAddress;
+            if (houseNumber) {
+                // Strip the trailing number off the combined "street number" label
+                const numAtEnd = new RegExp(
+                    '\\s*' + houseNumber.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'
+                );
+                streetName = streetAddress.replace(numAtEnd, '').trim() || streetAddress;
+            }
+
+            setFieldValue('address_1', streetName);
+            setFieldValue('house_number', houseNumber);
             setFieldValue('postcode', postalCode);
             setFieldValue('city', city);
             setFieldValue('state', canton);
@@ -877,6 +889,7 @@ frappe.ready(function() {
                         $('[name="shipping_address_name"]').val(address.name || '');
                         $('[name="shipping_customer"]').val(address.customer_name || '');
                         $('[name="shipping_address_1"]').val(address.address_line1 || '');
+                        $('[name="shipping_house_number"]').val(address.custom_house_number || '');
                         $('[name="shipping_address_2"]').val(address.address_line2 || '');
                         $('[name="shipping_city"]').val(address.city || '');
                         $('[name="shipping_state"]').val(address.state || '');
@@ -897,6 +910,7 @@ frappe.ready(function() {
                 address_title: fullname,
                 address_type: type,
                 address_line1: $(`[name="${prefix}_address_1"]`).val(),
+                custom_house_number: $(`[name="${prefix}_house_number"]`).val() || '',
                 address_line2: $(`[name="${prefix}_address_2"]`).val() || '',
                 city: $(`[name="${prefix}_city"]`).val(),
                 state: $(`[name="${prefix}_state"]`).val(),

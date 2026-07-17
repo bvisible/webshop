@@ -26,11 +26,15 @@
 					</div>
 				</div>
 				<div class="row">
-					<div class="col-md-6 mb-3">
+					<div class="col-md-5 mb-3">
 						<label for="address_line1" class="form-label">{{ _("Address Line 1") }} <span class="text-danger">*</span></label>
 						<input type="text" class="form-control" id="address_line1" required>
 					</div>
-					<div class="col-md-6 mb-3">
+					<div class="col-md-2 mb-3">
+						<label for="custom_house_number" class="form-label">{{ _("House No.") }}</label>
+						<input type="text" class="form-control" id="custom_house_number">
+					</div>
+					<div class="col-md-5 mb-3">
 						<label for="address_line2" class="form-label">{{ _("Address Line 2") }}</label>
 						<input type="text" class="form-control" id="address_line2" placeholder="{{ _('Apartment, suite, etc. (optional)') }}">
 					</div>
@@ -112,7 +116,7 @@
 							</div>
 						</div>
 						<p class="card-text">
-							{{ address.address_line1 }}<br>
+							{{ address.address_line1 }}{% if address.custom_house_number %} {{ address.custom_house_number }}{% endif %}<br>
 							{% if address.address_line2 %}{{ address.address_line2 }}<br>{% endif %}
 							{{ address.pincode }} {{ address.city }}
 							{% if address.state %}, {{ address.state }}{% endif %}<br>

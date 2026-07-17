@@ -217,6 +217,12 @@ msgstr "La ligne d'adresse 1 est requise"
 msgid "Address Line 2"
 msgstr "Adresse ligne 2"
 
+#: webshop/templates/includes/cart/cart_address.html:88
+#: webshop/templates/pages/checkout.html:121
+#: webshop/templates/pages/checkout.html:231 webshop/www/my_addresses.html:34
+msgid "House No."
+msgstr "N°"
+
 #: webshop/templates/includes/cart/cart_address.html:76
 #: webshop/www/my_addresses.html:24
 msgid "Address Title"
