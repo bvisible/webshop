@@ -530,16 +530,28 @@ frappe.ready(function() {
                 }
             }
 
-            // GeoAdmin returns the house number separately in attrs.num — keep them
-            // in two distinct fields (structured address, no concatenation).
-            const houseNumber = (attrs.num || '').toString().trim();
+            // Split "street + number" into two distinct fields (structured address,
+            // no concatenation). attrs.num signals there IS a building number, but it
+            // is lossy on alphanumeric numbers (e.g. "1a" comes back as 1), so read the
+            // accurate number from the label's trailing token and use attrs.num only as
+            // a fallback — otherwise the suffix would stay glued to the street and the
+            // number would appear twice.
+            const apiNumber = (attrs.num || '').toString().trim();
             let streetName = streetAddress;
-            if (houseNumber) {
-                // Strip the trailing number off the combined "street number" label
-                const numAtEnd = new RegExp(
-                    '\\s*' + houseNumber.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'
+            let houseNumber = apiNumber;
+            if (apiNumber) {
+                const trailing = streetAddress.match(
+                    /^(.*?)[,\s]+(\d+\s?[A-Za-z]?(?:[-/]\d+\s?[A-Za-z]?)*)$/
                 );
-                streetName = streetAddress.replace(numAtEnd, '').trim() || streetAddress;
+                if (trailing) {
+                    streetName = trailing[1].trim();
+                    houseNumber = trailing[2].replace(/\s+/g, '');
+                } else {
+                    const numAtEnd = new RegExp(
+                        '\\s*' + apiNumber.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'
+                    );
+                    streetName = streetAddress.replace(numAtEnd, '').trim() || streetAddress;
+                }
             }
 
             setFieldValue('address_1', streetName);
