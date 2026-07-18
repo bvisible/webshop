@@ -1101,6 +1101,7 @@ def get_address(address_name):
 		"name": address.name,
 		"address_title": address.address_title,
 		"address_line1": address.address_line1,
+		"custom_house_number": address.get("custom_house_number"),
 		"address_line2": address.address_line2,
 		"city": address.city,
 		"state": address.state,
@@ -1143,6 +1144,7 @@ def update_address(address_name, address_data):
 	# Update address fields
 	address.address_title = address_data.get("address_title")
 	address.address_line1 = address_data.get("address_line1")
+	address.custom_house_number = address_data.get("custom_house_number")
 	address.address_line2 = address_data.get("address_line2")
 	address.city = address_data.get("city")
 	address.state = address_data.get("state")

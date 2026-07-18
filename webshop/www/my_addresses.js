@@ -25,6 +25,7 @@ function hideAddressForm() {
 function clearAddressForm() {
 	$('#address_title').val('');
 	$('#address_line1').val('');
+	$('#custom_house_number').val('');
 	$('#address_line2').val('');
 	$('#pincode').val('');
 	$('#city').val('');
@@ -50,6 +51,7 @@ function editAddress(addressName) {
 				// Fill form with data
 				$('#address_title').val(r.message.address_title || '');
 				$('#address_line1').val(r.message.address_line1 || '');
+				$('#custom_house_number').val(r.message.custom_house_number || '');
 				$('#address_line2').val(r.message.address_line2 || '');
 				$('#pincode').val(r.message.pincode || '');
 				$('#city').val(r.message.city || '');
@@ -128,6 +130,7 @@ function saveAddress() {
 	let addressData = {
 		address_title: address_title,
 		address_line1: address_line1,
+		custom_house_number: $('#custom_house_number').val().trim(),
 		address_line2: $('#address_line2').val().trim(),
 		city: city,
 		state: $('#state').val().trim(),

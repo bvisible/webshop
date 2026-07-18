@@ -55,9 +55,9 @@
                                       {% if doc.shipping_address_name %}
                                           {% set address = frappe.get_doc("Address", doc.shipping_address_name) %}
                                           <div class="address-details">
-                                              {{ address.address_line1 }}<br>
+                                              {{ address.address_line1 }}{% if address.custom_house_number %} {{ address.custom_house_number }}{% endif %}<br>
                                               {% if address.address_line2 %}{{ address.address_line2 }}<br>{% endif %}
-                                              {{ address.city }}, {{ address.pincode }}<br>
+                                              {{ address.pincode }} {{ address.city }}<br>
                                               {{ address.country }}
                                           </div>
                                       {% else %}

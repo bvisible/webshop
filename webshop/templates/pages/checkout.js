@@ -521,17 +521,41 @@ frappe.ready(function() {
             // Clean and format the label for street address
             const label = attrs.label.replace(/<[^>]*>/g, '');
 
-            // Extract street and number from label (first part before postal code)
+            // Extract the "street + number" part (everything before the postal code)
             let streetAddress = label;
             if (postalCode) {
-                // Try to extract street address from label up to postal code
                 const postalMatch = label.match(new RegExp(`^(.+?)\\s+${postalCode}\\s+`));
                 if (postalMatch) {
                     streetAddress = postalMatch[1].trim();
                 }
             }
 
-            setFieldValue('address_1', streetAddress);
+            // Split "street + number" into two distinct fields (structured address,
+            // no concatenation). attrs.num signals there IS a building number, but it
+            // is lossy on alphanumeric numbers (e.g. "1a" comes back as 1), so read the
+            // accurate number from the label's trailing token and use attrs.num only as
+            // a fallback — otherwise the suffix would stay glued to the street and the
+            // number would appear twice.
+            const apiNumber = (attrs.num || '').toString().trim();
+            let streetName = streetAddress;
+            let houseNumber = apiNumber;
+            if (apiNumber) {
+                const trailing = streetAddress.match(
+                    /^(.*?)[,\s]+(\d+\s?[A-Za-z]?(?:[-/]\d+\s?[A-Za-z]?)*)$/
+                );
+                if (trailing) {
+                    streetName = trailing[1].trim();
+                    houseNumber = trailing[2].replace(/\s+/g, '');
+                } else {
+                    const numAtEnd = new RegExp(
+                        '\\s*' + apiNumber.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'
+                    );
+                    streetName = streetAddress.replace(numAtEnd, '').trim() || streetAddress;
+                }
+            }
+
+            setFieldValue('address_1', streetName);
+            setFieldValue('house_number', houseNumber);
             setFieldValue('postcode', postalCode);
             setFieldValue('city', city);
             setFieldValue('state', canton);
@@ -877,6 +901,7 @@ frappe.ready(function() {
                         $('[name="shipping_address_name"]').val(address.name || '');
                         $('[name="shipping_customer"]').val(address.customer_name || '');
                         $('[name="shipping_address_1"]').val(address.address_line1 || '');
+                        $('[name="shipping_house_number"]').val(address.custom_house_number || '');
                         $('[name="shipping_address_2"]').val(address.address_line2 || '');
                         $('[name="shipping_city"]').val(address.city || '');
                         $('[name="shipping_state"]').val(address.state || '');
@@ -897,6 +922,7 @@ frappe.ready(function() {
                 address_title: fullname,
                 address_type: type,
                 address_line1: $(`[name="${prefix}_address_1"]`).val(),
+                custom_house_number: $(`[name="${prefix}_house_number"]`).val() || '',
                 address_line2: $(`[name="${prefix}_address_2"]`).val() || '',
                 city: $(`[name="${prefix}_city"]`).val(),
                 state: $(`[name="${prefix}_state"]`).val(),

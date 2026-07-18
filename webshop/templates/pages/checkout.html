@@ -107,14 +107,24 @@
 							<div class="frappe-card p-5 mb-4">
 
 								<input type="hidden" id="billing_address_name" name="billing_address_name" value="{{ billing_address_name or '' }}">
-								<div class="mb-3">
-									<label for="billing_address_1">{{ _("Address Line 1") }} *</label>
-									<input type="text" 
-											class="form-control" 
-											id="billing_address_1" 
-											name="billing_address_1" 
-											value="{{ billing_address_1 or '' }}"
-											required>
+								<div class="row">
+									<div class="col-md-9 mb-3">
+										<label for="billing_address_1">{{ _("Address Line 1") }} *</label>
+										<input type="text"
+												class="form-control"
+												id="billing_address_1"
+												name="billing_address_1"
+												value="{{ billing_address_1 or '' }}"
+												required>
+									</div>
+									<div class="col-md-3 mb-3">
+										<label for="billing_house_number">{{ _("House No.") }}</label>
+										<input type="text"
+												class="form-control"
+												id="billing_house_number"
+												name="billing_house_number"
+												value="{{ billing_house_number or '' }}">
+									</div>
 								</div>
 
 								<div class="mb-3">
@@ -208,13 +218,23 @@
 							<!-- Shipping Address -->
 							<div id="shipping-address-container" style="display: none;">
 								<input type="hidden" id="shipping_address_name" name="shipping_address_name" value="">
-								<div class="mb-3">
-									<label for="shipping_address_1">{{ _("Address Line 1") }} *</label>
-									<input type="text" 
-											class="form-control shipping-field" 
-											id="shipping_address_1" 
-											name="shipping_address_1" 
-											value="{{ shipping_address_1 or '' }}">
+								<div class="row">
+									<div class="col-md-9 mb-3">
+										<label for="shipping_address_1">{{ _("Address Line 1") }} *</label>
+										<input type="text"
+												class="form-control shipping-field"
+												id="shipping_address_1"
+												name="shipping_address_1"
+												value="{{ shipping_address_1 or '' }}">
+									</div>
+									<div class="col-md-3 mb-3">
+										<label for="shipping_house_number">{{ _("House No.") }}</label>
+										<input type="text"
+												class="form-control shipping-field"
+												id="shipping_house_number"
+												name="shipping_house_number"
+												value="{{ shipping_house_number or '' }}">
+									</div>
 								</div>
 
 								<div class="mb-3">

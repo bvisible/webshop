@@ -201,6 +201,7 @@ def get_context(context):
 				context.billing_company = ""
 				
 			context.billing_address_1 = billing_address.address_line1
+			context.billing_house_number = billing_address.get("custom_house_number")
 			context.billing_address_2 = billing_address.address_line2
 			context.billing_city = billing_address.city
 			context.billing_state = billing_address.state
@@ -227,6 +228,7 @@ def get_context(context):
 				context.shipping_company = ""
 				
 			context.shipping_address_1 = shipping_address.address_line1
+			context.shipping_house_number = shipping_address.get("custom_house_number")
 			context.shipping_address_2 = shipping_address.address_line2
 			context.shipping_city = shipping_address.city
 			context.shipping_state = shipping_address.state
