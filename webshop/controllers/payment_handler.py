@@ -313,6 +313,14 @@ class PaymentHandler:
                 frappe.log_error("Error marking Payment Request as paid", f"{e}\n{frappe.get_traceback()}")
                 return self.handle_error(str(e))
             
+            # 5. Invoice the order and book the money in.
+            #    The PSP has already captured the funds at this point. Until
+            #    this call existed the flow stopped at the Sales Order: the
+            #    order stayed "To Bill" forever and the cash never reached the
+            #    ledger. `handle_direct_order` (unpaid orders) always invoiced,
+            #    so PAID orders were the only ones left unbilled.
+            self._invoice_paid_order(sales_order_name, payment_request)
+
             # Build default success URL
             success_url = f"/thank_you?sales_order={sales_order_name}"
             
@@ -328,6 +336,72 @@ class PaymentHandler:
                 "status": "error",
                 "message": _("Error processing payment")
             }
+
+    def _invoice_paid_order(self, sales_order_name, payment_request):
+        """Create and submit the Sales Invoice + Payment Entry for a paid order.
+
+        Best effort by design: the money is already captured by the PSP, so a
+        bookkeeping failure must never break the buyer's confirmation page nor
+        roll back the order. Failures are logged for manual follow-up.
+        """
+        try:
+            sales_order = frappe.get_doc("Sales Order", sales_order_name)
+            if (sales_order.per_billed or 0) >= 100:
+                # Already invoiced (retry, duplicate webhook, manual billing).
+                return
+
+            from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
+
+            invoice = make_sales_invoice(sales_order_name, ignore_permissions=True)
+            invoice.allocate_advances_automatically = True
+            invoice.flags.ignore_permissions = True
+            invoice.insert(ignore_permissions=True)
+            invoice.submit()
+
+            self._record_gateway_payment(invoice, payment_request, sales_order.company)
+        except Exception as e:
+            frappe.log_error(
+                "Webshop: invoicing a paid order failed",
+                f"sales_order={sales_order_name} payment_request={payment_request.name}\n"
+                f"{e}\n{frappe.get_traceback()}",
+            )
+
+    def _record_gateway_payment(self, invoice, payment_request, company):
+        """Book the captured amount against `invoice`, on the gateway account."""
+        gateway_account = frappe.db.get_value(
+            "Payment Gateway Account",
+            payment_request.payment_gateway_account,
+            ["payment_account", "payment_gateway"],
+            as_dict=True,
+        ) if payment_request.payment_gateway_account else None
+
+        if not gateway_account or not gateway_account.payment_account:
+            frappe.log_error(
+                "Webshop: no gateway account, invoice left unpaid",
+                f"invoice={invoice.name} payment_request={payment_request.name}",
+            )
+            return
+
+        # The Mode of Payment is the one wired to the same clearing account
+        # (e.g. "Twint" -> "1036 Compte d'attente Twint").
+        mode_of_payment = frappe.db.get_value(
+            "Mode of Payment Account",
+            {"default_account": gateway_account.payment_account, "company": company},
+            "parent",
+        )
+
+        from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
+
+        entry = get_payment_entry("Sales Invoice", invoice.name)
+        entry.paid_to = gateway_account.payment_account
+        if mode_of_payment:
+            entry.mode_of_payment = mode_of_payment
+        entry.reference_no = payment_request.name
+        entry.reference_date = frappe.utils.today()
+        entry.remarks = f"Webshop payment via {gateway_account.payment_gateway} ({payment_request.name})"
+        entry.flags.ignore_permissions = True
+        entry.insert(ignore_permissions=True)
+        entry.submit()
 
     def handle_error(self, message):
         error_url = "/payment-failed"
