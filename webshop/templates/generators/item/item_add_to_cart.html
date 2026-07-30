@@ -204,6 +204,11 @@
 				{% endif %}
 			</div>
 		{% else %}
+			<!-- Booking: renders nothing unless the item has a Booking Profile.
+			     Blocks "Add to Cart" until a slot is actually held, so a
+			     bookable item never reaches the cart without a time behind it. -->
+			{% include "neoffice_theme/templates/includes/booking/picker.html" ignore missing %}
+
 			<!-- Add to Cart / View in Cart, Contact Us -->
 			<div class="mt-6 mb-5">
 				<div class="mb-4 d-flex action-buttons">
