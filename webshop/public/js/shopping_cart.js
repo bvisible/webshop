@@ -208,6 +208,17 @@ $.extend(shopping_cart, {
 					if (cart_dropdown != true) {
 						$(".cart-icon").hide();
 					}
+
+					// Panier vidé de sa dernière ligne : on recharge. La page du
+					// panier n'est pas faite que du tableau — « Votre panier est
+					// vide », le bouton de paiement et le résumé vivent ailleurs,
+					// et remplacer le seul tableau laissait un écran à moitié
+					// vrai : plus une ligne, mais toujours un total et un bouton
+					// « Passer au paiement ».
+					const $lignes = $(".cart-items").find("tr[data-name]");
+					if (!$lignes.length && window.location.pathname.indexOf("/cart") === 0) {
+						window.location.reload();
+					}
 				}
 			},
 		});
