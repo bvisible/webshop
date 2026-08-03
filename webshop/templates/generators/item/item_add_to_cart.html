@@ -209,6 +209,12 @@
 			     bookable item never reaches the cart without a time behind it. -->
 			{% include "neoffice_theme/templates/includes/booking/picker.html" ignore missing %}
 
+			<!-- Cours en ligne : le choix de la durée, quand l'article en vend
+			     plusieurs. Ne rend rien sinon — une fiche ordinaire garde son
+			     bouton habituel. Le pendant du calendrier d'une location : la page
+			     vend UN article, et ce qu'on choisit dessus décide du prix. -->
+			{% include "lms/templates/includes/course_offers.html" ignore missing %}
+
 			<!-- Add to Cart / View in Cart, Contact Us -->
 			<div class="mt-6 mb-5">
 				<div class="mb-4 d-flex action-buttons">
