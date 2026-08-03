@@ -72,11 +72,24 @@
 		<!-- Qty column -->
 		<td class="text-right" style="width: 20%;">
 			<div class="d-flex container-qty">
-				{% set disabled = 'disabled' if d.is_free_item or d.gift_card_data else '' %}
+				{#
+					Une ligne calculée ne se retouche pas à la main. La taxe de
+					séjour est un nombre de personnes multiplié par un nombre de
+					nuits : la corriger dans le panier ne changerait ni les
+					personnes ni les nuits, ça ne ferait qu'un montant qui ne
+					correspond plus au séjour — et le prochain enregistrement le
+					recalculerait sous les yeux du client.
+
+					`booking_extra_of` porte la réservation dont la ligne dépend ;
+					`{{ }}` sur un champ absent rend vide, donc une boutique sans
+					le module ne voit aucune différence.
+				#}
+				{% set lie = d.get('booking_extra_of') %}
+				{% set disabled = 'disabled' if d.is_free_item or d.gift_card_data or lie else '' %}
 				<div class="input-group number-spinner mt-1 mb-4 mr-2">
 					<span class="input-group-prepend d-sm-inline-block">
 						<button class="btn cart-btn" data-dir="dwn" {{ disabled }}>
-							{{ '–' if not (d.is_free_item or d.gift_card_data) else ''}}
+							{{ '–' if not (d.is_free_item or d.gift_card_data or lie) else ''}}
 						</button>
 					</span>
 
@@ -85,7 +98,7 @@
 
 					<span class="input-group-append d-sm-inline-block">
 						<button class="btn cart-btn" data-dir="up" {{ disabled }}>
-							{{ '+' if not (d.is_free_item or d.gift_card_data) else ''}}
+							{{ '+' if not (d.is_free_item or d.gift_card_data or lie) else ''}}
 						</button>
 					</span>
 				</div>
