@@ -109,15 +109,17 @@ def format_loyalty_points_message(item_code, price, qty=1, customer=None):
     points = points_data["points"]
     value = format_currency_value(points_data["points_value"], currency=points_data["currency"])
     
-    # Use the template from settings, with support for both {points} and {value}
-    earned_text = settings.loyalty_points_earned_text or "Earn {points} points with this purchase"
+    # Use the template from settings, with support for both {points} and {value}.
+    # Translated before the substitution: the stored setting IS the msgid, so a
+    # shop left on the English default still speaks the visitor's language.
+    earned_text = _(settings.loyalty_points_earned_text or "Earn {points} points with this purchase")
     earned_text = earned_text.replace("{points}", str(points))
     earned_text = earned_text.replace("{value}", value)
     
     # Format the conversion text if there's a value
     conversion_text = ""
     if points_data.get("points_value") and settings.loyalty_points_conversion_text:
-        conversion_text = settings.loyalty_points_conversion_text or "{points} points = {amount}"
+        conversion_text = _(settings.loyalty_points_conversion_text or "{points} points = {amount}")
         conversion_text = conversion_text.replace("{points}", str(points))
         conversion_text = conversion_text.replace("{amount}", value)
     

@@ -4961,3 +4961,11 @@ msgstr "{0}% et moins"
 #: webshop/templates/payments/webshopsi.html:163
 msgid "{{ payment_context.terms_title }}"
 msgstr "{{ payment_context.terms_title }}"
+
+#: webshop/webshop/utils/loyalty_points.py:115
+msgid "Earn {points} points with this purchase"
+msgstr "Cumulez {points} points avec cet achat"
+
+#: webshop/webshop/utils/loyalty_points.py:124
+msgid "{points} points = {amount}"
+msgstr "{points} points = {amount}"
