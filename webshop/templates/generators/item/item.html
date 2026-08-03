@@ -43,7 +43,16 @@
 				suite » ne mène nulle part.
 			#}
 			{% set NB_EXCERPT = 600 %}
-			{% set _long_full = frappe.utils.strip_html(doc.web_long_description or '') %}
+			{#
+				UNE description, choisie une fois pour toute la page : celle du
+				site si quelqu'un l'a écrite, sinon celle de l'article. C'est la
+				règle de Frappe depuis 2022, et elle vaut aussi pour le seuil —
+				sans quoi une fiche technique de 1 100 caractères noyait la
+				colonne d'achat sans jamais proposer « Lire la suite », faute de
+				description du site.
+			#}
+			{% set _desc_html = doc.web_long_description if frappe.utils.strip_html(doc.web_long_description or '') else doc.description %}
+			{% set _long_full = frappe.utils.strip_html(_desc_html or '') %}
 			{% set _long_cut = _long_full | truncate(NB_EXCERPT, False, '…') %}
 
 			<div class="row product-hero-row">
@@ -197,7 +206,7 @@
 				<div class="col-12 product-long-description-section" id="product-long-desc" style="scroll-margin-top: 20px;">
 					<h2 class="product-section-title">{{ _("Description") }}</h2>
 					<div class="product-description product-long-description" itemprop="description">
-						{{ _(doc.web_long_description) | safe }}
+						{{ _(_desc_html) | safe }}
 					</div>
 				</div>
 			</div>

@@ -84,22 +84,20 @@
 		même critère : un seul nombre pour les deux, sinon l'un coupe et l'autre
 		ne complète pas.
 	#}
-	{% set _seuil = NB_EXCERPT | default(600) %}
-	{% set _coupe = _long_text | truncate(_seuil, False, '…') %}
-	{% if _long_text and _coupe != _long_text %}
+	{# `_desc_html`, `_long_full` et `_long_cut` viennent d'item.html, qui rend le
+	   bloc du bas sur EXACTEMENT le même critère. Les valeurs de repli ne
+	   servent que si ce fichier est inclus depuis ailleurs. #}
+	{% set _texte = _desc_html | default(doc.web_long_description or doc.description) %}
+	{% set _entier = _long_full | default(frappe.utils.strip_html(_texte or '')) %}
+	{% set _coupe = _long_cut | default(_entier | truncate(600, False, '…')) %}
+	{% if _entier and _coupe != _entier %}
 	<div class="buybox-excerpt">
 		{{ _coupe }}
 		<a href="#product-long-desc">{{ _("Read more") }} &darr;</a>
 	</div>
-	{% elif _long_text %}
+	{% elif _entier %}
 	<div class="buybox-description product-description product-long-description" itemprop="description">
-		{{ _(doc.web_long_description) | safe }}
-	</div>
-	{% elif frappe.utils.strip_html(doc.description or '') %}
-	{# Rien d'écrit pour le site : la description de l'article est la valeur par
-	   défaut, et elle se lit entière — il n'y a rien en bas où l'envoyer. #}
-	<div class="buybox-description product-description product-long-description" itemprop="description">
-		{{ _(doc.description) | safe }}
+		{{ _(_texte) | safe }}
 	</div>
 	{% endif %}
 </div>
