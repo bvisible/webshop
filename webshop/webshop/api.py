@@ -823,6 +823,7 @@ def get_discounted_products(item_group=None, limit=20, offset=0):
 				"formatted_mrp": product_info["price"].get("formatted_mrp"),
 				"currency": product_info["price"].get("currency")
 			})
+			prefix_from_when_several_offers(item)
 		
 		# Add stock info if enabled
 		if settings.show_stock_availability and product_info:
@@ -884,6 +885,7 @@ def get_promotional_products(limit=10):
 				"formatted_mrp": product_info["price"].get("formatted_mrp"),
 				"currency": product_info["price"].get("currency")
 			})
+			prefix_from_when_several_offers(item)
 		
 		# Format discount display
 		if item.get("effective_discount_percent"):
@@ -988,6 +990,7 @@ def get_discount_items_preview(limit=20, price_list=None):
 	for item in items:
 		if item.get("price_list_rate"):
 			item["formatted_price"] = format_currency_value(item.price_list_rate, currency=currency)
+			prefix_from_when_several_offers(item)
 			if item.get("mrp") and item.mrp > item.price_list_rate:
 				item["formatted_mrp"] = format_currency_value(item.mrp, currency=currency)
 			if item.get("discount_percent"):
@@ -1262,3 +1265,26 @@ def get_cart_recommendations(item_codes=None, limit=4):
 			if len(out) >= limit:
 				return out
 	return out
+
+def prefix_from_when_several_offers(item: dict) -> None:
+	"""« dès CHF 90.– » quand l'article se vend à plusieurs prix.
+
+	🔴 Un cours vendu 90 ou 140 selon la durée d'accès affichait « CHF 90.00 »
+	sur sa vignette : le prix le plus bas présenté comme LE prix, et le client
+	découvrait le reste sur la fiche.
+
+	Posé ICI, sur `formatted_price`, et non dans les gabarits : la grille, la
+	liste et la recherche ont chacune leur rendu en JavaScript, et le serveur
+	est le seul endroit qu'ils partagent tous les trois.
+
+	Silencieux si l'app de formation n'est pas là : une boutique sans cours ne
+	doit pas dépendre d'elle.
+	"""
+	if not item.get("formatted_price"):
+		return
+	try:
+		from lms.lms.neoffice_commerce import course_offer_count
+	except ImportError:
+		return
+	if course_offer_count(item.get("item_code")) > 1:
+		item["formatted_price"] = frappe._("from") + " " + item["formatted_price"]
