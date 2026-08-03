@@ -162,3 +162,64 @@ def webshop_fmt_money(value, currency=None, precision=None):
     This is a wrapper around format_currency_value that can be used directly in Jinja templates.
     """
     return format_currency_value(value, currency=currency, precision=precision)
+
+
+def description_excerpt(html: str, budget: int = 900) -> dict:
+	"""Un extrait qui garde sa mise en forme, parce qu'il coupe entre les blocs.
+
+	Couper du HTML au caractère près, c'est trancher au milieu d'une balise :
+	on s'en sort en retirant toutes les balises, et l'extrait perd ses listes,
+	son gras, ses paragraphes. Vu à l'écran — une description soignée arrivait
+	dans la colonne d'achat en un bloc de texte gris.
+
+	Alors on ne coupe pas dans le texte : on prend les blocs de premier niveau
+	— paragraphes, listes, titres — **entiers**, tant qu'on tient dans le
+	budget, et on s'arrête au premier qui le dépasse. Le résultat est du HTML
+	valide, avec sa mise en forme, et il ne finit jamais au milieu d'une phrase.
+
+	Rend `{"html": ..., "cut": True/False}` : `cut` dit s'il reste quelque
+	chose à lire plus bas — c'est lui qui décide d'afficher « Lire la suite »
+	ET le bloc pleine largeur, pour que les deux ne se contredisent jamais.
+	"""
+	texte = (html or "").strip()
+	if not texte:
+		return {"html": "", "cut": False}
+
+	entier = frappe.utils.strip_html(texte).strip()
+	if len(entier) <= budget:
+		return {"html": texte, "cut": False}
+
+	from bs4 import BeautifulSoup
+
+	soup = BeautifulSoup(texte, "html.parser")
+	# Un éditeur enveloppe souvent tout dans un div : c'est ce div qu'il faut
+	# ouvrir, sinon le premier « bloc » est le document entier et on ne coupe
+	# jamais rien.
+	racine = soup
+	while True:
+		enfants = [e for e in racine.children if getattr(e, "name", None) or str(e).strip()]
+		if len(enfants) == 1 and getattr(enfants[0], "name", None) in ("div", "section", "article"):
+			racine = enfants[0]
+			continue
+		break
+
+	gardes, compte = [], 0
+	for bloc in racine.children:
+		morceau = str(bloc)
+		if not morceau.strip():
+			continue
+		longueur = len(frappe.utils.strip_html(morceau).strip())
+		if gardes and compte + longueur > budget:
+			break
+		gardes.append(morceau)
+		compte += longueur
+		if compte >= budget:
+			break
+
+	if not gardes:
+		# Un seul bloc, plus long que le budget : là, on coupe au mot près et
+		# on assume la perte de mise en forme — il n'y a pas de couture ailleurs.
+		return {"html": frappe.utils.strip_html(texte)[:budget].rsplit(" ", 1)[0] + "…", "cut": True}
+
+	reste = len(entier) - compte
+	return {"html": "".join(gardes), "cut": reste > 0}

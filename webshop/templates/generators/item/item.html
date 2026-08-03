@@ -42,7 +42,7 @@
 				si l'un coupe et que l'autre ne complète pas, le « Lire la
 				suite » ne mène nulle part.
 			#}
-			{% set NB_EXCERPT = 600 %}
+			{% set NB_EXCERPT = 900 %}
 			{#
 				UNE description, choisie une fois pour toute la page : celle du
 				site si quelqu'un l'a écrite, sinon celle de l'article. C'est la
@@ -52,8 +52,17 @@
 				description du site.
 			#}
 			{% set _desc_html = doc.web_long_description if frappe.utils.strip_html(doc.web_long_description or '') else doc.description %}
-			{% set _long_full = frappe.utils.strip_html(_desc_html or '') %}
-			{% set _long_cut = _long_full | truncate(NB_EXCERPT, False, '…') %}
+			{#
+				L'extrait coupe ENTRE LES BLOCS, pas au caractère : trancher du
+				HTML à la longueur oblige à retirer les balises, et la
+				description arrive dans la colonne d'achat en un pavé gris —
+				plus de listes, plus de gras, plus de paragraphes.
+
+				`cut` dit s'il reste quelque chose à lire : c'est lui qui décide
+				du « Lire la suite » ET du bloc pleine largeur, donc les deux ne
+				peuvent pas se contredire.
+			#}
+			{% set _extrait = description_excerpt(_desc_html, NB_EXCERPT) %}
 
 			<div class="row product-hero-row">
 				{% include "templates/generators/item/item_image.html" %}
@@ -128,6 +137,10 @@
 		color: #4b5563;
 	}
 	.buybox-excerpt a { white-space: nowrap; font-weight: 500; }
+	/* Le lien vers la suite : détaché du texte, pour qu'on le distingue de la
+	   description elle-même. */
+	.buybox-more { margin: 10px 0 0; }
+	.buybox-more a { white-space: nowrap; font-weight: 500; }
 	/* the item's own description, when no Website Description overrides it */
 	.buybox-description {
 		margin-top: 16px;
@@ -201,7 +214,7 @@
 			{# La description entière, pleine largeur — UNIQUEMENT quand la colonne
 			   d'achat a dû la couper. Sinon elle y est déjà, et la répéter ici
 			   ferait lire deux fois la même chose. #}
-			{% if _long_full and _long_cut != _long_full %}
+			{% if _extrait.cut %}
 			<div class="row">
 				<div class="col-12 product-long-description-section" id="product-long-desc" style="scroll-margin-top: 20px;">
 					<h2 class="product-section-title">{{ _("Description") }}</h2>
