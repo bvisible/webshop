@@ -65,11 +65,13 @@
 	</div>
 	{% endif %}
 
-	<!-- short excerpt of the long description, anchored to the full one below -->
+	<!-- The description, whole, next to the price: it is what the customer reads
+	     to decide, so it belongs in the buying column and not at the foot of the
+	     page. It used to sit here as a 210-character stub pointing to the real
+	     text below; that read as a fragment above and the description underneath. -->
 	{% if _long_text %}
-	<div class="buybox-excerpt">
-		{{ _long_text[:210] }}&hellip;
-		<a href="#product-long-desc">{{ _("Read more") }} &darr;</a>
+	<div class="buybox-description product-description product-long-description" itemprop="description">
+		{{ _(doc.web_long_description) | safe }}
 	</div>
 	{% elif frappe.utils.strip_html(doc.description or '') %}
 	<div class="product-description" itemprop="description">
