@@ -499,6 +499,7 @@ class ProductQuery:
 				
 				item["currency"] = currency
 				item["formatted_price"] = format_currency_value(item.price_list_rate, currency=currency)
+				prefix_from_when_several_offers(item)
 				if item.get("mrp") and item.mrp > item.price_list_rate:
 					item["formatted_mrp"] = format_currency_value(item.mrp, currency=currency)
 				
@@ -1077,6 +1078,7 @@ class ProductQuery:
 				price_object.get("price_list_rate"),
 				currency=price_object.get("currency")
 			)
+			prefix_from_when_several_offers(item)
 			
 		# Also format MRP if it exists
 		if price_object.get("mrp_rate") is not None:
@@ -1424,4 +1426,26 @@ class ProductQuery:
 					del item[field]
 		
 		return items
-	
+
+def prefix_from_when_several_offers(item) -> None:
+	"""« dès CHF 90.– » quand l'article se vend à plusieurs prix.
+
+	🔴 Un cours vendu 90 ou 140 selon la durée d'accès affichait « CHF 90.00 »
+	sur sa vignette : le prix le plus bas présenté comme LE prix, et le client
+	découvrait le reste sur la fiche.
+
+	Posé sur `formatted_price` là où le moteur de recherche le fabrique : la
+	grille, la liste et la recherche ont chacune leur rendu en JavaScript, et
+	c'est le seul endroit qu'elles partagent toutes les trois.
+
+	Silencieux si l'app de formation n'est pas là : une boutique sans cours ne
+	doit pas dépendre d'elle.
+	"""
+	if not item.get("formatted_price"):
+		return
+	try:
+		from lms.lms.neoffice_commerce import course_offer_count
+	except ImportError:
+		return
+	if course_offer_count(item.get("item_code")) > 1:
+		item["formatted_price"] = frappe._("from") + " " + item["formatted_price"]
