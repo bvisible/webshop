@@ -31,6 +31,21 @@
 				</div>
 			</div>
 
+			{#
+				Le seul nombre qui décide : au-delà, la description est coupée
+				dans la colonne d'achat et le bloc pleine largeur porte la
+				version entière. En dessous, elle se lit en haut avec sa mise en
+				forme et le bas ne s'affiche pas — répéter le même texte à deux
+				endroits n'aide personne.
+
+				Défini ICI parce que les deux blocs doivent lire le MÊME seuil :
+				si l'un coupe et que l'autre ne complète pas, le « Lire la
+				suite » ne mène nulle part.
+			#}
+			{% set NB_EXCERPT = 600 %}
+			{% set _long_full = frappe.utils.strip_html(doc.web_long_description or '') %}
+			{% set _long_cut = _long_full | truncate(NB_EXCERPT, False, '…') %}
+
 			<div class="row product-hero-row">
 				{% include "templates/generators/item/item_image.html" %}
 				{% include "templates/generators/item/item_details.html" %}
@@ -174,8 +189,10 @@
 		border-radius: 14px;
 	}
 </style>
-			<!-- Long description: full page width, right after the image row -->
-			{% if frappe.utils.strip_html(doc.web_long_description or '') %}
+			{# La description entière, pleine largeur — UNIQUEMENT quand la colonne
+			   d'achat a dû la couper. Sinon elle y est déjà, et la répéter ici
+			   ferait lire deux fois la même chose. #}
+			{% if _long_full and _long_cut != _long_full %}
 			<div class="row">
 				<div class="col-12 product-long-description-section" id="product-long-desc" style="scroll-margin-top: 20px;">
 					<h2 class="product-section-title">{{ _("Description") }}</h2>

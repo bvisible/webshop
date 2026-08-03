@@ -65,16 +65,39 @@
 	</div>
 	{% endif %}
 
-	<!-- short excerpt of the long description, anchored to the full one below -->
-	{% if _long_text %}
+	{#
+		La description, à côté du prix — entière quand elle y tient.
+
+		🔴 Elle était coupée à 210 caractères, TOUJOURS, avec « … Lire la suite »
+		même quand il n'y avait pas de suite. Mesuré chez Blowback le 2026-08-03 :
+		sur 6 419 fiches publiées, **1 778 descriptions tiennent sous 210
+		caractères** — leur extrait affichait le texte entier, y ajoutait des
+		points de suspension et renvoyait vers lui-même. « Cartouches CO2 12 gr…
+		Lire la suite ↓ » : quatre mots, et une invitation à lire une suite qui
+		n'existe pas.
+
+		Donc : sous le seuil, le texte se lit ICI, **avec sa mise en forme** —
+		listes, gras, tout. Au-dessus, un extrait coupé au mot près renvoie au
+		bloc pleine largeur, qui porte la version complète.
+
+		`NB_EXCERPT` est défini par item.html, qui rend le bloc du bas sur le
+		même critère : un seul nombre pour les deux, sinon l'un coupe et l'autre
+		ne complète pas.
+	#}
+	{% set _seuil = NB_EXCERPT | default(600) %}
+	{% set _coupe = _long_text | truncate(_seuil, False, '…') %}
+	{% if _long_text and _coupe != _long_text %}
 	<div class="buybox-excerpt">
-		{{ _long_text[:210] }}&hellip;
+		{{ _coupe }}
 		<a href="#product-long-desc">{{ _("Read more") }} &darr;</a>
 	</div>
+	{% elif _long_text %}
+	<div class="buybox-description product-description product-long-description" itemprop="description">
+		{{ _(doc.web_long_description) | safe }}
+	</div>
 	{% elif frappe.utils.strip_html(doc.description or '') %}
-	<!-- No Website Description written: the item's own text is the default, and
-	     it reads whole here rather than as an excerpt — there is nothing below
-	     to send the reader to. -->
+	{# Rien d'écrit pour le site : la description de l'article est la valeur par
+	   défaut, et elle se lit entière — il n'y a rien en bas où l'envoyer. #}
 	<div class="buybox-description product-description product-long-description" itemprop="description">
 		{{ _(doc.description) | safe }}
 	</div>
