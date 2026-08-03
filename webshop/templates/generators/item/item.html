@@ -104,7 +104,7 @@
 		color: #4b5563;
 	}
 	.buybox-excerpt a { white-space: nowrap; font-weight: 500; }
-	/* the description, in the buying column */
+	/* the item's own description, when no Website Description overrides it */
 	.buybox-description {
 		margin-top: 16px;
 		padding-top: 16px;
@@ -174,9 +174,17 @@
 		border-radius: 14px;
 	}
 </style>
-			<!-- The description now renders whole in the buying column
-			     (item_details.html). Repeating it full-width here would say the
-			     same thing twice, and put the second copy below the fold. -->
+			<!-- Long description: full page width, right after the image row -->
+			{% if frappe.utils.strip_html(doc.web_long_description or '') %}
+			<div class="row">
+				<div class="col-12 product-long-description-section" id="product-long-desc" style="scroll-margin-top: 20px;">
+					<h2 class="product-section-title">{{ _("Description") }}</h2>
+					<div class="product-description product-long-description" itemprop="description">
+						{{ _(doc.web_long_description) | safe }}
+					</div>
+				</div>
+			</div>
+			{% endif %}
 
 			<!-- Product Bundle Components -->
 			{% include "templates/generators/item/item_bundle_components.html" %}
