@@ -970,7 +970,24 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 		if result is None and isinstance(items, list) and not items:
 			set_cart_count(None)
 			if cint(with_items):
-				context = get_cart_quotation(None)
+				# Le devis vient d'être supprimé : il n'y a plus rien à lire.
+				# `get_cart_quotation(None)` rend un contexte dont `doc` est nul,
+				# et le gabarit du total demande `doc.total` — 500 en pleine
+				# figure du visiteur, pour un panier qu'il a simplement vidé.
+				# Un devis neuf en mémoire, jamais enregistré, dit « zéro » sans
+				# rien inventer.
+				vide = frappe.new_doc("Quotation")
+				vide.currency = (
+					frappe.db.get_single_value("Webshop Settings", "currency")
+					or frappe.defaults.get_global_default("currency")
+				)
+				context = {
+					"doc": vide,
+					"cart_settings": frappe.get_cached_doc("Webshop Settings"),
+					"shipping_addresses": [],
+					"billing_addresses": [],
+					"shipping_rules": [],
+				}
 				return {
 					"items": frappe.render_template(
 						"templates/includes/cart/cart_items.html", context
