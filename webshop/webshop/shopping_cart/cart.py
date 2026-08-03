@@ -994,6 +994,11 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 	empty_card = False
 	if qty == 0:
 		quotation_items = quotation.get("items", {"item_code": ["!=", item_code]})
+		# Une réservation se vend d'un bloc : le séjour, sa taxe, ses options.
+		# Retirer le séjour doit emporter le reste ICI, avant de décider si le
+		# panier est vide — sinon la taxe survit seule, le devis n'est pas
+		# supprimé, et le client ne peut plus rien recommencer.
+		quotation_items = _drop_booking_companions(quotation, item_code, quotation_items)
 		if quotation_items:
 			quotation.set("items", quotation_items)
 		else:
@@ -3075,3 +3080,27 @@ def process_gift_card_split(sales_order, coupon_data):
 	except Exception as e:
 		frappe.log_error("Gift Card - Error Splitting", f"Error splitting gift card: {str(e)}")
 		return {"status": "error", "message": f"Error: {str(e)}"}
+
+
+def _drop_booking_companions(quotation, removed_item, remaining):
+	"""Les lignes qui ne survivent pas au retrait d'un séjour.
+
+	Le module de réservation de neoffice_theme vend une prestation d'un bloc :
+	le séjour, sa taxe de séjour, ses options. Retirer un morceau doit emporter
+	le reste — et cela doit se décider ICI, dans le même geste, parce que c'est
+	juste après que webshop choisit de supprimer ou non son brouillon. Fait plus
+	tard, la taxe reste seule au panier et le devis vide survit.
+
+	Silencieux si le module n'est pas installé : une boutique sans réservation
+	ne voit aucune différence.
+	"""
+	try:
+		from neoffice_theme.booking.extras import companions_of_a_removed_line
+	except ImportError:
+		return remaining
+	try:
+		return companions_of_a_removed_line(quotation, removed_item, remaining)
+	except Exception:
+		frappe.log_error("Booking: could not clean the cart after removing an item",
+			frappe.get_traceback())
+		return remaining
