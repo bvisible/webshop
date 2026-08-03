@@ -977,10 +977,10 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 				# Un devis neuf en mémoire, jamais enregistré, dit « zéro » sans
 				# rien inventer.
 				vide = frappe.new_doc("Quotation")
-				vide.currency = (
-					frappe.db.get_single_value("Webshop Settings", "currency")
-					or frappe.defaults.get_global_default("currency")
-				)
+				# La devise du site, pas celle de Webshop Settings : ce doctype
+				# n'en porte pas, et le lui demander lève une erreur — donc un
+				# 417 à la place du panier vide.
+				vide.currency = frappe.defaults.get_global_default("currency")
 				context = {
 					"doc": vide,
 					"cart_settings": frappe.get_cached_doc("Webshop Settings"),
