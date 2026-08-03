@@ -55,6 +55,19 @@ def create_guest_quotation(items=None):
         'name'
     )
 
+    # 🔴 Deux situations que le code confondait, et la confusion coûtait le
+    # panier d'un visiteur : `items=None` veut dire « donne-moi mon panier »
+    # (la plupart des appels), tandis qu'une LISTE VIDE veut dire « il ne reste
+    # plus rien dedans ». La seconde rendait le devis inchangé : le visiteur
+    # retirait son dernier article et le retrouvait au rechargement, sur un
+    # brouillon que rien ne supprimait jamais.
+    #
+    # Un panier vidé de sa dernière ligne n'est plus un panier. Il s'en va,
+    # comme pour un client identifié.
+    if existing_quotation and isinstance(items, list) and not items:
+        frappe.delete_doc("Quotation", existing_quotation, force=True, ignore_permissions=True)
+        return None
+
     # If a quotation exists and we don't have any items, return it
     if existing_quotation and not items:
         return {

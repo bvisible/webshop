@@ -964,6 +964,25 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			items = [item_dict] if qty > 0 else []
 		
 		result = create_guest_quotation(items)
+		# Le panier du visiteur vient d'être supprimé parce qu'il ne restait
+		# rien : on rend quand même la page vide, sinon la ligne retirée reste
+		# affichée jusqu'au prochain rechargement.
+		if result is None and isinstance(items, list) and not items:
+			set_cart_count(None)
+			if cint(with_items):
+				context = get_cart_quotation(None)
+				return {
+					"items": frappe.render_template(
+						"templates/includes/cart/cart_items.html", context
+					),
+					"total": frappe.render_template(
+						"templates/includes/cart/cart_items_total.html", context
+					),
+					"taxes_and_totals": frappe.render_template(
+						"templates/includes/cart/cart_payment_summary.html", context
+					),
+				}
+			return {"name": None}
 		if result and result.get("success"):
 			quotation = frappe.get_doc("Quotation", result.get("quotation_id"))
 
