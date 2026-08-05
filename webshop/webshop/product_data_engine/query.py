@@ -500,6 +500,7 @@ class ProductQuery:
 				item["currency"] = currency
 				item["formatted_price"] = format_currency_value(item.price_list_rate, currency=currency)
 				prefix_from_when_several_offers(item)
+				mark_if_bookable(item)
 				if item.get("mrp") and item.mrp > item.price_list_rate:
 					item["formatted_mrp"] = format_currency_value(item.mrp, currency=currency)
 				
@@ -1079,6 +1080,7 @@ class ProductQuery:
 				currency=price_object.get("currency")
 			)
 			prefix_from_when_several_offers(item)
+			mark_if_bookable(item)
 			
 		# Also format MRP if it exists
 		if price_object.get("mrp_rate") is not None:
@@ -1449,3 +1451,34 @@ def prefix_from_when_several_offers(item) -> None:
 		return
 	if course_offer_count(item.get("item_code")) > 1:
 		item["formatted_price"] = frappe._("from") + " " + item["formatted_price"]
+
+
+def mark_if_bookable(item) -> None:
+	"""Une prestation réservable ne s'ajoute pas au panier depuis une vignette.
+
+	🔴 Jérémy, le 2026-08-05, capture à l'appui : *« depuis la vignette j'ai pu
+	ajouter au panier et devrait pas, on réserve… »*. Il a raison, et c'est plus
+	grave qu'un libellé : le panier recevait une heure de cours **sans heure**.
+	Aucun créneau retenu, rien au planning, l'intervenant ne sait pas qu'il
+	travaille — et le même créneau se revend le soir même. C'est exactement la
+	faute que l'étude du POS nomme : *vendre un article réservable comme un
+	article ordinaire est un bug, pas un raccourci*.
+
+	La vignette renvoie donc à la fiche, où l'on choisit son moment.
+
+	Une seule requête par PAGE, pas une par vignette : le catalogue en affiche
+	vingt à la fois, et vingt allers-retours pour une question qui a la même
+	réponse pour tout le monde, c'est vingt de trop.
+	"""
+	code = item.get("item_code")
+	if not code:
+		return
+	if getattr(frappe.local, "_neo_bookable_items", None) is None:
+		try:
+			frappe.local._neo_bookable_items = set(
+				frappe.get_all("Booking Profile", filters={"enabled": 1}, pluck="item")
+			)
+		except Exception:
+			frappe.local._neo_bookable_items = set()
+	if code in frappe.local._neo_bookable_items:
+		item["bookable"] = 1

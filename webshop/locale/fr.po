@@ -4969,3 +4969,7 @@ msgstr "Cumulez {points} points avec cet achat"
 #: webshop/webshop/utils/loyalty_points.py:124
 msgid "{points} points = {amount}"
 msgstr "{points} points = {amount}"
+
+#: webshop/public/js/product_ui/grid.js
+msgid "Book"
+msgstr "Réserver"

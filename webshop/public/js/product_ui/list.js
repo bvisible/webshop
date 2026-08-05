@@ -276,6 +276,19 @@ webshop.ProductList = class {
 	}
 
 	get_primary_button(item, settings) {
+		//// Neoffice — Une prestation réservable ne s'ajoute pas au panier d'ici :
+		// le panier recevrait une heure de cours SANS heure. Aucun créneau retenu,
+		// rien au planning, et le même créneau revendu le soir même. La vignette
+		// renvoie donc à la fiche, où l'on choisit son moment.
+		if (item.bookable) {
+			return `
+				<a href="/${ item.route || '#' }">
+					<div class="btn btn-sm btn-explore-variants w-100 mt-4">
+						${ window.product_translations && window.product_translations["Book"] || "Book" }
+					</div>
+				</a>
+			`;
+		}
 		if (item.has_variants || item.is_gift_card || settings.enable_guest_cart == 0 && frappe.session.user == "Guest") {
 			return `
 				<a href="/${ item.route || '#' }">
