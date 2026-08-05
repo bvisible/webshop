@@ -4971,5 +4971,5 @@ msgid "{points} points = {amount}"
 msgstr "{points} points = {amount}"
 
 #: webshop/public/js/product_ui/grid.js
-msgid "Book"
+msgid "Book a slot"
 msgstr "Réserver"

@@ -291,7 +291,7 @@ webshop.ProductGrid = class {
 			return `
 				<a href="/${ item.route || '#' }">
 					<div class="btn btn-sm btn-explore-variants w-100 mt-4">
-						${ window.product_translations && window.product_translations["Book"] || "Book" }
+						${ window.product_translations && window.product_translations["Book a slot"] || "Book a slot" }
 					</div>
 				</a>
 			`;
