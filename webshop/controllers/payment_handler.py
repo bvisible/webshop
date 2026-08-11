@@ -8,13 +8,16 @@ class PaymentHandler:
     def __init__(self):
         self.settings = frappe.get_doc("Webshop Settings")
         
-    def create_payment_request(self, quotation_id=None, gateway_settings=None, idempotency_token=None):
+    def create_payment_request(self, quotation_id=None, gateway_settings=None, idempotency_token=None,
+                               payment_gateway=None):
         """Create a payment request for a quotation
         
         Args:
             quotation_id (str, optional): ID of the quotation. If not provided, uses the cart.
             gateway_settings (str, optional): Name of the Gateway Settings to use. If provided, bypasses the default payment method.
             idempotency_token (str, optional): Token to prevent duplicate payment requests.
+            payment_gateway (str, optional): Payment Gateway name, resolved directly.
+                Takes precedence over gateway_settings. See the //// Neoffice note below.
         """
         try:
             # Check for idempotency token to prevent duplicate requests
@@ -69,8 +72,29 @@ class PaymentHandler:
             gateway_account = None
             payment_terms_template = None
             
+            #//// Neoffice — accept a Payment Gateway name directly, in addition to
+            #//// resolving one from its gateway_settings doctype.
+            #//// Upstream only looks the gateway up by `gateway_settings`, which is a
+            #//// Link to DocType — so the lookup returns whichever gateway happens to
+            #//// reference that doctype first. That is fine while every PSP owns a
+            #//// dedicated settings doctype (Stripe Settings, Wallee Settings, …), but
+            #//// our unified providers share `Provider Channel Settings`: the second
+            #//// one added would silently resolve to the first. Passing the gateway
+            #//// name removes the ambiguity instead of working around it.
+            #//// Drop this once upstream resolves gateways by name.
+            if payment_gateway:
+                if not frappe.db.exists("Payment Gateway", payment_gateway):
+                    frappe.throw(_("Payment Gateway not found: {0}").format(payment_gateway))
+                gateway = payment_gateway
+                gateway_account = frappe.get_doc("Payment Gateway Account", {"payment_gateway": gateway})
+                payment_method_name = gateway.split("-")[0].strip()
+                for method in settings.payment_methods:
+                    if method.payment_gateway_account.startswith(payment_method_name):
+                        payment_terms_template = method.payment_terms_template
+                        break
+
             # If gateway_settings is provided, use it directly
-            if gateway_settings:
+            elif gateway_settings:
                 # Get Payment Gateway
                 gateway = frappe.get_value("Payment Gateway", {"gateway_settings": gateway_settings}, "name")
                 if not gateway:
@@ -505,20 +529,25 @@ class PaymentHandler:
             }
 
 @frappe.whitelist(allow_guest=True)
-def create_payment_request(quotation_id=None, gateway_settings=None, idempotency_token=None):
+def create_payment_request(quotation_id=None, gateway_settings=None, idempotency_token=None,
+                           payment_gateway=None):
     """Create a payment request for a quotation
     
     Args:
         quotation_id (str, optional): Quotation ID
         gateway_settings (str, optional): Gateway Settings name
         idempotency_token (str, optional): Token to prevent duplicate payment requests
+        payment_gateway (str, optional): Payment Gateway name, resolved directly
+            (//// Neoffice — see PaymentHandler.create_payment_request)
     """
     try:
         handler = PaymentHandler()
         return handler.create_payment_request(
             quotation_id=quotation_id, 
             gateway_settings=gateway_settings,
-            idempotency_token=idempotency_token
+            idempotency_token=idempotency_token,
+            #//// Neoffice — pass the direct gateway name through to the handler.
+            payment_gateway=payment_gateway
         )
     except Exception as e:
         frappe.log_error("Error creating payment request", e)

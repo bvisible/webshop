@@ -1,0 +1,7 @@
+{
+  "required_settings": [],
+  "context_ids": {
+    "payment_form_id": "payrexx-payment-form",
+    "submit_id": "payrexx-submit"
+  }
+}

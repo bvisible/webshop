@@ -1,0 +1,126 @@
+{#
+	//// Neoffice — added file (no upstream equivalent).
+
+	Payrexx hosted checkout — a plain redirect.
+
+	Two backend calls, then leave the site:
+	  1. payment_handler.create_payment_request  → the Frappe Payment Request
+	  2. payments.integrations.payrexx.api.create_web_transaction → the hosted URL
+
+	The buyer returns on /payrexx/success?payment_intent=PI-…, which reads the real
+	status off the Payment Intent and finalises the Sales Order. The transaction
+	webhook drives the same state machine and covers a buyer who closes the tab
+	before coming back — so nothing here needs to poll.
+#}
+<div class="payment-form" id="{{ payment_form_id }}">
+	<div class="outcome text-center mb-4">
+		<div class="error payment-message payrexx-error-{{ submit_id }}" role="alert"></div>
+	</div>
+	<div class="mt-4 d-flex justify-content-between align-items-center">
+		<div class="form-check mb-3" id="terms-acceptance-container">
+			<input type="checkbox" class="form-check-input cursor-pointer" id="terms-acceptance" required>
+			<label class="form-check-label cursor-pointer" for="terms-acceptance">
+				{{ _("I accept the") }} <a href="#terms-title" class="terms-link">{{ cgv_tc_name or _("terms and conditions") }}</a>
+			</label>
+		</div>
+		<div class="d-flex justify-content-end">
+			<button type="button"
+				class="btn btn-primary btn-submit-payment"
+				id="{{ submit_id }}"
+				disabled
+				data-toggle="tooltip"
+				data-placement="top"
+				title="{{ _('Please accept the terms and conditions to continue') }}">
+				{{ _('Pay with Payrexx') }} {{ format_currency_value(amount, currency) }}
+			</button>
+		</div>
+	</div>
+</div>
+
+<script>
+(function () {
+	// Guard against double initialisation when several payment tabs are rendered.
+	const formId = '{{ payment_form_id }}';
+	if (window['payrexx_initialized_' + formId]) return;
+	window['payrexx_initialized_' + formId] = true;
+
+	const submitButton = $('#{{ submit_id }}');
+	const originalLabel = submitButton.html();
+	let isProcessing = false;
+
+	function showError(message) {
+		$('.payrexx-error-{{ submit_id }}').text(message).show().addClass('show');
+	}
+
+	function resetButton() {
+		isProcessing = false;
+		submitButton.html(originalLabel);
+		const termsAccepted = $('#' + formId)
+			.closest('.payment-method-item')
+			.find('#terms-acceptance')
+			.prop('checked');
+		submitButton.prop('disabled', !termsAccepted);
+		if (window.checkout_manager && !window.checkout_manager._isResetting) {
+			window.checkout_manager.stopPaymentProcessing();
+		}
+	}
+
+	submitButton.on('click', function (e) {
+		e.preventDefault();
+		if (isProcessing || !window.checkout_manager.startPaymentProcessing()) return false;
+		isProcessing = true;
+		submitButton.prop('disabled', true);
+		submitButton.html(
+			'<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' +
+			__('Redirecting to Payrexx…')
+		);
+
+		// STEP 1 — generic Payment Request. The gateway is named directly rather
+		// than resolved from a settings doctype: Payrexx has none of its own, and
+		// our unified providers share Provider Channel Settings.
+		frappe.call({
+			method: 'webshop.controllers.payment_handler.create_payment_request',
+			args: {
+				quotation_id: '{{ doc.name }}',
+				payment_gateway: 'Payrexx',
+				idempotency_token: (window.checkout_manager && window.checkout_manager.getIdempotencyToken)
+					? window.checkout_manager.getIdempotencyToken()
+					: ('payrexx-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8))
+			},
+			callback: function (step1) {
+				if (!step1.message || step1.message.status !== 'success') {
+					showError((step1.message && step1.message.message) || __('Error creating payment request'));
+					resetButton();
+					return;
+				}
+
+				// STEP 2 — Payrexx gateway, then leave the site.
+				frappe.call({
+					method: 'payments.integrations.payrexx.api.create_web_transaction',
+					args: { payment_request_id: step1.message.payment_request_id },
+					callback: function (step2) {
+						const res = step2.message || {};
+						if (res.status !== 'success' || !res.redirect_url) {
+							showError(res.message || __('Could not start the Payrexx payment'));
+							resetButton();
+							return;
+						}
+						// No reset here: we are leaving the page, and re-enabling the
+						// button would invite a second click that creates a second
+						// gateway — Payrexx does not deduplicate on referenceId.
+						window.location.href = res.redirect_url;
+					},
+					error: function () {
+						showError(__('Could not reach Payrexx. Please try again.'));
+						resetButton();
+					}
+				});
+			},
+			error: function () {
+				showError(__('Error creating payment request'));
+				resetButton();
+			}
+		});
+	});
+})();
+</script>
