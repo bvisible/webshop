@@ -268,6 +268,27 @@ class WebsiteItem(WebsiteGenerator):
 				self.thumbnail = file_doc.thumbnail_url
 
 	def get_context(self, context):
+		#//// Neoffice — a bookable service is not a product, and this page said
+		#//// otherwise: a hotel room came out with "Code article", a stock
+		#//// counter, loyalty points, an inert "Add to cart" and product
+		#//// reviews. The slot picker spent its time HIDING those in CSS, which
+		#//// is the admission that the page was wrong, not the picker.
+		#////
+		#//// So when an item carries an enabled Booking Profile we render our
+		#//// own template instead. Frappe honours `context.template`
+		#//// (page_renderers/document_page.py: `self.template_path =
+		#//// self.context.template or self.template_path`), so nothing else in
+		#//// this method has to run — and the whole page lives in
+		#//// neoffice_theme, where it can change without touching upstream.
+		#////
+		#//// Drop this block if bookings ever stop being sold through the shop.
+		if frappe.db.exists("DocType", "Booking Profile") and frappe.db.get_value(
+			"Booking Profile", {"item": self.item_code, "enabled": 1}, "name"
+		):
+			from neoffice_theme.booking.page import prestation_context
+
+			return prestation_context(self, context)
+
 		context.show_search = True
 		context.search_link = "/search"
 		context.body_class = "product-page"
