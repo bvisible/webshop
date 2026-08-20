@@ -204,10 +204,13 @@
 				{% endif %}
 			</div>
 		{% else %}
-			<!-- Booking: renders nothing unless the item has a Booking Profile.
-			     Blocks "Add to Cart" until a slot is actually held, so a
-			     bookable item never reaches the cart without a time behind it. -->
-			{% include "neoffice_theme/templates/includes/booking/picker.html" ignore missing %}
+			<!-- //// Neoffice — include retiré. Il servait le sélecteur de créneau
+			     du module booking, qui bloquait « Ajouter au panier » tant qu'un
+			     horaire n'était pas tenu. Ce sélecteur n'existe plus : un article
+			     réservable ne passe plus par cette page du tout — `WebsiteItem
+			     .get_context` la remplace par la page de prestation et son
+			     assistant (voir website_item.py, bloc marqué). L'include était
+			     donc mort, et `ignore missing` le cachait. -->
 
 			<!-- Cours en ligne : le choix de la durée, quand l'article en vend
 			     plusieurs. Ne rend rien sinon — une fiche ordinaire garde son
