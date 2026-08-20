@@ -20,9 +20,28 @@ class PaymentRequest(OriginalPaymentRequest):
             return
 
         if frappe.local.session.user == "Guest":
-            return
+            #//// Neoffice — un invité PEUT payer chez nous, et son paiement DOIT
+            #//// s'enregistrer. Le module de réservation encaisse sans jamais
+            #//// demander de compte : le client laisse ses coordonnées, un espace
+            #//// personnel naît en silence, et il paie dans la foulée — donc sans
+            #//// session ouverte.
+            #////
+            #//// Ce garde renvoyait avant tout traitement. Conséquence mesurée de
+            #//// bout en bout avec la carte de test le 2026-08-20 : la charge
+            #//// était CAPTURÉE chez Stripe, le Payment Request restait
+            #//// « Requested », la facture impayée, aucune écriture — et le client
+            #//// tombait sur « Non Autorisé ». Il payait pour rien.
+            #////
+            #//// Le garde reste pour le PANIER, qui a besoin d'une session pour
+            #//// créer sa commande (`place_order` lit le panier du visiteur). Une
+            #//// facture, elle, existe déjà : le bloc « Sales Invoice » plus bas
+            #//// bascule d'ailleurs en Administrator pour écrire le règlement.
+            if self.reference_doctype != "Sales Invoice":
+                return
 
-        cart_settings = frappe.get_doc("Webshop Settings")
+        #//// Neoffice — lu sans permissions : un invité n'a pas accès aux
+        #//// réglages de la boutique, et c'est justement lui qu'on doit servir.
+        cart_settings = frappe.get_cached_doc("Webshop Settings")
 
         if not cart_settings.enabled:
             return
