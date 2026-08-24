@@ -893,7 +893,12 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 	#//// est idempotente : deux clics sur le même panier ne font qu'une demande.
 	from webshop.controllers.payment_handler import PaymentHandler
 
+	# On NOMME le devis. Sans lui, la fabrique re-résout le panier de son côté
+	# (`_get_cart_quotation`) et peut tomber sur un autre devis — vécu le
+	# 2026-08-24 : un devis vide, refusé pour « items » manquants, et le chemin
+	# retombait en `legacy` sans que personne ne comprenne pourquoi.
 	demande = PaymentHandler().create_payment_request(
+		quotation_id=devis.name,
 		payment_gateway=gateway,
 		idempotency_token="intent-{0}-{1}".format(devis.name, payment_gateway_account),
 	)
