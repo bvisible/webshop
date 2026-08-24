@@ -846,6 +846,115 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 		return {"error": True, "message": str(e)}
 
 @frappe.whitelist(allow_guest=True)
+def start_cart_intent(payment_gateway_account: str) -> dict:
+	"""//// Neoffice — encaisser le panier par le moteur d'INTENTIONS de `payments`.
+
+	Un second chemin, POSÉ À CÔTÉ du premier et éteint par défaut. Le checkout
+	historique — gabarit par passerelle + `window.checkout_manager` — n'est pas
+	touché : il tourne en production chez des clients, et une migration d'un
+	seul tenant sur des paiements ne se fait pas.
+
+	Ce chemin ne s'emprunte que si la méthode porte `use_payment_intent`. Tant
+	que la case est décochée, absolument rien ne change pour elle.
+
+	Pourquoi l'ajouter : les pilotes de `payments` (Payrexx, Wallee, TWINT,
+	terminaux) alimentent les Payment Intent, pas les gabarits. Ce que la
+	boutique sait faire d'une passerelle dépend donc aujourd'hui de ce qu'on a
+	recopié dans son gabarit, au lieu de suivre le pilote. TWINT, par exemple,
+	sait rendre un QR à afficher sur place — la boutique l'ignore.
+
+	Rend la même forme que `neoffice_theme.booking.checkout.start_payment` :
+	l'écran n'a pas à savoir quelle passerelle il a devant lui.
+	"""
+	cart = get_cart_quotation()
+	devis = (cart or {}).get("doc")
+	if not devis:
+		frappe.throw(_("Your basket is empty"))
+
+	if not _intent_is_wanted(payment_gateway_account):
+		# La méthode n'a pas été basculée : on ne décide pas à sa place.
+		return {"action": "legacy"}
+
+	gateway = frappe.db.get_value("Payment Gateway Account", payment_gateway_account, "payment_gateway")
+	kind = (gateway or "").split("-")[0].split()[0].strip().lower()
+	couple = _intent_binding(kind)
+	if not couple:
+		return {"action": "legacy"}
+
+	from payments.api.intent import create_intent
+
+	montant = flt(devis.get("rounded_total") or devis.get("grand_total"))
+	intention = create_intent(
+		provider=couple[0],
+		channel=couple[1],
+		# Les intentions comptent en centimes.
+		amount=int(round(montant * 100)),
+		currency=devis.currency or "CHF",
+		reference_doctype="Quotation",
+		reference_name=devis.name,
+	)
+	charge = intention.get("next_action_payload")
+	if isinstance(charge, str):
+		charge = frappe.parse_json(charge) if charge else {}
+	charge = charge or {}
+	quoi = (intention.get("next_action_type") or "none").strip()
+
+	if quoi == "redirect_to_url" and charge.get("url"):
+		return {"action": "redirect", "url": charge["url"], "intent": intention.get("intent_name")}
+	if quoi == "display_qr_payload":
+		return {"action": "qr", "intent": intention.get("intent_name"), "payload": charge,
+			"amount": montant, "currency": devis.currency}
+	if quoi == "requires_confirmation" or intention.get("client_secret"):
+		return {"action": "confirm", "intent": intention.get("intent_name"),
+			"client_secret": intention.get("client_secret"), "payload": charge}
+
+	# Rien d'exploitable : on retombe sur le chemin historique plutôt que de
+	# laisser le client devant un écran vide.
+	frappe.log_error(
+		"Webshop: intention sans action exploitable",
+		"intention={0} type={1} methode={2}".format(intention.get("intent_name"), quoi, payment_gateway_account),
+	)
+	return {"action": "legacy"}
+
+
+def _intent_is_wanted(payment_gateway_account: str) -> bool:
+	"""//// Neoffice — cette méthode a-t-elle été basculée sur les intentions ?
+
+	Décoché par défaut, et lu sur la ligne de `Webshop Settings` : c'est le
+	commerçant qui bascule, méthode par méthode, quand il a vérifié chez lui.
+	"""
+	try:
+		settings = frappe.get_cached_doc("Webshop Settings")
+	except Exception:
+		return False
+	for row in settings.get("payment_methods") or []:
+		if row.payment_gateway_account == payment_gateway_account:
+			return bool(row.get("use_payment_intent"))
+	return False
+
+
+def _intent_binding(kind: str):
+	"""//// Neoffice — le couple (fournisseur, canal) web pour ce type de passerelle.
+
+	Résolu et non figé : le fournisseur change d'un site à l'autre
+	(`wallee_test`, `payrexx`, `twint_smoke_provider`), seul son préfixe est
+	stable. Les canaux `terminal` et `tap_to_pay` appartiennent à la caisse.
+	"""
+	if not kind:
+		return None
+	for row in frappe.get_all("Provider Channel Settings", filters={"enabled": 1},
+			fields=["provider", "channel"]):
+		if not (row.channel or "").endswith("_web"):
+			continue
+		if not (row.provider or "").lower().startswith(kind):
+			continue
+		if not frappe.db.get_value("Payment Provider", row.provider, "enabled"):
+			continue
+		return (row.provider, row.channel)
+	return None
+
+
+@frappe.whitelist(allow_guest=True)
 def get_payment_template(payment_gateway_account, context=None):
 	"""Load the HTML template for a payment gateway"""
 	try:		

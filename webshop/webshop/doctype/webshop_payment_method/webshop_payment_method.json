@@ -7,7 +7,8 @@
  "field_order": [
   "payment_gateway_account",
   "payment_terms_template",
-  "template_path"
+  "template_path",
+  "use_payment_intent"
  ],
  "fields": [
   {
@@ -33,6 +34,13 @@
    "in_list_view": 1,
    "label": "Template Path",
    "columns": 2
+  },
+  {
+   "fieldname": "use_payment_intent",
+   "fieldtype": "Check",
+   "label": "Encaisser par le moteur d'intentions",
+   "default": "0",
+   "description": "//// Neoffice — laisser DÉCOCHÉ tant que la méthode n'a pas été éprouvée sur ce site : décoché, elle emprunte exactement le chemin qu'elle a toujours pris."
   }
  ],
  "istable": 1,
