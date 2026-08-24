@@ -899,6 +899,18 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 	charge = charge or {}
 	quoi = (intention.get("next_action_type") or "none").strip()
 
+	#//// Neoffice — l'écran d'intention est dessiné par le navigateur, donc ses
+	#//// deux libellés passent par `__()`. Or le dictionnaire du client ne
+	#//// contient que ce qu'un appel lui a déjà envoyé : sans ça, un tunnel
+	#//// francophone affiche « Or type 12345 in the app. » sous le QR. Frappe
+	#//// fusionne le `__messages` de CETTE réponse avant que le rappel ne dessine.
+	from frappe.translate import send_translations
+
+	send_translations({
+		"Continue to payment": _("Continue to payment"),
+		"Or type {0} in the app.": _("Or type {0} in the app."),
+	})
+
 	if quoi == "redirect_to_url" and charge.get("url"):
 		return {"action": "redirect", "url": charge["url"], "intent": intention.get("intent_name")}
 	if quoi == "display_qr_payload":
