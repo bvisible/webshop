@@ -391,15 +391,23 @@
         border-radius: 0.2rem;
       }
 
+      {#- //// Neoffice — ces deux règles peignaient `.btn-primary` en dur, pour
+          TOUT le site : un composant de carrousel décidait de la couleur du
+          bouton « Ajouter au panier », du panier et du checkout, en écrasant
+          celle que le thème du site publie (`--primary-color`, DocType
+          `Website Header Footer Config`). Le tunnel d'achat se retrouvait
+          incohérent avec lui-même — noir ici, couleur de marque à côté. Elles
+          suivent maintenant le thème, comme les règles voisines de ce même
+          fichier le faisaient déjà. Le noir reste le repli. -#}
       .btn-primary {
         color: #fff;
-        background-color: #171717;
-        border-color: #171717;
+        background-color: var(--primary-color, #171717);
+        border-color: var(--primary-color, #171717);
       }
 
       .btn-primary:hover {
-        background-color: #040404;
-        border-color: black;
+        background-color: var(--primary-hover, #040404);
+        border-color: var(--primary-hover, black);
       }
       
       .btn-explore-variants {
