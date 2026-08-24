@@ -705,7 +705,6 @@ def get_shipping_address(user=None):
 		frappe.log_error(f"Error in get_shipping_address", e)
 		return None
 
-@frappe.whitelist(allow_guest=True)
 def _document_a_payer(reference_doctype=None, reference_docname=None):
 	"""//// Neoffice — le document qu'on paie n'est pas toujours un panier.
 
@@ -726,6 +725,7 @@ def _document_a_payer(reference_doctype=None, reference_docname=None):
 	return (get_cart_quotation() or {}).get("doc")
 
 
+@frappe.whitelist(allow_guest=True)
 def get_payment_methods(reference_doctype=None, reference_docname=None):
 	"""Get payment methods configured in Webshop Settings"""
 	try:
