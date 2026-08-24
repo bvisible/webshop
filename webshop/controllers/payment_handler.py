@@ -221,15 +221,31 @@ class PaymentHandler:
     
     def handle_payment_success(self, **kwargs):
         try:
+            #//// Neoffice — QUI a le droit de faire aboutir ce paiement.
+            #////
+            #//// L'entrée est `allow_guest` et le corps passe en Administrator
+            #//// « parce que la passerelle a confirmé » — mais RIEN ne le
+            #//// vérifiait. Un visiteur jamais connecté qui postait un numéro
+            #//// de demande obtenait une Sales Order soumise, `advance_paid`
+            #//// à 0. Les numéros étant séquentiels (ACC-PRQ-2026-00060), tout
+            #//// panier en attente se confirmait sans payer. Démontré sur
+            #//// osiris le 2026-08-24 : commande BC-2026-00326, CHF 15, créée
+            #//// depuis une session anonyme.
+            #////
+            #//// La garde est posée AVANT `set_user`, sinon elle se juge
+            #//// elle-même en Administrator.
+            payment_request_id = kwargs.get('payment_request_id')
+            if not payment_request_id:
+                return self.handle_error("Missing payment request ID")
+            if not frappe.db.exists("Payment Request", payment_request_id):
+                return self.handle_error("Missing payment request ID")
+            if not _peut_conclure(payment_request_id):
+                frappe.throw(_("Not permitted"), frappe.PermissionError)
+
             # Bypass all permission checks - payment is confirmed by payment provider
             # We need to run as Administrator because get_mapped_doc checks permissions
             frappe.set_user("Administrator")
             frappe.flags.ignore_permissions = True
-
-            # Get and validate payment request
-            payment_request_id = kwargs.get('payment_request_id')
-            if not payment_request_id:
-                return self.handle_error("Missing payment request ID")
 
             payment_request = frappe.get_doc("Payment Request", payment_request_id)
             payment_request.flags.ignore_permissions = True
@@ -568,6 +584,60 @@ def create_payment_request(quotation_id=None, gateway_settings=None, idempotency
             "status": "error",
             "message": str(e)
         }
+
+#//// Neoffice — les quatre seuls cas où faire aboutir un paiement est légitime.
+#////
+#//// Appelants réels, relevés dans les dépôts :
+#////   · `webshop/templates/payments/stripe.html` — le navigateur de l'ACHETEUR
+#////     après que Stripe a encaissé (il est authentifié : le checkout impose
+#////     la connexion) ;
+#////   · `payments/drivers/wallee/terminal_driver.py` — tâche de fond (serveur) ;
+#////   · `payments/www/wallee/success.py` et `payments/api/twint.py` — retour de
+#////     passerelle, où l'intention porte déjà le verdict du PSP.
+#////
+#//// Un visiteur anonyme qui poste un numéro de demande n'en fait partie
+#//// d'aucun. Le cas 4 est la VRAIE invariante : l'argent est constaté, peu
+#//// importe qui le signale.
+def _peut_conclure(payment_request_id: str) -> bool:
+	utilisateur = frappe.session.user
+
+	# 1. le serveur lui-même (tâche de fond, page de retour côté serveur)
+	if utilisateur == "Administrator":
+		return True
+
+	# 2. le personnel
+	if utilisateur != "Guest" and "System Manager" in frappe.get_roles():
+		return True
+
+	# 4. l'argent est CONSTATÉ : une intention aboutie porte sur cette demande.
+	#    Vérifié avant le cas 3 pour couvrir un retour de passerelle où la
+	#    session n'a pas encore été rétablie.
+	try:
+		if frappe.db.exists("DocType", "Payment Intent") and frappe.db.exists(
+			"Payment Intent",
+			{"reference_doctype": "Payment Request", "reference_name": payment_request_id,
+			 "status": "succeeded"},
+		):
+			return True
+	except Exception:
+		pass
+
+	if utilisateur == "Guest":
+		return False
+
+	# 3. l'ACHETEUR, de retour de sa passerelle : c'est sa demande.
+	beneficiaire = frappe.db.get_value("Payment Request", payment_request_id, "party")
+	if not beneficiaire:
+		return False
+	try:
+		from erpnext.controllers.website_list_for_contact import get_customers_suppliers
+
+		clients, _fournisseurs = get_customers_suppliers("Sales Order", utilisateur)
+	except Exception:
+		frappe.log_error("Webshop: droit de conclure un paiement", frappe.get_traceback())
+		return False
+	return beneficiaire in (clients or [])
+
 
 @frappe.whitelist(allow_guest=True)
 def handle_payment_success(payment_request_id, transaction_data=None):
