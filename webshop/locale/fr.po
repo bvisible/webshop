@@ -5269,3 +5269,7 @@ msgstr "Paiement non reçu. Vous pouvez réessayer."
 #: webshop/templates/pages/checkout.py
 msgid "Nothing to pay"
 msgstr "Rien à payer"
+
+#: webshop/templates/pages/thank_you.html
+msgid "Order not available"
+msgstr "Commande indisponible"
