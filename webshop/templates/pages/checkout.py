@@ -706,7 +706,27 @@ def get_shipping_address(user=None):
 		return None
 
 @frappe.whitelist(allow_guest=True)
-def get_payment_methods():
+def _document_a_payer(reference_doctype=None, reference_docname=None):
+	"""//// Neoffice — le document qu'on paie n'est pas toujours un panier.
+
+	La boutique paie son panier ; le module de réservation paie une facture
+	déjà émise, sans panier du tout. Ces deux fonctions supposaient le panier
+	partout — `get_payment_template` allait jusqu'à jeter « Your basket is
+	empty » et à écraser la référence que l'appelant venait de passer.
+
+	Sans référence explicite, rien ne change : on prend le panier, comme avant.
+
+	⚠️ Ce helper NE VÉRIFIE AUCUN DROIT. Il rend ce qu'on lui nomme. Tout
+	appelant qui accepte une référence venue du navigateur doit avoir vérifié
+	avant lui que le visiteur a bien le droit de payer ce document — c'est ce
+	que fait `neoffice_theme.booking.checkout` avec `_may_pay`.
+	"""
+	if reference_doctype and reference_docname:
+		return frappe.get_doc(reference_doctype, reference_docname)
+	return (get_cart_quotation() or {}).get("doc")
+
+
+def get_payment_methods(reference_doctype=None, reference_docname=None):
 	"""Get payment methods configured in Webshop Settings"""
 	try:
 		# 1. Get payment methods from Webshop Settings
@@ -754,8 +774,8 @@ def get_payment_methods():
 				title = payment_gateway_account.checkout_title or payment_gateway_account.name
 				logo_html = f"<img src='{payment_gateway_account.logo}' alt='{title}' class='payment-logo'>" if payment_gateway_account.logo else ""
 				description = payment_gateway_account.checkout_description or ""
-				cart_info = get_cart_quotation()
-				quotation_doc = cart_info.get('doc')
+				#//// Neoffice — le panier, ou le document nommé par l'appelant.
+				quotation_doc = _document_a_payer(reference_doctype, reference_docname)
 
 				# Hide installment-based methods entirely when the cart doesn't reach
 				# the smallest configured minimum (all options would be greyed out).
@@ -855,10 +875,14 @@ def get_payment_template(payment_gateway_account, context=None):
 				key: f"{value}-{clean_id}" for key, value in context_ids.items()
 			})
 
-		# Get updated quotation
-		cart_info = get_cart_quotation()
-		quotation_doc = cart_info.get('doc')
-		
+		#//// Neoffice — le document qu'on paie : celui que l'appelant nomme dans
+		#//// son contexte, sinon le panier. Sans ça, une facture de réservation
+		#//// se voyait répondre « Your basket is empty » alors qu'elle n'a jamais
+		#//// eu de panier, et sa référence était de toute façon écrasée plus bas.
+		quotation_doc = _document_a_payer(
+			context.get("reference_doctype"), context.get("reference_docname")
+		)
+
 		if not quotation_doc:
 			frappe.throw(_('Your basket is empty'))
 
@@ -878,12 +902,17 @@ def get_payment_template(payment_gateway_account, context=None):
 			"payment_gateway_account": payment_gateway_account,
 			"gateway_settings": gateway_info["settings"],
 			"_": frappe._,
-			"amount": quotation_doc.rounded_total if quotation_doc else 0,
-			"quotation_id": quotation_doc.name if quotation_doc else "",
+			#//// Neoffice — `setdefault` et non écrasement : l'appelant peut payer
+			#//// autre chose qu'un panier (une facture de réservation), et il l'a
+			#//// dit dans son contexte. Ces quatre lignes l'effaçaient juste après.
+			"amount": (context.get("amount")
+				or (quotation_doc.get("rounded_total") or quotation_doc.get("grand_total") if quotation_doc else 0)),
+			"quotation_id": context.get("quotation_id") or (quotation_doc.name if quotation_doc else ""),
 			"submit_id": f"submit_{gateway_info['type'].lower().replace(' ', '_')}",
-			"reference_doctype": "Quotation",  
-			"reference_docname": quotation_doc.name if quotation_doc else "",  
-			"description": f"Payment for order {quotation_doc.name}" if quotation_doc else "",
+			"reference_doctype": context.get("reference_doctype") or "Quotation",
+			"reference_docname": context.get("reference_docname") or (quotation_doc.name if quotation_doc else ""),
+			"description": (context.get("description")
+				or (f"Payment for order {quotation_doc.name}" if quotation_doc else "")),
 			"doc": quotation_doc,  # Add quotation document to context
 			"cgv_tc_name": cgv_tc_name,  # Add CGV name for payment templates
 			"cgv_terms": cgv_terms  # Add CGV content for payment templates
