@@ -5249,3 +5249,11 @@ msgstr "Vos codes de carte cadeau seront disponibles une fois la facture payée 
 #: webshop (merged from the untracked translations/fr.csv)
 msgid "transferred to card"
 msgstr "transféré sur la carte"
+
+#: webshop/templates/pages/checkout.js
+msgid "Continue to payment"
+msgstr "Continuer vers le paiement"
+
+#: webshop/templates/pages/checkout.js
+msgid "Or type {0} in the app."
+msgstr "Ou saisissez {0} dans l'application."
