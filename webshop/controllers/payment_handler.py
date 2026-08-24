@@ -26,7 +26,9 @@ class PaymentHandler:
                 existing_pr = frappe.db.get_value(
                     "Payment Request",
                     {"custom_idempotency_token": idempotency_token},
-                    ["name", "status", "reference_name"],
+                    #//// Neoffice — `reference_doctype` en plus : la demande peut
+                    #//// déjà pointer la commande créée, pas le devis.
+                    ["name", "status", "reference_name", "reference_doctype"],
                     as_dict=True
                 )
                 
@@ -35,12 +37,23 @@ class PaymentHandler:
                     if existing_pr.status != "Failed":
                         frappe.log_error(f"Duplicate payment request prevented. Token: {idempotency_token}", "Payment Idempotency")
                         
-                        # Check if a Sales Order was already created for this quotation
-                        sales_order = frappe.db.get_value(
-                            "Sales Order",
-                            {"quotation": existing_pr.reference_name},
-                            "name"
-                        )
+                        #//// Neoffice — le lien commande→devis vit sur la LIGNE
+                        #//// (`Sales Order Item.prevdoc_docname`) : `Sales Order`
+                        #//// n'a pas de colonne `quotation`. La requête d'origine
+                        #//// levait donc « Unknown column 'quotation' » à CHAQUE
+                        #//// reprise de paiement, l'exception remontait au except
+                        #//// général, et le client recevait « Erreur lors de la
+                        #//// création de la demande de paiement » au lieu de
+                        #//// retrouver sa demande. Ne se voyait qu'au second essai.
+                        sales_order = None
+                        if existing_pr.reference_doctype == "Sales Order":
+                            sales_order = existing_pr.reference_name
+                        elif existing_pr.reference_name:
+                            sales_order = frappe.db.get_value(
+                                "Sales Order Item",
+                                {"prevdoc_docname": existing_pr.reference_name, "docstatus": ["<", 2]},
+                                "parent"
+                            )
                         
                         if sales_order:
                             return {
