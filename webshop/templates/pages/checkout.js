@@ -2377,6 +2377,11 @@ frappe.ready(function() {
                 method: 'webshop.templates.pages.checkout.start_cart_intent',
                 args: { payment_gateway_account: method.payment_gateway_account },
                 callback: function (r) {
+                    //// Neoffice — `send_translations` marche sur le desk, pas ici :
+                    //// le `frappe.call` du site ne fusionne pas `__messages`, il se
+                    //// contente de passer la réponse. Sans cette ligne, un tunnel
+                    //// francophone lit « Or type 12345 in the app. » sous le QR.
+                    if (r && r.__messages) $.extend(frappe._messages || (frappe._messages = {}), r.__messages);
                     const a = (r && r.message) || {};
                     if (a.action && a.action !== 'legacy' && self_.showIntentScreen(a, $form, cleanId)) return;
                     self_.loadLegacyPaymentTemplate(method, $form, cleanId, formId);
