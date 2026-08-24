@@ -1,7 +1,7 @@
 import frappe
 import json
 from frappe import _
-from webshop.webshop.shopping_cart.cart import decorate_quotation_doc, get_party
+from webshop.webshop.shopping_cart.cart import decorate_quotation_doc
 
 no_cache = 1
 
@@ -21,14 +21,21 @@ no_cache = 1
 def _visiteur_a_droit(commande) -> bool:
 	if frappe.session.user == "Guest":
 		return False
+	# Le personnel voit tout — il y a accès par le desk de toute façon.
 	roles = frappe.get_roles()
 	if "System Manager" in roles or "Website Manager" in roles:
 		return True
+	#//// On s'appuie sur le mécanisme d'ERPNext, celui que `/order` utilise
+	#//// déjà (`erpnext.controllers.website_list_for_contact.has_website_permission`,
+	#//// déclaré dans ses hooks pour Sales Order, Quotation, Sales Invoice…).
+	#//// Il résout les clients de l'utilisateur par ses CONTACTS : comparer au
+	#//// seul `get_party()` du panier refuserait un contact légitime d'une
+	#//// société qui en a plusieurs.
 	try:
-		moi = get_party()
+		return bool(frappe.has_website_permission(commande))
 	except Exception:
-		moi = None
-	return bool(moi) and commande.customer == moi.name
+		frappe.log_error("Webshop: droit de lecture d'une commande", frappe.get_traceback())
+		return False
 
 def get_context(context):
 	context.json = json
