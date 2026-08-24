@@ -2403,10 +2403,63 @@ frappe.ready(function() {
                     ? '<p class="text-muted mt-2">' + __('Or type {0} in the app.', [a.payload.pairing_token]) + '</p>'
                     : '';
                 $form.html('<div class="text-center py-4"><div class="d-inline-block p-3 bg-white border rounded">' +
-                    a.payload.qr_svg + '</div>' + code + '</div>').show();
+                    a.payload.qr_svg + '</div>' + code +
+                    '<p class="text-muted mt-3 intent-attente">' + __('Waiting for your payment…') + '</p></div>').show();
+                //// Neoffice — un QR ne redirige pas : sans surveillance, le client
+                //// paie sur son téléphone et la page reste figée pour toujours.
+                //// Le signal principal est l'évènement `payment.intent.<nom>.updated`
+                //// que publie chaque pilote de `payments` — le même que son propre
+                //// dialogue TWINT écoute — et le sondage n'est qu'un filet si la
+                //// socket tombe. C'est la Payment Request qui tranche, pas
+                //// l'intention : elle seule dit que la commande est passée.
+                this.watchIntent(a.intent, $form);
                 return true;
             }
             return false;
+        }
+
+        //// Neoffice — la surveillance d'une intention, jusqu'à la commande.
+        watchIntent(intent, $form) {
+            if (!intent) return;
+            const self_ = this;
+            const canal = 'payment.intent.' + intent + '.updated';
+            let fini = false, restant = 60;   // 5 minutes à 5 s
+            const arreter = () => {
+                if (self_._intentTimer) { clearInterval(self_._intentTimer); self_._intentTimer = null; }
+                try { if (frappe.realtime && frappe.realtime.off) frappe.realtime.off(canal, demander); }
+                catch (e) { /* la socket a pu partir avant nous */ }
+            };
+            const demander = () => {
+                if (fini) return;
+                frappe.call({
+                    method: 'webshop.templates.pages.checkout.cart_intent_state',
+                    args: { intent: intent },
+                    callback: function (r) {
+                        const m = (r && r.message) || {};
+                        if (fini || !m.done) return;
+                        fini = true; arreter();
+                        if (m.redirect_to) { window.location.href = m.redirect_to; return; }
+                        window.location.reload();
+                    },
+                    error: function () { /* le filet reprendra au tour suivant */ },
+                });
+            };
+            try {
+                //// S'abonner CONNECTE la socket : sur une page publique elle
+                //// reste inerte tant que personne n'écoute.
+                if (frappe.realtime && frappe.realtime.on) frappe.realtime.on(canal, demander);
+            } catch (e) { /* pas de temps réel ici : le filet suffit */ }
+            this._intentTimer = setInterval(() => {
+                restant -= 1;
+                if (restant <= 0) {
+                    arreter();
+                    $form.find('.intent-attente').text(__('Payment not received. You can try again.'));
+                    return;
+                }
+                demander();
+            }, 5000);
+            demander();
+            window.addEventListener('pagehide', arreter);
         }
 
         //// Neoffice — le chargement historique, extrait tel quel pour être

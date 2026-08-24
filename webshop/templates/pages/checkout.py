@@ -883,6 +883,27 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 
 	from payments.api.intent import create_intent
 
+	#//// Neoffice — l'intention porte sur la PAYMENT REQUEST, jamais sur le
+	#//// devis. C'est la Payment Request que les pages de retour de `payments`
+	#//// savent conclure (`payments/www/{wallee,payrexx}/success.py` : elles
+	#//// testent `reference_doctype == "Payment Request"`), et c'est elle qui
+	#//// transforme le panier en commande. Une intention accrochée à la
+	#//// Quotation encaisserait sans que personne ne crée la commande — le
+	#//// client paierait pour rien. On réutilise la fabrique de webshop, qui
+	#//// est idempotente : deux clics sur le même panier ne font qu'une demande.
+	from webshop.controllers.payment_handler import PaymentHandler
+
+	demande = PaymentHandler().create_payment_request(
+		payment_gateway=gateway,
+		idempotency_token="intent-{0}-{1}".format(devis.name, payment_gateway_account),
+	)
+	if not demande or demande.get("status") != "success" or not demande.get("payment_request_id"):
+		frappe.log_error(
+			"Webshop: pas de Payment Request pour l'intention",
+			"devis={0} methode={1} retour={2}".format(devis.name, payment_gateway_account, demande),
+		)
+		return {"action": "legacy"}
+
 	montant = flt(devis.get("rounded_total") or devis.get("grand_total"))
 	intention = create_intent(
 		provider=couple[0],
@@ -890,8 +911,8 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		# Les intentions comptent en centimes.
 		amount=int(round(montant * 100)),
 		currency=devis.currency or "CHF",
-		reference_doctype="Quotation",
-		reference_name=devis.name,
+		reference_doctype="Payment Request",
+		reference_name=demande["payment_request_id"],
 	)
 	charge = intention.get("next_action_payload")
 	if isinstance(charge, str):
@@ -909,6 +930,8 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 	send_translations({
 		"Continue to payment": _("Continue to payment"),
 		"Or type {0} in the app.": _("Or type {0} in the app."),
+		"Waiting for your payment…": _("Waiting for your payment…"),
+		"Payment not received. You can try again.": _("Payment not received. You can try again."),
 	})
 
 	if quoi == "redirect_to_url" and charge.get("url"):
@@ -927,6 +950,55 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		"intention={0} type={1} methode={2}".format(intention.get("intent_name"), quoi, payment_gateway_account),
 	)
 	return {"action": "legacy"}
+
+
+@frappe.whitelist(allow_guest=True)
+def cart_intent_state(intent: str) -> dict:
+	"""//// Neoffice — où en est le paiement, pendant que le client tient son téléphone.
+
+	Un QR ne redirige pas : la page reste là et doit apprendre, seule, que
+	l'argent est arrivé. Elle demande ici — sur signal de `payments`, et à
+	défaut toutes les cinq secondes.
+
+	🔴 Ce n'est PAS l'intention qui fait foi : une intention « succeeded » dont
+	la commande n'est pas encore créée laisserait annoncer une commande qui
+	n'existe pas. C'est la **Payment Request** qui tranche, parce que c'est
+	elle que la machinerie de `payments` transforme en Sales Order.
+
+	🔴 Le nom de l'évènement temps réel porte l'identifiant de l'intention :
+	n'importe qui pourrait s'y abonner. On ne rend donc l'état que d'une
+	intention dont la Payment Request appartient au panier de CE visiteur.
+	"""
+	row = frappe.db.get_value(
+		"Payment Intent", intent, ["status", "reference_doctype", "reference_name"], as_dict=True
+	)
+	if not row or row.reference_doctype != "Payment Request":
+		frappe.throw(_("Nothing to pay"))
+
+	demande = frappe.db.get_value(
+		"Payment Request", row.reference_name,
+		["status", "reference_doctype", "reference_name"], as_dict=True
+	)
+	if not demande:
+		frappe.throw(_("Nothing to pay"))
+
+	# La demande doit porter sur le panier de ce visiteur — sinon un numéro
+	# d'intention suffirait à surveiller le paiement d'un inconnu.
+	devis = (get_cart_quotation() or {}).get("doc")
+	sien = bool(devis) and demande.reference_name in (devis.name,)
+	if not sien and demande.reference_doctype == "Sales Order":
+		# La commande vient d'être créée : la demande ne pointe plus le devis.
+		sien = bool(devis) and frappe.db.get_value(
+			"Sales Order Item", {"parent": demande.reference_name, "prevdoc_docname": devis.name}, "name"
+		) is not None
+	if not sien:
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+	if demande.reference_doctype == "Sales Order":
+		return {"done": True, "redirect_to": "/thank_you?sales_order={0}".format(demande.reference_name)}
+	if demande.status in ("Paid", "Completed"):
+		return {"done": True, "redirect_to": None}
+	return {"done": False, "status": row.status}
 
 
 def _intent_is_wanted(payment_gateway_account: str) -> bool:

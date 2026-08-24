@@ -5257,3 +5257,15 @@ msgstr "Continuer vers le paiement"
 #: webshop/templates/pages/checkout.js
 msgid "Or type {0} in the app."
 msgstr "Ou saisissez {0} dans l'application."
+
+#: webshop/templates/pages/checkout.js
+msgid "Waiting for your payment…"
+msgstr "En attente de votre paiement…"
+
+#: webshop/templates/pages/checkout.js
+msgid "Payment not received. You can try again."
+msgstr "Paiement non reçu. Vous pouvez réessayer."
+
+#: webshop/templates/pages/checkout.py
+msgid "Nothing to pay"
+msgstr "Rien à payer"
