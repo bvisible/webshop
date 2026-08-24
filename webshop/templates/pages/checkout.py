@@ -982,20 +982,21 @@ def cart_intent_state(intent: str) -> dict:
 
 	demande = frappe.db.get_value(
 		"Payment Request", row.reference_name,
-		["status", "reference_doctype", "reference_name"], as_dict=True
+		["status", "reference_doctype", "reference_name", "party"], as_dict=True
 	)
 	if not demande:
 		frappe.throw(_("Nothing to pay"))
 
-	# La demande doit porter sur le panier de ce visiteur — sinon un numéro
-	# d'intention suffirait à surveiller le paiement d'un inconnu.
-	devis = (get_cart_quotation() or {}).get("doc")
-	sien = bool(devis) and demande.reference_name in (devis.name,)
-	if not sien and demande.reference_doctype == "Sales Order":
-		# La commande vient d'être créée : la demande ne pointe plus le devis.
-		sien = bool(devis) and frappe.db.get_value(
-			"Sales Order Item", {"parent": demande.reference_name, "prevdoc_docname": devis.name}, "name"
-		) is not None
+	# La demande doit appartenir à CE client — sinon un numéro d'intention
+	# suffirait à surveiller le paiement d'un inconnu.
+	#
+	# 🔴 On compare le CLIENT, pas le panier. À l'instant précis où la commande
+	# naît, le panier courant est remplacé par un neuf : une garde adossée au
+	# panier refuse la réponse au moment exact où la page en a besoin — la page
+	# resterait sur « en attente » alors que la commande existe. Vécu le
+	# 2026-08-24 : commande BC-2026-00343 créée, page jamais prévenue.
+	moi = get_party()
+	sien = bool(moi) and demande.party and demande.party == moi.name
 	if not sien:
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
