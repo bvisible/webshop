@@ -1,9 +1,34 @@
 import frappe
 import json
 from frappe import _
-from webshop.webshop.shopping_cart.cart import decorate_quotation_doc
+from webshop.webshop.shopping_cart.cart import decorate_quotation_doc, get_party
 
 no_cache = 1
+
+
+#//// Neoffice — cette commande est-elle celle de qui la demande ?
+#////
+#//// La page ne vérifiait RIEN : `frappe.get_doc("Sales Order", …)` ne contrôle
+#//// pas la lecture, et les `frappe.get_all` qui suivent ignorent les
+#//// permissions par construction. Un visiteur anonyme qui connaissait un
+#//// numéro voyait le total, les articles, les quantités, les prix, le moyen et
+#//// la référence de paiement — et l'adresse de livraison du client. Les
+#//// numéros étant séquentiels (BC-2026-00347), tout l'historique de la
+#//// boutique s'énumérait. Constaté le 2026-08-24 sur osiris.
+#////
+#//// Le checkout impose déjà la connexion (`forceLogin` dans checkout.js) :
+#//// l'acheteur qui vient de payer est authentifié et retrouve sa commande.
+def _visiteur_a_droit(commande) -> bool:
+	if frappe.session.user == "Guest":
+		return False
+	roles = frappe.get_roles()
+	if "System Manager" in roles or "Website Manager" in roles:
+		return True
+	try:
+		moi = get_party()
+	except Exception:
+		moi = None
+	return bool(moi) and commande.customer == moi.name
 
 def get_context(context):
 	context.json = json
@@ -23,6 +48,15 @@ def get_context(context):
 		
 		# Load Sales Order
 		sales_order = frappe.get_doc("Sales Order", sales_order_id)
+
+		#//// Neoffice — même message que pour une commande inexistante : dire
+		#//// « elle existe mais pas pour vous » rendrait l'énumération possible
+		#//// malgré le garde-fou.
+		if not _visiteur_a_droit(sales_order):
+			context.error_message = _("The specified order does not exist.")
+			context.show_sidebar = False
+			return context
+
 		context.sales_order = sales_order
 		context.doc = sales_order
 		
