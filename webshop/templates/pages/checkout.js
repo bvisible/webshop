@@ -2363,7 +2363,50 @@ frappe.ready(function() {
         
             // Any existing content in the form will be removed
             $form.empty().off();
-        
+
+            //// Neoffice — une méthode BASCULÉE sur le moteur d'intentions se
+            //// dessine ici plutôt que par son gabarit. Toutes les autres
+            //// passent tout droit : `start_cart_intent` répond `legacy` tant
+            //// que la case `use_payment_intent` n'est pas cochée, et le code
+            //// ci-dessous est alors rigoureusement celui d'avant.
+            //// Au moindre doute — appel en échec, action inattendue — on
+            //// retombe sur le gabarit : mieux vaut le chemin connu qu'un écran
+            //// vide sur un paiement.
+            const self_ = this;
+            frappe.call({
+                method: 'webshop.templates.pages.checkout.start_cart_intent',
+                args: { payment_gateway_account: method.payment_gateway_account },
+                callback: function (r) {
+                    const a = (r && r.message) || {};
+                    if (a.action && a.action !== 'legacy' && self_.showIntentScreen(a, $form, cleanId)) return;
+                    self_.loadLegacyPaymentTemplate(method, $form, cleanId, formId);
+                },
+                error: function () { self_.loadLegacyPaymentTemplate(method, $form, cleanId, formId); },
+            });
+        }
+
+        //// Neoffice — l'écran d'une méthode passée aux intentions. Rend `true`
+        //// s'il a su afficher quelque chose ; `false` renvoie au gabarit.
+        showIntentScreen(a, $form, cleanId) {
+            if (a.action === 'redirect' && a.url) {
+                $form.html('<div class="text-center py-4"><a class="btn btn-primary" href="' +
+                    frappe.utils.escape_html(a.url) + '">' + __('Continue to payment') + '</a></div>').show();
+                return true;
+            }
+            if (a.action === 'qr' && a.payload && a.payload.qr_svg) {
+                const code = a.payload.pairing_token
+                    ? '<p class="text-muted mt-2">' + __('Or type {0} in the app.', [a.payload.pairing_token]) + '</p>'
+                    : '';
+                $form.html('<div class="text-center py-4"><div class="d-inline-block p-3 bg-white border rounded">' +
+                    a.payload.qr_svg + '</div>' + code + '</div>').show();
+                return true;
+            }
+            return false;
+        }
+
+        //// Neoffice — le chargement historique, extrait tel quel pour être
+        //// appelé depuis les deux branches. Rien n'y a changé.
+        loadLegacyPaymentTemplate(method, $form, cleanId, formId) {
             frappe.call({
                 method: 'webshop.templates.pages.checkout.get_payment_template',
                 args: {
