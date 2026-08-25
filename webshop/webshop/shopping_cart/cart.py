@@ -822,7 +822,6 @@ def request_for_quotation():
 	return quotation.name
 
 
-@frappe.whitelist(allow_guest=True)
 #//// Neoffice — added helper (multi-warehouse). Warehouse of the first cart
 #//// line already holding this item, guest or logged-in, so an implicit add
 #//// (grid button, +1 spinner) keeps feeding the source the shopper already
@@ -890,6 +889,7 @@ def _set_delivery_dates_from_sources(sales_order, cart_settings=None):
 #//// the auto-picked source when the feature is on). Cart lines merge on
 #//// (item_code, warehouse) so the same item can sit in the cart once per
 #//// source, each line with its own delivery estimate.
+@frappe.whitelist(allow_guest=True)
 def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty=False, price_list_rate=None, gift_card_data=None, warehouse=None):
 
 	# Convert gift_card_data from JSON if necessary
