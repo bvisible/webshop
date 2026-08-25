@@ -12,8 +12,16 @@ from erpnext.accounts.doctype.shipping_rule.shipping_rule import ShippingRule
 
 no_cache = 1
 
+#//// Neoffice — les libellés que les dialogues de Frappe posent eux-mêmes.
+#//// Ils passent par `__()` côté navigateur, donc par un dictionnaire que la
+#//// page publique ne reçoit jamais : ils s'affichaient en anglais au milieu
+#//// d'un tunnel francophone. On les sème dans le gabarit.
+_LIBELLES_DIALOGUES = ("Yes", "No", "Close", "Cancel", "Confirm", "Error", "Message", "Not permitted")
+
+
 def get_context(context):
 	"""Context for the payment page"""
+	context.js_messages = frappe.as_json({m: _(m) for m in _LIBELLES_DIALOGUES})
 	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
 	
 	# Check and merge guest cart if needed

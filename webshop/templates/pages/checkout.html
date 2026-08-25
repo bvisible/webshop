@@ -410,6 +410,13 @@
 
 {% block script %}
 <script>
+	{#- //// Neoffice — semer le dictionnaire AVANT le script.
+	    Sur une page publique, `__()` ne traduit que ce qu'un appel a déjà
+	    apporté : la fusion de `__messages` vit dans le `request.js` du DESK,
+	    pas dans le `frappe.call` du site. Les libellés des dialogues de Frappe
+	    (« Yes », « No »…) restaient donc en anglais au milieu d'un tunnel
+	    francophone — vu le 2026-08-25 sur la confirmation d'adresse. -#}
+	frappe._messages = Object.assign({}, frappe._messages || {}, {{ js_messages }});
 	{% include "templates/pages/checkout.js" %}
 </script>
 {% endblock %}

@@ -5273,3 +5273,11 @@ msgstr "Rien à payer"
 #: webshop/templates/pages/thank_you.html
 msgid "Order not available"
 msgstr "Commande indisponible"
+
+#: webshop/templates/pages/checkout.py
+msgid "Yes"
+msgstr "Oui"
+
+#: webshop/templates/pages/checkout.py
+msgid "No"
+msgstr "Non"
