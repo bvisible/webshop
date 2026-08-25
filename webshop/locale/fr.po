@@ -5281,3 +5281,145 @@ msgstr "Oui"
 #: webshop/templates/pages/checkout.py
 msgid "No"
 msgstr "Non"
+
+#: webshop/templates/generators/item/item_add_to_cart.html
+#: webshop/templates/includes/cart/cart_items.html
+#: webshop/templates/includes/order_summary.html
+msgid "Delivery in ~{0} days"
+msgstr "Livraison sous ~{0} jours"
+
+#: webshop/templates/pages/thank_you.html
+msgid "Estimated delivery"
+msgstr "Livraison estimée"
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "Invalid stock source for {0}"
+msgstr "Source de stock invalide pour {0}"
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "{0} is not in stock at {1}"
+msgstr "{0} n'est pas en stock ({1})"
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "Only {0} units available at {1} for {2}. You cannot add {3} units from this source."
+msgstr "Seulement {0} unité(s) disponible(s) ({1}) pour {2}. Vous ne pouvez pas en ajouter {3} depuis cette source."
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py
+msgid "Warehouse Source row #{0}: warehouse {1} is listed twice"
+msgstr "Source d'entrepôt ligne {0} : l'entrepôt {1} apparaît deux fois"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py
+msgid "Warehouse Source row #{0}: field {1} does not exist on Item"
+msgstr "Source d'entrepôt ligne {0} : le champ {1} n'existe pas sur l'article"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py
+msgid "Warehouse Source row #{0}: field {1} must be numeric (Int or Float), not {2}"
+msgstr "Source d'entrepôt ligne {0} : le champ {1} doit être numérique (Int ou Float), pas {2}"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py
+msgid "Warehouse Source row #{0}: Order Day of Month must be between 1 and 28"
+msgstr "Source d'entrepôt ligne {0} : le jour de commande mensuel doit être entre 1 et 28"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py
+msgid "Multi-warehouse: enabled \"Allow Item to Be Added Multiple Times in a Transaction\" in {0}"
+msgstr "Multi-entrepôt : « Autoriser un article plusieurs fois dans une transaction » activé dans {0}"
+
+#: webshop/webshop/multi_warehouse/procurement.py
+msgid "Supplier order prepared: {0} for {1}"
+msgstr "Commande fournisseur préparée : {0} pour {1}"
+
+#: webshop/webshop/multi_warehouse/procurement.py
+msgid "Material Request prepared: {0}"
+msgstr "Demande de matériel préparée : {0}"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Multi-Warehouse Stock"
+msgstr "Stock multi-entrepôts"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable Multi-Warehouse Stock"
+msgstr "Activer le stock multi-entrepôts"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Prepare Supplier Orders"
+msgstr "Préparer les commandes fournisseur"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Procurement Mode"
+msgstr "Mode d'approvisionnement"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Warehouse Sources"
+msgstr "Sources d'entrepôt"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Display Label"
+msgstr "Libellé affiché"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Auto-enable when in stock"
+msgstr "Activer automatiquement si en stock"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Stock Basis"
+msgstr "Base du stock"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Item Stock Field"
+msgstr "Champ de stock de l'article"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Supplier Source"
+msgstr "Source fournisseur"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Receiving Warehouse"
+msgstr "Entrepôt de réception"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Delivery Lead Time"
+msgstr "Délai de livraison"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Lead Time Mode"
+msgstr "Mode de délai"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Lead Time (business days)"
+msgstr "Délai (jours ouvrables)"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Supplier Order Leaves"
+msgstr "Départ de la commande fournisseur"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Order Weekday"
+msgstr "Jour de commande (hebdomadaire)"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Order Day of Month"
+msgstr "Jour de commande (mensuel)"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Receipt Lead (business days)"
+msgstr "Délai de réception (jours ouvrables)"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Handling (business days)"
+msgstr "Préparation (jours ouvrables)"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "End of Month"
+msgstr "Fin de mois"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Day of Month"
+msgstr "Jour du mois"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Warehouse Sources Mode"
+msgstr "Mode des sources d'entrepôt"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Additional Warehouse Sources"
+msgstr "Sources d'entrepôt additionnelles"

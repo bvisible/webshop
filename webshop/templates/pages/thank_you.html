@@ -105,6 +105,13 @@
                                                             </div>
                                                             <div class="col">
                                                                 <h6>{{ item.item_name }}</h6>
+                                                                <!-- //// Neoffice — multi-warehouse: show which stock
+                                                                     source serves this line and its promised date. -->
+                                                                {% if item.get('warehouse_source_label') %}
+                                                                <div style="font-size: 0.85em; color: var(--text-muted, #6c7680); margin-bottom: 4px;">
+                                                                    {{ _(item.warehouse_source_label) }}{% if item.get('delivery_date') %} — {{ _('Estimated delivery') }}: {{ frappe.format_value(item.delivery_date, {'fieldtype': 'Date'}) }}{% endif %}
+                                                                </div>
+                                                                {% endif %}
                                                                 {% if item.gift_card_data %}
                                                                     <!-- Gift Card -->
                                                                     {% set gift_card = json.loads(item.gift_card_data) %}

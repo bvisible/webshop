@@ -55,6 +55,45 @@
 				<span class="no-stock out-of-stock" style="color: var(--primary-color);">
 					{{ _('Available on backorder') }}
 				</span>
+			{% elif product_info.get("warehouse_sources") %}
+				<!-- //// Neoffice — multi-warehouse: several stock sources for this
+				     item. One radio per source (label, quantity, delivery estimate);
+				     the shopper's pick becomes the warehouse of the cart line.
+				     product_page.js keeps the preselection in sync with the
+				     requested quantity (first source that covers it). -->
+				<style>
+					.webshop-warehouse-sources { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+					.webshop-source-option { display: flex; align-items: center; gap: 8px; border: 1px solid var(--gray-300, #d1d8dd); border-radius: 8px; padding: 8px 12px; cursor: pointer; margin-bottom: 0; }
+					.webshop-source-option:has(input:checked) { border-color: var(--primary-color, #7575ff); box-shadow: 0 0 0 1px var(--primary-color, #7575ff); }
+					.webshop-source-option.webshop-source-out { opacity: 0.55; cursor: not-allowed; }
+					.webshop-source-label { font-weight: 600; }
+					.webshop-source-qty { font-size: 0.85em; }
+					.webshop-source-qty.webshop-in { color: var(--green-600, green); }
+					.webshop-source-qty.webshop-out { color: var(--red-600, red); }
+					.webshop-source-delay { font-size: 0.85em; color: var(--text-muted, #6c7680); margin-left: auto; }
+				</style>
+				<div class="webshop-warehouse-sources" id="webshop-warehouse-sources">
+					{% set ns = namespace(picked=False) %}
+					{% for src in product_info.warehouse_sources %}
+						{% set selectable = src.in_stock or cart_settings.allow_items_not_in_stock %}
+						<label class="webshop-source-option {{ '' if selectable else 'webshop-source-out' }}">
+							<input type="radio" name="webshop-warehouse-source"
+								value="{{ src.warehouse }}"
+								data-stock-qty="{{ src.stock_qty }}"
+								{% if selectable and not ns.picked %}checked{% set ns.picked = True %}{% endif %}
+								{% if not selectable %}disabled{% endif %}>
+							<span class="webshop-source-label">{{ _(src.label) }}</span>
+							{% if src.in_stock %}
+								<span class="webshop-source-qty webshop-in">{{ _('In stock') }}{% if product_info.show_stock_qty %} ({{ src.stock_qty | int }}){% endif %}</span>
+							{% else %}
+								<span class="webshop-source-qty webshop-out">{{ _('Out of stock') }}</span>
+							{% endif %}
+							{% if src.lead_days %}
+								<span class="webshop-source-delay">{{ _('Delivery in ~{0} days').format(src.lead_days) }}</span>
+							{% endif %}
+						</label>
+					{% endfor %}
+				</div>
 			{% elif product_info.in_stock == 0 %}
 				<span class="no-stock out-of-stock">
 					{{ _('Out of stock') }}

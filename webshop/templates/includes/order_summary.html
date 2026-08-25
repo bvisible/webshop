@@ -39,6 +39,14 @@
             <div class="item-name">
               {{ item["item_name"] }}
             </div>
+            <!-- //// Neoffice — multi-warehouse: stock source of the line
+                 (label + delivery estimate), present only when the feature
+                 decorated the quotation lines. -->
+            {% if item.get('warehouse_source_label') %}
+            <div class="webshop-line-source" style="font-size: 0.8em; color: var(--text-muted, #6c7680); margin: 2px 0 4px 0;">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--primary-color, #7575ff); display: inline-block; margin-right: 4px;"></span>{{ _(item.warehouse_source_label) }}{% if item.get('delivery_lead_days') %} — {{ _('Delivery in ~{0} days').format(item.delivery_lead_days) }}{% endif %}
+            </div>
+            {% endif %}
             <div class="d-flex align-items-center justify-content-between qty-amount">
               {% set disabled = 'disabled' if item.get("gift_card_data") else '' %}
               <div class="input-group number-spinner" style="width: 120px;">
@@ -51,6 +59,7 @@
                   class="form-control text-center cart-qty"
                   value="{{ item["qty"] }}"
                   data-item-code="{{ item["item_code"] }}"
+                  data-warehouse="{{ item.warehouse or '' }}"
                   style="max-width: 60px;"
                   {{ disabled }}
                 />

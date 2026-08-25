@@ -519,17 +519,42 @@ def place_order():
 		if is_gift_card_item(first_item.item_code):
 			sales_order.skip_delivery_note = 1
 
+	#//// Neoffice — multi-warehouse: the line's warehouse is the source the
+	#//// shopper chose — never overwrite it here (the historical overwrite is
+	#//// what killed per-line sources at order time). Validate each line
+	#//// against ITS source (own basis: Bin or Item field). Feature off: the
+	#//// historical overwrite + single-warehouse validation are kept as is.
+	from webshop.webshop.multi_warehouse import sources as mw_sources
+
+	multi_enabled = mw_sources.is_enabled(cart_settings)
+
 	if not cint(cart_settings.allow_items_not_in_stock):
 		for item in sales_order.get("items"):
-			item.warehouse = frappe.db.get_value(
-				"Website Item", {"item_code": item.item_code}, "website_warehouse"
-			)
+			if not multi_enabled:
+				item.warehouse = frappe.db.get_value(
+					"Website Item", {"item_code": item.item_code}, "website_warehouse"
+				)
 			is_stock_item = frappe.db.get_value("Item", item.item_code, "is_stock_item")
 
 			if is_stock_item:
-				item_stock = get_web_item_qty_in_stock(
-					item.item_code, "website_warehouse"
+				source_row = (
+					mw_sources.get_source_for_warehouse(item.warehouse, cart_settings)
+					if multi_enabled
+					else None
 				)
+				if source_row:
+					source_qty = mw_sources.get_source_qty(item.item_code, source_row)
+					item_stock = frappe._dict(
+						{"in_stock": 1 if source_qty > 0 else 0, "stock_qty": source_qty}
+					)
+				elif multi_enabled and item.warehouse:
+					item_stock = get_web_item_qty_in_stock(
+						item.item_code, "website_warehouse", warehouse=item.warehouse
+					)
+				else:
+					item_stock = get_web_item_qty_in_stock(
+						item.item_code, "website_warehouse"
+					)
 				if not cint(item_stock.in_stock):
 					throw(_("{0} Not in Stock").format(item.item_code))
 				if item.qty > item_stock.stock_qty:
@@ -538,6 +563,12 @@ def place_order():
 							item_stock.stock_qty, item.item_code
 						)
 					)
+
+	#//// Neoffice — multi-warehouse: promise a delivery date per line from its
+	#//// source's lead time (order_type "Shopping Cart" skips ERPNext's own
+	#//// delivery_date computation), header = latest line.
+	if multi_enabled:
+		_set_delivery_dates_from_sources(sales_order, cart_settings)
 
 	sales_order.flags.ignore_permissions = True
 	sales_order.insert()
@@ -792,8 +823,75 @@ def request_for_quotation():
 
 
 @frappe.whitelist(allow_guest=True)
-def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty=False, price_list_rate=None, gift_card_data=None):
-	
+#//// Neoffice — added helper (multi-warehouse). Warehouse of the first cart
+#//// line already holding this item, guest or logged-in, so an implicit add
+#//// (grid button, +1 spinner) keeps feeding the source the shopper already
+#//// chose instead of silently moving the line.
+def _find_existing_line_warehouse(item_code):
+	quotation_name = None
+	if frappe.session.user == "Guest":
+		guest_session_id = (
+			frappe.request.cookies.get("guest_session_id") if frappe.request else None
+		)
+		if guest_session_id:
+			quotation_name = frappe.db.get_value(
+				"Quotation",
+				{"guest_session_id": guest_session_id, "docstatus": 0, "status": "Draft"},
+				"name",
+			)
+	else:
+		party = get_party()
+		if party:
+			quotation_name = frappe.db.get_value(
+				"Quotation",
+				{
+					"party_name": party.name,
+					"contact_email": frappe.session.user,
+					"order_type": "Shopping Cart",
+					"docstatus": 0,
+				},
+				"name",
+			)
+
+	if not quotation_name:
+		return None
+
+	return frappe.db.get_value(
+		"Quotation Item",
+		{"parent": quotation_name, "item_code": item_code},
+		"warehouse",
+		order_by="idx asc",
+	)
+
+
+#//// Neoffice — added helper (multi-warehouse). Sets delivery_date per Sales
+#//// Order line from its source's lead time and the header to the latest
+#//// line. Called by both order paths (place_order and the payment handler);
+#//// ERPNext's own delivery_date logic does not run for order_type
+#//// "Shopping Cart".
+def _set_delivery_dates_from_sources(sales_order, cart_settings=None):
+	from webshop.webshop.multi_warehouse import sources as mw_sources
+	from webshop.webshop.multi_warehouse.delays import estimate_delivery_date
+
+	cart_settings = cart_settings or frappe.get_cached_doc("Webshop Settings")
+	latest = None
+	for item in sales_order.get("items") or []:
+		source_row = mw_sources.get_source_for_warehouse(item.warehouse, cart_settings)
+		if source_row:
+			item.delivery_date = estimate_delivery_date(source_row)
+			if not latest or item.delivery_date > latest:
+				latest = item.delivery_date
+	if latest:
+		sales_order.delivery_date = latest
+
+
+#//// Neoffice — multi-warehouse: `warehouse` selects the stock source of the
+#//// line. None keeps the historical behaviour (single website_warehouse, or
+#//// the auto-picked source when the feature is on). Cart lines merge on
+#//// (item_code, warehouse) so the same item can sit in the cart once per
+#//// source, each line with its own delivery estimate.
+def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty=False, price_list_rate=None, gift_card_data=None, warehouse=None):
+
 	# Convert gift_card_data from JSON if necessary
 	if gift_card_data and isinstance(gift_card_data, str):
 		try:
@@ -826,18 +924,68 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 	if price_list_rate and not is_gift_card:
 		frappe.throw(_("Price can only be modified for gift cards"))
 
+	#//// Neoffice — multi-warehouse: resolve the target stock source of this
+	#//// cart line before validating. Explicit warehouse wins; otherwise an
+	#//// existing line of the item keeps its source (stable, no surprise
+	#//// moves), and a first add auto-picks the first source covering the
+	#//// quantity. Feature off: warehouse stays None and every path below
+	#//// behaves exactly as before.
+	from webshop.webshop.multi_warehouse import sources as mw_sources
+
+	cart_settings = frappe.get_cached_doc("Webshop Settings")
+	multi_enabled = mw_sources.is_enabled(cart_settings) and not is_gift_card
+
+	if not multi_enabled:
+		warehouse = None
+	else:
+		allowed_warehouses = mw_sources.get_allowed_warehouses(item_code, cart_settings)
+		if warehouse and allowed_warehouses and warehouse not in allowed_warehouses:
+			frappe.throw(_("Invalid stock source for {0}").format(item_code))
+		if not warehouse and qty > 0:
+			existing_line_warehouse = _find_existing_line_warehouse(item_code)
+			warehouse = existing_line_warehouse or mw_sources.resolve_target_warehouse(
+				item_code, qty, cart_settings
+			)
+
 	# Validate stock availability before adding to cart
 	if qty > 0 and not is_gift_card:
-		cart_settings = frappe.get_cached_doc("Webshop Settings")
 		if not cint(cart_settings.allow_items_not_in_stock):
 			# Check if item is a stock item
 			is_stock_item = frappe.db.get_value("Item", item_code, "is_stock_item")
 			if is_stock_item:
-				item_stock = get_web_item_qty_in_stock(item_code, "website_warehouse")
+				#//// Neoffice — multi-warehouse: validate against the targeted
+				#//// source (its own basis: Bin or Item field), not the global
+				#//// website_warehouse.
+				if multi_enabled and warehouse:
+					source_row = mw_sources.get_source_for_warehouse(warehouse, cart_settings)
+					if source_row:
+						source_qty = mw_sources.get_source_qty(item_code, source_row)
+					else:
+						source_qty = get_web_item_qty_in_stock(
+							item_code, "website_warehouse", warehouse=warehouse
+						).stock_qty
+					item_stock = frappe._dict(
+						{"in_stock": 1 if source_qty > 0 else 0, "stock_qty": source_qty}
+					)
+					source_label = mw_sources.get_source_label(warehouse, cart_settings)
+				else:
+					item_stock = get_web_item_qty_in_stock(item_code, "website_warehouse")
+					source_label = None
+
 				if not cint(item_stock.in_stock):
+					if source_label:
+						frappe.throw(
+							_("{0} is not in stock at {1}").format(item_code, source_label)
+						)
 					frappe.throw(_("{0} is not in stock").format(item_code))
 
 				# Calculate the total quantity (existing + new)
+				#//// Neoffice — multi-warehouse: the existing quantity is the
+				#//// one already targeting the same source, not the whole item.
+				line_filters = {'item_code': item_code}
+				if multi_enabled and warehouse:
+					line_filters['warehouse'] = warehouse
+
 				existing_qty = 0
 				if frappe.session.user == "Guest":
 					guest_session_id = frappe.request.cookies.get('guest_session_id') if frappe.request else None
@@ -850,7 +998,7 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 						if existing_quotation:
 							existing_qty = frappe.db.get_value(
 								'Quotation Item',
-								{'parent': existing_quotation, 'item_code': item_code},
+								dict(line_filters, parent=existing_quotation),
 								'qty'
 							) or 0
 				else:
@@ -864,7 +1012,7 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 						if existing_quotation:
 							existing_qty = frappe.db.get_value(
 								'Quotation Item',
-								{'parent': existing_quotation, 'item_code': item_code},
+								dict(line_filters, parent=existing_quotation),
 								'qty'
 							) or 0
 
@@ -877,6 +1025,12 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 				total_qty = (existing_qty + qty) if add_qty_bool else qty
 
 				if total_qty > item_stock.stock_qty:
+					if source_label:
+						frappe.throw(
+							_("Only {0} units available at {1} for {2}. You cannot add {3} units from this source.").format(
+								int(item_stock.stock_qty), source_label, item_code, int(total_qty)
+							)
+						)
 					frappe.throw(
 						_("Only {0} units available in stock for {1}. You cannot add {2} units to your cart.").format(
 							int(item_stock.stock_qty), item_code, int(total_qty)
@@ -912,13 +1066,21 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			existing_items = []
 			found_item = False
 			for item in quotation.items:
-				if item.item_code == item_code:
+				#//// Neoffice — multi-warehouse: a line only matches when it
+				#//// targets the same source; same-item lines on another
+				#//// source are kept untouched. Feature off: item_code alone,
+				#//// as before.
+				same_line = item.item_code == item_code and (
+					not multi_enabled or (item.warehouse or None) == (warehouse or None)
+				)
+				if same_line:
 					found_item = True
 					new_qty = item.qty + qty if add_qty else qty
 					if new_qty > 0:
 						item_dict = {
 							"item_code": item.item_code,
-							"qty": new_qty
+							"qty": new_qty,
+							"warehouse": item.warehouse or warehouse,
 						}
 						if is_gift_card and price_list_rate:
 							item_dict["rate"] = flt(price_list_rate)
@@ -937,6 +1099,9 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 					item_dict = {
 						"item_code": item.item_code,
 						"qty": item.qty,
+						#//// Neoffice — multi-warehouse: preserve the source of
+						#//// untouched lines across the guest-cart rebuild.
+						"warehouse": item.warehouse,
 					}
 					# Keep existing gift card data
 					if is_gift_card_item(item.item_code):
@@ -945,11 +1110,12 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 						if item.gift_card_data:
 							item_dict["gift_card_data"] = item.gift_card_data
 					existing_items.append(item_dict)
-					
+
 			if not found_item and qty > 0:
 				item_dict = {
 					"item_code": item_code,
-					"qty": qty
+					"qty": qty,
+					"warehouse": warehouse,
 				}
 				if is_gift_card and price_list_rate:
 					item_dict["rate"] = flt(price_list_rate)
@@ -960,7 +1126,7 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			items = existing_items
 		else:
 			# Otherwise, create a new quotation with the item
-			item_dict = {"item_code": item_code, "qty": qty}
+			item_dict = {"item_code": item_code, "qty": qty, "warehouse": warehouse}
 			if is_gift_card and price_list_rate:
 				item_dict["rate"] = flt(price_list_rate)
 				item_dict["price_list_rate"] = flt(price_list_rate)
@@ -1034,7 +1200,21 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 
 	empty_card = False
 	if qty == 0:
-		quotation_items = quotation.get("items", {"item_code": ["!=", item_code]})
+		#//// Neoffice — multi-warehouse: with an explicit source, only the
+		#//// line targeting it is removed; the same item on another source
+		#//// stays. Feature off (or no source given): every line of the item
+		#//// goes, as before.
+		if multi_enabled and warehouse:
+			quotation_items = [
+				d
+				for d in quotation.get("items", [])
+				if not (
+					d.item_code == item_code
+					and (d.warehouse or None) == (warehouse or None)
+				)
+			]
+		else:
+			quotation_items = quotation.get("items", {"item_code": ["!=", item_code]})
 		# Une réservation se vend d'un bloc : le séjour, sa taxe, ses options.
 		# Retirer le séjour doit emporter le reste ICI, avant de décider si le
 		# panier est vide — sinon la taxe survit seule, le devis n'est pas
@@ -1046,11 +1226,25 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			empty_card = True
 
 	else:
-		warehouse = frappe.get_cached_value(
-			"Website Item", {"item_code": item_code}, "website_warehouse"
-		)
+		#//// Neoffice — multi-warehouse: the target source was resolved at the
+		#//// top of update_cart; feature off resolves the single
+		#//// website_warehouse exactly as before.
+		if not multi_enabled:
+			warehouse = frappe.get_cached_value(
+				"Website Item", {"item_code": item_code}, "website_warehouse"
+			)
 
-		quotation_items = quotation.get("items", {"item_code": item_code})
+		#//// Neoffice — multi-warehouse: merge on (item_code, warehouse) so
+		#//// one line per source can coexist for the same item.
+		if multi_enabled:
+			quotation_items = [
+				d
+				for d in quotation.get("items", [])
+				if d.item_code == item_code
+				and (d.warehouse or None) == (warehouse or None)
+			]
+		else:
+			quotation_items = quotation.get("items", {"item_code": item_code})
 		if not quotation_items:
 			item_dict = {
 				"doctype": "Quotation Item",
@@ -1368,11 +1562,25 @@ def decorate_quotation_doc(doc):
 			d.website_image = website_item_data.get("website_image")
 			d.thumbnail = website_item_data.get("thumbnail") or website_item_data.get("website_image")
 
-		website_warehouse = frappe.get_cached_value(
-			"Website Item", {"item_code": item_code}, "website_warehouse"
-		)
+		#//// Neoffice — multi-warehouse: the line's warehouse is the source the
+		#//// shopper chose — rendering the cart must not overwrite it (that
+		#//// historical overwrite is what made two-source lines impossible).
+		#//// Instead, decorate the line with its shopper-facing label and
+		#//// delivery estimate. Feature off: historical overwrite kept as is.
+		from webshop.webshop.multi_warehouse import sources as mw_sources
 
-		d.warehouse = website_warehouse
+		if mw_sources.is_enabled():
+			if not d.get("warehouse"):
+				d.warehouse = frappe.get_cached_value(
+					"Website Item", {"item_code": item_code}, "website_warehouse"
+				)
+			mw_sources.decorate_cart_line(d)
+		else:
+			website_warehouse = frappe.get_cached_value(
+				"Website Item", {"item_code": item_code}, "website_warehouse"
+			)
+
+			d.warehouse = website_warehouse
 
 	return doc
 

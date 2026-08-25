@@ -52,8 +52,50 @@ frappe.ready(function() {
 		}
 	})
 
+	//// Neoffice — multi-warehouse: the source radios (SSR block
+	//// #webshop-warehouse-sources) follow the requested quantity — the first
+	//// source covering it gets preselected, until the shopper picks one
+	//// manually (their explicit choice then always wins).
+	var source_manually_picked = false;
+
+	function preselect_covering_source() {
+		var $radios = $("#webshop-warehouse-sources input[name='webshop-warehouse-source']");
+		if (!$radios.length || source_manually_picked) return;
+
+		var qty = Number.parseInt($("#item-spinner input").val()) || 1;
+		var $pick = null;
+		$radios.each(function() {
+			var $r = $(this);
+			if ($r.prop("disabled")) return;
+			if (!$pick && Number.parseFloat($r.data("stock-qty")) >= qty) {
+				$pick = $r;
+			}
+		});
+		if (!$pick) {
+			$pick = $radios.filter(":not(:disabled)").first();
+		}
+		if ($pick && $pick.length) {
+			$pick.prop("checked", true);
+		}
+	}
+
+	function get_selected_warehouse() {
+		var $checked = $("#webshop-warehouse-sources input[name='webshop-warehouse-source']:checked");
+		return $checked.length ? $checked.val() : undefined;
+	}
+
+	$("#webshop-warehouse-sources").on("change", "input[name='webshop-warehouse-source']", function() {
+		source_manually_picked = true;
+	});
+
+	$("#item-spinner").on("change", "input", preselect_covering_source);
+	$("#item-spinner").on("click", ".number-spinner button", function() {
+		setTimeout(preselect_covering_source, 0);
+	});
+	preselect_covering_source();
+
 	$("#item-add-to-cart button").on("click", function() {
-		
+
 		frappe.provide('webshop.shopping_cart');
 
 		var item_code = get_item_code();
@@ -64,6 +106,9 @@ frappe.ready(function() {
 			item_code: item_code,
 			qty: qty,
 			additional_notes: additional_notes,
+			//// Neoffice — multi-warehouse: the chosen stock source rides along
+			//// (undefined when the item has a single source — historical path).
+			warehouse: get_selected_warehouse(),
 			callback: function(r) {
 				if (r.message.error) {
 					frappe.msgprint({

@@ -1838,8 +1838,11 @@ frappe.ready(function() {
                 const $input = $(e.target);
                 const item_code = $input.attr('data-item-code');
                 const newVal = $input.val();
+                //// Neoffice — multi-warehouse: target the line of THIS stock
+                //// source (empty attr = single-source line, server resolves).
+                const warehouse = $input.attr('data-warehouse') || undefined;
 
-                this.updateItemQuantity(item_code, newVal);
+                this.updateItemQuantity(item_code, newVal, warehouse);
             });
 
             // Bind + and - buttons
@@ -1869,12 +1872,14 @@ frappe.ready(function() {
 
                     input.value = newVal;
                     const item_code = input.getAttribute('data-item-code');
-                    this.updateItemQuantity(item_code, newVal);
+                    //// Neoffice — multi-warehouse: same per-source targeting.
+                    const warehouse = input.getAttribute('data-warehouse') || undefined;
+                    this.updateItemQuantity(item_code, newVal, warehouse);
                 }, true); // Use capture phase
             }
         }
 
-        updateItemQuantity(item_code, qty) {
+        updateItemQuantity(item_code, qty, warehouse) {
             this.freezeElements(['order-summary']);
             
             // Check if a coupon or loyalty points are applied
@@ -1895,7 +1900,7 @@ frappe.ready(function() {
                                             indicator: 'blue'
                                         });
                                         // Update the quantity
-                                        this.performItemQuantityUpdate(item_code, qty);
+                                        this.performItemQuantityUpdate(item_code, qty, warehouse);
                                     }
                                 }
                             });
@@ -1910,30 +1915,32 @@ frappe.ready(function() {
                                             indicator: 'blue'
                                         });
                                         // Update the quantity
-                                        this.performItemQuantityUpdate(item_code, qty);
+                                        this.performItemQuantityUpdate(item_code, qty, warehouse);
                                     }
                                 }
                             });
                         } else {
                             // No coupon or loyalty points, update quantity directly
-                            this.performItemQuantityUpdate(item_code, qty);
+                            this.performItemQuantityUpdate(item_code, qty, warehouse);
                         }
                     } else {
                         // No cart data, update quantity directly
-                        this.performItemQuantityUpdate(item_code, qty);
+                        this.performItemQuantityUpdate(item_code, qty, warehouse);
                     }
                 }
             });
         }
         
-        performItemQuantityUpdate(item_code, qty) {
+        performItemQuantityUpdate(item_code, qty, warehouse) {
             // Use nested callback to ensure get_cart_quotation runs AFTER update_cart completes
             frappe.call({
                 method: 'webshop.webshop.shopping_cart.cart.update_cart',
                 args: {
                     item_code: item_code,
                     qty: qty,
-                    with_items: true
+                    with_items: true,
+                    //// Neoffice — multi-warehouse: keep the edit on the right line.
+                    warehouse: warehouse !== undefined ? warehouse : undefined
                 },
                 callback: (r) => {
                     if (r.message) {

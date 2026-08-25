@@ -109,15 +109,19 @@ def create_guest_quotation(items=None):
 
     # Add items to the quotation
     for item in items:
+        #//// Neoffice — multi-warehouse: a line carrying its stock source
+        #//// keeps it across the guest-cart rebuild; only sourceless lines
+        #//// fall back to the historical website_warehouse lookup.
         item_dict = {
             "doctype": "Quotation Item",
             "item_code": item.get("item_code"),
             "qty": item.get("qty", 1),
-            "warehouse": frappe.get_cached_value(
-                "Website Item", 
-                {"item_code": item.get("item_code")}, 
-                "website_warehouse"
-            )
+            "warehouse": item.get("warehouse")
+            or frappe.get_cached_value(
+                "Website Item",
+                {"item_code": item.get("item_code")},
+                "website_warehouse",
+            ),
         }
         
         # Check if it's a gift card item
@@ -330,16 +334,25 @@ def check_and_merge_guest_cart():
                 apply_cart_settings(customer, user_doc)
                             
             # Merge items
+            #//// Neoffice — multi-warehouse: merge guest lines into the user
+            #//// cart per (item_code, warehouse) so a same-item line on
+            #//// another stock source stays its own line with its own lead
+            #//// time. Sourceless lines merge on item_code as before.
             if guest_doc.items:
-                existing_items = {item.item_code: item for item in user_doc.items}
+                existing_items = {
+                    (item.item_code, item.warehouse or None): item
+                    for item in user_doc.items
+                }
                 for item in guest_doc.items:
-                    if item.item_code in existing_items:
-                        existing_items[item.item_code].qty += item.qty
+                    key = (item.item_code, item.warehouse or None)
+                    if key in existing_items:
+                        existing_items[key].qty += item.qty
                     else:
                         user_doc.append('items', {
                             'item_code': item.item_code,
                             'qty': item.qty,
-                            'rate': item.rate
+                            'rate': item.rate,
+                            'warehouse': item.warehouse
                         })
             
             user_doc.flags.ignore_permissions = True

@@ -98,6 +98,16 @@ doc_events = {
 			"webshop.webshop.crud_events.tax_rule.validate_use_for_cart.execute",
 		],
 	},
+	#//// Neoffice — multi-warehouse: webshop Sales Order lines sourced from a
+	#//// supplier warehouse prepare a draft Purchase Order (stacked per
+	#//// supplier) or a Material Request. Gated inside on Webshop Settings
+	#//// (enable_multi_warehouse + enable_supplier_procurement) and on
+	#//// order_type "Shopping Cart"; never raises into the submit.
+	"Sales Order": {
+		"on_submit": [
+			"webshop.webshop.multi_warehouse.procurement.process_sales_order",
+		],
+	},
 	"Sales Invoice": {
 		"validate": "webshop.webshop.crud_events.sales_invoice.validate",
 		"on_submit": "webshop.webshop.crud_events.sales_invoice.on_submit",

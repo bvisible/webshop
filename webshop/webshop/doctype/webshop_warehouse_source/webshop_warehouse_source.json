@@ -1,0 +1,184 @@
+{
+ "actions": [],
+ "creation": "2026-08-25 18:40:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "warehouse",
+  "display_label",
+  "auto_enable_if_stock",
+  "column_break_stock",
+  "stock_basis",
+  "stock_field",
+  "supplier_section",
+  "is_supplier_source",
+  "supplier",
+  "receiving_warehouse",
+  "lead_time_section",
+  "lead_time_mode",
+  "lead_time_days",
+  "column_break_lead",
+  "order_day",
+  "order_weekday",
+  "order_day_of_month",
+  "receipt_lead_days",
+  "handling_days"
+ ],
+ "fields": [
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Warehouse",
+   "options": "Warehouse",
+   "columns": 3,
+   "reqd": 1
+  },
+  {
+   "fieldname": "display_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Display Label",
+   "columns": 2,
+   "reqd": 1,
+   "description": "Shown to shoppers instead of the warehouse name (e.g. \"Store\", \"Supplier stock\"). Translatable through the Translation doctype."
+  },
+  {
+   "default": "0",
+   "fieldname": "auto_enable_if_stock",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Auto-enable when in stock",
+   "columns": 2,
+   "description": "Every published Website Item with stock in this source displays it automatically (no per-item setup). Uncheck to only show it on items that list this source explicitly."
+  },
+  {
+   "fieldname": "column_break_stock",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Warehouse Bin",
+   "fieldname": "stock_basis",
+   "fieldtype": "Select",
+   "label": "Stock Basis",
+   "options": "Warehouse Bin\nItem Field",
+   "description": "Warehouse Bin reads real ERPNext stock. Item Field reads a numeric custom field on Item (e.g. a synced supplier stock) without creating any valued stock."
+  },
+  {
+   "depends_on": "eval:doc.stock_basis === 'Item Field'",
+   "mandatory_depends_on": "eval:doc.stock_basis === 'Item Field'",
+   "fieldname": "stock_field",
+   "fieldtype": "Data",
+   "label": "Item Stock Field",
+   "description": "Fieldname on Item holding the quantity, e.g. neo_supplier_stock."
+  },
+  {
+   "fieldname": "supplier_section",
+   "fieldtype": "Section Break",
+   "label": "Procurement"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_supplier_source",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Supplier Source",
+   "columns": 1,
+   "description": "Ordered quantities from this source feed the supplier procurement flow (draft Purchase Order or Material Request)."
+  },
+  {
+   "depends_on": "is_supplier_source",
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "label": "Supplier",
+   "options": "Supplier",
+   "description": "Purchase Orders are grouped under this supplier. Falls back to the item's default supplier when empty."
+  },
+  {
+   "depends_on": "is_supplier_source",
+   "fieldname": "receiving_warehouse",
+   "fieldtype": "Link",
+   "label": "Receiving Warehouse",
+   "options": "Warehouse",
+   "description": "Where the goods physically arrive (target warehouse of the Purchase Order). Defaults to the item's website warehouse."
+  },
+  {
+   "fieldname": "lead_time_section",
+   "fieldtype": "Section Break",
+   "label": "Delivery Lead Time"
+  },
+  {
+   "default": "Fixed",
+   "fieldname": "lead_time_mode",
+   "fieldtype": "Select",
+   "label": "Lead Time Mode",
+   "options": "Fixed\nPeriodic",
+   "description": "Fixed: constant number of business days. Periodic: supplier orders leave on a schedule (e.g. end of month), the estimate accounts for the next departure."
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.lead_time_mode !== 'Periodic'",
+   "fieldname": "lead_time_days",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Lead Time (business days)",
+   "columns": 1
+  },
+  {
+   "fieldname": "column_break_lead",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "End of Month",
+   "depends_on": "eval:doc.lead_time_mode === 'Periodic'",
+   "fieldname": "order_day",
+   "fieldtype": "Select",
+   "label": "Supplier Order Leaves",
+   "options": "End of Month\nWeekly\nDay of Month"
+  },
+  {
+   "default": "Monday",
+   "depends_on": "eval:doc.lead_time_mode === 'Periodic' && doc.order_day === 'Weekly'",
+   "fieldname": "order_weekday",
+   "fieldtype": "Select",
+   "label": "Order Weekday",
+   "options": "Monday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.lead_time_mode === 'Periodic' && doc.order_day === 'Day of Month'",
+   "fieldname": "order_day_of_month",
+   "fieldtype": "Int",
+   "label": "Order Day of Month",
+   "description": "1 to 28."
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.lead_time_mode === 'Periodic'",
+   "fieldname": "receipt_lead_days",
+   "fieldtype": "Int",
+   "label": "Receipt Lead (business days)",
+   "description": "Business days between the supplier order departure and the goods arriving."
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.lead_time_mode === 'Periodic'",
+   "fieldname": "handling_days",
+   "fieldtype": "Int",
+   "label": "Handling (business days)",
+   "description": "Business days to prepare and ship after the goods arrived."
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-08-25 18:40:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Webshop Warehouse Source",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

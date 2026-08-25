@@ -103,6 +103,23 @@ def get_product_info_for_website(item_code, skip_quotation_creation=False):
 			)
 			product_info["show_stock_qty"] = show_quantity_in_website()
 
+			#//// Neoffice — multi-warehouse: expose the per-source breakdown
+			#//// (label, qty, lead time) so the product page can render a
+			#//// source selector. Empty when the feature is off or does not
+			#//// apply to this item, and the page falls back to the single
+			#//// badge above. in_stock/stock_qty become the aggregate so the
+			#//// add-to-cart guards keep working across sources.
+			from webshop.webshop.multi_warehouse.sources import (
+				get_item_warehouse_sources,
+			)
+
+			warehouse_sources = get_item_warehouse_sources(item_code, cart_settings)
+			if len(warehouse_sources) > 1:
+				product_info["warehouse_sources"] = warehouse_sources
+				total_qty = sum(flt(s.stock_qty) for s in warehouse_sources)
+				product_info["stock_qty"] = total_qty
+				product_info["in_stock"] = 1 if total_qty > 0 else 0
+
 	if product_info["price"]:
 		if frappe.session.user != "Guest":
 			item = (

@@ -84,7 +84,10 @@ $.extend(shopping_cart, {
 				qty: opts.qty,
 				additional_notes: opts.additional_notes !== undefined ? opts.additional_notes : undefined,
 				with_items: opts.with_items || 0,
-				add_qty: opts.add_qty || false
+				add_qty: opts.add_qty || false,
+				//// Neoffice — multi-warehouse: stock source of the cart line
+				//// (undefined = server resolves, historical behaviour).
+				warehouse: opts.warehouse !== undefined ? opts.warehouse : undefined
 			},
 			btn: opts.btn,
 			callback: function(r) {
@@ -140,7 +143,9 @@ $.extend(shopping_cart, {
 		}
 	},
 
-	shopping_cart_update: function({item_code, qty, cart_dropdown, additional_notes}) {
+	//// Neoffice — multi-warehouse: `warehouse` identifies the targeted cart
+	//// line (same item can exist once per stock source).
+	shopping_cart_update: function({item_code, qty, cart_dropdown, additional_notes, warehouse}) {
 		// Check if a coupon or loyalty points are applied before updating the cart
 		frappe.call({
 			method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
@@ -159,7 +164,7 @@ $.extend(shopping_cart, {
 										indicator: 'blue'
 									});
 									// Continue with the cart update
-									shopping_cart.perform_cart_update({item_code, qty, cart_dropdown, additional_notes});
+									shopping_cart.perform_cart_update({item_code, qty, cart_dropdown, additional_notes, warehouse});
 								}
 							}
 						});
@@ -174,28 +179,29 @@ $.extend(shopping_cart, {
 										indicator: 'blue'
 									});
 									// Continue with the cart update
-									shopping_cart.perform_cart_update({item_code, qty, cart_dropdown, additional_notes});
+									shopping_cart.perform_cart_update({item_code, qty, cart_dropdown, additional_notes, warehouse});
 								}
 							}
 						});
 					} else {
 						// No coupon or loyalty points, update directly
-						shopping_cart.perform_cart_update({item_code, qty, cart_dropdown, additional_notes});
+						shopping_cart.perform_cart_update({item_code, qty, cart_dropdown, additional_notes, warehouse});
 					}
 				} else {
 					// No cart data, update directly
-					shopping_cart.perform_cart_update({item_code, qty, cart_dropdown, additional_notes});
+					shopping_cart.perform_cart_update({item_code, qty, cart_dropdown, additional_notes, warehouse});
 				}
 			}
 		});
 	},
 
 	// Auxiliary function to update the cart
-	perform_cart_update: function({item_code, qty, cart_dropdown, additional_notes}) {
+	perform_cart_update: function({item_code, qty, cart_dropdown, additional_notes, warehouse}) {
 		shopping_cart.update_cart({
 			item_code,
 			qty,
 			additional_notes,
+			warehouse,
 			with_items: 1,
 			btn: this,
 			callback: function(r) {

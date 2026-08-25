@@ -38,7 +38,10 @@ $.extend(shopping_cart, {
 		$(".cart-items").on("change", ".cart-qty", function() {
 			var item_code = $(this).attr("data-item-code");
 			var newVal = $(this).val();
-			shopping_cart.shopping_cart_update({item_code, qty: newVal});
+			//// Neoffice — multi-warehouse: target the line of THIS stock
+			//// source; empty attr = single-source line, server resolves.
+			var warehouse = $(this).attr("data-warehouse") || undefined;
+			shopping_cart.shopping_cart_update({item_code, qty: newVal, warehouse});
 		});
 
 		$(".cart-items").on('click', '.number-spinner button', function () {
@@ -58,10 +61,13 @@ $.extend(shopping_cart, {
 
 			let notes = input.closest("td").siblings().find(".notes").text().trim();
 			var item_code = input.attr("data-item-code");
+			//// Neoffice — multi-warehouse: same per-source targeting.
+			var warehouse = input.attr("data-warehouse") || undefined;
 			shopping_cart.shopping_cart_update({
 				item_code,
 				qty: newVal,
-				additional_notes: notes
+				additional_notes: notes,
+				warehouse
 			});
 		});
 	},
@@ -72,10 +78,13 @@ $.extend(shopping_cart, {
 			const item_code = $textarea.attr('data-item-code');
 			const qty = $textarea.closest('tr').find('.cart-qty').val();
 			const notes = $textarea.val();
+			//// Neoffice — multi-warehouse: same per-source targeting.
+			const warehouse = $textarea.attr('data-warehouse') || undefined;
 			shopping_cart.shopping_cart_update({
 				item_code,
 				qty,
-				additional_notes: notes
+				additional_notes: notes,
+				warehouse
 			});
 		});
 	},
@@ -84,10 +93,14 @@ $.extend(shopping_cart, {
 		$(".cart-items").on("click", ".remove-cart-item", (e) => {
 			const $remove_cart_item_btn = $(e.currentTarget);
 			var item_code = $remove_cart_item_btn.data("item-code");
+			//// Neoffice — multi-warehouse: remove only the line of this
+			//// stock source, not every line of the item.
+			var warehouse = $remove_cart_item_btn.attr("data-warehouse") || undefined;
 
 			shopping_cart.shopping_cart_update({
 				item_code: item_code,
-				qty: 0
+				qty: 0,
+				warehouse
 			});
 		});
 	},

@@ -1120,6 +1120,19 @@ class ProductQuery:
 			else:
 				item.in_stock = True
 		elif warehouse:
+			#//// Neoffice — multi-warehouse: the grid badge aggregates every
+			#//// exposed source of the item (an item out of store stock but
+			#//// available at the supplier must not read "out of stock" in the
+			#//// grid while its page says otherwise). Feature off or single
+			#//// source: historical single-warehouse computation.
+			from webshop.webshop.multi_warehouse.sources import get_aggregate_stock
+
+			aggregate = get_aggregate_stock(item.item_code)
+			if aggregate is not None:
+				item.in_stock = aggregate.in_stock
+				item.stock_qty = aggregate.stock_qty
+				return
+
 			# stock item and has warehouse - get full stock info
 			stock_info = get_web_item_qty_in_stock(item.item_code, "website_warehouse", warehouse)
 			item.in_stock = stock_info.in_stock

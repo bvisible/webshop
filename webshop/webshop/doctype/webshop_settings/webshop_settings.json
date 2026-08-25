@@ -69,6 +69,13 @@
   "b2b_customer_group",
   "payment_methods_section",
   "payment_methods",
+  "multi_warehouse_section",
+  "enable_multi_warehouse",
+  "column_break_mw",
+  "enable_supplier_procurement",
+  "procurement_mode",
+  "warehouse_sources_section",
+  "warehouse_sources",
   "tab_features",
   "add_ons_section",
   "enable_wishlist",
@@ -782,6 +789,53 @@
    "fieldtype": "Table",
    "label": "Trust Items",
    "options": "Webshop Trust Item"
+  },
+  {
+   "description": "//// Neoffice \u2014 multi-warehouse feature: expose several stock sources per product, with labels, lead times and supplier procurement.",
+   "fieldname": "multi_warehouse_section",
+   "fieldtype": "Section Break",
+   "label": "Multi-Warehouse Stock"
+  },
+  {
+   "default": "0",
+   "description": "Products can display and sell from several stock sources (below). Off: historical single-warehouse behaviour.",
+   "fieldname": "enable_multi_warehouse",
+   "fieldtype": "Check",
+   "label": "Enable Multi-Warehouse Stock"
+  },
+  {
+   "fieldname": "column_break_mw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "enable_multi_warehouse",
+   "description": "Order lines sourced from a supplier warehouse prepare a draft Purchase Order (stacked per supplier) or a Material Request on order submission.",
+   "fieldname": "enable_supplier_procurement",
+   "fieldtype": "Check",
+   "label": "Prepare Supplier Orders"
+  },
+  {
+   "default": "Purchase Order",
+   "depends_on": "enable_supplier_procurement",
+   "description": "Purchase Order: one draft per supplier, new webshop orders stack into it. Material Request: submitted requests, consolidate them into Purchase Orders with the native \"Get Items From\" button.",
+   "fieldname": "procurement_mode",
+   "fieldtype": "Select",
+   "label": "Procurement Mode",
+   "options": "Purchase Order\nMaterial Request"
+  },
+  {
+   "depends_on": "enable_multi_warehouse",
+   "fieldname": "warehouse_sources_section",
+   "fieldtype": "Section Break",
+   "label": "Warehouse Sources"
+  },
+  {
+   "description": "Order matters: first source that covers the requested quantity is preselected. The item's own Website Warehouse is always shown first.",
+   "fieldname": "warehouse_sources",
+   "fieldtype": "Table",
+   "label": "Warehouse Sources",
+   "options": "Webshop Warehouse Source"
   }
  ],
  "index_web_pages_for_search": 1,

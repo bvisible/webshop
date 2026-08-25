@@ -319,6 +319,18 @@ class PaymentHandler:
                 today = frappe.utils.today()
                 sales_order.transaction_date = today
                 sales_order.delivery_date = today
+
+                #//// Neoffice — multi-warehouse: replace the placeholder
+                #//// delivery_date with the real per-line estimate from each
+                #//// line's stock source (supplier lines promise a longer
+                #//// date); header becomes the latest line. No-op when the
+                #//// feature is off.
+                from webshop.webshop.multi_warehouse.sources import is_enabled as _mw_enabled
+                if _mw_enabled():
+                    from webshop.webshop.shopping_cart.cart import (
+                        _set_delivery_dates_from_sources,
+                    )
+                    _set_delivery_dates_from_sources(sales_order)
                 # Clear and recalculate payment schedule with today's date
                 if sales_order.payment_schedule:
                     for ps in sales_order.payment_schedule:

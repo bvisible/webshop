@@ -5,7 +5,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt
+from frappe.utils import cint, flt
 
 from webshop.webshop.redisearch_utils import is_search_module_loaded
 from webshop.webshop.utils.frequently_bought_together import calculate_frequently_bought_together
@@ -26,6 +26,12 @@ class WebshopSettings(Document):
 		self.validate_field_filters(self.filter_fields, self.enable_field_filters)
 		self.validate_attribute_filters()
 		self.validate_checkout()
+		#//// Neoffice — multi-warehouse: validate the source table and, on
+		#//// activation, set the two ERPNext prerequisites (Selling and Buying
+		#//// "allow multiple items"), without which a two-line order of the
+		#//// same item is rejected. Done here so activating the feature is
+		#//// self-contained instead of relying on a fleet-wide patch.
+		self.validate_multi_warehouse()
 
 		# Désactiver les options en cascade
 		if not self.enabled:
@@ -56,6 +62,56 @@ class WebshopSettings(Document):
 		self.update_gift_card_template()
 		self.update_gift_cards_menu()
 		self.update_loyalty_points_menu()
+
+	#//// Neoffice — added method (multi-warehouse feature).
+	def validate_multi_warehouse(self):
+		if not self.enable_multi_warehouse:
+			return
+
+		seen = set()
+		item_meta = frappe.get_meta("Item")
+		for row in self.warehouse_sources or []:
+			if row.warehouse in seen:
+				frappe.throw(
+					_("Warehouse Source row #{0}: warehouse {1} is listed twice").format(
+						row.idx, row.warehouse
+					)
+				)
+			seen.add(row.warehouse)
+
+			if row.stock_basis == "Item Field":
+				if not row.stock_field or not item_meta.has_field(row.stock_field):
+					frappe.throw(
+						_(
+							"Warehouse Source row #{0}: field {1} does not exist on Item"
+						).format(row.idx, row.stock_field or "?")
+					)
+				field_type = item_meta.get_field(row.stock_field).fieldtype
+				if field_type not in ("Int", "Float"):
+					frappe.throw(
+						_(
+							"Warehouse Source row #{0}: field {1} must be numeric (Int or Float), not {2}"
+						).format(row.idx, row.stock_field, field_type)
+					)
+
+			if row.order_day_of_month and not (1 <= cint(row.order_day_of_month) <= 28):
+				frappe.throw(
+					_(
+						"Warehouse Source row #{0}: Order Day of Month must be between 1 and 28"
+					).format(row.idx)
+				)
+
+		# Two lines of the same item (one per source) require these two
+		# ERPNext settings; set them on activation and tell the merchant.
+		for doctype in ("Selling Settings", "Buying Settings"):
+			if not cint(frappe.db.get_single_value(doctype, "allow_multiple_items")):
+				frappe.db.set_single_value(doctype, "allow_multiple_items", 1)
+				frappe.msgprint(
+					_(
+						"Multi-warehouse: enabled \"Allow Item to Be Added Multiple Times in a Transaction\" in {0}"
+					).format(_(doctype)),
+					alert=True,
+				)
 
 	def after_save(self):
 		# Clear currency symbol cache when settings change
