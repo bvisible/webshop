@@ -771,7 +771,19 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 				# Get gateway type from name
 				gateway_type = payment_gateway.gateway.split('-')[0].split()[0].lower().strip()
 				
-				title = payment_gateway_account.checkout_title or payment_gateway_account.name
+				#//// Neoffice — ce qu'un client doit lire : « Payrexx », pas
+				#//// « Payrexx - CHF - pri ». Le nom d'un compte de passerelle
+				#//// porte la devise et parfois un suffixe d'exploitation :
+				#//// c'est le nom du DOSSIER, pas celui du moyen de paiement.
+				#//// On préfère donc, dans l'ordre : le libellé écrit par le
+				#//// commerçant, puis le nom de la PASSERELLE, puis le compte
+				#//// faute de mieux. Même règle que la surface de réservation
+				#//// (`neoffice_theme.booking.checkout._moyen_lisible`).
+				title = (
+					payment_gateway_account.checkout_title
+					or payment_gateway_account.payment_gateway
+					or payment_gateway_account.name
+				)
 				logo_html = f"<img src='{payment_gateway_account.logo}' alt='{title}' class='payment-logo'>" if payment_gateway_account.logo else ""
 				description = payment_gateway_account.checkout_description or ""
 				#//// Neoffice — le panier, ou le document nommé par l'appelant.
