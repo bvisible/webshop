@@ -21,7 +21,12 @@ from webshop.webshop.doctype.webshop_settings.webshop_settings import (
 )
 from webshop.webshop.utils.product import get_web_item_qty_in_stock
 from webshop.webshop.utils.utils import format_currency_value
-from erpnext.selling.doctype.quotation.quotation import _make_sales_order
+
+try:
+	from erpnext.selling.doctype.quotation.quotation import _make_sales_order
+except ImportError:
+	from erpnext.selling.doctype.quotation.mapper import _make_sales_order
+
 from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
 	get_loyalty_program_details_with_points,
 )
