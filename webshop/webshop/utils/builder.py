@@ -295,6 +295,23 @@ def get_builder_page_content(route=None, page_name=None, content_only=False, ski
         
         # Get the page document
         page = frappe.get_cached_doc("Builder Page", page_name)
+
+        #//// Neoffice — une page NON PUBLIÉE ne se rend pas à un visiteur.
+        #//// La branche par `route` juste au-dessus filtre déjà `published: 1`
+        #//// (« Only get published pages ») ; celle-ci, appelée avec un nom,
+        #//// ne filtrait rien : un brouillon se servait à qui connaissait son
+        #//// nom. L'entrée est `allow_guest`. Le personnel garde l'aperçu.
+        if not page.get("published"):
+            roles = frappe.get_roles()
+            if not ("System Manager" in roles or "Website Manager" in roles):
+                return {
+                    "content": f"<div>Error: Page not found: {page_name}</div>",
+                    "success": False,
+                    "message": f"Page not found: {page_name}",
+                    "style": "",
+                    "global_style": "",
+                    "global_script": "",
+                }
         
         # Prepare the result dictionary with content
         result = {"success": True}
