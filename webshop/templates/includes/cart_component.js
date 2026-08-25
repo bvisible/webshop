@@ -1225,7 +1225,16 @@ function handleAddToCart(e) {
   // Add pulsing animation
   button.style.animation = 'pulse 1s infinite';
   
-  // Call API to add item to cart  
+  //// Neoffice — multi-warehouse: on the product page a source radio may sit
+  //// next to the button; ride its value along so the drawer add feeds the
+  //// chosen source (undefined elsewhere = server resolves, historical path).
+  let warehouse;
+  const checkedSource = document.querySelector("input[name='webshop-warehouse-source']:checked");
+  if (checkedSource) {
+    warehouse = checkedSource.value;
+  }
+
+  // Call API to add item to cart
   frappe.call({
     method: 'webshop.webshop.utils.cart_helpers.update_cart',
     args: {
@@ -1233,7 +1242,8 @@ function handleAddToCart(e) {
       qty: qty,
       additional_notes: '',
       with_items: 1,
-      add_qty: true // Add to existing quantity
+      add_qty: true, // Add to existing quantity
+      warehouse: warehouse
     },
     freeze: false,
     callback: function(r) {

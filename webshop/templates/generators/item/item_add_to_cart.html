@@ -395,6 +395,53 @@
 			$input.val(val);
 		});
 		
+		//// Neoffice — multi-warehouse: the source radios follow the requested
+		//// quantity (first source that covers it is preselected) until the
+		//// shopper picks one manually; the pick also drives the qty max.
+		let mw_source_manually_picked = false;
+
+		function mw_get_selected_warehouse() {
+			const $checked = $("input[name='webshop-warehouse-source']:checked");
+			return $checked.length ? $checked.val() : undefined;
+		}
+
+		function mw_apply_source_max() {
+			const $checked = $("input[name='webshop-warehouse-source']:checked");
+			if (!$checked.length) return;
+			const sourceQty = Math.floor(Number.parseFloat($checked.data('stock-qty')) || 0);
+			const $qty = $('.page_content .item-qty').first();
+			if (!$qty.length || !sourceQty) return;
+			$qty.attr('max', sourceQty).attr('data-max-qty', sourceQty);
+			if (parseInt($qty.val()) > sourceQty) $qty.val(sourceQty);
+		}
+
+		function mw_preselect_covering_source() {
+			const $radios = $("input[name='webshop-warehouse-source']");
+			if (!$radios.length || mw_source_manually_picked) return;
+			const qty = parseInt($('.page_content .item-qty').first().val()) || 1;
+			let $pick = null;
+			$radios.each(function() {
+				const $r = $(this);
+				if ($r.prop('disabled')) return;
+				if (!$pick && Number.parseFloat($r.data('stock-qty')) >= qty) $pick = $r;
+			});
+			if (!$pick) $pick = $radios.filter(':not(:disabled)').first();
+			if ($pick && $pick.length && !$pick.prop('checked')) {
+				$pick.prop('checked', true);
+			}
+			mw_apply_source_max();
+		}
+
+		$('.page_content').on('change', "input[name='webshop-warehouse-source']", function() {
+			mw_source_manually_picked = true;
+			mw_apply_source_max();
+		});
+		$('.page_content').on('change', '.item-qty', mw_preselect_covering_source);
+		$('.page_content').on('click', '.cart-btn', function() {
+			setTimeout(mw_preselect_covering_source, 0);
+		});
+		mw_apply_source_max();
+
 		$('.page_content').on('click', '.btn-add-to-cart', function(e) {
 			// Prevent event propagation
 			e.preventDefault();
@@ -505,7 +552,10 @@
 						item_code: item_code,
 						qty: qty,
 						add_qty: true,
-						with_items: 1
+						with_items: 1,
+						//// Neoffice — multi-warehouse: chosen stock source
+						//// (undefined = single source, server resolves).
+						warehouse: mw_get_selected_warehouse()
 					},
 					freeze: true, // Block interface during request
 					callback: function(r) {

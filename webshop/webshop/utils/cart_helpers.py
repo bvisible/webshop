@@ -237,7 +237,9 @@ def format_cart_response(cart_data):
         }
 
 @frappe.whitelist(allow_guest=True)
-def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty=False, price_list_rate=None, gift_card_data=None):
+#//// Neoffice — multi-warehouse: `warehouse` (stock source of the line) rides
+#//// through this wrapper down to cart.update_cart.
+def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty=False, price_list_rate=None, gift_card_data=None, warehouse=None):
     """
     Improved version of the update_cart function that handles errors better and normalizes responses.
     
@@ -291,7 +293,8 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
             with_items=with_items,
             add_qty=add_qty,
             price_list_rate=price_list_rate,
-            gift_card_data=gift_card_data
+            gift_card_data=gift_card_data,
+            warehouse=warehouse
         )
         
         # Normalize and enhance the response
