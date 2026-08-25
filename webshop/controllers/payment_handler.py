@@ -467,6 +467,19 @@ class PaymentHandler:
     def handle_payment_failure(self, payment_request_id, error_message=None):
         """Handle payment failure"""
         try:
+            #//// Neoffice — même famille que `handle_payment_success` : l'entrée
+            #//// est `allow_guest` et ne vérifiait pas à QUI est la demande. Un
+            #//// visiteur anonyme la passait en `Failed` avec un message de son
+            #//// choix — de quoi tuer, en énumérant les numéros séquentiels,
+            #//// tous les paiements en cours d'une boutique. Démontré sur osiris
+            #//// le 2026-08-24 sur ACC-PRQ-2026-00189.
+            #//// Pas de cas « intention aboutie » ici : un échec ne se constate
+            #//// pas côté PSP par une intention `succeeded`.
+            if not payment_request_id or not frappe.db.exists("Payment Request", payment_request_id):
+                return self.handle_error("Missing payment request ID")
+            if not _peut_conclure(payment_request_id, argent_constate=False):
+                frappe.throw(_("Not permitted"), frappe.PermissionError)
+
             payment_request = frappe.get_doc("Payment Request", payment_request_id)
             payment_request.flags.ignore_permissions = True
 
@@ -598,7 +611,7 @@ def create_payment_request(quotation_id=None, gateway_settings=None, idempotency
 #//// Un visiteur anonyme qui poste un numéro de demande n'en fait partie
 #//// d'aucun. Le cas 4 est la VRAIE invariante : l'argent est constaté, peu
 #//// importe qui le signale.
-def _peut_conclure(payment_request_id: str) -> bool:
+def _peut_conclure(payment_request_id: str, argent_constate: bool = True) -> bool:
 	utilisateur = frappe.session.user
 
 	# 1. le serveur lui-même (tâche de fond, page de retour côté serveur)
@@ -613,7 +626,7 @@ def _peut_conclure(payment_request_id: str) -> bool:
 	#    Vérifié avant le cas 3 pour couvrir un retour de passerelle où la
 	#    session n'a pas encore été rétablie.
 	try:
-		if frappe.db.exists("DocType", "Payment Intent") and frappe.db.exists(
+		if argent_constate and frappe.db.exists("DocType", "Payment Intent") and frappe.db.exists(
 			"Payment Intent",
 			{"reference_doctype": "Payment Request", "reference_name": payment_request_id,
 			 "status": "succeeded"},
