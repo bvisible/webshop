@@ -175,6 +175,9 @@ frappe.ready(function() {
                 this.quotationName = quotation.name;
                 if (quotation.customer_address) {
                     $('#billing_address_name').val(quotation.customer_address);
+                    //// The card list may already be drawn (or not yet) — see
+                    //// syncAddressPickerSelection. Re-deriving is free.
+                    this.syncAddressPickerSelection('billing');
                 }
                 this.updateOrderSummaryFromDoc(quotation);
             }).catch(() => {
@@ -903,6 +906,9 @@ frappe.ready(function() {
                         $('[name="shipping_country"]').val(address.country || '');
                         $('[name="shipping_phone"]').val(address.phone || $('[name="billing_phone"]').val());
                         $('[name="shipping_email"]').val(address.email_id || $('[name="billing_email"]').val());
+                        //// Neoffice — same race as the billing side: this reply and
+                        //// the address book are two independent calls.
+                        this.syncAddressPickerSelection('shipping');
                     }
                 }
             });
@@ -1026,13 +1032,39 @@ frappe.ready(function() {
             });
 
             cards.push(`
-                <button type="button" class="address-card-choice address-card-choice--new ${selected ? '' : 'is-selected'}"
+                <button type="button" class="address-card-choice address-card-choice--new"
                         data-address="">
                     + ${__('New address')}
                 </button>`);
 
             $picker.find('.address-picker__list').html(cards.join(''));
             $picker.removeAttr('hidden');
+            this.syncAddressPickerSelection(target);
+        }
+
+        //// Neoffice — the highlighted card is derived from the hidden field, never
+        //// baked into the markup. The card list and the quotation arrive from two
+        //// independent calls (get_customer_addresses and get_cart_quotation), so
+        //// whichever lands last used to decide what the shopper saw: draw the cards
+        //// before the quotation replied and "New address" was highlighted even
+        //// though the form below was already filled with their default address.
+        //// Both paths now call this, and it is idempotent, so the order stops
+        //// mattering.
+        syncAddressPickerSelection(target) {
+            const $picker = $(`#${target}-address-picker`);
+            if (!$picker.length) return;
+
+            const selected = $(`#${target}_address_name`).val() || '';
+            const $cards = $picker.find('.address-card-choice');
+            $cards.removeClass('is-selected').attr('aria-pressed', 'false');
+
+            //// An unknown name (address deleted elsewhere, or one the customer
+            //// filter does not return) must not silently fall back to "New
+            //// address": the form still holds that address, so highlighting the
+            //// empty card would contradict what is on screen. Leave none selected.
+            const $match = $cards.filter(`[data-address="${(selected || '').replace(/"/g, '\\"')}"]`);
+            if (selected && !$match.length) return;
+            $match.first().addClass('is-selected').attr('aria-pressed', 'true');
         }
 
         bindAddressPickers() {
@@ -1070,10 +1102,7 @@ frappe.ready(function() {
                 delete this.pendingChanges[field];
             });
             $(`#${target}_address_name`).val(name);
-
-            $(`#${target}-address-picker`).find('.address-card-choice').removeClass('is-selected');
-            $(`#${target}-address-picker`)
-                .find(`.address-card-choice[data-address="${name}"]`).addClass('is-selected');
+            this.syncAddressPickerSelection(target);
 
             if (!name) return;   // "New address": the form is cleared, nothing to tell the server yet
 
