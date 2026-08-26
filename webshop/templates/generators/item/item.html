@@ -51,9 +51,14 @@
 				photo, et le bloc du bas ne servait jamais. Quelques lignes en
 				haut, la suite en pleine largeur — c'est ce que la coupure entre
 				blocs sait faire, encore faut-il lui donner un budget qui tient
-				dans la colonne (~5 lignes de 65 caractères).
+				dans la colonne.
+
+				450, et pas 320 : la coupure prend des blocs ENTIERS, donc le
+				budget doit pouvoir en contenir deux. Une description qui ouvre
+				sur une ligne d'accroche suivie d'un paragraphe (le cas courant)
+				n'affichait que l'accroche — une ligne, puis « Lire la suite ».
 			#}
-			{% set NB_EXCERPT = 320 %}
+			{% set NB_EXCERPT = 450 %}
 			{#
 				UNE description, choisie une fois pour toute la page : celle du
 				site si quelqu'un l'a écrite, sinon celle de l'article. C'est la
