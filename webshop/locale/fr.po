@@ -5551,3 +5551,19 @@ msgstr "Le serveur met trop de temps à répondre. Vérifiez votre connexion et 
 #: webshop/templates/pages/checkout.js
 msgid "Payment methods could not be loaded. Please try again."
 msgstr "Les méthodes de paiement n'ont pas pu être chargées. Veuillez réessayer."
+
+#: webshop/templates/pages/checkout.html
+msgid "Choose a saved address"
+msgstr "Choisir une adresse enregistrée"
+
+#: webshop/templates/pages/checkout.js
+msgid "New address"
+msgstr "Nouvelle adresse"
+
+#: webshop/templates/pages/checkout.js
+msgid "Delivery"
+msgstr "Livraison"
+
+#: webshop/templates/pages/checkout.js
+msgid "This address could not be selected. Please try again."
+msgstr "Cette adresse n'a pas pu être sélectionnée. Veuillez réessayer."

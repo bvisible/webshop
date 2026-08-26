@@ -27,6 +27,9 @@ _LIBELLES_DIALOGUES = (
 	"The quantity could not be updated. Please try again.",
 	"The server is taking too long to answer. Please check your connection and try again.",
 	"Payment methods could not be loaded. Please try again.",
+	#//// Neoffice — address book, rendered in JS.
+	"New address", "Default", "Delivery",
+	"This address could not be selected. Please try again.",
 )
 
 

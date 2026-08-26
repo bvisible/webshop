@@ -107,6 +107,16 @@
 							<div class="frappe-card p-5 mb-4">
 
 								<input type="hidden" id="billing_address_name" name="billing_address_name" value="{{ billing_address_name or '' }}">
+								{#- //// Neoffice — address book. A Frappe customer can hold several
+								    addresses; the checkout only ever showed one flat form, so
+								    choosing between them was impossible and every visit meant
+								    retyping or silently overwriting the one on file. Filled by
+								    checkout.js from get_customer_addresses. -#}
+								<div class="address-picker" id="billing-address-picker" data-target="billing" hidden>
+									<div class="address-picker__label">{{ _("Choose a saved address") }}</div>
+									<div class="address-picker__list"></div>
+								</div>
+
 								<div class="row">
 									<div class="col-md-9 mb-3">
 										<label for="billing_address_1">{{ _("Address Line 1") }} *</label>
@@ -218,6 +228,16 @@
 							<!-- Shipping Address -->
 							<div id="shipping-address-container" style="display: none;">
 								<input type="hidden" id="shipping_address_name" name="shipping_address_name" value="">
+								{#- //// Neoffice — address book. A Frappe customer can hold several
+								    addresses; the checkout only ever showed one flat form, so
+								    choosing between them was impossible and every visit meant
+								    retyping or silently overwriting the one on file. Filled by
+								    checkout.js from get_customer_addresses. -#}
+								<div class="address-picker" id="shipping-address-picker" data-target="shipping" hidden>
+									<div class="address-picker__label">{{ _("Choose a saved address") }}</div>
+									<div class="address-picker__list"></div>
+								</div>
+
 								<div class="row">
 									<div class="col-md-9 mb-3">
 										<label for="shipping_address_1">{{ _("Address Line 1") }} *</label>
@@ -425,6 +445,54 @@
 	    checkout page down with "Illegal template". Included files (checkout.js)
 	    are resolved later by Jinja and are not scanned. -#}
 	window.webshop_hide_currency_symbol = {{ 'true' if hide_currency_symbol else 'false' }};
+</script>
+
+<style>
+/* //// Neoffice — address book picker (see checkout.js). Deliberately quiet:
+   it sits above a form the shopper may not need to touch at all. */
+.address-picker { margin-bottom: 18px; }
+.address-picker__label {
+	font-size: .82rem;
+	font-weight: 600;
+	color: var(--text-muted, #6c7680);
+	margin-bottom: 8px;
+}
+.address-picker__list { display: flex; flex-wrap: wrap; gap: 10px; }
+.address-card-choice {
+	flex: 1 1 210px;
+	max-width: 320px;
+	text-align: left;
+	border: 1px solid var(--gray-300, #d1d8dd);
+	border-radius: 10px;
+	background: #fff;
+	padding: 10px 12px;
+	cursor: pointer;
+	transition: border-color .15s, box-shadow .15s;
+}
+.address-card-choice:hover { border-color: var(--gray-500, #8d99a6); }
+.address-card-choice.is-selected {
+	border-color: var(--primary-color, #7575ff);
+	box-shadow: 0 0 0 1px var(--primary-color, #7575ff);
+}
+.address-card-choice__title { font-weight: 600; font-size: .88rem; display: flex; align-items: center; gap: 6px; }
+.address-card-choice__lines { font-size: .8rem; color: var(--text-muted, #6c7680); margin-top: 2px; line-height: 1.45; }
+.address-card-choice__tag {
+	font-size: .66rem;
+	text-transform: uppercase;
+	letter-spacing: .03em;
+	color: var(--text-muted, #6c7680);
+	border: 1px solid var(--gray-300, #d1d8dd);
+	border-radius: 20px;
+	padding: 1px 7px;
+	font-weight: 500;
+}
+.address-card-choice--new { border-style: dashed; display: flex; align-items: center; justify-content: center; min-height: 62px; font-weight: 500; }
+@media (max-width: 767.98px) {
+	.address-card-choice { flex: 1 1 100%; max-width: none; }
+}
+</style>
+
+<script>
 	{% include "templates/pages/checkout.js" %}
 </script>
 {% endblock %}

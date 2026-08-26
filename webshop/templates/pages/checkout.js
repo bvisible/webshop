@@ -75,6 +75,10 @@ frappe.ready(function() {
 
             this.setupListeners();
             this.setupAddressListeners();
+            //// Neoffice — address book: bind first (delegated, so it survives
+            //// the list being re-rendered), then load and draw the cards.
+            this.bindAddressPickers();
+            this.loadAddressBook();
             this.bindQuantityControls();
             this.checkGiftCardOnly();
             this.showStep('step-address');
@@ -988,6 +992,136 @@ frappe.ready(function() {
                     }
                 });
             });
+        }
+
+        //// Neoffice — address book.
+        ////
+        //// A Frappe customer routinely holds several addresses (home, office,
+        //// a delivery address that is not the billing one). The checkout only
+        //// ever rendered one flat form pre-filled with whichever address came
+        //// back first, and the field holding its identity was hidden. Picking
+        //// another one was impossible: you retyped over the form, which then
+        //// OVERWROTE the address on file — the shopper's home address quietly
+        //// became their office one.
+        ////
+        //// Selecting a card here means "use this address for this order". It
+        //// does not edit anything: the form is filled, the reference values are
+        //// re-baselined so the fields do not count as modified, and only the
+        //// quotation is pointed at the address. Editing a field afterwards
+        //// still updates that address, exactly as before.
+        async loadAddressBook() {
+            try {
+                const r = await frappe.call({
+                    method: 'webshop.webshop.shopping_cart.cart.get_customer_addresses'
+                });
+                this.addressBook = (r && r.message) || [];
+            } catch (err) {
+                //// A failure here must not block the checkout: the plain form
+                //// below still works, the shopper simply types their address.
+                console.error('checkout: address book unavailable', err);
+                this.addressBook = [];
+            }
+            this.renderAddressPicker('billing');
+            this.renderAddressPicker('shipping');
+        }
+
+        renderAddressPicker(target) {
+            const $picker = $(`#${target}-address-picker`);
+            if (!$picker.length) return;
+
+            const book = this.addressBook || [];
+            //// With no address on file there is nothing to choose between, and
+            //// a lone "New address" card would only add noise to an empty form.
+            if (!book.length) {
+                $picker.attr('hidden', true);
+                return;
+            }
+
+            const selected = $(`#${target}_address_name`).val();
+            const cards = book.map(addr => {
+                const lines = [addr.address_line1, [addr.pincode, addr.city].filter(Boolean).join(' ')]
+                    .filter(Boolean).join('<br>');
+                const tag = addr.is_primary_address ? __('Default')
+                    : (addr.is_shipping_address ? __('Delivery') : (addr.address_type || ''));
+                return `
+                    <button type="button" class="address-card-choice ${addr.name === selected ? 'is-selected' : ''}"
+                            data-address="${frappe.utils.escape_html(addr.name)}">
+                        <span class="address-card-choice__title">
+                            ${frappe.utils.escape_html(addr.title || addr.name)}
+                            ${tag ? `<span class="address-card-choice__tag">${frappe.utils.escape_html(tag)}</span>` : ''}
+                        </span>
+                        <span class="address-card-choice__lines">${lines}</span>
+                    </button>`;
+            });
+
+            cards.push(`
+                <button type="button" class="address-card-choice address-card-choice--new ${selected ? '' : 'is-selected'}"
+                        data-address="">
+                    + ${__('New address')}
+                </button>`);
+
+            $picker.find('.address-picker__list').html(cards.join(''));
+            $picker.removeAttr('hidden');
+        }
+
+        bindAddressPickers() {
+            $(document).off('click.addressbook', '.address-card-choice');
+            $(document).on('click.addressbook', '.address-card-choice', (e) => {
+                const $btn = $(e.currentTarget);
+                const target = $btn.closest('.address-picker').data('target');
+                const name = $btn.data('address') || '';
+                this.selectAddress(target, name);
+            });
+        }
+
+        async selectAddress(target, name) {
+            const prefix = `${target}_`;
+            const addr = (this.addressBook || []).find(a => a.name === name);
+
+            const champs = {
+                [`${prefix}address_1`]: addr ? (addr.address_line1 || '') : '',
+                [`${prefix}address_2`]: addr ? (addr.address_line2 || '') : '',
+                [`${prefix}city`]: addr ? (addr.city || '') : '',
+                [`${prefix}state`]: addr ? (addr.state || '') : '',
+                [`${prefix}postcode`]: addr ? (addr.pincode || '') : '',
+                [`${prefix}country`]: addr ? (addr.country || '') : '',
+            };
+            if (addr && addr.phone) champs[`${prefix}phone`] = addr.phone;
+            if (addr && addr.email_id) champs[`${prefix}email`] = addr.email_id;
+
+            //// Set the values WITHOUT firing change: this is not an edit, and
+            //// letting it land in pendingChanges would make the next step call
+            //// update_address_info, rewriting the chosen address (with
+            //// is_primary_address = 1) instead of merely using it.
+            Object.entries(champs).forEach(([field, value]) => {
+                $(`[name="${field}"]`).val(value);
+                if (this.initialFormValues) this.initialFormValues[field] = value;
+                delete this.pendingChanges[field];
+            });
+            $(`#${target}_address_name`).val(name);
+
+            $(`#${target}-address-picker`).find('.address-card-choice').removeClass('is-selected');
+            $(`#${target}-address-picker`)
+                .find(`.address-card-choice[data-address="${name}"]`).addClass('is-selected');
+
+            if (!name) return;   // "New address": the form is cleared, nothing to tell the server yet
+
+            //// Point the quotation at the address straight away, so the taxes
+            //// on the right follow the country the shopper just picked.
+            try {
+                const r = await this.callServer(
+                    'webshop.webshop.shopping_cart.cart.update_cart_address',
+                    {address_type: target === 'billing' ? 'Billing' : 'Shipping', address_name: name},
+                    {freeze: ['order-summary'],
+                     errorMessage: __('This address could not be selected. Please try again.')}
+                );
+                if (r && r.taxes !== undefined) $('.tax-container').html(r.taxes);
+                if (r && r.address !== undefined && target === 'billing') {
+                    $('.billing-address-display').html(r.address);
+                }
+            } catch (err) {
+                /* callServer has already told the shopper */
+            }
         }
 
         setupAddressListeners() {
