@@ -117,12 +117,17 @@ def make_item(item_code, opening_supplier_stock=0):
 	website_item = frappe.db.get_value("Website Item", {"item_code": item_code}, "name")
 	# warehouse_sources_mode is reset on every setUp so the suite stays
 	# order-independent (a test switching an item to Custom cannot leak).
+	#
+	# published stays 0: nothing here needs it (source resolution never reads
+	# it), and a crashed run must never leave a "MWTEST-ITEM" on the shop's
+	# shelves. It happened — the rows survive a rollback because ERPNext
+	# commits along the way, and two test items showed up in /all-products.
 	frappe.db.set_value(
 		"Website Item",
 		website_item,
 		{
 			"website_warehouse": store_warehouse(),
-			"published": 1,
+			"published": 0,
 			"warehouse_sources_mode": "Auto",
 		},
 		update_modified=False,
@@ -242,6 +247,11 @@ class TestMultiWarehouseBase(unittest.TestCase):
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
+		cls.restore_settings()
+		cls.drop_fixtures()
+
+	@classmethod
+	def restore_settings(cls):
 		snapshot = getattr(cls, "_settings_snapshot", None)
 		if not snapshot:
 			return
@@ -255,6 +265,32 @@ class TestMultiWarehouseBase(unittest.TestCase):
 		settings.save(ignore_permissions=True)
 		frappe.db.commit()
 		frappe.clear_document_cache("Webshop Settings", "Webshop Settings")
+
+	@classmethod
+	def drop_fixtures(cls):
+		"""Remove the MWTEST masters the rollback could not take back.
+
+		Best effort and strictly name-scoped: a fixture still referenced by a
+		document is left alone rather than force-deleted, which would trade a
+		leftover for a dangling link — the kind that breaks a document without
+		showing anything on the record itself.
+		"""
+		targets = (
+			[("Website Item", n) for n in frappe.get_all("Website Item", filters={"item_code": ["like", "MWTEST%"]}, pluck="name")]
+			+ [("Item", n) for n in frappe.get_all("Item", filters={"item_code": ["like", "MWTEST%"]}, pluck="name")]
+			+ [("Contact", n) for n in frappe.get_all("Contact", filters={"first_name": "MWTEST"}, pluck="name")]
+			+ [("User", n) for n in frappe.get_all("User", filters={"name": ["like", "mwtest%"]}, pluck="name")]
+			+ [("Customer", n) for n in frappe.get_all("Customer", filters={"name": ["like", "MWTEST%"]}, pluck="name")]
+			+ [("Supplier", n) for n in frappe.get_all("Supplier", filters={"name": ["like", "MWTEST%"]}, pluck="name")]
+			+ [("Warehouse", n) for n in frappe.get_all("Warehouse", filters={"name": ["like", "MWTEST%"]}, pluck="name")]
+			+ [("Holiday List", n) for n in frappe.get_all("Holiday List", filters={"name": ["like", "MWTEST%"]}, pluck="name")]
+		)
+		for doctype, name in targets:
+			try:
+				frappe.delete_doc(doctype, name, ignore_permissions=True)
+			except Exception:
+				frappe.db.rollback()
+		frappe.db.commit()
 
 	def setUp(self):
 		frappe.set_user("Administrator")
