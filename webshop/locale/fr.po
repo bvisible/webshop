@@ -5509,10 +5509,6 @@ msgid "{0} — image {1}"
 msgstr "{0} — image {1}"
 
 #: webshop/templates/generators/item/item_add_to_cart.html
-msgid "Quantity"
-msgstr "Quantité"
-
-#: webshop/templates/generators/item/item_add_to_cart.html
 msgid "Choose a stock source"
 msgstr "Choisir une source de stock"
 
