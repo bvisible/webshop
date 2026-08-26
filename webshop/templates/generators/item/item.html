@@ -1,7 +1,10 @@
 {% extends "templates/web.html" %}
 {% from "webshop/templates/includes/macros.html" import recommended_item_row %}
 
-{% block title %} {{ title }} {% endblock %}
+{# //// Neoffice — the browser <title> takes the shop-suffixed variant;
+   `title` itself stays the plain product name because themes print it as the
+   visible page heading and as the last breadcrumb. #}
+{% block title %} {{ html_title or title }} {% endblock %}
 
 {% block breadcrumbs %}
 {# breadcrumbs render inside the buy-box card, under the product title #}
@@ -42,7 +45,15 @@
 				si l'un coupe et que l'autre ne complète pas, le « Lire la
 				suite » ne mène nulle part.
 			#}
-			{% set NB_EXCERPT = 900 %}
+			{#
+				900 laissait passer presque toutes les descriptions entières dans
+				la colonne d'achat : elle devenait deux fois plus haute que la
+				photo, et le bloc du bas ne servait jamais. Quelques lignes en
+				haut, la suite en pleine largeur — c'est ce que la coupure entre
+				blocs sait faire, encore faut-il lui donner un budget qui tient
+				dans la colonne (~5 lignes de 65 caractères).
+			#}
+			{% set NB_EXCERPT = 320 %}
 			{#
 				UNE description, choisie une fois pour toute la page : celle du
 				site si quelqu'un l'a écrite, sinon celle de l'article. C'est la
@@ -172,6 +183,14 @@
 	}
 	.product-header-block .product-title-breadcrumbs .breadcrumb li:last-child,
 	.product-header-block .product-title-breadcrumbs .breadcrumb-item:last-child { display: none; }
+	/* Themes that print their own page header (title + breadcrumbs above the
+	   content) made the product page say everything twice. When such a header
+	   is on the page, this block keeps only the wishlist heart — on a theme
+	   without one, the title and breadcrumbs stay exactly where they were. */
+	body:has(.site-page-header) .product-header-block .product-title-main,
+	body:has(.site-page-header) .product-header-block .product-title-breadcrumbs { display: none; }
+	body:has(.site-page-header) .product-header-block { margin: 0 0 8px; }
+	body:has(.site-page-header) .product-header-block .like-action { margin-left: auto; }
 	/* the legacy page wrapper painted the whole product page white, hiding the
 	   gray background between the cards */
 	body.product-page .product-container.item-main { background: transparent !important; box-shadow: none !important; border: none !important; }
@@ -186,9 +205,18 @@
 		box-shadow: 0 1px 3px rgba(16,24,40,.07), 0 1px 2px rgba(16,24,40,.05);
 	}
 	@media (min-width: 768px) {
-		.product-hero-row { display: flex; flex-wrap: nowrap; gap: 20px; }
+		.product-hero-row { display: flex; flex-wrap: nowrap; gap: 20px; align-items: stretch; }
 		.product-hero-row > .product-image-wrapper { flex: 0 0 calc(48% - 10px) !important; max-width: none !important; }
 		.product-hero-row > .product-details { flex: 1 1 auto !important; max-width: none !important; width: auto !important; }
+		/* The gallery column carries Bootstrap's h-100. On a flex row whose
+		   height comes from its content, an explicit height beats align-items
+		   stretch, so the picture card stopped short of the buy box instead of
+		   matching it. Height auto hands the arbitration back to the row, and
+		   the image sits centred in whatever height the buy box dictates. */
+		.product-hero-row > .product-image-wrapper.h-100 { height: auto !important; }
+		.product-hero-row > .product-image-wrapper { align-items: center; justify-content: center; }
+		.product-hero-row > .product-image-wrapper .product-image-container,
+		.product-hero-row > .product-image-wrapper > a { width: 100%; }
 	}
 	.product-long-description-section {
 		background: #fff;
@@ -210,6 +238,13 @@
 		background: #fff;
 		border-radius: 14px;
 	}
+	/* The carousel brings its own outer spacing and lets its cards slide past
+	   its edges — inside a card that spilled over the neighbouring block. */
+	.product-info-wrapper .recommended-card { overflow: hidden; }
+	.product-info-wrapper .recommended-card .product-carousel { margin: 0; padding: 0; }
+	.product-info-wrapper .recommended-card .carousel-clip-container { overflow: hidden; }
+	/* One heading rhythm for the three bottom cards. */
+	.product-info-wrapper .recommendation-container .recommendation-header { display: block; margin-bottom: 14px !important; }
 </style>
 			{# La description entière, pleine largeur — UNIQUEMENT quand la colonne
 			   d'achat a dû la couper. Sinon elle y est déjà, et la répéter ici
@@ -257,22 +292,31 @@
 	<div class="col-12 {{ recommendations_col_class }} mt-4 order-1 order-lg-2 recommendations-wrapper">
 		<div class="row">
 			<!-- Recommended Items -->
+			{# //// Neoffice — the carousel was the only bottom section left
+			   bare: its heading and its cards floated on the gray page while
+			   reviews and "frequently bought together" sat in white cards.
+			   Same card wrapper here, so the three blocks read as one family. #}
 			{% if show_recommended_items and recommended_items %}
 				{% set rec_inner_col = 'col-12' if recommendations_col_class == 'col-lg-3' else 'col-md-6' %}
 				<div class="col-12 {{ rec_inner_col }} recommended-item-section">
-					{% set website_items = recommended_items %}
-					{% set carousel_title = _("Recommended") %}
-					{% set carousel_id = "recommended-products-carousel" %}
-					{% include "templates/includes/product_carousel.html" %}
+					<div class="product-container recommended-card">
+						{% set website_items = recommended_items %}
+						{% set carousel_title = _("Recommended") %}
+						{% set carousel_id = "recommended-products-carousel" %}
+						{% include "templates/includes/product_carousel.html" %}
+					</div>
 				</div>
 			{% endif %}
 
 			<!-- Frequently Bought Together -->
+			{# //// Neoffice — heading moved inside the card, like the reviews
+			   block: a bare heading over a white card, next to a card whose
+			   heading is inside it, read as two different designs. #}
 			{% if shopping_cart.cart_settings.enable_frequently_bought_together and frequently_bought_together %}
 				{% set fbt_inner_col = 'col-12' if recommendations_col_class == 'col-lg-3' else 'col-md-6' %}
 				<div class="col-12 {{ fbt_inner_col }} frequently-bought-section">
-					<span class="recommendation-header">{{ _("Frequently Bought Together") }}</span>
-					<div class="product-container mt-2 recommendation-container">
+					<div class="product-container recommendation-container">
+						<span class="recommendation-header">{{ _("Frequently Bought Together") }}</span>
 						{% for item in frequently_bought_together[:4] %}
 							{{ recommended_item_row({
 								"website_item_name": item.web_item_name,

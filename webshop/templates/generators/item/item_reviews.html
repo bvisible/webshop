@@ -4,9 +4,14 @@
 	<div class="reviews-container">
 		<!-- Title and Action -->
 		<div class="reviews-header-wrapper d-flex justify-content-between align-items-center mb-4">
+			{# //// Neoffice — a "0" badge next to the heading only states the
+			   obvious: the empty state below already says there is no review.
+			   The count shows up once there is something to count. #}
 			<h3 class="reviews-title mb-0 mt-0">
 				{{ _("Customer Reviews") }}
-				<span class="review-count-badge">{{ total_reviews or 0 }}</span>
+				{% if total_reviews %}
+					<span class="review-count-badge">{{ total_reviews }}</span>
+				{% endif %}
 			</h3>
 
 			<!-- Write a Review for legitimate users -->
@@ -26,14 +31,20 @@
 		</div>
 
 		<!-- Enhanced Summary -->
+		{# //// Neoffice — without a single review this card was a big "0", five
+		   empty stars, five bars at 0% and "Based on 0 reviews" — a wall of
+		   nothing above the invitation to write the first one. It appears with
+		   the first review. #}
+		{% if total_reviews %}
 		<div class="reviews-summary-card">
 			{{ ratings_summary(reviews, reviews_per_rating, average_rating, average_whole_rating, for_summary=True, total_reviews=total_reviews) }}
 
 
 		</div>
+		{% endif %}
 
 		<!-- Reviews and Comments -->
-		<div class="reviews-list-section mt-5">
+		<div class="reviews-list-section {{ 'mt-5' if total_reviews else '' }}">
 			{% if reviews %}
 				<div class="reviews-list">
 					{{ user_review(reviews) }}

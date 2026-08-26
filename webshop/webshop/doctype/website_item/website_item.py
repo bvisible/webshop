@@ -415,9 +415,20 @@ class WebsiteItem(WebsiteGenerator):
 		if _meta_image:
 			metatags["image"] = _meta_image
 		context.metatags = metatags
-		# the HTML <title> comes from context.title; suffix the shop name when set
+		#//// Neoffice — context.title is NOT only the browser <title>: themes
+		#//// render it as the visible page heading and as the last breadcrumb.
+		#//// Suffixing the shop name here put "Panier Garnis | Neoffice" on
+		#//// screen. The clean product name stays in context.title, and the
+		#//// suffixed variant moves to context.html_title, which item.html
+		#//// feeds to the {% block title %} — SEO keeps its suffix, the page
+		#//// shows the product name.
+		context.title = _meta_title
 		_site_name = frappe.db.get_single_value("Website Settings", "app_name")
-		context.title = _meta_title + " | " + _site_name if _site_name and _site_name != "Frappe" else _meta_title
+		context.html_title = (
+			_meta_title + " | " + _site_name
+			if _site_name and _site_name != "Frappe"
+			else _meta_title
+		)
 
 		context.frequently_bought_together = None
 		if settings and settings.enable_frequently_bought_together:
