@@ -2745,11 +2745,23 @@ frappe.ready(function() {
         //// Neoffice — la surveillance d'une intention, jusqu'à la commande.
         watchIntent(intent, $form) {
             if (!intent) return;
-            const self_ = this;
+            //// Changer de méthode de paiement rappelle watchIntent. L'ancienne
+            //// surveillance doit mourir ici : sinon son setInterval continue de
+            //// sonder le serveur toutes les 5 s, et — pire — son arreter() lisait
+            //// this._intentTimer, qui pointe désormais sur le NOUVEAU timer : en
+            //// expirant, l'ancienne surveillance tuait la nouvelle.
+            this.stopIntentWatch();
+
             const canal = 'payment.intent.' + intent + '.updated';
             let fini = false, restant = 60;   // 5 minutes à 5 s
+            let timer = null;
+            //// arreter() ne ferme que SUR SES PROPRES ressources (timer local,
+            //// pas un champ d'instance partagé), donc deux surveillances qui se
+            //// chevauchent ne peuvent plus s'annuler mutuellement.
             const arreter = () => {
-                if (self_._intentTimer) { clearInterval(self_._intentTimer); self_._intentTimer = null; }
+                if (timer) { clearInterval(timer); timer = null; }
+                if (this._intentStop === arreter) this._intentStop = null;
+                window.removeEventListener('pagehide', arreter);
                 try { if (frappe.realtime && frappe.realtime.off) frappe.realtime.off(canal, demander); }
                 catch (e) { /* la socket a pu partir avant nous */ }
             };
@@ -2773,7 +2785,7 @@ frappe.ready(function() {
                 //// reste inerte tant que personne n'écoute.
                 if (frappe.realtime && frappe.realtime.on) frappe.realtime.on(canal, demander);
             } catch (e) { /* pas de temps réel ici : le filet suffit */ }
-            this._intentTimer = setInterval(() => {
+            timer = setInterval(() => {
                 restant -= 1;
                 if (restant <= 0) {
                     arreter();
@@ -2782,8 +2794,16 @@ frappe.ready(function() {
                 }
                 demander();
             }, 5000);
+            this._intentStop = arreter;
             demander();
+            //// Retiré par arreter() : sans cela chaque changement de méthode
+            //// laissait un écouteur de plus accroché à window.
             window.addEventListener('pagehide', arreter);
+        }
+
+        //// Neoffice — arrête la surveillance en cours, s'il y en a une.
+        stopIntentWatch() {
+            if (this._intentStop) this._intentStop();
         }
 
         //// Neoffice — le chargement historique, extrait tel quel pour être
