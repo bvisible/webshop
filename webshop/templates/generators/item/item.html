@@ -189,8 +189,18 @@
 	   without one, the title and breadcrumbs stay exactly where they were. */
 	body:has(.site-page-header) .product-header-block .product-title-main,
 	body:has(.site-page-header) .product-header-block .product-title-breadcrumbs { display: none; }
-	body:has(.site-page-header) .product-header-block { margin: 0 0 8px; }
-	body:has(.site-page-header) .product-header-block .like-action { margin-left: auto; }
+	/* Left alone, the wishlist heart stayed behind on its own empty line above
+	   the cards. It goes where shops put it — top right of the product, over
+	   the buy box (and over the picture once the columns stack). */
+	body:has(.site-page-header) .product-page-content { position: relative; }
+	body:has(.site-page-header) .product-header-block {
+		position: absolute;
+		top: 16px;
+		right: 18px;
+		z-index: 4;
+		margin: 0;
+	}
+	body:has(.site-page-header) .product-header-block .like-action { margin: 0; }
 	/* the legacy page wrapper painted the whole product page white, hiding the
 	   gray background between the cards */
 	body.product-page .product-container.item-main { background: transparent !important; box-shadow: none !important; border: none !important; }
