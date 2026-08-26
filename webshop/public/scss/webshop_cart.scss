@@ -1004,14 +1004,19 @@ body[data-path=update-profile] {
 				}
 			}
 
+			//// Neoffice — same story as .container-qty just above: squeezed into
+			//// a 30px-wide column, the spinner had to fold into a column to fit
+			//// (− above the number, + below). The mobile cart lays each line out
+			//// as a card now, so it has room to read the way it does on desktop.
 			@media (max-width: 768px) {
 				display: flex;
-				justify-content: center;
+				flex-direction: row;
+				flex-wrap: nowrap;
+				align-items: center;
+				justify-content: flex-start;
 				background-color: #f3f3f3;
-				width: 30px;
-				min-width: inherit;
-				flex-direction: column;
-				align-content: center;
+				width: auto;
+				min-width: 0;
 			}
 		}
 
