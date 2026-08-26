@@ -3,12 +3,16 @@
 	{% if slides %}
 		<div class="item-slideshow d-flex flex-column mr-3 d-none d-md-flex">
 			{% for item in slides %}
+			{# //// Neoffice — an auto-generated slideshow has no heading, so
+			   every thumbnail carried an empty alt. Falls back to the product
+			   name and the position, which is what a screen reader needs. #}
 			<img class="item-slideshow-image mb-2 {% if loop.first %}active{% endif %}"
-					src="{{ item.image }}" alt="{{ item.heading }}">
+					src="{{ item.image }}" loading="lazy" decoding="async"
+					alt="{{ item.heading or _('{0} — image {1}').format(_(doc.web_item_name), loop.index) }}">
 			{% endfor %}
 		</div>
 		<div class="product-image-container">
-			{{ product_image(slides[0].image, 'product-image') }}
+			{{ product_image(slides[0].image, 'product-image', alt=doc.web_item_name) }}
 			<!-- Enhanced image slideshow with navigation and autoplay -->
 			<div class="slideshow-navigation">
 				<button class="slideshow-btn prev" aria-label="Previous image">‹</button>
@@ -24,7 +28,8 @@
 		<div class="item-slideshow-mobile d-flex d-md-none mt-3">
 			{% for item in slides %}
 			<img class="item-slideshow-image {% if loop.first %}active{% endif %}"
-					src="{{ item.image }}" alt="{{ item.heading }}">
+					src="{{ item.image }}" loading="lazy" decoding="async"
+					alt="{{ item.heading or _('{0} — image {1}').format(_(doc.web_item_name), loop.index) }}">
 			{% endfor %}
 		</div>
 		<script>
@@ -172,7 +177,8 @@
 		<div class="zoom-thumbnails">
 			{% for item in slides %}
 			<img class="zoom-thumbnail {% if loop.first %}active{% endif %}" 
-				src="{{ item.image }}" alt="{{ item.heading }}" data-index="{{ loop.index0 }}">
+				src="{{ item.image }}" loading="lazy" decoding="async"
+				alt="{{ item.heading or _('{0} — image {1}').format(_(doc.web_item_name), loop.index) }}" data-index="{{ loop.index0 }}">
 			{% endfor %}
 		</div>
 		{% endif %}

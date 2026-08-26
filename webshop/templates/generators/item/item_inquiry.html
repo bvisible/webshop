@@ -1,9 +1,25 @@
 {% if shopping_cart and shopping_cart.cart_settings.enabled %}
 {% set cart_settings = shopping_cart.cart_settings %}
 	{% if cart_settings.show_contact_us_button | int %}
-		<button class="btn btn-inquiry font-md" data-item-code="{{ doc.name }}" style="border: 1px solid;">
-			{{ _('?') }}
+		{# //// Neoffice — the label was a bare "?". On desktop it reads as a
+		   help affordance next to the cart button; on mobile it stretches full
+		   width under it and nobody can guess what it does. The question mark
+		   stays as the icon, the wording carries the meaning. #}
+		<button class="btn btn-inquiry font-md" data-item-code="{{ doc.name }}"
+			style="border: 1px solid;" title="{{ _('Ask a question about this product') }}"
+			aria-label="{{ _('Ask a question about this product') }}">
+			<span aria-hidden="true">?</span>
+			<span class="btn-inquiry__label">{{ _('A question?') }}</span>
 		</button>
+		<style>
+			/* Desktop: the small square button next to "Add to cart" keeps just
+			   the mark. Mobile: it stretches full width under the cart button,
+			   where a lone "?" tells nobody anything — the wording comes back. */
+			.btn-inquiry__label { display: none; }
+			@media (max-width: 767.98px) {
+				.btn-inquiry__label { display: inline; margin-left: 6px; }
+			}
+		</style>
 	{% endif %}
 <script>
 {% include "templates/generators/item/item_inquiry.js" %}

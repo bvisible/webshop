@@ -5503,3 +5503,23 @@ msgstr "{0} article(s) mis à jour"
 #: webshop/templates/includes/cart/cart_payment_summary.html
 msgid "Net Total ({0} items)"
 msgstr "Total net ({0} articles)"
+
+#: webshop/templates/generators/item/item_image.html
+msgid "{0} — image {1}"
+msgstr "{0} — image {1}"
+
+#: webshop/templates/generators/item/item_add_to_cart.html
+msgid "Quantity"
+msgstr "Quantité"
+
+#: webshop/templates/generators/item/item_add_to_cart.html
+msgid "Choose a stock source"
+msgstr "Choisir une source de stock"
+
+#: webshop/templates/generators/item/item_inquiry.html
+msgid "Ask a question about this product"
+msgstr "Poser une question sur ce produit"
+
+#: webshop/templates/generators/item/item_inquiry.html
+msgid "A question?"
+msgstr "Une question ?"

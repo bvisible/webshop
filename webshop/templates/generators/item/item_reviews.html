@@ -7,12 +7,14 @@
 			{# //// Neoffice — a "0" badge next to the heading only states the
 			   obvious: the empty state below already says there is no review.
 			   The count shows up once there is something to count. #}
-			<h3 class="reviews-title mb-0 mt-0">
+			{# //// Neoffice — h2 like the two cards beside it (Recommended, Frequently
+			   Bought Together): same visual level should be the same heading level. #}
+				<h2 class="reviews-title mb-0 mt-0">
 				{{ _("Customer Reviews") }}
 				{% if total_reviews %}
 					<span class="review-count-badge">{{ total_reviews }}</span>
 				{% endif %}
-			</h3>
+			</h2>
 
 			<!-- Write a Review for legitimate users -->
 			{% if frappe.session.user != "Guest" and user_is_customer %}
@@ -66,7 +68,8 @@
 					<svg class="icon icon-xl text-muted mb-3">
 						<use href="#icon-star"></use>
 					</svg>
-					<h5 class="text-muted">{{ _("No Reviews Yet") }}</h5>
+					{# //// Neoffice — h5 under an h2 skipped two levels. #}
+					<h3 class="text-muted">{{ _("No Reviews Yet") }}</h3>
 					<p class="text-muted">{{ _("Be the first to review this product") }}</p>
 					{% if frappe.session.user != "Guest" and user_is_customer %}
 						<button class="btn btn-primary btn-write-review mt-3 d-inline-block"

@@ -72,7 +72,11 @@
 					.webshop-source-qty.webshop-out { color: var(--red-600, red); }
 					.webshop-source-delay { font-size: 0.85em; color: var(--text-muted, #6c7680); margin-left: auto; }
 				</style>
-				<div class="webshop-warehouse-sources" id="webshop-warehouse-sources">
+				{# //// Neoffice — a bare pile of radios is announced without any
+				   context by a screen reader: the group needs a role and a name
+				   for "Store, in stock, delivery in ~2 days" to mean anything. #}
+				<div class="webshop-warehouse-sources" id="webshop-warehouse-sources"
+					role="radiogroup" aria-label="{{ _('Choose a stock source') }}">
 					{% set ns = namespace(picked=False) %}
 					{% for src in product_info.warehouse_sources %}
 						{% set selectable = src.in_stock or cart_settings.allow_items_not_in_stock %}
@@ -279,9 +283,15 @@
 										–
 									</button>
 								</span>
-								<input class="form-control text-center item-qty" 
+								{# //// Neoffice — type="text" handed mobile shoppers an
+							   alphabetic keyboard to type a number. inputmode keeps
+							   the field tolerant (the spinner writes into it) while
+							   asking for the numeric pad. #}
+							<input class="form-control text-center item-qty" 
 									value="1" 
 									data-item-code="{{item_code}}"
+									inputmode="numeric"
+									aria-label="{{ _('Quantity') }}"
 									min="1"
 									{% if product_info.show_stock_qty and product_info.stock_qty and not product_info.get("on_backorder") %}
 									max="{{ product_info.stock_qty|int }}"
