@@ -2000,8 +2000,26 @@ frappe.ready(function() {
                 $('.bt-loyalty-point').prop('disabled', false);
             }
 
-            // Refresh shipping methods only if not already updating a method
-            if (!this.isUpdatingShipping) {
+            //// Neoffice — infinite loop, closed here.
+            ////
+            //// _updateOrderSummary asked for a shipping refresh, which
+            //// re-rendered the list, which re-applied the checked method
+            //// (loadShippingMethods → updateShippingMethod), which came back
+            //// into _updateOrderSummary. The only brake was a comparison
+            //// "re-render only if the HTML changed" that can never hold: one
+            //// side is the browser's re-serialisation (`checked=""`), the
+            //// other the raw template (`checked`), so they always differ.
+            ////
+            //// The loop was already there, but each turn paid for ~17 currency
+            //// round trips at 25 ms, so it crawled — visible only as the
+            //// flicker Jérémy had noticed. With formatting now local there is
+            //// nothing left to slow it down and the tab freezes outright.
+            ////
+            //// `notReload` is exactly the "this refresh comes FROM a shipping
+            //// update" signal, and was already threaded down here for the
+            //// payment side. Honouring it for shipping too breaks the cycle at
+            //// its only re-entry point.
+            if (!this.isUpdatingShipping && !notReload) {
                 this.refreshShippingMethods();
             }
             // Refresh payment methods only if not already updating a method and on payment step
