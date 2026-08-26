@@ -2014,7 +2014,14 @@ frappe.ready(function() {
                 args: {
                     item_code: item_code,
                     qty: qty,
-                    with_items: true,
+                    //// Neoffice — 1, not true. frappe.call serialises the
+                    //// boolean as the string "true", and the server reads this
+                    //// flag with cint(), for which "true" is 0. The parameter
+                    //// was therefore ignored on every call ever made here: the
+                    //// response came back as a bare {name}, which is truthy —
+                    //// so the code moved on happily and fetched the cart again
+                    //// right after. That second call is what this one replaces.
+                    with_items: 1,
                     //// Neoffice — multi-warehouse: keep the edit on the right line.
                     warehouse: warehouse !== undefined ? warehouse : undefined
                 },
