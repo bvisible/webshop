@@ -31,7 +31,10 @@ ITEM = "MWTEST-ITEM"
 ITEM_SINGLE = "MWTEST-ITEM-SINGLE"
 STORE_LABEL = "Magasin"
 SUPPLIER_LABEL = "Stock fournisseur"
-SUPPLIER_NAME = "MWTEST Supplier"
+# Dedicated to the suite: never the supplier a demo/setup script would pick
+# (first enabled supplier), so a leftover demo Purchase Order can never be
+# mistaken for one this suite just created.
+SUPPLIER_NAME = "MWTEST Procurement Supplier"
 CUSTOMER_NAME = "MWTEST Customer"
 TEST_USER = "mwtest-customer@example.com"
 
@@ -112,11 +115,20 @@ def make_item(item_code, opening_supplier_stock=0):
 			ignore_permissions=True
 		)
 	website_item = frappe.db.get_value("Website Item", {"item_code": item_code}, "name")
+	# warehouse_sources_mode is reset on every setUp so the suite stays
+	# order-independent (a test switching an item to Custom cannot leak).
 	frappe.db.set_value(
 		"Website Item",
 		website_item,
-		{"website_warehouse": store_warehouse(), "published": 1},
+		{
+			"website_warehouse": store_warehouse(),
+			"published": 1,
+			"warehouse_sources_mode": "Auto",
+		},
 		update_modified=False,
+	)
+	frappe.db.delete(
+		"Website Item Warehouse Source", {"parent": website_item}
 	)
 	frappe.clear_document_cache("Website Item", website_item)
 	return website_item
@@ -184,7 +196,25 @@ class TestMultiWarehouseBase(unittest.TestCase):
 		make_item(ITEM, opening_supplier_stock=25)
 		make_item(ITEM_SINGLE, opening_supplier_stock=0)
 		make_customer_with_user()
+		self.drop_leftover_purchase_orders()
 		self.configure_settings()
+
+	def drop_leftover_purchase_orders(self):
+		"""Remove draft webshop POs of the test supplier left by a crashed run.
+
+		Scoped to SUPPLIER_NAME, which only this suite uses, so real or demo
+		purchase orders are never touched.
+		"""
+		if not frappe.get_meta("Purchase Order").has_field("neo_webshop_generated"):
+			return
+		for name in frappe.get_all(
+			"Purchase Order",
+			filters={"supplier": SUPPLIER_NAME, "docstatus": 0},
+			pluck="name",
+		):
+			frappe.delete_doc(
+				"Purchase Order", name, force=True, ignore_permissions=True
+			)
 
 	def tearDown(self):
 		frappe.set_user("Administrator")

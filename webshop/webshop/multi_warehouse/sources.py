@@ -330,7 +330,8 @@ def bulk_set_item_source(website_items, warehouse, action="add"):
 		doc.save()
 		updated += 1
 
-	frappe.db.commit()
+	# No explicit commit: Frappe commits the request on its own. Committing
+	# here would also escape any surrounding transaction (tests, bulk jobs).
 	return {"updated": updated}
 
 
