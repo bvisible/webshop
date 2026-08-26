@@ -19,7 +19,15 @@ from webshop.webshop.doctype.override_doctype.item_group import get_item_for_lis
 no_cache = 1
 
 
+from frappe import _
+
+
 def get_context(context):
+	#//// Neoffice — themes print context.title as the visible page heading
+	#//// and as the last breadcrumb, and Frappe defaults it to the route
+	#//// name — untranslated. A French shop read "product-search" on screen while
+	#//// its browser tab said the translated title.
+	context.title = _("Product Search")
 	context.show_search = True
 
 

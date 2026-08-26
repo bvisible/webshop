@@ -13,6 +13,11 @@ no_cache = 1
 
 def get_context(context):
     """Get context for the loyalty points page"""
+    #//// Neoffice — themes print context.title as the visible page
+    #//// heading and as the last breadcrumb, and Frappe defaults it to
+    #//// the route name — untranslated: the page read "loyalty-points" on
+    #//// screen while its browser tab said the translated title.
+    context.title = _("Loyalty Points")
     context.no_cache = 1
     context.show_sidebar = True
 

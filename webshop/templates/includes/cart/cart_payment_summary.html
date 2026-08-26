@@ -10,8 +10,16 @@
 		{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
 			<table class="table w-100">
 				<tr>
+					{#
+						//// Neoffice — this label was three translated fragments
+						glued together: `_("Net Total (") + n + _(" Items)")`. The
+						leading space of the third fragment does not survive a
+						round trip through the PO file, so the shop read
+						"Total net (4Articles)" — and a translator was being
+						handed half-sentences no language can reassemble.
+					#}
 					{% set total_items = frappe.utils.cstr(frappe.utils.flt(doc.total_qty, 0)) %}
-					<td class="bill-label">{{ _("Net Total (") + total_items + _(" Items)") }}</td>
+					<td class="bill-label">{{ _("Net Total ({0} items)").format(total_items) }}</td>
 					<td class="bill-content net-total text-right">{{ webshop_fmt_money(doc.net_total, currency=doc.currency) }}</td>
 				</tr>
 

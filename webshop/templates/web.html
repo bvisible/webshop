@@ -1,6 +1,26 @@
 {% extends base_template_path %}
 {% block hero %}{% endblock %}
 
+{#
+	//// Neoffice — themes now render their own page header (title + crumbs)
+	above the content. Every webshop page kept rendering its own on top of it,
+	so all of them said their title twice and showed two breadcrumb trails.
+
+	One rule for the whole app: when such a header is on the page, the page's
+	own title (.webshop-page-title) and breadcrumbs step aside. Only the title
+	is hidden, not its container — on /all-products it shares the row with the
+	mobile "Filters" button, which must stay. A theme without a page header is
+	untouched, and so is anything else living in the header block.
+
+	The product page has its own equivalent rule in
+	templates/generators/item/item.html (its title sits inside page_content,
+	not in this header block).
+#}
+<style>
+	body:has(.site-page-header) .page-breadcrumbs,
+	body:has(.site-page-header) .webshop-page-title { display: none; }
+</style>
+
 {% block content %}
 
 {% macro main_content() %}

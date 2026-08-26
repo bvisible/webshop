@@ -2,11 +2,17 @@ import frappe
 from frappe.utils import cint
 
 from webshop.webshop.product_data_engine.filters import ProductFiltersBuilder
+from frappe import _
 
 sitemap = 1
 
 
 def get_context(context):
+	#//// Neoffice — themes print context.title as the visible page heading
+	#//// and as the last breadcrumb, and Frappe defaults it to the route
+	#//// name — untranslated. A French shop read "all-products" on screen while
+	#//// its browser tab said the translated title.
+	context.title = _("All Products")
 	# Add homepage as parent
 	context.body_class = "product-page"
 	context.parents = [{"name": frappe._("Home"), "route": "/"}]

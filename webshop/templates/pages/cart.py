@@ -4,9 +4,15 @@
 no_cache = 1
 
 from webshop.webshop.shopping_cart.cart import get_cart_quotation
+from frappe import _
 
 
 def get_context(context):
+    #//// Neoffice — themes print context.title as the visible page heading
+    #//// and as the last breadcrumb, and Frappe defaults it to the route
+    #//// name — untranslated. A French shop read "cart" on screen while
+    #//// its browser tab said the translated title.
+    context.title = _("Shopping Cart")
     from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
     
     # Check and merge guest cart if needed

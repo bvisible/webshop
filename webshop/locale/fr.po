@@ -5499,3 +5499,7 @@ msgstr "Mise à jour des sources de stock..."
 #: webshop/webshop/doctype/website_item/website_item_list.js
 msgid "{0} item(s) updated"
 msgstr "{0} article(s) mis à jour"
+
+#: webshop/templates/includes/cart/cart_payment_summary.html
+msgid "Net Total ({0} items)"
+msgstr "Total net ({0} articles)"

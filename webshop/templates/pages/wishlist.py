@@ -10,7 +10,15 @@ from erpnext.utilities.product import get_price
 from webshop.webshop.shopping_cart.cart import get_party
 
 
+from frappe import _
+
+
 def get_context(context):
+	#//// Neoffice — themes print context.title as the visible page heading
+	#//// and as the last breadcrumb, and Frappe defaults it to the route
+	#//// name — untranslated. A French shop read "wishlist" on screen while
+	#//// its browser tab said the translated title.
+	context.title = _("Wishlist")
 	is_guest = frappe.session.user == "Guest"
 
 	settings = get_shopping_cart_settings()
