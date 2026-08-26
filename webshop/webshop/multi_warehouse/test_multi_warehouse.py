@@ -185,8 +185,76 @@ def make_customer_with_user():
 	return CUSTOMER_NAME
 
 
+SETTINGS_FIELDS = (
+	"enabled",
+	"company",
+	"price_list",
+	"quotation_series",
+	"allow_items_not_in_stock",
+	"enable_multi_warehouse",
+	"enable_supplier_procurement",
+	"procurement_mode",
+	"reserve_stock_on_receipt",
+	"delivery_holiday_list",
+)
+
+SOURCE_FIELDS = (
+	"warehouse",
+	"display_label",
+	"auto_enable_if_stock",
+	"visibility",
+	"stock_basis",
+	"stock_field",
+	"is_supplier_source",
+	"supplier",
+	"receiving_warehouse",
+	"lead_time_mode",
+	"lead_time_days",
+	"order_day",
+	"order_weekday",
+	"order_day_of_month",
+	"receipt_lead_days",
+	"handling_days",
+)
+
+
 class TestMultiWarehouseBase(unittest.TestCase):
-	"""Shared environment: two sources (Store = Bin, Supplier = Item Field)."""
+	"""Shared environment: two sources (Store = Bin, Supplier = Item Field).
+
+	Webshop Settings is a Single: a rollback does not always undo writes to it
+	(submits inside ERPNext commit along the way). The suite therefore
+	snapshots the shop's real settings and puts them back afterwards — running
+	the tests must never leave a site with its procurement switched off or its
+	warehouse sources replaced by the test ones.
+	"""
+
+	@classmethod
+	def setUpClass(cls):
+		settings = frappe.get_doc("Webshop Settings")
+		cls._settings_snapshot = {
+			"fields": {f: settings.get(f) for f in SETTINGS_FIELDS},
+			"sources": [
+				{f: row.get(f) for f in SOURCE_FIELDS}
+				for row in settings.get("warehouse_sources") or []
+			],
+		}
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		snapshot = getattr(cls, "_settings_snapshot", None)
+		if not snapshot:
+			return
+		settings = frappe.get_doc("Webshop Settings")
+		for fieldname, value in snapshot["fields"].items():
+			settings.set(fieldname, value)
+		settings.set("warehouse_sources", [])
+		for row in snapshot["sources"]:
+			settings.append("warehouse_sources", row)
+		settings.flags.ignore_mandatory = True
+		settings.save(ignore_permissions=True)
+		frappe.db.commit()
+		frappe.clear_document_cache("Webshop Settings", "Webshop Settings")
 
 	def setUp(self):
 		frappe.set_user("Administrator")
