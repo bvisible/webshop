@@ -255,6 +255,10 @@
 	.product-info-wrapper .recommended-card .carousel-clip-container { overflow: hidden; }
 	/* One heading rhythm for the three bottom cards. */
 	.product-info-wrapper .recommendation-container .recommendation-header { display: block; margin-bottom: 14px !important; }
+	/* Side by side, the cards ended at three different heights. */
+	.product-info-wrapper .recommendations-wrapper > .row { align-items: stretch; }
+	.product-info-wrapper .recommended-card,
+	.product-info-wrapper .frequently-bought-section .recommendation-container { height: 100%; }
 </style>
 			{# La description entière, pleine largeur — UNIQUEMENT quand la colonne
 			   d'achat a dû la couper. Sinon elle y est déjà, et la répéter ici
@@ -326,7 +330,10 @@
 				{% set fbt_inner_col = 'col-12' if recommendations_col_class == 'col-lg-3' else 'col-md-6' %}
 				<div class="col-12 {{ fbt_inner_col }} frequently-bought-section">
 					<div class="product-container recommendation-container">
-						<span class="recommendation-header">{{ _("Frequently Bought Together") }}</span>
+						{# //// Neoffice — a span never picked up the theme's heading
+						   font, so this title alone read in a different typeface
+						   than "Reviews" and "Recommended" right beside it. #}
+						<h2 class="carousel-title recommendation-header">{{ _("Frequently Bought Together") }}</h2>
 						{% for item in frequently_bought_together[:4] %}
 							{{ recommended_item_row({
 								"website_item_name": item.web_item_name,
