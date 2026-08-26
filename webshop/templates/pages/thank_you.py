@@ -38,6 +38,10 @@ def _visiteur_a_droit(commande) -> bool:
 		return False
 
 def get_context(context):
+	#//// Neoffice — Frappe derives context.title from the route when
+	#//// nobody sets it, and never translates it; themes print it as
+	#//// the visible page heading, so the page read "thank-you".
+	context.title = _("Thank You")
 	context.json = json
 	try:
 		# Retrieve the sales order ID from the form dictionary

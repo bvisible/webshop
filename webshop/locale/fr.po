@@ -5527,3 +5527,11 @@ msgstr "Lire la description complète"
 #: webshop/templates/includes/cart/cart_payment_summary.html
 msgid "Subtotal excl. tax ({0} items)"
 msgstr "Sous-total HT ({0} articles)"
+
+#: webshop/templates/includes/order_summary.html
+msgid "{0} items"
+msgstr "{0} articles"
+
+#: webshop/templates/pages/thank_you.py
+msgid "Thank You"
+msgstr "Merci"

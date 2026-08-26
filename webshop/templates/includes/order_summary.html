@@ -5,7 +5,7 @@
       <div class="d-flex align-items-center">
         <h6 class="mb-0 order-summary-title">{{ _("Order Summary") }}</h6>
         <span class="ml-3 summary-details">
-          <span class="collapsed-view items-count">({{ doc["total_qty"] }} {{ _("Items") }})</span>
+          <span class="collapsed-view items-count">({{ _("{0} items").format(doc["total_qty"] | int) }})</span>
         </span>
       </div>
       <div class="d-flex align-items-center">
@@ -93,7 +93,7 @@
             <!-- Net Total -->
             <tr>
               <td class="bill-label subtotal-element">
-                {{ _("Order Total") }} ({{ doc["total_qty"] }} {{ _("Items") }})
+                {{ _("Order Total") }} ({{ _("{0} items").format(doc["total_qty"] | int) }})
               </td>
               <td class="bill-content net-total text-right subtotal">
                 {{ doc.get_formatted("net_total") }}
