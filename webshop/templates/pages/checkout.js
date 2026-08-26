@@ -1624,9 +1624,15 @@ frappe.ready(function() {
             subtotalElement.text(formattedSubtotal);
 
             if (subtotalLabelElement.length) {
-                const formattedQty = parseFloat(doc.total_qty).toFixed(1);
-                $('.summary-details .collapsed-view.items-count').text(`(${formattedQty} ${__("Items")})`);
-                subtotalLabelElement.text(`${__("Net Total")} (${formattedQty} ${__("Items")})`);
+                //// Neoffice — toFixed(1) turned a count of items into "6.0
+                //// Articles"; nobody buys a tenth of a basket. And the label
+                //// was assembled from two fragments, which cannot be
+                //// translated into a language that orders words differently —
+                //// the server-rendered version of this same summary uses the
+                //// placeholder string, so both sides now read alike.
+                const qty = Math.round(parseFloat(doc.total_qty) || 0);
+                $('.summary-details .collapsed-view.items-count').text(`(${__("{0} items", [qty])})`);
+                subtotalLabelElement.text(__("Subtotal excl. tax ({0} items)", [qty]));
             }
 
             // Remove all existing lines except subtotal and total

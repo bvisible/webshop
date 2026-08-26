@@ -16,15 +16,20 @@ no_cache = 1
 #//// Ils passent par `__()` côté navigateur, donc par un dictionnaire que la
 #//// page publique ne reçoit jamais : ils s'affichaient en anglais au milieu
 #//// d'un tunnel francophone. On les sème dans le gabarit.
-_LIBELLES_DIALOGUES = ("Yes", "No", "Close", "Cancel", "Confirm", "Error", "Message", "Not permitted")
+_LIBELLES_DIALOGUES = (
+	"Yes", "No", "Close", "Cancel", "Confirm", "Error", "Message", "Not permitted",
+	#//// Neoffice — the order summary is rebuilt in JS after every change, so
+	#//// its labels need to travel to the page like the dialog ones.
+	"{0} items", "Subtotal excl. tax ({0} items)",
+)
 
 
 def get_context(context):
-	#//// Neoffice — Frappe derives context.title from the route when
-	#//// nobody sets it, and never translates it; themes print it as
-	#//// the visible page heading, so the page read "checkout".
-	context.title = _("Checkout")
 	"""Context for the payment page"""
+	#//// Neoffice — Frappe derives context.title from the route when nobody
+	#//// sets it, and never translates it; themes print it as the visible
+	#//// page heading, so the page read "checkout".
+	context.title = _("Checkout")
 	context.js_messages = frappe.as_json({m: _(m) for m in _LIBELLES_DIALOGUES})
 	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
 	

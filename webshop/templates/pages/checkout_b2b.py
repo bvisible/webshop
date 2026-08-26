@@ -6,11 +6,11 @@ from frappe import _
 from webshop.webshop.shopping_cart.cart import get_cart_quotation, get_party, _get_cart_quotation
 
 def get_context(context):
-    #//// Neoffice — Frappe derives context.title from the route when
-    #//// nobody sets it, and never translates it; themes print it as
-    #//// the visible page heading, so the page read "checkout-b2b".
-    context.title = _("Checkout")
     """Context for the B2B checkout page"""
+    #//// Neoffice — Frappe derives context.title from the route when nobody
+    #//// sets it, and never translates it; themes print it as the visible
+    #//// page heading, so the page read "checkout-b2b".
+    context.title = _("Checkout")
     context.no_cache = 1
     context.show_sidebar = 0
 
