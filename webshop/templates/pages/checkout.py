@@ -21,6 +21,11 @@ _LIBELLES_DIALOGUES = (
 	#//// Neoffice — the order summary is rebuilt in JS after every change, so
 	#//// its labels need to travel to the page like the dialog ones.
 	"{0} items", "Subtotal excl. tax ({0} items)",
+	#//// Neoffice — failures now speak to the shopper instead of dying in
+	#//// the console, so their wording has to travel too.
+	"Something went wrong. Please try again.",
+	"The quantity could not be updated. Please try again.",
+	"The server is taking too long to answer. Please check your connection and try again.",
 )
 
 

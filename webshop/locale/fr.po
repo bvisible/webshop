@@ -5535,3 +5535,15 @@ msgstr "{0} articles"
 #: webshop/templates/pages/thank_you.py
 msgid "Thank You"
 msgstr "Merci"
+
+#: webshop/templates/pages/checkout.js
+msgid "Something went wrong. Please try again."
+msgstr "Une erreur est survenue. Veuillez réessayer."
+
+#: webshop/templates/pages/checkout.js
+msgid "The quantity could not be updated. Please try again."
+msgstr "La quantité n'a pas pu être mise à jour. Veuillez réessayer."
+
+#: webshop/templates/pages/checkout.js
+msgid "The server is taking too long to answer. Please check your connection and try again."
+msgstr "Le serveur met trop de temps à répondre. Vérifiez votre connexion et réessayez."
