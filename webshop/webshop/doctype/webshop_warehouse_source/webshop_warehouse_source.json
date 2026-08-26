@@ -8,6 +8,7 @@
   "warehouse",
   "display_label",
   "auto_enable_if_stock",
+  "visibility",
   "column_break_stock",
   "stock_basis",
   "stock_field",
@@ -27,31 +28,31 @@
  ],
  "fields": [
   {
+   "columns": 3,
    "fieldname": "warehouse",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Warehouse",
    "options": "Warehouse",
-   "columns": 3,
    "reqd": 1
   },
   {
+   "columns": 2,
+   "description": "Shown to shoppers instead of the warehouse name (e.g. \"Store\", \"Supplier stock\"). Translatable through the Translation doctype.",
    "fieldname": "display_label",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Display Label",
-   "columns": 2,
-   "reqd": 1,
-   "description": "Shown to shoppers instead of the warehouse name (e.g. \"Store\", \"Supplier stock\"). Translatable through the Translation doctype."
+   "reqd": 1
   },
   {
+   "columns": 2,
    "default": "0",
+   "description": "Every published Website Item with stock in this source displays it automatically (no per-item setup). Uncheck to only show it on items that list this source explicitly.",
    "fieldname": "auto_enable_if_stock",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Auto-enable when in stock",
-   "columns": 2,
-   "description": "Every published Website Item with stock in this source displays it automatically (no per-item setup). Uncheck to only show it on items that list this source explicitly."
+   "label": "Auto-enable when in stock"
   },
   {
    "fieldname": "column_break_stock",
@@ -59,19 +60,19 @@
   },
   {
    "default": "Warehouse Bin",
+   "description": "Warehouse Bin reads real ERPNext stock. Item Field reads a numeric custom field on Item (e.g. a synced supplier stock) without creating any valued stock.",
    "fieldname": "stock_basis",
    "fieldtype": "Select",
    "label": "Stock Basis",
-   "options": "Warehouse Bin\nItem Field",
-   "description": "Warehouse Bin reads real ERPNext stock. Item Field reads a numeric custom field on Item (e.g. a synced supplier stock) without creating any valued stock."
+   "options": "Warehouse Bin\nItem Field"
   },
   {
    "depends_on": "eval:doc.stock_basis === 'Item Field'",
-   "mandatory_depends_on": "eval:doc.stock_basis === 'Item Field'",
+   "description": "Fieldname on Item holding the quantity, e.g. neo_supplier_stock.",
    "fieldname": "stock_field",
    "fieldtype": "Data",
    "label": "Item Stock Field",
-   "description": "Fieldname on Item holding the quantity, e.g. neo_supplier_stock."
+   "mandatory_depends_on": "eval:doc.stock_basis === 'Item Field'"
   },
   {
    "fieldname": "supplier_section",
@@ -79,29 +80,29 @@
    "label": "Procurement"
   },
   {
+   "columns": 1,
    "default": "0",
+   "description": "Ordered quantities from this source feed the supplier procurement flow (draft Purchase Order or Material Request).",
    "fieldname": "is_supplier_source",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Supplier Source",
-   "columns": 1,
-   "description": "Ordered quantities from this source feed the supplier procurement flow (draft Purchase Order or Material Request)."
+   "label": "Supplier Source"
   },
   {
    "depends_on": "is_supplier_source",
+   "description": "Purchase Orders are grouped under this supplier. Falls back to the item's default supplier when empty.",
    "fieldname": "supplier",
    "fieldtype": "Link",
    "label": "Supplier",
-   "options": "Supplier",
-   "description": "Purchase Orders are grouped under this supplier. Falls back to the item's default supplier when empty."
+   "options": "Supplier"
   },
   {
    "depends_on": "is_supplier_source",
+   "description": "Where the goods physically arrive (target warehouse of the Purchase Order). Defaults to the item's website warehouse.",
    "fieldname": "receiving_warehouse",
    "fieldtype": "Link",
    "label": "Receiving Warehouse",
-   "options": "Warehouse",
-   "description": "Where the goods physically arrive (target warehouse of the Purchase Order). Defaults to the item's website warehouse."
+   "options": "Warehouse"
   },
   {
    "fieldname": "lead_time_section",
@@ -110,20 +111,20 @@
   },
   {
    "default": "Fixed",
+   "description": "Fixed: constant number of business days. Periodic: supplier orders leave on a schedule (e.g. end of month), the estimate accounts for the next departure.",
    "fieldname": "lead_time_mode",
    "fieldtype": "Select",
    "label": "Lead Time Mode",
-   "options": "Fixed\nPeriodic",
-   "description": "Fixed: constant number of business days. Periodic: supplier orders leave on a schedule (e.g. end of month), the estimate accounts for the next departure."
+   "options": "Fixed\nPeriodic"
   },
   {
+   "columns": 1,
    "default": "0",
    "depends_on": "eval:doc.lead_time_mode !== 'Periodic'",
    "fieldname": "lead_time_days",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Lead Time (business days)",
-   "columns": 1
+   "label": "Lead Time (business days)"
   },
   {
    "fieldname": "column_break_lead",
@@ -148,26 +149,34 @@
   {
    "default": "1",
    "depends_on": "eval:doc.lead_time_mode === 'Periodic' && doc.order_day === 'Day of Month'",
+   "description": "1 to 28.",
    "fieldname": "order_day_of_month",
    "fieldtype": "Int",
-   "label": "Order Day of Month",
-   "description": "1 to 28."
+   "label": "Order Day of Month"
   },
   {
    "default": "0",
    "depends_on": "eval:doc.lead_time_mode === 'Periodic'",
+   "description": "Business days between the supplier order departure and the goods arriving.",
    "fieldname": "receipt_lead_days",
    "fieldtype": "Int",
-   "label": "Receipt Lead (business days)",
-   "description": "Business days between the supplier order departure and the goods arriving."
+   "label": "Receipt Lead (business days)"
   },
   {
    "default": "0",
    "depends_on": "eval:doc.lead_time_mode === 'Periodic'",
+   "description": "Business days to prepare and ship after the goods arrived.",
    "fieldname": "handling_days",
    "fieldtype": "Int",
-   "label": "Handling (business days)",
-   "description": "Business days to prepare and ship after the goods arrived."
+   "label": "Handling (business days)"
+  },
+  {
+   "default": "All sites",
+   "description": "Multi-site: restrict this source to B2B (reseller) sites or to public sites. Single-site instances always show it.",
+   "fieldname": "visibility",
+   "fieldtype": "Select",
+   "label": "Visible On",
+   "options": "All sites\nB2B sites only\nPublic sites only"
   }
  ],
  "istable": 1,

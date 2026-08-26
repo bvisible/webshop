@@ -165,6 +165,48 @@ def _stack_purchase_order(doc, supplier, lines):
 	)
 
 
+def notify_sales_orders_on_receipt(doc, method=None):
+	"""doc_events hook: Purchase Receipt on_submit.
+
+	Native ERPNext already reserves the received goods for the customer order
+	(Stock Settings: enable_stock_reservation + auto_reserve_stock_for_sales_
+	order_on_purchase). What it does not do is tell the seller side: this
+	writes one timeline comment per linked Sales Order, so whoever opens the
+	customer order sees the supplier goods arrived.
+	"""
+	try:
+		settings = get_settings()
+		if not is_enabled(settings) or not cint(
+			settings.get("enable_supplier_procurement")
+		):
+			return
+		if doc.get("is_return"):
+			return
+
+		by_sales_order = {}
+		for item in doc.get("items") or []:
+			if not item.get("sales_order"):
+				continue
+			by_sales_order.setdefault(item.sales_order, []).append(item)
+
+		for sales_order, items in by_sales_order.items():
+			if frappe.db.get_value("Sales Order", sales_order, "docstatus") != 1:
+				continue
+			lines = ", ".join(
+				f"{frappe.format_value(flt(d.get('received_qty') or d.qty), {'fieldtype': 'Float'})} × {d.item_code}"
+				for d in items
+			)
+			frappe.get_doc("Sales Order", sales_order).add_comment(
+				"Info",
+				_("Supplier goods received ({0}): {1}").format(doc.name, lines),
+			)
+	except Exception:
+		frappe.log_error(
+			"Webshop procurement: receipt notification failed",
+			f"Purchase Receipt {doc.name}\n{frappe.get_traceback()}",
+		)
+
+
 def _make_material_request(doc, grouped):
 	"""One submitted Material Request (type Purchase) for the whole order.
 

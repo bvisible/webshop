@@ -113,6 +113,30 @@ class WebshopSettings(Document):
 					alert=True,
 				)
 
+		# Reserving received goods for the customer order is entirely native:
+		# turn on the two Stock Settings that drive it.
+		if cint(self.reserve_stock_on_receipt):
+			for fieldname in (
+				"enable_stock_reservation",
+				"auto_reserve_stock_for_sales_order_on_purchase",
+			):
+				if not frappe.get_meta("Stock Settings").has_field(fieldname):
+					frappe.msgprint(
+						_(
+							"Stock reservation is not available in this ERPNext version; received goods will not be reserved."
+						),
+						alert=True,
+					)
+					break
+				if not cint(frappe.db.get_single_value("Stock Settings", fieldname)):
+					frappe.db.set_single_value("Stock Settings", fieldname, 1)
+					frappe.msgprint(
+						_("Multi-warehouse: enabled {0} in Stock Settings").format(
+							frappe.get_meta("Stock Settings").get_label(fieldname)
+						),
+						alert=True,
+					)
+
 	def after_save(self):
 		# Clear currency symbol cache when settings change
 		frappe.cache().delete_value("webshop_hide_currency_symbol")

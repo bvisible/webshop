@@ -188,6 +188,36 @@ def get_next_attribute_and_values(item_code, selected_attributes):
 		warehouse = frappe.get_cached_value(
 			"Website Item", {"item_code": product_id}, "website_warehouse"
 		)
+		#//// Neoffice — a variant with no Website Item of its own has no
+		#//// warehouse here, and this selector then showed zero stock while the
+		#//// product page (utils.product.get_web_item_qty_in_stock) falls back
+		#//// to the template's warehouse. Same fallback, same answer.
+		if not warehouse:
+			template = frappe.get_cached_value("Item", product_id, "variant_of")
+			if template and template != product_id:
+				warehouse = frappe.get_cached_value(
+					"Website Item", {"item_code": template}, "website_warehouse"
+				)
+
+	#//// Neoffice — multi-warehouse: the selector announces what the shopper
+	#//// can actually buy, so it sums every source exposed for this variant
+	#//// (store + supplier), exactly like the product page badge. Feature off
+	#//// or single source: the historical per-warehouse computation below.
+	if product_id:
+		from webshop.webshop.multi_warehouse.sources import get_aggregate_stock
+
+		aggregate = get_aggregate_stock(product_id)
+		if aggregate is not None:
+			return {
+				"next_attribute": next_attribute,
+				"valid_options_for_attributes": valid_options_for_attributes,
+				"filtered_items_count": filtered_items_count,
+				"filtered_items": filtered_items if filtered_items_count < 10 else [],
+				"exact_match": exact_match,
+				"product_info": product_info,
+				"available_qty": flt(aggregate.stock_qty),
+				"enable_guest_cart": cart_settings.enable_guest_cart,
+			}
 
 	available_qty = 0.0
 	if warehouse and frappe.get_cached_value("Warehouse", warehouse, "is_group") == 1:

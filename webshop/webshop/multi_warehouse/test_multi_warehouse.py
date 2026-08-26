@@ -683,6 +683,243 @@ class TestProcurement(TestMultiWarehouseBase):
 		self.assertIsNone(self.get_webshop_po())
 
 
+class TestHolidays(TestMultiWarehouseBase):
+	HOLIDAY_LIST = "MWTEST Holidays"
+
+	def make_holiday_list(self, dates):
+		if frappe.db.exists("Holiday List", self.HOLIDAY_LIST):
+			frappe.delete_doc(
+				"Holiday List", self.HOLIDAY_LIST, force=True, ignore_permissions=True
+			)
+		frappe.get_doc(
+			{
+				"doctype": "Holiday List",
+				"holiday_list_name": self.HOLIDAY_LIST,
+				"from_date": "2026-01-01",
+				"to_date": "2026-12-31",
+				"holidays": [
+					{"holiday_date": d, "description": "MWTEST"} for d in dates
+				],
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.set_single_value(
+			"Webshop Settings", "delivery_holiday_list", self.HOLIDAY_LIST
+		)
+		frappe.clear_document_cache("Webshop Settings", "Webshop Settings")
+		frappe.local.webshop_delivery_holidays = None
+
+	def tearDown(self):
+		frappe.local.webshop_delivery_holidays = None
+		super().tearDown()
+
+	def test_business_days_skip_holidays(self):
+		# Monday 2026-08-31 is a holiday: one business day from Friday 28.08
+		# lands on Tuesday 01.09 instead of Monday.
+		self.make_holiday_list(["2026-08-31"])
+		self.assertEqual(
+			add_business_days(getdate("2026-08-28"), 1), getdate("2026-09-01")
+		)
+
+	def test_holiday_start_rolls_forward(self):
+		self.make_holiday_list(["2026-08-31"])
+		self.assertEqual(
+			add_business_days(getdate("2026-08-31"), 0), getdate("2026-09-01")
+		)
+
+	def test_no_holiday_list_keeps_weekends_only(self):
+		frappe.db.set_single_value("Webshop Settings", "delivery_holiday_list", None)
+		frappe.clear_document_cache("Webshop Settings", "Webshop Settings")
+		frappe.local.webshop_delivery_holidays = None
+		self.assertEqual(
+			add_business_days(getdate("2026-08-28"), 1), getdate("2026-08-31")
+		)
+
+
+class TestSourceVisibility(TestMultiWarehouseBase):
+	def set_supplier_visibility(self, visibility):
+		settings = frappe.get_doc("Webshop Settings")
+		settings.warehouse_sources[1].visibility = visibility
+		settings.flags.ignore_mandatory = True
+		settings.save(ignore_permissions=True)
+		frappe.clear_document_cache("Webshop Settings", "Webshop Settings")
+
+	def set_site_profile(self, b2b_only):
+		frappe.local.website_profile_doc = frappe._dict({"b2b_only": b2b_only})
+
+	def tearDown(self):
+		frappe.local.website_profile_doc = None
+		super().tearDown()
+
+	def test_b2b_only_source_hidden_on_public_site(self):
+		self.set_supplier_visibility("B2B sites only")
+		self.set_site_profile(b2b_only=0)
+		self.assertEqual(
+			[s.warehouse for s in get_item_warehouse_sources(ITEM)], [store_warehouse()]
+		)
+		self.set_site_profile(b2b_only=1)
+		self.assertEqual(
+			[s.warehouse for s in get_item_warehouse_sources(ITEM)],
+			[store_warehouse(), supplier_warehouse()],
+		)
+
+	def test_public_only_source_hidden_on_b2b_site(self):
+		self.set_supplier_visibility("Public sites only")
+		self.set_site_profile(b2b_only=1)
+		self.assertEqual(
+			[s.warehouse for s in get_item_warehouse_sources(ITEM)], [store_warehouse()]
+		)
+
+	def test_no_profile_shows_everything(self):
+		self.set_supplier_visibility("B2B sites only")
+		frappe.local.website_profile_doc = None
+		self.assertEqual(len(get_item_warehouse_sources(ITEM)), 2)
+
+	def test_hidden_source_still_resolves_for_existing_lines(self):
+		# A line already placed on a source hidden here must keep its label,
+		# lead time and supplier (procurement and cart rendering).
+		from webshop.webshop.multi_warehouse.sources import get_source_for_warehouse
+
+		self.set_supplier_visibility("B2B sites only")
+		self.set_site_profile(b2b_only=0)
+		row = get_source_for_warehouse(supplier_warehouse())
+		self.assertIsNotNone(row)
+		self.assertEqual(row.display_label, SUPPLIER_LABEL)
+
+
+class TestBulkSourceAction(TestMultiWarehouseBase):
+	def get_mode_and_sources(self, item_code=ITEM):
+		name = frappe.db.get_value("Website Item", {"item_code": item_code}, "name")
+		doc = frappe.get_doc("Website Item", name)
+		return doc.warehouse_sources_mode, [
+			d.warehouse for d in doc.get("additional_warehouse_sources") or []
+		]
+
+	def test_bulk_add_and_remove(self):
+		from webshop.webshop.multi_warehouse.sources import bulk_set_item_source
+
+		names = [
+			frappe.db.get_value("Website Item", {"item_code": code}, "name")
+			for code in (ITEM, ITEM_SINGLE)
+		]
+
+		result = bulk_set_item_source(names, supplier_warehouse(), "add")
+		self.assertEqual(result["updated"], 2)
+		for code in (ITEM, ITEM_SINGLE):
+			mode, sources = self.get_mode_and_sources(code)
+			self.assertEqual(mode, "Custom")
+			self.assertIn(supplier_warehouse(), sources)
+
+		# ITEM_SINGLE has no supplier stock but is now explicitly listed:
+		# Custom mode shows the source regardless of stock.
+		self.assertEqual(
+			[s.warehouse for s in get_item_warehouse_sources(ITEM_SINGLE)],
+			[store_warehouse(), supplier_warehouse()],
+		)
+
+		result = bulk_set_item_source(names, supplier_warehouse(), "remove")
+		self.assertEqual(result["updated"], 2)
+		mode, sources = self.get_mode_and_sources(ITEM)
+		self.assertEqual(mode, "Custom")
+		self.assertNotIn(supplier_warehouse(), sources)
+		self.assertEqual(
+			[s.warehouse for s in get_item_warehouse_sources(ITEM)], [store_warehouse()]
+		)
+
+	def test_bulk_refuses_unknown_warehouse(self):
+		from webshop.webshop.multi_warehouse.sources import bulk_set_item_source
+
+		name = frappe.db.get_value("Website Item", {"item_code": ITEM}, "name")
+		self.assertRaises(
+			frappe.ValidationError, bulk_set_item_source, [name], "Nope - XX", "add"
+		)
+
+	def test_configured_sources_listing(self):
+		from webshop.webshop.multi_warehouse.sources import get_configured_sources
+
+		listing = get_configured_sources()
+		self.assertEqual(
+			[s["warehouse"] for s in listing],
+			[store_warehouse(), supplier_warehouse()],
+		)
+		self.assertEqual(listing[1]["label"], SUPPLIER_LABEL)
+		self.assertEqual(listing[1]["is_supplier_source"], 1)
+
+
+class TestReceiptNotification(TestMultiWarehouseBase):
+	def test_receipt_comments_the_sales_order(self):
+		from webshop.patches.add_webshop_po_marker_field import execute
+
+		execute()
+		frappe.clear_cache(doctype="Purchase Order")
+		self.configure_settings(enable_supplier_procurement=1)
+
+		sales_order = frappe.get_doc(
+			{
+				"doctype": "Sales Order",
+				"customer": CUSTOMER_NAME,
+				"company": get_company(),
+				"order_type": "Shopping Cart",
+				"transaction_date": nowdate(),
+				"delivery_date": add_days(nowdate(), 30),
+				"items": [
+					{
+						"item_code": ITEM,
+						"qty": 3,
+						"rate": 42,
+						"warehouse": supplier_warehouse(),
+						"delivery_date": add_days(nowdate(), 30),
+					}
+				],
+			}
+		)
+		sales_order.flags.ignore_permissions = True
+		sales_order.insert()
+		sales_order.submit()
+
+		po_name = frappe.db.get_value(
+			"Purchase Order",
+			{"docstatus": 0, "supplier": SUPPLIER_NAME, "neo_webshop_generated": 1},
+			"name",
+		)
+		self.assertIsNotNone(po_name)
+
+		po = frappe.get_doc("Purchase Order", po_name)
+		for item in po.items:
+			item.rate = 20
+		po.flags.ignore_permissions = True
+		po.save()
+		po.submit()
+
+		from erpnext.buying.doctype.purchase_order.purchase_order import (
+			make_purchase_receipt,
+		)
+
+		receipt = make_purchase_receipt(po.name)
+		receipt.flags.ignore_permissions = True
+		receipt.insert()
+		receipt.submit()
+
+		# The receipt line kept the traceability to the customer order line…
+		receipt.reload()
+		self.assertEqual(receipt.items[0].sales_order, sales_order.name)
+		self.assertEqual(receipt.items[0].sales_order_item, sales_order.items[0].name)
+
+		# …and the seller side was told.
+		comments = frappe.get_all(
+			"Comment",
+			filters={
+				"reference_doctype": "Sales Order",
+				"reference_name": sales_order.name,
+				"comment_type": "Info",
+			},
+			pluck="content",
+		)
+		self.assertTrue(
+			any(receipt.name in (c or "") for c in comments),
+			f"no receipt comment on the Sales Order, got: {comments}",
+		)
+
+
 class TestStockBasisBin(TestMultiWarehouseBase):
 	def test_bin_source_reads_real_stock(self):
 		self.add_store_stock(5)

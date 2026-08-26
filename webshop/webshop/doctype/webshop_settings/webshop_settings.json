@@ -74,6 +74,8 @@
   "column_break_mw",
   "enable_supplier_procurement",
   "procurement_mode",
+  "reserve_stock_on_receipt",
+  "delivery_holiday_list",
   "warehouse_sources_section",
   "warehouse_sources",
   "tab_features",
@@ -836,6 +838,22 @@
    "fieldtype": "Table",
    "label": "Warehouse Sources",
    "options": "Webshop Warehouse Source"
+  },
+  {
+   "default": "0",
+   "depends_on": "enable_supplier_procurement",
+   "description": "Uses ERPNext stock reservation: when the Purchase Receipt is submitted, the goods are reserved for the customer order that triggered the purchase. Enabling this sets the two matching Stock Settings. Note: a Sales Order holding reserved stock cannot be picked through a Pick List \u2014 deliver it with a Delivery Note (or release the reservation).",
+   "fieldname": "reserve_stock_on_receipt",
+   "fieldtype": "Check",
+   "label": "Reserve Received Goods for the Customer Order"
+  },
+  {
+   "depends_on": "enable_multi_warehouse",
+   "description": "Public holidays skipped when counting business days for delivery estimates. Empty: Saturdays and Sundays only.",
+   "fieldname": "delivery_holiday_list",
+   "fieldtype": "Link",
+   "label": "Delivery Holiday List",
+   "options": "Holiday List"
   }
  ],
  "index_web_pages_for_search": 1,

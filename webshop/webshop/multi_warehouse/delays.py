@@ -7,6 +7,7 @@
 import calendar
 from datetime import timedelta
 
+import frappe
 from frappe.utils import cint, getdate, nowdate
 
 WEEKDAYS = [
@@ -20,21 +21,66 @@ WEEKDAYS = [
 ]
 
 
-def add_business_days(start_date, days):
-	"""Return start_date advanced by `days` business days (Mon-Fri).
+def get_holidays():
+	"""Dates of the Holiday List configured in Webshop Settings, as a set.
 
-	A start on a weekend first rolls forward to Monday, so that
-	add_business_days(saturday, 0) == monday.
+	Cached per request: a single estimate walks several days, and a product
+	page renders one estimate per source.
+	"""
+	if getattr(frappe.local, "webshop_delivery_holidays", None) is not None:
+		return frappe.local.webshop_delivery_holidays
+
+	holidays = set()
+	try:
+		holiday_list = frappe.db.get_single_value(
+			"Webshop Settings", "delivery_holiday_list"
+		)
+		if holiday_list:
+			holidays = {
+				getdate(d)
+				for d in frappe.get_all(
+					"Holiday",
+					filters={"parent": holiday_list},
+					pluck="holiday_date",
+				)
+			}
+	except Exception:
+		# A missing field (pre-migration) or list must never break an estimate.
+		holidays = set()
+
+	frappe.local.webshop_delivery_holidays = holidays
+	return holidays
+
+
+def is_business_day(date, holidays=None):
+	if date.weekday() >= 5:
+		return False
+	holidays = get_holidays() if holidays is None else holidays
+	return date not in holidays
+
+
+def add_business_days(start_date, days):
+	"""Return start_date advanced by `days` business days.
+
+	Business day = Mon-Fri minus the Webshop Settings holiday list. A start on
+	a non-business day first rolls forward, so add_business_days(saturday, 0)
+	is the next working day.
 	"""
 	date = getdate(start_date)
 	days = cint(days)
+	holidays = get_holidays()
 
-	while date.weekday() >= 5:
+	# Guard against a holiday list covering every day (misconfiguration).
+	guard = 0
+	while not is_business_day(date, holidays) and guard < 366:
 		date += timedelta(days=1)
+		guard += 1
 
-	while days > 0:
+	guard = 0
+	while days > 0 and guard < 3660:
 		date += timedelta(days=1)
-		if date.weekday() < 5:
+		guard += 1
+		if is_business_day(date, holidays):
 			days -= 1
 
 	return date

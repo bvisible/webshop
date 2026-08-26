@@ -28,14 +28,45 @@ def is_enabled(settings=None):
 	return bool(cint(settings.get("enable_multi_warehouse")) and settings.get("warehouse_sources"))
 
 
-def get_source_rows(settings=None):
+def is_source_visible_here(source_row):
+	"""Multi-site: a source can be restricted to B2B or to public sites.
+
+	Falls back to visible when the instance has no Website Profile (single
+	site) or the profile does not say whether it is B2B.
+	"""
+	visibility = source_row.get("visibility") or "All sites"
+	if visibility == "All sites":
+		return True
+
+	profile = getattr(frappe.local, "website_profile_doc", None)
+	if not profile:
+		return True
+
+	is_b2b = cint(profile.get("b2b_only"))
+	if visibility == "B2B sites only":
+		return bool(is_b2b)
+	if visibility == "Public sites only":
+		return not is_b2b
+	return True
+
+
+def get_source_rows(settings=None, all_sites=False):
+	"""Configured sources, filtered to the ones visible on the current site."""
 	settings = settings or get_settings()
-	return settings.get("warehouse_sources") or []
+	rows = settings.get("warehouse_sources") or []
+	if all_sites:
+		return rows
+	return [row for row in rows if is_source_visible_here(row)]
 
 
 def get_source_map(settings=None):
-	"""{warehouse: source row} for every configured source."""
-	return {row.warehouse: row for row in get_source_rows(settings)}
+	"""{warehouse: source row} for every configured source, site-wide.
+
+	Deliberately unfiltered: a cart line already placed on a source hidden on
+	the current site must still resolve its label, lead time and supplier.
+	Only the display list (get_item_warehouse_sources) applies visibility.
+	"""
+	return {row.warehouse: row for row in get_source_rows(settings, all_sites=True)}
 
 
 def get_source_for_warehouse(warehouse, settings=None):
@@ -239,6 +270,68 @@ def get_aggregate_stock(item_code, settings=None):
 	return frappe._dict(
 		{"in_stock": 1 if total > 0 else 0, "stock_qty": total, "is_stock_item": 1}
 	)
+
+
+@frappe.whitelist()
+def get_configured_sources():
+	"""Sources of the settings table, for the desk bulk action."""
+	frappe.only_for(("System Manager", "Website Manager", "Item Manager"))
+	return [
+		{
+			"warehouse": row.warehouse,
+			"label": row.display_label or row.warehouse,
+			"is_supplier_source": cint(row.is_supplier_source),
+		}
+		for row in get_source_rows(all_sites=True)
+	]
+
+
+@frappe.whitelist()
+def bulk_set_item_source(website_items, warehouse, action="add"):
+	"""Desk bulk action: show/hide one stock source on several Website Items.
+
+	Switches the items to "Custom" mode, where they display exactly the
+	sources listed on them. Removing the last source of an item leaves it in
+	Custom mode with its primary warehouse only.
+	"""
+	frappe.only_for(("System Manager", "Website Manager", "Item Manager"))
+
+	if isinstance(website_items, str):
+		website_items = frappe.parse_json(website_items)
+	if not website_items:
+		return {"updated": 0}
+
+	if warehouse not in get_source_map():
+		frappe.throw(_("{0} is not a configured warehouse source").format(warehouse))
+
+	updated = 0
+	for name in website_items:
+		doc = frappe.get_doc("Website Item", name)
+		doc.check_permission("write")
+		existing = [d.warehouse for d in doc.get("additional_warehouse_sources") or []]
+
+		if action == "add":
+			if doc.warehouse_sources_mode == MODE_CUSTOM and warehouse in existing:
+				continue
+			doc.warehouse_sources_mode = MODE_CUSTOM
+			if warehouse not in existing:
+				doc.append("additional_warehouse_sources", {"warehouse": warehouse})
+		else:
+			if doc.warehouse_sources_mode != MODE_CUSTOM and warehouse not in existing:
+				# Auto mode: pin the current list minus this source, so the
+				# removal survives the auto-enable switch.
+				doc.warehouse_sources_mode = MODE_CUSTOM
+			doc.set(
+				"additional_warehouse_sources",
+				[d for d in doc.get("additional_warehouse_sources") or [] if d.warehouse != warehouse],
+			)
+
+		doc.flags.ignore_mandatory = True
+		doc.save()
+		updated += 1
+
+	frappe.db.commit()
+	return {"updated": updated}
 
 
 def decorate_cart_line(line, settings=None):

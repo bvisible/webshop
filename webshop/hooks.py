@@ -108,6 +108,14 @@ doc_events = {
 			"webshop.webshop.multi_warehouse.procurement.process_sales_order",
 		],
 	},
+	#//// Neoffice — multi-warehouse: ERPNext reserves the received goods for
+	#//// the customer order on its own (Stock Settings); this only writes the
+	#//// timeline comment on the Sales Order so the seller side sees it.
+	"Purchase Receipt": {
+		"on_submit": [
+			"webshop.webshop.multi_warehouse.procurement.notify_sales_orders_on_receipt",
+		],
+	},
 	"Sales Invoice": {
 		"validate": "webshop.webshop.crud_events.sales_invoice.validate",
 		"on_submit": "webshop.webshop.crud_events.sales_invoice.on_submit",
