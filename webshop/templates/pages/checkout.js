@@ -902,7 +902,7 @@ frappe.ready(function() {
         //// untouched — awaiting a plain value simply resolves immediately.
         async format_currency_value(value, currency) {
             try {
-                const hideSymbol = window.__webshop_hide_currency_symbol === true;
+                const hideSymbol = window.webshop_hide_currency_symbol === true;
                 return format_currency(value, hideSymbol ? null : currency);
             } catch (err) {
                 console.error('checkout: currency formatting failed', err);

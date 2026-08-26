@@ -417,7 +417,14 @@
 	    (« Yes », « No »…) restaient donc en anglais au milieu d'un tunnel
 	    francophone — vu le 2026-08-25 sur la confirmation d'adresse. -#}
 	frappe._messages = Object.assign({}, frappe._messages || {}, {{ js_messages }});
-	window.__webshop_hide_currency_symbol = {{ 'true' if hide_currency_symbol else 'false' }};
+	{#- //// Neoffice — this global deliberately has a single leading
+	    underscore. Frappe renders THIS file as a string with safe_render on,
+	    and that guard rejects any template containing a dot followed by two
+	    underscores — a protection against reaching python internals. A name
+	    like window dot underscore underscore something takes the whole
+	    checkout page down with "Illegal template". Included files (checkout.js)
+	    are resolved later by Jinja and are not scanned. -#}
+	window.webshop_hide_currency_symbol = {{ 'true' if hide_currency_symbol else 'false' }};
 	{% include "templates/pages/checkout.js" %}
 </script>
 {% endblock %}
