@@ -20,7 +20,10 @@
 {# This template extends another one: anything outside a block is never
    rendered, so these rules have to live inside one. #}
 <style>
-	body:has(.site-page-header) .page-breadcrumbs,
+	/* Target the trail itself, not .page-breadcrumbs: checkout reuses that
+	   class for its own step indicator (Cart → Information → Shipping →
+	   Payment), and hiding the container took the steps away with it. */
+	body:has(.site-page-header) .page-breadcrumbs > .breadcrumb-container,
 	body:has(.site-page-header) .webshop-page-title { display: none; }
 </style>
 
