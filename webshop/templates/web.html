@@ -16,12 +16,13 @@
 	templates/generators/item/item.html (its title sits inside page_content,
 	not in this header block).
 #}
+{% block content %}
+{# This template extends another one: anything outside a block is never
+   rendered, so these rules have to live inside one. #}
 <style>
 	body:has(.site-page-header) .page-breadcrumbs,
 	body:has(.site-page-header) .webshop-page-title { display: none; }
 </style>
-
-{% block content %}
 
 {% macro main_content() %}
 <div class="page-content-wrapper">
