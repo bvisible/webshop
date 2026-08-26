@@ -11,6 +11,71 @@
 
 {% from "templates/includes/macros.html" import item_name_and_description %}
 
+{#
+	//// Neoffice — mobile cart. A four-column table on a 390px screen squeezed
+	every cell: "Subtotal" broke over two lines, "CHF 98.00" over two more, the
+	quantity spinner stacked vertically (− above the number, + below) and the
+	notes placeholder was cut mid-word.
+
+	Below 768px each row becomes a card instead: the product across the top,
+	then quantity on the left and price on the right. Same markup, same
+	handlers — only the layout changes, so nothing in cart.js has to know.
+#}
+<style>
+@media (max-width: 767.98px) {
+	/* Column headers have no columns left to title. */
+	.cart-table thead { display: none; }
+
+	.cart-table,
+	.cart-table tbody,
+	.cart-table tfoot { display: block; width: 100%; }
+
+	.cart-table .cart-items tr {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		align-items: center;
+		gap: 10px 12px;
+		border: 1px solid #e3e6ea;
+		border-radius: 12px;
+		padding: 14px;
+		margin-bottom: 12px;
+	}
+	.cart-table .cart-items td {
+		display: block;
+		border: none !important;
+		padding: 0 !important;
+		width: auto !important;
+	}
+	/* Product block spans the card; quantity then sits left, price right. */
+	.cart-table .cart-items td:nth-child(1) { grid-column: 1 / -1; }
+	.cart-table .cart-items td:nth-child(2) { grid-column: 1; justify-self: start; }
+	.cart-table .cart-items td:nth-child(3) { grid-column: 2; justify-self: end; text-align: right; }
+
+	/* With the full card width available the spinner lies flat again. */
+	.cart-table .container-qty {
+		flex-direction: row !important;
+		flex-wrap: nowrap;
+		align-items: center;
+		gap: 8px;
+	}
+	.cart-table .container-qty .number-spinner { margin: 0 !important; }
+	.cart-table .cart-items .notes textarea { width: 100%; }
+	.cart-table .cart-items .item-price-details { align-items: flex-end; }
+
+	/* Net total: label left, amount right, on one line. */
+	.cart-table .cart-tax-items tr {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 12px;
+		padding: 12px 14px 0;
+		border-top: 1px solid #e3e6ea;
+	}
+	.cart-table .cart-tax-items th { border: none !important; padding: 0 !important; }
+	.cart-table .cart-tax-items th:empty { display: none; }
+}
+</style>
+
 {% if doc.items %}
 <div class="cart-container">
 	<div class="row m-0">
