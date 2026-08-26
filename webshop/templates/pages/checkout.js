@@ -1780,6 +1780,29 @@ frappe.ready(function() {
         }
 
         async _updateOrderSummary(doc, notReload = false) {
+            //// Neoffice — re-entrancy lock.
+            ////
+            //// This method refreshes the shipping and payment lists, and those
+            //// refreshes can lead back here. Closing the one known cycle (see
+            //// the `notReload` guard further down) is not enough on its own:
+            //// ten call sites reach this method, some through several hops,
+            //// and any future one could reopen a path. A summary redraw that
+            //// starts while another is still running has nothing to add — the
+            //// one in flight is about to paint the same numbers.
+            ////
+            //// Without this, a cycle spins as fast as the CPU allows and the
+            //// tab stops responding — which is exactly what happened once the
+            //// currency round trips that used to slow every turn were removed.
+            if (this._summaryRendering) return;
+            this._summaryRendering = true;
+            try {
+                return await this._updateOrderSummaryInner(doc, notReload);
+            } finally {
+                this._summaryRendering = false;
+            }
+        }
+
+        async _updateOrderSummaryInner(doc, notReload = false) {
             const subtotalElement = $('.bill-content.net-total.subtotal');
             const subtotalLabelElement = $('.bill-label.subtotal-element');
 
