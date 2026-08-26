@@ -25,7 +25,10 @@
       <!-- Items -->
       <div class="order-items pb-2 align-items-center">
         {% for item in doc["items"] %}
-        <div class="order-item d-flex align-items-center" data-item-code="{{ item["item_code"] }}">
+        {#- //// Neoffice — multi-warehouse: two lines can share an item_code,
+    so the row carries its stock source too. Without it the summary
+    refresh matched both lines and wrote the same quantity into each. -#}
+        <div class="order-item d-flex align-items-center" data-item-code="{{ item["item_code"] }}" data-warehouse="{{ item.warehouse or '' }}">
             <div class="item-image mr-3">
               {% if item.website_image %}
                 <img itemprop="image" class="website-image h-100 w-100" alt="{{ _(item.web_item_name) }}" src="{{ frappe.utils.quoted(item.website_image) | abs_url }}">

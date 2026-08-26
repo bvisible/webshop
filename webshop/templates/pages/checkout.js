@@ -1715,7 +1715,15 @@ frappe.ready(function() {
             // Update items if present
             if (doc.items) {
                 for (const item of doc.items) {
-                    const itemRow = $(`.order-item[data-item-code="${item.item_code}"]`);
+                    //// Neoffice — multi-warehouse: matching on item_code
+                    //// alone hit both lines of the same article, and the last
+                    //// one processed overwrote the other's quantity — the
+                    //// total updated while the fields kept the old numbers.
+                    const whSel = item.warehouse ? `[data-warehouse="${item.warehouse}"]` : '';
+                    let itemRow = $(`.order-item[data-item-code="${item.item_code}"]${whSel}`);
+                    if (!itemRow.length) {
+                        itemRow = $(`.order-item[data-item-code="${item.item_code}"]`).first();
+                    }
                     if (itemRow.length) {
                         // Update quantity
                         //// Neoffice — toFixed(1) printed "3.0" for three
