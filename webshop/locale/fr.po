@@ -5423,3 +5423,79 @@ msgstr "Mode des sources d'entrepôt"
 #: webshop/webshop/doctype/website_item/website_item.json
 msgid "Additional Warehouse Sources"
 msgstr "Sources d'entrepôt additionnelles"
+
+#: webshop/webshop/multi_warehouse/procurement.py
+msgid "Supplier goods received ({0}): {1}"
+msgstr "Marchandise fournisseur reçue ({0}) : {1}"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py
+msgid "Multi-warehouse: enabled {0} in Stock Settings"
+msgstr "Multi-entrepôt : {0} activé dans les paramètres de stock"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py
+msgid "Stock reservation is not available in this ERPNext version; received goods will not be reserved."
+msgstr "La réservation de stock n'existe pas dans cette version d'ERPNext ; la marchandise reçue ne sera pas réservée."
+
+#: webshop/webshop/multi_warehouse/sources.py
+msgid "{0} is not a configured warehouse source"
+msgstr "{0} n'est pas une source d'entrepôt configurée"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Reserve Received Goods for the Customer Order"
+msgstr "Réserver la marchandise reçue pour la commande client"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Delivery Holiday List"
+msgstr "Jours fériés de livraison"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Visible On"
+msgstr "Visible sur"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "All sites"
+msgstr "Tous les sites"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "B2B sites only"
+msgstr "Sites B2B uniquement"
+
+#: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
+msgid "Public sites only"
+msgstr "Sites publics uniquement"
+
+#: webshop/webshop/doctype/website_item/website_item_list.js
+msgid "Stock Source"
+msgstr "Source de stock"
+
+#: webshop/webshop/doctype/website_item/website_item_list.js
+msgid "Warehouse Source"
+msgstr "Source d'entrepôt"
+
+#: webshop/webshop/doctype/website_item/website_item_list.js
+msgid "Please select at least one Website Item"
+msgstr "Sélectionnez au moins un article de la boutique"
+
+#: webshop/webshop/doctype/website_item/website_item_list.js
+msgid "No warehouse source is configured in Webshop Settings"
+msgstr "Aucune source d'entrepôt n'est configurée dans les paramètres de la boutique"
+
+#: webshop/webshop/doctype/website_item/website_item_list.js
+msgid "Show this source on the selected items"
+msgstr "Afficher cette source sur les articles sélectionnés"
+
+#: webshop/webshop/doctype/website_item/website_item_list.js
+msgid "Stop showing it on the selected items"
+msgstr "Ne plus l'afficher sur les articles sélectionnés"
+
+#: webshop/webshop/doctype/website_item/website_item_list.js
+msgid "Sets the items to \"Custom\" mode: they display exactly the sources listed on them, ignoring the auto-enable switch."
+msgstr "Bascule les articles en mode « Personnalisé » : ils affichent exactement les sources qui y sont listées, sans tenir compte de l'activation automatique."
+
+#: webshop/webshop/doctype/website_item/website_item_list.js
+msgid "Updating stock sources..."
+msgstr "Mise à jour des sources de stock..."
+
+#: webshop/webshop/doctype/website_item/website_item_list.js
+msgid "{0} item(s) updated"
+msgstr "{0} article(s) mis à jour"
