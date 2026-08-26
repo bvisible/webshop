@@ -1718,7 +1718,10 @@ frappe.ready(function() {
                     const itemRow = $(`.order-item[data-item-code="${item.item_code}"]`);
                     if (itemRow.length) {
                         // Update quantity
-                        itemRow.find('.cart-qty').val(item.qty.toFixed(1));
+                        //// Neoffice — toFixed(1) printed "3.0" for three
+                        //// baskets. A fractional quantity (sold by weight)
+                        //// still shows its decimals; a whole one does not.
+                        itemRow.find('.cart-qty').val(String(parseFloat(item.qty)));
                         
                         // Update prices
                         const priceDetails = itemRow.find('.item-price-details');

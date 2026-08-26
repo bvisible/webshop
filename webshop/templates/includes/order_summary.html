@@ -57,7 +57,8 @@
                 </span>
                 <input
                   class="form-control text-center cart-qty"
-                  value="{{ item["qty"] }}"
+                  {#- //// Neoffice — a whole quantity prints without ".0" -#}
+                  value="{{ item["qty"] | int if item["qty"] == item["qty"] | int else item["qty"] }}"
                   data-item-code="{{ item["item_code"] }}"
                   data-warehouse="{{ item.warehouse or '' }}"
                   style="max-width: 60px;"
