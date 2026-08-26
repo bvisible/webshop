@@ -961,10 +961,16 @@ body[data-path=update-profile] {
 			}
 		}
 
+		//// Neoffice — this used to stack the quantity spinner vertically below
+		//// 768px (− above the number, + below, remove underneath). It was a way
+		//// out of a 36px-wide table cell: there was simply no room to lay it
+		//// flat. The mobile cart no longer uses columns — each line is a card
+		//// with the full width available (see the media query in cart.html), so
+		//// the spinner reads normally again and the workaround has to go: its
+		//// specificity (#page-cart …) beat the new layout's.
 		.container-qty {
 			@media (max-width: 768px) {
-				flex-direction: column!important;
-				align-items: flex-start!important;
+				align-items: center;
 			}
 		}
 
