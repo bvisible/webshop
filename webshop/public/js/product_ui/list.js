@@ -226,9 +226,14 @@ webshop.ProductList = class {
 			}
 		}
 		
+		//// Neoffice — stockText was computed and then never rendered: the tile
+		//// showed a bare coloured dot, so the status was carried by colour
+		//// alone (invisible to a colour-blind shopper, and to a screen reader).
+		//// The wording is out in the open now, and the whole thing is labelled.
 		return `
-			<span class="stock-info">
-				<span class="stock-badge ${stockClass}"></span>
+			<span class="stock-info" role="status" aria-label="${tooltipText}" title="${tooltipText}">
+				<span class="stock-badge ${stockClass}" aria-hidden="true"></span>
+				<span class="stock-text">${stockText}</span>
 				${stockQty ? `<span class="stock-qty">${stockQty}</span>` : ''}
 				<span class="stock-tooltip">${tooltipText}</span>
 			</span>

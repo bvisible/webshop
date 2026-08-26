@@ -5519,3 +5519,11 @@ msgstr "Poser une question sur ce produit"
 #: webshop/templates/generators/item/item_inquiry.html
 msgid "A question?"
 msgstr "Une question ?"
+
+#: webshop/templates/generators/item/item_details.html
+msgid "Read the full description"
+msgstr "Lire la description complète"
+
+#: webshop/templates/includes/cart/cart_payment_summary.html
+msgid "Subtotal excl. tax ({0} items)"
+msgstr "Sous-total HT ({0} articles)"

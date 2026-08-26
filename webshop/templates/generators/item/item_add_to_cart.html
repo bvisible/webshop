@@ -326,6 +326,81 @@
 	</div>
 </div>
 
+{#
+	//// Neoffice — mobile buy bar. On a phone the price and the cart button
+	scroll away as soon as the shopper starts reading the description, and a
+	long description means a long way back up. This bar appears only once the
+	real button has left the screen, and it drives that same button — no second
+	code path to keep in sync, so the stock source picked above is respected.
+	Desktop never sees it.
+#}
+{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
+<div class="webshop-buybar" id="webshop-buybar" aria-hidden="true">
+	<div class="webshop-buybar__info">
+		<span class="webshop-buybar__name">{{ _(doc.web_item_name) }}</span>
+		{% if cart_settings.show_price and product_info.price %}
+			<span class="webshop-buybar__price">{{ webshop_fmt_money(product_info.price.get("price_list_rate", 0) * product_info.price.get("conversion_factor", 1), currency=product_info.price.get("currency")) }}</span>
+		{% endif %}
+	</div>
+	<button type="button" class="btn btn-primary webshop-buybar__btn">
+		{{ _("Add to Cart") if cart_settings.enable_checkout else _("Add to Quote") }}
+	</button>
+</div>
+
+<style>
+	.webshop-buybar { display: none; }
+	@media (max-width: 767.98px) {
+		.webshop-buybar {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			position: fixed;
+			left: 0; right: 0; bottom: 0;
+			z-index: 1030;
+			padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+			background: #fff;
+			border-top: 1px solid #e3e6ea;
+			box-shadow: 0 -2px 12px rgba(16,24,40,.10);
+			transform: translateY(110%);
+			transition: transform .22s ease;
+		}
+		.webshop-buybar.is-visible { transform: translateY(0); }
+		.webshop-buybar__info { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+		.webshop-buybar__name {
+			font-size: .8rem; color: #6c7680;
+			overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+		}
+		.webshop-buybar__price { font-weight: 700; font-size: 1rem; color: #111827; }
+		.webshop-buybar__btn { flex: 0 0 auto; }
+		/* The bar covers the end of the page while it is up. */
+		body.webshop-buybar-on { padding-bottom: 76px; }
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.webshop-buybar { transition: none; }
+	}
+</style>
+
+<script>
+frappe.ready(() => {
+	const bar = document.getElementById('webshop-buybar');
+	const realBtn = document.querySelector('.item-cart .btn-add-to-cart');
+	if (!bar || !realBtn || !('IntersectionObserver' in window)) return;
+
+	// Clicking the bar clicks the real button: one behaviour, one place.
+	bar.querySelector('.webshop-buybar__btn').addEventListener('click', () => realBtn.click());
+
+	const observer = new IntersectionObserver(([entry]) => {
+		const show = !entry.isIntersecting;
+		bar.classList.toggle('is-visible', show);
+		bar.setAttribute('aria-hidden', show ? 'false' : 'true');
+		document.body.classList.toggle('webshop-buybar-on', show);
+	}, {rootMargin: '0px 0px -10px 0px'});
+
+	observer.observe(realBtn);
+});
+</script>
+{% endif %}
+
 <script>
 	function g(rolls) {
 		const data = "qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM";

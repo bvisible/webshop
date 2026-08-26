@@ -98,6 +98,19 @@
 				}
 			}
 			
+			//// Neoffice — the status used to travel by dot colour only. The
+			//// wording now sits next to it; the dot stays as the quick visual
+			//// cue but is no longer the sole carrier of the information.
+			.stock-text {
+				font-size: 0.75rem;
+				font-weight: 500;
+				color: var(--text-muted);
+
+				.stock-info:has(.in-stock) & { color: #1a7f37; }
+				.stock-info:has(.low-stock) & { color: #9a6700; }
+				.stock-info:has(.out-of-stock) & { color: #b91c1c; }
+			}
+
 			.stock-qty {
 				font-size: 0.75rem;
 				color: var(--text-muted);

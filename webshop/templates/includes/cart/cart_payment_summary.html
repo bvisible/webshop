@@ -17,9 +17,13 @@
 						round trip through the PO file, so the shop read
 						"Total net (4Articles)" — and a translator was being
 						handed half-sentences no language can reassemble.
+
+						And "Net Total" said nothing about tax while the line above it
+						showed the tax-inclusive price: the two numbers looked like they
+						disagreed. The label now says which of the two it is.
 					#}
 					{% set total_items = frappe.utils.cstr(frappe.utils.flt(doc.total_qty, 0)) %}
-					<td class="bill-label">{{ _("Net Total ({0} items)").format(total_items) }}</td>
+					<td class="bill-label">{{ _("Subtotal excl. tax ({0} items)").format(total_items) }}</td>
 					<td class="bill-content net-total text-right">{{ webshop_fmt_money(doc.net_total, currency=doc.currency) }}</td>
 				</tr>
 

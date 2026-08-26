@@ -93,7 +93,11 @@
 	<div class="buybox-description product-description product-long-description{{ ' is-excerpt' if _bloc.cut else '' }}" itemprop="description">
 		{{ _bloc.html | safe }}
 		{% if _bloc.cut %}
-		<p class="buybox-more"><a href="#product-long-desc">{{ _("Read more") }} &darr;</a></p>
+		{# //// Neoffice — "Read more" promises the rest of the text; the link
+		   actually jumps to the full-width block, which restates the beginning
+		   too. Saying "full description" sets the right expectation instead of
+		   making the shopper wonder why they are re-reading. #}
+		<p class="buybox-more"><a href="#product-long-desc">{{ _("Read the full description") }} &darr;</a></p>
 		{% endif %}
 	</div>
 	{% endif %}
