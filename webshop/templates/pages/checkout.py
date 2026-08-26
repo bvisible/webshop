@@ -26,6 +26,7 @@ _LIBELLES_DIALOGUES = (
 	"Something went wrong. Please try again.",
 	"The quantity could not be updated. Please try again.",
 	"The server is taking too long to answer. Please check your connection and try again.",
+	"Payment methods could not be loaded. Please try again.",
 )
 
 

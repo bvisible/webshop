@@ -2229,9 +2229,16 @@ frappe.ready(function() {
         }
 
         setupPaymentMethods() {
-            if (this.paymentMethodsInitialized) {
+            //// Neoffice — the flag used to be raised at the very bottom of this
+            //// method, synchronously, right after the request was SENT. During
+            //// the whole round trip it was still false, so a second caller
+            //// walked straight in and started its own empty()/fill cycle on the
+            //// same container — two renders racing, and the step blinking.
+            //// Raised before the call now, and lowered again if it fails.
+            if (this.paymentMethodsInitialized || this._paymentMethodsLoading) {
                 return;
             }
+            this._paymentMethodsLoading = true;
             frappe.call({
                 method: 'webshop.templates.pages.checkout.get_payment_methods',
                 callback: (r) => {
@@ -2347,6 +2354,13 @@ frappe.ready(function() {
                                 });
                             } else {
                                 // Show all payment methods
+                                //// Neoffice — the container was emptied and then
+                                //// refilled one card at a time. Each append is a
+                                //// separate layout pass, and between the empty()
+                                //// and the last insert the payment step is visibly
+                                //// blank: that is the flicker. Built as one string
+                                //// and written once, the swap is a single frame.
+                                const methodsHtml = [];
                                 this.paymentMethods.forEach(method => {
                                     const cleanId = method.id.replace(/[^a-zA-Z0-9]/g, '_');
                                     
@@ -2375,8 +2389,9 @@ frappe.ready(function() {
                                             <div class="payment-method-form mt-3 pt-3" id="payment-form-${cleanId}"></div>
                                         </div>
                                     `;
-                                    container.append(methodHtml);
+                                    methodsHtml.push(methodHtml);
                                 });
+                                container.html(methodsHtml.join(''));
 
                                 // Attach event handlers
                                 $('.payment-method-item').on('click', (e) => {
@@ -2409,13 +2424,32 @@ frappe.ready(function() {
                                 // Initialize tooltips
                                 $('[data-toggle="tooltip"]').tooltip();
                             }
+
+                            //// Neoffice — marked done only once the cards are
+                            //// actually on screen, not when the request left.
+                            this.paymentMethodsInitialized = true;
+                            this._paymentMethodsLoading = false;
+                            this.unfreeze('step-section');
+                        },
+                        error: (err) => {
+                            console.error('checkout: payment methods failed', err);
+                            this._paymentMethodsLoading = false;
+                            this.unfreeze('step-section');
+                            $('#payment-methods-container').html(
+                                `<div class="alert alert-danger">${__('Payment methods could not be loaded. Please try again.')}</div>`
+                            );
                         }
                     });
+                },
+                error: (err) => {
+                    console.error('checkout: get_payment_methods failed', err);
+                    this._paymentMethodsLoading = false;
+                    this.unfreeze('step-section');
+                    $('#payment-methods-container').html(
+                        `<div class="alert alert-danger">${__('Payment methods could not be loaded. Please try again.')}</div>`
+                    );
                 }
             });
-
-            this.paymentMethodsInitialized = true;
-            this.unfreeze('step-section');
         }
 
         handlePaymentMethodChange(methodId) {
@@ -2717,10 +2751,20 @@ frappe.ready(function() {
         }
 
         refreshPaymentMethods() {
+            //// Neoffice — isUpdatingPayment was raised and lowered around a
+            //// call that is asynchronous: it was already false while the
+            //// reload was still running, so the guard it exists for protected
+            //// nothing. Worse, clearing paymentMethodsInitialized re-opened
+            //// setupPaymentMethods to a caller that could arrive mid-flight.
+            ////
+            //// A reload asked for while one is already running is now simply
+            //// dropped — the one in progress is about to render the same
+            //// thing, and two of them racing is exactly what made the payment
+            //// step blink.
+            if (this._paymentMethodsLoading) return;
             this.isUpdatingPayment = true;
-            // Invalidate the cache to force reloading with new data
             this.loadedPaymentTemplates = {};
-            this.paymentMethodsInitialized = false;  
+            this.paymentMethodsInitialized = false;
             this.setupPaymentMethods();
             this.isUpdatingPayment = false;
         }
