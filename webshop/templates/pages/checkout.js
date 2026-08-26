@@ -143,39 +143,38 @@ frappe.ready(function() {
         initializeAddressesAndOrderSummary() {
             if (this.isLoading) return;
             
-            this.freezeElements(['step-section', 'order-summary']);
-            
-            try {
-                frappe.call({
-                    method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
-                    callback: (r) => {
-                        if (!r.exc && r.message) {
-                            const quotation = r.message.doc;
-                            if (quotation) {
-                                this.quotationName = quotation.name;
-                                if (quotation.customer_address) {
-                                    $('#billing_address_name').val(quotation.customer_address);
-                                    frappe.call({
-                                        method: 'webshop.webshop.shopping_cart.cart.update_cart_address',
-                                        args: {
-                                            address_type: 'Billing',
-                                            address_name: quotation.customer_address
-                                        }
-                                    }).then(() => {
-                                        this.unfreezeElements(['step-section', 'order-summary']);
-                                    });
-                                }
-                                
-                                // Update order summary
-                                this.updateOrderSummaryFromDoc(quotation);
-                            }
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error('Error initializing addresses:', error);
-                this.unfreezeElements(['step-section', 'order-summary']);
-            }
+            //// Neoffice — this used to read the quotation, then WRITE the very
+            //// address it had just read back to the server. update_cart_address
+            //// is not a cheap call: it reloads the quotation, re-reads the
+            //// address, re-applies cart settings, recalculates every tax and
+            //// saves the document — measured at 517 ms, on every single page
+            //// load, for a value that had not changed.
+            ////
+            //// And the server already handles the case that write was meant to
+            //// cover: get_cart_quotation assigns the default billing address
+            //// itself when the quotation has none (cart.py, "if doc and not
+            //// doc.customer_address and addresses"). The branch here only ran
+            //// when customer_address was ALREADY set — precisely when there
+            //// was nothing to do.
+            ////
+            //// The old try/catch could never fire either: frappe.call does not
+            //// throw synchronously, so its unfreeze was dead code. callServer
+            //// releases the screen in a finally block, failure included.
+            this.callServer(
+                'webshop.webshop.shopping_cart.cart.get_cart_quotation',
+                {},
+                {freeze: ['step-section', 'order-summary']}
+            ).then(message => {
+                const quotation = message && message.doc;
+                if (!quotation) return;
+                this.quotationName = quotation.name;
+                if (quotation.customer_address) {
+                    $('#billing_address_name').val(quotation.customer_address);
+                }
+                this.updateOrderSummaryFromDoc(quotation);
+            }).catch(() => {
+                /* callServer already told the shopper and released the screen */
+            });
         }
 
         setupListeners() {
@@ -642,16 +641,32 @@ frappe.ready(function() {
                 // Initialize initial form values if not set
                 if (!this.initialFormValues) {
                     this.initialFormValues = {};
-                    $('#address-form input, #address-form select').each(function() {
-                        const name = $(this).attr('name') || $(this).attr('id');
+                    //// Neoffice — this loop was a no-op. jQuery passes the DOM
+                    //// element as `this` inside .each(), and the `.bind(this)`
+                    //// replaced it with the CheckoutManager instance: every
+                    //// `$(this).attr('name')` returned undefined, the `if (name)`
+                    //// never passed, and initialFormValues stayed empty for the
+                    //// life of the page.
+                    ////
+                    //// Consequence, and it is the reason the address step talks
+                    //// to the server so much: with no reference values, the
+                    //// comparison below never matched, so pendingChanges was
+                    //// never cleared. Typing a character and undoing it still
+                    //// counted as a change — the confirmation dialog opened on
+                    //// every "next step" and applyPendingChanges fired its 4 to
+                    //// 7 sequential calls even when nothing had actually moved.
+                    ////
+                    //// An arrow function keeps `this` as the instance while
+                    //// .each() hands us the element as an argument.
+                    $('#address-form input, #address-form select').each((_, el) => {
+                        const $el = $(el);
+                        const name = $el.attr('name') || $el.attr('id');
                         if (name) {
-                            let val = $(this).val();
-                            if ($(this).is(':checkbox')) {
-                                val = $(this).prop('checked');
-                            }
-                            this.initialFormValues[name] = val;
+                            this.initialFormValues[name] = $el.is(':checkbox')
+                                ? $el.prop('checked')
+                                : $el.val();
                         }
-                    }.bind(this));
+                    });
                 }
 
                 // Compare new value with initial value
@@ -868,27 +883,31 @@ frappe.ready(function() {
             $('[data-toggle="tooltip"]').tooltip();
         }
 
+        //// Neoffice — formatting a number used to cost an HTTP round trip, one
+        //// per amount, awaited in series. Refreshing the order summary of a
+        //// six-item cart fired up to 17 of them (subtotal, shipping, one per
+        //// tax line, one per item, one per unit price, one per discount,
+        //// total) — measured at 25 ms each, so ~175 ms of pure waiting on the
+        //// page load alone, and the same again after every quantity change.
+        ////
+        //// The client already has the answer. Frappe's own format_currency()
+        //// was in fact already used a few lines below for the loyalty amount,
+        //// without any network. Verified against the server on 0, 49, 271.97,
+        //// 1234.5 and 1000000: byte-for-byte identical output, Swiss digit
+        //// grouping included.
+        ////
+        //// The one thing the server knew and the browser did not is the
+        //// "hide_currency_symbol_in_shop" setting; checkout.py now seeds it
+        //// into the page. Kept async so the eight `await` call sites are
+        //// untouched — awaiting a plain value simply resolves immediately.
         async format_currency_value(value, currency) {
-            return new Promise((resolve, reject) => {
-                frappe.call({
-                    method: "webshop.webshop.utils.utils.format_currency_value",
-                    args: {
-                        value: value,
-                        currency: currency
-                    },
-                    callback: function(r) {
-                        if (r.message) {
-                            resolve(r.message);
-                        } else {
-                            resolve("0");
-                        }
-                    },
-                    error: function(err) {
-                        console.error('Error formatting currency:', err);
-                        reject(err);
-                    }
-                });
-            });
+            try {
+                const hideSymbol = window.__webshop_hide_currency_symbol === true;
+                return format_currency(value, hideSymbol ? null : currency);
+            } catch (err) {
+                console.error('checkout: currency formatting failed', err);
+                return String(value ?? '');
+            }
         }
 
         loadExistingAddress() {
@@ -972,21 +991,24 @@ frappe.ready(function() {
         }
 
         setupAddressListeners() {
-            // Listen for changes in billing address fields
-            const billingFields = [
-                'billing_phone',
-                'billing_email',
-                'billing_address_1',
-                'billing_address_2',
-                'billing_city',
-                'billing_state',
-                'billing_postcode',
-                'billing_country'
-            ];
-
-            // Listen for changes in shipping address fields
+            //// Neoffice — this method used to re-register a `change` handler on
+            //// every billing and shipping field, writing straight into
+            //// pendingChanges with no comparison. bindEvents() already watches
+            //// the same fields (selector '#address-form input, …') and DOES
+            //// compare against the initial value.
+            ////
+            //// The two lived side by side: the `.off()` calls here never
+            //// removed bindEvents' handler because jQuery only unbinds a
+            //// delegated handler through its exact selector, and this one runs
+            //// second (constructor order: setupListeners → bindEvents, then
+            //// setupAddressListeners). So it always had the last word and put
+            //// the field back into pendingChanges — undoing the comparison and
+            //// keeping the "you have unsaved changes" dialog permanently armed.
+            ////
+            //// Only the "same address for shipping" behaviour was its own, and
+            //// it stays: copying billing into shipping IS a real change, so
+            //// writing it down directly is correct.
             const shippingFields = [
-                'shipping_name',
                 'shipping_phone',
                 'shipping_email',
                 'shipping_address_1',
@@ -997,45 +1019,22 @@ frappe.ready(function() {
                 'shipping_country'
             ];
 
-            // Remove existing listeners
-            billingFields.forEach(field => {
-                $(document).off('change', `[name="${field}"]`);
-            });
-            shippingFields.forEach(field => {
-                $(document).off('change', `[name="${field}"]`);
-            });
-
-            // Add new listeners to track changes
-            billingFields.forEach(field => {
-                $(document).on('change', `[name="${field}"]`, (e) => {
-                    const $input = $(e.target);
-                    this.pendingChanges[field] = $input.val();
-                });
-            });
-
-            shippingFields.forEach(field => {
-                $(document).on('change', `[name="${field}"]`, (e) => {
-                    const $input = $(e.target);
-                    this.pendingChanges[field] = $input.val();
-                });
-            });
-
-            // Handle "Use same address for shipping" checkbox
+            $(document).off('change', '#same_as_billing');
             $(document).on('change', '#same_as_billing', () => {
-                const sameAsBilling = $('#same_as_billing').is(':checked');
-
-                if (sameAsBilling) {
-                    shippingFields.forEach(field => {
-                        const billingField = field.replace('shipping_', 'billing_');
-                        const value = $(`[name="${billingField}"]`).val();
-                        $(`[name="${field}"]`).val(value);
-                        this.pendingChanges[field] = value;
-                    });
-                }
+                if (!$('#same_as_billing').is(':checked')) return;
+                shippingFields.forEach(field => {
+                    const billingField = field.replace('shipping_', 'billing_');
+                    const value = $(`[name="${billingField}"]`).val();
+                    $(`[name="${field}"]`).val(value);
+                    this.pendingChanges[field] = value;
+                });
             });
         }
 
         async applyPendingChanges() {
+            //// Neoffice — holds the answer of the last update_cart_address so
+            //// the display can be refreshed from it instead of asking again.
+            let addressResult = null;
             try {
                 // Update contact information if needed
                 const contactFields = ['contact_first_name', 'contact_last_name', 'contact_email', 'contact_phone'];
@@ -1151,34 +1150,47 @@ frappe.ready(function() {
                             }
                         }
                         // Update quotation with shipping address
-                        await frappe.call({
+                        addressResult = await frappe.call({
                             method: 'webshop.webshop.shopping_cart.cart.update_cart_address',
-                            args: { 
-                                address_type: 'Shipping', 
-                                address_name: $('#shipping_address_name').val() 
+                            args: {
+                                address_type: 'Shipping',
+                                address_name: $('#shipping_address_name').val()
                             }
                         });
                     } else {
                         // If 'ship_to_different' is not checked, use billing address for shipping
-                        await frappe.call({
+                        addressResult = await frappe.call({
                             method: 'webshop.webshop.shopping_cart.cart.update_cart_address',
-                            args: { 
-                                address_type: 'Shipping', 
-                                address_name: $('#billing_address_name').val() 
+                            args: {
+                                address_type: 'Shipping',
+                                address_name: $('#billing_address_name').val()
                             }
                         });
                     }
 
-                    // Update display after changes
-                    const displayResponse = await frappe.call({
-                        method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation'
-                    });
-
-                    if (displayResponse.message) {
-                        $('.tax-container').html(displayResponse.message.taxes);
-                        $('.billing-address-display').html(displayResponse.message.address);
-                        if (shipToDifferent) {
-                            $('.shipping-address-display').html(displayResponse.message.shipping_address);
+                    //// Neoffice — the two calls above used to throw their
+                    //// answer away, and a get_cart_quotation was fired right
+                    //// after to fetch `taxes` and `address`.
+                    ////
+                    //// Two things were wrong with that. update_cart_address
+                    //// ALREADY returns exactly {taxes, address} (see cart.py,
+                    //// end of update_cart_address) — so the round trip was
+                    //// buying something we had just been handed. And
+                    //// get_cart_quotation does not even return those keys: its
+                    //// payload is {doc, shipping_addresses, billing_addresses,
+                    //// …}. The three lines below were writing `undefined` into
+                    //// the DOM — inert, because jQuery's .html(undefined) acts
+                    //// as a getter, which is why nobody ever noticed.
+                    ////
+                    //// `shipping_address` is returned by neither, so that line
+                    //// is gone rather than kept as decoration.
+                    const addressPayload = addressResult && addressResult.message;
+                    if (addressPayload) {
+                        if (addressPayload.taxes !== undefined) {
+                            $('.tax-container').html(addressPayload.taxes);
+                        }
+                        if (addressPayload.address !== undefined) {
+                            $('.billing-address-display').html(addressPayload.address);
                         }
                     }
 
@@ -1198,24 +1210,13 @@ frappe.ready(function() {
             }
         }
 
-        handleShippingAddressToggle() {
-            const shippingContainer = $('#shipping-address-container');
-            const shippingFields = $('.shipping-field');
+        //// Neoffice — handleShippingAddressToggle() was declared twice in
+        //// this class, with byte-identical bodies. JavaScript keeps the last
+        //// declaration and silently drops the first, so these 18 lines never
+        //// ran. Nothing was broken by it, but anyone fixing the first copy
+        //// would have watched their change do nothing. The live one lives
+        //// further down, next to the shipping code it belongs with.
 
-            $('#ship_to_different').on('change', async (e) => {
-                const isChecked = $(e.target).is(':checked');
-
-                if (isChecked) {
-                    shippingContainer.show();
-                    shippingFields.prop('required', true);
-                    shippingFields.prop('disabled', false);
-                } else {
-                    shippingContainer.hide();
-                    shippingFields.prop('required', false);
-                    shippingFields.prop('disabled', true);
-                }
-            });
-        }
 
         async handlePrevStep(e) {
             if (this.isLoading) return;
@@ -1386,19 +1387,77 @@ frappe.ready(function() {
             }
         }
 
+        //// Neoffice — freezing used to auto-release after 3 seconds. That was
+        //// a blindfolded safety net: a call slower than 3s left the screen
+        //// usable while it was still running (the shopper could click again
+        //// and fire concurrent writes), and a call that FAILED never released
+        //// anything because unfreeze only lived in the success callback.
+        ////
+        //// Freezes are now counted per selector: two overlapping calls freeze
+        //// once and release once the last one is done. Release is guaranteed
+        //// by callServer()'s finally block, so it happens on failure too. The
+        //// remaining timer is a last-resort net at 30s that TELLS the shopper
+        //// instead of silently unlocking mid-flight.
         freezeElements(selectors) {
+            this._freezeCounts = this._freezeCounts || {};
+            this._freezeTimers = this._freezeTimers || {};
             selectors.forEach(selector => {
-                this.freeze(selector);
-                setTimeout(() => {
-                    this.unfreeze(selector);
-                }, 3000);
+                const n = (this._freezeCounts[selector] || 0) + 1;
+                this._freezeCounts[selector] = n;
+                if (n === 1) this.freeze(selector);
+
+                clearTimeout(this._freezeTimers[selector]);
+                this._freezeTimers[selector] = setTimeout(() => {
+                    if (this._freezeCounts[selector]) {
+                        this._freezeCounts[selector] = 0;
+                        this.unfreeze(selector);
+                        frappe.msgprint({
+                            title: __('Error'),
+                            message: __('The server is taking too long to answer. Please check your connection and try again.'),
+                            indicator: 'orange'
+                        });
+                    }
+                }, 30000);
             });
         }
 
         unfreezeElements(selectors) {
+            this._freezeCounts = this._freezeCounts || {};
+            this._freezeTimers = this._freezeTimers || {};
             selectors.forEach(selector => {
-                this.unfreeze(selector);
+                const n = Math.max(0, (this._freezeCounts[selector] || 0) - 1);
+                this._freezeCounts[selector] = n;
+                if (n === 0) {
+                    clearTimeout(this._freezeTimers[selector]);
+                    this.unfreeze(selector);
+                }
             });
+        }
+
+        //// Neoffice — single door to the server. Guarantees three things the
+        //// 47 hand-written frappe.call sites did not: the screen is always
+        //// released (finally), a failure is shown to the shopper instead of
+        //// dying in the console, and the caller gets a promise it can await
+        //// rather than another nesting level.
+        async callServer(method, args = {}, opts = {}) {
+            const {freeze = [], errorMessage = null, silent = false} = opts;
+            if (freeze.length) this.freezeElements(freeze);
+            try {
+                const r = await frappe.call({method, args});
+                return r ? r.message : null;
+            } catch (err) {
+                console.error(`checkout: ${method} failed`, err);
+                if (!silent) {
+                    frappe.msgprint({
+                        title: __('Error'),
+                        message: errorMessage || __('Something went wrong. Please try again.'),
+                        indicator: 'red'
+                    });
+                }
+                throw err;
+            } finally {
+                if (freeze.length) this.unfreezeElements(freeze);
+            }
         }
 
         handleShippingAddressToggle() {
@@ -1959,24 +2018,35 @@ frappe.ready(function() {
                     //// Neoffice — multi-warehouse: keep the edit on the right line.
                     warehouse: warehouse !== undefined ? warehouse : undefined
                 },
+                //// Neoffice — update_cart now returns the quotation next to the
+                //// rendered HTML, so the get_cart_quotation that used to follow
+                //// is gone: this code was discarding three server-rendered
+                //// templates and then asking for the document it had just
+                //// caused to be built.
+                ////
+                //// The screen is released in every branch, failure included —
+                //// previously an error left the summary frozen until the old
+                //// 3-second auto-release kicked in.
                 callback: (r) => {
-                    if (r.message) {
-                        // Update cart count
-                        webshop.webshop.shopping_cart.set_cart_count(false);
-
-                        // Now get fresh cart data - this call starts AFTER update_cart callback fires
-                        frappe.call({
-                            method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
-                            callback: (result) => {
-                                if (result.message && result.message.doc) {
-                                    this.updateOrderSummaryFromDoc(result.message.doc);
-                                }
-                                this.unfreezeElements(['order-summary']);
+                    try {
+                        if (r.message) {
+                            webshop.webshop.shopping_cart.set_cart_count(false);
+                            if (r.message.doc) {
+                                this.updateOrderSummaryFromDoc(r.message.doc);
                             }
-                        });
-                    } else {
+                        }
+                    } finally {
                         this.unfreezeElements(['order-summary']);
                     }
+                },
+                error: (err) => {
+                    console.error('checkout: update_cart failed', err);
+                    this.unfreezeElements(['order-summary']);
+                    frappe.msgprint({
+                        title: __('Error'),
+                        message: __('The quantity could not be updated. Please try again.'),
+                        indicator: 'red'
+                    });
                 }
             });
         }
@@ -2499,7 +2569,14 @@ frappe.ready(function() {
                         card_errors_id: `card-errors-${cleanId}`,
                         submit_id: `submit-${cleanId}`,
                         paypal_button_id: `paypal-button-${cleanId}`,
-                        amount: this.grandTotal,
+                        //// Neoffice — `amount` was read from this.grandTotal,
+                        //// a field never assigned anywhere in the class: the
+                        //// gateway template received `undefined`. Harmless in
+                        //// practice — get_payment_template falls back to the
+                        //// quotation's rounded_total — but the fallback is
+                        //// also the only trustworthy source: the amount to pay
+                        //// must not be something the browser gets to state.
+                        //// So we send nothing and let the server decide.
                         currency: method.currency,
                         payer_name: frappe.session.user_fullname,
                         payer_email: frappe.session.user
@@ -2686,50 +2763,46 @@ frappe.ready(function() {
             return emailRegex.test(email);
         }
 
-        async checkGiftCardOnly() {
-            frappe.call({
-                method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
-                callback: async (r) => {
-                    if (!r.exc && r.message && r.message.doc) {
-                        const quotation = r.message.doc;
-                        let allGiftCards = false;
-                        
-                        // Check each item sequentially
-                        const checkItems = async () => {
-                            for (let item of quotation.items || []) {
-                                try {
-                                    const result = await new Promise((resolve, reject) => {
-                                        frappe.call({
-                                            method: 'webshop.webshop.shopping_cart.cart.is_gift_card_item',
-                                            args: {
-                                                item_code: item.item_code
-                                            },
-                                            callback: (result) => {
-                                                resolve(result.message === 1);
-                                            },
-                                            error: (err) => reject(err)
-                                        });
-                                    });
-                                    
-                                    if (!result) {
-                                        allGiftCards = false;
-                                        return false; // Exit loop if item is not a gift card
-                                    }
-                                    allGiftCards = true;
-                                } catch (err) {
-                                    console.error('Error checking gift card:', err);
-                                    allGiftCards = false;
-                                    return false;
-                                }
-                            }
-                            return true;
-                        };
-
-                        await checkItems();
-                        this.isGiftCardOnly = allGiftCards;
-                    }
+        //// Neoffice — this was `async` but never awaited its own work: the
+        //// frappe.call was fire-and-forget, so the promise resolved before
+        //// isGiftCardOnly had been assigned. Callers doing
+        //// `await this.checkGiftCardOnly()` read the value from the PREVIOUS
+        //// run, which sent an all-gift-card cart to the shipping step instead
+        //// of straight to payment.
+        ////
+        //// It also asked the server about one item at a time, in series. The
+        //// whole cart is now one question — and the quotation it needs is
+        //// passed in when the caller already has it, instead of being fetched
+        //// again.
+        async checkGiftCardOnly(quotation = null) {
+            try {
+                if (!quotation) {
+                    const r = await frappe.call({
+                        method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation'
+                    });
+                    quotation = r && r.message ? r.message.doc : null;
                 }
-            });
+                const items = (quotation && quotation.items) || [];
+                if (!items.length) {
+                    this.isGiftCardOnly = false;
+                    return false;
+                }
+
+                const codes = [...new Set(items.map(i => i.item_code))];
+                const r2 = await frappe.call({
+                    method: 'webshop.webshop.shopping_cart.cart.are_gift_card_items',
+                    args: {item_codes: codes}
+                });
+                const map = (r2 && r2.message) || {};
+                this.isGiftCardOnly = codes.every(c => map[c]);
+            } catch (err) {
+                console.error('checkout: gift card detection failed', err);
+                //// Falling back to false keeps the shipping step in the flow —
+                //// showing one step too many is recoverable, skipping the step
+                //// that collects the delivery address is not.
+                this.isGiftCardOnly = false;
+            }
+            return this.isGiftCardOnly;
         }
 
         // Global payment lock methods

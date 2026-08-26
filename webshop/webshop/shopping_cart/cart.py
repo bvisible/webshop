@@ -1313,6 +1313,12 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			"taxes_and_totals": frappe.render_template(
 				"templates/includes/cart/cart_payment_summary.html", context
 			),
+			#//// Neoffice — the quotation itself, alongside the rendered HTML.
+			#//// The context above already holds it, so this costs nothing here
+			#//// and saves the caller a second round trip: the checkout used to
+			#//// throw this HTML away and immediately call get_cart_quotation
+			#//// to obtain the very document we had in hand.
+			"doc": context.get("doc"),
 		}
 	else:
 		return {"name": quotation.name if quotation else None}
@@ -2914,6 +2920,30 @@ def is_gift_card_item(item_code):
 	except frappe.DoesNotExistError:
 		# If Website Item doesn't exist, it's not a gift card
 		return False
+
+
+#//// Neoffice — added endpoint. The checkout asked "is this a gift card?" one
+#//// item at a time, awaiting each round trip before starting the next: a cart
+#//// of six items meant six chained requests just to decide which step comes
+#//// after the address. One query answers for the whole cart.
+@frappe.whitelist(allow_guest=True)
+def are_gift_card_items(item_codes):
+	"""Map of item_code -> is_gift_card for several items at once."""
+	if isinstance(item_codes, str):
+		item_codes = frappe.parse_json(item_codes)
+	if not item_codes:
+		return {}
+
+	# Unique codes, and never trust the browser on the size of the list.
+	item_codes = list({c for c in item_codes if c})[:200]
+	rows = frappe.get_all(
+		"Website Item",
+		filters={"item_code": ["in", item_codes]},
+		fields=["item_code", "is_gift_card"],
+	)
+	found = {r.item_code: bool(r.is_gift_card) for r in rows}
+	# An item with no Website Item is not a gift card, as above.
+	return {code: found.get(code, False) for code in item_codes}
 
 def remove_quotation_loyalty_points(doc, method=None):
 	"""Remove loyalty points related to a specific quotation"""

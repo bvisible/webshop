@@ -31,6 +31,13 @@ def get_context(context):
 	#//// page heading, so the page read "checkout".
 	context.title = _("Checkout")
 	context.js_messages = frappe.as_json({m: _(m) for m in _LIBELLES_DIALOGUES})
+	#//// Neoffice — the one thing client-side currency formatting cannot
+	#//// know on its own. Seeded once instead of being re-asked through a
+	#//// round trip for every amount displayed.
+	context.hide_currency_symbol = (
+		frappe.db.get_single_value("Webshop Settings", "hide_currency_symbol_in_shop") == "Yes"
+		or frappe.defaults.get_global_default("hide_currency_symbol") == "Yes"
+	)
 	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
 	
 	# Check and merge guest cart if needed

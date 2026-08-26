@@ -417,6 +417,7 @@
 	    (« Yes », « No »…) restaient donc en anglais au milieu d'un tunnel
 	    francophone — vu le 2026-08-25 sur la confirmation d'adresse. -#}
 	frappe._messages = Object.assign({}, frappe._messages || {}, {{ js_messages }});
+	window.__webshop_hide_currency_symbol = {{ 'true' if hide_currency_symbol else 'false' }};
 	{% include "templates/pages/checkout.js" %}
 </script>
 {% endblock %}
