@@ -66,9 +66,11 @@ frappe.ready(function() {
             this.isUpdatingShipping = false;  
             this.isUpdatingPayment = false;  
             this.paymentMethods = [];
+            //// Neoffice — lu par templates/payments/webshopsi.html via
+            //// checkout_manager.quotationName : ce n'est pas une variable morte.
+            this.quotationName = null;
             this.currentMethod = null;
             this.isGiftCardOnly = false;
-            this.quotationName = null;
             this.paymentMethodsInitialized = false;
             // Initialisation du cache pour les templates de paiement
             this.loadedPaymentTemplates = {};
@@ -83,7 +85,6 @@ frappe.ready(function() {
             this.checkGiftCardOnly();
             this.showStep('step-address');
             this.loadExistingAddress();
-            //this.setupLeavePageConfirmation();
 
             this.initializeAddressesAndOrderSummary();
             this.initializeCouponHandling();
@@ -579,36 +580,6 @@ frappe.ready(function() {
             }
         }
 
-        setupLeavePageConfirmation() {
-            // Variable to track page modifications
-            this.pageModified = true;
-            
-            // Add an event listener to intercept tab closing
-            window.addEventListener('beforeunload', (e) => {
-                if (this.pageModified) {
-                    // Standard message for different browsers
-                    const confirmationMessage =__("Are you sure you want to leave this page? Your order has not been finalized.");
-                    e.returnValue = confirmationMessage; // Standard for most browsers
-                    return confirmationMessage; // For older browsers
-                }
-            });
-            
-            // Intercept clicks on links that leave the checkout
-            $(document).on('click', 'a', (e) => {
-                const href = $(e.currentTarget).attr('href');
-                // Check if the link does not contain 'checkout', is not thank_you.html and is not an internal anchor (#)
-                if (href && !href.includes('checkout') && !href.includes('thank_you.html') && !href.startsWith('#') && this.pageModified) {
-                    if (!confirm(__("Are you sure you want to leave this page? Your order has not been finalized."))) {
-                        e.preventDefault();
-                    }
-                }
-            });
-            
-            // Disable alert when order is finalized
-            $(document).on('click', '.btn-submit-payment', () => {
-                this.pageModified = false;
-            });
-        }
 
         setupCompanyField() {
             // Load initial company name if customer type is Company
@@ -1198,7 +1169,6 @@ frappe.ready(function() {
                     key === 'contact_first_name' || 
                     key === 'contact_last_name'
                 );
-                const hasShippingChanges = Object.keys(this.pendingChanges).some(key => key.startsWith('shipping_'));
 
                 try {
                     // Handle billing address if modified
@@ -2586,7 +2556,22 @@ frappe.ready(function() {
             });
         }
 
+        //// Neoffice — NE PAS SUPPRIMER : sans appel dans ce fichier, mais
+        //// invoquée sur checkout_manager par templates/payments/paypal.html et
+        //// wallee.html. Les gabarits de passerelle appellent des méthodes de
+        //// cette classe : chercher un usage sans inclure templates/payments/
+        //// fait conclure à tort qu'une méthode est morte.
+        isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || '');
+        }
+
         handlePaymentMethodChange(methodId) {
+            //// Neoffice — currentMethod was read when rendering the cards, to
+            //// tick the method already chosen, but nothing ever assigned it:
+            //// the pre-selection only worked when there was a single method.
+            //// It matters on a re-render — without it the shopper's choice is
+            //// lost and the list comes back unticked.
+            this.currentMethod = methodId;
             // Reset payment processing state when changing payment method
             if (this.isProcessingPayment) {
                 console.log("Resetting payment state due to payment method change");
@@ -2943,10 +2928,6 @@ frappe.ready(function() {
             });
         }
 
-        isValidEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
 
         //// Neoffice — this was `async` but never awaited its own work: the
         //// frappe.call was fire-and-forget, so the promise resolved before
@@ -3068,9 +3049,6 @@ frappe.ready(function() {
         }
 
         // Check if payment is in progress
-        isPaymentInProgress() {
-            return this.isProcessingPayment;
-        }
 
         // Generate idempotency token
         generateIdempotencyToken() {
