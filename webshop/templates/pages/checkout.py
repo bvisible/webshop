@@ -38,7 +38,12 @@ def get_context(context):
 	#//// Neoffice — Frappe derives context.title from the route when nobody
 	#//// sets it, and never translates it; themes print it as the visible
 	#//// page heading, so the page read "checkout".
-	context.title = _("Checkout")
+	#////
+	#//// Deliberately NOT _("Checkout"): that string is shared with the cart
+	#//// button, where fr renders it "Paiement" — which is right for a button but
+	#//// made the page heading and the breadcrumb read "Paiement" while the
+	#//// shopper stood on step 2, next to a step 4 also labelled "Paiement".
+	context.title = _("Your order")
 	context.js_messages = frappe.as_json({m: _(m) for m in _LIBELLES_DIALOGUES})
 	#//// Neoffice — the one thing client-side currency formatting cannot know
 	#//// on its own. Seeded once instead of being re-asked through a round trip

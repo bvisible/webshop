@@ -4789,6 +4789,10 @@ msgstr "Vos informations"
 msgid "Your loyalty program"
 msgstr "Votre programme de fidélité"
 
+#: webshop/templates/pages/checkout.py:41
+msgid "Your order"
+msgstr "Votre commande"
+
 #: webshop/templates/pages/thank_you.html:19
 msgid "Your order #"
 msgstr "Votre commande n°"
