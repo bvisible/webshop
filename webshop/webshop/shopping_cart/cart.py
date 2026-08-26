@@ -241,6 +241,68 @@ def get_billing_addresses(party=None):
 	]
 
 
+#//// Neoffice — added endpoint. get_billing_addresses / get_shipping_addresses
+#//// filter strictly on address_type, so an address a customer created as
+#//// "Office" or "Personal" — perfectly ordinary in Frappe — belonged to
+#//// neither list and was simply invisible at checkout. Frappe itself puts no
+#//// such restriction: any address of the party can be used for billing or
+#//// shipping, address_type being a label, not a permission.
+#////
+#//// This returns every address linked to the customer, with the fields the
+#//// checkout form needs to prefill itself, so picking one costs no extra
+#//// round trip. `preferred` marks the one Frappe would pick by default.
+@frappe.whitelist()
+def get_customer_addresses():
+	party = get_party()
+	if not party:
+		return []
+
+	names = frappe.get_all(
+		"Dynamic Link",
+		filters={
+			"link_doctype": party.doctype,
+			"link_name": party.name,
+			"parenttype": "Address",
+		},
+		pluck="parent",
+	)
+	if not names:
+		return []
+
+	rows = frappe.get_all(
+		"Address",
+		filters={"name": ["in", names], "disabled": 0},
+		fields=[
+			"name", "address_title", "address_type",
+			"address_line1", "address_line2", "city", "state", "pincode", "country",
+			"phone", "email_id", "is_primary_address", "is_shipping_address",
+		],
+		order_by="is_primary_address desc, is_shipping_address desc, address_title asc",
+	)
+
+	out = []
+	for row in rows:
+		out.append(
+			{
+				"name": row.name,
+				"title": row.address_title or row.name,
+				"address_type": row.address_type,
+				"display": get_address_display(frappe.get_doc("Address", row.name).as_dict()),
+				"address_line1": row.address_line1,
+				"address_line2": row.address_line2,
+				"city": row.city,
+				"state": row.state,
+				"pincode": row.pincode,
+				"country": row.country,
+				"phone": row.phone,
+				"email_id": row.email_id,
+				"is_primary_address": cint(row.is_primary_address),
+				"is_shipping_address": cint(row.is_shipping_address),
+			}
+		)
+	return out
+
+
 @frappe.whitelist()
 def place_order():
 	quotation = _get_cart_quotation()
