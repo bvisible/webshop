@@ -3061,9 +3061,22 @@ frappe.ready(function() {
                 el.style.display = 'none';
                 el.classList.remove('show');
             });
-            
-            // Show appropriate message
-            const messageEl = document.querySelector('.' + type + '.payment-message');
+
+            //// Neoffice — was document.querySelector('.error.payment-message'),
+            //// which takes the FIRST match in the document.
+            ////
+            //// Every payment method renders its own message zone, so the first
+            //// one belongs to whichever method sits at the top of the list — not
+            //// to the one the customer is paying with. A declined card therefore
+            //// wrote its message inside a collapsed, unselected tile: the text
+            //// was in the DOM, and the customer saw nothing at all.
+            //// Verified with Stripe's declined test card: the whole chain ran
+            //// (create_payment_request → make_payment → handle_payment_failure)
+            //// and the screen stayed silent.
+            const $selectionnee = $('.payment-method-item.selected');
+            const messageEl = ($selectionnee.length
+                ? $selectionnee.find('.' + type + '.payment-message')[0]
+                : null) || document.querySelector('.' + type + '.payment-message');
             if (messageEl) {
                 messageEl.textContent = message;
                 messageEl.style.display = 'block';
