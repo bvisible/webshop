@@ -20,7 +20,12 @@ const {
 	premierArticleAchetable,
 	utilisateurCourant,
 } = require('../fixtures/boutique');
-const {activationDisponible, activerCompte, supprimerCompte} = require('../fixtures/activation');
+const {
+	activationDisponible,
+	activerCompte,
+	raisonEchecActivation,
+	supprimerCompte,
+} = require('../fixtures/activation');
 const {CARTES, remplirCarte, validerPaiement} = require('../fixtures/stripe');
 
 //// Adresse jetable: @yopmail.com, jamais une vraie boîte.
@@ -92,7 +97,7 @@ test.describe('Un nouveau client, de son inscription à sa commande', () => {
 		//// Le compte est créé SANS mot de passe: sans cette étape, il ne peut
 		//// pas se connecter, et c'est bien ce que vit un vrai client.
 		const active = await activerCompte(page, email, MOT_DE_PASSE);
-		expect(active, 'le compte n’a pas pu être activé par son lien').toBe(true);
+		expect(active, `activation impossible : ${raisonEchecActivation()}`).toBe(true);
 		expect(await utilisateurCourant(page)).toBe(email);
 	});
 
@@ -144,26 +149,57 @@ test.describe('Un nouveau client, de son inscription à sa commande', () => {
 });
 
 //// Fill the address form of a customer who has none.
+////
+//// Waits for the form before touching it: the address step is rendered by
+//// JavaScript and, measured on this site, is still empty six seconds after the
+//// page reports "networkidle". Reading it too early shows zero fields and looks
+//// exactly like a checkout that refuses to serve a new customer.
+////
+//// Then fills every REQUIRED field left empty, rather than a hard-coded list:
+//// the form differs by site (company, VAT number, house number…), and a single
+//// missing required field silently blocks the step with no message.
 async function remplirAdresse(page) {
-	const champs = {
-		contact_first_name: 'E2E',
-		contact_last_name: 'Nouveau',
-		contact_phone: '+41791234567',
-		billing_address_1: 'Rue du Test 1',
-		billing_city: 'Lausanne',
-		billing_postcode: '1003',
+	await expect
+		.poll(() => page.locator('#step-address input:visible').count(), {
+			timeout: 40_000,
+			message: 'le formulaire d’adresse ne s’est jamais affiché',
+		})
+		.toBeGreaterThan(3);
+
+	const valeurs = {
+		first_name: 'E2E',
+		last_name: 'Nouveau',
+		email: 'ne-pas-repondre@yopmail.com',
+		phone: '+41791234567',
+		address_1: 'Rue du Test 1',
+		address_2: '',
+		house_number: '1',
+		city: 'Lausanne',
+		postcode: '1003',
+		state: 'Vaud',
+		country: 'Switzerland',
 	};
-	for (const [nom, valeur] of Object.entries(champs)) {
-		const champ = page.locator(`[name="${nom}"]`).first();
+
+	const aRemplir = await page.evaluate(() =>
+		[...document.querySelectorAll('#step-address input, #step-address select')]
+			.filter((e) => e.type !== 'hidden' && e.type !== 'checkbox' && e.offsetHeight > 0)
+			.filter((e) => e.required && !e.value)
+			.map((e) => e.name || e.id)
+	);
+
+	for (const nom of aRemplir) {
+		const cle = Object.keys(valeurs).find((k) => nom.endsWith(k));
+		if (!cle || !valeurs[cle]) continue;
+		const champ = page.locator(`[name="${nom}"], #${nom}`).first();
 		if ((await champ.count()) === 0) continue;
-		if (await champ.inputValue()) continue;   // déjà rempli par le serveur
-		await champ.fill(valeur);
+		await champ.fill(valeurs[cle]);
 	}
 
-	//// Le pays conditionne les règles de livraison: sans lui, aucune méthode.
-	const pays = page.locator('[name="billing_country"]').first();
+	//// Le pays conditionne les règles de livraison: sans lui, aucune méthode
+	//// n'est proposée et l'étape suivante est un cul-de-sac.
+	const pays = page.locator('[name="billing_country"], #billing_country').first();
 	if ((await pays.count()) && !(await pays.inputValue())) {
-		await pays.fill('Switzerland');
+		await pays.fill(valeurs.country);
 	}
-	await page.waitForTimeout(2000);
+	await page.waitForTimeout(2500);
 }

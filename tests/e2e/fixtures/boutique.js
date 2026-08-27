@@ -151,11 +151,21 @@ async function choisirLivraison(page, index = 0) {
 //// Walk a filled cart from /checkout to the payment step.
 //// Shared by every payment scenario so the journey is written once.
 async function allerJusquAuPaiement(page) {
-	await page.goto('/checkout');
-	await page.waitForLoadState('networkidle');
+	//// Ne recharge PAS si l'on est déjà sur le tunnel: un goto efface un
+	//// formulaire d'adresse qui vient d'être saisi, et l'étape suivante reste
+	//// alors inaccessible — un échec qui accuse le checkout alors qu'il vient
+	//// du helper.
+	if (!page.url().includes('/checkout')) {
+		await page.goto('/checkout');
+		await page.waitForLoadState('networkidle');
+	}
 	await expect(page.locator('#step-address')).toHaveClass(/active/, {timeout: 40_000});
 
 	await page.locator('#step-address .next-step').click();
+	//// Saisir une adresse ouvre un dialogue de confirmation (« enregistrer ces
+	//// informations ? »). Il faut le valider, comme le client: sans cela l'étape
+	//// ne bascule jamais et le test conclut à un tunnel bloqué.
+	await confirmerDialogue(page);
 	await expect(page.locator('#step-shipping')).toHaveClass(/active/, {timeout: 45_000});
 
 	if ((await page.locator('#step-shipping input[type=radio]').count()) === 0) return false;
@@ -166,6 +176,31 @@ async function allerJusquAuPaiement(page) {
 	await expect
 		.poll(() => page.locator('.payment-method-item').count(), {timeout: 40_000})
 		.toBeGreaterThan(0);
+	return true;
+}
+
+//// Accept the address-confirmation dialog, if one opened.
+////
+//// Only appears when the form actually changed — a returning customer who picks
+//// a saved card never sees it, a first-time buyer typing their address always
+//// does. Silent no-op when there is no dialog.
+async function confirmerDialogue(page) {
+	const modale = page.locator('.modal.show, .modal.in').first();
+	try {
+		await modale.waitFor({state: 'visible', timeout: 8000});
+	} catch (err) {
+		return false;   // pas de dialogue: rien à confirmer
+	}
+
+	const bouton = modale
+		.locator('button.btn-primary, .btn-modal-primary, button')
+		.filter({hasText: /confirmer|valider|oui|continuer|ok/i})
+		.first();
+	if ((await bouton.count()) === 0) return false;
+
+	await bouton.click();
+	await modale.waitFor({state: 'hidden', timeout: 30_000}).catch(() => {});
+	await page.waitForTimeout(2500);
 	return true;
 }
 
@@ -225,6 +260,7 @@ module.exports = {
 	compterRequetes,
 	choisirLivraison,
 	allerJusquAuPaiement,
+	confirmerDialogue,
 	premierArticleAchetable,
 	articlesDuCatalogue,
 	codeArticleDeLaFiche,

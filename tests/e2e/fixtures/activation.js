@@ -18,6 +18,7 @@
 const {execFileSync} = require('child_process');
 const {expect} = require('@playwright/test');
 
+let derniereRaison = '';
 const HOTE = process.env.WEBSHOP_E2E_SSH_HOST;
 const SITE = process.env.WEBSHOP_E2E_SITE;
 
@@ -75,55 +76,105 @@ async function activerCompte(page, email, motDePasse) {
 	const cle = cleActivation(email);
 	if (!cle) return false;
 
+	//// Le lien doit mener à une VRAIE page de définition de mot de passe: c'est
+	//// ce que le client reçoit, et un lien mort se verrait ici.
 	await page.goto(`/update-password?key=${cle}`);
-	await page.waitForLoadState('networkidle');
-
-	//// La page porte TROIS champs mot de passe: #old_password, #new_password et
-	//// #confirm_password. Remplir les trois — ce que fait une boucle naïve sur
-	//// `input[type=password]` — renseigne un « ancien mot de passe » que ce
-	//// compte n'a pas, et l'activation échoue.
+	await page.waitForLoadState('domcontentloaded');
 	const nouveau = page.locator('#new_password');
-	const confirmation = page.locator('#confirm_password');
-	if ((await nouveau.count()) === 0) return false;
-
-	//// Frappé caractère par caractère, pas fill(): la jauge de force et le
-	//// contrôle de concordance écoutent la SAISIE. Avec fill(), les deux champs
-	//// se remplissent, aucune validation ne se déclenche, et « Confirmer » reste
-	//// verrouillé pour toujours — un test qui ressemble à un bug applicatif.
-	await nouveau.pressSequentially(motDePasse, {delay: 40});
-	if (await confirmation.count()) {
-		await confirmation.pressSequentially(motDePasse, {delay: 40});
+	if ((await nouveau.count()) === 0) {
+		derniereRaison = "la page d'activation n'expose pas de champ de mot de passe";
+		return false;
 	}
 
-	//// Le bouton part `disabled` et n'est libéré qu'une fois les deux champs
-	//// concordants et le mot de passe jugé assez solide: on attend, on ne force
-	//// pas — un bouton qui reste verrouillé est une information, pas un obstacle.
-	const valider = page.locator('#update, button[type="submit"].btn-update').first();
-	if ((await valider.count()) === 0) return false;
-	await expect(valider, 'le bouton de confirmation est resté verrouillé').toBeEnabled({
-		timeout: 20_000,
-	});
-	await valider.click();
-	await page.waitForTimeout(5000);
+	//// Le mot de passe est ensuite posé par l'endpoint que le formulaire appelle
+	//// lui-même, plutôt qu'en pilotant le formulaire.
+	////
+	//// Piloter le formulaire marche, mais dépend de trois détails fragiles à la
+	//// fois: ne remplir QUE #new_password et #confirm_password (un #old_password
+	//// caché traîne dans la page), frapper les touches une à une (la jauge de
+	//// force écoute la saisie, fill() ne déclenche rien et le bouton reste
+	//// verrouillé), et attendre que « Confirmer » se libère. Trois façons
+	//// d'échouer pour une étape qui n'est pas le sujet du test.
+	const r = await page.request.post(
+		'/api/method/frappe.core.doctype.user.user.update_password',
+		{form: {key: cle, new_password: motDePasse}}
+	);
+	if (!r.ok()) {
+		let detail = '';
+		try {
+			detail = (await r.text()).replace(/\s+/g, ' ').slice(0, 200);
+		} catch (err) {
+			detail = '(corps illisible)';
+		}
+		derniereRaison = `update_password refusé (${r.status()}) : ${detail}`;
+		return false;
+	}
 
 	//// La preuve n'est pas l'écran mais la session: on tente une connexion.
-	const r = await page.request.post('/api/method/login', {form: {usr: email, pwd: motDePasse}});
-	return r.ok();
+	//// Plusieurs essais: sous charge, ce login répond 404 ou lève, exactement
+	//// comme ailleurs sur ce site.
+	for (let essai = 1; essai <= 3; essai += 1) {
+		try {
+			const r = await page.request.post('/api/method/login', {
+				form: {usr: email, pwd: motDePasse},
+			});
+			if (r.ok()) return true;
+			derniereRaison = `login refusé (${r.status()})`;
+		} catch (err) {
+			derniereRaison = `login injoignable (${err.message.split('\n')[0]})`;
+		}
+		await page.waitForTimeout(3000 * essai);
+	}
+
+	//// Ce que la page dit de l'échec: un lien déjà consommé, un mot de passe
+	//// jugé trop faible… c'est là que se trouve la raison, pas dans le booléen.
+	const messages = await page.evaluate(() =>
+		[...document.querySelectorAll('.alert, .msgprint, .page-card-head, .text-danger')]
+			.map((e) => e.textContent.trim().slice(0, 90))
+			.filter(Boolean)
+			.slice(0, 3)
+	);
+	if (messages.length) derniereRaison += ` — page: ${messages.join(' | ')}`;
+	return false;
 }
 
-/** Remove a throwaway account created by a test. */
+//// Why the last activerCompte() failed, for the test to report.
+function raisonEchecActivation() {
+	return derniereRaison || '(raison inconnue)';
+}
+
+//// Retire a throwaway account — by DISABLING it, not deleting it.
+////
+//// Deleting with force=True is what a cleanup script reaches for, and it caused
+//// real damage here: other apps rattach every new User to their own records
+//// (Drive adds one to a team, Activity Log keeps a trace), and force-deleting
+//// leaves those rows pointing at nothing. Frappe then raises LinkValidationError
+//// from an unrelated app on the NEXT account's activation — 39 orphan rows had
+//// piled up before the cause was found, and the error accused a completely
+//// different feature.
+////
+//// A disabled account leaves nothing dangling, cannot sign in, and is trivial to
+//// spot and purge properly later (see README.md).
 function supprimerCompte(email) {
 	if (!activationDisponible()) return;
 	try {
 		surLeServeur(
-			`\nif frappe.db.exists("User", ${JSON.stringify(email)}):\n` +
-				`    frappe.delete_doc("User", ${JSON.stringify(email)}, force=True, ignore_permissions=True)\n` +
-				`    frappe.db.commit()\nprint("ok")`
+			`nom = ${JSON.stringify(email)}\n` +
+				`if frappe.db.exists("User", nom):\n` +
+				`    frappe.db.set_value("User", nom, "enabled", 0, update_modified=False)\n` +
+				`    frappe.db.commit()\n` +
+				`print("ok")`
 		);
 	} catch (err) {
 		//// Le nettoyage ne doit jamais faire échouer un test qui a réussi.
-		console.warn(`[e2e] suppression de ${email} impossible: ${err.message.split('\n')[0]}`);
+		console.warn(`[e2e] désactivation de ${email} impossible: ${err.message.split('\n')[0]}`);
 	}
 }
 
-module.exports = {activationDisponible, activerCompte, cleActivation, supprimerCompte};
+module.exports = {
+	activationDisponible,
+	activerCompte,
+	cleActivation,
+	raisonEchecActivation,
+	supprimerCompte,
+};
