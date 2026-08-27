@@ -90,8 +90,7 @@ test.describe('Panier', () => {
 	});
 
 	test('un panier vide le dit clairement', async ({page}) => {
-		const vide = await viderPanier(page);
-		test.skip(!vide, 'le panier n’a pas pu être vidé (site en difficulté ?)');
+		expect(await viderPanier(page), 'le panier n’a pas pu être vidé').toBe(true);
 		await page.goto('/cart');
 		await page.waitForLoadState('networkidle');
 		//// Soit un message d'état vide, soit aucune ligne: jamais un écran muet
@@ -101,8 +100,7 @@ test.describe('Panier', () => {
 	});
 
 	test('un article ajouté apparaît dans le panier', async ({page}) => {
-		const vide = await viderPanier(page);
-		test.skip(!vide, 'le panier n’a pas pu être vidé (site en difficulté ?)');
+		expect(await viderPanier(page), 'le panier n’a pas pu être vidé').toBe(true);
 		const article = await premierArticleAchetable(page);
 		test.skip(!article, 'aucun article publié');
 
@@ -118,8 +116,7 @@ test.describe('Panier', () => {
 	});
 
 	test('augmenter la quantité met à jour le devis', async ({page}) => {
-		const vide = await viderPanier(page);
-		test.skip(!vide, 'le panier n’a pas pu être vidé (site en difficulté ?)');
+		expect(await viderPanier(page), 'le panier n’a pas pu être vidé').toBe(true);
 		const article = await premierArticleAchetable(page);
 		test.skip(!article, 'aucun article publié');
 
@@ -139,9 +136,31 @@ test.describe('Panier', () => {
 			.toBe(2);
 	});
 
+	//// Le défaut que ce test verrouille: vider le panier SUPPRIME le devis, et
+	//// cette suppression est refusée dès qu'une demande de paiement y est liée
+	//// (LinkExistsError). Après une carte refusée — cas banal — le client ne
+	//// pouvait plus retirer son dernier article: erreur technique, panier bloqué
+	//// pour de bon. Les demandes jamais honorées sont désormais annulées, celles
+	//// qui ont abouti restent intactes.
+	test('un panier se vide même après un paiement refusé', async ({page}) => {
+		test.setTimeout(120_000);
+		expect(await viderPanier(page), 'le panier n’a pas pu être vidé').toBe(true);
+
+		const article = await premierArticleAchetable(page);
+		test.skip(!article, 'aucun article publié');
+		await ajouterAuPanier(page, article.item_code, 1);
+
+		//// On ne simule pas le refus ici (il faudrait une vraie tentative
+		//// Stripe): 05-paiement-stripe en laisse derrière lui, et ce test
+		//// s'exécute après. Ce qui compte est que le vidage aboutisse quel que
+		//// soit ce que le devis traîne.
+		expect(await viderPanier(page), 'le panier reste bloqué').toBe(true);
+		const devis = await lireDevis(page);
+		expect((devis && devis.doc && devis.doc.items) || []).toHaveLength(0);
+	});
+
 	test('retirer un article vide la ligne', async ({page}) => {
-		const vide = await viderPanier(page);
-		test.skip(!vide, 'le panier n’a pas pu être vidé (site en difficulté ?)');
+		expect(await viderPanier(page), 'le panier n’a pas pu être vidé').toBe(true);
 		const article = await premierArticleAchetable(page);
 		test.skip(!article, 'aucun article publié');
 
@@ -184,8 +203,7 @@ test.describe('Panier multi-entrepôts', () => {
 		const article = await articleMultiSource(page);
 		test.skip(!article, 'aucun article multi-sources sur ce site');
 
-		const vide = await viderPanier(page);
-		test.skip(!vide, 'le panier n’a pas pu être vidé (site en difficulté ?)');
+		expect(await viderPanier(page), 'le panier n’a pas pu être vidé').toBe(true);
 
 		const entrepot = article.entrepots[0];
 		for (let i = 0; i < 2; i += 1) {
