@@ -51,26 +51,23 @@ async function remplirCarte(page, numero, {nom = 'Test E2E', email = 'test.e2e@e
 	return tuile;
 }
 
-//// Tick the terms box the way a customer does: by clicking the LABEL.
+//// Tick the terms box.
 ////
-//// check() on the input does not work here. The handler in checkout.js listens
-//// for "change click" on both the box and its label, and toggles: Playwright's
-//// check() ticks the box, the handler fires and turns it back off, and the Pay
-//// button stays disabled with "Veuillez accepter les conditions générales" —
-//// which reads like a broken test but is the page working as written.
+//// This used to click the LABEL, because the handler in checkout.js listened
+//// for "change click" on both the box and the label and flipped the box by
+//// hand: check() ticked it, the handler fired and untickd it, and "Payer"
+//// stayed disabled. That double-flip made the box genuinely unreliable — for a
+//// customer too, not just for a test — and has been fixed in checkout.js, so
+//// the box is now a plain checkbox and check() is enough.
 ////
-//// #terms-acceptance is also duplicated (one per payment method), so this is
-//// always scoped to the Stripe tile.
+//// #terms-acceptance is duplicated (one per payment method), so this is always
+//// scoped to the Stripe tile.
 async function accepterConditions(tuile) {
 	const cases = tuile.locator('#terms-acceptance');
 	if ((await cases.count()) === 0) return;
 
 	const boite = cases.first();
-	if (!(await boite.isChecked())) {
-		const etiquette = tuile.locator('.form-check-label').first();
-		if (await etiquette.count()) await etiquette.click();
-		else await boite.check({force: true});
-	}
+	if (!(await boite.isChecked())) await boite.check();
 	await expect(boite, 'les conditions n’ont pas pu être acceptées').toBeChecked();
 }
 

@@ -817,18 +817,27 @@ frappe.ready(function() {
                 }, 500);
             });
 
+            //// Neoffice — was bound on 'change click' for BOTH the checkbox and
+            //// its label, and the label branch flipped the box by hand
+            //// (preventDefault + prop('checked', !checked) + trigger).
+            ////
+            //// A <label for> already ticks its box natively, which already fires
+            //// 'change'. Adding a manual flip on top meant one click could run
+            //// the handler twice and undo itself: the box ended up unticked at
+            //// random, "Payer" stayed disabled, and nothing on screen explained
+            //// why. Caught by the payment tests, which failed one run in three.
+            ////
+            //// The only thing the label branch really protected is the "terms
+            //// and conditions" LINK living inside the label: clicking it must
+            //// open the terms, not accept them. That is already handled — the
+            //// '.terms-link' handler above calls preventDefault(), which stops
+            //// the label from ticking the box — so the box can simply behave
+            //// like a checkbox.
+
             // Handle terms acceptance for all payment methods
-            $(document).on('change click', '.payment-method-item.selected #terms-acceptance, .payment-method-item.selected .form-check-label', function(e) {
+            $(document).on('change', '.payment-method-item.selected #terms-acceptance', function() {
                 const $container = $(this).closest('.payment-method-item.selected');
                 if (!$container.length) return;
-
-                // If it's a label click, simulate a checkbox click
-                if ($(this).hasClass('form-check-label')) {
-                    e.preventDefault();
-                    const $checkbox = $container.find('#terms-acceptance');
-                    $checkbox.prop('checked', !$checkbox.prop('checked')).trigger('change');
-                    return;
-                }
 
                 const $submitBtn = $container.find('.btn-submit-payment');
                 const isChecked = $(this).prop('checked');

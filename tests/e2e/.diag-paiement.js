@@ -7,9 +7,10 @@ for (const l of fs.readFileSync(path.join(os.homedir(), '.config/webshop-e2e.env
   const nav = await chromium.launch();
   const page = await (await nav.newContext({baseURL: process.env.WEBSHOP_E2E_URL, locale: 'fr-CH'})).newPage();
 
-  page.on('console', m => { if (m.type() === 'error') console.log('CONSOLE ERR:', m.text().slice(0, 200)); });
+  page.on('console', m => console.log('CONSOLE', m.type(), m.text().slice(0, 180)));
+  page.on('pageerror', e => console.log('PAGEERROR:', String(e).slice(0, 200)));
   page.on('response', async r => {
-    if (/make_payment|create_payment_request|handle_payment_failure/.test(r.url())) {
+    if (/make_payment|create_payment_request|handle_payment_failure|api\.stripe\.com/.test(r.url())) {
       let corps = '';
       try { corps = (await r.text()).slice(0, 500); } catch (e) { corps = '(illisible)'; }
       console.log(`RESEAU ${r.status()} ${r.url().split('/').pop()} -> ${corps.replace(/\s+/g, ' ')}`);
@@ -55,7 +56,9 @@ for (const l of fs.readFileSync(path.join(os.homedir(), '.config/webshop-e2e.env
 
   console.log('--- clic sur Payer ---');
   await tuile.locator('.btn-submit-payment:visible').first().click();
-  await page.waitForTimeout(60000);
+  await page.waitForTimeout(25000);
+  console.log('etat bouton:', await tuile.locator('.btn-submit-payment:visible').first().evaluate(b => ({disabled: b.disabled, texte: b.textContent.trim().slice(0,40)})));
+  console.log('messages:', await tuile.evaluate(e => [...e.querySelectorAll('.payment-message,[role=alert]')].map(x => x.textContent.trim()).filter(Boolean).slice(0,4)));
   console.log('URL finale:', page.url());
   await page.screenshot({path: '/tmp/apres-paiement.png'});
   await nav.close();

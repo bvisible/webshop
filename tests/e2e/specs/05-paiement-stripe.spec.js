@@ -23,6 +23,29 @@ const {CARTES, tuileStripe, remplirCarte, validerPaiement} = require('../fixture
 //// Un paiement traverse Stripe puis deux appels serveur: large, mais borné.
 const DELAI_PAIEMENT = 90_000;
 
+//// Record what the payment actually did, so a failure says WHY.
+////
+//// A payment crosses three parties (Stripe's tokenisation, create_payment_request,
+//// make_payment); when it stalls, «le devis est resté brouillon» names the
+//// symptom and nothing else. This attaches the exchange to the report.
+function surveillerPaiement(page) {
+	const echanges = [];
+	page.on('response', async (r) => {
+		if (!/api\.stripe\.com|make_payment|create_payment_request|handle_payment_failure/.test(r.url())) {
+			return;
+		}
+		let corps = '';
+		try {
+			corps = (await r.text()).slice(0, 300).replace(/\s+/g, ' ');
+		} catch (err) {
+			corps = '(corps illisible)';
+		}
+		echanges.push(`${r.status()} ${r.url().split('?')[0].slice(-45)} → ${corps}`);
+	});
+	page.on('pageerror', (e) => echanges.push(`ERREUR JS: ${String(e).slice(0, 200)}`));
+	return echanges;
+}
+
 /** Put exactly one item in the cart, so amounts stay predictable. */
 async function panierMinimal(page) {
 	await viderPanier(page);
@@ -38,6 +61,7 @@ test.describe('Paiement par carte (Stripe, clés de test)', () => {
 
 	test('un client connecté paie et sa commande est créée', async ({page}) => {
 		test.setTimeout(240_000);
+		const echanges = surveillerPaiement(page);
 		await connecter(page);
 
 		const devis = await panierMinimal(page);
@@ -54,7 +78,9 @@ test.describe('Paiement par carte (Stripe, clés de test)', () => {
 		await expect
 			.poll(async () => etatDuDevis(page, nomDevis), {
 				timeout: DELAI_PAIEMENT,
-				message: 'le devis n’a jamais été transformé en commande',
+				message: () =>
+					'le devis n’a jamais été transformé en commande. Échanges :\n' +
+					(echanges.length ? echanges.join('\n') : '(aucun appel de paiement observé)'),
 			})
 			.not.toBe('brouillon');
 
@@ -127,10 +153,15 @@ test.describe('Conditions générales', () => {
 		const tuile = await remplirCarte(page, CARTES.acceptee);
 		const conditions = tuile.locator('#terms-acceptance').first();
 		test.skip((await conditions.count()) === 0, 'pas de case de conditions sur ce site');
-		await conditions.uncheck();
 
-		await tuile.locator('.btn-submit-payment:visible').first().click();
-		await page.waitForTimeout(8000);
+		await conditions.uncheck();
+		await expect(conditions).not.toBeChecked();
+
+		//// Le refus se manifeste par un bouton VERROUILLÉ, pas par un clic qui
+		//// échoue. Tenter de cliquer ici échouait sur « element is disabled » —
+		//// ce qui est précisément la preuve attendue, mais lue comme un échec.
+		const bouton = tuile.locator('.btn-submit-payment:visible').first();
+		await expect(bouton, 'payer reste possible sans accepter les conditions').toBeDisabled();
 
 		expect(
 			await etatDuDevis(page, nomDevis),

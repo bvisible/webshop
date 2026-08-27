@@ -67,7 +67,10 @@ module.exports = defineConfig({
 			//// Everything else reuses the session opened once by global-setup,
 			//// so Frappe's sign-in rate limit never fails an unrelated test.
 			name: 'client',
-			testIgnore: /01-authentification\.spec\.js/,
+			//// Ni l'authentification (qui tourne déconnectée), ni le B2B (qui a
+			//// son propre client): les y laisser faisait échouer onze specs pour
+			//// la seule raison que la session n'était pas la bonne.
+			testIgnore: /(01-authentification|06-checkout-b2b)\.spec\.js/,
 			use: {...devices['Desktop Chrome'], storageState: SESSION},
 		},
 		{
