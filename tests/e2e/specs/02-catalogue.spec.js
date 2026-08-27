@@ -3,7 +3,7 @@
 //// that were until now only ever checked by eye.
 
 const {test, expect} = require('@playwright/test');
-const {connecter, premierArticleAchetable} = require('../fixtures/boutique');
+const {connecter, premierArticleAchetable, lireDevis} = require('../fixtures/boutique');
 
 test.describe('Catalogue', () => {
 	test('la boutique liste des produits', async ({page}) => {
@@ -95,18 +95,12 @@ async function compterTitresVisibles(page) {
 	);
 }
 
-/** Total quantity in the cart, read from the server. */
+//// Read over HTTP, not through page.evaluate: clicking "add to cart" navigates
+//// on some themes, and a frappe.call started just before that dies with
+//// "Execution context was destroyed" — an error about the test harness, blamed
+//// on the shop.
 async function quantiteAuPanier(page) {
-	const devis = await page.evaluate(
-		() =>
-			new Promise((res) =>
-				frappe.call({
-					method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
-					callback: (r) => res(r.message),
-					error: () => res(null),
-				})
-			)
-	);
+	const devis = await lireDevis(page);
 	const lignes = (devis && devis.doc && devis.doc.items) || [];
 	return lignes.reduce((somme, l) => somme + (l.qty || 0), 0);
 }

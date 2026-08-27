@@ -38,6 +38,7 @@ test.describe('Tunnel de commande', () => {
 		await page.goto('/checkout');
 		await page.waitForLoadState('networkidle');
 		await expect(page.locator('#step-address')).toHaveClass(/active/, {timeout: 30_000});
+		await remettreAdresseParDefaut(page);
 	});
 
 	test('le titre de page ne reprend pas le nom d’une étape', async ({page}) => {
@@ -206,6 +207,26 @@ test.describe('Tunnel de commande', () => {
 		});
 	});
 });
+
+//// Put the quotation back on the customer's default address.
+////
+//// Without this, a spec that picks another address leaves it on the quotation
+//// for the next one — and a spec further down was skipped with "no shipping
+//// method for this address", silently, because the address it inherited had
+//// none. A skipped test reads like a passing one in the summary.
+async function remettreAdresseParDefaut(page) {
+	const cartes = page.locator(
+		'#billing-address-picker .address-card-choice:not(.address-card-choice--new)'
+	);
+	if ((await cartes.count()) === 0) return;
+
+	const premiere = cartes.first();
+	if (await premiere.evaluate((e) => e.classList.contains('is-selected'))) return;
+
+	await premiere.click();
+	const attendue = await premiere.getAttribute('data-address');
+	await expect(page.locator('#billing_address_name')).toHaveValue(attendue, {timeout: 20_000});
+}
 
 /** Comparable snapshot of the address book, order-independent. */
 function normaliser(adresses) {

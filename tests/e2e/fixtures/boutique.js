@@ -48,19 +48,42 @@ async function appeler(page, methode, args = {}) {
 	);
 }
 
-/** Empty the cart so a spec never inherits the previous one's state. */
+//// Empty the cart so a spec never inherits the previous one's state.
+////
+//// Goes through page.request rather than page.evaluate + frappe.call: the same
+//// endpoints, without a page load or a round trip through the DOM for each
+//// line. Emptying a cart of a dozen lines used to blow the 90 s test budget.
 async function viderPanier(page) {
-	await page.goto('/cart');
-	await page.waitForLoadState('networkidle');
-	const devis = await appeler(page, 'webshop.webshop.shopping_cart.cart.get_cart_quotation');
+	const devis = await lireDevis(page);
 	const lignes = (devis && devis.doc && devis.doc.items) || [];
+	//// En série volontairement: deux update_cart concurrents écrivent le même
+	//// devis et le dernier écrase le premier.
 	for (const ligne of lignes) {
-		await appeler(page, 'webshop.webshop.shopping_cart.cart.update_cart', {
-			item_code: ligne.item_code,
-			qty: 0,
-			warehouse: ligne.warehouse || undefined,
+		await page.request.post('/api/method/webshop.webshop.shopping_cart.cart.update_cart', {
+			form: {
+				item_code: ligne.item_code,
+				qty: 0,
+				...(ligne.warehouse ? {warehouse: ligne.warehouse} : {}),
+			},
 		});
 	}
+}
+
+/** The cart quotation, read over HTTP (no page needed). */
+async function lireDevis(page) {
+	const r = await page.request.post(
+		'/api/method/webshop.webshop.shopping_cart.cart.get_cart_quotation'
+	);
+	if (!r.ok()) return null;
+	return (await r.json()).message || null;
+}
+
+/** Add an item to the cart, optionally from a given warehouse. */
+async function ajouterAuPanier(page, itemCode, qty = 1, warehouse = null) {
+	const r = await page.request.post('/api/method/webshop.webshop.shopping_cart.cart.update_cart', {
+		form: {item_code: itemCode, qty, ...(warehouse ? {warehouse} : {})},
+	});
+	return r.ok();
 }
 
 /** Count the XHR/fetch calls a block of work triggers. */
@@ -112,39 +135,38 @@ function cssEchappe(valeur) {
 //// that depended on it was silently skipped, and the run still reported
 //// "18 passed" — a green suite that tested almost nothing.
 async function premierArticleAchetable(page) {
-	const articles = await articlesDuCatalogue(page, 1);
-	return articles[0] || null;
+	const [route] = await articlesDuCatalogue(page, 1);
+	if (!route) return null;
+	const code = await codeArticleDeLaFiche(page, route);
+	return code ? {route, item_code: code} : null;
 }
 
-/** Up to `combien` products, scraped from the catalogue page. */
+//// Routes only — one page load, no matter how many are asked for.
+//// Resolving every item_code up front meant navigating to each product page,
+//// so asking for 25 candidates cost 26 navigations before a single assertion.
 async function articlesDuCatalogue(page, combien = 8) {
 	await page.goto('/all-products');
 	await page.waitForLoadState('networkidle');
 
-	const routes = await page.evaluate(
-		(max) => {
-			const vues = new Set();
-			for (const a of document.querySelectorAll('a[href*="/products/"]')) {
-				const chemin = new URL(a.href, location.origin).pathname.replace(/^\//, '');
-				if (chemin.startsWith('products/')) vues.add(chemin);
-				if (vues.size >= max) break;
-			}
-			return [...vues];
-		},
-		combien
-	);
+	return page.evaluate((max) => {
+		const vues = new Set();
+		for (const a of document.querySelectorAll('a[href*="/products/"]')) {
+			const chemin = new URL(a.href, location.origin).pathname.replace(/^\//, '');
+			if (chemin.startsWith('products/')) vues.add(chemin);
+			if (vues.size >= max) break;
+		}
+		return [...vues];
+	}, combien);
+}
 
-	const articles = [];
-	for (const route of routes) {
-		await page.goto('/' + route);
-		await page.waitForLoadState('domcontentloaded');
-		const code = await page.evaluate(() => {
-			const e = document.querySelector('[data-item-code]');
-			return e ? e.getAttribute('data-item-code') : null;
-		});
-		if (code) articles.push({route, item_code: code});
-	}
-	return articles;
+/** Navigate to a product page and read the item code it carries. */
+async function codeArticleDeLaFiche(page, route) {
+	await page.goto('/' + route);
+	await page.waitForLoadState('domcontentloaded');
+	return page.evaluate(() => {
+		const e = document.querySelector('[data-item-code]');
+		return e ? e.getAttribute('data-item-code') : null;
+	});
 }
 
 module.exports = {
@@ -157,4 +179,7 @@ module.exports = {
 	choisirLivraison,
 	premierArticleAchetable,
 	articlesDuCatalogue,
+	codeArticleDeLaFiche,
+	lireDevis,
+	ajouterAuPanier,
 };

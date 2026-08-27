@@ -5,8 +5,9 @@
 const {test, expect} = require('@playwright/test');
 const {
 	connecter,
-	appeler,
 	viderPanier,
+	ajouterAuPanier,
+	lireDevis,
 	premierArticleAchetable,
 	articlesDuCatalogue,
 } = require('../fixtures/boutique');
@@ -17,22 +18,58 @@ const {
 //// session (Website Users get a 403 on frappe.client.get_list, and rightly so),
 //// so this reads the source selector the product page actually draws — the same
 //// thing the customer sees and clicks.
+//// Cached for the whole file: the search costs one page load per product, and
+//// five specs need the same answer. Without this the multi-warehouse block
+//// spent minutes re-walking the catalogue, and the earlier 8-product limit
+//// stopped before reaching the only item that has two sources — so every one of
+//// those specs was skipped, silently, and the run still looked green.
+let _multiSource;
+
 async function articleMultiSource(page) {
-	for (const article of await articlesDuCatalogue(page, 8)) {
-		await page.goto('/' + article.route);
-		await page.waitForLoadState('networkidle');
-		const entrepots = await page.evaluate(() =>
-			[
-				...new Set(
-					[...document.querySelectorAll('input[name="webshop-warehouse-source"]')]
-						.map((r) => r.value)
-						.filter(Boolean)
-				),
-			]
+	if (_multiSource !== undefined) return _multiSource;
+
+	//// Une route peut être désignée dans ~/.config/webshop-e2e.env
+	//// (WEBSHOP_E2E_MULTISOURCE_ROUTE). La détection automatique ci-dessous ne
+	//// voit que la première page du catalogue: sur un site où l'article
+	//// multi-sources est plus loin, tous ces tests se taisaient.
+	const designee = process.env.WEBSHOP_E2E_MULTISOURCE_ROUTE;
+	if (designee) {
+		const trouve = await sourcesDeLaFiche(page, designee.replace(/^\//, ''));
+		if (trouve) {
+			_multiSource = trouve;
+			return _multiSource;
+		}
+		throw new Error(
+			`WEBSHOP_E2E_MULTISOURCE_ROUTE pointe /${designee}, qui n’offre pas deux sources.`
 		);
-		if (entrepots.length >= 2) return {...article, entrepots};
 	}
-	return null;
+
+	_multiSource = null;
+	for (const route of await articlesDuCatalogue(page, 25)) {
+		const trouve = await sourcesDeLaFiche(page, route);
+		if (trouve) {
+			_multiSource = trouve;
+			break;
+		}
+	}
+	return _multiSource;
+}
+
+/** Read a product page's source selector; null unless it offers two or more. */
+async function sourcesDeLaFiche(page, route) {
+	await page.goto('/' + route);
+	await page.waitForLoadState('domcontentloaded');
+	const lu = await page.evaluate(() => ({
+		item_code: document.querySelector('[data-item-code]')?.getAttribute('data-item-code') || null,
+		entrepots: [
+			...new Set(
+				[...document.querySelectorAll('input[name="webshop-warehouse-source"]')]
+					.map((r) => r.value)
+					.filter(Boolean)
+			),
+		],
+	}));
+	return lu.item_code && lu.entrepots.length >= 2 ? {route, ...lu} : null;
 }
 
 test.describe('Panier', () => {
@@ -58,7 +95,7 @@ test.describe('Panier', () => {
 		await page.waitForLoadState('networkidle');
 		//// Soit un message d'état vide, soit aucune ligne: jamais un écran muet
 		//// avec des lignes fantômes.
-		const lignes = await page.locator('[data-item-code]').count();
+		const lignes = await page.locator('.cart-table [data-item-code]').count();
 		expect(lignes).toBe(0);
 	});
 
@@ -67,14 +104,15 @@ test.describe('Panier', () => {
 		const article = await premierArticleAchetable(page);
 		test.skip(!article, 'aucun article publié');
 
-		await appeler(page, 'webshop.webshop.shopping_cart.cart.update_cart', {
-			item_code: article.item_code,
-			qty: 2,
-		});
+		await ajouterAuPanier(page, article.item_code, 2);
 		await page.goto('/cart');
 		await page.waitForLoadState('networkidle');
 
-		await expect(page.locator(`[data-item-code="${article.item_code}"]`).first()).toBeVisible();
+		//// Le thème rend le panier DEUX fois: le tableau de la page, et un tiroir
+		//// latéral (#builder-cart-drawer) qui porte les mêmes data-item-code.
+		//// Cibler sans distinguer attrape le tiroir, hors écran, et le test
+		//// échoue sur « element is not visible » en accusant la page.
+		await expect(page.locator(`.cart-table [data-item-code="${article.item_code}"]`).first()).toBeVisible();
 	});
 
 	test('augmenter la quantité met à jour le devis', async ({page}) => {
@@ -82,16 +120,16 @@ test.describe('Panier', () => {
 		const article = await premierArticleAchetable(page);
 		test.skip(!article, 'aucun article publié');
 
-		await appeler(page, 'webshop.webshop.shopping_cart.cart.update_cart', {
-			item_code: article.item_code,
-			qty: 1,
-		});
+		await ajouterAuPanier(page, article.item_code, 1);
 		await page.goto('/cart');
 		await page.waitForLoadState('networkidle');
 
-		const plus = page.locator('[data-action="increase"]').first();
-		test.skip((await plus.count()) === 0, 'pas de contrôle de quantité sur ce thème');
-		await plus.click();
+		//// Sur la page, la quantité est un champ (le tiroir, lui, a des boutons).
+		const champ = page.locator('.cart-table input.cart-qty').first();
+		test.skip((await champ.count()) === 0, 'pas de contrôle de quantité sur ce thème');
+
+		await champ.fill('2');
+		await champ.press('Enter');
 
 		await expect
 			.poll(async () => quantiteTotale(page), {timeout: 25_000, message: 'la quantité n’a pas suivi'})
@@ -103,16 +141,10 @@ test.describe('Panier', () => {
 		const article = await premierArticleAchetable(page);
 		test.skip(!article, 'aucun article publié');
 
-		await appeler(page, 'webshop.webshop.shopping_cart.cart.update_cart', {
-			item_code: article.item_code,
-			qty: 1,
-		});
+		await ajouterAuPanier(page, article.item_code, 1);
 		expect(await quantiteTotale(page)).toBe(1);
 
-		await appeler(page, 'webshop.webshop.shopping_cart.cart.update_cart', {
-			item_code: article.item_code,
-			qty: 0,
-		});
+		await ajouterAuPanier(page, article.item_code, 0);
 		expect(await quantiteTotale(page), 'l’article n’a pas été retiré').toBe(0);
 	});
 });
@@ -131,14 +163,10 @@ test.describe('Panier multi-entrepôts', () => {
 
 		await viderPanier(page);
 		for (const entrepot of article.entrepots.slice(0, 2)) {
-			await appeler(page, 'webshop.webshop.shopping_cart.cart.update_cart', {
-				item_code: article.item_code,
-				qty: 1,
-				warehouse: entrepot,
-			});
+			await ajouterAuPanier(page, article.item_code, 1, entrepot);
 		}
 
-		const devis = await appeler(page, 'webshop.webshop.shopping_cart.cart.get_cart_quotation');
+		const devis = await lireDevis(page);
 		const lignes = ((devis && devis.doc && devis.doc.items) || []).filter(
 			(l) => l.item_code === article.item_code
 		);
@@ -155,14 +183,10 @@ test.describe('Panier multi-entrepôts', () => {
 		await viderPanier(page);
 		const entrepot = article.entrepots[0];
 		for (let i = 0; i < 2; i += 1) {
-			await appeler(page, 'webshop.webshop.shopping_cart.cart.update_cart', {
-				item_code: article.item_code,
-				qty: i + 1,
-				warehouse: entrepot,
-			});
+			await ajouterAuPanier(page, article.item_code, i + 1, entrepot);
 		}
 
-		const devis = await appeler(page, 'webshop.webshop.shopping_cart.cart.get_cart_quotation');
+		const devis = await lireDevis(page);
 		const lignes = ((devis && devis.doc && devis.doc.items) || []).filter(
 			(l) => l.item_code === article.item_code
 		);
@@ -204,20 +228,16 @@ test.describe('Panier multi-entrepôts', () => {
 		test.skip(!article, 'aucun article multi-sources sur ce site');
 
 		await viderPanier(page);
-		await appeler(page, 'webshop.webshop.shopping_cart.cart.update_cart', {
-			item_code: article.item_code,
-			qty: 1,
-			warehouse: article.entrepots[0],
-		});
+		await ajouterAuPanier(page, article.item_code, 1, article.entrepots[0]);
 
 		await page.goto('/cart');
 		await page.waitForLoadState('networkidle');
 		//// Le client doit voir d'où part sa marchandise, sinon deux lignes
 		//// identiques au même prix sont incompréhensibles.
-		const ligne = page.locator(`[data-item-code="${article.item_code}"]`).first();
+		const ligne = page.locator(`.cart-table [data-item-code="${article.item_code}"]`).first();
 		await expect(ligne).toBeVisible();
 		expect(
-			await page.locator('[data-warehouse]').count(),
+			await page.locator('.cart-table [data-warehouse]').count(),
 			'aucune source affichée sur les lignes'
 		).toBeGreaterThan(0);
 	});
@@ -225,7 +245,7 @@ test.describe('Panier multi-entrepôts', () => {
 
 /** Total quantity currently in the cart, straight from the server. */
 async function quantiteTotale(page) {
-	const devis = await appeler(page, 'webshop.webshop.shopping_cart.cart.get_cart_quotation');
+	const devis = await lireDevis(page);
 	const lignes = (devis && devis.doc && devis.doc.items) || [];
 	return lignes.reduce((somme, l) => somme + (l.qty || 0), 0);
 }
