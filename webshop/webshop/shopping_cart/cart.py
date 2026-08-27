@@ -1404,8 +1404,25 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 	if not empty_card:
 		quotation.save(ignore_version=True)
 	else:
-		quotation.delete()
-		quotation = None
+		#//// Neoffice — emptying the cart deletes the quotation, and that delete
+		#//// can be REFUSED: once a payment has been attempted, a Payment Request
+		#//// links to it and Frappe raises LinkExistsError.
+		#////
+		#//// The customer then simply cannot empty their cart — removing the last
+		#//// line fails with a technical error and the line stays. Reproduced on
+		#//// osiris: "Impossible de supprimer ou d'annuler, car Devis … est
+		#//// associé à Requête de Paiement ACC-PRQ-…".
+		#////
+		#//// An empty cart the customer can no longer touch is worse than an
+		#//// orphan draft, so when the delete is refused the quotation is simply
+		#//// saved empty: the cart reads as empty, and the abandoned payment
+		#//// request stays available for whoever needs to reconcile it.
+		try:
+			quotation.delete()
+			quotation = None
+		except frappe.LinkExistsError:
+			frappe.clear_messages()
+			quotation.save(ignore_version=True)
 
 	set_cart_count(quotation)
 

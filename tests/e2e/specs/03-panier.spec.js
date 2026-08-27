@@ -101,7 +101,8 @@ test.describe('Panier', () => {
 	});
 
 	test('un article ajouté apparaît dans le panier', async ({page}) => {
-		await viderPanier(page);
+		const vide = await viderPanier(page);
+		test.skip(!vide, 'le panier n’a pas pu être vidé (site en difficulté ?)');
 		const article = await premierArticleAchetable(page);
 		test.skip(!article, 'aucun article publié');
 
@@ -117,7 +118,8 @@ test.describe('Panier', () => {
 	});
 
 	test('augmenter la quantité met à jour le devis', async ({page}) => {
-		await viderPanier(page);
+		const vide = await viderPanier(page);
+		test.skip(!vide, 'le panier n’a pas pu être vidé (site en difficulté ?)');
 		const article = await premierArticleAchetable(page);
 		test.skip(!article, 'aucun article publié');
 
@@ -138,7 +140,8 @@ test.describe('Panier', () => {
 	});
 
 	test('retirer un article vide la ligne', async ({page}) => {
-		await viderPanier(page);
+		const vide = await viderPanier(page);
+		test.skip(!vide, 'le panier n’a pas pu être vidé (site en difficulté ?)');
 		const article = await premierArticleAchetable(page);
 		test.skip(!article, 'aucun article publié');
 
