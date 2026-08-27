@@ -10,7 +10,11 @@ def get_context(context):
     #//// Neoffice — Frappe derives context.title from the route when nobody
     #//// sets it, and never translates it; themes print it as the visible
     #//// page heading, so the page read "checkout-b2b".
-    context.title = _("Checkout")
+    #////
+    #//// Deliberately NOT _("Checkout"): that string is shared with the cart
+    #//// button, where fr renders it "Paiement" — right for a button, wrong for
+    #//// a page heading that then repeats a step name. Same fix as checkout.py.
+    context.title = _("Your order")
     context.no_cache = 1
     context.show_sidebar = 0
 

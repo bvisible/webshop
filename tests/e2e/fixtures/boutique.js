@@ -71,20 +71,37 @@ async function viderPanier(page) {
 
 /** The cart quotation, read over HTTP (no page needed). */
 async function lireDevis(page) {
-	const r = await page.request.post(
-		'/api/method/webshop.webshop.shopping_cart.cart.get_cart_quotation'
-	);
+	return lireJson(page, '/api/method/webshop.webshop.shopping_cart.cart.get_cart_quotation');
+}
+
+//// POST an endpoint and return its message, or null.
+////
+//// Never lets a non-JSON body throw: under load the site answers 200 with an
+//// HTML error page, and `await r.json()` then dies with «Unexpected token '<'»
+//// — an error that says nothing about what actually went wrong, three call
+//// levels away from the test that will be blamed for it.
+async function lireJson(page, chemin, donnees = null) {
+	let r;
+	try {
+		r = await page.request.post(chemin, donnees ? {form: donnees} : undefined);
+	} catch (err) {
+		return null;
+	}
 	if (!r.ok()) return null;
-	return (await r.json()).message || null;
+	const corps = await r.text();
+	try {
+		return JSON.parse(corps).message ?? null;
+	} catch (err) {
+		return null;
+	}
 }
 
 /** The customer's address book, read over HTTP. */
 async function lireCarnetAdresses(page) {
-	const r = await page.request.post(
-		'/api/method/webshop.webshop.shopping_cart.cart.get_customer_addresses'
+	return (
+		(await lireJson(page, '/api/method/webshop.webshop.shopping_cart.cart.get_customer_addresses')) ||
+		[]
 	);
-	if (!r.ok()) return [];
-	return (await r.json()).message || [];
 }
 
 /** Add an item to the cart, optionally from a given warehouse. */
@@ -129,6 +146,27 @@ async function choisirLivraison(page, index = 0) {
 	}
 	await page.waitForTimeout(3000);
 	return radio.getAttribute('value');
+}
+
+//// Walk a filled cart from /checkout to the payment step.
+//// Shared by every payment scenario so the journey is written once.
+async function allerJusquAuPaiement(page) {
+	await page.goto('/checkout');
+	await page.waitForLoadState('networkidle');
+	await expect(page.locator('#step-address')).toHaveClass(/active/, {timeout: 40_000});
+
+	await page.locator('#step-address .next-step').click();
+	await expect(page.locator('#step-shipping')).toHaveClass(/active/, {timeout: 45_000});
+
+	if ((await page.locator('#step-shipping input[type=radio]').count()) === 0) return false;
+	await choisirLivraison(page);
+
+	await page.locator('#step-shipping .next-step').click();
+	await expect(page.locator('#step-payment')).toHaveClass(/active/, {timeout: 60_000});
+	await expect
+		.poll(() => page.locator('.payment-method-item').count(), {timeout: 40_000})
+		.toBeGreaterThan(0);
+	return true;
 }
 
 /** Escape a value for use inside a CSS attribute selector. */
@@ -186,10 +224,12 @@ module.exports = {
 	viderPanier,
 	compterRequetes,
 	choisirLivraison,
+	allerJusquAuPaiement,
 	premierArticleAchetable,
 	articlesDuCatalogue,
 	codeArticleDeLaFiche,
 	lireDevis,
+	lireJson,
 	lireCarnetAdresses,
 	ajouterAuPanier,
 };

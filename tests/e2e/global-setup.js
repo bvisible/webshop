@@ -15,15 +15,27 @@ const FICHIER_SESSION = path.join(__dirname, '.auth', 'session.json');
 
 module.exports = async () => {
 	const base = process.env.WEBSHOP_E2E_URL;
-	const contexte = await request.newContext({baseURL: base});
+	const contexte = await request.newContext({baseURL: base, timeout: 60_000});
 
-	const reponse = await contexte.post('/api/method/login', {
-		form: {usr: process.env.WEBSHOP_E2E_USER, pwd: process.env.WEBSHOP_E2E_PASSWORD},
-	});
-	if (!reponse.ok()) {
+	//// Le site partagé connaît des pics à 6-7 s par requête. Un échec ici fait
+	//// tomber TOUTE la suite avant le premier test, pour une lenteur passagère:
+	//// trois essais espacés valent mieux qu'un abandon.
+	let reponse = null;
+	for (let essai = 1; essai <= 3; essai += 1) {
+		try {
+			reponse = await contexte.post('/api/method/login', {
+				form: {usr: process.env.WEBSHOP_E2E_USER, pwd: process.env.WEBSHOP_E2E_PASSWORD},
+			});
+			if (reponse.ok()) break;
+		} catch (err) {
+			if (essai === 3) throw err;
+		}
+		await new Promise((r) => setTimeout(r, 5000 * essai));
+	}
+	if (!reponse || !reponse.ok()) {
 		throw new Error(
-			`Connexion impossible (${reponse.status()}). Vérifiez ~/.config/webshop-e2e.env ` +
-				'et que le compte existe sur ' + base
+			`Connexion impossible (${reponse ? reponse.status() : 'aucune réponse'}). Vérifiez ` +
+				`~/.config/webshop-e2e.env et que le compte existe sur ${base}`
 		);
 	}
 

@@ -163,8 +163,17 @@ def get_cart_quotation(doc=None):
 	# Get customer information for B2B verification
 	customer_info = None
 	is_b2b_customer = False
-	if doc and doc.customer_name and frappe.session.user != "Guest":
-		customer_info = frappe.db.get_value("Customer", doc.customer_name, ["name", "customer_group"], as_dict=1)
+	#//// Neoffice — was get_value("Customer", doc.customer_name, …). customer_name
+	#//// is the LABEL (fetched from party_name.customer_name), while Frappe
+	#//// resolves a link by its ID. They match only while customers are named
+	#//// after themselves. This site names them by series, and 5 of its 202
+	#//// customers already differ ("Acme Corp - 2" vs "Acme Corp"): for those,
+	#//// the lookup returned None, so is_b2b_customer stayed False and a genuine
+	#//// B2B customer was silently sent to the B2C checkout — with no error to
+	#//// explain it. party_name is the actual link field.
+	party_id = (doc.get("party_name") or doc.get("customer_name")) if doc else None
+	if party_id and frappe.session.user != "Guest":
+		customer_info = frappe.db.get_value("Customer", party_id, ["name", "customer_group"], as_dict=1)
 		
 		# Check if the customer belongs to a B2B group
 		cart_settings = frappe.get_cached_doc("Webshop Settings")
