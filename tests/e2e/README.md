@@ -70,7 +70,31 @@ npm run ui                # mode interactif
 
 Les helpers partagés sont dans `fixtures/boutique.js` et `fixtures/stripe.js`.
 
+## Limite connue : la suite complète est moins stable que ses parties
+
+Lancés fichier par fichier, tous les specs passent. Sur une exécution complète
+(~10 min), deux ou trois tombent — et pas toujours les mêmes. Deux causes, aucune
+liée à ce qu'ils testent :
+
+- **Le panier est partagé.** Un seul compte, un seul devis : un spec qui commande
+  ou vide le panier change le terrain du suivant. `beforeEach` remet ce qu'il
+  peut, pas tout.
+- **Le serveur cède sous la durée.** osiris tourne à ~130 Mo de RAM libre ; une
+  suite de dix minutes suffit à le faire répondre en HTML, en 404, ou pas du tout
+  (voir plus bas).
+
+En pratique : `npm test -- --retries=1`, et devant un échec, **rejouer le fichier
+seul** avant de conclure à une régression.
+
 ## Ce qu'il faut savoir avant d'y toucher
+
+**Le serveur saturé ment sur la nature de sa panne.** Quand osiris est chargé,
+`/api/method/login` renvoie un **404** (pas un 429), `get_cart_quotation` renvoie
+du **HTML** avec un statut 200, et un paiement reste bloqué sur son spinner sans
+qu'aucune erreur ne soit loggée. Le même appel en curl répond correctement la
+seconde d'après. Avant de lire du code : `ssh osiris uptime` et `free -h`. Les
+helpers tolèrent un corps non-JSON plutôt que de mourir sur
+« Unexpected token '<' », et `global-setup` réessaie cinq fois.
 
 **Un test ignoré se lit comme un test réussi.** C'est le piège principal de cette
 suite. Un `test.skip()` conditionnel qui se déclenche pour une mauvaise raison
