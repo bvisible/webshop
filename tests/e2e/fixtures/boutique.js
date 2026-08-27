@@ -20,12 +20,25 @@ async function connecter(page, identifiants = IDENTIFIANTS) {
 	if (!identifiants.utilisateur || !identifiants.motDePasse) {
 		throw new Error('WEBSHOP_E2E_USER / WEBSHOP_E2E_PASSWORD manquants');
 	}
-	const reponse = await page.request.post('/api/method/login', {
-		form: {usr: identifiants.utilisateur, pwd: identifiants.motDePasse},
-	});
+	//// Trois essais espacés: le site refuse par intermittence (404, 417, délai
+	//// dépassé) quand il est chargé ou quand les tentatives s'enchaînent. Un
+	//// échec ici fait tomber un test qui n'a rien à voir avec la connexion.
+	let reponse = null;
+	for (let essai = 1; essai <= 3; essai += 1) {
+		try {
+			reponse = await page.request.post('/api/method/login', {
+				form: {usr: identifiants.utilisateur, pwd: identifiants.motDePasse},
+			});
+			if (reponse.ok()) return;
+		} catch (err) {
+			reponse = null;
+		}
+		if (essai < 3) await page.waitForTimeout(4000 * essai);
+	}
 	expect(
-		reponse.ok(),
-		`connexion refusée (${reponse.status()}) — limite de tentatives Frappe ?`
+		reponse && reponse.ok(),
+		`connexion refusée (${reponse ? reponse.status() : 'aucune réponse'}) après 3 essais — ` +
+			'serveur chargé ou limite de tentatives Frappe ?'
 	).toBeTruthy();
 }
 
