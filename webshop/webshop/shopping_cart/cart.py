@@ -138,6 +138,14 @@ def get_cart_quotation(doc=None):
 	#//// Same address as billing, so taxes and shipping rules are unchanged.
 	if doc and not doc.get("shipping_address_name") and addresses:
 		update_cart_address("shipping", addresses[0].name)
+		#//// update_cart_address writes to the database through its OWN copy of
+		#//// the quotation; the `doc` we are about to return was loaded before
+		#//// that and still shows the old value. Without this reload the first
+		#//// response after an address is assigned reports shipping_address_name
+		#//// as None while the database already holds it — which reads like the
+		#//// assignment failed, and sends whoever is debugging in the wrong
+		#//// direction. Only reached once per cart, when the address is first set.
+		doc.reload()
 
 	if doc:
 		# Get loyalty points information
