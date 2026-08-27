@@ -21,8 +21,9 @@ function lireSecrets() {
 }
 lireSecrets();
 
-//// Written by global-setup before any test runs; gitignored (it holds cookies).
+//// Written by global-setup before any test runs; gitignored (they hold cookies).
 const SESSION = path.join(__dirname, '.auth', 'session.json');
+const SESSION_B2B = path.join(__dirname, '.auth', 'session-b2b.json');
 
 if (!process.env.WEBSHOP_E2E_URL) {
 	throw new Error(
@@ -68,6 +69,14 @@ module.exports = defineConfig({
 			name: 'client',
 			testIgnore: /01-authentification\.spec\.js/,
 			use: {...devices['Desktop Chrome'], storageState: SESSION},
+		},
+		{
+			//// Le B2B a son propre tunnel, son propre client, et donc sa propre
+			//// session: un compte dont le groupe figure dans les « B2B Customer
+			//// Group » des réglages.
+			name: 'b2b',
+			testMatch: /06-checkout-b2b\.spec\.js/,
+			use: {...devices['Desktop Chrome'], storageState: SESSION_B2B},
 		},
 		{
 			name: 'mobile',

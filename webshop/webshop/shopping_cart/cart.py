@@ -124,6 +124,21 @@ def get_cart_quotation(doc=None):
 	if doc and not doc.customer_address and addresses:
 		update_cart_address("billing", addresses[0].name)
 
+	#//// Neoffice — do the same for the shipping address.
+	#////
+	#//// The B2C tunnel survives without one: its shipping step falls back to the
+	#//// billing address unless "ship to different" is ticked. The B2B page does
+	#//// not — templates/includes/cart/cart_address.html renders an address ONLY
+	#//// when it is already the one on the quotation, so with no shipping address
+	#//// it showed nothing at all: no picker, no way to choose, the shipping
+	#//// methods stuck on "select an address first", and "Place Order" disabled
+	#//// forever. A B2B customer simply could not order, with nothing on screen
+	#//// saying why.
+	#////
+	#//// Same address as billing, so taxes and shipping rules are unchanged.
+	if doc and not doc.get("shipping_address_name") and addresses:
+		update_cart_address("shipping", addresses[0].name)
+
 	if doc:
 		# Get loyalty points information
 		available_loyalty_points = 0
