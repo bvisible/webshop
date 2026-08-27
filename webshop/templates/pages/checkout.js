@@ -185,6 +185,28 @@ frappe.ready(function() {
             });
         }
 
+        //// Neoffice — isLoading gates the step buttons: handleNextStep and
+        //// handlePrevStep both start with `if (this.isLoading) return`. That
+        //// guard is right — two overlapping step changes corrupt the quotation —
+        //// but it used to swallow the click in COMPLETE silence: arriving on the
+        //// payment step loads five gateway templates, and during that second or
+        //// two "Retour à la livraison" simply did nothing, with no cursor, no
+        //// disabled state, nothing. The shopper clicks again, harder.
+        ////
+        //// Making it a property lets the buttons reflect the state instead:
+        //// every existing `this.isLoading = …` now also disables them, wherever
+        //// it is written, with no call site to remember to update.
+        get isLoading() {
+            return this._isLoading;
+        }
+
+        set isLoading(valeur) {
+            this._isLoading = valeur;
+            $('.next-step, .prev-step')
+                .prop('disabled', !!valeur)
+                .toggleClass('is-busy', !!valeur);
+        }
+
         setupListeners() {
             this.handleShippingAddressToggle();
             this.bindEvents();

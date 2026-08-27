@@ -490,6 +490,14 @@
 @media (max-width: 767.98px) {
 	.address-card-choice { flex: 1 1 100%; max-width: none; }
 }
+/* //// Neoffice — les boutons d'étape refusent le clic pendant un chargement
+   //// (deux changements d'étape simultanés corrompent le devis). Ils le disaient
+   //// en silence : le client cliquait, rien ne bougeait, rien ne l'expliquait. */
+.next-step.is-busy, .prev-step.is-busy {
+	opacity: .6;
+	cursor: progress;
+	pointer-events: none;
+}
 </style>
 
 <script>

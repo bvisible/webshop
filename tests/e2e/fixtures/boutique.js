@@ -1,0 +1,160 @@
+//// Neoffice — added file (no upstream equivalent).
+//// Shared helpers. Everything that is *not* the subject of a test happens
+//// through the API here: signing in via the dialog is tested once, in
+//// 01-authentification, and every other spec logs in through /api/method/login
+//// so a broken dialog fails one test instead of the whole suite.
+
+const {expect} = require('@playwright/test');
+
+const IDENTIFIANTS = {
+	utilisateur: process.env.WEBSHOP_E2E_USER,
+	motDePasse: process.env.WEBSHOP_E2E_PASSWORD,
+};
+
+//// Signing in again when the stored session is already valid is what tripped
+//// Frappe's rate limit and failed unrelated specs. Check first, sign in only
+//// if needed.
+async function connecter(page, identifiants = IDENTIFIANTS) {
+	if ((await utilisateurCourant(page)) === identifiants.utilisateur) return;
+
+	if (!identifiants.utilisateur || !identifiants.motDePasse) {
+		throw new Error('WEBSHOP_E2E_USER / WEBSHOP_E2E_PASSWORD manquants');
+	}
+	const reponse = await page.request.post('/api/method/login', {
+		form: {usr: identifiants.utilisateur, pwd: identifiants.motDePasse},
+	});
+	expect(
+		reponse.ok(),
+		`connexion refusée (${reponse.status()}) — limite de tentatives Frappe ?`
+	).toBeTruthy();
+}
+
+/** The logged-in user as the server sees it — the only trustworthy check. */
+async function utilisateurCourant(page) {
+	const r = await page.request.get('/api/method/frappe.auth.get_logged_user');
+	if (!r.ok()) return 'Guest';
+	const corps = await r.json();
+	return corps.message || 'Guest';
+}
+
+/** Call a whitelisted method from the page's own session. */
+async function appeler(page, methode, args = {}) {
+	return page.evaluate(
+		([m, a]) =>
+			new Promise((res) =>
+				frappe.call({method: m, args: a, callback: (r) => res(r.message), error: () => res(null)})
+			),
+		[methode, args]
+	);
+}
+
+/** Empty the cart so a spec never inherits the previous one's state. */
+async function viderPanier(page) {
+	await page.goto('/cart');
+	await page.waitForLoadState('networkidle');
+	const devis = await appeler(page, 'webshop.webshop.shopping_cart.cart.get_cart_quotation');
+	const lignes = (devis && devis.doc && devis.doc.items) || [];
+	for (const ligne of lignes) {
+		await appeler(page, 'webshop.webshop.shopping_cart.cart.update_cart', {
+			item_code: ligne.item_code,
+			qty: 0,
+			warehouse: ligne.warehouse || undefined,
+		});
+	}
+}
+
+/** Count the XHR/fetch calls a block of work triggers. */
+async function compterRequetes(page, travail) {
+	const avant = await page.evaluate(
+		() => performance.getEntriesByType('resource').filter((r) => /xmlhttprequest|fetch/.test(r.initiatorType)).length
+	);
+	await travail();
+	return (
+		(await page.evaluate(
+			() => performance.getEntriesByType('resource').filter((r) => /xmlhttprequest|fetch/.test(r.initiatorType)).length
+		)) - avant
+	);
+}
+
+//// The shipping radios carry class "hide": the visible, clickable thing is the
+//// styled label. Clicking the input itself is what a script would do; clicking
+//// the label is what a customer does — and only the latter is possible.
+async function choisirLivraison(page, index = 0) {
+	const radios = page.locator('#step-shipping input[type=radio]');
+	if ((await radios.count()) === 0) return null;
+
+	const radio = radios.nth(index);
+	if (await radio.isChecked()) return radio.getAttribute('value');
+
+	const id = await radio.getAttribute('id');
+	const etiquette = id ? page.locator(`label[for="${cssEchappe(id)}"]`) : null;
+	if (etiquette && (await etiquette.count()) && (await etiquette.first().isVisible())) {
+		await etiquette.first().click();
+	} else {
+		//// Repli: le design n'expose pas de label cliquable.
+		await radio.check({force: true});
+		await radio.dispatchEvent('change');
+	}
+	await page.waitForTimeout(3000);
+	return radio.getAttribute('value');
+}
+
+/** Escape a value for use inside a CSS attribute selector. */
+function cssEchappe(valeur) {
+	return valeur.replace(/["\\]/g, '\\$&');
+}
+
+//// Read the catalogue the way a customer does — from the shop pages.
+////
+//// The obvious version asked frappe.client.get_list for Website Items and got a
+//// clean 403: a Website User is not allowed to list doctypes through the
+//// generic API, which is exactly right (see 01-authentification). Every spec
+//// that depended on it was silently skipped, and the run still reported
+//// "18 passed" — a green suite that tested almost nothing.
+async function premierArticleAchetable(page) {
+	const articles = await articlesDuCatalogue(page, 1);
+	return articles[0] || null;
+}
+
+/** Up to `combien` products, scraped from the catalogue page. */
+async function articlesDuCatalogue(page, combien = 8) {
+	await page.goto('/all-products');
+	await page.waitForLoadState('networkidle');
+
+	const routes = await page.evaluate(
+		(max) => {
+			const vues = new Set();
+			for (const a of document.querySelectorAll('a[href*="/products/"]')) {
+				const chemin = new URL(a.href, location.origin).pathname.replace(/^\//, '');
+				if (chemin.startsWith('products/')) vues.add(chemin);
+				if (vues.size >= max) break;
+			}
+			return [...vues];
+		},
+		combien
+	);
+
+	const articles = [];
+	for (const route of routes) {
+		await page.goto('/' + route);
+		await page.waitForLoadState('domcontentloaded');
+		const code = await page.evaluate(() => {
+			const e = document.querySelector('[data-item-code]');
+			return e ? e.getAttribute('data-item-code') : null;
+		});
+		if (code) articles.push({route, item_code: code});
+	}
+	return articles;
+}
+
+module.exports = {
+	IDENTIFIANTS,
+	connecter,
+	utilisateurCourant,
+	appeler,
+	viderPanier,
+	compterRequetes,
+	choisirLivraison,
+	premierArticleAchetable,
+	articlesDuCatalogue,
+};
