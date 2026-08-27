@@ -168,7 +168,11 @@ test.describe('Paiement par carte (Stripe, clés de test)', () => {
 
 		const tuile = await remplirCarte(page, CARTES.acceptee);
 		const bouton = tuile.locator('.btn-submit-payment:visible').first();
-		await bouton.click();
+		//// Passe par validerPaiement, qui re-sélectionne la tuile si le
+		//// rafraîchissement des méthodes la lui a fait perdre — sans quoi le
+		//// clic échoue sur un bouton verrouillé, pour une raison qui n'a rien à
+		//// voir avec le double-clic qu'on veut éprouver.
+		await validerPaiement(page, tuile);
 
 		//// Double paiement = double débit. Le bouton doit se verrouiller dès le
 		//// premier clic, avant même que Stripe ait répondu.
@@ -195,6 +199,13 @@ test.describe('Conditions générales', () => {
 		const conditions = tuile.locator('#terms-acceptance').first();
 		test.skip((await conditions.count()) === 0, 'pas de case de conditions sur ce site');
 
+		//// La tuile doit être sélectionnée pour que le gestionnaire des
+		//// conditions s'applique: sans cela, décocher ne verrouille rien et le
+		//// test échoue en accusant l'application d'accepter un paiement sans CGV.
+		if (!(await tuile.evaluate((e) => e.classList.contains('selected')))) {
+			await tuile.click();
+			await page.waitForTimeout(2000);
+		}
 		await conditions.uncheck();
 		await expect(conditions).not.toBeChecked();
 

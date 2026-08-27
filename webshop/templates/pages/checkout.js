@@ -2105,9 +2105,29 @@ frappe.ready(function() {
             if (!this.isUpdatingShipping && !notReload) {
                 this.refreshShippingMethods();
             }
-            // Refresh payment methods only if not already updating a method and on payment step
+            //// Neoffice — ne re-rendre les méthodes de paiement que si le
+            //// MONTANT a changé.
+            ////
+            //// refreshPaymentMethods() reconstruit toute la liste. Quand cela
+            //// tombait pendant que le client saisissait sa carte, sa tuile
+            //// perdait la classe `selected` ; or le gestionnaire des conditions
+            //// est lié à `.payment-method-item.selected #terms-acceptance`, si
+            //// bien qu'il cessait de s'appliquer et que « Payer » n'était jamais
+            //// réactivé — devant un formulaire pourtant complet. Le client
+            //// clique, rien ne se passe, rien ne l'explique.
+            ////
+            //// Le seul motif légitime de reconstruire est un montant différent
+            //// (l'étiquette « Payer CHF X » deviendrait fausse) — et dans ce cas
+            //// il est normal de faire reconfirmer. Un rafraîchissement qui
+            //// n'apprend rien ne doit plus détruire une saisie en cours.
+            //// Le montant réellement débité vient de toute façon du serveur
+            //// (rounded_total), jamais du navigateur.
             if (!this.isUpdatingPayment && $('.step-section.active').attr('id') === 'step-payment' && !notReload) {
-                this.refreshPaymentMethods();
+                const montant = doc ? (doc.rounded_total || doc.grand_total || null) : null;
+                if (montant === null || montant !== this._dernierMontantPaiement) {
+                    this._dernierMontantPaiement = montant;
+                    this.refreshPaymentMethods();
+                }
             }
         }
 
