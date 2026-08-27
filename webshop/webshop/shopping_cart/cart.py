@@ -1005,6 +1005,45 @@ def _set_delivery_dates_from_sources(sales_order, cart_settings=None):
 		sales_order.delivery_date = latest
 
 
+#//// Neoffice — added helper (no upstream equivalent).
+#////
+#//// Cancels the payment requests of a cart that were never honoured, so the
+#//// quotation they point at can be deleted. Only Draft and Failed ones: a
+#//// request that actually succeeded belongs to a real order and is never
+#//// touched here.
+#////
+#//// Exists because a customer whose card was declined could no longer empty
+#//// their cart — see the LinkExistsError branch in update_cart.
+def _liberer_demandes_de_paiement_infructueuses(quotation_name):
+	demandes = frappe.get_all(
+		"Payment Request",
+		filters={
+			"reference_doctype": "Quotation",
+			"reference_name": quotation_name,
+			"status": ["in", ("Draft", "Failed", "Initiated", "Requested")],
+			"docstatus": ["<", 2],
+		},
+		fields=["name", "docstatus"],
+	)
+	for demande in demandes:
+		try:
+			doc = frappe.get_doc("Payment Request", demande.name)
+			doc.flags.ignore_permissions = True
+			if doc.docstatus == 1:
+				doc.cancel()
+			else:
+				doc.delete()
+		except Exception:
+			#//// Une demande qu'on n'arrive pas à libérer ne doit pas faire
+			#//// échouer l'opération: la suppression qui suit dira si elle bloque
+			#//// encore, et l'erreur remontera alors avec son vrai motif.
+			frappe.log_error(
+				"Webshop: libération de demande de paiement impossible",
+				frappe.get_traceback(),
+			)
+			frappe.clear_messages()
+
+
 #//// Neoffice — multi-warehouse: `warehouse` selects the stock source of the
 #//// line. None keeps the historical behaviour (single website_warehouse, or
 #//// the auto-picked source when the feature is on). Cart lines merge on
@@ -1413,16 +1452,23 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 		#//// osiris: "Impossible de supprimer ou d'annuler, car Devis … est
 		#//// associé à Requête de Paiement ACC-PRQ-…".
 		#////
-		#//// An empty cart the customer can no longer touch is worse than an
-		#//// orphan draft, so when the delete is refused the quotation is simply
-		#//// saved empty: the cart reads as empty, and the abandoned payment
-		#//// request stays available for whoever needs to reconcile it.
+		#//// Saving the quotation empty is not an option either: ERPNext requires
+		#//// at least one line, so that save fails too and the whole transaction
+		#//// rolls back — the line reappears and the cart is stuck for good.
+		#////
+		#//// What actually blocks is a payment request that never succeeded
+		#//// (Draft, or Failed after a declined card). Those carry no accounting
+		#//// value, so they are cancelled — which releases the link — and the
+		#//// quotation goes. A request that DID succeed is left untouched: the
+		#//// cart was ordered, and that is a different story.
 		try:
 			quotation.delete()
 			quotation = None
 		except frappe.LinkExistsError:
 			frappe.clear_messages()
-			quotation.save(ignore_version=True)
+			_liberer_demandes_de_paiement_infructueuses(quotation.name)
+			quotation.delete()
+			quotation = None
 
 	set_cart_count(quotation)
 
