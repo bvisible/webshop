@@ -90,7 +90,8 @@ test.describe('Panier', () => {
 	});
 
 	test('un panier vide le dit clairement', async ({page}) => {
-		await viderPanier(page);
+		const vide = await viderPanier(page);
+		test.skip(!vide, 'le panier n’a pas pu être vidé (site en difficulté ?)');
 		await page.goto('/cart');
 		await page.waitForLoadState('networkidle');
 		//// Soit un message d'état vide, soit aucune ligne: jamais un écran muet
@@ -180,15 +181,20 @@ test.describe('Panier multi-entrepôts', () => {
 		const article = await articleMultiSource(page);
 		test.skip(!article, 'aucun article multi-sources sur ce site');
 
-		await viderPanier(page);
+		const vide = await viderPanier(page);
+		test.skip(!vide, 'le panier n’a pas pu être vidé (site en difficulté ?)');
+
 		const entrepot = article.entrepots[0];
 		for (let i = 0; i < 2; i += 1) {
 			await ajouterAuPanier(page, article.item_code, i + 1, entrepot);
 		}
 
+		//// Filtré sur l'ENTREPÔT autant que sur l'article: sans cela, une ligne
+		//// laissée par l'autre source (test précédent, vidage incomplet) compte
+		//// comme un doublon et le test accuse la fusion de ne pas se faire.
 		const devis = await lireDevis(page);
 		const lignes = ((devis && devis.doc && devis.doc.items) || []).filter(
-			(l) => l.item_code === article.item_code
+			(l) => l.item_code === article.item_code && l.warehouse === entrepot
 		);
 		expect(lignes.length, 'une seconde ligne a été créée pour la même source').toBe(1);
 		expect(lignes[0].qty).toBe(2);

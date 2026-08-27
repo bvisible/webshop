@@ -67,6 +67,7 @@ npm run ui                # mode interactif
 | `04-checkout.spec.js` | `client` | Les quatre étapes, carnet d'adresses, progression et retours, méthodes de paiement, cadence du sondage, stabilité |
 | `05-paiement-stripe.spec.js` | `client` | **Le paiement pour de vrai** : carte acceptée → commande, carte refusée, double-clic, conditions générales |
 | `06-checkout-b2b.spec.js` | `b2b` | Reconnaissance du client B2B, accès au tunnel, commande, cloisonnement |
+| `07-nouveau-client.spec.js` | `invite` | **Le parcours d'un premier acheteur** : inscription, activation par le lien reçu, saisie d'adresse, paiement |
 
 Les helpers partagés sont dans `fixtures/boutique.js` et `fixtures/stripe.js`.
 
@@ -167,6 +168,39 @@ complet.
 mais **c'est un vrai défaut de l'application**, pas du test : un client vivrait
 la même chose. Corriger demande de décider ce que devient l'étiquette de montant
 du bouton lorsqu'on cesse de re-rendre — non fait ici.
+
+## Nouveau client : création et activation
+
+`07-nouveau-client.spec.js` suit un premier acheteur de bout en bout. Il a besoin
+d'activer un compte, ce qui demande un accès au serveur :
+
+```ini
+WEBSHOP_E2E_SSH_HOST=osiris
+WEBSHOP_E2E_SITE=prod.local
+```
+
+Sans ces variables, les scénarios d'activation s'ignorent en le disant.
+
+> [!warning] Pourquoi pas simplement lire la boîte Yopmail ?
+> Parce que **rien ne part**. Le compte sortant par défaut de ce site est
+> `_Test Comm Account 1` (`test_comm@example.com`) et sa file d'envoi est en
+> erreur : aucun mail de bienvenue n'est jamais expédié. Une vraie boîte jetable
+> resterait vide indéfiniment.
+
+> [!danger] La clé d'activation n'est pas lisible en base
+> Frappe stocke le **hash SHA-256** de `reset_password_key` ; la valeur en clair
+> n'existe que dans l'e-mail. Lire la colonne et la mettre dans l'URL revient à
+> présenter `sha256(hash)` et produit toujours « ce lien a déjà été utilisé ou
+> est invalide ». Le helper forge donc une clé, stocke son hash et rend le clair
+> — exactement ce que fait Frappe en composant le mail.
+
+> [!danger] Ne supprimez pas les comptes de test avec `force=True`
+> D'autres apps rattachent chaque nouvel utilisateur à leurs enregistrements
+> (Drive l'ajoute à une équipe, Activity Log en garde trace). Une suppression
+> forcée laisse ces lignes pointer vers rien, et Frappe lève ensuite un
+> `LinkValidationError` **depuis une app sans rapport** à l'activation du compte
+> suivant — 39 orphelines s'étaient accumulées avant qu'on trouve la cause. Le
+> helper **désactive** le compte ; purgez-les proprement depuis le desk.
 
 ## Tunnel B2B
 

@@ -67,19 +67,32 @@ async function appeler(page, methode, args = {}) {
 //// endpoints, without a page load or a round trip through the DOM for each
 //// line. Emptying a cart of a dozen lines used to blow the 90 s test budget.
 async function viderPanier(page) {
-	const devis = await lireDevis(page);
-	const lignes = (devis && devis.doc && devis.doc.items) || [];
-	//// En série volontairement: deux update_cart concurrents écrivent le même
-	//// devis et le dernier écrase le premier.
-	for (const ligne of lignes) {
-		await page.request.post('/api/method/webshop.webshop.shopping_cart.cart.update_cart', {
-			form: {
-				item_code: ligne.item_code,
-				qty: 0,
-				...(ligne.warehouse ? {warehouse: ligne.warehouse} : {}),
-			},
-		});
+	//// Plusieurs passes: une seule ne suffit pas toujours. Le panier peut porter
+	//// deux lignes du même article (deux entrepôts), et un update_cart qui
+	//// échoue — le site refuse par intermittence sous charge — laissait des
+	//// lignes derrière lui. Le spec suivant trouvait alors un panier « vide »
+	//// contenant trois articles et accusait la page.
+	for (let passe = 1; passe <= 3; passe += 1) {
+		const devis = await lireDevis(page);
+		const lignes = (devis && devis.doc && devis.doc.items) || [];
+		if (lignes.length === 0) return true;
+
+		//// En série volontairement: deux update_cart concurrents écrivent le même
+		//// devis et le dernier écrase le premier.
+		for (const ligne of lignes) {
+			await page.request.post('/api/method/webshop.webshop.shopping_cart.cart.update_cart', {
+				form: {
+					item_code: ligne.item_code,
+					qty: 0,
+					...(ligne.warehouse ? {warehouse: ligne.warehouse} : {}),
+				},
+			});
+		}
+		await page.waitForTimeout(1000);
 	}
+
+	const reste = await lireDevis(page);
+	return ((reste && reste.doc && reste.doc.items) || []).length === 0;
 }
 
 /** The cart quotation, read over HTTP (no page needed). */
