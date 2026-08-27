@@ -233,35 +233,60 @@ def get_cart_quotation(doc=None):
 	}
 
 
+#//// Neoffice — was `if address.address_type == "Shipping"`.
+#////
+#//// address_type is a LABEL in Frappe, not a permission: any address of the
+#//// party may be shipped to. A customer whose only address is typed "Billing" —
+#//// the default when the shop creates one, and the common case for a company
+#//// with a single site — got an empty list here. On the B2B page that is fatal:
+#//// cart_address.html iterates this list, so nothing was rendered, the shipping
+#//// methods stayed on "select an address first", and "Place Order" could never
+#//// be enabled. The customer saw a dead page with no explanation.
+#////
+#//// Addresses genuinely marked for shipping still come first, so nothing
+#//// changes for a shop that does type them.
 @frappe.whitelist()
 def get_shipping_addresses(party=None):
 	if not party:
 		party = get_party()
 	addresses = get_address_docs(party=party)
+
+	def rang(address):
+		if address.address_type == "Shipping":
+			return 0
+		return 1 if cint(address.get("is_shipping_address")) else 2
+
 	return [
 		{
 			"name": address.name,
 			"title": address.address_title,
 			"display": address.display,
 		}
-		for address in addresses
-		if address.address_type == "Shipping"
+		for address in sorted(addresses, key=rang)
 	]
 
 
 @frappe.whitelist()
+#//// Neoffice — same fix as get_shipping_addresses, for the mirror case: a
+#//// customer whose only address is typed "Shipping" or "Office" could not be
+#//// billed. Addresses actually typed "Billing" still come first.
 def get_billing_addresses(party=None):
 	if not party:
 		party = get_party()
 	addresses = get_address_docs(party=party)
+
+	def rang(address):
+		if address.address_type == "Billing":
+			return 0
+		return 1 if cint(address.get("is_primary_address")) else 2
+
 	return [
 		{
 			"name": address.name,
 			"title": address.address_title,
 			"display": address.display,
 		}
-		for address in addresses
-		if address.address_type == "Billing"
+		for address in sorted(addresses, key=rang)
 	]
 
 
