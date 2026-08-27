@@ -89,14 +89,29 @@ test.describe('Accès au tunnel B2B', () => {
 		expect(titre.toLowerCase()).not.toBe('paiement');
 	});
 
-	test('la société du client est affichée', async ({page}) => {
+	//// Ce test vérifie que c'est LA BONNE société, pas qu'il y en a une.
+	////
+	//// La version faible — « la page n'est pas vide » — passait au vert pendant
+	//// que la page affichait « Société : E2E Nouveau » sur le devis de
+	//// Test B2B Webshop: le nom d'une entreprise montré à une autre, sur l'écran
+	//// où elle valide une commande facturée à son compte. Un test qui n'affirme
+	//// rien ne protège rien.
+	test('la société affichée est bien celle du client', async ({page}) => {
 		test.skip(!(await panierGarni(page)), 'impossible de garnir le panier');
+
+		const panier = await lireJson(
+			page,
+			'/api/method/webshop.webshop.shopping_cart.cart.get_cart_quotation'
+		);
+		const attendue = panier && panier.doc ? panier.doc.customer_name : null;
+		test.skip(!attendue, 'le devis n’a pas de client');
+
 		await page.goto(ROUTE_B2B);
-		//// Un acheteur professionnel commande AU NOM d'une société: il doit voir
-		//// laquelle avant de valider, sinon rien ne distingue deux comptes.
-		await expect(page.locator('#b2b-checkout')).toContainText(/\S/);
-		const societe = await page.locator('#b2b-checkout').textContent();
-		expect(societe.length, 'la page B2B est vide').toBeGreaterThan(50);
+		await expect(page.locator('#b2b-checkout')).toBeVisible({timeout: 30_000});
+		await expect(
+			page.locator('#b2b-checkout'),
+			'la page B2B annonce une autre société que celle du devis'
+		).toContainText(attendue);
 	});
 
 	test('un panier vide ne mène pas au tunnel B2B', async ({page}) => {
@@ -223,16 +238,17 @@ test.describe('Cloisonnement du tunnel B2B', () => {
 		try {
 			await page.goto(ROUTE_B2B);
 			await page.waitForLoadState('domcontentloaded');
-			//// La redirection est un 301 côté serveur: lire page.url() sans
-			//// l'attendre le surprend encore sur l'URL de départ, et le test
-			//// accuse l'application d'une fuite qui n'existe pas.
-			await expect
-				.poll(() => page.url(), {
-					timeout: 30_000,
-					message: 'un invité reste sur le tunnel B2B',
-				})
-				.not.toContain('checkout_b2b');
-			//// Jamais vers /app: un client portail n'a pas le desk.
+
+			//// Ce qui compte est ce que l'invité VOIT, pas l'URL affichée.
+			//// L'URL peut rester celle demandée selon la façon dont la
+			//// redirection est servie; le tunnel, lui, ne doit jamais s'afficher.
+			await expect(
+				page.locator('#b2b-checkout'),
+				'un invité voit le tunnel B2B'
+			).toHaveCount(0);
+
+			//// Jamais vers /app: un client portail n'a pas le desk, l'y envoyer
+			//// est un cul-de-sac.
 			expect(page.url(), 'un invité est envoyé vers le desk').not.toContain('/app');
 		} finally {
 			await contexte.close();

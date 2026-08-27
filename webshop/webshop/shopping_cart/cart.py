@@ -140,12 +140,14 @@ def get_cart_quotation(doc=None):
 		update_cart_address("shipping", addresses[0].name)
 		#//// update_cart_address writes to the database through its OWN copy of
 		#//// the quotation; the `doc` we are about to return was loaded before
-		#//// that and still shows the old value. Without this reload the first
-		#//// response after an address is assigned reports shipping_address_name
-		#//// as None while the database already holds it — which reads like the
-		#//// assignment failed, and sends whoever is debugging in the wrong
-		#//// direction. Only reached once per cart, when the address is first set.
-		doc.reload()
+		#//// that and still shows the old value, which reads like the assignment
+		#//// failed and sends whoever is debugging in the wrong direction.
+		#////
+		#//// Mirrored in memory rather than reloaded: doc.reload() re-reads the
+		#//// document WITH permission checks, and a Website User may not read a
+		#//// Quotation directly — it turned every cart read into a 403
+		#//// "Pas d'autorisation pour Devis". The value is the one just written.
+		doc.shipping_address_name = addresses[0].name
 
 	if doc:
 		# Get loyalty points information
