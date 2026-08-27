@@ -39,25 +39,36 @@ ssh osiris "cd /home/neoffice/frappe-bench && bench --site prod.local set-passwo
 ## Lancer
 
 ```bash
-npx playwright test                      # les trois projets
-npx playwright test --project=client     # signé, bureau
-npx playwright test --project=invite     # déconnecté (connexion, cloisonnement)
-npx playwright test --project=mobile     # catalogue + panier en Pixel 7
-npx playwright test -g "carnet"          # par nom
-npx playwright test --ui                 # mode interactif
-npx playwright show-trace test-results/…/trace.zip   # rejouer un échec
+npm test                  # tous les projets
+npm run test:client       # signé, bureau
+npm run test:invite       # déconnecté (connexion, création de compte, cloisonnement)
+npm run test:b2b          # le tunnel B2B
+npm run test:mobile       # catalogue + panier en Pixel 7
+npm run test:paiement     # les scénarios Stripe
+npm test -- -g "carnet"   # par nom
+npm run ui                # mode interactif
+./node_modules/.bin/playwright show-trace test-results/…/trace.zip   # rejouer un échec
 ```
+
+> [!warning] `npm test`, jamais `npx playwright test`
+> `npx` télécharge **sa propre** copie de Playwright. Deux versions dans la même
+> exécution et tous les specs refusent de se charger avec
+> « test.describe() called in a file imported by the configuration file » —
+> une erreur qui désigne votre spec et n'a rien à voir avec lui. Les scripts npm
+> ci-dessus utilisent le binaire local.
 
 ## Organisation
 
-| Fichier | Couvre |
-|---|---|
-| `01-authentification.spec.js` | Vérification d'e-mail, création de compte (refus **et** parcours réel), connexion, dialogue, cloisonnement d'un visiteur anonyme |
-| `02-catalogue.spec.js` | Liste des produits, fiche produit (titre unique, prix, image, avis vides), ajout au panier |
-| `03-panier.spec.js` | Lignes, quantités, suppression, et multi-entrepôts : deux sources = deux lignes |
-| `04-checkout.spec.js` | Les quatre étapes, carnet d'adresses, progression et retours, méthodes de paiement, stabilité |
+| Fichier | Projet | Couvre |
+|---|---|---|
+| `01-authentification.spec.js` | `invite` | Vérification d'e-mail, création de compte (refus **et** parcours réel), connexion, dialogue, cloisonnement d'un visiteur anonyme |
+| `02-catalogue.spec.js` | `client`, `mobile` | Liste des produits, fiche produit (titre unique, prix, image, avis vides), ajout au panier |
+| `03-panier.spec.js` | `client`, `mobile` | Lignes, quantités, suppression, et multi-entrepôts : deux sources = deux lignes |
+| `04-checkout.spec.js` | `client` | Les quatre étapes, carnet d'adresses, progression et retours, méthodes de paiement, cadence du sondage, stabilité |
+| `05-paiement-stripe.spec.js` | `client` | **Le paiement pour de vrai** : carte acceptée → commande, carte refusée, double-clic, conditions générales |
+| `06-checkout-b2b.spec.js` | `b2b` | Reconnaissance du client B2B, accès au tunnel, commande, cloisonnement |
 
-Les helpers partagés sont dans `fixtures/boutique.js`.
+Les helpers partagés sont dans `fixtures/boutique.js` et `fixtures/stripe.js`.
 
 ## Ce qu'il faut savoir avant d'y toucher
 
@@ -93,6 +104,62 @@ qui est cliquable. Utilisez `choisirLivraison()`.
 remet l'adresse par défaut, sans quoi un test qui en choisit une autre en laisse
 hériter le suivant.
 
+## Paiement par carte (Stripe)
+
+Les scénarios de `05-paiement-stripe.spec.js` vont **jusqu'au débit** : ils
+utilisent les numéros de test publics de Stripe
+([documentation](https://docs.stripe.com/testing)) contre une clé `pk_test_`.
+
+| Carte | Effet |
+|---|---|
+| `4242 4242 4242 4242` | acceptée, sans 3-D Secure |
+| `4000 0000 0000 0002` | refusée par l'émetteur |
+| `4000 0000 0000 9995` | fonds insuffisants |
+
+Ce ne sont **pas** de vraies cartes : aucun argent ne bouge, aucune banque n'est
+jointe. Ne mettez jamais un vrai numéro dans ces fichiers.
+
+Le site doit être en **mode test** (`Stripe Settings` → clé publique `pk_test_…`
+et clé secrète `sk_test_…`). Un site en clés de production ferait de vrais
+débits : vérifiez avant de lancer.
+
+> [!danger] Ces tests laissent de vrais documents
+> Un paiement réussi crée une **Payment Request**, une **Sales Order** et une
+> **Payment Entry**, exactement comme une commande de client. C'est le prix d'un
+> test qui va jusqu'au bout — et la seule façon de prouver que la chaîne
+> fonctionne. Comptez-les avant de lancer la suite sur un site partagé.
+
+### Défaut connu : la sélection de méthode se perd pendant la saisie
+
+`_updateOrderSummary()` appelle `refreshPaymentMethods()` quand on est sur
+l'étape paiement, ce qui **re-rend toute la liste des méthodes**. Si cela tombe
+pendant que le client remplit sa carte, la tuile perd sa classe `selected` ; le
+gestionnaire des conditions générales, lié à
+`.payment-method-item.selected #terms-acceptance`, cesse alors de s'appliquer et
+le bouton « Payer » n'est jamais réactivé — devant un formulaire pourtant
+complet.
+
+`validerPaiement()` re-sélectionne la tuile jusqu'à trois fois pour contourner,
+mais **c'est un vrai défaut de l'application**, pas du test : un client vivrait
+la même chose. Corriger demande de décider ce que devient l'étiquette de montant
+du bouton lorsqu'on cesse de re-rendre — non fait ici.
+
+## Tunnel B2B
+
+`/checkout_b2b` (avec un souligné) est une page **unique** : société, adresse,
+livraison, « Passer la commande ». **Aucune étape de paiement** — un client B2B
+commande et est facturé selon les conditions de son compte. La preuve attendue
+n'est donc pas « a-t-il payé » mais « une commande a-t-elle été créée, et
+seulement pour qui y a droit ».
+
+Un client est B2B si son `customer_group` figure dans
+**Webshop Settings → B2B Customer Group**, et si `activate_b2b_checkout` est
+activé.
+
+Le projet `b2b` a sa propre session (`WEBSHOP_E2E_B2B_USER`). Sans cette
+variable, les specs B2B s'ignorent — et se voient donc dans le décompte des
+ignorés.
+
 ## Article multi-sources
 
 Les tests multi-entrepôts ont besoin d'un article publié offrant au moins deux
@@ -101,10 +168,30 @@ si l'article est plus loin, renseignez `WEBSHOP_E2E_MULTISOURCE_ROUTE`. Sans lui
 et sans détection, ces tests s'ignorent — et se voient donc dans le décompte des
 ignorés.
 
-## Comptes créés par les tests
+## Ce que ces tests laissent derrière eux
 
-`01-authentification` crée un vrai compte à chaque exécution, préfixé
-`e2e.auto.<horodatage>@example.test`. Pour les supprimer :
+**Comptes** — `01-authentification` crée un vrai compte à chaque exécution,
+préfixé `e2e.auto.<horodatage>@example.test`.
+
+**Commandes** — chaque paiement Stripe réussi et chaque commande B2B laissent un
+devis validé, une commande client et, pour Stripe, une écriture de paiement. Pour
+les retrouver :
+
+```bash
+ssh osiris 'cd /home/neoffice/frappe-bench/sites && ../env/bin/python -c "
+import frappe
+frappe.init(site=\"prod.local\"); frappe.connect()
+for so in frappe.get_all(\"Sales Order\",
+        filters={\"customer\": [\"like\", \"%Test%E2E%\"]},
+        fields=[\"name\",\"customer\",\"status\",\"grand_total\"]):
+    print(so)
+"'
+```
+
+Ne les supprimez pas à l'aveugle : une commande payée porte une écriture
+comptable. Annulez-les depuis le desk si nécessaire.
+
+**Suppression des comptes de test :**
 
 ```bash
 ssh osiris 'cd /home/neoffice/frappe-bench/sites && ../env/bin/python -c "

@@ -324,12 +324,74 @@ The `payments` app is required for payment gateway integrations (Stripe, PayPal)
 
 ## Testing Strategy
 
+Two layers, and they answer different questions.
+
+### Python tests — the endpoints
+
 Tests are organized by module:
 - **DocType Tests**: `webshop/webshop/doctype/[doctype]/test_[doctype].py`
 - **Module Tests**: `webshop/webshop/[module]/test_[module].py`
 - Tests follow Python unittest conventions
 - Use `frappe.set_user()` to test different user contexts
 - Use `frappe.get_doc()` and `.insert()` to create test data
+
+```bash
+bench --site sitename run-tests --app webshop
+```
+
+> **A Single doctype survives `frappe.db.rollback()`.** Anything a test writes to
+> `Webshop Settings` stays written — a test run reconfigured a live shop this
+> way. Snapshot the fields in `setUpClass` and restore them in `tearDownClass`.
+> Same rule for `frappe.db.commit()` inside a whitelisted endpoint: it escapes
+> the test rollback entirely.
+
+### Browser tests — that the pages actually work
+
+`tests/e2e/` — Playwright, ~77 tests across desktop, mobile and B2B. They cover
+what the endpoints cannot say: sign-in, account creation, catalogue, cart
+(including multi-warehouse), the four-step checkout, and **a real Stripe charge**
+against test keys.
+
+```bash
+cd tests/e2e && npm install && npx playwright install chromium
+npm test                # everything
+npm run test:client     # signed in, desktop
+npm run test:invite     # signed out (sign-in, account creation, what a visitor must not reach)
+npm run test:b2b        # the B2B tunnel, which has its own customer and its own page
+npm run test:paiement   # the Stripe scenarios
+```
+
+Credentials live in `~/.config/webshop-e2e.env` (chmod 600), never in the repo.
+Full setup, gotchas and cleanup: `tests/e2e/README.md`.
+
+> **Use `npm test`, not `npx playwright test`.** `npx` pulls its own copy of
+> Playwright, and two versions in the same run make every spec fail to load with
+> "test.describe() called in a file imported by the configuration file" —
+> an error that points at your spec and has nothing to do with it.
+
+> **A skipped test reads exactly like a passing one.** A conditional
+> `test.skip()` firing for the wrong reason leaves the summary green: one run
+> reported "18 passed" while **23 tests were being skipped in silence**. After
+> touching the suite, read all three numbers — passed, failed, *skipped*.
+
+> **The Stripe specs create real documents** on the target site (Payment
+> Request, Sales Order, Payment Entry) using Stripe's public test cards against
+> a `pk_test_` key. No money moves, but the orders are real. Cleanup commands
+> are in `tests/e2e/README.md`.
+
+### Testing with a non-desk account
+
+After any upstream merge, permission change or routing change, test with **three
+identities**, not one — Administrator passes everything by construction:
+
+1. **Anonymous** (logged out)
+2. **Website User** (portal customer, no desk role) — the one everybody forgets
+3. **Admin / staff**
+
+For the Website User, probe the API from *their* session, not just the UI:
+anything other than a `403` on private data is a leak. `01-authentification.spec.js`
+does this for the anonymous case, and it is why the catalogue helpers read the
+shop pages instead of `frappe.client.get_list` — which correctly refuses them.
 
 ## CI/CD
 

@@ -195,8 +195,12 @@ test.describe('Cloisonnement du tunnel B2B', () => {
 	//// (paiement différé, tarifs revendeur). Ce test tourne sous la session
 	//// B2C, pas la B2B.
 	test('un client non-B2B est refusé', async ({browser}) => {
+		//// Chemin en dur, PAS require('../global-setup'): la config importe déjà
+		//// ce module, et Playwright refuse alors de charger le spec
+		//// (« test.describe() called in a file imported by the configuration »),
+		//// ce qui fait échouer le chargement de TOUTE la suite.
 		const contexte = await browser.newContext({
-			storageState: require('../global-setup').FICHIER_SESSION,
+			storageState: require('path').join(__dirname, '..', '.auth', 'session.json'),
 		});
 		const page = await contexte.newPage();
 		try {

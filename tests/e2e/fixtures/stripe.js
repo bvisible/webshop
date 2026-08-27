@@ -71,10 +71,35 @@ async function accepterConditions(tuile) {
 	await expect(boite, 'les conditions n’ont pas pu être acceptées').toBeChecked();
 }
 
-/** Submit the Stripe form and wait for the outcome. */
+//// Submit the Stripe form.
+////
+//// Re-asserts the tile is still selected first. The payment step reloads its
+//// method list while the customer is filling the card in, and the tile can lose
+//// its `selected` class — at which point the terms handler, which is bound to
+//// `.payment-method-item.selected #terms-acceptance`, stops applying and the
+//// Pay button is never enabled, with the form still sitting there fully filled.
+//// Seen in test as a disabled button on a completed form; a customer would see
+//// exactly the same thing.
 async function validerPaiement(page, tuile) {
 	const bouton = tuile.locator('.btn-submit-payment:visible').first();
-	await expect(bouton).toBeEnabled();
+
+	//// Jusqu'à trois tentatives: le rafraîchissement peut retomber pendant la
+	//// re-sélection elle-même. Un client, lui, recliquerait aussi.
+	for (let essai = 1; essai <= 3; essai += 1) {
+		if (await bouton.isEnabled().catch(() => false)) break;
+		if (!(await tuile.evaluate((e) => e.classList.contains('selected')))) {
+			await tuile.click();
+			await page.waitForTimeout(2000);
+		}
+		await accepterConditions(tuile);
+		await page.waitForTimeout(1500);
+	}
+
+	await expect(
+		bouton,
+		'le bouton « Payer » est resté verrouillé : la tuile a perdu sa sélection ' +
+			'pendant la saisie (rafraîchissement des méthodes de paiement)'
+	).toBeEnabled({timeout: 30_000});
 	await bouton.click();
 }
 

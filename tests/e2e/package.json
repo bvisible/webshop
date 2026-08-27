@@ -1,15 +1,22 @@
 {
-  "name": "e2e",
+  "name": "webshop-e2e",
   "version": "1.0.0",
-  "description": "",
+  "description": "Tests de bout en bout de la boutique (Playwright)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "playwright test",
+    "test:client": "playwright test --project=client",
+    "test:invite": "playwright test --project=invite",
+    "test:b2b": "playwright test --project=b2b",
+    "test:mobile": "playwright test --project=mobile",
+    "test:paiement": "playwright test --project=client specs/05-paiement-stripe.spec.js",
+    "ui": "playwright test --ui"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.62.1"
-  }
+  },
+  "private": true
 }
