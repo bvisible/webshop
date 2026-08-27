@@ -2775,13 +2775,15 @@ frappe.ready(function() {
             this.stopIntentWatch();
 
             const canal = 'payment.intent.' + intent + '.updated';
-            let fini = false, restant = 60;   // 5 minutes à 5 s
+            const DUREE_MAX = 5 * 60 * 1000;          // on abandonne au bout de 5 min
+            const debut = Date.now();
+            let fini = false;
             let timer = null;
             //// arreter() ne ferme que SUR SES PROPRES ressources (timer local,
             //// pas un champ d'instance partagé), donc deux surveillances qui se
             //// chevauchent ne peuvent plus s'annuler mutuellement.
             const arreter = () => {
-                if (timer) { clearInterval(timer); timer = null; }
+                if (timer) { clearTimeout(timer); timer = null; }
                 if (this._intentStop === arreter) this._intentStop = null;
                 window.removeEventListener('pagehide', arreter);
                 try { if (frappe.realtime && frappe.realtime.off) frappe.realtime.off(canal, demander); }
@@ -2807,15 +2809,39 @@ frappe.ready(function() {
                 //// reste inerte tant que personne n'écoute.
                 if (frappe.realtime && frappe.realtime.on) frappe.realtime.on(canal, demander);
             } catch (e) { /* pas de temps réel ici : le filet suffit */ }
-            timer = setInterval(() => {
-                restant -= 1;
-                if (restant <= 0) {
+            //// Le filet derrière le temps réel, espacé selon ce dont on dispose.
+            ////
+            //// frappe.realtime.on() connecte la socket, et c'est elle qui prévient
+            //// dès que la passerelle a répondu — le sondage n'est là que pour le
+            //// cas où elle tombe (ou n'existe pas: sur une page publique, rien ne
+            //// garantit qu'un proxy laisse passer /socket.io). Sonder toutes les
+            //// 5 s pendant 5 minutes coûtait 60 requêtes par paiement pour, la
+            //// plupart du temps, ne rien apprendre que la socket n'ait déjà dit.
+            ////
+            //// setTimeout récursif plutôt que setInterval: l'intervalle peut
+            //// alors varier, et deux tours ne peuvent pas se chevaucher si le
+            //// serveur répond lentement.
+            const prochainDelai = () => {
+                const socketVivante = !!(frappe.realtime && frappe.realtime.socket
+                    && frappe.realtime.socket.connected);
+                const ecoule = Date.now() - debut;
+                //// Les 30 premières secondes restent serrées: c'est là que le
+                //// client attend devant son écran, et là que la socket peut
+                //// n'être pas encore établie.
+                if (ecoule < 30000) return 5000;
+                return socketVivante ? 30000 : 10000;
+            };
+            const tour = () => {
+                if (fini) return;
+                if (Date.now() - debut >= DUREE_MAX) {
                     arreter();
                     $form.find('.intent-attente').text(__('Payment not received. You can try again.'));
                     return;
                 }
                 demander();
-            }, 5000);
+                timer = setTimeout(tour, prochainDelai());
+            };
+            timer = setTimeout(tour, prochainDelai());
             this._intentStop = arreter;
             demander();
             //// Retiré par arreter() : sans cela chaque changement de méthode
