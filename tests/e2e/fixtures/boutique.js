@@ -78,6 +78,15 @@ async function lireDevis(page) {
 	return (await r.json()).message || null;
 }
 
+/** The customer's address book, read over HTTP. */
+async function lireCarnetAdresses(page) {
+	const r = await page.request.post(
+		'/api/method/webshop.webshop.shopping_cart.cart.get_customer_addresses'
+	);
+	if (!r.ok()) return [];
+	return (await r.json()).message || [];
+}
+
 /** Add an item to the cart, optionally from a given warehouse. */
 async function ajouterAuPanier(page, itemCode, qty = 1, warehouse = null) {
 	const r = await page.request.post('/api/method/webshop.webshop.shopping_cart.cart.update_cart', {
@@ -181,5 +190,6 @@ module.exports = {
 	articlesDuCatalogue,
 	codeArticleDeLaFiche,
 	lireDevis,
+	lireCarnetAdresses,
 	ajouterAuPanier,
 };

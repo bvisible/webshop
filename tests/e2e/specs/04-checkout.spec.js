@@ -6,24 +6,23 @@
 const {test, expect} = require('@playwright/test');
 const {
 	connecter,
-	appeler,
 	compterRequetes,
+	ajouterAuPanier,
+	lireDevis,
+	lireCarnetAdresses,
 	choisirLivraison,
 	premierArticleAchetable,
 } = require('../fixtures/boutique');
 
 /** Ensure the cart holds something, so /checkout is reachable at all. */
 async function garantirPanierNonVide(page) {
-	const devis = await appeler(page, 'webshop.webshop.shopping_cart.cart.get_cart_quotation');
+	const devis = await lireDevis(page);
 	if (devis && devis.doc && (devis.doc.items || []).length) return true;
 
 	const article = await premierArticleAchetable(page);
 	if (!article) return false;
-	await appeler(page, 'webshop.webshop.shopping_cart.cart.update_cart', {
-		item_code: article.item_code,
-		qty: 1,
-	});
-	const apres = await appeler(page, 'webshop.webshop.shopping_cart.cart.get_cart_quotation');
+	await ajouterAuPanier(page, article.item_code, 1);
+	const apres = await lireDevis(page);
 	return !!(apres && apres.doc && (apres.doc.items || []).length);
 }
 
@@ -89,13 +88,13 @@ test.describe('Tunnel de commande', () => {
 			const cartes = page.locator('#billing-address-picker .address-card-choice:not(.address-card-choice--new)');
 			test.skip((await cartes.count()) < 2, 'moins de deux adresses: rien à choisir');
 
-			const avant = await appeler(page, 'webshop.webshop.shopping_cart.cart.get_customer_addresses');
+			const avant = await lireCarnetAdresses(page);
 			const cible = await cartes.nth(1).getAttribute('data-address');
 
 			await cartes.nth(1).click();
 			await expect(page.locator('#billing_address_name')).toHaveValue(cible, {timeout: 20_000});
 
-			const apres = await appeler(page, 'webshop.webshop.shopping_cart.cart.get_customer_addresses');
+			const apres = await lireCarnetAdresses(page);
 			expect(normaliser(apres), 'la sélection a modifié une adresse').toEqual(normaliser(avant));
 		});
 
@@ -186,6 +185,62 @@ test.describe('Tunnel de commande', () => {
 				.toBeGreaterThan(0);
 
 			expect(await page.evaluate(() => window.__vides || 0), 'scintillement revenu').toBe(0);
+		});
+	});
+
+	test.describe('Surveillance du paiement', () => {
+		//// Le sondage était un setInterval fixe à 5 s pendant 5 minutes: 60 appels
+		//// par paiement, alors que le temps réel prévient déjà. Il est devenu un
+		//// setTimeout récursif dont le délai s'allonge passé 30 s, et davantage
+		//// encore quand la socket est vivante.
+		////
+		//// Mesuré ici plutôt qu'à la main: Chrome bride les timers d'un onglet en
+		//// arrière-plan, ce qui rend toute mesure manuelle inexploitable — deux
+		//// tours en 38 s au lieu de sept. Playwright garde la page active.
+		test('le sondage s’espace au lieu de marteler toutes les 5 s', async ({page}) => {
+			test.setTimeout(120_000);
+
+			const mesure = await page.evaluate(async () => {
+				const cm = window.checkout_manager;
+				if (!cm || !cm.watchIntent) return null;
+				cm.stopIntentWatch();
+
+				const delais = [];
+				const stOrig = window.setTimeout;
+				const callOrig = frappe.call;
+				window.setTimeout = function (fn, d) {
+					if (d >= 4000) delais.push(d);
+					return stOrig.apply(this, arguments);
+				};
+				//// Le serveur répond toujours « pas encore payé »: on observe la
+				//// cadence, on ne veut surtout pas déclencher de vraie redirection.
+				frappe.call = function (o) {
+					if (o && /cart_intent_state/.test(o.method || '')) {
+						if (o.callback) o.callback({message: {done: false}});
+						return;
+					}
+					return callOrig.apply(this, arguments);
+				};
+
+				const faux = $('<div><span class="intent-attente"></span></div>');
+				cm.watchIntent('E2E-CADENCE', faux);
+				await new Promise((r) => stOrig(r, 40000));
+				cm.stopIntentWatch();
+
+				window.setTimeout = stOrig;
+				frappe.call = callOrig;
+				return {delais, fuite: !!cm._intentStop};
+			});
+
+			test.skip(!mesure, 'checkout_manager indisponible');
+
+			expect(mesure.fuite, 'la surveillance ne s’est pas arrêtée').toBe(false);
+			//// Avant: 8 délais, tous à 5000. Après: la fin de la fenêtre s'espace.
+			expect(mesure.delais.length, 'aucun tour observé').toBeGreaterThan(0);
+			expect(
+				mesure.delais.some((d) => d > 5000),
+				`le sondage reste à 5 s (délais observés: ${mesure.delais.join(', ')})`
+			).toBe(true);
 		});
 	});
 
