@@ -76,11 +76,22 @@
         cardholderEmailInput.val($('#contact_email').val());
     }
 
-    if (window.stripe) {
+    {# //// Neoffice — cette garde disait « déjà passé ici, initialise tout de
+       //// suite ». Mais `window.stripe = true` ne dit PAS que Stripe.js est
+       //// chargé — seulement que ce gabarit a déjà été rendu une fois. Au
+       //// second rendu (chaque sélection de méthode en produit un), initStripe()
+       //// partait donc avant que `window.Stripe` existe, sortait sur
+       //// « Stripe.js is not loaded », et laissait un formulaire de carte
+       //// inerte. C'est la racine du symptôme, la ré-injection du script n'en
+       //// était que la conséquence.
+       ////
+       //// Le vrai test est `window.Stripe` (majuscule, posé par Stripe.js).
+       //// Le bloc de chargement ci-dessous s'en charge et gère les trois cas:
+       //// déjà chargé, en cours de chargement, pas encore demandé. #}
+    if (window.Stripe) {
         initStripe();
         return;
     }
-    window.stripe = true;
 
     {# //// Neoffice — chargement de Stripe.js: réutiliser, et ne jamais échouer
        //// en silence.
@@ -265,7 +276,7 @@
                                             console.error("Error parsing server messages:", e);
                                         }
                                         
-                                        let errorMessage = stripeError || "Payment was declined. Please check your card or use a different one.";
+                                        let errorMessage = stripeError || "{{ _('Payment was declined. Please check your card or use a different one.') }}";
                                         
                                         checkout_manager.showMessagePayment('error', errorMessage);
                                         
@@ -311,11 +322,11 @@
                                                     errorMessage = "An error occurred with your card: " + errorDetail;
                                                 }
                                             } else {
-                                                errorMessage = "An error occurred during payment processing.";
+                                                errorMessage = "{{ _('An error occurred during payment processing.') }}";
                                             }
                                         } catch (e) {
                                             console.error("Error parsing error:", e);
-                                            errorMessage = "An error occurred during payment processing.";
+                                            errorMessage = "{{ _('An error occurred during payment processing.') }}";
                                         }
                                         
                                         // Hide success message if it was displayed
@@ -372,7 +383,7 @@
                                                     // Display error in form
                                                     const errorDiv = document.querySelector('.stripe-error-{{ submit_id }}');
                                                     errorDiv.style.display = 'block';
-                                                    errorDiv.textContent = r.message.message || "An error occurred";
+                                                    errorDiv.textContent = r.message.message || "{{ _('An error occurred') }}";
                                                 }
                                             }
                                         });
@@ -392,7 +403,7 @@
                                                 // Display error in form
                                                 const errorDiv = document.querySelector('.stripe-error-{{ submit_id }}');
                                                 errorDiv.style.display = 'block';
-                                                errorDiv.textContent = r.message.message || r.message.error || "An error occurred during payment processing";
+                                                errorDiv.textContent = r.message.message || r.message.error || "{{ _('An error occurred during payment processing.') }}";
                                             }
                                         });
                                     }
@@ -412,7 +423,7 @@
                             // Display error in form
                             const errorDiv = document.querySelector('.stripe-error-{{ submit_id }}');
                             errorDiv.style.display = 'block';
-                            errorDiv.textContent = r.message.message || "Error creating payment request";
+                            errorDiv.textContent = r.message.message || "{{ _('Error creating payment request') }}";
                         }
                     },
                     {# //// Neoffice — sans ceci, un 404/500/timeout sur cet appel
