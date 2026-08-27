@@ -82,24 +82,54 @@
     }
     window.stripe = true;
 
+    {# //// Neoffice — chargement de Stripe.js: réutiliser, et ne jamais échouer
+       //// en silence.
+       ////
+       //// Cette page était rendue à chaque sélection de méthode de paiement et
+       //// réinjectait un <script src="js.stripe.com/v3/"> à chaque fois. Quand
+       //// le second exemplaire déclenchait onload avant que window.Stripe soit
+       //// posé, initStripe() sortait sur un console.error — et RIEN d'autre: le
+       //// formulaire de carte restait affiché, le bouton « Payer » actif, et le
+       //// client cliquait dans le vide, sans un mot d'explication. Constaté en
+       //// test: « Stripe.js is not loaded », aucun appel réseau, aucun message.
+       //// #}
     (function() {
+        var DEJA = document.querySelector('script[data-stripe-js]');
+        if (window.Stripe) { initStripe(); return; }
+        if (DEJA) { DEJA.addEventListener('load', initStripe); return; }
+
         var stripeScript = document.createElement('script');
         stripeScript.src = "https://js.stripe.com/v3/";
+        stripeScript.setAttribute('data-stripe-js', '1');
         stripeScript.onload = function() {
             initStripe();
         };
+        stripeScript.onerror = function() {
+            signalerStripeIndisponible("{{ _('Card payment is unavailable right now. Please choose another payment method.') }}");
+        };
         document.head.appendChild(stripeScript);
     })();
-    
+
+    {# //// Neoffice — dire au client que la carte ne marchera pas, au lieu de le
+       //// laisser cliquer sur un bouton inerte. #}
+    function signalerStripeIndisponible(message) {
+        console.error("Stripe indisponible:", message);
+        var $zone = $('.stripe-error-{{ submit_id }}');
+        if ($zone.length) { $zone.show().text(message); }
+        $('#{{ submit_id }}')
+            .prop('disabled', true)
+            .attr('title', message);
+    }
+
     function initStripe() {
         if (!window.Stripe) {
-            console.error("Stripe.js is not loaded");
+            signalerStripeIndisponible("{{ _('Card payment is unavailable right now. Please choose another payment method.') }}");
             return;
         }
 
         const publishableKey = "{{ gateway_settings.publishable_key }}";
         if (!publishableKey) {
-            console.error("Missing Stripe public key");
+            signalerStripeIndisponible("{{ _('Card payment is not configured. Please choose another payment method.') }}");
             return;
         }
         

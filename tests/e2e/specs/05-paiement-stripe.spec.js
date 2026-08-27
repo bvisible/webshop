@@ -43,6 +43,15 @@ function surveillerPaiement(page) {
 		echanges.push(`${r.status()} ${r.url().split('?')[0].slice(-45)} → ${corps}`);
 	});
 	page.on('pageerror', (e) => echanges.push(`ERREUR JS: ${String(e).slice(0, 200)}`));
+	//// Le formulaire Stripe refuse parfois le clic en le disant UNIQUEMENT dans
+	//// la console ("Payment already in progress, ignoring click"): sans cela, un
+	//// refus silencieux ressemble à un serveur muet.
+	page.on('console', (m) => {
+		const texte = m.text();
+		if (/payment|paiement|stripe|token|declin|refus/i.test(texte)) {
+			echanges.push(`CONSOLE ${m.type()}: ${texte.slice(0, 180)}`);
+		}
+	});
 	return echanges;
 }
 
@@ -92,6 +101,7 @@ test.describe('Paiement par carte (Stripe, clés de test)', () => {
 
 	test('une carte refusée affiche un message et ne crée pas de commande', async ({page}) => {
 		test.setTimeout(240_000);
+		const echanges = surveillerPaiement(page);
 		await connecter(page);
 
 		const devis = await panierMinimal(page);
@@ -105,10 +115,41 @@ test.describe('Paiement par carte (Stripe, clés de test)', () => {
 
 		//// Un refus doit se VOIR. Le pire échec de paiement est celui qui laisse
 		//// le client devant un écran inerte, sans savoir s'il a payé.
-		const message = tuile.locator('.payment-message, [role="alert"]').filter({hasText: /\S/});
-		await expect(message.first(), 'aucun message après un refus de carte').toBeVisible({
-			timeout: DELAI_PAIEMENT,
+		////
+		//// Le message peut venir de la tuile (erreur de tokenisation Stripe) ou
+		//// d'un msgprint Frappe (refus au moment du débit, côté serveur): les
+		//// deux comptent, seul le silence est un défaut.
+		const lireMessages = () =>
+			page.evaluate(() =>
+				[
+					...document.querySelectorAll(
+						'.payment-method-item.selected .payment-message, ' +
+							'.payment-method-item.selected [role="alert"], ' +
+							'.modal.show, .msgprint, .alert-danger, #payment-error'
+					),
+				]
+					.filter((z) => z.offsetHeight > 0 && z.textContent.trim().length > 3)
+					.map((z) => z.textContent.trim().slice(0, 120))
+			);
+
+		let messages = [];
+		const limite = Date.now() + DELAI_PAIEMENT;
+		while (Date.now() < limite) {
+			messages = await lireMessages();
+			if (messages.length) break;
+			await page.waitForTimeout(2000);
+		}
+
+		//// Playwright n'évalue pas une fonction message dans .poll: le diagnostic
+		//// est construit ici, sinon l'échec ne dit que « attendu true, reçu false ».
+		await test.info().attach('echanges-paiement', {
+			body: echanges.join('\n') || '(aucun appel observé)',
+			contentType: 'text/plain',
 		});
+		expect(
+			messages.length,
+			`refus de carte sans message visible. Échanges :\n${echanges.join('\n') || '(aucun)'}`
+		).toBeGreaterThan(0);
 
 		//// Et surtout: rien ne doit avoir été commandé.
 		expect(await etatDuDevis(page, nomDevis), 'une commande a été créée malgré le refus').toBe(
