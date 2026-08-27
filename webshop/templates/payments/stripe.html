@@ -181,6 +181,30 @@
             }
         };
         
+        {# //// Neoffice — un appel serveur qui échoue doit se VOIR.
+           ////
+           //// Les six frappe.call de ce gabarit n'avaient AUCUN handler `error`.
+           //// Or frappe.call n'appelle `callback` que sur une réponse valide :
+           //// sur un 404, un 500 ou un délai dépassé, ni la branche succès ni la
+           //// branche erreur ne s'exécutent. Le client restait devant un
+           //// formulaire figé, sans message, sans savoir s'il avait payé.
+           ////
+           //// Constaté en test : le token Stripe est créé (200), l'appel à
+           //// create_payment_request part, le serveur répond 404 — et il ne se
+           //// passe plus rien. Le pire état possible pour un tunnel de paiement.
+           //// #}
+        function echecPaiement(message) {
+            const succes = document.querySelector('.stripe-success-{{ submit_id }}');
+            if (succes) { succes.style.display = 'none'; }
+            const zone = document.querySelector('.stripe-error-{{ submit_id }}');
+            if (zone) {
+                zone.style.display = 'block';
+                zone.textContent = message || "{{ _('The payment could not be completed. Please try again.') }}";
+            }
+            try { checkout_manager.unfreeze('payment-method-item'); } catch (e) { /* déjà dégelé */ }
+            resetButtonState();
+        }
+
         // Function to handle Stripe response
         function setOutcome(result, formData) {
             if (result.error) {
@@ -372,6 +396,12 @@
                                             }
                                         });
                                     }
+                                },
+                                {# //// Neoffice — le débit a pu partir: on ne dit
+                                   //// PAS que rien n'a été prélevé, on invite à
+                                   //// vérifier avant de réessayer. #}
+                                error: function() {
+                                    echecPaiement("{{ _('We lost contact with the payment server. Please check your orders before trying again.') }}");
                                 }
                             });
                         } else {
@@ -384,6 +414,11 @@
                             errorDiv.style.display = 'block';
                             errorDiv.textContent = r.message.message || "Error creating payment request";
                         }
+                    },
+                    {# //// Neoffice — sans ceci, un 404/500/timeout sur cet appel
+                       //// laissait le client devant un formulaire figé, muet. #}
+                    error: function() {
+                        echecPaiement("{{ _('The payment could not be started. Your card has not been charged. Please try again.') }}");
                     }
                 });
             }
