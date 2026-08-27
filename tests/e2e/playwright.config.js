@@ -60,7 +60,7 @@ module.exports = defineConfig({
 			//// Runs signed OUT: sign-in, account creation and what a visitor must
 			//// not reach are precisely the subject here.
 			name: 'invite',
-			testMatch: /01-authentification\.spec\.js/,
+			testMatch: /(01-authentification|07-nouveau-client)\.spec\.js/,
 			use: {...devices['Desktop Chrome']},
 		},
 		{
@@ -70,7 +70,7 @@ module.exports = defineConfig({
 			//// Ni l'authentification (qui tourne déconnectée), ni le B2B (qui a
 			//// son propre client): les y laisser faisait échouer onze specs pour
 			//// la seule raison que la session n'était pas la bonne.
-			testIgnore: /(01-authentification|06-checkout-b2b)\.spec\.js/,
+			testIgnore: /(01-authentification|06-checkout-b2b|07-nouveau-client)\.spec\.js/,
 			use: {...devices['Desktop Chrome'], storageState: SESSION},
 		},
 		{
