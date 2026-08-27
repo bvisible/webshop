@@ -834,9 +834,22 @@ frappe.ready(function() {
             //// the label from ticking the box — so the box can simply behave
             //// like a checkbox.
 
-            // Handle terms acceptance for all payment methods
-            $(document).on('change', '.payment-method-item.selected #terms-acceptance', function() {
-                const $container = $(this).closest('.payment-method-item.selected');
+            //// Neoffice — ne plus exiger `.selected` sur la tuile.
+            ////
+            //// Le gestionnaire ne s'appliquait qu'à `.payment-method-item.selected
+            //// #terms-acceptance`, et updatePaymentButtonState() ne parcourait que
+            //// les tuiles sélectionnées. Il suffisait donc que la tuile n'ait pas
+            //// (encore, ou plus) cette classe au moment où le client coche pour
+            //// que le bouton reste verrouillé sur « Veuillez accepter les
+            //// conditions générales » — case cochée, formulaire complet, et rien
+            //// à faire. Re-sélectionner la tuile n'aidait pas: cela re-rend le
+            //// formulaire et décoche la case.
+            ////
+            //// Mettre à jour le bouton DE LA TUILE où l'on coche est à la fois
+            //// plus simple et sans risque: le formulaire d'une tuile non
+            //// sélectionnée est masqué, son bouton n'est pas atteignable.
+            $(document).on('change', '.payment-method-item #terms-acceptance', function() {
+                const $container = $(this).closest('.payment-method-item');
                 if (!$container.length) return;
 
                 const $submitBtn = $container.find('.btn-submit-payment');
@@ -864,9 +877,12 @@ frappe.ready(function() {
                 }
             });
             
-            // Function to check and update button state based on terms acceptance
+            //// Neoffice — parcourt TOUTES les tuiles, pas seulement la
+            //// sélectionnée (même raison que le gestionnaire ci-dessus: une tuile
+            //// pas encore marquée `selected` gardait un bouton verrouillé pour
+            //// toujours). Le formulaire d'une tuile non sélectionnée est masqué.
             this.updatePaymentButtonState = function() {
-                $('.payment-method-item.selected').each(function() {
+                $('.payment-method-item').each(function() {
                     const $item = $(this);
                     const $checkbox = $item.find('#terms-acceptance');
                     const $submitBtn = $item.find('.btn-submit-payment');
