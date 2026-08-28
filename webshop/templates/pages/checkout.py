@@ -33,8 +33,38 @@ _LIBELLES_DIALOGUES = (
 )
 
 
+#//// Neoffice — added helper (no upstream equivalent).
+#////
+#//// Sends an anonymous visitor to the sign-in page when the site they are on is
+#//// flagged b2b_only. Returns silently everywhere else, so a fleet without
+#//// Website Profiles — or a plain B2C site — behaves exactly as before.
+def _exiger_connexion_sur_site_professionnel():
+	if frappe.session.user != "Guest":
+		return
+
+	profile = getattr(frappe.local, "website_profile_doc", None)
+	if not profile or not profile.get("b2b_only"):
+		return
+
+	#//// Vers /login, jamais vers /app: un client portail n'a pas le desk.
+	frappe.local.flags.redirect_location = "/login?redirect-to=/checkout"
+	raise frappe.Redirect
+
+
 def get_context(context):
 	"""Context for the payment page"""
+	#//// Neoffice multi-site — un site réservé aux professionnels exige d'être
+	#//// connecté pour COMMANDER.
+	#////
+	#//// Le contrôle existant (check_website_profile_login) ne porte que sur la
+	#//// connexion, et exempte explicitement Guest: un visiteur anonyme pouvait
+	#//// donc remplir un panier sur le domaine B2B, atteindre ce tunnel et le
+	#//// dérouler — aux tarifs réservés aux revendeurs. Vérifié sur osiris.
+	#////
+	#//// Naviguer reste permis (le catalogue sert de vitrine); c'est la commande
+	#//// qui demande un compte approuvé.
+	_exiger_connexion_sur_site_professionnel()
+
 	#//// Neoffice — Frappe derives context.title from the route when nobody
 	#//// sets it, and never translates it; themes print it as the visible
 	#//// page heading, so the page read "checkout".
