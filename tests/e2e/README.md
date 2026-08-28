@@ -70,6 +70,7 @@ npm run ui                # mode interactif
 | `06-checkout-b2b.spec.js` | `b2b` | Reconnaissance du client B2B, accès au tunnel, commande, cloisonnement |
 | `07-nouveau-client.spec.js` | `invite` | **Le parcours d'un premier acheteur** : inscription, activation par le lien reçu, saisie d'adresse, paiement |
 | `08-multi-site.spec.js` | `multi-site` | **Deux boutiques, deux domaines** : catalogue propre à chaque site, prix affiché = prix facturé, cloisonnement du site professionnel |
+| `09-demande-compte-pro.spec.js` | `multi-site` | **Demande de compte professionnel** : formulaire public, refus attendus, et ce qu'une approbation crée (client, compte, tarif du site) |
 
 Les helpers partagés sont dans `fixtures/boutique.js` et `fixtures/stripe.js`.
 
@@ -170,6 +171,23 @@ complet.
 mais **c'est un vrai défaut de l'application**, pas du test : un client vivrait
 la même chose. Corriger demande de décider ce que devient l'étiquette de montant
 du bouton lorsqu'on cesse de re-rendre — non fait ici.
+
+## Demande de compte professionnel
+
+Un site `b2b_only` refuse tout compte non approuvé : sans formulaire, un prospect
+n'a aucune porte. Le DocType `B2B Account Request`, l'endpoint public et la page
+`/compte-professionnel` vivent dans **neoffice_theme**, à côté de
+`Website Profile` et du gating.
+
+Les tests d'approbation ont besoin d'un accès serveur
+(`WEBSHOP_E2E_SSH_HOST` / `WEBSHOP_E2E_SITE`), comme ceux d'activation. Sans lui,
+ils s'ignorent en le disant.
+
+> [!warning] Convention `www/` : tirets et underscores
+> `compte-professionnel.html` va avec `compte_professionnel.py`. Un tiret dans le
+> nom du `.py` et Frappe **ne charge pas le contrôleur** — sans erreur ni log :
+> la page s'affiche, mais son contexte est vide. Se lit dans les pages voisines
+> (`mes-reservations.html` ↔ `mes_reservations.py`).
 
 ## Multi-site : deux boutiques sur un ERP
 
