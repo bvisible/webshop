@@ -3,6 +3,8 @@
 
 no_cache = 1
 
+import frappe
+
 from webshop.webshop.shopping_cart.cart import get_cart_quotation
 from frappe import _
 
