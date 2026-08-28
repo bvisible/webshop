@@ -10,7 +10,8 @@
     "test:b2b": "playwright test --project=b2b",
     "test:mobile": "playwright test --project=mobile",
     "test:paiement": "playwright test --project=client specs/05-paiement-stripe.spec.js",
-    "ui": "playwright test --ui"
+    "ui": "playwright test --ui",
+    "test:multisite": "playwright test --project=multi-site"
   },
   "keywords": [],
   "author": "",
