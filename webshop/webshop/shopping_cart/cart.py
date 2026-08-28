@@ -2018,14 +2018,32 @@ def set_price_list_and_rate(quotation, cart_settings):
 		)
 
 def _set_price_list(cart_settings, quotation=None):
-	"""Set price list based on customer or shopping cart default"""
+	"""Set price list based on the site being browsed, the customer, or the default"""
 	from erpnext.accounts.party import get_default_price_list
 
 	party_name = quotation.get("party_name") if quotation else get_party().get("name")
 	selling_price_list = None
 
+	#//// Neoffice multi-site — the price list of the SITE wins.
+	#////
+	#//// The catalogue and the product page already price against the resolved
+	#//// Website Profile (product_data_engine/query.py shadows
+	#//// settings.price_list the same way). The cart did not: it went straight to
+	#//// the customer default, then Webshop Settings.
+	#////
+	#//// So on the B2B domain a customer saw 199.00 in the listing, 199.00 on the
+	#//// product page — and their cart charged 549.00, the standard rate.
+	#//// Measured on osiris with item 6882C006. A shop that shows one price and
+	#//// bills another is the one defect a webshop cannot have.
+	#////
+	#//// Only sites that actually define a price list are affected; everywhere
+	#//// else the historical order below is untouched.
+	profile = getattr(frappe.local, "website_profile_doc", None)
+	if profile and profile.get("price_list"):
+		selling_price_list = profile["price_list"]
+
 	# Check if default customer price list exists
-	if party_name and frappe.db.exists("Customer", party_name):
+	if not selling_price_list and party_name and frappe.db.exists("Customer", party_name):
 		selling_price_list = get_default_price_list(
 			frappe.get_doc("Customer", party_name)
 		)
