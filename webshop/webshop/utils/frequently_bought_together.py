@@ -111,7 +111,10 @@ def get_frequently_bought_together(item_code, limit=4):
         from webshop.webshop.shopping_cart.cart import _set_price_list
         
         settings = frappe.get_cached_doc("Webshop Settings")
-        selling_price_list = settings.price_list
+        #//// Neoffice multi-site — le tarif du site prime.
+        from webshop.webshop.multi_site import effective_price_list
+
+        selling_price_list = effective_price_list(settings.price_list)
         
         for item in related_items:
             price_obj = get_price(

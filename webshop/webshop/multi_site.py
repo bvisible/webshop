@@ -19,6 +19,25 @@ def get_current_profile_name() -> str | None:
 	return getattr(frappe.local, "website_profile", None)
 
 
+def effective_price_list(fallback: str | None = None) -> str | None:
+	"""Price list to use for the site currently being browsed.
+
+	The resolved Website Profile wins; otherwise the caller's fallback, or the
+	Webshop Settings default. Returns None when nothing is configured.
+
+	Every place that shows a price to a shopper must go through this. Reading
+	``Webshop Settings.price_list`` directly is how the B2B domain ended up
+	listing 199.00 in the catalogue while search, carousels and the cart all
+	quoted 549.00 — the same item, the same page, three different prices.
+	"""
+	profile = getattr(frappe.local, "website_profile_doc", None)
+	if profile and profile.get("price_list"):
+		return profile["price_list"]
+	if fallback:
+		return fallback
+	return frappe.db.get_single_value("Webshop Settings", "price_list")
+
+
 def site_url(path: str = "") -> str:
 	"""Absolute URL on the current site's domain. Falls back to frappe's
 	get_url when no Website Profile is resolved (fleet default)."""

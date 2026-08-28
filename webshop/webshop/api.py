@@ -469,7 +469,10 @@ def get_product_price_info(items):
 		return {}
 	
 	# Get price list from settings
-	price_list = frappe.db.get_single_value("Webshop Settings", "price_list")
+	#//// Neoffice multi-site — le tarif du site prime (recherche produit).
+	from webshop.webshop.multi_site import effective_price_list
+
+	price_list = effective_price_list()
 	if not price_list:
 		return {}
 	

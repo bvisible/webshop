@@ -426,7 +426,10 @@ class ProductFiltersBuilder:
 			item_groups = [x.name for x in include_groups] if include_groups else [item_group_to_use]
 			
 			# Get default price list from settings
-			default_price_list = frappe.db.get_single_value("Webshop Settings", "price_list")
+			#//// Neoffice multi-site — le tarif du site prime (filtres de prix).
+			from webshop.webshop.multi_site import effective_price_list
+
+			default_price_list = effective_price_list()
 			
 			# Build the SQL query with all filters
 			sql_conditions = ["wi.published = 1", "wi.item_group IN %(groups)s", "ip.selling = 1"]
@@ -550,7 +553,10 @@ class ProductFiltersBuilder:
 
 		else:
 			# No item group filter, get all prices
-			default_price_list = frappe.db.get_single_value("Webshop Settings", "price_list")
+			#//// Neoffice multi-site — le tarif du site prime (filtres de prix).
+			from webshop.webshop.multi_site import effective_price_list
+
+			default_price_list = effective_price_list()
 			
 			# Get all item codes that match the current filters (without pagination)
 			item_sql_conditions = ["wi.published = 1"]

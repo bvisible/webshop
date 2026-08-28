@@ -57,7 +57,14 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
     if not settings.enabled:
         return []
     
-    price_list = settings.price_list or frappe.db.get_value("Selling Settings", None, "selling_price_list") or "Standard Selling"
+    #//// Neoffice multi-site — le tarif du site prime (carrousels).
+    from webshop.webshop.multi_site import effective_price_list
+
+    price_list = (
+        effective_price_list(settings.price_list)
+        or frappe.db.get_value("Selling Settings", None, "selling_price_list")
+        or "Standard Selling"
+    )
     currency = frappe.get_cached_value("Price List", price_list, "currency") or "CHF"
     
     # Build conditions

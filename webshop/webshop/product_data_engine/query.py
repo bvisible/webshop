@@ -553,7 +553,10 @@ class ProductQuery:
 	def query_items_with_price_sort(self, start, sort_order):
 		"""Query items with price-based sorting using SQL join"""
 		# Get default price list from settings
-		price_list = frappe.db.get_single_value("Webshop Settings", "price_list")
+		#//// Neoffice multi-site — le tarif du site prime.
+		from webshop.webshop.multi_site import effective_price_list
+
+		price_list = effective_price_list()
 		
 		# Build WHERE conditions
 		conditions = []
