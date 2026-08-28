@@ -26,6 +26,24 @@ async function ouvrirSite(browser, url) {
 	return {contexte, page: await contexte.newPage()};
 }
 
+//// Sign in on this domain with the account that is allowed there.
+////
+//// A b2b_only site has no anonymous cart at all: update_cart answers 403 and
+//// /cart redirects. Anything that needs a cart there must therefore sign in —
+//// with the B2B account, since the consumer one is refused at the door.
+async function connecterSurSite(page, url) {
+	const estB2B = URL_B2B && url === URL_B2B;
+	const utilisateur = estB2B
+		? process.env.WEBSHOP_E2E_B2B_USER || process.env.WEBSHOP_E2E_USER
+		: process.env.WEBSHOP_E2E_USER;
+	if (!utilisateur) return false;
+
+	const r = await page.request.post('/api/method/login', {
+		form: {usr: utilisateur, pwd: process.env.WEBSHOP_E2E_PASSWORD},
+	});
+	return r.ok();
+}
+
 /** POST a whitelisted method on a given domain and return its message. */
 async function appelSite(page, methode, donnees = null) {
 	let r;
@@ -66,6 +84,7 @@ async function catalogueDuSite(page, recherche = null) {
 		return (message.items || []).map((i) => ({
 			item_code: i.item_code,
 			prix: i.price_list_rate,
+				route: i.route || null,
 		}));
 	} catch (err) {
 		return [];
@@ -111,6 +130,7 @@ module.exports = {
 	URL_B2B,
 	multiSiteDisponible,
 	ouvrirSite,
+	connecterSurSite,
 	appelSite,
 	catalogueDuSite,
 	prixRecherche,

@@ -20,6 +20,7 @@ const {
 	URL_B2B,
 	multiSiteDisponible,
 	ouvrirSite,
+	connecterSurSite,
 	appelSite,
 	catalogueDuSite,
 	prixRecherche,
@@ -129,6 +130,10 @@ test.describe('Le prix affiché est le prix facturé', () => {
 				test.skip(!article, `aucun article tarifé sur ${url}`);
 
 				const recherche = await prixRecherche(page, article.item_code);
+
+				//// Connexion avant de toucher au panier: un site réservé n'en a
+				//// pas pour un anonyme (403), et c'est voulu.
+				test.skip(!(await connecterSurSite(page, url)), `connexion impossible sur ${url}`);
 				const panier = await prixPanier(page, article.item_code);
 
 				if (recherche !== null) {
@@ -155,6 +160,11 @@ test.describe('Le prix affiché est le prix facturé', () => {
 			const commun = await articleCommun(b2c.page, b2b.page);
 			test.skip(!commun, 'aucun article présent sur les deux domaines');
 
+			test.skip(
+				!(await connecterSurSite(b2c.page, URL_B2C)) ||
+					!(await connecterSurSite(b2b.page, URL_B2B)),
+				'connexion impossible sur l’un des domaines'
+			);
 			const pB2C = await prixPanier(b2c.page, commun);
 			const pB2B = await prixPanier(b2b.page, commun);
 			test.skip(
@@ -235,6 +245,77 @@ test.describe('Boutique réservée aux professionnels', () => {
 		}
 	});
 
+	//// Le panier lui-même est fermé, pas seulement le tunnel: sur un site
+	//// réservé, un anonyme ne constitue pas de commande — même à titre
+	//// d'intention.
+	test('un visiteur anonyme ne peut pas remplir de panier', async ({browser}) => {
+		const {contexte, page} = await ouvrirSite(browser, URL_B2B);
+		try {
+			const code = await premierCode(page);
+			test.skip(!code, 'aucun article listé sur ce domaine');
+
+			//// La garde est côté SERVEUR: cet endpoint est appelable directement,
+			//// et masquer un bouton n'est pas une permission.
+			const r = await page.request.post(
+				'/api/method/webshop.webshop.shopping_cart.cart.update_cart',
+				{form: {item_code: code, qty: 1}}
+			);
+			expect(r.status(), 'un anonyme remplit un panier sur le site réservé').toBe(403);
+		} finally {
+			await contexte.close();
+		}
+	});
+
+	test('la page panier renvoie un anonyme vers la connexion', async ({browser}) => {
+		const {contexte, page} = await ouvrirSite(browser, URL_B2B);
+		try {
+			await page.goto('/cart', {waitUntil: 'domcontentloaded'});
+			await page.waitForTimeout(2000);
+			expect(page.url(), 'le panier reste ouvert à un anonyme').not.toMatch(/\/cart\/?$/);
+			expect(page.url(), 'un invité est envoyé vers le desk').not.toContain('/app');
+		} finally {
+			await contexte.close();
+		}
+	});
+
+	//// Ce que voit le client: à la place d'« Ajouter au panier », une invitation
+	//// à se connecter. Un bouton qui échouerait au clic serait pire que pas de
+	//// bouton du tout.
+	test('le bouton d’ajout devient un appel à se connecter', async ({browser}) => {
+		const b2b = await ouvrirSite(browser, URL_B2B);
+		const b2c = await ouvrirSite(browser, URL_B2C);
+		try {
+			//// Un article TARIFÉ sur les deux sites: sans prix, la fiche n'affiche
+			//// aucun bouton du tout et le test ne compare rien.
+			const route = await routeArticleTarifeSurLesDeux(b2c.page, b2b.page);
+			test.skip(!route, 'aucun article tarifé sur les deux domaines');
+
+			const lire = async (page) => {
+				await page.goto('/' + route);
+				await page.waitForLoadState('networkidle');
+				return page.evaluate(() =>
+					[...document.querySelectorAll('.btn-add-to-cart')]
+						.filter((e) => e.offsetHeight > 0)
+						.map((e) => ({tag: e.tagName, href: e.getAttribute('href') || ''}))
+				);
+			};
+
+			const surB2B = await lire(b2b.page);
+			expect(surB2B.length, 'aucun bouton sur la fiche du site réservé').toBeGreaterThan(0);
+			expect(surB2B[0].href, 'le bouton ne mène pas à la connexion').toContain('/login');
+
+			//// Et le pendant: la boutique grand public garde son vrai bouton.
+			const surB2C = await lire(b2c.page);
+			expect(surB2C.length, 'aucun bouton sur la fiche grand public').toBeGreaterThan(0);
+			expect(surB2C[0].href, 'le bouton grand public mène à la connexion').not.toContain(
+				'/login'
+			);
+		} finally {
+			await b2b.contexte.close();
+			await b2c.contexte.close();
+		}
+	});
+
 	test('un visiteur anonyme commande normalement sur la boutique grand public', async ({
 		browser,
 	}) => {
@@ -270,4 +351,20 @@ async function articleCommun(pageA, pageB) {
 async function premierCode(page) {
 	const catalogue = await catalogueDuSite(page);
 	return catalogue.length ? catalogue[0].item_code : null;
+}
+
+//// Route of an item PRICED on both domains.
+////
+//// The product page hides its whole action area when the item has no price on
+//// the current site — no price, no button, not even the sign-in call. On this
+//// instance only 6 of 310 items carry a « Vente B2B » rate, so picking the
+//// first item listed lands on one that shows nothing, and the test would
+//// compare two empty pages.
+async function routeArticleTarifeSurLesDeux(pageB2C, pageB2B) {
+	const catB2B = (await catalogueDuSite(pageB2B)).filter((i) => i.prix && i.route);
+	const codesB2C = new Set(
+		(await catalogueDuSite(pageB2C)).filter((i) => i.prix).map((i) => i.item_code)
+	);
+	const commun = catB2B.find((i) => codesB2C.has(i.item_code));
+	return commun ? commun.route : null;
 }
