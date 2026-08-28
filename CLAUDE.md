@@ -347,7 +347,7 @@ bench --site sitename run-tests --app webshop
 
 ### Browser tests — that the pages actually work
 
-`tests/e2e/` — Playwright, ~77 tests across desktop, mobile and B2B. They cover
+`tests/e2e/` — Playwright, ~90 tests across desktop, mobile, B2B and multi-site. They cover
 what the endpoints cannot say: sign-in, account creation, catalogue, cart
 (including multi-warehouse), the four-step checkout, and **a real Stripe charge**
 against test keys.
@@ -359,6 +359,7 @@ npm run test:client     # signed in, desktop
 npm run test:invite     # signed out (sign-in, account creation, what a visitor must not reach)
 npm run test:b2b        # the B2B tunnel, which has its own customer and its own page
 npm run test:paiement   # the Stripe scenarios
+npm run test:multisite  # both domains (B2C / B2B)
 ```
 
 Credentials live in `~/.config/webshop-e2e.env` (chmod 600), never in the repo.

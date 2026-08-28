@@ -45,6 +45,7 @@ npm run test:invite       # déconnecté (connexion, création de compte, cloiso
 npm run test:b2b          # le tunnel B2B
 npm run test:mobile       # catalogue + panier en Pixel 7
 npm run test:paiement     # les scénarios Stripe
+npm run test:multisite    # les deux domaines (B2C / B2B)
 npm test -- -g "carnet"   # par nom
 npm run ui                # mode interactif
 ./node_modules/.bin/playwright show-trace test-results/…/trace.zip   # rejouer un échec
@@ -68,6 +69,7 @@ npm run ui                # mode interactif
 | `05-paiement-stripe.spec.js` | `client` | **Le paiement pour de vrai** : carte acceptée → commande, carte refusée, double-clic, conditions générales |
 | `06-checkout-b2b.spec.js` | `b2b` | Reconnaissance du client B2B, accès au tunnel, commande, cloisonnement |
 | `07-nouveau-client.spec.js` | `invite` | **Le parcours d'un premier acheteur** : inscription, activation par le lien reçu, saisie d'adresse, paiement |
+| `08-multi-site.spec.js` | `multi-site` | **Deux boutiques, deux domaines** : catalogue propre à chaque site, prix affiché = prix facturé, cloisonnement du site professionnel |
 
 Les helpers partagés sont dans `fixtures/boutique.js` et `fixtures/stripe.js`.
 
@@ -168,6 +170,42 @@ complet.
 mais **c'est un vrai défaut de l'application**, pas du test : un client vivrait
 la même chose. Corriger demande de décider ce que devient l'étiquette de montant
 du bouton lorsqu'on cesse de re-rendre — non fait ici.
+
+## Multi-site : deux boutiques sur un ERP
+
+Un seul site Frappe sert plusieurs boutiques, une par domaine, décrites par le
+DocType `Website Profile` (app `neoffice_theme`) : accueil, liste de prix,
+sous-ensemble du catalogue et règles d'accès propres à chacune.
+
+```ini
+WEBSHOP_E2E_B2B_URL=https://osiris-b2b.neoffice.me
+```
+
+Sans cette variable, les tests multi-site s'ignorent en le disant.
+
+Playwright fixe **un `baseURL` par projet** : les tests qui comparent deux
+domaines ouvrent donc des contextes explicites (`fixtures/sites.js`), au lieu de
+s'appuyer sur `baseURL`.
+
+> [!warning] Deux notions de « B2B » à ne pas confondre
+> - `Webshop Settings.b2b_customer_group` → quel **tunnel** (`/checkout_b2b`)
+> - `Website Profile.allowed_customer_groups` → qui peut **entrer sur le site**
+>
+> Sur osiris elles divergent : un client peut être reconnu B2B par le webshop et
+> refusé à la connexion sur le domaine B2B. C'est de la configuration, mais la
+> confusion coûte du temps.
+
+La suite Python de neoffice_theme est complémentaire — infrastructure (accueil,
+robots, sitemap, isolation du cache) là où celle-ci couvre la boutique :
+
+```bash
+ssh osiris 'cd /home/neoffice/frappe-bench && \
+  bench --site prod.local execute neoffice_theme.tests.multisite.e2e.run_all'
+```
+
+Elle lit le mot de passe du compte de test dans `site_config.json`
+(`e2e_test_user_password`) : **si vous changez le mot de passe du compte
+Playwright, changez-le là aussi**, sinon son test de gating B2B échoue.
 
 ## Nouveau client : création et activation
 
