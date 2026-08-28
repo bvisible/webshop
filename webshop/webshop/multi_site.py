@@ -11,12 +11,42 @@ child table does not exist on the site.
 """
 
 import frappe
+from frappe import _
 
 CHILD_TABLE = "Website Item Site"
 
 
 def get_current_profile_name() -> str | None:
 	return getattr(frappe.local, "website_profile", None)
+
+
+def site_reserve_aux_professionnels() -> bool:
+	"""True when the site being browsed only serves approved business accounts.
+
+	Reads the resolved Website Profile's ``b2b_only`` flag. False everywhere a
+	profile is not resolved, so a fleet without multi-site is untouched.
+	"""
+	profile = getattr(frappe.local, "website_profile_doc", None)
+	return bool(profile and profile.get("b2b_only"))
+
+
+def exiger_connexion_pour_acheter():
+	"""Refuse a cart action to an anonymous visitor on a professional site.
+
+	//// Neoffice — the b2b_only gate in neoffice_theme only guards SIGN-IN, and
+	//// exempts Guest outright. A visitor could therefore fill a cart on the
+	//// professional domain and browse it, at reseller prices. Buying now needs
+	//// an account; the catalogue stays open as a shop window.
+	"""
+	if frappe.session.user != "Guest":
+		return
+	if not site_reserve_aux_professionnels():
+		return
+	frappe.throw(
+		_("Please log in to shop on this site."),
+		frappe.PermissionError,
+		title=_("Professional account required"),
+	)
 
 
 def effective_price_list(fallback: str | None = None) -> str | None:

@@ -436,6 +436,21 @@ def get_shopping_cart_settings():
         for field in ("price_list", "guest_customer"):
             if profile.get(field):
                 settings_dict[field] = profile[field]
+
+        #//// Neoffice multi-site — un site réservé aux professionnels n'a pas de
+        #//// panier invité, quoi que dise le réglage global.
+        #////
+        #//// Passer par ce drapeau plutôt que par les gabarits: ils testent déjà
+        #//// `enable_guest_cart == 0 and user == "Guest"` pour remplacer
+        #//// « Ajouter au panier » par « Pour ajouter au panier, veuillez vous
+        #//// connecter ». Le poser ici suffit donc à changer le bouton partout —
+        #//// fiche produit, listes, vignettes — sans toucher une seule vue, et
+        #//// sans risquer d'en oublier une.
+        #////
+        #//// L'affichage n'est pas la permission: update_cart refuse de son côté
+        #//// (multi_site.exiger_connexion_pour_acheter).
+        if profile.get("b2b_only"):
+            settings_dict["enable_guest_cart"] = 0
     return settings_dict
 
 @frappe.whitelist(allow_guest=True)

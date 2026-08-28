@@ -1051,6 +1051,13 @@ def _liberer_demandes_de_paiement_infructueuses(quotation_name):
 #//// source, each line with its own delivery estimate.
 @frappe.whitelist(allow_guest=True)
 def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty=False, price_list_rate=None, gift_card_data=None, warehouse=None):
+	#//// Neoffice multi-site — sur un site réservé aux professionnels, remplir
+	#//// un panier demande un compte. La garde vit ici plutôt que dans le
+	#//// gabarit: masquer un bouton n'est pas une permission, et cet endpoint
+	#//// est appelable directement.
+	from webshop.webshop.multi_site import exiger_connexion_pour_acheter
+
+	exiger_connexion_pour_acheter()
 
 	# Convert gift_card_data from JSON if necessary
 	if gift_card_data and isinstance(gift_card_data, str):
