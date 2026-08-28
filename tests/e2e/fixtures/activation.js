@@ -173,6 +173,7 @@ function supprimerCompte(email) {
 
 module.exports = {
 	activationDisponible,
+	surLeServeur,
 	activerCompte,
 	cleActivation,
 	raisonEchecActivation,

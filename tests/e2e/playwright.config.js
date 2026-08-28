@@ -70,7 +70,7 @@ module.exports = defineConfig({
 			//// Ni l'authentification (qui tourne déconnectée), ni le B2B (qui a
 			//// son propre client): les y laisser faisait échouer onze specs pour
 			//// la seule raison que la session n'était pas la bonne.
-			testIgnore: /(01-authentification|06-checkout-b2b|07-nouveau-client|08-multi-site)\.spec\.js/,
+			testIgnore: /(01-authentification|06-checkout-b2b|07-nouveau-client|08-multi-site|09-demande-compte-pro)\.spec\.js/,
 			use: {...devices['Desktop Chrome'], storageState: SESSION},
 		},
 		{
@@ -85,7 +85,7 @@ module.exports = defineConfig({
 			//// Pilote les DEUX domaines depuis le même run, déconnecté: c'est la
 			//// frontière entre les boutiques qui est éprouvée, pas leur contenu.
 			name: 'multi-site',
-			testMatch: /08-multi-site\.spec\.js/,
+			testMatch: /(08-multi-site|09-demande-compte-pro)\.spec\.js/,
 			use: {...devices['Desktop Chrome']},
 		},
 		{
