@@ -205,6 +205,19 @@ Playwright fixe **un `baseURL` par projet** : les tests qui comparent deux
 domaines ouvrent donc des contextes explicites (`fixtures/sites.js`), au lieu de
 s'appuyer sur `baseURL`.
 
+> [!note] Un site `b2b_only` n'a pas de panier anonyme
+> `update_cart` répond **403**, `/cart` redirige vers `/login`, et le bouton
+> d'ajout devient « Pour ajouter au panier, veuillez vous connecter ». Tout test
+> qui a besoin d'un panier sur ce domaine doit donc se connecter d'abord —
+> `connecterSurSite()` choisit le compte autorisé (le compte grand public est
+> refusé à la porte).
+
+> [!warning] Un article sans tarif sur le site n'affiche aucun bouton
+> Pas de prix, pas de bouton, pas même le CTA de connexion : la fiche masque son
+> bloc d'action entier. Sur osiris, 6 articles sur 310 ont un tarif « Vente B2B ».
+> Un test qui compare les boutons doit donc choisir un article **tarifé sur les
+> deux domaines**, sinon il compare deux pages vides.
+
 > [!warning] Deux notions de « B2B » à ne pas confondre
 > - `Webshop Settings.b2b_customer_group` → quel **tunnel** (`/checkout_b2b`)
 > - `Website Profile.allowed_customer_groups` → qui peut **entrer sur le site**
