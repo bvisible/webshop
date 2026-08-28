@@ -6,7 +6,7 @@
 //// create the Customer and the User by hand in the desk.
 ////
 //// The form lives in neoffice_theme (DocType "B2B Account Request",
-//// /demande-compte-pro); these tests drive it from the shop's point of view,
+//// /compte-professionnel); these tests drive it from the shop's point of view,
 //// and — through the server helper — check what approval actually creates.
 ////
 //// Runs signed out, against the B2B domain.
@@ -20,7 +20,7 @@ const MOT_DE_PASSE = 'Pro-Compte-E2E-2026!';
 
 /** Fill and submit the public application form. */
 async function deposerDemande(page, email, societe) {
-	await page.goto('/demande-compte-pro');
+	await page.goto('/compte-professionnel');
 	await page.waitForLoadState('networkidle');
 
 	await page.fill('#company_name', societe);
@@ -40,7 +40,7 @@ test.describe('Demande de compte professionnel', () => {
 	test('le formulaire est accessible à un visiteur anonyme', async ({browser}) => {
 		const {contexte, page} = await ouvrirSite(browser, URL_B2B);
 		try {
-			const reponse = await page.goto('/demande-compte-pro');
+			const reponse = await page.goto('/compte-professionnel');
 			expect(reponse.status()).toBe(200);
 			//// Sans formulaire atteignable, un site réservé est une impasse: un
 			//// prospect ne peut ni entrer ni demander à entrer.
