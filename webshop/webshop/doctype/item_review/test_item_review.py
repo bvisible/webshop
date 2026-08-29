@@ -76,6 +76,13 @@ class TestItemReview(unittest.TestCase):
 		# a reason that has nothing to do with what it checks.
 		self.addCleanup(self._delete_customer, customer.name)
 
+		# get_party() creates the Customer, but item_review recognises a customer
+		# through the CONTACT that links them — and on a site where that contact
+		# does not already exist, posting the review is refused with
+		# "You are not a verified customer yet". This suite passed on the server
+		# only because the link was already in the database.
+		self._lier_contact(test_user.name, customer.name)
+
 		# post review on "Test Mobile Phone"
 		try:
 			add_item_review(web_item, "Great Product", QUATRE_ETOILES, "Would recommend this product")
@@ -95,6 +102,30 @@ class TestItemReview(unittest.TestCase):
 		self.assertEqual(review_data.reviews_per_rating[0], 0)
 
 		frappe.set_user("Administrator")
+
+	def _lier_contact(self, email, customer):
+		"""Make this user reachable as that customer, the way the portal does."""
+		from frappe.contacts.doctype.contact.contact import get_contact_name
+
+		nom = get_contact_name(email)
+		if nom:
+			contact = frappe.get_doc("Contact", nom)
+		else:
+			contact = frappe.get_doc(
+				{
+					"doctype": "Contact",
+					"first_name": email.split("@")[0],
+					"email_ids": [{"email_id": email, "is_primary": 1}],
+				}
+			)
+
+		if not any(
+			l.link_doctype == "Customer" and l.link_name == customer for l in contact.links
+		):
+			contact.append("links", {"link_doctype": "Customer", "link_name": customer})
+
+		contact.flags.ignore_permissions = True
+		contact.save(ignore_permissions=True) if nom else contact.insert(ignore_permissions=True)
 
 	def _delete_customer(self, name):
 		frappe.set_user("Administrator")
