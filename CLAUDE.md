@@ -336,14 +336,50 @@ Tests are organized by module:
 - Use `frappe.get_doc()` and `.insert()` to create test data
 
 ```bash
+# On a real site (dev or prod), run modules one at a time and skip the fixtures:
+bench --site sitename run-tests --skip-test-records --module webshop.webshop.utils.test_discount_query
+
+# The whole app only works on a site that has ERPNext's test records:
 bench --site sitename run-tests --app webshop
 ```
 
+**94 tests over 10 modules, green on `prod.local`.** Three modules are not in
+that count — `shopping_cart`, `website_item`, `product_data_engine` — because
+they are built on ERPNext's test fixtures (`_Test Company`,
+`_Test Price List India`, `_Test Tax 1 - _TC`). Run those on a dedicated test
+site; bending them to a real site would make them less faithful, not more useful.
+
+> **Ask the site for its fixtures, never assume them.** `webshop.webshop.tests.utils`
+> resolves the item group, price list, customer group and company at runtime.
+> The upstream tests hard-code "Products", "Standard Selling" and
+> "All Customer Groups" — none of which exist on a site installed in French, so
+> every one of them died on a LinkValidationError before its first assertion.
+> `make_test_item()` wraps ERPNext's `make_item` for the same reason.
+
+> **`--skip-test-records` is what makes the suite runnable on a real site.**
+> Without it, Frappe first builds ERPNext's test records and crashes on a
+> Warehouse whose company is null. And if a test record on the site is itself
+> inconsistent, *every* module fails before running: an Email Account with
+> `enable_automatic_linking` but no `enable_incoming` blocked the entire suite
+> this way, with an error naming neither webshop nor the module under test.
+
 > **A Single doctype survives `frappe.db.rollback()`.** Anything a test writes to
 > `Webshop Settings` stays written — a test run reconfigured a live shop this
-> way. Snapshot the fields in `setUpClass` and restore them in `tearDownClass`.
+> way. Snapshot with `snapshot_webshop_settings()` and restore with
+> `restore_webshop_settings()` (both in `webshop.webshop.tests.utils`).
 > Same rule for `frappe.db.commit()` inside a whitelisted endpoint: it escapes
 > the test rollback entirely.
+
+> **Fixtures built in `setUpClass` need a commit.** `FrappeTestCase` rolls back
+> between tests, and that rollback takes uncommitted class fixtures with it —
+> the tests then report their own data as missing. Commit at the end of
+> `setUpClass`, and purge in `tearDownClass` (and again at the start of
+> `setUpClass`, for whatever an interrupted run left behind).
+
+> **`frappe.enqueue` does not run inline under tests.** `is_async` stays true, so
+> a rebuild triggered by `save()` is handed to a worker that may not exist. A
+> test asserting on a cache must rebuild it itself — see
+> `reconstruire_cache_variantes()` in `test_variant_selector.py`.
 
 ### Browser tests — that the pages actually work
 
