@@ -447,9 +447,40 @@ shop pages instead of `frappe.client.get_list` — which correctly refuses them.
 
 ## CI/CD
 
-GitHub Actions workflow (`.github/workflows/ci.yml`):
-- Runs on pull requests (ignoring CSS/JS/HTML/MD changes)
-- Sets up Python 3.10, Node 18, MariaDB 10.6, Redis
-- Installs Frappe, ERPNext, Payments, and Webshop
-- Runs all tests with `bench run-tests --app webshop`
-- Triggers daily at midnight UTC
+GitHub Actions workflow (`.github/workflows/ci.yml`) — **green, and it runs**:
+- On push to `version-15`, on pull requests, daily at midnight UTC, and on
+  demand (`gh workflow run ci.yml --repo bvisible/webshop --ref version-15`)
+- Sets up Python 3.10, Node 18, MariaDB 10.6, Redis; installs Frappe, ERPNext,
+  Payments and Webshop on a fresh site
+- Installs the setup-wizard fixtures, then runs the ten modules that must pass
+  everywhere — one at a time, failing on the first red one
+- Then runs `bench run-tests --app webshop` as a **non-blocking** step, so the
+  state of the whole suite stays visible without making red permanent
+
+> **It had never run once on this fork.** The workflow listened only to
+> `pull_request` and `schedule`; we push straight to `version-15` and GitHub
+> does not run scheduled workflows on a fork. On top of that the workflow itself
+> was `disabled_manually`. The red runs visible from this repo were upstream's
+> (`frappe/webshop`, branch `develop`) — `gh run list` resolves to the upstream
+> remote unless you pass `--repo bvisible/webshop`.
+
+> **CI runs against *standard* ERPNext, on purpose.** Pointing it at
+> `bvisible/erpnext` was tried and fails: our fork reads
+> `Item.buying_standard_rate` and makes `Customer.default_currency` mandatory
+> through a Custom Field and a Property Setter that belong to **no app** — they
+> were created by hand on the server, and would not survive a reinstall. So the
+> CI answers "does webshop hold up on a stock ERPNext"; what it cannot check is
+> variant pricing by warehouse, since `get_price(..., warehouse=...)` only
+> exists on our fork. That test skips itself explicitly there.
+
+> **What CI found that the server could not.** Three suites passed on
+> `prod.local` only because earlier runs had left their data behind:
+> `multi_warehouse` (its customer), `item_review` (the contact linking user to
+> customer), `variant_selector` (its variants). And a real defect: a fresh
+> install created **3 custom fields out of 20** — `install-app` marks
+> `patches.txt` as applied instead of running it, so a new shop started without
+> `custom_idempotency_token`, and the first query in `create_payment_request`
+> raised `Unknown column`, which the blanket `except` turned into "error
+> creating the payment request". Nobody could pay. Fixed in
+> `webshop/setup/install.py`: **a patch that creates a field belongs in
+> `CHAMPS_A_CREER_A_L_INSTALLATION`.**
