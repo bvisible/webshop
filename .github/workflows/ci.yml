@@ -130,9 +130,22 @@ jobs:
       #//// _Test Company then dies on create_default_warehouses with
       #//// "Could not find Warehouse Type: Transit" — before a single webshop
       #//// test starts.
+      #//// Called straight through the bench python rather than `bench execute`:
+      #//// that command falls back to `eval(method + "(...)")` when its own
+      #//// lookup raises, which reports "NameError: name 'erpnext' is not
+      #//// defined" and hides whatever actually failed.
       - name: Install ERPNext fixtures
-        working-directory: /home/runner/frappe-bench
-        run: bench --site test_site execute erpnext.setup.setup_wizard.operations.install_fixtures.install
+        working-directory: /home/runner/frappe-bench/sites
+        run: |
+          ../env/bin/python -c "
+          import frappe
+          frappe.init(site='test_site')
+          frappe.connect()
+          from erpnext.setup.setup_wizard.operations.install_fixtures import install
+          install()
+          frappe.db.commit()
+          print('Warehouse Types:', frappe.get_all('Warehouse Type', pluck='name'))
+          "
 
       - name: Run Tests
         working-directory: /home/runner/frappe-bench
