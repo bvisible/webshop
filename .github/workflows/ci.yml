@@ -134,17 +134,26 @@ jobs:
       #//// that command falls back to `eval(method + "(...)")` when its own
       #//// lookup raises, which reports "NameError: name 'erpnext' is not
       #//// defined" and hides whatever actually failed.
-      - name: Install ERPNext fixtures
+      - name: Install setup-wizard fixtures
         working-directory: /home/runner/frappe-bench/sites
         run: |
           ../env/bin/python -c "
           import frappe
           frappe.init(site='test_site')
           frappe.connect()
+
+          # Frappe's own: Gender, Salutation. ERPNext's test User records link to
+          # a Gender, so their creation dies on 'Could not find Gender: Female'.
+          from frappe.desk.page.setup_wizard.install_fixtures import install as frappe_fixtures
+          frappe_fixtures()
+
+          # ERPNext's: Warehouse Type, Territory, UOMs... A country is required —
+          # install() builds the root Territory from it.
           from erpnext.setup.setup_wizard.operations.install_fixtures import install
-          # A country is required: install() builds the root Territory from it.
           install(country='Switzerland')
+
           frappe.db.commit()
+          print('Genders:', frappe.get_all('Gender', pluck='name'))
           print('Warehouse Types:', frappe.get_all('Warehouse Type', pluck='name'))
           "
 
