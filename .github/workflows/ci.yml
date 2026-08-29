@@ -23,9 +23,15 @@ on:
       - "**.csv"
   #//// Neoffice — so a run can be started by hand after a server-side fix.
   workflow_dispatch:
+  #//// Neoffice — weekly, not daily. Upstream watches a moving `develop` and
+  #//// wants to know overnight; we track a stable `version-15`, where a run on
+  #//// unchanged code only ever reports drift in ERPNext upstream. Daily, that
+  #//// is a failure mail every morning for something nobody pushed — and a CI
+  #//// people mute is a CI that no longer protects anything. Every push is
+  #//// still tested.
   schedule:
-    # Run everday at midnight UTC / 5:30 IST
-    - cron: "0 0 * * *"
+    # Mondays, 04:00 UTC
+    - cron: "0 4 * * 1"
 
 env:
   WEBSHOP_BRANCH: ${{ github.base_ref || github.ref_name }}
