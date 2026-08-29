@@ -47,6 +47,7 @@
   "section_break_18",
   "company",
   "price_list",
+  "compare_at_price_list",
   "enabled",
   "store_page_docs",
   "column_break_21",
@@ -360,6 +361,14 @@
    "fieldtype": "Link",
    "label": "Price List",
    "mandatory_depends_on": "eval: doc.enabled === 1",
+   "options": "Price List"
+  },
+  {
+   "depends_on": "enabled",
+   "description": "Optional. The list a struck-through \"was\" price is compared against, e.g. an MRP. Leave empty to show discounts from Pricing Rules only.",
+   "fieldname": "compare_at_price_list",
+   "fieldtype": "Link",
+   "label": "Compare-at Price List",
    "options": "Price List"
   },
   {
@@ -859,7 +868,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-06-20 13:42:03.570921",
+ "modified": "2026-08-29 14:30:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

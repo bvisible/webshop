@@ -73,21 +73,10 @@ def make_warehouse(warehouse_name):
 
 
 def get_leaf_item_group():
-	# Some sites (nora app) forbid items in the root group: use a leaf group,
-	# creating a dedicated test one when none exists.
-	group = frappe.db.get_value("Item Group", {"is_group": 0}, "name")
-	if group:
-		return group
-	root = frappe.db.get_value("Item Group", {"parent_item_group": ""}, "name")
-	if not frappe.db.exists("Item Group", "MWTEST Group"):
-		frappe.get_doc(
-			{
-				"doctype": "Item Group",
-				"item_group_name": "MWTEST Group",
-				"parent_item_group": root,
-			}
-		).insert(ignore_permissions=True)
-	return "MWTEST Group"
+	# Moved to webshop.webshop.tests.utils, where the other suites share it.
+	from webshop.webshop.tests.utils import leaf_item_group
+
+	return leaf_item_group()
 
 
 def make_item(item_code, opening_supplier_stock=0):

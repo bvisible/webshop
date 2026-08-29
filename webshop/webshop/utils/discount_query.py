@@ -5,6 +5,75 @@ import frappe
 from frappe.utils import nowdate, nowtime, flt, getdate
 
 
+# Does this Pricing Rule target this item?
+#
+# A Pricing Rule holds no item_code / item_group / brand column of its own: the
+# targets live in child tables (Pricing Rule Item Code, ...), one row per target.
+# Querying `pr.item_code` raised "Unknown column 'pr.item_code'" and every caller
+# answered HTTP 500 — the three functions in this module were entirely dead.
+#
+# apply_on = 'Transaction' is deliberately excluded: those rules discount the
+# order as a whole ("10% off carts over 500"), not any particular item. Counting
+# them here would flag the WHOLE catalogue as discounted as soon as one exists.
+PRICING_RULE_TARGETS_ITEM = """(
+		(pr.apply_on = 'Item Code' AND EXISTS (
+			SELECT 1 FROM `tabPricing Rule Item Code` pric
+			WHERE pric.parent = pr.name AND pric.item_code = i.name))
+		OR (pr.apply_on = 'Item Group' AND EXISTS (
+			SELECT 1 FROM `tabPricing Rule Item Group` prig
+			WHERE prig.parent = pr.name AND prig.item_group = i.item_group))
+		OR (pr.apply_on = 'Brand' AND EXISTS (
+			SELECT 1 FROM `tabPricing Rule Brand` prb
+			WHERE prb.parent = pr.name AND prb.brand = i.brand))
+	)"""
+
+
+def _price_list_comparison_block(where_clause):
+	"""The UNION arm that reads a discount off two price lists.
+
+	#//// Neoffice — the `compare_at_price_list` field this reads is ours, added
+	#//// to Webshop Settings (no upstream equivalent).
+
+	Only emitted when Webshop Settings names a compare-at list. The previous
+	version instead took any enabled selling list carrying `show_in_website` —
+	a Price List column that does not exist, so the query never ran at all.
+	Guessing the list is worse than not comparing: on this instance the selling
+	lists include supplier and B2B tariffs, and comparing against those would
+	strike through prices that were never asked for.
+	"""
+	return f"""
+		UNION
+
+		-- Items priced below the shop's compare-at list
+		SELECT DISTINCT
+			wi.name,
+			wi.item_code,
+			wi.item_name,
+			wi.web_item_name,
+			wi.website_image,
+			wi.route,
+			wi.item_group,
+			wi.has_variants,
+			wi.variant_of,
+			wi.short_description,
+			wi.ranking,
+			'price_list_diff' as discount_source,
+			((ip_ref.price_list_rate - ip_sell.price_list_rate) / ip_ref.price_list_rate * 100)
+				as discount_percent
+		FROM `tabWebsite Item` wi
+		INNER JOIN `tabItem` i ON wi.item_code = i.item_code
+		INNER JOIN `tabItem Price` ip_sell ON i.name = ip_sell.item_code
+		INNER JOIN `tabItem Price` ip_ref ON i.name = ip_ref.item_code
+		INNER JOIN `tabPrice List` pl_ref ON ip_ref.price_list = pl_ref.name
+		WHERE {where_clause}
+			AND ip_sell.price_list = %s
+			AND ip_sell.selling = 1
+			AND ip_ref.price_list = %s
+			AND pl_ref.enabled = 1
+			AND ip_ref.price_list_rate > ip_sell.price_list_rate
+			AND ip_sell.price_list_rate > 0"""
+
+
 def get_discounted_items_query(price_list=None, company=None, customer_group=None, filters=None, limit=50, offset=0):
 	"""
 	Get items that have active discounts through pricing rules or price list differences.
@@ -56,7 +125,12 @@ def get_discounted_items_query(price_list=None, company=None, customer_group=Non
 				values.append(value)
 	
 	where_clause = " AND ".join(where_conditions)
-	
+
+	# The "was" price a discount is measured against, when the shop defines one.
+	compare_at = frappe.db.get_single_value("Webshop Settings", "compare_at_price_list")
+	compare_at = compare_at if compare_at and compare_at != price_list else None
+	comparison_block = _price_list_comparison_block(where_clause) if compare_at else ""
+
 	# Main query that combines multiple discount sources
 	query = f"""
 	WITH discounted_items AS (
@@ -85,15 +159,7 @@ def get_discounted_items_query(price_list=None, company=None, customer_group=Non
 		FROM `tabWebsite Item` wi
 		INNER JOIN `tabItem` i ON wi.item_code = i.item_code
 		INNER JOIN `tabItem Price` ip ON i.name = ip.item_code
-		INNER JOIN `tabPricing Rule` pr ON (
-			(pr.apply_on = 'Item Code' AND i.name = pr.item_code)
-			OR (pr.apply_on = 'Item Group' AND i.item_group = pr.item_group)
-			OR (pr.apply_on = 'Brand' AND i.brand = pr.brand)
-			OR pr.apply_on = 'Transaction'
-		)
-		LEFT JOIN `tabPricing Rule Item Code` pric ON pr.name = pric.parent
-		LEFT JOIN `tabPricing Rule Item Group` prig ON pr.name = prig.parent
-		LEFT JOIN `tabPricing Rule Brand` prb ON pr.name = prb.parent
+		INNER JOIN `tabPricing Rule` pr ON {PRICING_RULE_TARGETS_ITEM}
 		WHERE {where_clause}
 			AND ip.price_list = %s
 			AND ip.selling = 1
@@ -104,49 +170,8 @@ def get_discounted_items_query(price_list=None, company=None, customer_group=Non
 			AND (pr.valid_from IS NULL OR pr.valid_from <= %s)
 			AND (pr.valid_upto IS NULL OR pr.valid_upto >= %s)
 			AND (pr.discount_percentage > 0 OR pr.discount_amount > 0)
-			AND (
-				(pr.apply_on = 'Item Code' AND (i.name = pr.item_code OR pric.item_code = i.name))
-				OR (pr.apply_on = 'Item Group' AND (i.item_group = pr.item_group OR prig.item_group = i.item_group))
-				OR (pr.apply_on = 'Brand' AND (i.brand = pr.brand OR prb.brand = i.brand))
-				OR pr.apply_on = 'Transaction'
-			)
-		
-		UNION
-		
-		-- Method 2: Items with price differences between MRP and selling price list
-		SELECT DISTINCT
-			wi.name,
-			wi.item_code,
-			wi.item_name,
-			wi.web_item_name,
-			wi.website_image,
-			wi.route,
-			wi.item_group,
-			wi.has_variants,
-			wi.variant_of,
-			wi.short_description,
-			wi.ranking,
-			'price_list_diff' as discount_source,
-			CASE 
-				WHEN ip_mrp.price_list_rate > ip_sell.price_list_rate AND ip_mrp.price_list_rate > 0
-				THEN ((ip_mrp.price_list_rate - ip_sell.price_list_rate) / ip_mrp.price_list_rate * 100)
-				ELSE 0
-			END as discount_percent
-		FROM `tabWebsite Item` wi
-		INNER JOIN `tabItem` i ON wi.item_code = i.item_code
-		INNER JOIN `tabItem Price` ip_sell ON i.name = ip_sell.item_code
-		INNER JOIN `tabItem Price` ip_mrp ON i.name = ip_mrp.item_code
-		INNER JOIN `tabPrice List` pl_mrp ON ip_mrp.price_list = pl_mrp.name
-		WHERE {where_clause}
-			AND ip_sell.price_list = %s
-			AND ip_sell.selling = 1
-			AND ip_mrp.price_list != %s
-			AND ip_mrp.selling = 1
-			AND pl_mrp.enabled = 1
-			AND pl_mrp.show_in_website = 1
-			AND ip_mrp.price_list_rate > ip_sell.price_list_rate
-			AND ip_mrp.price_list_rate > 0
-			AND ip_sell.price_list_rate > 0
+
+		{comparison_block}
 	)
 	SELECT 
 		name,
@@ -170,14 +195,14 @@ def get_discounted_items_query(price_list=None, company=None, customer_group=Non
 	"""
 	
 	# Prepare values for the query
-	# Note: 'values' appears twice because where_clause is used twice in the query
 	query_values = []
 	query_values.extend(values)  # For first WHERE clause in pricing rule section
 	query_values.extend([price_list, company, customer_group, current_date, current_date])  # For pricing rule filters
-	query_values.extend(values)  # For second WHERE clause in price list diff section
-	query_values.extend([price_list, price_list])  # For price list comparisons
+	if compare_at:
+		query_values.extend(values)  # For second WHERE clause in price list diff section
+		query_values.extend([price_list, compare_at])  # Selling list, then the one it is compared to
 	query_values.extend([limit, offset])  # For LIMIT and OFFSET
-	
+
 	return frappe.db.sql(query, query_values, as_dict=True)
 
 
@@ -219,7 +244,27 @@ def get_discounted_items_count(price_list=None, company=None, customer_group=Non
 				values.append(value)
 	
 	where_clause = " AND ".join(where_conditions)
-	
+
+	# Same compare-at rule as the listing query: no configured list, no comparison.
+	compare_at = frappe.db.get_single_value("Webshop Settings", "compare_at_price_list")
+	compare_at = compare_at if compare_at and compare_at != price_list else None
+	comparison_exists = """
+			-- Or is priced below the shop's compare-at list
+			OR EXISTS (
+				SELECT 1
+				FROM `tabItem Price` ip_sell
+				INNER JOIN `tabItem Price` ip_ref ON i.name = ip_ref.item_code
+				INNER JOIN `tabPrice List` pl_ref ON ip_ref.price_list = pl_ref.name
+				WHERE ip_sell.item_code = i.name
+					AND ip_sell.price_list = %s
+					AND ip_sell.selling = 1
+					AND ip_ref.price_list = %s
+					AND pl_ref.enabled = 1
+					AND ip_ref.price_list_rate > ip_sell.price_list_rate
+					AND ip_sell.price_list_rate > 0
+			)
+	""" if compare_at else "\n\t\t"
+
 	# Count query
 	query = f"""
 	SELECT COUNT(DISTINCT wi.item_code) as count
@@ -229,17 +274,9 @@ def get_discounted_items_count(price_list=None, company=None, customer_group=Non
 		AND (
 			-- Has pricing rule discount
 			EXISTS (
-				SELECT 1 
+				SELECT 1
 				FROM `tabItem Price` ip
-				INNER JOIN `tabPricing Rule` pr ON (
-					(pr.apply_on = 'Item Code' AND i.name = pr.item_code)
-					OR (pr.apply_on = 'Item Group' AND i.item_group = pr.item_group)
-					OR (pr.apply_on = 'Brand' AND i.brand = pr.brand)
-					OR pr.apply_on = 'Transaction'
-				)
-				LEFT JOIN `tabPricing Rule Item Code` pric ON pr.name = pric.parent
-				LEFT JOIN `tabPricing Rule Item Group` prig ON pr.name = prig.parent
-				LEFT JOIN `tabPricing Rule Brand` prb ON pr.name = prb.parent
+				INNER JOIN `tabPricing Rule` pr ON {PRICING_RULE_TARGETS_ITEM}
 				WHERE ip.item_code = i.name
 					AND ip.price_list = %s
 					AND ip.selling = 1
@@ -250,41 +287,18 @@ def get_discounted_items_count(price_list=None, company=None, customer_group=Non
 					AND (pr.valid_from IS NULL OR pr.valid_from <= %s)
 					AND (pr.valid_upto IS NULL OR pr.valid_upto >= %s)
 					AND (pr.discount_percentage > 0 OR pr.discount_amount > 0)
-					AND (
-						(pr.apply_on = 'Item Code' AND (i.name = pr.item_code OR pric.item_code = i.name))
-						OR (pr.apply_on = 'Item Group' AND (i.item_group = pr.item_group OR prig.item_group = i.item_group))
-						OR (pr.apply_on = 'Brand' AND (i.brand = pr.brand OR prb.brand = i.brand))
-						OR pr.apply_on = 'Transaction'
-					)
 			)
-			-- Or has price list difference
-			OR EXISTS (
-				SELECT 1
-				FROM `tabItem Price` ip_sell
-				INNER JOIN `tabItem Price` ip_mrp ON i.name = ip_mrp.item_code
-				INNER JOIN `tabPrice List` pl_mrp ON ip_mrp.price_list = pl_mrp.name
-				WHERE ip_sell.item_code = i.name
-					AND ip_sell.price_list = %s
-					AND ip_sell.selling = 1
-					AND ip_mrp.price_list != %s
-					AND ip_mrp.selling = 1
-					AND pl_mrp.enabled = 1
-					AND pl_mrp.show_in_website = 1
-					AND ip_mrp.price_list_rate > ip_sell.price_list_rate
-					AND ip_mrp.price_list_rate > 0
-					AND ip_sell.price_list_rate > 0
-			)
-		)
+			{comparison_exists})
 	"""
-	
+
 	# Prepare values
 	query_values = values + [
 		# For pricing rule exists check
 		price_list, company, customer_group, current_date, current_date,
-		# For price list diff exists check
-		price_list, price_list
 	]
-	
+	if compare_at:
+		query_values += [price_list, compare_at]
+
 	result = frappe.db.sql(query, query_values, as_dict=True)
 	return result[0]["count"] if result else 0
 
@@ -334,32 +348,25 @@ def get_items_with_pricing_rule_discount(price_list=None, company=None, customer
 	FROM `tabWebsite Item` wi
 	INNER JOIN `tabItem` i ON wi.item_code = i.item_code
 	INNER JOIN `tabItem Price` ip ON i.name = ip.item_code
-	INNER JOIN `tabPricing Rule` pr ON (
-		(pr.apply_on = 'Item Code' AND i.name = pr.item_code)
-		OR (pr.apply_on = 'Item Group' AND i.item_group = pr.item_group)
-		OR (pr.apply_on = 'Brand' AND i.brand = pr.brand)
-		OR pr.apply_on = 'Transaction'
-	)
-	LEFT JOIN `tabPricing Rule Item Code` pric ON pr.name = pric.parent
-	LEFT JOIN `tabPricing Rule Item Group` prig ON pr.name = prig.parent
-	LEFT JOIN `tabPricing Rule Brand` prb ON pr.name = prb.parent
+	INNER JOIN `tabPricing Rule` pr ON {PRICING_RULE_TARGETS_ITEM}
 	WHERE wi.published = 1{_site_cond}
 		AND ip.price_list = %s
 		AND ip.selling = 1
 		AND pr.disable = 0
 		AND pr.selling = 1
-		AND pr.promotional = 1  -- Only promotional pricing rules
 		AND (pr.company = %s OR pr.company IS NULL OR pr.company = '')
 		AND (pr.customer_group = %s OR pr.customer_group IS NULL OR pr.customer_group = '')
 		AND (pr.valid_from IS NULL OR pr.valid_from <= %s)
 		AND (pr.valid_upto IS NULL OR pr.valid_upto >= %s)
 		AND (pr.discount_percentage > 0 OR pr.discount_amount > 0)
-		AND (
-			(pr.apply_on = 'Item Code' AND (i.name = pr.item_code OR pric.item_code = i.name))
-			OR (pr.apply_on = 'Item Group' AND (i.item_group = pr.item_group OR prig.item_group = i.item_group))
-			OR (pr.apply_on = 'Brand' AND (i.brand = pr.brand OR prb.brand = i.brand))
-			OR pr.apply_on = 'Transaction'
-		)
+	-- There is no `promotional` column: this query used to filter on one and
+	-- always raised. Its v15 counterpart, `promotional_scheme`, is only set on
+	-- rules generated by a Promotional Scheme, which this instance does not use
+	-- — filtering on it would make the homepage promo section permanently
+	-- empty. An active, in-date, item-targeting discount rule IS the promotion,
+	-- and what sets this apart from get_discounted_items_query is what it
+	-- returns: the rule's own title and end date, so the storefront can say
+	-- which offer applies and until when.
 	ORDER BY effective_discount_percent DESC, wi.ranking DESC
 	LIMIT %s
 	"""

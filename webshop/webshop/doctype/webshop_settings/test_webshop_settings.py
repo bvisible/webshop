@@ -14,6 +14,16 @@ class TestWebshopSettings(unittest.TestCase):
 		frappe.db.rollback()
 
 	def test_tax_rule_validation(self):
+		# Put every rule back the way it was, one by one. The previous version
+		# committed `set use_for_shopping_cart = 0` across the table and then set
+		# them ALL to 1 — on a live site that silently enrols every tax rule in
+		# the shopping cart, including the ones deliberately kept out of it.
+		avant = {
+			r.name: r.use_for_shopping_cart
+			for r in frappe.get_all("Tax Rule", fields=["name", "use_for_shopping_cart"])
+		}
+		self.addCleanup(self._restaurer_regles, avant)
+
 		frappe.db.sql("update `tabTax Rule` set use_for_shopping_cart = 0")
 		frappe.db.commit()  # nosemgrep
 
@@ -22,7 +32,10 @@ class TestWebshopSettings(unittest.TestCase):
 		if not frappe.db.get_value("Tax Rule", {"use_for_shopping_cart": 1}, "name"):
 			self.assertRaises(ShoppingCartSetupError, cart_settings.validate_tax_rule)
 
-		frappe.db.sql("update `tabTax Rule` set use_for_shopping_cart = 1")
+	def _restaurer_regles(self, avant):
+		for nom, valeur in avant.items():
+			frappe.db.set_value("Tax Rule", nom, "use_for_shopping_cart", valeur, update_modified=False)
+		frappe.db.commit()
 
 	def test_invalid_filter_fields(self):
 		"Check if Item fields are blocked in Webshop Settings filter fields."

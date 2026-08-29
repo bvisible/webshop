@@ -55,7 +55,7 @@ class CarouselCacheManager:
             if cached_data:
                 return cached_data
         except Exception as e:
-            frappe.log_error(f"Error retrieving carousel cache: {str(e)}", "Carousel Cache Error")
+            frappe.log_error("Carousel Cache Error", f"Error retrieving carousel cache: {str(e)}")
         
         return None
     
@@ -71,7 +71,7 @@ class CarouselCacheManager:
         try:
             frappe.cache().set_value(cache_key, data, expires_in_sec=ttl)
         except Exception as e:
-            frappe.log_error(f"Error setting carousel cache: {str(e)}", "Carousel Cache Error")
+            frappe.log_error("Carousel Cache Error", f"Error setting carousel cache: {str(e)}")
     
     def clear_cache(self, pattern: Optional[str] = None) -> None:
         """
@@ -80,19 +80,17 @@ class CarouselCacheManager:
         Args:
             pattern: Optional pattern to match specific cache entries
         """
+        # get_keys() returns keys already prefixed with the site hash
+        # (b"_d2d85ec2...|carousel_cache:..."), while delete_value() prefixes
+        # what it is given — so deleting a key straight out of get_keys() looked
+        # right and removed nothing at all. Carousels then kept serving stale
+        # products until the TTL ran out, whatever changed in the catalogue.
+        # delete_keys() is the pattern-aware form and skips that second prefix.
+        motif = f"{self.cache_prefix}:*{pattern}*" if pattern else f"{self.cache_prefix}:*"
         try:
-            if pattern:
-                # Clear specific pattern
-                cache_keys = frappe.cache().get_keys(f"{self.cache_prefix}:*{pattern}*")
-                for key in cache_keys:
-                    frappe.cache().delete_value(key)
-            else:
-                # Clear all carousel cache
-                cache_keys = frappe.cache().get_keys(f"{self.cache_prefix}:*")
-                for key in cache_keys:
-                    frappe.cache().delete_value(key)
+            frappe.cache().delete_keys(motif)
         except Exception as e:
-            frappe.log_error(f"Error clearing carousel cache: {str(e)}", "Carousel Cache Error")
+            frappe.log_error("Carousel Cache Error", f"Error clearing carousel cache: {str(e)}")
     
     def clear_item_group_cache(self, item_group: str) -> None:
         """
@@ -168,8 +166,8 @@ def warm_carousel_cache(item_group: Optional[str] = None, only_promotions: bool 
             get_carousel_items(**config)
         except Exception as e:
             frappe.log_error(
-                f"Error warming carousel cache for config {config}: {str(e)}", 
-                "Carousel Cache Warming Error"
+                "Carousel Cache Warming Error",
+                f"Error warming carousel cache for config {config}: {str(e)}",
             )
 
 
