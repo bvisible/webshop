@@ -125,6 +125,15 @@ jobs:
         env:
           CI: 'Yes'
       
+      #//// Neoffice — ERPNext creates "Warehouse Type: Transit" from its setup
+      #//// wizard, not from install-app, and CI never runs the wizard. Building
+      #//// _Test Company then dies on create_default_warehouses with
+      #//// "Could not find Warehouse Type: Transit" — before a single webshop
+      #//// test starts.
+      - name: Install ERPNext fixtures
+        working-directory: /home/runner/frappe-bench
+        run: bench --site test_site execute erpnext.setup.setup_wizard.operations.install_fixtures.install
+
       - name: Run Tests
         working-directory: /home/runner/frappe-bench
         run: |
