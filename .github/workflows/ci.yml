@@ -152,9 +152,22 @@ jobs:
           from erpnext.setup.setup_wizard.operations.install_fixtures import install
           install(country='Switzerland')
 
+          # And ERPNext's own test preparation: a company, a fiscal year, the
+          # defaults its test records expect. Frappe only runs the `before_tests`
+          # hook of the app UNDER TEST — webshop declares none — so on a webshop
+          # run nothing prepares the site at all, and ERPNext's fixtures die on
+          # "[Opportunity, _T-Opportunity-00001]: company".
+          #
+          # Called from here rather than declared as a webshop hook on purpose:
+          # it enables every role for Administrator and rewrites defaults, which
+          # has no business running against a real site.
+          from erpnext.setup.utils import before_tests
+          before_tests()
+
           frappe.db.commit()
           print('Genders:', frappe.get_all('Gender', pluck='name'))
           print('Warehouse Types:', frappe.get_all('Warehouse Type', pluck='name'))
+          print('Companies:', frappe.get_all('Company', pluck='name'))
           "
 
       - name: Run Tests
