@@ -1,185 +1,322 @@
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
-"""
-Tests for payment_handler.py
+"""Tests for payment_handler.py — idempotency and who may conclude a payment.
 
-These tests verify the fixes for:
-1. order_type conflict with URY app custom field on Sales Invoice
-2. Empty cart handling (Devis None not found)
+These are the two parts of the payment path that can be tested without a
+gateway, and the two where a mistake costs real money: charging a buyer twice,
+or letting the wrong person mark someone else's payment as settled.
+
+What was here before did not test any of it. Two cases built a MagicMock,
+applied the "fix" *inside the test*, and asserted on their own line:
+
+    mock_si = MagicMock()
+    mock_si.order_type = "Shopping Cart"
+    if hasattr(mock_si, 'order_type'):
+        mock_si.order_type = ""
+    self.assertEqual(mock_si.order_type, "")   # never touches payment_handler
+
+They passed no matter what the module did — and the clearing of `order_type`
+they described exists nowhere in the app (grep: nothing writes it on a Sales
+Invoice). A third called `self.skipTest()` unconditionally. Three more skipped
+on a custom field from the URY app. Six green tests, one real assertion.
 """
 
 import unittest
+from unittest.mock import patch
+
 import frappe
-from frappe import _
-from frappe.utils import nowdate, add_months
-from unittest.mock import patch, MagicMock
+
+from webshop.controllers.payment_handler import PaymentHandler, _peut_conclure
+
+PREFIXE = "_WSTEST-"
 
 
-class TestPaymentHandler(unittest.TestCase):
-    """Test cases for PaymentHandler class"""
+def jeton():
+	"""A fresh token per test.
 
-    def setUp(self):
-        frappe.set_user("Administrator")
-
-    def tearDown(self):
-        frappe.db.rollback()
-        frappe.set_user("Administrator")
-
-    def test_sales_invoice_order_type_cleared(self):
-        """
-        Test that order_type is cleared on Sales Invoice to avoid conflict
-        with custom fields from apps like URY.
-
-        URY adds a custom field 'order_type' on Sales Invoice with options:
-        '', 'Sur place', 'À emporter', 'Livraison', 'Téléphone', 'Agrégateurs'
-
-        When make_sales_invoice() copies order_type from Sales Order ('Shopping Cart'),
-        it causes a validation error because 'Shopping Cart' is not in URY's options.
-        """
-        # Create a mock Sales Invoice with order_type attribute
-        mock_si = MagicMock()
-        mock_si.order_type = "Shopping Cart"
-
-        # Simulate the fix: clear order_type if it exists
-        if hasattr(mock_si, 'order_type'):
-            mock_si.order_type = ""
-
-        self.assertEqual(mock_si.order_type, "")
-
-    def test_sales_invoice_without_order_type_attribute(self):
-        """
-        Test that the fix doesn't fail when Sales Invoice doesn't have order_type.
-        This ensures backward compatibility with systems without URY.
-        """
-        mock_si = MagicMock(spec=[])  # No order_type attribute
-
-        # This should not raise an error
-        if hasattr(mock_si, 'order_type'):
-            mock_si.order_type = ""
-
-        # Verify no error was raised and attribute wasn't created
-        self.assertFalse(hasattr(mock_si, 'order_type'))
-
-    def test_empty_cart_error_handling(self):
-        """
-        Test that empty cart is handled gracefully with proper error message.
-        This prevents 'Devis None not found' errors.
-        """
-        from webshop.controllers.payment_handler import PaymentHandler
-
-        handler = PaymentHandler()
-
-        # Mock _get_cart_quotation to return None (empty cart)
-        with patch('webshop.controllers.payment_handler._get_cart_quotation', return_value=None):
-            result = handler.create_payment_request()
-
-            # Should return error status
-            self.assertEqual(result.get("status"), "error")
-
-    def test_create_payment_request_with_valid_quotation(self):
-        """
-        Test payment request creation with a valid quotation.
-        This is a basic sanity check.
-        """
-        from webshop.controllers.payment_handler import PaymentHandler
-
-        # Skip if Webshop Settings not configured
-        if not frappe.db.exists("Webshop Settings"):
-            self.skipTest("Webshop Settings not configured")
-
-        settings = frappe.get_doc("Webshop Settings")
-        if not settings.enabled:
-            self.skipTest("Webshop not enabled")
-
-        # This test requires proper setup, skip for unit testing
-        self.skipTest("Requires full webshop setup - run as integration test")
+	`custom_idempotency_token` carries a unique index, and something down the
+	create path commits — so a token reused across tests survives the rollback
+	and the next insert dies on a duplicate key.
+	"""
+	return f"{PREFIXE}{frappe.generate_hash(length=12)}"
 
 
-class TestPaymentHandlerOrderTypeConflict(unittest.TestCase):
-    """
-    Integration tests for order_type conflict resolution.
-    These tests verify the actual behavior with real documents.
-    """
+def purger_demandes():
+	"""Delete the requests these tests made, and the intents pointing at them.
 
-    @classmethod
-    def setUpClass(cls):
-        """Check if we can run integration tests"""
-        cls.can_run = False
+	`frappe.db.rollback()` is not enough: the idempotency path calls
+	`frappe.log_error`, which commits, and the request inserted just before is
+	committed along with it. Left alone, every run added a batch of draft
+	Payment Requests to the site's accounting — 17 of them before this was
+	noticed.
+	"""
+	noms = frappe.get_all(
+		"Payment Request",
+		filters={"custom_idempotency_token": ("like", f"{PREFIXE}%")},
+		pluck="name",
+	)
+	if not noms:
+		return
 
-        # Check if required doctypes exist
-        if not frappe.db.exists("DocType", "Sales Order"):
-            return
-        if not frappe.db.exists("DocType", "Sales Invoice"):
-            return
+	if frappe.db.exists("DocType", "Payment Intent"):
+		for intent in frappe.get_all(
+			"Payment Intent",
+			filters={"reference_doctype": "Payment Request", "reference_name": ("in", noms)},
+			pluck="name",
+		):
+			frappe.delete_doc("Payment Intent", intent, force=True, ignore_permissions=True)
 
-        # Check if there's a custom field order_type on Sales Invoice (URY)
-        cls.has_ury_field = frappe.db.exists(
-            "Custom Field",
-            {"dt": "Sales Invoice", "fieldname": "order_type"}
-        )
-
-        cls.can_run = True
-
-    def setUp(self):
-        if not self.can_run:
-            self.skipTest("Required doctypes not available")
-        frappe.set_user("Administrator")
-
-    def tearDown(self):
-        frappe.db.rollback()
-
-    def test_ury_custom_field_exists(self):
-        """Check if URY custom field exists on Sales Invoice"""
-        if self.has_ury_field:
-            field = frappe.get_doc("Custom Field", {
-                "dt": "Sales Invoice",
-                "fieldname": "order_type"
-            })
-            self.assertEqual(field.fieldtype, "Select")
-            # Verify Shopping Cart is NOT in options (this is the problem)
-            self.assertNotIn("Shopping Cart", field.options or "")
-        else:
-            self.skipTest("URY custom field not installed")
-
-    def test_order_type_values_compatibility(self):
-        """
-        Test that clearing order_type avoids the conflict.
-
-        Standard ERPNext order_type options (Quotation/Sales Order):
-        - '', 'Sales', 'Maintenance', 'Shopping Cart'
-
-        URY custom field options (Sales Invoice):
-        - '', 'Sur place', 'À emporter', 'Livraison', 'Téléphone', 'Agrégateurs'
-        (or English: '', 'Dine In', 'Take Away', 'Delivery', 'Phone In', 'Aggregators')
-        """
-        if not self.has_ury_field:
-            self.skipTest("URY custom field not installed")
-
-        # Get URY's options
-        field = frappe.get_doc("Custom Field", {
-            "dt": "Sales Invoice",
-            "fieldname": "order_type"
-        })
-        ury_options = (field.options or "").split("\n")
-
-        # 'Shopping Cart' should NOT be valid for URY
-        self.assertNotIn("Shopping Cart", ury_options)
-
-        # Empty string should be valid (our fix sets it to "")
-        self.assertIn("", ury_options)
+	for nom in noms:
+		frappe.delete_doc("Payment Request", nom, force=True, ignore_permissions=True)
+	frappe.db.commit()
 
 
-def run_tests():
-    """Run all payment handler tests"""
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestPaymentHandler)
-    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPaymentHandlerOrderTypeConflict))
+def _payment_request(jeton, statut="Requested", reference_doctype="Quotation", reference_name=None):
+	"""A Payment Request carrying an idempotency token.
 
-    runner = unittest.TextTestRunner(verbosity=2)
-    result = runner.run(suite)
+	Inserted with validation relaxed: what is under test is how the handler
+	*finds* this row again, not ERPNext's own creation rules.
+	"""
+	doc = frappe.new_doc("Payment Request")
+	doc.update(
+		{
+			"payment_request_type": "Inward",
+			"reference_doctype": reference_doctype,
+			"reference_name": reference_name or frappe.db.get_value("Quotation", {}, "name"),
+			"grand_total": 10,
+			"currency": "CHF",
+			"email_to": "wstest@example.com",
+			"custom_idempotency_token": jeton,
+			"status": statut,
+		}
+	)
+	doc.flags.ignore_validate = True
+	# reference_name is a Dynamic Link: without this, naming an order that does
+	# not exist is refused before the handler ever gets to look the token up.
+	doc.flags.ignore_links = True
+	doc.insert(ignore_permissions=True, ignore_mandatory=True)
+	return doc
 
-    return result.wasSuccessful()
+
+class TestIdempotence(unittest.TestCase):
+	"""One token, one charge — a reloaded payment page must not bill twice."""
+
+	@classmethod
+	def setUpClass(cls):
+		frappe.set_user("Administrator")
+		purger_demandes()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		purger_demandes()
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.handler = PaymentHandler()
+
+	def tearDown(self):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+
+	def test_an_existing_token_returns_the_same_request(self):
+		jeton_test = jeton()
+		demande = _payment_request(jeton_test)
+
+		resultat = self.handler.create_payment_request(idempotency_token=jeton_test)
+
+		self.assertEqual(resultat.get("status"), "success")
+		self.assertEqual(resultat.get("payment_request_id"), demande.name)
+
+	def test_an_order_already_placed_is_reported_as_such(self):
+		"""Token already carried through to an order: say so, do not re-charge."""
+		jeton_test = jeton()
+		_payment_request(jeton_test, reference_doctype="Sales Order", reference_name="SO-WSTEST-0001")
+
+		resultat = self.handler.create_payment_request(idempotency_token=jeton_test)
+
+		self.assertEqual(resultat.get("status"), "error")
+		self.assertEqual(resultat.get("existing_order"), "SO-WSTEST-0001")
+
+	def test_a_failed_request_is_not_reused(self):
+		"""A refused card must leave the buyer able to try again.
+
+		A Failed request is skipped, so the handler carries on to build a new
+		one — here with an empty cart, which is why an error comes back. What
+		matters is that it is NOT the "using existing payment request" answer.
+		"""
+		jeton_test = jeton()
+		_payment_request(jeton_test, statut="Failed")
+
+		with patch(
+			"webshop.controllers.payment_handler._get_cart_quotation", return_value=None
+		):
+			resultat = self.handler.create_payment_request(idempotency_token=jeton_test)
+
+		self.assertEqual(resultat.get("status"), "error")
+		self.assertNotIn("payment_request_id", resultat)
+
+	def test_an_unknown_token_is_not_matched(self):
+		_payment_request(jeton())
+
+		with patch(
+			"webshop.controllers.payment_handler._get_cart_quotation", return_value=None
+		):
+			resultat = self.handler.create_payment_request(idempotency_token="_WSTEST-autre")
+
+		self.assertEqual(resultat.get("status"), "error")
+		self.assertNotIn("payment_request_id", resultat)
+
+	def test_an_empty_cart_is_refused_cleanly(self):
+		"""No quotation, no "Devis None not found" traceback in the buyer's face."""
+		with patch(
+			"webshop.controllers.payment_handler._get_cart_quotation", return_value=None
+		):
+			resultat = self.handler.create_payment_request()
+
+		self.assertEqual(resultat.get("status"), "error")
+		self.assertTrue(resultat.get("message"))
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestQuiPeutConclureUnPaiement(unittest.TestCase):
+	"""`_peut_conclure` decides who may settle a payment request.
+
+	It is reached from a `allow_guest=True` endpoint, so "anyone with the id"
+	must not be enough: the id travels in a redirect URL.
+	"""
+
+	@classmethod
+	def setUpClass(cls):
+		frappe.set_user("Administrator")
+		purger_demandes()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		purger_demandes()
+
+	def setUp(self):
+		self.utilisateur_avant = frappe.session.user
+		frappe.set_user("Administrator")
+		self.demande = _payment_request(jeton())
+		self.addCleanup(self._restaurer)
+
+	def _restaurer(self):
+		frappe.set_user(self.utilisateur_avant)
+		frappe.db.rollback()
+
+	def test_the_server_itself_may_conclude(self):
+		"""Background jobs and the server-side return page run as Administrator."""
+		self.assertTrue(_peut_conclure(self.demande.name))
+
+	def test_a_guest_may_not_conclude_on_the_id_alone(self):
+		frappe.set_user("Guest")
+
+		self.assertFalse(_peut_conclure(self.demande.name, argent_constate=False))
+
+	def test_a_guest_may_conclude_when_the_money_is_confirmed(self):
+		"""Back from the gateway, the session is not always restored yet.
+
+		A succeeded Payment Intent on THIS request is the proof that stands in
+		for the session.
+		"""
+		if not frappe.db.exists("DocType", "Payment Intent"):
+			self.skipTest("Payment Intent doctype not installed")
+
+		intent = frappe.new_doc("Payment Intent")
+		intent.update(
+			{
+				"reference_doctype": "Payment Request",
+				"reference_name": self.demande.name,
+				"status": "succeeded",
+			}
+		)
+		intent.flags.ignore_validate = True
+		intent.insert(ignore_permissions=True, ignore_mandatory=True)
+
+		frappe.set_user("Guest")
+
+		self.assertTrue(_peut_conclure(self.demande.name))
+
+	def test_a_confirmed_intent_on_another_request_does_not_count(self):
+		if not frappe.db.exists("DocType", "Payment Intent"):
+			self.skipTest("Payment Intent doctype not installed")
+
+		autre = _payment_request(jeton())
+		intent = frappe.new_doc("Payment Intent")
+		intent.update(
+			{
+				"reference_doctype": "Payment Request",
+				"reference_name": autre.name,
+				"status": "succeeded",
+			}
+		)
+		intent.flags.ignore_validate = True
+		intent.insert(ignore_permissions=True, ignore_mandatory=True)
+
+		frappe.set_user("Guest")
+
+		self.assertFalse(_peut_conclure(self.demande.name))
+
+	def test_a_failed_intent_does_not_count(self):
+		if not frappe.db.exists("DocType", "Payment Intent"):
+			self.skipTest("Payment Intent doctype not installed")
+
+		intent = frappe.new_doc("Payment Intent")
+		intent.update(
+			{
+				"reference_doctype": "Payment Request",
+				"reference_name": self.demande.name,
+				"status": "failed",
+			}
+		)
+		intent.flags.ignore_validate = True
+		intent.insert(ignore_permissions=True, ignore_mandatory=True)
+
+		frappe.set_user("Guest")
+
+		self.assertFalse(_peut_conclure(self.demande.name))
+
+	def test_staff_may_conclude(self):
+		"""A System Manager settles a payment by hand when a webhook is lost."""
+		utilisateur = _utilisateur_de_test("_wstest_staff@example.com", ["System Manager"])
+		frappe.set_user(utilisateur)
+
+		self.assertTrue(_peut_conclure(self.demande.name))
+
+	def test_a_signed_in_stranger_may_not_conclude(self):
+		"""Signed in, but not the buyer and not staff: the request is not theirs."""
+		utilisateur = _utilisateur_de_test("_wstest_stranger@example.com", ["Customer"])
+		frappe.db.set_value("Payment Request", self.demande.name, "party", "_WSTEST Someone Else")
+		frappe.set_user(utilisateur)
+
+		self.assertFalse(_peut_conclure(self.demande.name, argent_constate=False))
+
+	def test_a_request_without_a_party_is_refused(self):
+		utilisateur = _utilisateur_de_test("_wstest_stranger@example.com", ["Customer"])
+		frappe.db.set_value("Payment Request", self.demande.name, "party", None)
+		frappe.set_user(utilisateur)
+
+		self.assertFalse(_peut_conclure(self.demande.name, argent_constate=False))
+
+
+def _utilisateur_de_test(email, roles):
+	"""A user with these roles, created muted (a welcome mail needs SMTP)."""
+	avant = frappe.flags.mute_emails
+	frappe.flags.mute_emails = True
+	try:
+		if not frappe.db.exists("User", email):
+			doc = frappe.new_doc("User")
+			doc.update({"email": email, "first_name": email.split("@")[0], "send_welcome_email": 0})
+			doc.insert(ignore_permissions=True)
+
+		# Read the user back before touching roles: insert() writes it again
+		# (welcome-mail bookkeeping), so the doc in hand is already stale and
+		# add_roles' save raises TimestampMismatchError.
+		manquants = [r for r in roles if not frappe.db.exists("Has Role", {"parent": email, "role": r})]
+		if manquants:
+			frappe.get_doc("User", email).add_roles(*manquants)
+		return email
+	finally:
+		frappe.flags.mute_emails = avant
