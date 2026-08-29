@@ -343,11 +343,26 @@ bench --site sitename run-tests --skip-test-records --module webshop.webshop.uti
 bench --site sitename run-tests --app webshop
 ```
 
-**94 tests over 10 modules, green on `prod.local`.** Three modules are not in
+**135 tests over 11 modules, green on `prod.local`.** Three modules are not in
 that count — `shopping_cart`, `website_item`, `product_data_engine` — because
 they are built on ERPNext's test fixtures (`_Test Company`,
 `_Test Price List India`, `_Test Tax 1 - _TC`). Run those on a dedicated test
 site; bending them to a real site would make them less faithful, not more useful.
+
+The two modules that decide what a customer pays carry the most tests:
+`test_multi_site` (34) checks that the site's price list beats every caller's
+default, that a professional site refuses an anonymous cart, and that the SQL and
+ORM scoping paths never disagree — plus, throughout, that all of it degrades to
+nothing on a single-site shop. `test_payment_handler` (13) covers idempotency —
+one token, one charge — and who may conclude a payment, an `allow_guest`
+endpoint whose id travels in a redirect URL.
+
+> **A green test is not a test.** Before this suite was audited, six
+> `test_payment_handler` cases passed while asserting nothing: two applied the
+> fix to a `MagicMock` *inside the test* and checked their own line, one called
+> `self.skipTest()` unconditionally, three skipped on an absent custom field.
+> Read what a test asserts, not whether it is green — and read the *skipped*
+> count.
 
 > **Ask the site for its fixtures, never assume them.** `webshop.webshop.tests.utils`
 > resolves the item group, price list, customer group and company at runtime.
