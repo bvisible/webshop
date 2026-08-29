@@ -266,14 +266,62 @@ patches = [
 	"add_guest_session_to_quotation",
 ]
 
+#//// Neoffice — the custom fields a fresh install would otherwise never get.
+#////
+#//// `bench install-app` marks everything in patches.txt as already applied
+#//// instead of running it — correct for a schema patch, wrong for a patch whose
+#//// whole job is to CREATE a field. Only three of the twenty field-creating
+#//// patches were replayed above, so a new shop started life missing seventeen
+#//// custom fields: payment idempotency and gateway, gift cards, loyalty,
+#//// coupons, shipping rule descriptions, the multi-warehouse marker.
+#////
+#//// It is not theoretical. Without `custom_idempotency_token`, the very first
+#//// query in create_payment_request raises "Unknown column
+#//// tabPayment Request.custom_idempotency_token", the blanket except turns it
+#//// into "error creating the payment request", and nobody can pay. CI on a
+#//// fresh site is what surfaced it.
+#////
+#//// Every one of these checks before it writes, so replaying them is free.
+#//// RULE: a patch that creates a field belongs in this list, in patches.txt
+#//// order.
+CHAMPS_A_CREER_A_L_INSTALLATION = [
+	"add_shipping_rule_description",
+	"add_loyalty_points_reduction_field",
+	"add_loyalty_point_entry_field",
+	"add_checkout_fields_to_payment_gateway_account",
+	"add_gift_card_data_to_sales_doctypes",
+	"add_payment_gateway_to_quotation",
+	"add_sales_invoice_link_to_coupon_code",
+	"add_from_checkout_to_payment_request",
+	"add_gift_card_amount_field",
+	"add_payment_method_field",
+	"add_gift_card_fields_to_quotation",
+	"add_coupon_code_residual_field",
+	"add_idempotency_token_to_payment_request",
+	"add_missing_gift_card_fields",
+	"add_birthday_field_to_contact",
+	"add_webshopsi_fee_field",
+	"add_webshop_po_marker_field",
+]
+
+
 def run_patches():
 	# Customers migrating from v13 to v15 directly need to run all below patches
 
 	frappe.flags.in_patch = True
 
 	try:
-		for patch in patches:
-			frappe.get_attr(f"webshop.patches.{patch}.execute")()
+		for patch in patches + CHAMPS_A_CREER_A_L_INSTALLATION:
+			try:
+				frappe.get_attr(f"webshop.patches.{patch}.execute")()
+			except Exception:
+				#//// One missing field must not abort the whole installation:
+				#//// log it and carry on, so the shop still installs and the
+				#//// gap is visible in the error log.
+				frappe.log_error(
+					"Webshop install: patch failed",
+					f"patch={patch}\n{frappe.get_traceback()}",
+				)
 
 	finally:
 		frappe.flags.in_patch = False
