@@ -115,8 +115,14 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: |
           bench setup requirements --dev
-          bench get-app erpnext --branch $WEBSHOP_BRANCH
-          bench get-app payments --branch $WEBSHOP_BRANCH
+          #//// Neoffice — our forks, not upstream. This webshop calls
+          #//// erpnext's get_price(..., warehouse=...), an argument our fork
+          #//// adds (marked `//// added` there) so a Pricing Rule scoped to a
+          #//// warehouse is honoured. Against frappe/erpnext the call raises
+          #//// "get_price() got an unexpected keyword argument 'warehouse'".
+          #//// Testing on upstream would test a combination we never ship.
+          bench get-app erpnext https://github.com/bvisible/erpnext --branch $WEBSHOP_BRANCH
+          bench get-app payments https://github.com/bvisible/payments --branch $WEBSHOP_BRANCH
           bench get-app $GITHUB_WORKSPACE
           bench new-site --db-root-password root --admin-password admin test_site
           bench --site test_site install-app erpnext

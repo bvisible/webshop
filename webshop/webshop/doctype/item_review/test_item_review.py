@@ -80,8 +80,10 @@ class TestItemReview(unittest.TestCase):
 		try:
 			add_item_review(web_item, "Great Product", QUATRE_ETOILES, "Would recommend this product")
 			review_name = frappe.db.get_value("Item Review", {"website_item": web_item})
-		except Exception:
-			self.fail(f"Error while publishing review for {web_item}")
+		except Exception as e:
+			# Say WHAT went wrong: swallowing it leaves "Error while publishing
+			# review for WEB-ITM-0001" and nothing to act on.
+			self.fail(f"Error while publishing review for {web_item}: {type(e).__name__}: {e}")
 		self.addCleanup(frappe.delete_doc, "Item Review", review_name, force=True)
 
 		review_data = get_item_reviews(web_item, 0, 10)
