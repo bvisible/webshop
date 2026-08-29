@@ -1,6 +1,19 @@
 name: CI
 
 on:
+  #//// Neoffice — push added. We work straight on version-15 and open no pull
+  #//// requests, so the upstream triggers meant this workflow had never run once
+  #//// on this fork: GitHub does not run `schedule` on a fork either. The suite
+  #//// was green on the server and unverified everywhere else.
+  push:
+    branches:
+      - version-15
+    paths-ignore:
+      - "**.css"
+      - "**.js"
+      - "**.md"
+      - "**.html"
+      - "**.csv"
   pull_request:
     paths-ignore:
       - "**.css"
@@ -8,6 +21,8 @@ on:
       - "**.md"
       - "**.html"
       - "**.csv"
+  #//// Neoffice — so a run can be started by hand after a server-side fix.
+  workflow_dispatch:
   schedule:
     # Run everday at midnight UTC / 5:30 IST
     - cron: "0 0 * * *"
@@ -16,7 +31,9 @@ env:
   WEBSHOP_BRANCH: ${{ github.base_ref || github.ref_name }}
 
 concurrency:
-  group: develop-webshop-${{ github.event.number }}
+  #//// Neoffice — keyed on the ref: `github.event.number` is empty on a push,
+  #//// so every push shared one group and cancelled the previous run.
+  group: webshop-${{ github.event.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -45,7 +62,7 @@ jobs:
     
     steps:
       - name: Clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Find tests
         run: |
@@ -53,12 +70,12 @@ jobs:
           grep -rn "def test" > /dev/null
       
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
       
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           check-latest: true
