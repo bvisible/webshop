@@ -142,7 +142,8 @@ jobs:
           frappe.init(site='test_site')
           frappe.connect()
           from erpnext.setup.setup_wizard.operations.install_fixtures import install
-          install()
+          # A country is required: install() builds the root Territory from it.
+          install(country='Switzerland')
           frappe.db.commit()
           print('Warehouse Types:', frappe.get_all('Warehouse Type', pluck='name'))
           "
