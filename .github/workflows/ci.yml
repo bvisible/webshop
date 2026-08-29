@@ -120,6 +120,9 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: |
           bench setup requirements --dev
+          #//// Into the bench's OWN virtualenv, not the runner's python: that
+          #//// is where the apps import from.
+          ./env/bin/pip install 'setuptools<81'
           #//// Neoffice — our forks, not upstream. This webshop calls
           #//// erpnext's get_price(..., warehouse=...), an argument our fork
           #//// adds (marked `//// added` there) so a Pricing Rule scoped to a
