@@ -134,10 +134,15 @@ jobs:
       #//// that command falls back to `eval(method + "(...)")` when its own
       #//// lookup raises, which reports "NameError: name 'erpnext' is not
       #//// defined" and hides whatever actually failed.
+      #//// Heredoc, not `python -c "..."`: a double quote anywhere in the script
+      #//// — in a comment, even — closes bash's argument, and the rest of the
+      #//// lines run as shell commands. That is how a previous version reported
+      #//// "before_tests: command not found" while claiming the fixtures had
+      #//// been installed. Quoted delimiter, so bash substitutes nothing.
       - name: Install setup-wizard fixtures
         working-directory: /home/runner/frappe-bench/sites
         run: |
-          ../env/bin/python -c "
+          ../env/bin/python <<'PY'
           import frappe
           frappe.init(site='test_site')
           frappe.connect()
@@ -147,16 +152,16 @@ jobs:
           from frappe.desk.page.setup_wizard.install_fixtures import install as frappe_fixtures
           frappe_fixtures()
 
-          # ERPNext's: Warehouse Type, Territory, UOMs... A country is required —
+          # ERPNext's: Warehouse Type, Territory, UOMs... A country is required -
           # install() builds the root Territory from it.
           from erpnext.setup.setup_wizard.operations.install_fixtures import install
           install(country='Switzerland')
 
           # And ERPNext's own test preparation: a company, a fiscal year, the
-          # defaults its test records expect. Frappe only runs the `before_tests`
-          # hook of the app UNDER TEST — webshop declares none — so on a webshop
+          # defaults its test records expect. Frappe only runs the before_tests
+          # hook of the app UNDER TEST - webshop declares none - so on a webshop
           # run nothing prepares the site at all, and ERPNext's fixtures die on
-          # "[Opportunity, _T-Opportunity-00001]: company".
+          # a missing company.
           #
           # Called from here rather than declared as a webshop hook on purpose:
           # it enables every role for Administrator and rewrites defaults, which
@@ -168,7 +173,7 @@ jobs:
           print('Genders:', frappe.get_all('Gender', pluck='name'))
           print('Warehouse Types:', frappe.get_all('Warehouse Type', pluck='name'))
           print('Companies:', frappe.get_all('Company', pluck='name'))
-          "
+          PY
 
       - name: Run Tests
         working-directory: /home/runner/frappe-bench
