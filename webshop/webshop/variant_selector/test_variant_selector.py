@@ -189,6 +189,17 @@ class TestVariantSelector(FrappeTestCase):
 		"""
 		from webshop.webshop.doctype.website_item.test_website_item import make_web_item_price
 
+		# Variant pricing goes through get_price(..., warehouse=...), and that
+		# argument only exists on the bvisible fork of ERPNext, where a Pricing
+		# Rule can be scoped to a warehouse. On a standard ERPNext the call
+		# raises TypeError, which says nothing useful about this test.
+		import inspect
+
+		from erpnext.utilities.product import get_price
+
+		if "warehouse" not in inspect.signature(get_price).parameters:
+			self.skipTest("this ERPNext's get_price takes no warehouse")
+
 		frappe.set_user("Administrator")
 		# Webshop Settings is a Single: rollback will not undo this once anything
 		# commits, so put the shop's own values back when the test ends.

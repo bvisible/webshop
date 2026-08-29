@@ -123,14 +123,21 @@ jobs:
           #//// Into the bench's OWN virtualenv, not the runner's python: that
           #//// is where the apps import from.
           ./env/bin/pip install 'setuptools<81'
-          #//// Neoffice — our forks, not upstream. This webshop calls
-          #//// erpnext's get_price(..., warehouse=...), an argument our fork
-          #//// adds (marked `//// added` there) so a Pricing Rule scoped to a
-          #//// warehouse is honoured. Against frappe/erpnext the call raises
-          #//// "get_price() got an unexpected keyword argument 'warehouse'".
-          #//// Testing on upstream would test a combination we never ship.
-          bench get-app erpnext https://github.com/bvisible/erpnext --branch $WEBSHOP_BRANCH
-          bench get-app payments https://github.com/bvisible/payments --branch $WEBSHOP_BRANCH
+          #//// Neoffice — upstream ERPNext, deliberately, and it is not the
+          #//// combination we ship. Running the CI against bvisible/erpnext was
+          #//// tried and does not work: that fork reads Item.buying_standard_rate
+          #//// and makes Customer.default_currency mandatory through a Custom
+          #//// Field and a Property Setter that live in NO app — they were made
+          #//// by hand on the server. A fresh install of our own fork therefore
+          #//// raises "'WebshopItem' object has no attribute
+          #//// 'buying_standard_rate'" on the first Item insert.
+          #////
+          #//// So this CI answers "does webshop hold up on a standard ERPNext",
+          #//// which is worth knowing on its own. The one thing it cannot check
+          #//// is variant pricing by warehouse: webshop calls
+          #//// get_price(..., warehouse=...), an argument only our fork has.
+          bench get-app erpnext --branch $WEBSHOP_BRANCH
+          bench get-app payments --branch $WEBSHOP_BRANCH
           bench get-app $GITHUB_WORKSPACE
           bench new-site --db-root-password root --admin-password admin test_site
           bench --site test_site install-app erpnext
