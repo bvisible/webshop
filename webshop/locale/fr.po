@@ -107,7 +107,6 @@ msgstr ""
 #: webshop/controllers/payment_handler.py:364
 msgid "A system error occurred while processing payment failure"
 msgstr "Une erreur système s'est produite lors du traitement de l'échec du paiement"
-"Une erreur système s'est produite lors du traitement de l'échec du paiement"
 
 #: webshop/webshop/auth/api.py:113
 msgid "Account created successfully"
@@ -1363,7 +1362,6 @@ msgstr "Erreur"
 #: webshop/templates/pages/checkout_b2b.html:274
 msgid "Error applying shipping method. Please try again."
 msgstr "Erreur lors de l'application de la méthode de livraison. Veuillez réessayer."
-"Erreur lors de l'application de la méthode de livraison. Veuillez réessayer."
 
 #: webshop/webshop/utils/frequently_bought_together.py:79
 msgid "Error calculating frequently bought together: {0}"
@@ -2237,7 +2235,6 @@ msgstr "Points de fidélité supprimés"
 #: webshop/webshop/shopping_cart/cart.py:2570
 msgid "Loyalty points value cannot exceed total amount"
 msgstr "La valeur des points de fidélité ne peut pas dépasser le montant total"
-"La valeur des points de fidélité ne peut pas dépasser le montant total"
 
 #: webshop/templates/pages/loyalty_points.html:11
 msgid "Loyalty program is not enabled."
@@ -2470,7 +2467,6 @@ msgstr "Aucune méthode de paiement configurée"
 #: webshop/templates/pages/loyalty_points.html:143
 msgid "No points history yet. Start shopping to earn points!"
 msgstr "Aucun historique de points. Commencez vos achats pour gagner des points !"
-"Aucun historique de points. Commencez vos achats pour gagner des points !"
 
 #: webshop/templates/includes/product_carousel.html:802
 msgid "No products available"
@@ -2618,7 +2614,6 @@ msgstr "Optionnel"
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:82
 msgid "Optional columns: name, owner, client_email, valid_until"
 msgstr "Colonnes optionnelles : nom, propriétaire, email_client, valide_jusqu'à"
-"Colonnes optionnelles : nom, propriétaire, email_client, valide_jusqu'à"
 
 #. Description of the 'Expected End Time' (Datetime) field in DocType 'Webshop
 #. Settings'
@@ -3000,12 +2995,10 @@ msgstr "Veuillez sélectionner une méthode de livraison"
 #: webshop/templates/pages/checkout_b2b.html:304
 msgid "Please select a shipping method before placing the order"
 msgstr "Veuillez sélectionner une méthode de livraison avant de passer la commande"
-"Veuillez sélectionner une méthode de livraison avant de passer la commande"
 
 #: webshop/templates/pages/checkout.js:730
 msgid "Please select a shipping method before proceeding to payment"
 msgstr "Veuillez sélectionner une méthode de livraison avant de procéder au paiement"
-"Veuillez sélectionner une méthode de livraison avant de procéder au paiement"
 
 #: webshop/templates/pages/checkout.js:1424
 msgid "Please select a shipping method to continue"
@@ -3816,7 +3809,6 @@ msgstr "Une erreur s'est produite. Vérifiez {0}"
 #: webshop/www/all-products/index.html:127
 msgid "Something went wrong. Please refresh or contact us."
 msgstr "Une erreur s'est produite. Veuillez rafraîchir la page ou nous contacter."
-"Une erreur s'est produite. Veuillez rafraîchir la page ou nous contacter."
 
 #: webshop/public/js/wishlist.js:190
 msgid "Sorry, something went wrong. Please refresh."
@@ -4034,7 +4026,6 @@ msgstr "Les modifications suivantes seront appliquées :"
 #: webshop/templates/pages/checkout.js:1538
 msgid "The loyalty points have been removed to apply shipping rule"
 msgstr "Les points de fidélité ont été retirés pour appliquer la règle de livraison"
-"Les points de fidélité ont été retirés pour appliquer la règle de livraison"
 
 #: webshop/templates/pages/checkout.js:1883
 msgid "The loyalty points have been removed to update item quantity"
@@ -4107,7 +4098,6 @@ msgstr "Cette commande a déjà été traitée. N° de commande : {0}"
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:284
 msgid "This will clear the sitemap cache and force regeneration. Continue?"
 msgstr "Ceci va vider le cache du sitemap et forcer la regénération. Continuer ?"
-"Ceci va vider le cache du sitemap et forcer la regénération. Continuer ?"
 
 #. Label of a Attach Image field in DocType 'Homepage Featured Product'
 #. Label of a Data field in DocType 'Website Item'
