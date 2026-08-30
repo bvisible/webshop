@@ -87,9 +87,9 @@
         {% endif %}
 
         <div class="mt-4 d-flex justify-content-between align-items-center">
-            <div class="form-check mb-3" id="terms-acceptance-container">
-                <input type="checkbox" class="form-check-input cursor-pointer" id="terms-acceptance" required>
-                <label class="form-check-label cursor-pointer" for="terms-acceptance">
+            <div class="form-check mb-3" id="terms-container-{{ submit_id }}">
+                <input type="checkbox" class="form-check-input cursor-pointer terms-acceptance" id="terms-{{ submit_id }}" required>
+                <label class="form-check-label cursor-pointer" for="terms-{{ submit_id }}">
                     {% if payment_context.terms_title and payment_context.display_specific_conditions %}
                         {{ _("I accept the") }} <a href="#terms-title" class="terms-link">{{ cgv_tc_name or _("terms and conditions") }}</a> & {{ _("I accept the") }} {{ _( payment_context.terms_title ) }}
                     {% else %}
@@ -130,7 +130,7 @@
     let installmentOptions = $('#{{ payment_context.payment_form_id }} .installment-option');
     let termsModal = $('#{{ payment_context.payment_form_id }} #termsModal');
     let termsLink = $('#{{ payment_context.payment_form_id }} .accept-terms');
-    let termsCheckbox = $('#{{ payment_context.payment_form_id }} #terms-acceptance');
+    let termsCheckbox = $('#{{ payment_context.payment_form_id }} .terms-acceptance');
     let paymentFormId = "{{ payment_context.form_id }}";
     const savedBirthday = localStorage.getItem('webshopsi_birthday');
     let isCleaningUp = false;
@@ -443,7 +443,7 @@
         submitButton.prop('disabled', false);
         submitButton.html('{{_("Validate my order")}}');
         // Re-enable button only if terms are still accepted
-        const termsAccepted = $('#{{ payment_context.payment_form_id }}').closest('.payment-method-item').find('#terms-acceptance').prop('checked');
+        const termsAccepted = $('#{{ payment_context.payment_form_id }}').closest('.payment-method-item').find('.terms-acceptance').prop('checked');
         if (!termsAccepted) {
             submitButton.prop('disabled', true);
         }

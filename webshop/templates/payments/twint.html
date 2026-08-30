@@ -4,9 +4,9 @@
         <div class="success payment-message twint-success-{{ submit_id }}" role="alert"></div>
     </div>
     <div class="mt-4 d-flex justify-content-between align-items-center">
-        <div class="form-check mb-3" id="terms-acceptance-container">
-            <input type="checkbox" class="form-check-input cursor-pointer" id="terms-acceptance" required>
-            <label class="form-check-label cursor-pointer" for="terms-acceptance">
+        <div class="form-check mb-3" id="terms-container-{{ submit_id }}">
+            <input type="checkbox" class="form-check-input cursor-pointer terms-acceptance" id="terms-{{ submit_id }}" required>
+            <label class="form-check-label cursor-pointer" for="terms-{{ submit_id }}">
                 {{ _("I accept the") }} <a href="#terms-title" class="terms-link">{{ cgv_tc_name or _("terms and conditions") }}</a>
             </label>
         </div>
@@ -39,7 +39,7 @@
         submitButton.prop('disabled', false);
         const originalButtonText = '{{_("Pay with TWINT")}} {{format_currency_value(amount, currency)|replace("\'", "\\\'")}}';
         submitButton.html(originalButtonText);
-        const termsAccepted = $('#' + formId).closest('.payment-method-item').find('#terms-acceptance').prop('checked');
+        const termsAccepted = $('#' + formId).closest('.payment-method-item').find('.terms-acceptance').prop('checked');
         if (!termsAccepted) submitButton.prop('disabled', true);
         if (window.checkout_manager && !window.checkout_manager._isResetting) {
             window.checkout_manager.stopPaymentProcessing();

@@ -212,7 +212,7 @@ test.describe('Conditions générales', () => {
 		test.skip(!(await allerJusquAuPaiement(page)), 'aucune méthode de livraison disponible');
 
 		const tuile = await remplirCarte(page, CARTES.acceptee);
-		const conditions = tuile.locator('#terms-acceptance').first();
+		const conditions = tuile.locator('.terms-acceptance').first();
 		test.skip((await conditions.count()) === 0, 'pas de case de conditions sur ce site');
 
 		//// La tuile doit être sélectionnée pour que le gestionnaire des

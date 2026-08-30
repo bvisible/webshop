@@ -848,7 +848,7 @@ frappe.ready(function() {
             //// Mettre à jour le bouton DE LA TUILE où l'on coche est à la fois
             //// plus simple et sans risque: le formulaire d'une tuile non
             //// sélectionnée est masqué, son bouton n'est pas atteignable.
-            $(document).on('change', '.payment-method-item #terms-acceptance', function() {
+            $(document).on('change', '.payment-method-item .terms-acceptance', function() {
                 const $container = $(this).closest('.payment-method-item');
                 if (!$container.length) return;
 
@@ -884,7 +884,7 @@ frappe.ready(function() {
             this.updatePaymentButtonState = function() {
                 $('.payment-method-item').each(function() {
                     const $item = $(this);
-                    const $checkbox = $item.find('#terms-acceptance');
+                    const $checkbox = $item.find('.terms-acceptance');
                     const $submitBtn = $item.find('.btn-submit-payment');
                     
                     if ($checkbox.length && $submitBtn.length) {
@@ -2525,7 +2525,7 @@ frappe.ready(function() {
                                 const validationButton = `
                                     <div class="payment-method-item selected frappe-card p-5 mb-3 d-flex justify-content-between align-items-center" data-method-id="direct_validation">
                                         <div class="form-check mb-3" id="terms-acceptance-container">
-                                            <input type="checkbox" class="form-check-input" id="terms-acceptance" required>
+                                            <input type="checkbox" class="form-check-input terms-acceptance" id="terms-acceptance" required>
                                             <label class="form-check-label" for="terms-acceptance">
                                                 ${__("I agree to the")} <a href="#terms-title" class="terms-link">${result.message.doc.tc_name || __("terms and conditions")}</a>
                                             </label>
@@ -3232,7 +3232,7 @@ frappe.ready(function() {
                 $('.payment-method-item').each(function() {
                     const $item = $(this);
                     const $submitBtn = $item.find('.btn-submit-payment');
-                    const $termsCheckbox = $item.find('#terms-acceptance');
+                    const $termsCheckbox = $item.find('.terms-acceptance');
                     
                     if ($item.hasClass('selected') && $termsCheckbox.prop('checked')) {
                         $submitBtn.prop('disabled', false);

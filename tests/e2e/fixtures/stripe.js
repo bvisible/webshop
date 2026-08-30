@@ -60,10 +60,14 @@ async function remplirCarte(page, numero, {nom = 'Test E2E', email = 'test.e2e@e
 //// customer too, not just for a test — and has been fixed in checkout.js, so
 //// the box is now a plain checkbox and check() is enough.
 ////
-//// #terms-acceptance is duplicated (one per payment method), so this is always
-//// scoped to the Stripe tile.
+//// Scoped to the Stripe tile, and matched by CLASS. The id used to be
+//// `terms-acceptance` on every method at once — five elements sharing one id,
+//// so each `<label for>` bound to the first box in the document and clicking
+//// Wallee's label ticked Facture's. The id is now keyed on the method
+//// (`terms-submit_wallee`); `.terms-acceptance` is what every tile has in
+//// common.
 async function accepterConditions(tuile) {
-	const cases = tuile.locator('#terms-acceptance');
+	const cases = tuile.locator('.terms-acceptance');
 	if ((await cases.count()) === 0) return;
 
 	const boite = cases.first();
@@ -76,7 +80,7 @@ async function accepterConditions(tuile) {
 //// Re-asserts the tile is still selected first. The payment step reloads its
 //// method list while the customer is filling the card in, and the tile can lose
 //// its `selected` class — at which point the terms handler, which is bound to
-//// `.payment-method-item.selected #terms-acceptance`, stops applying and the
+//// `.payment-method-item.selected .terms-acceptance`, stops applying and the
 //// Pay button is never enabled, with the form still sitting there fully filled.
 //// Seen in test as a disabled button on a completed form; a customer would see
 //// exactly the same thing.
