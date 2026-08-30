@@ -2649,6 +2649,20 @@ frappe.ready(function() {
                                 frappe.call({
                                     method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
                                     callback: (result) => {
+                                        //// Neoffice — ne rien imposer si le client a déjà
+                                        //// choisi. Ce callback arrive une à cinq secondes
+                                        //// après l'affichage des cartes, et il rappelait
+                                        //// handlePaymentMethodChange sans condition : un
+                                        //// client qui cliquait plus vite que le réseau
+                                        //// voyait son mode remplacé, sans un mot, par
+                                        //// celui de la facture. Il payait alors avec un
+                                        //// autre moyen que celui qu'il avait désigné.
+                                        //// `currentMethod` est posé par
+                                        //// handlePaymentMethodChange, donc sa présence
+                                        //// signifie exactement « quelqu'un a déjà choisi ».
+                                        if (this.currentMethod) {
+                                            return;
+                                        }
                                         if (result.message && result.message.doc && result.message.doc.payment_method) {
                                             const savedMethod = result.message.doc.payment_method;
                                             $(`#method_${savedMethod.replace(/[^a-zA-Z0-9]/g, '_')}`).prop('checked', true);
