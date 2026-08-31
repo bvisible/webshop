@@ -8,7 +8,8 @@
   "payment_gateway_account",
   "payment_terms_template",
   "template_path",
-  "use_payment_intent"
+  "use_payment_intent",
+  "restrict_payment_methods"
  ],
  "fields": [
   {
@@ -41,6 +42,13 @@
    "label": "Encaisser par le moteur d'intentions",
    "default": "0",
    "description": "//// Neoffice — laisser DÉCOCHÉ tant que la méthode n'a pas été éprouvée sur ce site : décoché, elle emprunte exactement le chemin qu'elle a toujours pris."
+  },
+  {
+   "depends_on": "use_payment_intent",
+   "description": "Comma-separated provider codes, e.g. <code>twint</code> or <code>visa,mastercard</code>. Leave empty to offer everything the account allows. Lets one gateway serve several tiles: name a second Payment Gateway Account after the same provider and restrict it here, and the shopper gets a TWINT tile and a card tile that both settle through it. Ignored by gateways that cannot filter.",
+   "fieldname": "restrict_payment_methods",
+   "fieldtype": "Data",
+   "label": "Restrict Payment Methods"
   }
  ],
  "istable": 1,

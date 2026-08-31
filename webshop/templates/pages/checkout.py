@@ -997,6 +997,14 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		return {"action": "legacy"}
 
 	montant = flt(devis.get("rounded_total") or devis.get("grand_total"))
+	#//// Neoffice — la restriction voyage en métadonnée, pas en configuration de
+	#//// canal : le canal est partagé par toutes les tuiles du fournisseur, et
+	#//// une restriction posée là s'appliquerait aussi à celles qui ne la
+	#//// veulent pas. Les pilotes qui savent filtrer la lisent
+	#//// (`payments/drivers/payrexx/web_driver.py` la relit même dans la réponse
+	#//// et journalise si la passerelle l'a laissée tomber) ; les autres
+	#//// l'ignorent sans bruit.
+	moyens = _restricted_methods(payment_gateway_account)
 	intention = create_intent(
 		provider=couple[0],
 		channel=couple[1],
@@ -1005,6 +1013,7 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		currency=devis.currency or "CHF",
 		reference_doctype="Payment Request",
 		reference_name=demande["payment_request_id"],
+		metadata={"payment_methods": moyens} if moyens else None,
 	)
 	charge = intention.get("next_action_payload")
 	if isinstance(charge, str):
@@ -1108,6 +1117,29 @@ def _intent_is_wanted(payment_gateway_account: str) -> bool:
 		if row.payment_gateway_account == payment_gateway_account:
 			return bool(row.get("use_payment_intent"))
 	return False
+
+
+def _restricted_methods(payment_gateway_account: str) -> list[str]:
+	"""//// Neoffice — les moyens de paiement auxquels cette tuile se limite.
+
+	Ce qui permet à une seule passerelle de tenir plusieurs tuiles : on nomme un
+	second Payment Gateway Account d'après le même fournisseur et on restreint
+	celui-ci à `twint`, l'autre à `visa,mastercard`. Le client voit deux tuiles
+	distinctes — « TWINT » et « Carte » — et les deux s'encaissent par le même
+	fournisseur, au lieu d'une tuile unique qui le renvoie vers une page où il
+	doit encore choisir.
+
+	Vide = tout ce que le compte autorise, c'est-à-dire le comportement actuel.
+	"""
+	try:
+		settings = frappe.get_cached_doc("Webshop Settings")
+	except Exception:
+		return []
+	for row in settings.get("payment_methods") or []:
+		if row.payment_gateway_account == payment_gateway_account:
+			brut = (row.get("restrict_payment_methods") or "").strip()
+			return [m.strip() for m in brut.split(",") if m.strip()]
+	return []
 
 
 def _intent_binding(kind: str):
