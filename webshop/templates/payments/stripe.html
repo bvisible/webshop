@@ -22,8 +22,8 @@
         <div class="form-check mb-3" id="terms-container-{{ submit_id }}">
             <input type="checkbox" class="form-check-input cursor-pointer terms-acceptance" id="terms-{{ submit_id }}" required>
             <label class="form-check-label cursor-pointer" for="terms-{{ submit_id }}">
-                {{ _("I accept the") }} <a href="#terms-title" class="terms-link">{{ cgv_tc_name or _("terms and conditions") }}</a>
-            </label>
+                {{ _("I accept the") }}</label>
+            <a href="#terms-title" class="terms-link">{{ cgv_tc_name or _("terms and conditions") }}</a>
         </div>
         <div class="d-flex justify-content-end">
             <button type="submit" 
