@@ -2824,11 +2824,20 @@ frappe.ready(function() {
         //// celui que le client connaît et que le style suive sans rien ajouter.
         wrapWithTerms(inner, cleanId) {
             const id = 'terms-intent-' + cleanId;
+            //// Neoffice — le lien est HORS du libellé, comme dans les six
+            //// gabarits de paiement. Un <a> à l'intérieur d'un <label> vole le
+            //// clic : le navigateur suit le lien au lieu de cocher. Mesuré ici
+            //// avant correction — le lien occupait 164 des 262 pixels du
+            //// libellé et son centre tombait dessus, si bien que cliquer
+            //// « J'accepte les conditions générales » ne cochait rien et
+            //// l'action restait cachée. Chacun fait maintenant une seule
+            //// chose : le libellé coche, le lien ouvre les conditions.
             return '<div class="form-check mb-3">' +
                 '<input type="checkbox" class="form-check-input cursor-pointer terms-acceptance" id="' + id + '" required>' +
                 '<label class="form-check-label cursor-pointer" for="' + id + '">' +
-                __('I accept the') + ' <a href="#terms-title" class="terms-link">' +
-                __('terms and conditions') + '</a></label></div>' +
+                __('I accept the') + '</label> ' +
+                '<a href="#terms-title" class="terms-link">' +
+                __('terms and conditions') + '</a></div>' +
                 '<div class="intent-action" style="display:none">' + inner + '</div>';
         }
 
