@@ -2798,18 +2798,64 @@ frappe.ready(function() {
         //// Neoffice — l'écran d'une méthode passée aux intentions. Rend `true`
         //// s'il a su afficher quelque chose ; `false` renvoie au gabarit.
         showIntentScreen(a, $form, cleanId) {
+            //// Neoffice — les conditions générales, avant l'action.
+            ////
+            //// Une méthode passée aux intentions est dessinée ici et non par son
+            //// gabarit — et le gabarit était le seul endroit qui portait la case
+            //// à cocher. Résultat : sur ce chemin, le client payait sans avoir
+            //// rien accepté, alors que c'est impossible sur toutes les autres
+            //// tuiles. Cela valait pour TWINT depuis sa bascule, et pour toute
+            //// tuile basculée ensuite.
+            ////
+            //// Le verrou est ici, comme partout ailleurs sur cette page : rien
+            //// ne l'enregistre côté serveur, pour aucune passerelle. C'est une
+            //// lacune connue et plus large que ce correctif ; celui-ci remet ce
+            //// chemin au niveau des autres, il ne prétend pas la combler.
+            const rendu = this.renderIntentAction(a, cleanId);
+            if (!rendu) return false;
+            $form.html(this.wrapWithTerms(rendu, cleanId)).show();
+            this.bindIntentTerms($form);
+            if (a.action === 'qr') this.watchIntent(a.intent, $form);
+            return true;
+        }
+
+        //// Neoffice — enveloppe une action d'intention dans la même case à cocher
+        //// que les gabarits : mêmes classes, même lien, pour que l'écran soit
+        //// celui que le client connaît et que le style suive sans rien ajouter.
+        wrapWithTerms(inner, cleanId) {
+            const id = 'terms-intent-' + cleanId;
+            return '<div class="form-check mb-3">' +
+                '<input type="checkbox" class="form-check-input cursor-pointer terms-acceptance" id="' + id + '" required>' +
+                '<label class="form-check-label cursor-pointer" for="' + id + '">' +
+                __('I accept the') + ' <a href="#terms-title" class="terms-link">' +
+                __('terms and conditions') + '</a></label></div>' +
+                '<div class="intent-action" style="display:none">' + inner + '</div>';
+        }
+
+        //// Neoffice — l'action reste cachée tant que la case n'est pas cochée.
+        //// Cachée plutôt que désactivée : un QR visible EST le moyen de payer,
+        //// le griser ne l'empêcherait pas d'être scanné.
+        bindIntentTerms($form) {
+            const $case = $form.find('.terms-acceptance');
+            const $action = $form.find('.intent-action');
+            const suivre = () => $action.toggle($case.prop('checked'));
+            $case.off('change.intent').on('change.intent', suivre);
+            suivre();
+        }
+
+        //// Neoffice — le contenu de l'action, sans les conditions.
+        renderIntentAction(a, cleanId) {
             if (a.action === 'redirect' && a.url) {
-                $form.html('<div class="text-center py-4"><a class="btn btn-primary" href="' +
-                    frappe.utils.escape_html(a.url) + '">' + __('Continue to payment') + '</a></div>').show();
-                return true;
+                return '<div class="text-center py-4"><a class="btn btn-primary" href="' +
+                    frappe.utils.escape_html(a.url) + '">' + __('Continue to payment') + '</a></div>';
             }
             if (a.action === 'qr' && a.payload && a.payload.qr_svg) {
                 const code = a.payload.pairing_token
                     ? '<p class="text-muted mt-2">' + __('Or type {0} in the app.', [a.payload.pairing_token]) + '</p>'
                     : '';
-                $form.html('<div class="text-center py-4"><div class="d-inline-block p-3 bg-white border rounded">' +
+                const html = '<div class="text-center py-4"><div class="d-inline-block p-3 bg-white border rounded">' +
                     a.payload.qr_svg + '</div>' + code +
-                    '<p class="text-muted mt-3 intent-attente">' + __('Waiting for your payment…') + '</p></div>').show();
+                    '<p class="text-muted mt-3 intent-attente">' + __('Waiting for your payment…') + '</p></div>';
                 //// Neoffice — un QR ne redirige pas : sans surveillance, le client
                 //// paie sur son téléphone et la page reste figée pour toujours.
                 //// Le signal principal est l'évènement `payment.intent.<nom>.updated`
@@ -2817,10 +2863,9 @@ frappe.ready(function() {
                 //// dialogue TWINT écoute — et le sondage n'est qu'un filet si la
                 //// socket tombe. C'est la Payment Request qui tranche, pas
                 //// l'intention : elle seule dit que la commande est passée.
-                this.watchIntent(a.intent, $form);
-                return true;
+                return html;
             }
-            return false;
+            return null;
         }
 
         //// Neoffice — la surveillance d'une intention, jusqu'à la commande.
