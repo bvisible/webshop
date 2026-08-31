@@ -938,6 +938,23 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 		frappe.log_error("payment_methods_global_error", f"Error retrieving payment methods: {str(e)}")
 		return {"error": True, "message": str(e)}
 
+def _metadonnees_intention(moyens, devis) -> dict | None:  # noqa: ANN001
+	"""//// Neoffice — ce qu'on transmet au pilote, et rien de plus.
+
+	Deux choses seulement, et chacune pour une raison précise : la restriction de
+	moyens (une tuile par méthode) et les coordonnées déjà connues (la page
+	hébergée les exige). `None` quand il n'y a rien à dire, pour que le pilote
+	garde son comportement par défaut.
+	"""
+	meta = {}
+	if moyens:
+		meta["payment_methods"] = moyens
+	champs = _coordonnees(devis)
+	if champs:
+		meta["fields"] = champs
+	return meta or None
+
+
 @frappe.whitelist(allow_guest=True)
 def start_cart_intent(payment_gateway_account: str) -> dict:
 	"""//// Neoffice — encaisser le panier par le moteur d'INTENTIONS de `payments`.
@@ -1019,7 +1036,7 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		currency=devis.currency or "CHF",
 		reference_doctype="Payment Request",
 		reference_name=demande["payment_request_id"],
-		metadata={"payment_methods": moyens} if moyens else None,
+		metadata=_metadonnees_intention(moyens, devis),
 	)
 	charge = intention.get("next_action_payload")
 	if isinstance(charge, str):
@@ -1153,6 +1170,27 @@ def _restricted_methods(payment_gateway_account: str) -> list[str]:
 			brut = (row.get("restrict_payment_methods") or "").strip()
 			return [m.strip() for m in brut.split(",") if m.strip()]
 	return []
+
+
+def _coordonnees(devis) -> dict:  # noqa: ANN001
+	"""//// Neoffice — ce que la page hébergée doit déjà savoir du client.
+
+	Payrexx rend un champ e-mail **obligatoire** et refuse de soumettre sans lui
+	— « Veuillez remplir le champ E-mail » — alors que le client vient de le
+	donner au tunnel. Sans préremplissage, on le lui redemande ; et celui qui ne
+	voit pas le petit message rouge ne peut tout simplement pas payer, sans
+	comprendre pourquoi.
+
+	Forme attendue par l'API : `{"email": {"value": "..."}}`. On n'envoie que ce
+	qu'on a — un champ vide vaut moins que pas de champ du tout.
+	"""
+	valeurs = {
+		"email": devis.get("contact_email"),
+		"forename": devis.get("contact_person_name") or devis.get("customer_name"),
+	}
+	if not valeurs["forename"] and devis.get("contact_person"):
+		valeurs["forename"] = frappe.db.get_value("Contact", devis.contact_person, "first_name")
+	return {k: {"value": v} for k, v in valeurs.items() if v}
 
 
 def _rendu_integre(payment_gateway_account: str) -> bool:
