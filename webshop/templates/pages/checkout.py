@@ -1042,7 +1042,14 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 	})
 
 	if quoi == "redirect_to_url" and charge.get("url"):
-		return {"action": "redirect", "url": charge["url"], "intent": intention.get("intent_name")}
+		return {
+			"action": "redirect",
+			"url": charge["url"],
+			"intent": intention.get("intent_name"),
+			#//// Neoffice — l'écran décide d'encadrer ou de rediriger ; le serveur
+			#//// se contente de dire ce que le commerçant a choisi pour cette tuile.
+			"inline": _rendu_integre(payment_gateway_account),
+		}
 	if quoi == "display_qr_payload":
 		return {"action": "qr", "intent": intention.get("intent_name"), "payload": charge,
 			"amount": montant, "currency": devis.currency}
@@ -1146,6 +1153,27 @@ def _restricted_methods(payment_gateway_account: str) -> list[str]:
 			brut = (row.get("restrict_payment_methods") or "").strip()
 			return [m.strip() for m in brut.split(",") if m.strip()]
 	return []
+
+
+def _rendu_integre(payment_gateway_account: str) -> bool:
+	"""//// Neoffice — cette tuile affiche-t-elle la page de paiement sur place ?
+
+	Une saisie de carte est un formulaire : rien n'oblige à quitter la boutique
+	pour le remplir, et la page hébergée de Payrexx s'encadre sans broncher
+	(vérifié le 2026-08-31 : ni `X-Frame-Options` ni `frame-ancestors`, et les
+	champs carte s'affichent bien depuis notre domaine).
+
+	À laisser décoché pour ce qui bascule vers une application : TWINT passe la
+	main au téléphone, et il ne peut pas le faire depuis un cadre.
+	"""
+	try:
+		settings = frappe.get_cached_doc("Webshop Settings")
+	except Exception:
+		return False
+	for row in settings.get("payment_methods") or []:
+		if row.payment_gateway_account == payment_gateway_account:
+			return bool(row.get("render_inline"))
+	return False
 
 
 def _intent_binding(kind: str):

@@ -2855,6 +2855,28 @@ frappe.ready(function() {
         //// Neoffice — le contenu de l'action, sans les conditions.
         renderIntentAction(a, cleanId) {
             if (a.action === 'redirect' && a.url) {
+                //// Neoffice — la saisie de carte reste sur la boutique.
+                ////
+                //// Un formulaire de carte n'a aucune raison d'exiger de quitter le
+                //// site : le client perd le fil, revient sur une page de retour, et
+                //// se demande si sa commande existe encore. La page hébergée de
+                //// Payrexx s'encadre sans rien refuser (ni `X-Frame-Options` ni
+                //// `frame-ancestors`, vérifié le 2026-08-31), et ses champs carte
+                //// s'affichent depuis notre domaine.
+                ////
+                //// Réservé aux méthodes qui sont des formulaires. TWINT bascule vers
+                //// le téléphone et ne peut pas le faire depuis un cadre — sa tuile
+                //// garde donc le lien, et c'est le commerçant qui tranche, tuile par
+                //// tuile, avec `render_inline`.
+                if (a.inline) {
+                    return '<div class="intent-frame py-2">' +
+                        '<iframe src="' + frappe.utils.escape_html(a.url) + '" ' +
+                        'style="width:100%; min-height:620px; border:0" ' +
+                        'allow="payment *" title="' + __('Payment') + '"></iframe>' +
+                        '<p class="text-muted small mt-2 mb-0 text-center">' +
+                        '<a href="' + frappe.utils.escape_html(a.url) + '" target="_blank" rel="noopener">' +
+                        __('Open the payment page in a new tab') + '</a></p></div>';
+                }
                 return '<div class="text-center py-4"><a class="btn btn-primary" href="' +
                     frappe.utils.escape_html(a.url) + '">' + __('Continue to payment') + '</a></div>';
             }

@@ -5589,3 +5589,11 @@ msgstr "Le contact avec le serveur de paiement a été perdu. Vérifiez vos comm
 #: webshop/templates/payments/stripe.html
 msgid "The payment could not be completed. Please try again."
 msgstr "Le paiement n'a pas pu aboutir. Veuillez réessayer."
+
+#: webshop/templates/pages/checkout.js
+msgid "Open the payment page in a new tab"
+msgstr "Ouvrir la page de paiement dans un nouvel onglet"
+
+#: webshop/templates/pages/checkout.js
+msgid "Payment"
+msgstr "Paiement"

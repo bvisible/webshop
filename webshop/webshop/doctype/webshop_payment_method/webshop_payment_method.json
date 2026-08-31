@@ -9,7 +9,8 @@
   "payment_terms_template",
   "template_path",
   "use_payment_intent",
-  "restrict_payment_methods"
+  "restrict_payment_methods",
+  "render_inline"
  ],
  "fields": [
   {
@@ -49,6 +50,14 @@
    "fieldname": "restrict_payment_methods",
    "fieldtype": "Data",
    "label": "Restrict Payment Methods"
+  },
+  {
+   "default": "0",
+   "depends_on": "use_payment_intent",
+   "description": "Show the payment page inside the checkout instead of sending the shopper away. Suits card entry, which is a form. Leave off for methods that hand over to an app — TWINT switches to the phone, and it cannot do that from inside a frame.",
+   "fieldname": "render_inline",
+   "fieldtype": "Check",
+   "label": "Render Payment Page Inline"
   }
  ],
  "istable": 1,
