@@ -30,6 +30,12 @@ _LIBELLES_DIALOGUES = (
 	#//// Neoffice — address book, rendered in JS.
 	"New address", "Default", "Delivery",
 	"This address could not be selected. Please try again.",
+	#//// Neoffice — the terms line of an intent-engine tile is built in JS
+	#//// (wrapWithTerms), so its words travel through here like the rest. Without
+	#//// them the shopper read « I accept the conditions générales » — half
+	#//// English, in the middle of a French checkout, right above the button that
+	#//// takes their money. Seen on the Payrexx tiles, 31.08.2026.
+	"I accept the", "terms and conditions", "Continue to payment",
 )
 
 
