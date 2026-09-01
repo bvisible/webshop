@@ -1,5 +1,7 @@
 import frappe
 import json
+import os
+from functools import lru_cache
 from frappe import _
 from frappe.utils import flt, get_link_to_form
 from webshop.webshop.utils.utils import format_currency_value
@@ -12,11 +14,11 @@ from erpnext.accounts.doctype.shipping_rule.shipping_rule import ShippingRule
 
 no_cache = 1
 
-#//// Neoffice — les libellés que les dialogues de Frappe posent eux-mêmes.
-#//// Ils passent par `__()` côté navigateur, donc par un dictionnaire que la
-#//// page publique ne reçoit jamais : ils s'affichaient en anglais au milieu
-#//// d'un tunnel francophone. On les sème dans le gabarit.
-_LIBELLES_DIALOGUES = (
+#//// Neoffice — the labels Frappe's own dialogs put on screen.
+#//// They go through `__()` in the browser, hence through a dictionary a public
+#//// page never receives: they showed up in English in the middle of a French
+#//// checkout. We seed them into the template.
+_JS_MESSAGES = (
 	"Yes", "No", "Close", "Cancel", "Confirm", "Error", "Message", "Not permitted",
 	#//// Neoffice — the order summary is rebuilt in JS after every change, so
 	#//// its labels need to travel to the page like the dialog ones.
@@ -41,10 +43,56 @@ _LIBELLES_DIALOGUES = (
 
 #//// Neoffice — added helper (no upstream equivalent).
 #////
+#//// The TWINT overlay lives in the `payments` app (`twint_dialog.js`, injected
+#//// site-wide through `web_include_js`) and draws itself entirely in JS, so its
+#//// `__()` calls resolve against `frappe._messages` — and a portal page only
+#//// ever holds what this controller hands it. The whole dialog therefore read
+#//// English on a French shop, its translations present and correct in the app's
+#//// own fr.po but never sent to the page. Seen on osiris, 01.09.2026.
+#////
+#//// Read from the file rather than listed by hand: a hand-kept list rots the
+#//// moment someone edits the overlay, and it rots silently — one more English
+#//// line in a French checkout, noticed by a customer and not by us.
+@lru_cache(maxsize=1)
+def _payment_dialog_messages() -> tuple[tuple[str, str | None], ...]:
+	"""Return the (message, context) pairs the TWINT overlay asks `__()` for."""
+	try:
+		path = frappe.get_app_path("payments", "public", "js", "twint_dialog.js")
+	except Exception:
+		return ()  # payments not installed — the overlay is not on the page either
+
+	if not os.path.exists(path):
+		return ()
+
+	from frappe.translate import get_messages_from_file
+
+	seen: dict[tuple[str, str | None], None] = {}
+	for _path, message, context, _line in get_messages_from_file(path):
+		if message:
+			seen.setdefault((message, context), None)
+	return tuple(seen)
+
+
+#//// Neoffice — added helper (no upstream equivalent).
+#////
+#//// Builds the dictionary the template seeds `frappe._messages` with. A message
+#//// carrying a context is keyed "message:context", which is the exact spelling
+#//// frappe/public/js/frappe/translate.js looks up — get it wrong and the string
+#//// falls back to English while looking perfectly translated in the .po.
+def _js_message_dict() -> dict:
+	messages = {m: _(m) for m in _JS_MESSAGES}
+	for message, context in _payment_dialog_messages():
+		key = f"{message}:{context}" if context else message
+		messages[key] = _(message, context=context) if context else _(message)
+	return messages
+
+
+#//// Neoffice — added helper (no upstream equivalent).
+#////
 #//// Sends an anonymous visitor to the sign-in page when the site they are on is
 #//// flagged b2b_only. Returns silently everywhere else, so a fleet without
 #//// Website Profiles — or a plain B2C site — behaves exactly as before.
-def _exiger_connexion_sur_site_professionnel():
+def _require_login_on_b2b_site():
 	if frappe.session.user != "Guest":
 		return
 
@@ -52,24 +100,24 @@ def _exiger_connexion_sur_site_professionnel():
 	if not profile or not profile.get("b2b_only"):
 		return
 
-	#//// Vers /login, jamais vers /app: un client portail n'a pas le desk.
+	#//// To /login, never to /app: a portal customer has no desk.
 	frappe.local.flags.redirect_location = "/login?redirect-to=/checkout"
 	raise frappe.Redirect
 
 
 def get_context(context):
 	"""Context for the payment page"""
-	#//// Neoffice multi-site — un site réservé aux professionnels exige d'être
-	#//// connecté pour COMMANDER.
+	#//// Neoffice multi-site — a trade-only site requires a signed-in visitor
+	#//// in order to ORDER.
 	#////
-	#//// Le contrôle existant (check_website_profile_login) ne porte que sur la
-	#//// connexion, et exempte explicitement Guest: un visiteur anonyme pouvait
-	#//// donc remplir un panier sur le domaine B2B, atteindre ce tunnel et le
-	#//// dérouler — aux tarifs réservés aux revendeurs. Vérifié sur osiris.
+	#//// The existing check (check_website_profile_login) only covers signing in,
+	#//// and explicitly exempts Guest: an anonymous visitor could therefore fill a
+	#//// cart on the B2B domain, reach this funnel and walk it through — at the
+	#//// prices reserved for resellers. Verified on osiris.
 	#////
-	#//// Naviguer reste permis (le catalogue sert de vitrine); c'est la commande
-	#//// qui demande un compte approuvé.
-	_exiger_connexion_sur_site_professionnel()
+	#//// Browsing stays allowed (the catalogue doubles as a shop window); it is
+	#//// ordering that requires an approved account.
+	_require_login_on_b2b_site()
 
 	#//// Neoffice — Frappe derives context.title from the route when nobody
 	#//// sets it, and never translates it; themes print it as the visible
@@ -80,7 +128,7 @@ def get_context(context):
 	#//// made the page heading and the breadcrumb read "Paiement" while the
 	#//// shopper stood on step 2, next to a step 4 also labelled "Paiement".
 	context.title = _("Your order")
-	context.js_messages = frappe.as_json({m: _(m) for m in _LIBELLES_DIALOGUES})
+	context.js_messages = frappe.as_json(_js_message_dict())
 	#//// Neoffice — the one thing client-side currency formatting cannot know
 	#//// on its own. Seeded once instead of being re-asked through a round trip
 	#//// for every amount displayed.
@@ -938,7 +986,7 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 		frappe.log_error("payment_methods_global_error", f"Error retrieving payment methods: {str(e)}")
 		return {"error": True, "message": str(e)}
 
-def _metadonnees_intention(moyens, devis) -> dict | None:  # noqa: ANN001
+def _intent_metadata(moyens, devis) -> dict | None:  # noqa: ANN001
 	"""//// Neoffice — ce qu'on transmet au pilote, et rien de plus.
 
 	Deux choses seulement, et chacune pour une raison précise : la restriction de
@@ -949,7 +997,7 @@ def _metadonnees_intention(moyens, devis) -> dict | None:  # noqa: ANN001
 	meta = {}
 	if moyens:
 		meta["payment_methods"] = moyens
-	champs = _coordonnees(devis)
+	champs = _contact_fields(devis)
 	if champs:
 		meta["fields"] = champs
 	return meta or None
@@ -1036,7 +1084,7 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		currency=devis.currency or "CHF",
 		reference_doctype="Payment Request",
 		reference_name=demande["payment_request_id"],
-		metadata=_metadonnees_intention(moyens, devis),
+		metadata=_intent_metadata(moyens, devis),
 	)
 	charge = intention.get("next_action_payload")
 	if isinstance(charge, str):
@@ -1056,11 +1104,11 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		"Or type {0} in the app.": _("Or type {0} in the app."),
 		"Waiting for your payment…": _("Waiting for your payment…"),
 		"Payment not received. You can try again.": _("Payment not received. You can try again."),
-		#//// Neoffice — les libellés de l'écran d'intention passent par ici pour la
-		#//// même raison que ceux du QR juste au-dessus : le dictionnaire du
-		#//// navigateur ne contient que ce qu'un appel lui a déjà envoyé, et ces
-		#//// chaînes-là vivent dans un JS rendu par Jinja que l'extracteur ne voit
-		#//// pas. Sans elles, un tunnel francophone lit « Accept the terms… ».
+		#//// Neoffice — the intent screen's labels travel through here for the same
+		#//// reason as the QR ones just above: the browser dictionary holds only
+		#//// what some call already sent it, and these strings live in JS rendered
+		#//// by Jinja, which the extractor never sees. Without them a French
+		#//// checkout reads "Accept the terms…".
 		"Accept the terms and conditions to pay": _("Accept the terms and conditions to pay"),
 		"Accept the terms and conditions below to pay": _(
 			"Accept the terms and conditions below to pay"
@@ -1080,9 +1128,9 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 			"action": "redirect",
 			"url": charge["url"],
 			"intent": intention.get("intent_name"),
-			#//// Neoffice — l'écran décide d'encadrer ou de rediriger ; le serveur
-			#//// se contente de dire ce que le commerçant a choisi pour cette tuile.
-			"inline": _rendu_integre(payment_gateway_account),
+			#//// Neoffice — the screen decides whether to frame or to redirect; the
+			#//// server merely states what the merchant chose for this tile.
+			"inline": _renders_inline(payment_gateway_account),
 		}
 	if quoi == "display_qr_payload":
 		return {"action": "qr", "intent": intention.get("intent_name"), "payload": charge,
@@ -1189,7 +1237,7 @@ def _restricted_methods(payment_gateway_account: str) -> list[str]:
 	return []
 
 
-def _coordonnees(devis) -> dict:  # noqa: ANN001
+def _contact_fields(devis) -> dict:  # noqa: ANN001
 	"""//// Neoffice — ce que la page hébergée doit déjà savoir du client.
 
 	Payrexx rend un champ e-mail **obligatoire** et refuse de soumettre sans lui
@@ -1210,7 +1258,7 @@ def _coordonnees(devis) -> dict:  # noqa: ANN001
 	return {k: {"value": v} for k, v in valeurs.items() if v}
 
 
-def _rendu_integre(payment_gateway_account: str) -> bool:
+def _renders_inline(payment_gateway_account: str) -> bool:
 	"""//// Neoffice — cette tuile affiche-t-elle la page de paiement sur place ?
 
 	Une saisie de carte est un formulaire : rien n'oblige à quitter la boutique
