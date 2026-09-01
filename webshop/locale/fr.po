@@ -5597,3 +5597,19 @@ msgstr "Ouvrir la page de paiement dans un nouvel onglet"
 #: webshop/templates/pages/checkout.js
 msgid "Payment"
 msgstr "Paiement"
+
+#: webshop/templates/pages/checkout.js
+msgid "The shop did not answer. This is usually brief — wait a moment and try again."
+msgstr "La boutique n'a pas répondu. C'est généralement bref — patientez un instant et réessayez."
+
+#: webshop/templates/pages/checkout.js
+msgid "You are not allowed to do this. Try signing in again."
+msgstr "Vous n'avez pas le droit de faire cela. Essayez de vous reconnecter."
+
+#: webshop/templates/pages/checkout.js
+msgid "Accept the terms and conditions to pay"
+msgstr "Acceptez les conditions générales pour payer"
+
+#: webshop/templates/pages/checkout.js
+msgid "Please accept the terms and conditions first."
+msgstr "Veuillez d'abord accepter les conditions générales."

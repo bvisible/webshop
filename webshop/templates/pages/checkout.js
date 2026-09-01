@@ -2838,16 +2838,51 @@ frappe.ready(function() {
                 __('I accept the') + '</label> ' +
                 '<a href="#terms-title" class="terms-link">' +
                 __('terms and conditions') + '</a></div>' +
-                '<div class="intent-action" style="display:none">' + inner + '</div>';
+                '<div class="intent-action" style="position:relative">' +
+                '<div class="intent-voile" style="position:absolute; inset:0; z-index:2; ' +
+                'background:rgba(255,255,255,.72); display:flex; align-items:center; ' +
+                'justify-content:center; text-align:center; padding:1rem">' +
+                '<span class="text-muted">' + __('Accept the terms and conditions to pay') + '</span>' +
+                '</div>' + inner + '</div>';
         }
 
         //// Neoffice — l'action reste cachée tant que la case n'est pas cochée.
         //// Cachée plutôt que désactivée : un QR visible EST le moyen de payer,
         //// le griser ne l'empêcherait pas d'être scanné.
+        //// Neoffice — l'action se voit, mais ne s'utilise pas tant que les
+        //// conditions ne sont pas acceptées.
+        ////
+        //// Elle était simplement cachée : on cliquait une tuile et on ne voyait
+        //// qu'une case, sans savoir ce qui allait apparaître. Les autres tuiles
+        //// font l'inverse — le formulaire est là, seul le bouton est grisé — et
+        //// c'est ce qu'un client comprend.
+        ////
+        //// Un cadre de paiement ne peut pas être seulement grisé : il resterait
+        //// utilisable. On le laisse donc voilé et inerte sous un message, ce qui
+        //// montre ce qui vient sans permettre de payer.
         bindIntentTerms($form) {
             const $case = $form.find('.terms-acceptance');
             const $action = $form.find('.intent-action');
-            const suivre = () => $action.toggle($case.prop('checked'));
+            if (!$action.length) return;
+
+            $action.show();
+            const $voile = $action.find('.intent-voile');
+            const suivre = () => {
+                const accepte = $case.prop('checked');
+                $action.toggleClass('intent-bloquee', !accepte);
+                $action.find('a.btn, button.btn').toggleClass('disabled', !accepte)
+                    .attr('aria-disabled', accepte ? null : 'true');
+                $voile.toggle(!accepte);
+            };
+            //// Un clic sur l'action bloquée doit dire POURQUOI. Sans ça le client
+            //// clique dans le vide et conclut que la boutique est cassée.
+            $action.off('click.intent').on('click.intent', 'a.btn, button.btn, .intent-voile', (e) => {
+                if (!$case.prop('checked')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    frappe.msgprint(__('Please accept the terms and conditions first.'));
+                }
+            });
             $case.off('change.intent').on('change.intent', suivre);
             suivre();
         }
@@ -2872,7 +2907,7 @@ frappe.ready(function() {
                     return '<div class="intent-frame py-2">' +
                         '<iframe src="' + frappe.utils.escape_html(a.url) + '" ' +
                         'style="width:100%; min-height:620px; border:0" ' +
-                        'allow="payment *" title="' + __('Payment') + '"></iframe>' +
+                        'allow="payment" title="' + __('Payment') + '"></iframe>' +
                         '<p class="text-muted small mt-2 mb-0 text-center">' +
                         '<a href="' + frappe.utils.escape_html(a.url) + '" target="_blank" rel="noopener">' +
                         __('Open the payment page in a new tab') + '</a></p></div>';

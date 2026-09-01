@@ -232,6 +232,25 @@ if (!window.frappeMockLoaded && typeof frappe === 'undefined') {
                 xhr.setRequestHeader("X-Frappe-CMD", opts.args.cmd);
             }
             
+            //// Neoffice — un seul message d'indisponibilité à la fois.
+            ////
+            //// Une page de tunnel enchaîne plusieurs appels ; quand le serveur
+            //// est momentanément absent, ils échouent tous. Sans ce garde-fou le
+            //// client reçoit une modale par appel, ce qui donne l'impression que
+            //// tout est cassé alors qu'il s'agit d'un seul incident.
+            if (typeof window.webshop_signaler_indisponible !== "function") {
+                let _derniere = 0;
+                window.webshop_signaler_indisponible = function () {
+                    const maintenant = Date.now();
+                    if (maintenant - _derniere < 10000) return;
+                    _derniere = maintenant;
+                    frappe.msgprint &&
+                        frappe.msgprint(
+                            __("The shop did not answer. This is usually brief — wait a moment and try again.")
+                        );
+                };
+            }
+
             // Handle response
             xhr.onload = function() {
                 let data = {};
@@ -252,13 +271,24 @@ if (!window.frappeMockLoaded && typeof frappe === 'undefined') {
                     if (opts.statusCode && opts.statusCode[404]) {
                         opts.statusCode[404]();
                     } else {
-                        frappe.msgprint && frappe.msgprint(__("Not found"));
+                        //// Neoffice — « Not found » ne dit rien à un client.
+                        ////
+                        //// Un 404 sur un appel de la boutique veut dire que le
+                        //// serveur n'a pas répondu — typiquement pendant un
+                        //// redémarrage : la méthode n'existe pas le temps que les
+                        //// workers rechargent. Le client, lui, voyait « Not found »
+                        //// sans savoir quoi en faire, et autant de fois qu'il avait
+                        //// cliqué : quatre modales empilées pour un incident d'une
+                        //// seconde. On dit ce qui se passe et quoi faire, une fois.
+                        webshop_signaler_indisponible();
                     }
                 } else if (xhr.status === 403) {
                     if (opts.statusCode && opts.statusCode[403]) {
                         opts.statusCode[403]();
                     } else {
-                        frappe.msgprint && frappe.msgprint(__("Not permitted"));
+                        frappe.msgprint && frappe.msgprint(
+                            __("You are not allowed to do this. Try signing in again.")
+                        );
                     }
                 } else if (opts.statusCode && opts.statusCode[xhr.status]) {
                     opts.statusCode[xhr.status]();

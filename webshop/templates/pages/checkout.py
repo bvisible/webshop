@@ -1056,6 +1056,17 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		"Or type {0} in the app.": _("Or type {0} in the app."),
 		"Waiting for your payment…": _("Waiting for your payment…"),
 		"Payment not received. You can try again.": _("Payment not received. You can try again."),
+		#//// Neoffice — les libellés de l'écran d'intention passent par ici pour la
+		#//// même raison que ceux du QR juste au-dessus : le dictionnaire du
+		#//// navigateur ne contient que ce qu'un appel lui a déjà envoyé, et ces
+		#//// chaînes-là vivent dans un JS rendu par Jinja que l'extracteur ne voit
+		#//// pas. Sans elles, un tunnel francophone lit « Accept the terms… ».
+		"Accept the terms and conditions to pay": _("Accept the terms and conditions to pay"),
+		"Please accept the terms and conditions first.": _(
+			"Please accept the terms and conditions first."
+		),
+		"Open the payment page in a new tab": _("Open the payment page in a new tab"),
+		"Payment": _("Payment"),
 	})
 
 	if quoi == "redirect_to_url" and charge.get("url"):
