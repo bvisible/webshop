@@ -5613,3 +5613,11 @@ msgstr "Acceptez les conditions générales pour payer"
 #: webshop/templates/pages/checkout.js
 msgid "Please accept the terms and conditions first."
 msgstr "Veuillez d'abord accepter les conditions générales."
+
+#: webshop/templates/pages/checkout.js
+msgid "By paying, I accept the"
+msgstr "En payant, j'accepte les"
+
+#: webshop/templates/pages/checkout.js
+msgid "Accept the terms and conditions below to pay"
+msgstr "Acceptez les conditions générales ci-dessous pour payer"

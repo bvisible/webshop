@@ -2832,23 +2832,29 @@ frappe.ready(function() {
             //// « J'accepte les conditions générales » ne cochait rien et
             //// l'action restait cachée. Chacun fait maintenant une seule
             //// chose : le libellé coche, le lien ouvre les conditions.
-            return '<div class="form-check mb-3">' +
+            //// Neoffice — les conditions SOUS l'action.
+            ////
+            //// Au-dessus, elles séparaient le titre de la tuile du moyen de payer
+            //// et se lisaient comme un péage avant d'avoir rien vu. Dessous, elles
+            //// sont là où la décision se prend, et la formulation le dit : « en
+            //// payant, j'accepte ».
+            ////
+            //// La case reste une case. Un consentement coché est explicite et se
+            //// prouve ; une acceptation déduite du seul usage se conteste.
+            const conditions = '<div class="form-check mt-3">' +
                 '<input type="checkbox" class="form-check-input cursor-pointer terms-acceptance" id="' + id + '" required>' +
                 '<label class="form-check-label cursor-pointer" for="' + id + '">' +
-                __('I accept the') + '</label> ' +
+                __('By paying, I accept the') + '</label> ' +
                 '<a href="#terms-title" class="terms-link">' +
-                __('terms and conditions') + '</a></div>' +
-                '<div class="intent-action" style="position:relative">' +
+                __('terms and conditions') + '</a></div>';
+            return '<div class="intent-action" style="position:relative">' +
                 '<div class="intent-voile" style="position:absolute; inset:0; z-index:2; ' +
                 'background:rgba(255,255,255,.72); display:flex; align-items:center; ' +
                 'justify-content:center; text-align:center; padding:1rem">' +
-                '<span class="text-muted">' + __('Accept the terms and conditions to pay') + '</span>' +
-                '</div>' + inner + '</div>';
+                '<span class="text-muted">' + __('Accept the terms and conditions below to pay') + '</span>' +
+                '</div>' + inner + '</div>' + conditions;
         }
 
-        //// Neoffice — l'action reste cachée tant que la case n'est pas cochée.
-        //// Cachée plutôt que désactivée : un QR visible EST le moyen de payer,
-        //// le griser ne l'empêcherait pas d'être scanné.
         //// Neoffice — l'action se voit, mais ne s'utilise pas tant que les
         //// conditions ne sont pas acceptées.
         ////
@@ -2906,7 +2912,15 @@ frappe.ready(function() {
                 if (a.inline) {
                     return '<div class="intent-frame py-2">' +
                         '<iframe src="' + frappe.utils.escape_html(a.url) + '" ' +
-                        'style="width:100%; min-height:620px; border:0" ' +
+                        //// Neoffice — la hauteur suit l'écran, pas le contenu : un
+                        //// cadre d'une autre origine ne se mesure pas, et Payrexx
+                        //// n'annonce pas la sienne (ses seuls postMessage sont une
+                        //// poignée de main post-robot, aucune dimension — vérifié le
+                        //// 2026-09-01). Une valeur fixe est donc soit trop courte
+                        //// pour le formulaire carte, soit un grand vide sur l'écran
+                        //// de choix. Au-delà des bornes, le cadre défile : contenu
+                        //// atteignable plutôt que coupé.
+                        'style="width:100%; height:clamp(560px, 78vh, 900px); border:0" ' +
                         'allow="payment" title="' + __('Payment') + '"></iframe>' +
                         '<p class="text-muted small mt-2 mb-0 text-center">' +
                         '<a href="' + frappe.utils.escape_html(a.url) + '" target="_blank" rel="noopener">' +

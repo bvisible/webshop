@@ -1062,6 +1062,12 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		#//// chaînes-là vivent dans un JS rendu par Jinja que l'extracteur ne voit
 		#//// pas. Sans elles, un tunnel francophone lit « Accept the terms… ».
 		"Accept the terms and conditions to pay": _("Accept the terms and conditions to pay"),
+		"Accept the terms and conditions below to pay": _(
+			"Accept the terms and conditions below to pay"
+		),
+		"By paying, I accept the": _("By paying, I accept the"),
+		"I accept the": _("I accept the"),
+		"terms and conditions": _("terms and conditions"),
 		"Please accept the terms and conditions first.": _(
 			"Please accept the terms and conditions first."
 		),
