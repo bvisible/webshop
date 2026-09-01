@@ -5621,3 +5621,11 @@ msgstr "En payant, j'accepte les"
 #: webshop/templates/pages/checkout.js
 msgid "Accept the terms and conditions below to pay"
 msgstr "Acceptez les conditions générales ci-dessous pour payer"
+
+#: webshop/templates/pages/checkout.js
+msgid "By using this payment form, you accept the"
+msgstr "En utilisant ce formulaire de paiement, vous acceptez les"
+
+#: webshop/templates/payments/payrexx.html
+msgid "Pay with Payrexx"
+msgstr "Payer avec Payrexx"

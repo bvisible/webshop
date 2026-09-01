@@ -2795,60 +2795,86 @@ frappe.ready(function() {
             });
         }
 
-        //// Neoffice — l'écran d'une méthode passée aux intentions. Rend `true`
-        //// s'il a su afficher quelque chose ; `false` renvoie au gabarit.
+        //// Neoffice — the screen of a method moved to intents. Returns `true`
+        //// when it managed to show something; `false` falls back to the template.
         showIntentScreen(a, $form, cleanId) {
-            //// Neoffice — les conditions générales, avant l'action.
+            //// Neoffice — the terms, before the action.
             ////
-            //// Une méthode passée aux intentions est dessinée ici et non par son
-            //// gabarit — et le gabarit était le seul endroit qui portait la case
-            //// à cocher. Résultat : sur ce chemin, le client payait sans avoir
-            //// rien accepté, alors que c'est impossible sur toutes les autres
-            //// tuiles. Cela valait pour TWINT depuis sa bascule, et pour toute
-            //// tuile basculée ensuite.
+            //// A method moved to intents is drawn here and not by its template —
+            //// and the template was the only place carrying the checkbox. Result:
+            //// on this path the shopper paid having accepted nothing, while it was
+            //// impossible on every other tile. It applied to TWINT from the day it
+            //// was switched, and to any tile switched afterwards.
             ////
-            //// Le verrou est ici, comme partout ailleurs sur cette page : rien
-            //// ne l'enregistre côté serveur, pour aucune passerelle. C'est une
-            //// lacune connue et plus large que ce correctif ; celui-ci remet ce
-            //// chemin au niveau des autres, il ne prétend pas la combler.
-            const rendu = this.renderIntentAction(a, cleanId);
-            if (!rendu) return false;
-            $form.html(this.wrapWithTerms(rendu, cleanId)).show();
+            //// The lock is here, as everywhere else on this page: nothing records
+            //// it server-side, for any gateway. That gap is known and wider than
+            //// this fix; this brings the path level with the others, it does not
+            //// claim to close it.
+            const rendered = this.renderIntentAction(a, cleanId);
+            if (!rendered) return false;
+            $form.html(this.wrapWithTerms(rendered, cleanId, !!a.inline)).show();
             this.bindIntentTerms($form);
             if (a.action === 'qr') this.watchIntent(a.intent, $form);
             return true;
         }
 
-        //// Neoffice — enveloppe une action d'intention dans la même case à cocher
-        //// que les gabarits : mêmes classes, même lien, pour que l'écran soit
-        //// celui que le client connaît et que le style suive sans rien ajouter.
-        wrapWithTerms(inner, cleanId) {
+        //// Neoffice — wraps an intent action in the same terms line as the
+        //// templates: same classes, same link, so the screen is the one the
+        //// shopper knows and the styling follows without adding anything.
+        wrapWithTerms(inner, cleanId, inline) {
             const id = 'terms-intent-' + cleanId;
-            //// Neoffice — le lien est HORS du libellé, comme dans les six
-            //// gabarits de paiement. Un <a> à l'intérieur d'un <label> vole le
-            //// clic : le navigateur suit le lien au lieu de cocher. Mesuré ici
-            //// avant correction — le lien occupait 164 des 262 pixels du
-            //// libellé et son centre tombait dessus, si bien que cliquer
-            //// « J'accepte les conditions générales » ne cochait rien et
-            //// l'action restait cachée. Chacun fait maintenant une seule
-            //// chose : le libellé coche, le lien ouvre les conditions.
-            //// Neoffice — les conditions SOUS l'action.
+            //// Neoffice — the label the six gateway templates print, seeded by
+            //// checkout.html. Without it this line invented its own wording and
+            //// the same page showed two different terms names.
+            const label = window.webshop_terms_label || __('terms and conditions');
+            const link = '<a href="#terms-title" class="terms-link">' +
+                frappe.utils.escape_html(label) + '</a>';
+
+            //// Neoffice — a payment FRAME gets a mention, not a checkbox.
             ////
-            //// Au-dessus, elles séparaient le titre de la tuile du moyen de payer
-            //// et se lisaient comme un péage avant d'avoir rien vu. Dessous, elles
-            //// sont là où la décision se prend, et la formulation le dit : « en
-            //// payant, j'accepte ».
+            //// A tick gates something we own: our button, our link. Inside a frame
+            //// the shopper pays at Payrexx, on their fields, with their button —
+            //// there is nothing of ours left to gate. What remains is a veil over a
+            //// live payment form, which is both ugly and beside the point: it hides
+            //// the card fields behind a request to tick a box before showing what
+            //// the box is even for.
             ////
-            //// La case reste une case. Un consentement coché est explicite et se
-            //// prouve ; une acceptation déduite du seul usage se conteste.
+            //// So the frame states it instead: using this form accepts the terms.
+            //// The trade is real and deliberate — consent becomes implicit rather
+            //// than explicit, and an implicit acceptance is easier to dispute. It
+            //// costs little here because NOTHING is recorded server-side on any
+            //// gateway anyway (see showIntentScreen): the tick was never proof, only
+            //// a gesture. Merchant's call, tile by tile, through `render_inline`.
+            if (inline) {
+                return '<div class="intent-action">' + inner +
+                    '<p class="text-muted small mt-2 mb-0 text-center intent-mention">' +
+                    __('By using this payment form, you accept the') + ' ' + link +
+                    '</p></div>';
+            }
+            //// Neoffice — the link sits OUTSIDE the label, as in the six payment
+            //// templates. An <a> inside a <label> steals the click: the browser
+            //// follows the link instead of ticking. Measured here before the fix —
+            //// the link took 164 of the label's 262 pixels and its centre fell on
+            //// it, so clicking "I accept the terms and conditions" ticked nothing
+            //// and the action stayed hidden. Each now does one thing: the label
+            //// ticks, the link opens the terms.
+            //// Neoffice — the terms go UNDER the action.
+            ////
+            //// Above, they separated the tile's title from the means of paying and
+            //// read like a toll gate before anything had been seen. Below, they sit
+            //// where the decision is made, and the wording says so: "by paying, I
+            //// accept".
+            ////
+            //// A checkbox stays a checkbox wherever we own the action. A ticked
+            //// consent is explicit and provable; an acceptance inferred from use
+            //// alone can be disputed — see the frame branch above for where that
+            //// trade is deliberately made.
             const conditions = '<div class="form-check mt-3">' +
                 '<input type="checkbox" class="form-check-input cursor-pointer terms-acceptance" id="' + id + '" required>' +
                 '<label class="form-check-label cursor-pointer" for="' + id + '">' +
-                __('By paying, I accept the') + '</label> ' +
-                '<a href="#terms-title" class="terms-link">' +
-                __('terms and conditions') + '</a></div>';
+                __('By paying, I accept the') + '</label> ' + link + '</div>';
             return '<div class="intent-action" style="position:relative">' +
-                '<div class="intent-voile" style="position:absolute; inset:0; z-index:2; ' +
+                '<div class="intent-veil" style="position:absolute; inset:0; z-index:2; ' +
                 'background:rgba(255,255,255,.72); display:flex; align-items:center; ' +
                 'justify-content:center; text-align:center; padding:1rem">' +
                 '<span class="text-muted">' + __('Accept the terms and conditions below to pay') + '</span>' +
@@ -2867,30 +2893,37 @@ frappe.ready(function() {
         //// utilisable. On le laisse donc voilé et inerte sous un message, ce qui
         //// montre ce qui vient sans permettre de payer.
         bindIntentTerms($form) {
-            const $case = $form.find('.terms-acceptance');
+            const $terms = $form.find('.terms-acceptance');
             const $action = $form.find('.intent-action');
             if (!$action.length) return;
 
             $action.show();
-            const $voile = $action.find('.intent-voile');
-            const suivre = () => {
-                const accepte = $case.prop('checked');
-                $action.toggleClass('intent-bloquee', !accepte);
-                $action.find('a.btn, button.btn').toggleClass('disabled', !accepte)
-                    .attr('aria-disabled', accepte ? null : 'true');
-                $voile.toggle(!accepte);
+
+            //// Neoffice — a tile that carries a mention instead of a checkbox has
+            //// nothing to gate. Without this the veil logic ran against an empty
+            //// selection, read `undefined` as "not accepted" and marked a perfectly
+            //// usable payment frame as blocked.
+            if (!$terms.length) return;
+
+            const $veil = $action.find('.intent-veil');
+            const sync = () => {
+                const accepted = $terms.prop('checked');
+                $action.toggleClass('intent-blocked', !accepted);
+                $action.find('a.btn, button.btn').toggleClass('disabled', !accepted)
+                    .attr('aria-disabled', accepted ? null : 'true');
+                $veil.toggle(!accepted);
             };
-            //// Un clic sur l'action bloquée doit dire POURQUOI. Sans ça le client
-            //// clique dans le vide et conclut que la boutique est cassée.
-            $action.off('click.intent').on('click.intent', 'a.btn, button.btn, .intent-voile', (e) => {
-                if (!$case.prop('checked')) {
+            //// A click on the blocked action must say WHY. Without it the shopper
+            //// clicks into the void and concludes the shop is broken.
+            $action.off('click.intent').on('click.intent', 'a.btn, button.btn, .intent-veil', (e) => {
+                if (!$terms.prop('checked')) {
                     e.preventDefault();
                     e.stopPropagation();
                     frappe.msgprint(__('Please accept the terms and conditions first.'));
                 }
             });
-            $case.off('change.intent').on('change.intent', suivre);
-            suivre();
+            $terms.off('change.intent').on('change.intent', sync);
+            sync();
         }
 
         //// Neoffice — le contenu de l'action, sans les conditions.
@@ -2935,7 +2968,7 @@ frappe.ready(function() {
                     : '';
                 const html = '<div class="text-center py-4"><div class="d-inline-block p-3 bg-white border rounded">' +
                     a.payload.qr_svg + '</div>' + code +
-                    '<p class="text-muted mt-3 intent-attente">' + __('Waiting for your payment…') + '</p></div>';
+                    '<p class="text-muted mt-3 intent-waiting">' + __('Waiting for your payment…') + '</p></div>';
                 //// Neoffice — un QR ne redirige pas : sans surveillance, le client
                 //// paie sur son téléphone et la page reste figée pour toujours.
                 //// Le signal principal est l'évènement `payment.intent.<nom>.updated`
@@ -3019,7 +3052,7 @@ frappe.ready(function() {
                 if (fini) return;
                 if (Date.now() - debut >= DUREE_MAX) {
                     arreter();
-                    $form.find('.intent-attente').text(__('Payment not received. You can try again.'));
+                    $form.find('.intent-waiting').text(__('Payment not received. You can try again.'));
                     return;
                 }
                 demander();

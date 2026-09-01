@@ -38,6 +38,9 @@ _JS_MESSAGES = (
 	#//// English, in the middle of a French checkout, right above the button that
 	#//// takes their money. Seen on the Payrexx tiles, 31.08.2026.
 	"I accept the", "terms and conditions", "Continue to payment",
+	#//// Neoffice — the mention that replaces the checkbox on a tile whose
+	#//// payment happens inside a frame (see wrapWithTerms).
+	"By using this payment form, you accept the",
 )
 
 
@@ -273,6 +276,18 @@ def get_context(context):
 		cgv_terms = cart_quotation['cart_settings'].checkout_cgv
 		context.cgv_tc_name = cgv_terms
 		context.cgv_terms = frappe.db.get_value("Terms and Conditions", cgv_terms, "terms")
+
+	#//// Neoffice — the terms label, handed to the browser.
+	#////
+	#//// The six gateway templates print `cgv_tc_name` — the name of the Terms
+	#//// and Conditions record the merchant picked. A tile drawn by the intent
+	#//// engine is built in JS, which never saw that value, so it printed a
+	#//// hard-coded "terms and conditions" instead. Same line, two spellings, on
+	#//// the same page: the shopper read one label on the Stripe tile and another
+	#//// on the Payrexx card tile. Seeded here so both paths say the same thing.
+	context.terms_label_json = frappe.as_json(
+		context.get("cgv_tc_name") or _("terms and conditions")
+	)
 	
 	# Get customer information
 	customer = None
