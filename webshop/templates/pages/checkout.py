@@ -626,7 +626,7 @@ def get_shipping_methods():
 						valid_group_found = True
 						break
 				
-				# Si aucun groupe valide n'est trouvé, passer à la règle suivante
+				# No valid group found — move on to the next rule
 				if not valid_group_found:
 					continue
 				
@@ -835,19 +835,19 @@ def get_shipping_address(user=None):
 		return None
 
 def _document_a_payer(reference_doctype=None, reference_docname=None):
-	"""//// Neoffice — le document qu'on paie n'est pas toujours un panier.
+	"""//// Neoffice — what gets paid for is not always a cart.
 
-	La boutique paie son panier ; le module de réservation paie une facture
-	déjà émise, sans panier du tout. Ces deux fonctions supposaient le panier
-	partout — `get_payment_template` allait jusqu'à jeter « Your basket is
-	empty » et à écraser la référence que l'appelant venait de passer.
+	The shop pays its cart; the booking module pays an invoice already issued,
+	with no cart at all. Both functions assumed a cart everywhere —
+	`get_payment_template` went as far as throwing "Your basket is empty" and
+	overwriting the reference its caller had just passed in.
 
-	Sans référence explicite, rien ne change : on prend le panier, comme avant.
+	With no explicit reference, nothing changes: we take the cart, as before.
 
-	⚠️ Ce helper NE VÉRIFIE AUCUN DROIT. Il rend ce qu'on lui nomme. Tout
-	appelant qui accepte une référence venue du navigateur doit avoir vérifié
-	avant lui que le visiteur a bien le droit de payer ce document — c'est ce
-	que fait `neoffice_theme.booking.checkout` avec `_may_pay`.
+	⚠️ This helper CHECKS NO PERMISSION. It returns whatever it is named. Any
+	caller accepting a reference that came from the browser must have checked
+	first that the visitor is entitled to pay that document — which is what
+	`neoffice_theme.booking.checkout` does with `_may_pay`.
 	"""
 	if reference_doctype and reference_docname:
 		return frappe.get_doc(reference_doctype, reference_docname)
@@ -900,14 +900,13 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 				# Get gateway type from name
 				gateway_type = payment_gateway.gateway.split('-')[0].split()[0].lower().strip()
 				
-				#//// Neoffice — ce qu'un client doit lire : « Payrexx », pas
-				#//// « Payrexx - CHF - pri ». Le nom d'un compte de passerelle
-				#//// porte la devise et parfois un suffixe d'exploitation :
-				#//// c'est le nom du DOSSIER, pas celui du moyen de paiement.
-				#//// On préfère donc, dans l'ordre : le libellé écrit par le
-				#//// commerçant, puis le nom de la PASSERELLE, puis le compte
-				#//// faute de mieux. Même règle que la surface de réservation
-				#//// (`neoffice_theme.booking.checkout._moyen_lisible`).
+				#//// Neoffice — what a shopper should read: "Payrexx", not
+				#//// "Payrexx - CHF - pri". A gateway account name carries the
+				#//// currency and sometimes an operational suffix: it names the
+				#//// RECORD, not the payment method. So we prefer, in order: the
+				#//// label the merchant wrote, then the GATEWAY name, then the
+				#//// account for want of anything better. Same rule as the
+				#//// booking surface (`neoffice_theme.booking.checkout._moyen_lisible`).
 				title = (
 					payment_gateway_account.checkout_title
 					or payment_gateway_account.payment_gateway
@@ -915,7 +914,7 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 				)
 				logo_html = f"<img src='{payment_gateway_account.logo}' alt='{title}' class='payment-logo'>" if payment_gateway_account.logo else ""
 				description = payment_gateway_account.checkout_description or ""
-				#//// Neoffice — le panier, ou le document nommé par l'appelant.
+				#//// Neoffice — the cart, or the document the caller named.
 				quotation_doc = _document_a_payer(reference_doctype, reference_docname)
 
 				# Hide installment-based methods entirely when the cart doesn't reach
@@ -987,12 +986,12 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 		return {"error": True, "message": str(e)}
 
 def _intent_metadata(moyens, devis) -> dict | None:  # noqa: ANN001
-	"""//// Neoffice — ce qu'on transmet au pilote, et rien de plus.
+	"""//// Neoffice — what we hand the driver, and nothing more.
 
-	Deux choses seulement, et chacune pour une raison précise : la restriction de
-	moyens (une tuile par méthode) et les coordonnées déjà connues (la page
-	hébergée les exige). `None` quand il n'y a rien à dire, pour que le pilote
-	garde son comportement par défaut.
+	Two things only, each for a precise reason: the method restriction (one tile
+	per method) and the contact details we already hold (the hosted page demands
+	them). `None` when there is nothing to say, so the driver keeps its default
+	behaviour.
 	"""
 	meta = {}
 	if moyens:
@@ -1005,24 +1004,24 @@ def _intent_metadata(moyens, devis) -> dict | None:  # noqa: ANN001
 
 @frappe.whitelist(allow_guest=True)
 def start_cart_intent(payment_gateway_account: str) -> dict:
-	"""//// Neoffice — encaisser le panier par le moteur d'INTENTIONS de `payments`.
+	"""//// Neoffice — take the cart through the `payments` INTENT engine.
 
-	Un second chemin, POSÉ À CÔTÉ du premier et éteint par défaut. Le checkout
-	historique — gabarit par passerelle + `window.checkout_manager` — n'est pas
-	touché : il tourne en production chez des clients, et une migration d'un
-	seul tenant sur des paiements ne se fait pas.
+	A second path, laid ALONGSIDE the first and off by default. The historical
+	checkout — one template per gateway + `window.checkout_manager` — is left
+	untouched: it runs in production at customer sites, and you do not migrate
+	payments in one move.
 
-	Ce chemin ne s'emprunte que si la méthode porte `use_payment_intent`. Tant
-	que la case est décochée, absolument rien ne change pour elle.
+	This path is only taken when the method carries `use_payment_intent`. While
+	the box is unchecked, absolutely nothing changes for it.
 
-	Pourquoi l'ajouter : les pilotes de `payments` (Payrexx, Wallee, TWINT,
-	terminaux) alimentent les Payment Intent, pas les gabarits. Ce que la
-	boutique sait faire d'une passerelle dépend donc aujourd'hui de ce qu'on a
-	recopié dans son gabarit, au lieu de suivre le pilote. TWINT, par exemple,
-	sait rendre un QR à afficher sur place — la boutique l'ignore.
+	Why add it: the `payments` drivers (Payrexx, Wallee, TWINT, terminals) feed
+	Payment Intents, not templates. What the shop can do with a gateway therefore
+	depends today on what someone copied into its template, instead of following
+	the driver. TWINT, for one, can return a QR to show in place — the shop has
+	no idea.
 
-	Rend la même forme que `neoffice_theme.booking.checkout.start_payment` :
-	l'écran n'a pas à savoir quelle passerelle il a devant lui.
+	Returns the same shape as `neoffice_theme.booking.checkout.start_payment`:
+	the screen does not have to know which gateway it faces.
 	"""
 	cart = get_cart_quotation()
 	devis = (cart or {}).get("doc")
@@ -1030,7 +1029,7 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		frappe.throw(_("Your basket is empty"))
 
 	if not _intent_is_wanted(payment_gateway_account):
-		# La méthode n'a pas été basculée : on ne décide pas à sa place.
+		# The method was not switched over: we do not decide in its place.
 		return {"action": "legacy"}
 
 	gateway = frappe.db.get_value("Payment Gateway Account", payment_gateway_account, "payment_gateway")
@@ -1041,20 +1040,20 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 
 	from payments.api.intent import create_intent
 
-	#//// Neoffice — l'intention porte sur la PAYMENT REQUEST, jamais sur le
-	#//// devis. C'est la Payment Request que les pages de retour de `payments`
-	#//// savent conclure (`payments/www/{wallee,payrexx}/success.py` : elles
-	#//// testent `reference_doctype == "Payment Request"`), et c'est elle qui
-	#//// transforme le panier en commande. Une intention accrochée à la
-	#//// Quotation encaisserait sans que personne ne crée la commande — le
-	#//// client paierait pour rien. On réutilise la fabrique de webshop, qui
-	#//// est idempotente : deux clics sur le même panier ne font qu'une demande.
+	#//// Neoffice — the intent hangs off the PAYMENT REQUEST, never off the
+	#//// quotation. It is the Payment Request that the `payments` return pages
+	#//// know how to conclude (`payments/www/{wallee,payrexx}/success.py`: they
+	#//// test `reference_doctype == "Payment Request"`), and it is the one that
+	#//// turns a cart into an order. An intent pinned to the Quotation would
+	#//// take the money with nobody creating the order — the customer would pay
+	#//// for nothing. We reuse the webshop factory, which is idempotent: two
+	#//// clicks on the same cart make one request.
 	from webshop.controllers.payment_handler import PaymentHandler
 
-	# On NOMME le devis. Sans lui, la fabrique re-résout le panier de son côté
-	# (`_get_cart_quotation`) et peut tomber sur un autre devis — vécu le
-	# 2026-08-24 : un devis vide, refusé pour « items » manquants, et le chemin
-	# retombait en `legacy` sans que personne ne comprenne pourquoi.
+	# We NAME the quotation. Without it the factory re-resolves the cart on its
+	# own side (`_get_cart_quotation`) and can land on a different quotation —
+	# lived through on 2026-08-24: an empty quotation, refused for missing
+	# "items", and the path fell back to `legacy` with nobody understanding why.
 	demande = PaymentHandler().create_payment_request(
 		quotation_id=devis.name,
 		payment_gateway=gateway,
@@ -1068,13 +1067,13 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		return {"action": "legacy"}
 
 	montant = flt(devis.get("rounded_total") or devis.get("grand_total"))
-	#//// Neoffice — la restriction voyage en métadonnée, pas en configuration de
-	#//// canal : le canal est partagé par toutes les tuiles du fournisseur, et
-	#//// une restriction posée là s'appliquerait aussi à celles qui ne la
-	#//// veulent pas. Les pilotes qui savent filtrer la lisent
-	#//// (`payments/drivers/payrexx/web_driver.py` la relit même dans la réponse
-	#//// et journalise si la passerelle l'a laissée tomber) ; les autres
-	#//// l'ignorent sans bruit.
+	#//// Neoffice — the restriction travels as metadata, not as channel
+	#//// configuration: the channel is shared by every tile of the provider, and
+	#//// a restriction placed there would apply to the tiles that do not want it
+	#//// too. Drivers that know how to filter read it
+	#//// (`payments/drivers/payrexx/web_driver.py` even re-reads it in the
+	#//// response and logs when the gateway dropped it); the others ignore it
+	#//// without a sound.
 	moyens = _restricted_methods(payment_gateway_account)
 	intention = create_intent(
 		provider=couple[0],
@@ -1092,11 +1091,11 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 	charge = charge or {}
 	quoi = (intention.get("next_action_type") or "none").strip()
 
-	#//// Neoffice — l'écran d'intention est dessiné par le navigateur, donc ses
-	#//// deux libellés passent par `__()`. Or le dictionnaire du client ne
-	#//// contient que ce qu'un appel lui a déjà envoyé : sans ça, un tunnel
-	#//// francophone affiche « Or type 12345 in the app. » sous le QR. Frappe
-	#//// fusionne le `__messages` de CETTE réponse avant que le rappel ne dessine.
+	#//// Neoffice — the intent screen is drawn by the browser, so both of its
+	#//// labels go through `__()`. And the client dictionary holds only what
+	#//// some call already sent it: without this, a French checkout shows
+	#//// "Or type 12345 in the app." under the QR. Frappe merges the `__messages`
+	#//// of THIS response before the callback draws.
 	from frappe.translate import send_translations
 
 	send_translations({
@@ -1139,8 +1138,8 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		return {"action": "confirm", "intent": intention.get("intent_name"),
 			"client_secret": intention.get("client_secret"), "payload": charge}
 
-	# Rien d'exploitable : on retombe sur le chemin historique plutôt que de
-	# laisser le client devant un écran vide.
+	# Nothing usable: fall back to the historical path rather than leave the
+	# shopper in front of an empty screen.
 	frappe.log_error(
 		"Webshop: intention sans action exploitable",
 		"intention={0} type={1} methode={2}".format(intention.get("intent_name"), quoi, payment_gateway_account),
@@ -1150,20 +1149,20 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 
 @frappe.whitelist(allow_guest=True)
 def cart_intent_state(intent: str) -> dict:
-	"""//// Neoffice — où en est le paiement, pendant que le client tient son téléphone.
+	"""//// Neoffice — where the payment stands, while the shopper holds their phone.
 
-	Un QR ne redirige pas : la page reste là et doit apprendre, seule, que
-	l'argent est arrivé. Elle demande ici — sur signal de `payments`, et à
-	défaut toutes les cinq secondes.
+	A QR does not redirect: the page stays put and has to learn, on its own, that
+	the money arrived. It asks here — on a signal from `payments`, and failing
+	that every five seconds.
 
-	🔴 Ce n'est PAS l'intention qui fait foi : une intention « succeeded » dont
-	la commande n'est pas encore créée laisserait annoncer une commande qui
-	n'existe pas. C'est la **Payment Request** qui tranche, parce que c'est
-	elle que la machinerie de `payments` transforme en Sales Order.
+	🔴 The intent is NOT the authority: a "succeeded" intent whose order is not
+	created yet would let us announce an order that does not exist. The
+	**Payment Request** decides, because that is what the `payments` machinery
+	turns into a Sales Order.
 
-	🔴 Le nom de l'évènement temps réel porte l'identifiant de l'intention :
-	n'importe qui pourrait s'y abonner. On ne rend donc l'état que d'une
-	intention dont la Payment Request appartient au panier de CE visiteur.
+	🔴 The realtime event name carries the intent id: anyone could subscribe to
+	it. So we only return the state of an intent whose Payment Request belongs to
+	THIS visitor's cart.
 	"""
 	row = frappe.db.get_value(
 		"Payment Intent", intent, ["status", "reference_doctype", "reference_name"], as_dict=True
@@ -1178,14 +1177,14 @@ def cart_intent_state(intent: str) -> dict:
 	if not demande:
 		frappe.throw(_("Nothing to pay"))
 
-	# La demande doit appartenir à CE client — sinon un numéro d'intention
-	# suffirait à surveiller le paiement d'un inconnu.
+	# The request must belong to THIS customer — otherwise an intent number would
+	# be enough to watch a stranger's payment.
 	#
-	# 🔴 On compare le CLIENT, pas le panier. À l'instant précis où la commande
-	# naît, le panier courant est remplacé par un neuf : une garde adossée au
-	# panier refuse la réponse au moment exact où la page en a besoin — la page
-	# resterait sur « en attente » alors que la commande existe. Vécu le
-	# 2026-08-24 : commande BC-2026-00343 créée, page jamais prévenue.
+	# 🔴 We compare the CUSTOMER, not the cart. At the exact moment the order is
+	# born, the current cart is replaced by a fresh one: a guard leaning on the
+	# cart refuses the answer at precisely the moment the page needs it — the page
+	# would stay on "waiting" while the order exists. Lived through on
+	# 2026-08-24: order BC-2026-00343 created, page never told.
 	moi = get_party()
 	sien = bool(moi) and demande.party and demande.party == moi.name
 	if not sien:
@@ -1199,10 +1198,10 @@ def cart_intent_state(intent: str) -> dict:
 
 
 def _intent_is_wanted(payment_gateway_account: str) -> bool:
-	"""//// Neoffice — cette méthode a-t-elle été basculée sur les intentions ?
+	"""//// Neoffice — has this method been switched over to intents?
 
-	Décoché par défaut, et lu sur la ligne de `Webshop Settings` : c'est le
-	commerçant qui bascule, méthode par méthode, quand il a vérifié chez lui.
+	Unchecked by default, and read off the `Webshop Settings` row: the merchant
+	is the one who switches, method by method, once they have checked at home.
 	"""
 	try:
 		settings = frappe.get_cached_doc("Webshop Settings")
@@ -1215,16 +1214,15 @@ def _intent_is_wanted(payment_gateway_account: str) -> bool:
 
 
 def _restricted_methods(payment_gateway_account: str) -> list[str]:
-	"""//// Neoffice — les moyens de paiement auxquels cette tuile se limite.
+	"""//// Neoffice — the payment methods this tile restricts itself to.
 
-	Ce qui permet à une seule passerelle de tenir plusieurs tuiles : on nomme un
-	second Payment Gateway Account d'après le même fournisseur et on restreint
-	celui-ci à `twint`, l'autre à `visa,mastercard`. Le client voit deux tuiles
-	distinctes — « TWINT » et « Carte » — et les deux s'encaissent par le même
-	fournisseur, au lieu d'une tuile unique qui le renvoie vers une page où il
-	doit encore choisir.
+	What lets a single gateway hold several tiles: name a second Payment Gateway
+	Account after the same provider and restrict this one to `twint`, the other
+	to `visa,mastercard`. The shopper sees two distinct tiles — "TWINT" and
+	"Card" — and both are taken by the same provider, instead of a single tile
+	that sends them to a page where they still have to choose.
 
-	Vide = tout ce que le compte autorise, c'est-à-dire le comportement actuel.
+	Empty = everything the account allows, i.e. the current behaviour.
 	"""
 	try:
 		settings = frappe.get_cached_doc("Webshop Settings")
@@ -1238,16 +1236,15 @@ def _restricted_methods(payment_gateway_account: str) -> list[str]:
 
 
 def _contact_fields(devis) -> dict:  # noqa: ANN001
-	"""//// Neoffice — ce que la page hébergée doit déjà savoir du client.
+	"""//// Neoffice — what the hosted page must already know about the shopper.
 
-	Payrexx rend un champ e-mail **obligatoire** et refuse de soumettre sans lui
-	— « Veuillez remplir le champ E-mail » — alors que le client vient de le
-	donner au tunnel. Sans préremplissage, on le lui redemande ; et celui qui ne
-	voit pas le petit message rouge ne peut tout simplement pas payer, sans
-	comprendre pourquoi.
+	Payrexx makes an e-mail field **mandatory** and refuses to submit without it
+	— "Please fill in the E-mail field" — when the shopper has just given it to
+	the checkout. With no prefill we ask again; and whoever misses the small red
+	message simply cannot pay, without understanding why.
 
-	Forme attendue par l'API : `{"email": {"value": "..."}}`. On n'envoie que ce
-	qu'on a — un champ vide vaut moins que pas de champ du tout.
+	Shape the API expects: `{"email": {"value": "..."}}`. We only send what we
+	have — an empty field is worth less than no field at all.
 	"""
 	valeurs = {
 		"email": devis.get("contact_email"),
@@ -1259,15 +1256,15 @@ def _contact_fields(devis) -> dict:  # noqa: ANN001
 
 
 def _renders_inline(payment_gateway_account: str) -> bool:
-	"""//// Neoffice — cette tuile affiche-t-elle la page de paiement sur place ?
+	"""//// Neoffice — does this tile show the payment page in place?
 
-	Une saisie de carte est un formulaire : rien n'oblige à quitter la boutique
-	pour le remplir, et la page hébergée de Payrexx s'encadre sans broncher
-	(vérifié le 2026-08-31 : ni `X-Frame-Options` ni `frame-ancestors`, et les
-	champs carte s'affichent bien depuis notre domaine).
+	Card entry is a form: nothing requires leaving the shop to fill it in, and
+	the Payrexx hosted page frames without complaint (verified 2026-08-31:
+	neither `X-Frame-Options` nor `frame-ancestors`, and the card fields do
+	render from our own domain).
 
-	À laisser décoché pour ce qui bascule vers une application : TWINT passe la
-	main au téléphone, et il ne peut pas le faire depuis un cadre.
+	Leave unchecked for anything that hands over to an app: TWINT passes the baton
+	to the phone, and it cannot do that from inside a frame.
 	"""
 	try:
 		settings = frappe.get_cached_doc("Webshop Settings")
@@ -1280,11 +1277,11 @@ def _renders_inline(payment_gateway_account: str) -> bool:
 
 
 def _intent_binding(kind: str):
-	"""//// Neoffice — le couple (fournisseur, canal) web pour ce type de passerelle.
+	"""//// Neoffice — the web (provider, channel) pair for this kind of gateway.
 
-	Résolu et non figé : le fournisseur change d'un site à l'autre
-	(`wallee_test`, `payrexx`, `twint_smoke_provider`), seul son préfixe est
-	stable. Les canaux `terminal` et `tap_to_pay` appartiennent à la caisse.
+	Resolved rather than hard-coded: the provider differs from one site to the
+	next (`wallee_test`, `payrexx`, `twint_smoke_provider`), only its prefix is
+	stable. The `terminal` and `tap_to_pay` channels belong to the POS.
 	"""
 	if not kind:
 		return None
@@ -1330,10 +1327,10 @@ def get_payment_template(payment_gateway_account, context=None):
 				key: f"{value}-{clean_id}" for key, value in context_ids.items()
 			})
 
-		#//// Neoffice — le document qu'on paie : celui que l'appelant nomme dans
-		#//// son contexte, sinon le panier. Sans ça, une facture de réservation
-		#//// se voyait répondre « Your basket is empty » alors qu'elle n'a jamais
-		#//// eu de panier, et sa référence était de toute façon écrasée plus bas.
+		#//// Neoffice — what gets paid for: whatever the caller names in its
+		#//// context, else the cart. Without this, a booking invoice was answered
+		#//// "Your basket is empty" when it never had a cart at all, and its
+		#//// reference was overwritten further down anyway.
 		quotation_doc = _document_a_payer(
 			context.get("reference_doctype"), context.get("reference_docname")
 		)
@@ -1357,9 +1354,9 @@ def get_payment_template(payment_gateway_account, context=None):
 			"payment_gateway_account": payment_gateway_account,
 			"gateway_settings": gateway_info["settings"],
 			"_": frappe._,
-			#//// Neoffice — `setdefault` et non écrasement : l'appelant peut payer
-			#//// autre chose qu'un panier (une facture de réservation), et il l'a
-			#//// dit dans son contexte. Ces quatre lignes l'effaçaient juste après.
+			#//// Neoffice — `setdefault` rather than overwrite: the caller may pay
+			#//// for something other than a cart (a booking invoice), and it said so
+			#//// in its context. These four lines erased that right afterwards.
 			"amount": (context.get("amount")
 				or (quotation_doc.get("rounded_total") or quotation_doc.get("grand_total") if quotation_doc else 0)),
 			"quotation_id": context.get("quotation_id") or (quotation_doc.name if quotation_doc else ""),
@@ -1455,7 +1452,7 @@ def update_payment_method(payment_method):
     """Update the payment method in the cart quotation"""
     quotation = _get_cart_quotation()
     
-    # Utiliser db_set pour mettre à jour directement sans vérification de timestamp
+    # Use db_set to update directly, without a timestamp check
     quotation.db_set('payment_method', payment_method, update_modified=False)
     
     return {
