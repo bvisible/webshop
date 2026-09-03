@@ -121,6 +121,10 @@ def portal_customer(email, customer_name):
 				"customer_group": leaf_customer_group(),
 				"territory": frappe.db.get_value("Territory", {"lft": 1}, "name"),
 				"email_id": email,
+				# Mandatory on the fleet stack (a Property Setter makes it so),
+				# harmless on stock ERPNext.
+				"default_currency": frappe.db.get_single_value("Global Defaults", "default_currency")
+				or frappe.db.get_value("Company", {}, "default_currency"),
 			}
 		).insert(ignore_permissions=True)
 	if not frappe.db.exists("User", email):
