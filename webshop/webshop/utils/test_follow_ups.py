@@ -23,6 +23,8 @@ from webshop.webshop.utils import abandoned_carts, follow_ups
 USER = "_wstest_followup@example.com"
 CUSTOMER = "_WSTEST Follow-up Customer"
 SETTINGS = (
+	"enable_purchase_follow_ups",
+	"follow_up_audience",
 	"enable_abandoned_cart_emails",
 	"abandoned_cart_delays",
 	"abandoned_cart_template",
@@ -38,6 +40,7 @@ class TestFollowUps(FrappeTestCase):
 		super().setUpClass()
 		frappe.flags.mute_emails = True
 		cls.snapshot = snapshot_webshop_settings(SETTINGS)
+		cls.set_settings(enable_purchase_follow_ups=1, follow_up_audience="All customers")
 		cls.suffix = frappe.generate_hash(length=5).upper()
 		cls.item = make_test_item(f"{PREFIX} Coffee {cls.suffix}", is_stock_item=0).name
 		cls.other = make_test_item(f"{PREFIX} Filter {cls.suffix}", is_stock_item=0).name
@@ -92,10 +95,19 @@ class TestFollowUps(FrappeTestCase):
 				frappe.delete_doc("Pricing Rule", coupon.pricing_rule, force=True, ignore_permissions=True)
 		frappe.db.delete("Email Unsubscribe", {"email": USER})
 
+	@classmethod
+	def set_settings(cls, **values):
+		settings = frappe.get_single("Webshop Settings")
+		settings.update(values)
+		settings.flags.ignore_permissions = True
+		settings.flags.ignore_mandatory = True
+		settings.save()
+		frappe.db.commit()
+
 	def setUp(self):
 		frappe.set_user("Administrator")
 		self.purge()
-		frappe.db.commit()
+		self.set_settings(enable_purchase_follow_ups=1, follow_up_audience="All customers")
 
 	# --- fixtures ----------------------------------------------------------
 
@@ -156,6 +168,21 @@ class TestFollowUps(FrappeTestCase):
 
 		# submitting again (or a second hook run) never enrols twice
 		follow_ups.enroll_from_sales_order(order)
+		self.assertEqual(len(self.entries(flow=flow.name)), 1)
+
+	def test_nothing_is_enrolled_while_the_shop_switch_is_off(self):
+		flow = self.make_flow()
+		self.set_settings(enable_purchase_follow_ups=0)
+		self.make_order()
+		self.assertEqual(self.entries(flow=flow.name), [])
+		self.assertEqual(follow_ups.send_due_follow_ups(), 0)
+
+	def test_the_audience_keeps_counter_sales_out(self):
+		flow = self.make_flow(only_website_orders=0)  # the flow would take everyone
+		self.set_settings(follow_up_audience="Webshop customers only")
+		self.make_order(website=False)
+		self.assertEqual(self.entries(flow=flow.name), [])
+		self.make_order(website=True)
 		self.assertEqual(len(self.entries(flow=flow.name)), 1)
 
 	def test_a_counter_sale_is_left_out_when_the_flow_says_shop_only(self):

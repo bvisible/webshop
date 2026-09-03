@@ -680,3 +680,30 @@ function save_category_order(wrapper) {
 		}
 	});
 }
+
+//// Neoffice — the Emails tab: what the follow-ups and cart reminders did
+//// lately, so switching them on is a decision made with the figures in view.
+frappe.ui.form.on("Webshop Settings", {
+	refresh(frm) {
+		const field = frm.get_field("follow_up_status");
+		if (!field) return;
+		frappe.call({
+			method: "webshop.webshop.utils.follow_ups.get_email_stats",
+			callback(r) {
+				const d = r.message || {};
+				const row = (label, value) =>
+					`<div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">${label}</span><strong>${value}</strong></div>`;
+				field.$wrapper.html(
+					`<div style="max-width: 420px">` +
+						row(__("Follow-ups enabled"), `${d.flows_enabled || 0} / ${d.flows_total || 0}`) +
+						row(__("Customers scheduled"), d.entries_scheduled || 0) +
+						row(__("Due today"), d.entries_due || 0) +
+						row(__("Follow-up emails sent, last 30 days"), d.follow_ups_sent_30d || 0) +
+						row(__("Cart reminders sent, last 30 days"), d.reminders_sent_30d || 0) +
+						row(__("Carts recovered, last 30 days"), d.reminders_converted_30d || 0) +
+						`</div>`
+				);
+			},
+		});
+	},
+});

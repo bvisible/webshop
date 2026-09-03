@@ -6229,3 +6229,51 @@ msgstr "Combien de temps une unité dure chez un client. Une étape de suivi cal
 #: webshop/follow-ups
 msgid "Leave empty for everyone"
 msgstr "Vide : pour tout le monde"
+
+#: webshop/follow-ups
+msgid "Send follow-up emails after a purchase"
+msgstr "Envoyer les emails de suivi après un achat"
+
+#: webshop/follow-ups
+msgid "Nothing is enrolled and nothing goes out while this is off"
+msgstr "Rien n'est enrôlé et rien ne part tant que c'est désactivé"
+
+#: webshop/follow-ups
+msgid "Who receives them"
+msgstr "Qui les reçoit"
+
+#: webshop/follow-ups
+msgid "Webshop customers only"
+msgstr "Clients de la boutique en ligne seulement"
+
+#: webshop/follow-ups
+msgid "All customers"
+msgstr "Tous les clients"
+
+#: webshop/follow-ups
+msgid "All customers: orders and invoices from the counter or the desk enrol too, when the follow-up itself allows it"
+msgstr "Tous les clients : les commandes et factures du comptoir ou du bureau enrôlent aussi, quand le suivi lui-même l'admet"
+
+#: webshop/follow-ups
+msgid "Follow-ups enabled"
+msgstr "Suivis activés"
+
+#: webshop/follow-ups
+msgid "Customers scheduled"
+msgstr "Clients en attente d'un email"
+
+#: webshop/follow-ups
+msgid "Due today"
+msgstr "À envoyer aujourd'hui"
+
+#: webshop/follow-ups
+msgid "Follow-up emails sent, last 30 days"
+msgstr "Emails de suivi envoyés, 30 derniers jours"
+
+#: webshop/follow-ups
+msgid "Cart reminders sent, last 30 days"
+msgstr "Relances de panier envoyées, 30 derniers jours"
+
+#: webshop/follow-ups
+msgid "Carts recovered, last 30 days"
+msgstr "Paniers récupérés, 30 derniers jours"

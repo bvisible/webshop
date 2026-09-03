@@ -117,7 +117,22 @@ def step_date(purchase_date, step, item):
 	return add_days(purchase_date, cint(step.days_after))
 
 
+def follow_ups_enabled(settings=None):
+	settings = settings or frappe.get_cached_doc("Webshop Settings")
+	return cint(settings.get("enable_purchase_follow_ups"))
+
+
+def audience_allows(is_website, settings=None):
+	"""The shop-wide ceiling: "Webshop customers only" keeps counter sales out
+	whatever a flow says; "All customers" lets each flow decide."""
+	settings = settings or frappe.get_cached_doc("Webshop Settings")
+	return is_website or settings.get("follow_up_audience") == "All customers"
+
+
 def _enroll(doc, is_website):
+	settings = frappe.get_cached_doc("Webshop Settings")
+	if not follow_ups_enabled(settings) or not audience_allows(is_website, settings):
+		return
 	email = customer_email(doc)
 	if not email or not doc.get("customer"):
 		return
@@ -176,6 +191,8 @@ def _enroll(doc, is_website):
 
 def send_due_follow_ups():
 	"""Daily: every entry whose next email is due today or earlier."""
+	if not follow_ups_enabled():
+		return 0  # switched off in Webshop Settings: entries wait, nothing leaves
 	today = getdate(nowdate())
 	due = frappe.get_all(
 		"Purchase Follow-up Entry",
@@ -385,6 +402,26 @@ def send_customer_email(customer, email, subject, message):
 		unsubscribe_message=_("Stop receiving these emails"),
 	)
 	return communication.name
+
+
+@frappe.whitelist()
+def get_email_stats():
+	"""What the Emails tab of Webshop Settings shows: the machine at a glance."""
+	frappe.has_permission("Webshop Settings", "read", throw=True)
+	since = add_days(nowdate(), -30)
+	return {
+		"flows_enabled": frappe.db.count("Purchase Follow-up", {"enabled": 1}),
+		"flows_total": frappe.db.count("Purchase Follow-up"),
+		"entries_scheduled": frappe.db.count("Purchase Follow-up Entry", {"status": "Scheduled"}),
+		"entries_due": frappe.db.count(
+			"Purchase Follow-up Entry", {"status": "Scheduled", "next_send_on": ("<=", nowdate())}
+		),
+		"follow_ups_sent_30d": frappe.db.count("Purchase Follow-up Log", {"outcome": "Sent", "sent_on": (">=", since)}),
+		"reminders_sent_30d": frappe.db.count("Abandoned Cart Reminder", {"sent_on": (">=", since)}),
+		"reminders_converted_30d": frappe.db.count(
+			"Abandoned Cart Reminder", {"sent_on": (">=", since), "converted": 1}
+		),
+	}
 
 
 # --- the customer's form -------------------------------------------------

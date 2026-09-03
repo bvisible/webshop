@@ -114,6 +114,10 @@
   "abandoned_cart_discount_percentage",
   "abandoned_cart_coupon_validity_days",
   "follow_up_section",
+  "enable_purchase_follow_ups",
+  "follow_up_audience",
+  "column_break_follow_up",
+  "follow_up_status",
   "follow_up_note",
   "tab_advanced",
   "sitemap_section",
@@ -217,10 +221,35 @@
    "label": "Purchase Follow-ups"
   },
   {
+   "fieldname": "enable_purchase_follow_ups",
+   "fieldtype": "Check",
+   "label": "Send follow-up emails after a purchase",
+   "default": "0",
+   "description": "Nothing is enrolled and nothing goes out while this is off"
+  },
+  {
+   "fieldname": "follow_up_audience",
+   "fieldtype": "Select",
+   "label": "Who receives them",
+   "options": "Webshop customers only\nAll customers",
+   "default": "Webshop customers only",
+   "depends_on": "enable_purchase_follow_ups",
+   "description": "All customers: orders and invoices from the counter or the desk enrol too, when the follow-up itself allows it"
+  },
+  {
+   "fieldname": "column_break_follow_up",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "follow_up_status",
+   "fieldtype": "HTML",
+   "label": "So far"
+  },
+  {
    "fieldname": "follow_up_note",
    "fieldtype": "HTML",
    "label": "",
-   "options": "<p>The emails a customer receives after a purchase are defined in <a href=\"/app/purchase-follow-up\">Purchase Follow-up</a>: which purchase, how many days later, which template. They go out every morning at 08:15; what was sent to a customer shows in the customer's timeline and in <a href=\"/app/purchase-follow-up-entry\">Purchase Follow-up Entry</a>.</p>"
+   "options": "<p>Which purchase, how many days later, which template: <a href=\"/app/purchase-follow-up\">Purchase Follow-up</a>. Emails go out every morning at 08:15; what a customer received shows in the customer's timeline and in <a href=\"/app/purchase-follow-up-entry\">Purchase Follow-up Entry</a>.</p>"
   },
   {
    "fieldname": "tab_advanced",
