@@ -59,8 +59,15 @@ async function articleMultiSource(page) {
 async function sourcesDeLaFiche(page, route) {
 	await page.goto('/' + route);
 	await page.waitForLoadState('domcontentloaded');
+	//// The product's own code, not the first data-item-code on the page: the
+	//// theme's cart drawer sits in the header and its lines carry that
+	//// attribute too, so a leftover in the cart used to be taken for the
+	//// product under test.
 	const lu = await page.evaluate(() => ({
-		item_code: document.querySelector('[data-item-code]')?.getAttribute('data-item-code') || null,
+		item_code:
+			document
+				.querySelector('.product-page-content .btn-add-to-cart[data-item-code], .product-page-content [data-item-code]')
+				?.getAttribute('data-item-code') || null,
 		entrepots: [
 			...new Set(
 				[...document.querySelectorAll('input[name="webshop-warehouse-source"]')]
