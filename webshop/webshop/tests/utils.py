@@ -59,6 +59,19 @@ def root_customer_group():
 	)
 
 
+def leaf_customer_group():
+	"""A customer group a Customer may belong to: never the tree root.
+
+	A fresh site refuses "All Customer Groups" on a Customer ("Cannot select a
+	Group type Customer Group"); an older site may let it through, which is
+	how the root passed on osiris and failed in CI.
+	"""
+	return (
+		frappe.db.get_single_value("Webshop Settings", "default_customer_group")
+		or frappe.db.get_value("Customer Group", {"is_group": 0}, "name")
+	)
+
+
 def selling_price_list():
 	"""The list the shop sells at, whatever it is called here."""
 	nom = frappe.db.get_single_value("Webshop Settings", "price_list")
@@ -105,7 +118,7 @@ def portal_customer(email, customer_name):
 			{
 				"doctype": "Customer",
 				"customer_name": customer_name,
-				"customer_group": root_customer_group(),
+				"customer_group": leaf_customer_group(),
 				"territory": frappe.db.get_value("Territory", {"lft": 1}, "name"),
 				"email_id": email,
 			}

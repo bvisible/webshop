@@ -18,7 +18,7 @@ from webshop.webshop.tests.utils import (
 	default_company,
 	make_test_item,
 	restore_webshop_settings,
-	root_customer_group,
+	leaf_customer_group,
 	selling_price_list,
 	snapshot_webshop_settings,
 )
@@ -83,7 +83,7 @@ class TestCrossSellOffer(FrappeTestCase):
 				{
 					"doctype": "Customer",
 					"customer_name": CUSTOMER,
-					"customer_group": root_customer_group(),
+					"customer_group": leaf_customer_group(),
 					"territory": frappe.db.get_value("Territory", {"lft": 1}, "name"),
 				}
 			).insert(ignore_permissions=True)

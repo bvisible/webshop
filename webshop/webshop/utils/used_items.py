@@ -221,6 +221,9 @@ def create_used_unit(
 		warehouse = warehouse or _default_warehouse(source, company)
 		if not warehouse:
 			frappe.throw(_("No warehouse to receive the unit into. Pick one."))
+		# the warehouse says which company receives the unit; the shop's
+		# company is only a way to pick a default warehouse
+		company = frappe.db.get_value("Warehouse", warehouse, "company") or company
 		stock_entry = make_stock_entry(
 			item_code=unit.item_code,
 			qty=qty,
