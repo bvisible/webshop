@@ -435,6 +435,22 @@ class WebsiteItem(WebsiteGenerator):
 		#//// shop that only sells new goods.
 		from webshop.webshop.utils.used_items import condition_info, condition_schema_url, get_used_units, is_second_hand
 
+		#//// Neoffice — the review dialog draws itself in JS and its `__()` calls
+		#//// resolve against frappe._messages, which a portal page only holds if
+		#//// the controller seeds it: the title read French, the fields English.
+		context.review_dialog_messages = {
+			m: _(m)
+			for m in (
+				"Write a Review",
+				"Headline",
+				"Overall Rating",
+				"Your Review",
+				"Submit",
+				"Submitting Review ...",
+				"Thank you for the review",
+				"Review Submitted",
+			)
+		}
 		context.condition_info = condition_info(self)
 		context.condition_schema_url = condition_schema_url(self.get("item_condition"))
 		context.used_units = [] if is_second_hand(self.get("item_condition")) else get_used_units(self.item_code)

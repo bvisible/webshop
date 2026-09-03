@@ -84,6 +84,8 @@
 </div>
 
 <script>
+	{# //// Neoffice — the words the dialog below asks __() for (website_item.py) #}
+	frappe._messages = Object.assign(frappe._messages || {}, {{ (review_dialog_messages or {}) | tojson }});
 	frappe.ready(() => {
 		//// Neoffice — the review email links to /route#write-review: open the
 		//// dialog straight away; a visitor not signed in goes through the
