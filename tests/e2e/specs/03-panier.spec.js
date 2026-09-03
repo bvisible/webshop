@@ -65,9 +65,10 @@ async function sourcesDeLaFiche(page, route) {
 	//// product under test.
 	const lu = await page.evaluate(() => ({
 		item_code:
-			document
-				.querySelector('.product-page-content .btn-add-to-cart[data-item-code], .product-page-content [data-item-code]')
-				?.getAttribute('data-item-code') || null,
+			(
+				document.querySelector('.product-page-content .btn-add-to-cart[data-item-code]') ||
+				document.querySelector('.product-page-content [data-item-code]')
+			)?.getAttribute('data-item-code') || null,
 		entrepots: [
 			...new Set(
 				[...document.querySelectorAll('input[name="webshop-warehouse-source"]')]
