@@ -281,11 +281,14 @@ def _schedule_next(entry, flow, steps):
 
 
 def outgoing_sender():
-	return (
-		frappe.db.get_value("Email Account", {"default_outgoing": 1, "enable_outgoing": 1}, "email_id")
-		or frappe.db.get_single_value("Website Settings", "email")
-		or "noreply@example.com"
-	)
+	"""The address the Communication shows as sender: the default outgoing
+	account, else the session user, else a no-reply on this site."""
+	account = frappe.db.get_value("Email Account", {"default_outgoing": 1, "enable_outgoing": 1}, "email_id")
+	if account:
+		return account
+	if "@" in (frappe.session.user or ""):
+		return frappe.session.user
+	return "noreply@" + (frappe.local.site or "example.com")
 
 
 def build_context(entry, flow):
@@ -302,13 +305,18 @@ def build_context(entry, flow):
 	)
 	product_url = get_url("/" + page.route) if page else get_url("/all-products")
 	offers = []
-	for offer in matching_offers([entry.item_code], placement="product")[:3]:
-		shown = describe(offer)
-		if shown:
-			shown["url"] = get_url("/" + shown["route"])
-			if shown.get("image"):
-				shown["image"] = get_url(shown["image"])
-			offers.append(shown)
+	try:
+		for offer in matching_offers([entry.item_code], placement="product")[:3]:
+			shown = describe(offer)
+			if shown:
+				shown["url"] = get_url("/" + shown["route"])
+				if shown.get("image"):
+					shown["image"] = get_url(shown["image"])
+				offers.append(shown)
+	except Exception:
+		# the offers are a nicety inside the mail; a pricing problem must not
+		# hold the mail back
+		frappe.log_error("Follow-up offers could not be described", frappe.get_traceback())
 	shop_name = frappe.db.get_single_value("Website Settings", "app_name") or ""
 	return {
 		"doc": entry,

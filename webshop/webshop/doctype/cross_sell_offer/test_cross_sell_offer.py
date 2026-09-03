@@ -6,7 +6,11 @@ tests) and removed in tearDownClass. Webshop Settings is a Single: what a
 test writes there survives a rollback, hence snapshot / restore.
 """
 
+import inspect
+import unittest
+
 import frappe
+from erpnext.accounts.doctype.pricing_rule import utils as pricing_rule_utils
 from erpnext.utilities.product import get_price
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, flt, nowdate
@@ -17,8 +21,8 @@ from webshop.webshop.tests.utils import (
 	PREFIX,
 	default_company,
 	make_test_item,
+	portal_customer,
 	restore_webshop_settings,
-	leaf_customer_group,
 	selling_price_list,
 	snapshot_webshop_settings,
 )
@@ -26,6 +30,15 @@ from webshop.webshop.utils import cross_sell
 
 USER = "_wstest_xsell@example.com"
 CUSTOMER = "_WSTEST Cross-sell Customer"
+
+# The cart and the catalogue price rely on two things only our ERPNext fork
+# has: get_price(..., warehouse=...) (product_info would raise a TypeError on
+# stock ERPNext) and the "discount on other item" guards in pricing_rule/utils.
+# CI runs on stock ERPNext on purpose; those tests say so instead of failing.
+ON_FORK = "warehouse" in inspect.signature(get_price).parameters and "Neoffice" in inspect.getsource(
+	pricing_rule_utils.filter_pricing_rules
+)
+needs_fork = unittest.skipUnless(ON_FORK, "needs the bvisible/erpnext fork (warehouse pricing, other-item guards)")
 SETTINGS = ("enabled", "show_price", "price_list", "enable_checkout", "company")
 
 
@@ -50,7 +63,7 @@ class TestCrossSellOffer(FrappeTestCase):
 		cls.suffix = frappe.generate_hash(length=5).upper()
 		cls.trigger = cls.priced_item(f"{PREFIX} Printer {cls.suffix}", 200)
 		cls.offered = cls.priced_item(f"{PREFIX} Ink {cls.suffix}", 50)
-		cls.make_customer_with_user()
+		portal_customer(USER, CUSTOMER)
 		frappe.db.commit()
 
 	@classmethod
@@ -75,38 +88,6 @@ class TestCrossSellOffer(FrappeTestCase):
 		).insert(ignore_permissions=True)
 		make_website_item(frappe.get_doc("Item", item.name))
 		return item.name
-
-	@classmethod
-	def make_customer_with_user(cls):
-		if not frappe.db.exists("Customer", CUSTOMER):
-			frappe.get_doc(
-				{
-					"doctype": "Customer",
-					"customer_name": CUSTOMER,
-					"customer_group": leaf_customer_group(),
-					"territory": frappe.db.get_value("Territory", {"lft": 1}, "name"),
-				}
-			).insert(ignore_permissions=True)
-		if not frappe.db.exists("User", USER):
-			frappe.flags.mute_emails = True
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": USER,
-					"first_name": "Cross-sell",
-					"user_type": "Website User",
-					"send_welcome_email": 0,
-				}
-			).insert(ignore_permissions=True)
-		if not frappe.db.exists("Contact", {"email_id": USER}):
-			frappe.get_doc(
-				{
-					"doctype": "Contact",
-					"first_name": "Cross-sell",
-					"email_ids": [{"email_id": USER, "is_primary": 1}],
-					"links": [{"link_doctype": "Customer", "link_name": CUSTOMER}],
-				}
-			).insert(ignore_permissions=True)
 
 	@classmethod
 	def purge(cls):
@@ -244,6 +225,7 @@ class TestCrossSellOffer(FrappeTestCase):
 		found = cross_sell.matching_offers([self.trigger], placement="cart")
 		self.assertEqual([o.name for o in found], [offer.name])
 
+	@needs_fork
 	def test_the_shop_computes_the_advantage_like_the_rule_will(self):
 		offer = self.make_offer()
 		shown = cross_sell.describe(cross_sell.matching_offers([self.trigger], placement="product")[0])
@@ -254,6 +236,7 @@ class TestCrossSellOffer(FrappeTestCase):
 		self.assertIn(frappe.db.get_value("Item", self.trigger, "item_name"), shown["headline"])
 		self.assertTrue(shown["route"])
 
+	@needs_fork
 	def test_the_catalogue_price_ignores_the_offer_rule(self):
 		"""The rule is conditional on the trigger: neither item is discounted on its own."""
 		self.make_offer()
@@ -265,6 +248,7 @@ class TestCrossSellOffer(FrappeTestCase):
 
 	# --- the cart -----------------------------------------------------------
 
+	@needs_fork
 	def test_the_cart_prices_the_offer_and_not_the_trigger(self):
 		offer = self.make_offer()
 		frappe.set_user(USER)
@@ -298,6 +282,7 @@ class TestCrossSellOffer(FrappeTestCase):
 		cross_sell.accept_offer(offer.name, remove=1)
 		self.assertNotIn(self.offered, self.cart_rows())
 
+	@needs_fork
 	def test_two_offers_on_one_trigger_both_apply(self):
 		"""Ink AND paper with the printer: two rules on the trigger line, no conflict."""
 		paper = self.priced_item(f"{PREFIX} Paper {self.suffix}", 20)
@@ -332,6 +317,7 @@ class TestCrossSellOffer(FrappeTestCase):
 		self.empty_cart()
 		frappe.set_user("Administrator")
 
+	@needs_fork
 	def test_the_product_page_adds_both(self):
 		offer = self.make_offer()
 		frappe.set_user(USER)

@@ -544,6 +544,9 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) — **green, and it runs**:
 > CI answers "does webshop hold up on a stock ERPNext"; what it cannot check is
 > variant pricing by warehouse, since `get_price(..., warehouse=...)` only
 > exists on our fork. That test skips itself explicitly there.
+> The same goes for the cross-sell cart and catalogue tests: `needs_fork` in
+> `test_cross_sell_offer.py` skips the five that need the fork's pricing guards
+> and `get_price(..., warehouse=...)`; the rest of the module runs everywhere.
 
 > **What CI found that the server could not.** Three suites passed on
 > `prod.local` only because earlier runs had left their data behind:

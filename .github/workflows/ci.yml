@@ -226,7 +226,10 @@ jobs:
             webshop.webshop.utils.test_brand_carousel \
             webshop.webshop.utils.test_carousel_cache \
             webshop.webshop.utils.test_discount_query \
-            webshop.webshop.variant_selector.test_variant_selector
+            webshop.webshop.variant_selector.test_variant_selector \
+            webshop.webshop.utils.test_used_items \
+            webshop.webshop.doctype.cross_sell_offer.test_cross_sell_offer \
+            webshop.webshop.utils.test_follow_ups
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || echec="$echec $m"

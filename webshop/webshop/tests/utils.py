@@ -147,4 +147,12 @@ def portal_customer(email, customer_name):
 				"links": [{"link_doctype": "Customer", "link_name": customer_name}],
 			}
 		).insert(ignore_permissions=True)
+	# the Portal User row is what the cart's get_party() trusts first; the
+	# Contact link alone was not enough on a fresh site
+	if not frappe.db.exists("Portal User", {"parent": customer_name, "user": email}):
+		customer = frappe.get_doc("Customer", customer_name)
+		customer.append("portal_users", {"user": email})
+		customer.flags.ignore_permissions = True
+		customer.flags.ignore_mandatory = True
+		customer.save()
 	return customer_name
