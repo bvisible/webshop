@@ -1,3 +1,6 @@
+{# //// Neoffice — a second-hand unit is one of a kind: once it is gone it is
+   sold, not "out of stock" waiting for a restock. #}
+{% set sold_out_label = _('Sold', None, 'second-hand unit') if doc.get('item_condition') in ('Second-hand', 'Refurbished') else _('Out of stock') %}
 {% if shopping_cart and shopping_cart.cart_settings.enabled %}
 
 {% set cart_settings = shopping_cart.cart_settings %}
@@ -90,7 +93,7 @@
 							{% if src.in_stock %}
 								<span class="webshop-source-qty webshop-in">{{ _('In stock') }}{% if product_info.show_stock_qty %} ({{ src.stock_qty | int }}){% endif %}</span>
 							{% else %}
-								<span class="webshop-source-qty webshop-out">{{ _('Out of stock') }}</span>
+								<span class="webshop-source-qty webshop-out">{{ sold_out_label }}</span>
 							{% endif %}
 							{% if src.lead_days %}
 								<span class="webshop-source-delay">{{ _('Delivery in ~{0} days').format(src.lead_days) }}</span>
@@ -100,7 +103,7 @@
 				</div>
 			{% elif product_info.in_stock == 0 %}
 				<span class="no-stock out-of-stock">
-					{{ _('Out of stock') }}
+					{{ sold_out_label }}
 				</span>
 			{% elif product_info.in_stock == 1 %}
 				<span class="in-green has-stock">

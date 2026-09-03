@@ -6319,3 +6319,7 @@ msgstr "{} programmés"
 
 msgid "{} sent"
 msgstr "{} envoyées"
+
+msgctxt "second-hand unit"
+msgid "Sold"
+msgstr "Vendu"

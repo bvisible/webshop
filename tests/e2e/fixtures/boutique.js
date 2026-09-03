@@ -243,10 +243,16 @@ function cssEchappe(valeur) {
 //// that depended on it was silently skipped, and the run still reported
 //// "18 passed" — a green suite that tested almost nothing.
 async function premierArticleAchetable(page) {
-	const [route] = await articlesDuCatalogue(page, 1);
-	if (!route) return null;
-	const code = await codeArticleDeLaFiche(page, route);
-	return code ? {route, item_code: code} : null;
+	//// Several candidates: the newest product often is a second-hand unit
+	//// (one of a kind, one in stock), which no test can buy twice or keep in
+	//// its cart once somebody else has ordered it.
+	for (const route of await articlesDuCatalogue(page, 6)) {
+		const code = await codeArticleDeLaFiche(page, route);
+		if (!code || /-USED-\d+$/.test(code)) continue;
+		if (await page.locator('.condition-info, .condition-badge').count()) continue;
+		return {route, item_code: code};
+	}
+	return null;
 }
 
 //// Routes only — one page load, no matter how many are asked for.
@@ -271,8 +277,13 @@ async function articlesDuCatalogue(page, combien = 8) {
 async function codeArticleDeLaFiche(page, route) {
 	await page.goto('/' + route);
 	await page.waitForLoadState('domcontentloaded');
+	//// The buy button first: the theme's cart drawer lives in the header and
+	//// its lines carry data-item-code too.
 	return page.evaluate(() => {
-		const e = document.querySelector('[data-item-code]');
+		const e =
+			document.querySelector('.product-page-content .btn-add-to-cart[data-item-code]') ||
+			document.querySelector('.product-page-content [data-item-code]') ||
+			document.querySelector('[data-item-code]');
 		return e ? e.getAttribute('data-item-code') : null;
 	});
 }

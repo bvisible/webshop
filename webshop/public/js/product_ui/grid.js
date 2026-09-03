@@ -243,8 +243,12 @@ webshop.ProductGrid = class {
 			tooltipText = window.product_translations && window.product_translations["On backorder"] || "On backorder";
 		} else if (!item.in_stock) {
 			stockClass = 'out-of-stock';
-			stockText = window.product_translations && window.product_translations["Out of stock"] || "Out of stock";
-			tooltipText = window.product_translations && window.product_translations["Out of stock"] || "Out of stock";
+			//// Neoffice — a second-hand unit is one of a kind: gone means sold.
+			const sold = item.item_condition && item.item_condition !== "New";
+			stockText = sold
+				? (window.product_translations && window.product_translations["Sold"] || "Sold")
+				: (window.product_translations && window.product_translations["Out of stock"] || "Out of stock");
+			tooltipText = stockText;
 		} else if (item.stock_qty && parseFloat(item.stock_qty) <= 5) {
 			stockClass = 'low-stock';
 			stockText = window.product_translations && window.product_translations["Low stock"] || "Low stock";
