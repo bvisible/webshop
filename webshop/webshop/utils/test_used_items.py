@@ -11,7 +11,14 @@ from frappe.tests.utils import FrappeTestCase
 
 from webshop.webshop.doctype.website_item.website_item import make_website_item
 from webshop.webshop.product_data_engine.filters import ProductFiltersBuilder
-from webshop.webshop.tests.utils import PREFIX, default_company, make_test_item, selling_price_list
+from webshop.webshop.tests.utils import (
+	PREFIX,
+	default_company,
+	make_test_item,
+	restore_webshop_settings,
+	selling_price_list,
+	snapshot_webshop_settings,
+)
 from webshop.webshop.utils import used_items
 
 
@@ -20,7 +27,19 @@ class TestUsedItems(FrappeTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.suffix = frappe.generate_hash(length=5).upper()
-		cls.price_list = selling_price_list()
+		# a shop without a price list prices nothing (the CI site starts bare)
+		cls.snapshot = snapshot_webshop_settings(("enabled", "show_price", "price_list", "company"))
+		settings = frappe.get_single("Webshop Settings")
+		settings.enabled = 1
+		settings.show_price = 1
+		if not settings.price_list:
+			settings.price_list = selling_price_list()
+		if not settings.company:
+			settings.company = default_company()
+		settings.flags.ignore_permissions = True
+		settings.flags.ignore_mandatory = True
+		settings.save()
+		cls.price_list = settings.price_list
 		cls.warehouse = frappe.db.get_value(
 			"Warehouse", {"is_group": 0, "company": default_company()}, "name"
 		)
@@ -37,6 +56,7 @@ class TestUsedItems(FrappeTestCase):
 
 	@classmethod
 	def tearDownClass(cls):
+		restore_webshop_settings(cls.snapshot)
 		if cls.added_filter_row:
 			settings = frappe.get_single("Webshop Settings")
 			settings.filter_fields = [r for r in settings.filter_fields if r.fieldname != "item_condition"]
