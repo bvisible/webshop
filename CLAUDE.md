@@ -408,8 +408,8 @@ land on `/cart?add=ITEM&qty=1` and `/cart?coupon=CODE`
 
 ### Where the features live on the desk
 
-The workspace `Webshop` (`webshop/webshop/workspace/webshop/`) sits under
-`Website`, with counted shortcuts and four cards; forms get their buttons from
+The workspace `Webshop` (`webshop/webshop/workspace/webshop/`) sits next to
+`Website` in the same module, with counted shortcuts and four cards; forms get their buttons from
 `doctype_js` (Item, Item Group, Brand) and their connections from
 `override_doctype_dashboards` (Customer, Sales Order, Sales Invoice,
 Quotation) plus `purchase_follow_up_dashboard.py`. `webshop.webshop.tests.test_desk`
