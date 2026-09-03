@@ -5773,3 +5773,199 @@ msgstr "Créer"
 #: webshop/second-hand
 msgid "Second-hand products"
 msgstr "Occasions"
+
+#: webshop/cross-sell
+msgid "Cross Sell Offer"
+msgstr "Offre croisée"
+
+#: webshop/cross-sell
+msgid "Cross-sell Offer"
+msgstr "Offre croisée"
+
+#: webshop/cross-sell
+msgid "Relation"
+msgstr "Relation"
+
+#: webshop/cross-sell
+msgid "Drives the wording the customer reads when no headline is given"
+msgstr "Détermine la formulation lue par le client quand aucune accroche n'est donnée"
+
+#: webshop/cross-sell
+msgid "1 to 20. When several offers or pricing rules match the same line, the higher priority wins."
+msgstr "De 1 à 20. Quand plusieurs offres ou règles de prix touchent la même ligne, la priorité la plus haute gagne."
+
+#: webshop/cross-sell
+msgid "When the cart contains"
+msgstr "Quand le panier contient"
+
+#: webshop/cross-sell
+msgid "Trigger"
+msgstr "Déclencheur"
+
+#: webshop/cross-sell
+msgid "Then offer"
+msgstr "Alors proposer"
+
+#: webshop/cross-sell
+msgid "Offered Item"
+msgstr "Article proposé"
+
+#: webshop/cross-sell
+msgid "Advantage"
+msgstr "Avantage"
+
+#: webshop/cross-sell
+msgid "Consumable"
+msgstr "Consommable"
+
+#: webshop/cross-sell
+msgid "Accessory"
+msgstr "Accessoire"
+
+#: webshop/cross-sell
+msgid "Protection or Service"
+msgstr "Protection ou service"
+
+#: webshop/cross-sell
+msgid "Upgrade"
+msgstr "Montée en gamme"
+
+#: webshop/cross-sell
+msgid "Where"
+msgstr "Où"
+
+#: webshop/cross-sell
+msgid "Show on product page"
+msgstr "Afficher sur la fiche produit"
+
+#: webshop/cross-sell
+msgid "Show in cart"
+msgstr "Afficher dans le panier"
+
+#: webshop/cross-sell
+msgid "Show at checkout"
+msgstr "Afficher au paiement"
+
+#: webshop/cross-sell
+msgid "The order bump: one box to tick before paying"
+msgstr "L'order bump : une case à cocher avant de payer"
+
+#: webshop/cross-sell
+msgid "Shown to the customer. Empty: wording from the relation, e.g. \"The consumable for your ...\""
+msgstr "Lu par le client. Vide : formulation issue de la relation, p. ex. « Le consommable de votre... »"
+
+#: webshop/cross-sell
+msgid "Hide when already in the cart"
+msgstr "Masquer si déjà dans le panier"
+
+#: webshop/cross-sell
+msgid "Hide if bought in the last (days)"
+msgstr "Masquer si acheté dans les derniers (jours)"
+
+#: webshop/cross-sell
+msgid "Only for customer group"
+msgstr "Réservé au groupe de clients"
+
+#: webshop/cross-sell
+msgid "Behind the scenes"
+msgstr "En coulisses"
+
+#: webshop/cross-sell
+msgid "Generated from this offer. The discount is applied by ERPNext itself, in the cart, the order and the invoice."
+msgstr "Générée depuis cette offre. La remise est appliquée par ERPNext lui-même, dans le panier, la commande et la facture."
+
+#: webshop/cross-sell
+msgid "Impressions"
+msgstr "Affichages"
+
+#: webshop/cross-sell
+msgid "Acceptances"
+msgstr "Acceptations"
+
+#: webshop/cross-sell
+msgid "{0} shown · {1} accepted"
+msgstr "{0} affichages · {1} acceptations"
+
+#: webshop/cross-sell
+msgid "Pick what triggers the offer: an item, an item group or a brand."
+msgstr "Choisissez ce qui déclenche l'offre : un article, un groupe d'articles ou une marque."
+
+#: webshop/cross-sell
+msgid "An item cannot be offered with itself."
+msgstr "Un article ne peut pas être proposé avec lui-même."
+
+#: webshop/cross-sell
+msgid "The offered item must be published on the website."
+msgstr "L'article proposé doit être publié sur le site."
+
+#: webshop/cross-sell
+msgid "The discount percentage must be between 1 and 100."
+msgstr "Le pourcentage de remise doit être compris entre 1 et 100."
+
+#: webshop/cross-sell
+msgid "The discount amount must be positive."
+msgstr "Le montant de la remise doit être positif."
+
+#: webshop/cross-sell
+msgid "{0} already carries pricing rule {1} (priority {2}); on that line, the higher priority wins."
+msgstr "{0} porte déjà la règle de prix {1} (priorité {2}) ; sur cette ligne, la priorité la plus haute gagne."
+
+#: webshop/cross-sell
+msgid "The consumable for your {0}"
+msgstr "Le consommable de votre {0}"
+
+#: webshop/cross-sell
+msgid "Goes well with {0}"
+msgstr "Va bien avec {0}"
+
+#: webshop/cross-sell
+msgid "Protect your {0}"
+msgstr "Protégez votre {0}"
+
+#: webshop/cross-sell
+msgid "Go further than {0}"
+msgstr "Allez plus loin que {0}"
+
+#: webshop/cross-sell
+msgid "Complete your order"
+msgstr "Complétez votre commande"
+
+#: webshop/cross-sell
+msgid "Recommended with this item"
+msgstr "Recommandé avec cet article"
+
+#: webshop/cross-sell
+msgid "Add"
+msgstr "Ajouter"
+
+#: webshop/cross-sell
+msgid "Add both"
+msgstr "Ajouter les deux"
+
+#: webshop/cross-sell
+msgid "Yes, add {0}"
+msgstr "Oui, ajoutez {0}"
+
+#: webshop/cross-sell
+msgid "instead of {0}"
+msgstr "au lieu de {0}"
+
+#: webshop/cross-sell
+msgid "Added to your cart"
+msgstr "Ajouté à votre panier"
+
+#: webshop/cross-sell
+msgid "Removed from your cart"
+msgstr "Retiré de votre panier"
+
+#: webshop/cross-sell
+msgid "Free"
+msgstr "Offert"
+
+#: webshop/cross-sell
+msgid "This offer is no longer available."
+msgstr "Cette offre n'est plus disponible."
+
+#: webshop/cross-sell
+msgid "Webshop"
+msgstr "Webshop"

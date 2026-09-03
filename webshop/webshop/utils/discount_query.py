@@ -12,6 +12,9 @@ from frappe.utils import nowdate, nowtime, flt, getdate
 # Querying `pr.item_code` raised "Unknown column 'pr.item_code'" and every caller
 # answered HTTP 500 — the three functions in this module were entirely dead.
 #
+# A rule with apply_rule_on_other ("15% off B when A is in the cart", the
+# cross-sell offers) is excluded too: neither A nor B is discounted on its own.
+#
 # apply_on = 'Transaction' is deliberately excluded: those rules discount the
 # order as a whole ("10% off carts over 500"), not any particular item. Counting
 # them here would flag the WHOLE catalogue as discounted as soon as one exists.
@@ -164,6 +167,7 @@ def get_discounted_items_query(price_list=None, company=None, customer_group=Non
 			AND ip.price_list = %s
 			AND ip.selling = 1
 			AND pr.disable = 0
+			AND IFNULL(pr.apply_rule_on_other, '') = ''
 			AND pr.selling = 1
 			AND (pr.company = %s OR pr.company IS NULL OR pr.company = '')
 			AND (pr.customer_group = %s OR pr.customer_group IS NULL OR pr.customer_group = '')
@@ -281,6 +285,7 @@ def get_discounted_items_count(price_list=None, company=None, customer_group=Non
 					AND ip.price_list = %s
 					AND ip.selling = 1
 					AND pr.disable = 0
+					AND IFNULL(pr.apply_rule_on_other, '') = ''
 					AND pr.selling = 1
 					AND (pr.company = %s OR pr.company IS NULL OR pr.company = '')
 					AND (pr.customer_group = %s OR pr.customer_group IS NULL OR pr.customer_group = '')
@@ -353,6 +358,7 @@ def get_items_with_pricing_rule_discount(price_list=None, company=None, customer
 		AND ip.price_list = %s
 		AND ip.selling = 1
 		AND pr.disable = 0
+		AND IFNULL(pr.apply_rule_on_other, '') = ''
 		AND pr.selling = 1
 		AND (pr.company = %s OR pr.company IS NULL OR pr.company = '')
 		AND (pr.customer_group = %s OR pr.customer_group IS NULL OR pr.customer_group = '')

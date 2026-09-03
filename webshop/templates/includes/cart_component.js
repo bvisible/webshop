@@ -120,6 +120,8 @@ function updateCartUI() {
   // Show or hide interface based on content
   if (pageData.cart_items.length === 0) {
     if (emptyCart) emptyCart.style.display = 'block';
+    const offersBox = document.getElementById('cartOffers');
+    if (offersBox) offersBox.innerHTML = '';
     if (cartItemsContainer) cartItemsContainer.style.display = 'none';
     if (cartFooter) cartFooter.style.display = 'none';
     if (cartTaxDetails) cartTaxDetails.style.display = 'none';
@@ -128,6 +130,7 @@ function updateCartUI() {
     if (cartItemsContainer) {
       cartItemsContainer.style.display = 'block';
       renderCartItems();
+      renderCartOffers();
     }
     if (cartFooter) cartFooter.style.display = 'block';
     
@@ -139,6 +142,22 @@ function updateCartUI() {
       cartTaxDetails.style.display = 'none';
     }
   }
+}
+
+//// Neoffice — cross-sell offers under the drawer's lines, above its footer.
+//// The renderer lives in public/js/cross_sell.js; accepting an offer adds
+//// the line and refreshes the drawer, which draws the next offer.
+function renderCartOffers() {
+  if (!(window.webshop && webshop.cross_sell) || !cartFooter) return;
+  let box = document.getElementById('cartOffers');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'cartOffers';
+    box.className = 'cross-sell-offers cross-sell-offers--drawer';
+    box.dataset.placement = 'cart';
+    cartFooter.parentNode.insertBefore(box, cartFooter);
+  }
+  webshop.cross_sell.load(box, { placement: 'cart', after: () => refreshCart(true) });
 }
 
 // Generate HTML for cart items

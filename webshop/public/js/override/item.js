@@ -222,7 +222,13 @@ frappe.ui.form.on("Item", {
 		frm.add_custom_button(
 			__("Create Used Unit"),
 			() => webshop_used_unit_dialog(frm),
-			__("Second-hand")
+			__("Webshop")
+		);
+		//// Neoffice — cross-sell: an offer whose trigger is this item
+		frm.add_custom_button(
+			__("Cross-sell Offer"),
+			() => frappe.new_doc("Cross Sell Offer", { trigger_type: "Item", trigger_item: frm.doc.name, title: frm.doc.item_name }),
+			__("Webshop")
 		);
 		frappe.db
 			.count("Item", { filters: { condition_of_item: frm.doc.name } })

@@ -1436,6 +1436,26 @@ frappe.ready(function() {
             
             if (stepId === 'step-payment') {
                 // Initialise payment methods if you have not already done so
+                //// Neoffice — the order bump. Accepting one changes the amount, and
+                //// updateOrderSummaryFromDoc() already re-renders the payment
+                //// methods when the amount to pay changes.
+                if (window.webshop && webshop.cross_sell) {
+                    webshop.cross_sell.load(document.getElementById('checkout-offers'), {
+                        placement: 'checkout',
+                        after: () => {
+                            this.freezeElements(['order-summary']);
+                            frappe.call({
+                                method: 'webshop.webshop.utils.cart_helpers.get_order_summary_items',
+                                callback: (r) => {
+                                    if (typeof r.message === 'string') $('.order-items').html(r.message);
+                                    this.updateOrderSummaryFromDoc();
+                                },
+                                // the totals are right even if the rows could not be redrawn
+                                error: () => this.updateOrderSummaryFromDoc(),
+                            });
+                        },
+                    });
+                }
                 if (!this.paymentMethodsInitialized) {
                     this.setupPaymentMethods();
                     this.paymentMethodsInitialized = true;

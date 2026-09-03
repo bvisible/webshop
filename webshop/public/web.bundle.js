@@ -7,5 +7,6 @@ import './js/product_ui/list'
 import './js/product_ui/search'
 import './js/product_ui/views'
 import './js/shopping_cart'
+import './js/cross_sell'
 import './js/wishlist'
 

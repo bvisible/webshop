@@ -364,6 +364,9 @@
 						<h3 class="mt-0">{{ _("Payment") }}</h3>
 						<p class="text-muted">{{ _("All transactions are secure and encrypted.") }}</p>
 
+						{# //// Neoffice — the order bump: one box to tick before paying (checkout.js showStep) #}
+						<div id="checkout-offers" class="cross-sell-offers" data-placement="checkout"></div>
+
 						<!-- Apply Coupon Code  -->
 						<div id="coupon-form-container">
 							{% include "templates/includes/coupon_form.html" %}

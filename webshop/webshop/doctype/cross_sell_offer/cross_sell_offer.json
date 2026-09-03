@@ -1,0 +1,307 @@
+{
+ "actions": [],
+ "autoname": "format:XSO-{#####}",
+ "creation": "2026-09-03 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "enabled",
+  "column_break_head",
+  "relation",
+  "priority",
+  "trigger_section",
+  "trigger_type",
+  "trigger_item",
+  "trigger_item_group",
+  "trigger_brand",
+  "column_break_trigger",
+  "offer_item",
+  "offer_qty",
+  "discount_type",
+  "discount_percentage",
+  "discount_amount",
+  "display_section",
+  "show_on_product_page",
+  "show_in_cart",
+  "show_at_checkout",
+  "column_break_display",
+  "headline",
+  "description",
+  "conditions_section",
+  "skip_if_in_cart",
+  "skip_if_purchased_within_days",
+  "column_break_conditions",
+  "only_customer_group",
+  "valid_from",
+  "valid_upto",
+  "engine_section",
+  "pricing_rule",
+  "column_break_engine",
+  "impressions",
+  "acceptances"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "1",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "relation",
+   "fieldtype": "Select",
+   "label": "Relation",
+   "options": "Consumable\nAccessory\nProtection or Service\nUpgrade\nOther",
+   "default": "Accessory",
+   "in_standard_filter": 1,
+   "description": "Drives the wording the customer reads when no headline is given"
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Int",
+   "label": "Priority",
+   "default": "5",
+   "description": "1 to 20. When several offers or pricing rules match the same line, the higher priority wins."
+  },
+  {
+   "fieldname": "trigger_section",
+   "fieldtype": "Section Break",
+   "label": "When the cart contains"
+  },
+  {
+   "fieldname": "trigger_type",
+   "fieldtype": "Select",
+   "label": "Trigger",
+   "options": "Item\nItem Group\nBrand",
+   "default": "Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "trigger_item",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item",
+   "depends_on": "eval:doc.trigger_type==\"Item\"",
+   "mandatory_depends_on": "eval:doc.trigger_type==\"Item\"",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "trigger_item_group",
+   "fieldtype": "Link",
+   "label": "Item Group",
+   "options": "Item Group",
+   "depends_on": "eval:doc.trigger_type==\"Item Group\"",
+   "mandatory_depends_on": "eval:doc.trigger_type==\"Item Group\""
+  },
+  {
+   "fieldname": "trigger_brand",
+   "fieldtype": "Link",
+   "label": "Brand",
+   "options": "Brand",
+   "depends_on": "eval:doc.trigger_type==\"Brand\"",
+   "mandatory_depends_on": "eval:doc.trigger_type==\"Brand\""
+  },
+  {
+   "fieldname": "column_break_trigger",
+   "fieldtype": "Column Break",
+   "label": "Then offer"
+  },
+  {
+   "fieldname": "offer_item",
+   "fieldtype": "Link",
+   "label": "Offered Item",
+   "options": "Item",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "offer_qty",
+   "fieldtype": "Float",
+   "label": "Quantity",
+   "default": "1"
+  },
+  {
+   "fieldname": "discount_type",
+   "fieldtype": "Select",
+   "label": "Advantage",
+   "options": "None\nPercentage\nAmount\nFree",
+   "default": "Percentage",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "discount_percentage",
+   "fieldtype": "Percent",
+   "label": "Discount Percentage",
+   "depends_on": "eval:doc.discount_type==\"Percentage\"",
+   "mandatory_depends_on": "eval:doc.discount_type==\"Percentage\""
+  },
+  {
+   "fieldname": "discount_amount",
+   "fieldtype": "Currency",
+   "label": "Discount Amount",
+   "depends_on": "eval:doc.discount_type==\"Amount\"",
+   "mandatory_depends_on": "eval:doc.discount_type==\"Amount\""
+  },
+  {
+   "fieldname": "display_section",
+   "fieldtype": "Section Break",
+   "label": "Where"
+  },
+  {
+   "fieldname": "show_on_product_page",
+   "fieldtype": "Check",
+   "label": "Show on product page",
+   "default": "1"
+  },
+  {
+   "fieldname": "show_in_cart",
+   "fieldtype": "Check",
+   "label": "Show in cart",
+   "default": "1"
+  },
+  {
+   "fieldname": "show_at_checkout",
+   "fieldtype": "Check",
+   "label": "Show at checkout",
+   "default": "1",
+   "description": "The order bump: one box to tick before paying"
+  },
+  {
+   "fieldname": "column_break_display",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "headline",
+   "fieldtype": "Data",
+   "label": "Headline",
+   "description": "Shown to the customer. Empty: wording from the relation, e.g. \"The consumable for your ...\""
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "conditions_section",
+   "fieldtype": "Section Break",
+   "label": "Conditions"
+  },
+  {
+   "fieldname": "skip_if_in_cart",
+   "fieldtype": "Check",
+   "label": "Hide when already in the cart",
+   "default": "1"
+  },
+  {
+   "fieldname": "skip_if_purchased_within_days",
+   "fieldtype": "Int",
+   "label": "Hide if bought in the last (days)",
+   "default": "0"
+  },
+  {
+   "fieldname": "column_break_conditions",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "only_customer_group",
+   "fieldtype": "Link",
+   "label": "Only for customer group",
+   "options": "Customer Group",
+   "description": "Leave empty for everyone"
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Date",
+   "label": "Valid From"
+  },
+  {
+   "fieldname": "valid_upto",
+   "fieldtype": "Date",
+   "label": "Valid Upto"
+  },
+  {
+   "fieldname": "engine_section",
+   "fieldtype": "Section Break",
+   "label": "Behind the scenes",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "pricing_rule",
+   "fieldtype": "Link",
+   "label": "Pricing Rule",
+   "options": "Pricing Rule",
+   "read_only": 1,
+   "description": "Generated from this offer. The discount is applied by ERPNext itself, in the cart, the order and the invoice."
+  },
+  {
+   "fieldname": "column_break_engine",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "impressions",
+   "fieldtype": "Int",
+   "label": "Impressions",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "acceptances",
+   "fieldtype": "Int",
+   "label": "Acceptances",
+   "read_only": 1,
+   "default": "0"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-03 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Cross Sell Offer",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Website Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "trigger_item,offer_item",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "title",
+ "track_changes": 1
+}

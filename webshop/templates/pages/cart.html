@@ -135,6 +135,9 @@
 				</div>
 			</div>
 
+			{# //// Neoffice — cross-sell offers for what the cart holds (public/js/cross_sell.js) #}
+			<div class="cross-sell-offers frappe-card p-4 mb-4" data-placement="cart" data-autoload></div>
+
 			<!-- Terms and Conditions -->
 			{% if doc.items %}
 				{% if doc.terms and not cart_settings.enable_checkout_page %}

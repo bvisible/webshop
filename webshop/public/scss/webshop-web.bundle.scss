@@ -298,3 +298,41 @@ body:has(.for-login-with-email-link) .page-breadcrumbs {
 	width: min-content;
 	margin: auto;
 }
+/* //// Neoffice — cross-sell offers (product page, cart page, drawer, checkout) */
+/* an empty box must not show: .frappe-card would win the display battle otherwise */
+.cross-sell-offers:not(.has-offers) { display: none !important; }
+.xsell-title { font-weight: 600; font-size: 0.95rem; color: #111827; margin: 16px 0 8px; }
+.xsell-card {
+	display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin-bottom: 8px;
+	border: 1px solid #e5e7eb; border-radius: 10px; background: #fff;
+}
+.xsell-card__image img, .xsell-card__image .xsell-abbr, .xsell-bump__image img, .xsell-bump__image .xsell-abbr {
+	width: 56px; height: 56px; border-radius: 8px; object-fit: cover; background: #f3f4f6;
+	display: flex; align-items: center; justify-content: center; color: #9ca3af; font-weight: 600; flex-shrink: 0;
+}
+.xsell-card__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.xsell-card__headline { font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: .02em; }
+.xsell-card__name { font-size: 0.9rem; font-weight: 600; color: #111827; text-decoration: none; }
+.xsell-card__name:hover { text-decoration: none; opacity: .8; }
+.xsell-card__desc { font-size: 0.8rem; color: #4b5563; }
+.xsell-card__price { font-size: 0.9rem; }
+.xsell-price { font-weight: 700; color: #111827; }
+.xsell-old-price { color: #9ca3af; margin-left: 4px; }
+.xsell-badge {
+	display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 0.72rem; font-weight: 600;
+	background: #dcfce7; color: #166534; margin-left: 4px;
+}
+.xsell-card__btn { white-space: nowrap; }
+.cross-sell-offers--drawer { padding: 0 16px 8px; }
+.cross-sell-offers--drawer .xsell-card { padding: 8px; gap: 8px; }
+.cross-sell-offers--drawer .xsell-card__image img, .cross-sell-offers--drawer .xsell-card__image .xsell-abbr { width: 44px; height: 44px; }
+.xsell-bump {
+	display: flex; align-items: center; gap: 14px; padding: 14px 16px; margin-bottom: 16px; cursor: pointer;
+	border: 2px dashed #d1d5db; border-radius: 12px; background: #fffbeb;
+}
+.xsell-bump:has(.xsell-bump__check:checked) { border-color: #16a34a; background: #f0fdf4; }
+.xsell-bump__check { width: 20px; height: 20px; flex-shrink: 0; cursor: pointer; }
+.xsell-bump__text { display: flex; flex-direction: column; gap: 2px; font-size: 0.9rem; color: #111827; }
+.xsell-bump__headline { color: #6b7280; font-size: 0.8rem; }
+.xsell-bump__price { margin-top: 2px; }
+.xsell-bump__instead { color: #6b7280; font-size: 0.8rem; }

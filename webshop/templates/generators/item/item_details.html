@@ -58,6 +58,8 @@
 		<!-- add variant to cart -->
 		{% include "templates/generators/item/item_add_to_cart.html" %}
 	{% endif %}
+	{# //// Neoffice — cross-sell offers whose trigger is this item (public/js/cross_sell.js) #}
+	<div class="cross-sell-offers" data-placement="product" data-item-code="{{ doc.item_code }}" data-autoload></div>
 	{# //// Neoffice — second-hand: the new item points at its used units. #}
 	{% if used_units %}
 	<div class="product-used-units">

@@ -619,3 +619,18 @@ def cart_info_for_template():
             "cart_info": {},
             "tax_info": []
         }
+
+@frappe.whitelist(allow_guest=True)
+#//// Neoffice — cross-sell: the checkout summary updates existing rows in
+#//// place; a line that appears or disappears (an offer ticked or unticked at
+#//// the payment step) needs the rows drawn again, server side, like the page.
+def get_order_summary_items():
+    """The checkout summary's item rows, rendered for the session's cart."""
+    from webshop.webshop.shopping_cart.cart import _get_cart_quotation, decorate_quotation_doc
+
+    quotation = _get_cart_quotation()
+    if not quotation or not quotation.get("items"):
+        return ""
+    # the same decoration the checkout page gets: web item name, image, stock source
+    decorate_quotation_doc(quotation)
+    return frappe.render_template("templates/includes/order_summary_items.html", {"doc": quotation})

@@ -24,71 +24,7 @@
 
       <!-- Items -->
       <div class="order-items pb-2 align-items-center">
-        {% for item in doc["items"] %}
-        {#- //// Neoffice — multi-warehouse: two lines can share an item_code,
-    so the row carries its stock source too. Without it the summary
-    refresh matched both lines and wrote the same quantity into each. -#}
-        <div class="order-item d-flex align-items-center" data-item-code="{{ item["item_code"] }}" data-warehouse="{{ item.warehouse or '' }}">
-            <div class="item-image mr-3">
-              {% if item.website_image %}
-                <img itemprop="image" class="website-image h-100 w-100" alt="{{ _(item.web_item_name) }}" src="{{ frappe.utils.quoted(item.website_image) | abs_url }}">
-              {% else %}
-                <div itemprop="image" class="no-image-cart-item">
-                  {{ frappe.utils.get_abbr(item.web_item_name) or "NA" }}
-                </div>
-              {% endif %}
-            </div>
-          <div class="item-details flex-grow-1">
-            <div class="item-name">
-              {{ item["item_name"] }}
-            </div>
-            <!-- //// Neoffice — multi-warehouse: stock source of the line
-                 (label + delivery estimate), present only when the feature
-                 decorated the quotation lines. -->
-            {% if item.get('warehouse_source_label') %}
-            <div class="webshop-line-source" style="font-size: 0.8em; color: var(--text-muted, #6c7680); margin: 2px 0 4px 0;">
-              <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--primary-color, #7575ff); display: inline-block; margin-right: 4px;"></span>{{ _(item.warehouse_source_label) }}{% if item.get('delivery_lead_days') %} — {{ _('Delivery in ~{0} days').format(item.delivery_lead_days) }}{% endif %}
-            </div>
-            {% endif %}
-            <div class="d-flex align-items-center justify-content-between qty-amount">
-              {% set disabled = 'disabled' if item.get("gift_card_data") else '' %}
-              <div class="input-group number-spinner" style="width: 120px;">
-                <span class="input-group-prepend">
-                  <button class="btn cart-btn" data-dir="dwn" {{ disabled }}>
-                    {{ '–' if not item.get("gift_card_data") else '' }}
-                  </button>
-                </span>
-                <input
-                  class="form-control text-center cart-qty"
-                  {#- //// Neoffice — a whole quantity prints without ".0" -#}
-                  value="{{ item["qty"] | int if item["qty"] == item["qty"] | int else item["qty"] }}"
-                  data-item-code="{{ item["item_code"] }}"
-                  data-warehouse="{{ item.warehouse or '' }}"
-                  style="max-width: 60px;"
-                  {{ disabled }}
-                />
-                <span class="input-group-append">
-                  <button class="btn cart-btn" data-dir="up" {{ disabled }}>
-                    {{ '+' if not item.get("gift_card_data") else '' }}
-                  </button>
-                </span>
-              </div>
-              <div class="item-price-details d-flex flex-column align-items-end ml-3">
-                {% if item.get("discount_percentage") %}
-                    <div class="discount-line">
-                        <span class="striked-price">{{ frappe.format_value(item.price_list_rate * item.qty, {"fieldtype": "Currency"}) }}</span>
-                        <span class="discount">-{{ "%.1f"|format(item.get("discount_percentage")) }}%</span>
-                    </div>
-                {% endif %}
-                <span class="original-price">{{ item.get_formatted("amount") }}</span>
-                {% if item.qty > 1 %}
-                    <span class="unit-price">({{ item.get_formatted("rate") }} / {{ item.uom }})</span>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endfor %}
+        {% include "templates/includes/order_summary_items.html" %}
       </div>
 
       <div class="card-body p-0">
