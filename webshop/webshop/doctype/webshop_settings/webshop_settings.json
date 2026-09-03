@@ -104,6 +104,17 @@
   "guest_display_settings_section",
   "hide_price_for_guest",
   "redirect_on_action",
+  "tab_emails",
+  "abandoned_cart_section",
+  "enable_abandoned_cart_emails",
+  "abandoned_cart_delays",
+  "abandoned_cart_template",
+  "column_break_abandoned",
+  "abandoned_cart_incentive_step",
+  "abandoned_cart_discount_percentage",
+  "abandoned_cart_coupon_validity_days",
+  "follow_up_section",
+  "follow_up_note",
   "tab_advanced",
   "sitemap_section",
   "sitemap_info",
@@ -141,6 +152,75 @@
    "fieldname": "tab_features",
    "fieldtype": "Tab Break",
    "label": "Features"
+  },
+  {
+   "fieldname": "tab_emails",
+   "fieldtype": "Tab Break",
+   "label": "Emails"
+  },
+  {
+   "fieldname": "abandoned_cart_section",
+   "fieldtype": "Section Break",
+   "label": "Abandoned Carts"
+  },
+  {
+   "fieldname": "enable_abandoned_cart_emails",
+   "fieldtype": "Check",
+   "label": "Remind customers of an abandoned cart",
+   "default": "0",
+   "description": "Signed-in customers only: a guest cart has no address to write to"
+  },
+  {
+   "fieldname": "abandoned_cart_delays",
+   "fieldtype": "Data",
+   "label": "Reminders (hours after the last change)",
+   "default": "1,24,72",
+   "depends_on": "enable_abandoned_cart_emails",
+   "description": "One email per delay, comma separated"
+  },
+  {
+   "fieldname": "abandoned_cart_template",
+   "fieldtype": "Link",
+   "label": "Email Template",
+   "options": "Email Template",
+   "depends_on": "enable_abandoned_cart_emails"
+  },
+  {
+   "fieldname": "column_break_abandoned",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "abandoned_cart_incentive_step",
+   "fieldtype": "Select",
+   "label": "Offer a coupon from email number",
+   "options": "\n2\n3",
+   "depends_on": "enable_abandoned_cart_emails",
+   "description": "Empty: no coupon, ever"
+  },
+  {
+   "fieldname": "abandoned_cart_discount_percentage",
+   "fieldtype": "Percent",
+   "label": "Coupon discount (%)",
+   "default": "10",
+   "depends_on": "eval:doc.enable_abandoned_cart_emails && doc.abandoned_cart_incentive_step"
+  },
+  {
+   "fieldname": "abandoned_cart_coupon_validity_days",
+   "fieldtype": "Int",
+   "label": "Coupon valid for (days)",
+   "default": "7",
+   "depends_on": "eval:doc.enable_abandoned_cart_emails && doc.abandoned_cart_incentive_step"
+  },
+  {
+   "fieldname": "follow_up_section",
+   "fieldtype": "Section Break",
+   "label": "Purchase Follow-ups"
+  },
+  {
+   "fieldname": "follow_up_note",
+   "fieldtype": "HTML",
+   "label": "",
+   "options": "<p>The emails a customer receives after a purchase are defined in <a href=\"/app/purchase-follow-up\">Purchase Follow-up</a>: which purchase, how many days later, which template. They go out every morning at 08:15; what was sent to a customer shows in the customer's timeline and in <a href=\"/app/purchase-follow-up-entry\">Purchase Follow-up Entry</a>.</p>"
   },
   {
    "fieldname": "tab_advanced",
@@ -802,7 +882,7 @@
    "options": "Webshop Trust Item"
   },
   {
-   "description": "//// Neoffice \u2014 multi-warehouse feature: expose several stock sources per product, with labels, lead times and supplier procurement.",
+   "description": "//// Neoffice — multi-warehouse feature: expose several stock sources per product, with labels, lead times and supplier procurement.",
    "fieldname": "multi_warehouse_section",
    "fieldtype": "Section Break",
    "label": "Multi-Warehouse Stock"
@@ -851,7 +931,7 @@
   {
    "default": "0",
    "depends_on": "enable_supplier_procurement",
-   "description": "Uses ERPNext stock reservation: when the Purchase Receipt is submitted, the goods are reserved for the customer order that triggered the purchase. Enabling this sets the two matching Stock Settings. Note: a Sales Order holding reserved stock cannot be picked through a Pick List \u2014 deliver it with a Delivery Note (or release the reservation).",
+   "description": "Uses ERPNext stock reservation: when the Purchase Receipt is submitted, the goods are reserved for the customer order that triggered the purchase. Enabling this sets the two matching Stock Settings. Note: a Sales Order holding reserved stock cannot be picked through a Pick List — deliver it with a Delivery Note (or release the reservation).",
    "fieldname": "reserve_stock_on_receipt",
    "fieldtype": "Check",
    "label": "Reserve Received Goods for the Customer Order"

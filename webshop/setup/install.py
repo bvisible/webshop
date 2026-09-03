@@ -304,6 +304,8 @@ CHAMPS_A_CREER_A_L_INSTALLATION = [
 	"add_webshop_po_marker_field",
 	"add_item_condition_fields",
 	"add_condition_shop_filter",
+	"add_item_replenishment_field",
+	"seed_follow_up_email_templates",
 ]
 
 

@@ -5969,3 +5969,263 @@ msgstr "Cette offre n'est plus disponible."
 #: webshop/cross-sell
 msgid "Webshop"
 msgstr "Webshop"
+
+#: webshop/follow-ups
+msgid "Purchase Follow-up"
+msgstr "Suivi d'achat"
+
+#: webshop/follow-ups
+msgid "Purchase Follow-up Entry"
+msgstr "Suivi d'achat client"
+
+#: webshop/follow-ups
+msgid "Purchase Follow-up Step"
+msgstr "Étape de suivi"
+
+#: webshop/follow-ups
+msgid "Abandoned Cart Reminder"
+msgstr "Relance de panier abandonné"
+
+#: webshop/follow-ups
+msgid "Nature"
+msgstr "Nature"
+
+#: webshop/follow-ups
+msgid "Transactional"
+msgstr "Transactionnel"
+
+#: webshop/follow-ups
+msgid "Marketing"
+msgstr "Marketing"
+
+#: webshop/follow-ups
+msgid "Both stop for a customer who unsubscribed; marketing is what the law calls advertising"
+msgstr "Les deux s'arrêtent pour un client désinscrit ; le marketing est ce que la loi appelle de la publicité"
+
+#: webshop/follow-ups
+msgid "After a purchase of"
+msgstr "Après un achat de"
+
+#: webshop/follow-ups
+msgid "All Purchases"
+msgstr "Tous les achats"
+
+#: webshop/follow-ups
+msgid "Second-hand Units"
+msgstr "Unités d'occasion"
+
+#: webshop/follow-ups
+msgid "Audience"
+msgstr "Audience"
+
+#: webshop/follow-ups
+msgid "Only orders placed in the shop"
+msgstr "Seulement les commandes passées en boutique en ligne"
+
+#: webshop/follow-ups
+msgid "Stop when the purchase is returned"
+msgstr "Arrêter si l'achat est retourné"
+
+#: webshop/follow-ups
+msgid "Emails"
+msgstr "Emails"
+
+#: webshop/follow-ups
+msgid "Steps"
+msgstr "Étapes"
+
+#: webshop/follow-ups
+msgid "So far"
+msgstr "Jusqu'ici"
+
+#: webshop/follow-ups
+msgid "Customers enrolled"
+msgstr "Clients enrôlés"
+
+#: webshop/follow-ups
+msgid "Emails sent"
+msgstr "Emails envoyés"
+
+#: webshop/follow-ups
+msgid "Days After Purchase"
+msgstr "Jours après l'achat"
+
+#: webshop/follow-ups
+msgid "At 80% of the item's replenishment cycle"
+msgstr "À 80 % du cycle de réassort de l'article"
+
+#: webshop/follow-ups
+msgid "Replaces the days: the item must carry a replenishment cycle, or the step is skipped"
+msgstr "Remplace les jours : l'article doit porter un cycle de réassort, sinon l'étape est sautée"
+
+#: webshop/follow-ups
+msgid "Skip if the customer ordered again"
+msgstr "Sauter si le client a recommandé"
+
+#: webshop/follow-ups
+msgid "Follow-up"
+msgstr "Suivi"
+
+#: webshop/follow-ups
+msgid "Scheduled"
+msgstr "Planifié"
+
+#: webshop/follow-ups
+msgid "Stopped"
+msgstr "Arrêté"
+
+#: webshop/follow-ups
+msgid "Source Type"
+msgstr "Type de source"
+
+#: webshop/follow-ups
+msgid "Source"
+msgstr "Source"
+
+#: webshop/follow-ups
+msgid "Purchase Date"
+msgstr "Date d'achat"
+
+#: webshop/follow-ups
+msgid "Next email"
+msgstr "Prochain email"
+
+#: webshop/follow-ups
+msgid "Next Step"
+msgstr "Prochaine étape"
+
+#: webshop/follow-ups
+msgid "Next Send On"
+msgstr "Prochain envoi le"
+
+#: webshop/follow-ups
+msgid "Stop Reason"
+msgstr "Motif d'arrêt"
+
+#: webshop/follow-ups
+msgid "Log"
+msgstr "Journal"
+
+#: webshop/follow-ups
+msgid "Sent On"
+msgstr "Envoyé le"
+
+#: webshop/follow-ups
+msgid "Outcome"
+msgstr "Résultat"
+
+#: webshop/follow-ups
+msgid "Email number"
+msgstr "Email numéro"
+
+#: webshop/follow-ups
+msgid "Cart Total"
+msgstr "Total du panier"
+
+#: webshop/follow-ups
+msgid "Incentive"
+msgstr "Incitation"
+
+#: webshop/follow-ups
+msgid "Converted"
+msgstr "Converti"
+
+#: webshop/follow-ups
+msgid "Abandoned Carts"
+msgstr "Paniers abandonnés"
+
+#: webshop/follow-ups
+msgid "Remind customers of an abandoned cart"
+msgstr "Relancer les clients qui abandonnent leur panier"
+
+#: webshop/follow-ups
+msgid "Signed-in customers only: a guest cart has no address to write to"
+msgstr "Clients connectés seulement : un panier invité n'a pas d'adresse où écrire"
+
+#: webshop/follow-ups
+msgid "Reminders (hours after the last change)"
+msgstr "Relances (heures après la dernière modification)"
+
+#: webshop/follow-ups
+msgid "One email per delay, comma separated"
+msgstr "Un email par délai, séparés par des virgules"
+
+#: webshop/follow-ups
+msgid "Offer a coupon from email number"
+msgstr "Offrir un code promo à partir de l'email numéro"
+
+#: webshop/follow-ups
+msgid "Empty: no coupon, ever"
+msgstr "Vide : jamais de code promo"
+
+#: webshop/follow-ups
+msgid "Coupon discount (%)"
+msgstr "Remise du code promo (%)"
+
+#: webshop/follow-ups
+msgid "Coupon valid for (days)"
+msgstr "Code promo valable (jours)"
+
+#: webshop/follow-ups
+msgid "Purchase Follow-ups"
+msgstr "Suivis d'achat"
+
+#: webshop/follow-ups
+msgid "Pick what the follow-up starts from."
+msgstr "Choisissez ce qui déclenche le suivi."
+
+#: webshop/follow-ups
+msgid "A follow-up needs at least one email."
+msgstr "Un suivi a besoin d'au moins un email."
+
+#: webshop/follow-ups
+msgid "Step {0}: the delay cannot be negative."
+msgstr "Étape {0} : le délai ne peut pas être négatif."
+
+#: webshop/follow-ups
+msgid "Step {0}: the emails must be in chronological order."
+msgstr "Étape {0} : les emails doivent être dans l'ordre chronologique."
+
+#: webshop/follow-ups
+msgid "{0} enrolled · {1} emails sent"
+msgstr "{0} enrôlés · {1} emails envoyés"
+
+#: webshop/follow-ups
+msgid "Entries"
+msgstr "Suivis clients"
+
+#: webshop/follow-ups
+msgid "Cancelled"
+msgstr "Annulé"
+
+#: webshop/follow-ups
+msgid "Returned"
+msgstr "Retourné"
+
+#: webshop/follow-ups
+msgid "Unsubscribed"
+msgstr "Désinscrit"
+
+#: webshop/follow-ups
+msgid "Ordered again"
+msgstr "A recommandé"
+
+#: webshop/follow-ups
+msgid "Stop receiving these emails"
+msgstr "Ne plus recevoir ces emails"
+
+#: webshop/follow-ups
+msgid "Webshop emails"
+msgstr "Emails de la boutique"
+
+#: webshop/follow-ups
+msgid "Replenishment Cycle (days)"
+msgstr "Cycle de réassort (jours)"
+
+#: webshop/follow-ups
+msgid "How long one unit lasts a customer. A follow-up step set to the item's cycle mails at 80% of it."
+msgstr "Combien de temps une unité dure chez un client. Une étape de suivi calée sur le cycle de l'article envoie à 80 % de celui-ci."
+
+#: webshop/follow-ups
+msgid "Leave empty for everyone"
+msgstr "Vide : pour tout le monde"

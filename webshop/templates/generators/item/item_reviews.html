@@ -85,6 +85,17 @@
 
 <script>
 	frappe.ready(() => {
+		//// Neoffice — the review email links to /route#write-review: open the
+		//// dialog straight away; a visitor not signed in goes through the
+		//// login and comes back to the same place.
+		if (window.location.hash === "#write-review") {
+			if ($('.btn-write-review').length) {
+				setTimeout(() => $('.btn-write-review').first().trigger('click'), 300);
+			} else if (frappe.session && frappe.session.user === "Guest") {
+				window.location.href = "/login?redirect-to=" + encodeURIComponent(window.location.pathname + window.location.hash);
+			}
+		}
+	frappe.ready(() => {
 		$('.page_content').on('click', '.btn-write-review', (e) => {
 			// Bind action on write a review button
 			const $btn = $(e.currentTarget);

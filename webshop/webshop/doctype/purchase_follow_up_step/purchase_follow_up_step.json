@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "creation": "2026-09-03 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "days_after",
+  "use_item_cycle",
+  "email_template",
+  "stop_if_reordered"
+ ],
+ "fields": [
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Step",
+   "in_list_view": 1,
+   "reqd": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "days_after",
+   "fieldtype": "Int",
+   "label": "Days After Purchase",
+   "in_list_view": 1,
+   "reqd": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "use_item_cycle",
+   "fieldtype": "Check",
+   "label": "At 80% of the item's replenishment cycle",
+   "in_list_view": 1,
+   "columns": 2,
+   "description": "Replaces the days: the item must carry a replenishment cycle, or the step is skipped"
+  },
+  {
+   "fieldname": "email_template",
+   "fieldtype": "Link",
+   "label": "Email Template",
+   "options": "Email Template",
+   "in_list_view": 1,
+   "reqd": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "stop_if_reordered",
+   "fieldtype": "Check",
+   "label": "Skip if the customer ordered again",
+   "default": "0"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-03 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Purchase Follow-up Step",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "istable": 1,
+ "editable_grid": 1
+}

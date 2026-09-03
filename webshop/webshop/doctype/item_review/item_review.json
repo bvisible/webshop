@@ -11,6 +11,7 @@
   "customer",
   "column_break_3",
   "item",
+  "verified_purchase",
   "published_on",
   "reviews_section",
   "review_title",
@@ -76,6 +77,13 @@
    "label": "Customer",
    "options": "Customer",
    "read_only": 1
+  },
+  {
+   "fieldname": "verified_purchase",
+   "fieldtype": "Check",
+   "label": "Verified Purchase",
+   "read_only": 1,
+   "default": "0"
   },
   {
    "fieldname": "published_on",

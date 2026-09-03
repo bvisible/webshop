@@ -1,0 +1,204 @@
+{
+ "actions": [],
+ "creation": "2026-09-03 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "enabled",
+  "column_break_head",
+  "nature",
+  "trigger_section",
+  "trigger_type",
+  "trigger_item",
+  "trigger_item_group",
+  "trigger_brand",
+  "column_break_trigger",
+  "only_website_orders",
+  "only_customer_group",
+  "stop_on_return",
+  "steps_section",
+  "steps",
+  "stats_section",
+  "enrolled",
+  "column_break_stats",
+  "sent"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "0",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "nature",
+   "fieldtype": "Select",
+   "label": "Nature",
+   "options": "Transactional\nMarketing",
+   "default": "Transactional",
+   "description": "Both stop for a customer who unsubscribed; marketing is what the law calls advertising"
+  },
+  {
+   "fieldname": "trigger_section",
+   "fieldtype": "Section Break",
+   "label": "After a purchase of"
+  },
+  {
+   "fieldname": "trigger_type",
+   "fieldtype": "Select",
+   "label": "Trigger",
+   "options": "All Purchases\nItem\nItem Group\nBrand\nSecond-hand Units",
+   "default": "All Purchases",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "trigger_item",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item",
+   "depends_on": "eval:doc.trigger_type==\"Item\"",
+   "mandatory_depends_on": "eval:doc.trigger_type==\"Item\""
+  },
+  {
+   "fieldname": "trigger_item_group",
+   "fieldtype": "Link",
+   "label": "Item Group",
+   "options": "Item Group",
+   "depends_on": "eval:doc.trigger_type==\"Item Group\"",
+   "mandatory_depends_on": "eval:doc.trigger_type==\"Item Group\""
+  },
+  {
+   "fieldname": "trigger_brand",
+   "fieldtype": "Link",
+   "label": "Brand",
+   "options": "Brand",
+   "depends_on": "eval:doc.trigger_type==\"Brand\"",
+   "mandatory_depends_on": "eval:doc.trigger_type==\"Brand\""
+  },
+  {
+   "fieldname": "column_break_trigger",
+   "fieldtype": "Column Break",
+   "label": "Audience"
+  },
+  {
+   "fieldname": "only_website_orders",
+   "fieldtype": "Check",
+   "label": "Only orders placed in the shop",
+   "default": "1"
+  },
+  {
+   "fieldname": "only_customer_group",
+   "fieldtype": "Link",
+   "label": "Only for customer group",
+   "options": "Customer Group",
+   "description": "Leave empty for everyone"
+  },
+  {
+   "fieldname": "stop_on_return",
+   "fieldtype": "Check",
+   "label": "Stop when the purchase is returned",
+   "default": "1"
+  },
+  {
+   "fieldname": "steps_section",
+   "fieldtype": "Section Break",
+   "label": "Emails"
+  },
+  {
+   "fieldname": "steps",
+   "fieldtype": "Table",
+   "label": "Steps",
+   "options": "Purchase Follow-up Step",
+   "reqd": 1
+  },
+  {
+   "fieldname": "stats_section",
+   "fieldtype": "Section Break",
+   "label": "So far",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "enrolled",
+   "fieldtype": "Int",
+   "label": "Customers enrolled",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "column_break_stats",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sent",
+   "fieldtype": "Int",
+   "label": "Emails sent",
+   "read_only": 1,
+   "default": "0"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-03 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Purchase Follow-up",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "autoname": "format:FLOW-{#####}",
+ "title_field": "title",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Website Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "track_changes": 1
+}

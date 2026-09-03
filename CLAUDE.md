@@ -308,6 +308,78 @@ Payment flow uses ERPNext's Payment Request system:
 - Payment gateway callbacks handled by `controllers/payment_handler.payment_callback`
 - Multiple payment methods configured in Webshop Settings
 
+### Second-hand units (occasion)
+
+A used or refurbished unit is **its own Item**, linked to the new item through
+`condition_of_item` — never a variant (a systematic attribute combination),
+never a serial number (the cart adds items, and there is no price per serial).
+The Item carries the condition (custom fields from
+`patches/add_item_condition_fields.py`: `item_condition` New / Refurbished /
+Second-hand, `condition_grade`, `condition_details`, `condition_of_item`;
+the native `warranty_period` in days is what the page shows in months).
+Website Item mirrors them (`fetch_from` + `crud_events/item/update_website_item.py`).
+
+- Vocabulary lives in `webshop/utils/used_items.py`: what counts as second-hand,
+  the schema.org / Google Merchant condition URL (the product page's JSON-LD
+  used to write `NewCondition` for everything), warranty in months.
+- `create_used_unit()` is the one-click action on the new item's form: copy,
+  Item Price on the shop's list, Material Receipt, Website Item seeded from the
+  new item's page.
+- The value is `Second-hand`, not `Used`: `Used` is already translated
+  "Utilisé" (coupons) in `fr.po`.
+- `/occasions` is `/all-products` with the Condition facet locked
+  (`www/occasions`, `product_data_engine/listing_context.py`,
+  `window.locked_field_filters`). Webshop Settings accepts a **Select** as a
+  filter field for this; the facet only renders once a published item is not
+  New. Badges: `grid.js`, `list.js`, `product_carousel.html` — three copies,
+  plus `bench build`.
+
+### Cross-sell offers and the order bump
+
+`Cross Sell Offer`: "when the cart holds A (item, group or brand), propose B
+with an advantage". **The advantage is a Pricing Rule generated from the
+offer** (`apply_rule_on_other`, or a free item): ERPNext prices B in the cart,
+the order and the invoice, and drops the discount when A leaves. No second
+pricing engine. `webshop/utils/cross_sell.py` answers `get_offers(placement)`
+and `accept_offer()`; `public/js/cross_sell.js` draws the four placements
+(product page, cart page, drawer, checkout bump) with labels sent by the server
+(website pages have no `__()` catalogue).
+
+> Three things the ERPNext fork had to learn (all marked `#//// Neoffice`,
+> `accounts_controller.py` and `pricing_rule/utils.py`): a discount-on-other-item
+> rule discounted the **trigger** row too on a server-created document; it
+> applied **without a document** (the catalogue price of both A and B showed
+> the discount); and two rules that tie made the cart **refuse to save**.
+> Generated rules carry `apply_multiple_pricing_rules` so two offers on one
+> trigger coexist; `discount_query.py` ignores them.
+
+> A Link field named `customer_group` receives the session default at insert
+> time (Selling Settings) — the offer's field is `only_customer_group`.
+
+### Purchase follow-ups and abandoned carts
+
+`Purchase Follow-up` (the flow: after a purchase of X, these Email Templates,
+N days later) enrols one `Purchase Follow-up Entry` per order and item on
+submit (`webshop/utils/follow_ups.py`, hooks on Sales Order and Sales Invoice).
+The cron job at 08:15 sends what is due, logs each mail on the entry and as a
+**Communication on the Customer** (the customer's timeline is the audit), then
+schedules the next step. Stop rules: cancel, return, unsubscribe (Frappe's own
+Email Unsubscribe scoped to the Customer, linked from every mail), "ordered
+again", and a step missed by more than two weeks is skipped rather than sent
+late. A step can follow the item's `replenishment_days` (80% of the cycle).
+
+`webshop/utils/abandoned_carts.py` runs hourly on the open shopping-cart
+Quotations of signed-in customers (Webshop Settings, Emails tab: delays,
+template, from which email a single-use coupon is generated). The email links
+land on `/cart?add=ITEM&qty=1` and `/cart?coupon=CODE`
+(`templates/pages/cart.py`), and the review email on `/route#write-review`.
+
+> `seed_follow_up_email_templates` ships the templates and two flows switched
+> **off**: a client instance must never start mailing because it migrated.
+
+> `frappe.db.has_column("Webshop Settings", ...)` raises TableMissingError: a
+> Single has no table — ask `frappe.get_meta(...).has_field()`.
+
 ## Integration Points
 
 ### ERPNext Dependencies
@@ -343,7 +415,7 @@ bench --site sitename run-tests --skip-test-records --module webshop.webshop.uti
 bench --site sitename run-tests --app webshop
 ```
 
-**135 tests over 11 modules, green on `prod.local`.** Three modules are not in
+**167 tests over 14 modules, green on `prod.local`** (second-hand 8, cross-sell 10, follow-ups 14 added on 2026-09-03). Three modules are not in
 that count — `shopping_cart`, `website_item`, `product_data_engine` — because
 they are built on ERPNext's test fixtures (`_Test Company`,
 `_Test Price List India`, `_Test Tax 1 - _TC`). Run those on a dedicated test

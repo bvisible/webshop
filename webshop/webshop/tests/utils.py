@@ -92,3 +92,46 @@ def make_test_item(item_code, **properties):
 
 	properties.setdefault("item_group", leaf_item_group())
 	return make_item(item_code, properties=properties)
+
+
+def portal_customer(email, customer_name):
+	"""A Customer reachable from a Website User, the way the shop sees one.
+
+	Created muted (a welcome mail needs SMTP) and never deleted here: the
+	caller decides, because a customer with orders cannot be dropped.
+	"""
+	if not frappe.db.exists("Customer", customer_name):
+		frappe.get_doc(
+			{
+				"doctype": "Customer",
+				"customer_name": customer_name,
+				"customer_group": root_customer_group(),
+				"territory": frappe.db.get_value("Territory", {"lft": 1}, "name"),
+				"email_id": email,
+			}
+		).insert(ignore_permissions=True)
+	if not frappe.db.exists("User", email):
+		muted = frappe.flags.mute_emails
+		frappe.flags.mute_emails = True
+		try:
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": customer_name,
+					"user_type": "Website User",
+					"send_welcome_email": 0,
+				}
+			).insert(ignore_permissions=True)
+		finally:
+			frappe.flags.mute_emails = muted
+	if not frappe.db.exists("Contact", {"email_id": email}):
+		frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": customer_name,
+				"email_ids": [{"email_id": email, "is_primary": 1}],
+				"links": [{"link_doctype": "Customer", "link_name": customer_name}],
+			}
+		).insert(ignore_permissions=True)
+	return customer_name

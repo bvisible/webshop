@@ -9,7 +9,39 @@ from webshop.webshop.shopping_cart.cart import get_cart_quotation
 from frappe import _
 
 
+def handle_email_links():
+    """/cart?add=ITEM&qty=1 (reorder) and /cart?coupon=CODE (cart reminder).
+
+    Both come from the follow-up emails. A guest is sent to sign in first —
+    the cart and the coupon belong to a customer — then lands back here.
+    """
+    from urllib.parse import quote, urlencode
+
+    from frappe.utils import cint
+
+    from webshop.webshop.shopping_cart.cart import apply_coupon_code, update_cart
+
+    add, coupon = frappe.form_dict.get("add"), frappe.form_dict.get("coupon")
+    if not (add or coupon):
+        return
+    if frappe.session.user == "Guest":
+        wanted = {k: v for k, v in (("add", add), ("qty", frappe.form_dict.get("qty")), ("coupon", coupon)) if v}
+        frappe.local.flags.redirect_location = "/login?redirect-to=" + quote("/cart?" + urlencode(wanted))
+        raise frappe.Redirect
+    try:
+        if add and frappe.db.exists("Website Item", {"item_code": add, "published": 1}):
+            update_cart(add, cint(frappe.form_dict.get("qty")) or 1, add_qty=True)
+        if coupon:
+            apply_coupon_code(coupon, "")
+    except Exception:
+        frappe.log_error("Cart link from an email failed", frappe.get_traceback())
+    frappe.local.flags.redirect_location = "/cart"
+    raise frappe.Redirect
+
+
 def get_context(context):
+    #//// Neoffice — links from the follow-up emails land here
+    handle_email_links()
     #//// Neoffice multi-site — un site réservé aux professionnels ne montre pas
     #//// son panier à un visiteur anonyme. Le catalogue reste ouvert (vitrine),
     #//// le panier et la commande demandent un compte.

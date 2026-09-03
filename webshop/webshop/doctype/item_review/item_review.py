@@ -142,7 +142,23 @@ def add_item_review(web_item, title, rating, comment=None):
 			}
 		)
 		doc.published_on = datetime.today().strftime("%d %B %Y")
+		#//// Neoffice — the "verified purchase" badge the template already
+		#//// renders had no field behind it: has this customer bought the item?
+		doc.verified_purchase = 1 if has_bought(doc.customer, doc.item) else 0
 		doc.save()
+
+
+def has_bought(customer, item_code):
+	if not customer or not item_code:
+		return False
+	for doctype in ("Sales Order", "Sales Invoice"):
+		if frappe.db.sql(
+			f"""select 1 from `tab{doctype} Item` i join `tab{doctype}` p on p.name = i.parent
+			where p.docstatus = 1 and p.customer = %s and i.item_code = %s limit 1""",
+			(customer, item_code),
+		):
+			return True
+	return False
 
 
 def get_customer(silent=False):

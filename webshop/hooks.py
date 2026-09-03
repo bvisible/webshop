@@ -40,7 +40,17 @@ update_website_context = [
 scheduler_events = {
 	"daily": [
 		"webshop.webshop.utils.frequently_bought_together.calculate_frequently_bought_together"
-	]
+	],
+	#//// Neoffice — abandoned carts: one look per hour at the carts left behind
+	"hourly": ["webshop.webshop.utils.abandoned_carts.send_abandoned_cart_reminders"],
+	#//// Neoffice — purchase follow-ups go out in the morning, not at midnight
+	"cron": {"15 8 * * *": ["webshop.webshop.utils.follow_ups.send_due_follow_ups"]},
+}
+
+#//// Neoffice — follow-ups and cart reminders show under the customer's
+#//// connections, next to its orders.
+override_doctype_dashboards = {
+	"Customer": "webshop.webshop.utils.follow_ups.customer_dashboard",
 }
 
 website_generators = ["Website Item", "Item Group"]
@@ -106,7 +116,12 @@ doc_events = {
 	"Sales Order": {
 		"on_submit": [
 			"webshop.webshop.multi_warehouse.procurement.process_sales_order",
+			#//// Neoffice — purchase follow-ups enrol the customer; a cart
+			#//// that became an order stops being "abandoned".
+			"webshop.webshop.utils.follow_ups.enroll_from_sales_order",
+			"webshop.webshop.utils.abandoned_carts.mark_converted",
 		],
+		"on_cancel": ["webshop.webshop.utils.follow_ups.on_cancel"],
 	},
 	#//// Neoffice — multi-warehouse: ERPNext reserves the received goods for
 	#//// the customer order on its own (Stock Settings); this only writes the
@@ -118,7 +133,11 @@ doc_events = {
 	},
 	"Sales Invoice": {
 		"validate": "webshop.webshop.crud_events.sales_invoice.validate",
-		"on_submit": "webshop.webshop.crud_events.sales_invoice.on_submit",
+		"on_submit": [
+			"webshop.webshop.crud_events.sales_invoice.on_submit",
+			"webshop.webshop.utils.follow_ups.enroll_from_sales_invoice",
+		],
+		"on_cancel": ["webshop.webshop.utils.follow_ups.on_cancel"],
 		"on_update": [
 			"webshop.webshop.shopping_cart.cart.create_gift_cards_from_invoice"
 		]
