@@ -2804,6 +2804,11 @@ def apply_coupon_code(applied_code, applied_referral_sales_partner):
         frappe.throw(_("Please enter a coupon code"))
 
     coupon_list = frappe.get_all("Coupon Code", filters={"coupon_code": applied_code})
+    #//// Neoffice — the checkout re-applies a coupon it had to remove for a
+    #//// moment (shipping rule, quantity change), and what the quotation holds
+    #//// is the document name, not the code a customer types. Fall back to it.
+    if not coupon_list and frappe.db.exists("Coupon Code", applied_code):
+        coupon_list = [frappe._dict(name=applied_code)]
     if not coupon_list:
         frappe.throw(_("Please enter a valid coupon code"))
 

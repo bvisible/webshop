@@ -135,16 +135,33 @@
                                                 {% endfor %}
                                             </tbody>
                                             <tfoot>
+                                                {# //// Neoffice — same rule as the cart and checkout summaries: the
+                                                   subtotal and the taxes are the pre-discount figures, and a coupon
+                                                   on the grand total gets its own line. net_total already carries
+                                                   the discount, so the page used to show a subtotal below what the
+                                                   lines cost, and no trace of the coupon the customer had used. #}
+                                                {% set pre_discount = namespace(subtotal=doc.total, taxes=0) %}
+                                                {% for d in doc.taxes %}
+                                                    {% if d.included_in_print_rate %}{% set pre_discount.subtotal = pre_discount.subtotal - d.tax_amount %}{% endif %}
+                                                    {% set pre_discount.taxes = pre_discount.taxes + d.tax_amount %}
+                                                {% endfor %}
                                                 <tr>
                                                     <td></td>
                                                     <td colspan="2" class="text-right"><strong>{{ _("Subtotal") }}</strong></td>
-                                                    <td class="text-right">{{ webshop_fmt_money(max(0, doc.net_total), currency=doc.currency) }}</td>
+                                                    <td class="text-right">{{ webshop_fmt_money(max(0, pre_discount.subtotal), currency=doc.currency) }}</td>
                                                 </tr>
-                                                {% if doc.total_taxes_and_charges and doc.net_total > 0 %}
+                                                {% if pre_discount.taxes and doc.net_total > 0 %}
                                                 <tr>
                                                     <td></td>
                                                     <td colspan="2" class="text-right">{{ _("Taxes and Charges") }}</td>
-                                                    <td class="text-right">{{ webshop_fmt_money(doc.total_taxes_and_charges, currency=doc.currency) }}</td>
+                                                    <td class="text-right">{{ webshop_fmt_money(pre_discount.taxes, currency=doc.currency) }}</td>
+                                                </tr>
+                                                {% endif %}
+                                                {% if (doc.coupon_code or doc.gift_card_coupon) and doc.discount_amount %}
+                                                <tr>
+                                                    <td></td>
+                                                    <td colspan="2" class="text-right text-success">{{ _("Coupon Discount") }} ({{ doc.coupon_code or doc.gift_card_coupon }})</td>
+                                                    <td class="text-right text-success">-{{ webshop_fmt_money(doc.discount_amount, currency=doc.currency) }}</td>
                                                 </tr>
                                                 {% endif %}
                                                 <tr>

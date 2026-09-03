@@ -6277,3 +6277,9 @@ msgstr "Relances de panier envoyées, 30 derniers jours"
 #: webshop/follow-ups
 msgid "Carts recovered, last 30 days"
 msgstr "Paniers récupérés, 30 derniers jours"
+
+msgid "Which purchase, how many days later, which template: {0}."
+msgstr "Quel achat, combien de jours après, quel modèle : {0}."
+
+msgid "Emails go out every morning at 08:15; what a customer received shows in the customer's timeline and in {0}."
+msgstr "Les emails partent chaque matin à 08:15 ; ce qu'un client a reçu apparaît dans sa chronologie et dans {0}."

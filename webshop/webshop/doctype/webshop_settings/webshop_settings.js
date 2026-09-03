@@ -685,6 +685,18 @@ function save_category_order(wrapper) {
 //// lately, so switching them on is a decision made with the figures in view.
 frappe.ui.form.on("Webshop Settings", {
 	refresh(frm) {
+		const note = frm.get_field("follow_up_note");
+		if (note) {
+			// An HTML field's options are not translated by the form, and anything
+			// written straight into the wrapper is overwritten by the next
+			// refresh_input(), which re-renders df.options. So replace the options.
+			const link = (doctype, label) =>
+				`<a href="/app/${frappe.router.slug(doctype)}">${label}</a>`;
+			note.df.options =
+				`<p>${__("Which purchase, how many days later, which template: {0}.", [link("Purchase Follow-up", __("Purchase Follow-up"))])} ` +
+				`${__("Emails go out every morning at 08:15; what a customer received shows in the customer's timeline and in {0}.", [link("Purchase Follow-up Entry", __("Purchase Follow-up Entry"))])}</p>`;
+			note.refresh_input();
+		}
 		const field = frm.get_field("follow_up_status");
 		if (!field) return;
 		frappe.call({

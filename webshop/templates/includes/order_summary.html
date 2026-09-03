@@ -35,8 +35,15 @@
               <td class="bill-label subtotal-element">
                 {{ _("Order Total") }} ({{ _("{0} items").format(doc["total_qty"] | int) }})
               </td>
+              {# //// Neoffice — pre-discount subtotal, same rule as cart_payment_summary.html:
+                 a coupon on the grand total is folded into net_total by ERPNext, and the
+                 summary then showed a subtotal, a tax and a discount that did not add up. #}
+              {% set pre_discount = namespace(v=doc.total) %}
+              {% for d in doc.taxes %}
+                {% if d.included_in_print_rate %}{% set pre_discount.v = pre_discount.v - d.tax_amount %}{% endif %}
+              {% endfor %}
               <td class="bill-content net-total text-right subtotal">
-                {{ doc.get_formatted("net_total") }}
+                {{ webshop_fmt_money(pre_discount.v, currency=doc.currency) }}
               </td>
             </tr>
 

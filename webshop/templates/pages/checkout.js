@@ -1799,15 +1799,18 @@ frappe.ready(function() {
                         const doc = r.message.doc;
                         // Check if a coupon is applied
                         if (doc.coupon_code || doc.gift_card_coupon) {
+                            //// Neoffice — the coupon used to be dropped here for good,
+                            //// with a blue toast telling the customer to type it again.
+                            //// A coupon applied on the cart page, or through the link
+                            //// of an abandoned-cart email, was therefore lost at the
+                            //// shipping step. Remember it and put it back once the
+                            //// shipping rule is in place (see restoreCoupon).
+                            this.couponToRestore = doc.coupon_code || doc.gift_card_coupon;
                             // Remove the coupon before applying the shipping rule
                             frappe.call({
                                 method: 'webshop.webshop.shopping_cart.cart.remove_coupon_code',
                                 callback: (r) => {
                                     if (r.message) {
-                                        frappe.show_alert({
-                                            message: __('The coupon has been removed to apply shipping rule'),
-                                            indicator: 'blue'
-                                        });
                                         // Apply the shipping rule
                                         this.applyShippingRule(shipping_method, notReload);
                                     }
@@ -1852,6 +1855,36 @@ frappe.ready(function() {
                     }
                     this.isUpdatingShipping = false; 
                     this.unfreezeElements(['step-section', 'order-summary']);
+                    this.restoreCoupon(notReload);
+                }
+            });
+        }
+
+        //// Neoffice — put back the coupon that updateShippingMethod or
+        //// updateItemQuantity had to remove. It goes through apply_coupon_code,
+        //// so validity, usage limit and customer are checked again on the new
+        //// totals; when that fails the customer sees why, and the old toast.
+        restoreCoupon(notReload = false) {
+            const code = this.couponToRestore;
+            if (!code) return;
+            this.couponToRestore = null;
+            this.freezeElements(['order-summary']);
+            frappe.call({
+                method: 'webshop.webshop.shopping_cart.cart.apply_coupon_code',
+                args: { applied_code: code, applied_referral_sales_partner: '' },
+                callback: (r) => {
+                    if (r.message) {
+                        this.updateOrderSummaryFromDoc(r.message, notReload);
+                    } else {
+                        this.unfreezeElements(['order-summary']);
+                    }
+                },
+                error: () => {
+                    frappe.show_alert({
+                        message: __('The coupon has been removed to apply shipping rule'),
+                        indicator: 'blue'
+                    });
+                    this.updateOrderSummaryFromDoc(null, notReload);
                 }
             });
         }
@@ -1902,7 +1935,14 @@ frappe.ready(function() {
             const subtotalElement = $('.bill-content.net-total.subtotal');
             const subtotalLabelElement = $('.bill-label.subtotal-element');
 
-            const formattedSubtotal = await this.format_currency_value(doc.net_total, doc.currency);
+            //// Neoffice — pre-discount subtotal, the same figure the server-rendered
+            //// summary prints: a coupon on the grand total is folded into net_total by
+            //// ERPNext, and showing net_total next to the full coupon line double-counted it.
+            const includedTax = (doc.taxes || [])
+                .filter((t) => t.included_in_print_rate)
+                .reduce((sum, t) => sum + (parseFloat(t.tax_amount) || 0), 0);
+            const subtotal = (typeof doc.total === 'number' ? doc.total : doc.net_total) - includedTax;
+            const formattedSubtotal = await this.format_currency_value(subtotal, doc.currency);
             subtotalElement.text(formattedSubtotal);
 
             if (subtotalLabelElement.length) {
@@ -2227,15 +2267,14 @@ frappe.ready(function() {
                         const doc = r.message.doc;
                         // Check if a coupon or loyalty points are applied
                         if (doc.coupon_code || doc.gift_card_coupon) {
+                            //// Neoffice — same as the shipping step: keep the coupon
+                            //// across the quantity change instead of dropping it.
+                            this.couponToRestore = doc.coupon_code || doc.gift_card_coupon;
                             // Remove the coupon before updating the quantity
                             frappe.call({
                                 method: 'webshop.webshop.shopping_cart.cart.remove_coupon_code',
                                 callback: (r) => {
                                     if (r.message) {
-                                        frappe.show_alert({
-                                            message: __('The coupon has been removed to update item quantity'),
-                                            indicator: 'blue'
-                                        });
                                         // Update the quantity
                                         this.performItemQuantityUpdate(item_code, qty, warehouse);
                                     }
@@ -2305,6 +2344,7 @@ frappe.ready(function() {
                         }
                     } finally {
                         this.unfreezeElements(['order-summary']);
+                        this.restoreCoupon();
                     }
                 },
                 error: (err) => {

@@ -24,7 +24,19 @@
 					#}
 					{% set total_items = frappe.utils.cstr(frappe.utils.flt(doc.total_qty, 0)) %}
 					<td class="bill-label">{{ _("Subtotal excl. tax ({0} items)").format(total_items) }}</td>
-					<td class="bill-content net-total text-right">{{ webshop_fmt_money(doc.net_total, currency=doc.currency) }}</td>
+					{#
+						//// Neoffice — the subtotal is the amount BEFORE a document-level
+						discount (coupon on the grand total). ERPNext folds that discount
+						into net_total, so printing net_total next to the pre-discount tax
+						and the full coupon line made three numbers that did not add up
+						(29.61 + 2.66 - 3.56 was shown as 32.00). total is the sum of the
+						lines; for tax-inclusive prices the included tax is taken out again.
+					#}
+					{% set pre_discount = namespace(v=doc.total) %}
+					{% for d in doc.taxes %}
+						{% if d.included_in_print_rate %}{% set pre_discount.v = pre_discount.v - d.tax_amount %}{% endif %}
+					{% endfor %}
+					<td class="bill-content net-total text-right">{{ webshop_fmt_money(pre_discount.v, currency=doc.currency) }}</td>
 				</tr>
 
 				<!-- taxes: cleaned labels (no account codes / internal ids), VAT rows merged by rate -->
