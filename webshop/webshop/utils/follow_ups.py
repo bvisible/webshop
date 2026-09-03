@@ -457,3 +457,36 @@ def customer_dashboard(data):
 		{"label": _("Webshop emails"), "items": ["Purchase Follow-up Entry", "Abandoned Cart Reminder"]}
 	)
 	return data
+
+
+def _source_dashboard(data, doctype):
+	"""The entries enrolled by this order or invoice, under its connections.
+
+	The entry points at its source through a Dynamic Link (source_doctype /
+	source_name), which the dashboard needs spelled out."""
+	data.setdefault("non_standard_fieldnames", {})["Purchase Follow-up Entry"] = "source_name"
+	data.setdefault("dynamic_links", {})["source_name"] = [doctype, "source_doctype"]
+	data.setdefault("transactions", []).append(
+		{"label": _("Webshop emails"), "items": ["Purchase Follow-up Entry"]}
+	)
+	return data
+
+
+def sales_order_dashboard(data):
+	_source_dashboard(data, "Sales Order")
+	data["non_standard_fieldnames"]["Abandoned Cart Reminder"] = "converted_order"
+	data["transactions"][-1]["items"].append("Abandoned Cart Reminder")
+	return data
+
+
+def sales_invoice_dashboard(data):
+	return _source_dashboard(data, "Sales Invoice")
+
+
+def quotation_dashboard(data):
+	"""A shopping cart's reminders, under the quotation's connections."""
+	data.setdefault("non_standard_fieldnames", {})["Abandoned Cart Reminder"] = "quotation"
+	data.setdefault("transactions", []).append(
+		{"label": _("Webshop emails"), "items": ["Abandoned Cart Reminder"]}
+	)
+	return data

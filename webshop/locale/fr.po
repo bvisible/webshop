@@ -5968,7 +5968,7 @@ msgstr "Cette offre n'est plus disponible."
 
 #: webshop/cross-sell
 msgid "Webshop"
-msgstr "Webshop"
+msgstr "Boutique en ligne"
 
 #: webshop/follow-ups
 msgid "Purchase Follow-up"
@@ -6283,3 +6283,39 @@ msgstr "Quel achat, combien de jours après, quel modèle : {0}."
 
 msgid "Emails go out every morning at 08:15; what a customer received shows in the customer's timeline and in {0}."
 msgstr "Les emails partent chaque matin à 08:15 ; ce qu'un client a reçu apparaît dans sa chronologie et dans {0}."
+
+msgid "Catalogue"
+msgstr "Catalogue"
+
+msgid "Cross-sell"
+msgstr "Ventes croisées"
+
+msgid "Customer emails"
+msgstr "Emails clients"
+
+msgid "Second-hand units"
+msgstr "Occasions"
+
+msgid "Cross-sell offers"
+msgstr "Offres croisées"
+
+msgid "Follow-ups scheduled"
+msgstr "Suivis programmés"
+
+msgid "Abandoned carts"
+msgstr "Paniers abandonnés"
+
+msgid "Second-hand page"
+msgstr "Page des occasions"
+
+msgid "{} items"
+msgstr "{} articles"
+
+msgid "{} enabled"
+msgstr "{} activées"
+
+msgid "{} scheduled"
+msgstr "{} programmés"
+
+msgid "{} sent"
+msgstr "{} envoyées"

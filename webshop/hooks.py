@@ -51,6 +51,9 @@ scheduler_events = {
 #//// connections, next to its orders.
 override_doctype_dashboards = {
 	"Customer": "webshop.webshop.utils.follow_ups.customer_dashboard",
+	"Sales Order": "webshop.webshop.utils.follow_ups.sales_order_dashboard",
+	"Sales Invoice": "webshop.webshop.utils.follow_ups.sales_invoice_dashboard",
+	"Quotation": "webshop.webshop.utils.follow_ups.quotation_dashboard",
 }
 
 website_generators = ["Website Item", "Item Group"]
@@ -64,6 +67,8 @@ override_doctype_class = {
 
 doctype_js = {
 	"Item": "public/js/override/item.js",
+	"Item Group": "public/js/override/cross_sell_trigger.js",
+	"Brand": "public/js/override/cross_sell_trigger.js",
 	"Homepage": "public/js/override/homepage.js",
 	"Coupon Code": "public/js/coupon_code.js"
 }
