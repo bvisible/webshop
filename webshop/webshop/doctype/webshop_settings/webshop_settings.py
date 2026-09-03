@@ -244,15 +244,20 @@ class WebshopSettings(Document):
 			return
 
 		web_item_meta = frappe.get_meta("Website Item")
+		#//// Neoffice — second-hand: a Select facet (the item condition) is as
+		#//// filterable as a Link; the builder reads its values off the
+		#//// published items (filters.py) and the query path is the generic one.
 		valid_fields = [
-			df.fieldname for df in web_item_meta.fields if df.fieldtype in ["Link", "Table MultiSelect"]
+			df.fieldname
+			for df in web_item_meta.fields
+			if df.fieldtype in ["Link", "Table MultiSelect", "Select"]
 		]
 
 		for row in filter_fields:
 			if row.fieldname not in valid_fields:
 				frappe.throw(
 					_(
-						"Filter Fields Row #{0}: Fieldname {1} must be of type 'Link' or 'Table MultiSelect'"
+						"Filter Fields Row #{0}: Fieldname {1} must be of type 'Link', 'Select' or 'Table MultiSelect'"
 					).format(row.idx, frappe.bold(row.fieldname))
 				)
 

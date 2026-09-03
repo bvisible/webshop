@@ -5629,3 +5629,147 @@ msgstr "En utilisant ce formulaire de paiement, vous acceptez les"
 #: webshop/templates/payments/payrexx.html
 msgid "Pay with Payrexx"
 msgstr "Payer avec Payrexx"
+
+#: webshop/second-hand
+msgid "Condition"
+msgstr "État"
+
+#: webshop/second-hand
+msgid "New"
+msgstr "Neuf"
+
+#: webshop/second-hand
+msgid "Refurbished"
+msgstr "Reconditionné"
+
+#: webshop/second-hand
+msgid "Second-hand"
+msgstr "Occasion"
+
+#: webshop/second-hand
+msgid "Like New"
+msgstr "Comme neuf"
+
+#: webshop/second-hand
+msgid "Very Good"
+msgstr "Très bon"
+
+#: webshop/second-hand
+msgid "Good"
+msgstr "Bon"
+
+#: webshop/second-hand
+msgid "Fair"
+msgstr "Correct"
+
+#: webshop/second-hand
+msgid "Condition Grade"
+msgstr "État général"
+
+#: webshop/second-hand
+msgid "Condition Details"
+msgstr "Détails de l'état"
+
+#: webshop/second-hand
+msgid "Used Unit Of"
+msgstr "Occasion de"
+
+#: webshop/second-hand
+msgid "{0} months warranty"
+msgstr "Garantie {0} mois"
+
+#: webshop/second-hand
+msgid "Also available second-hand"
+msgstr "Aussi disponible en occasion"
+
+#: webshop/second-hand
+msgid "See the new model"
+msgstr "Voir le modèle neuf"
+
+#: webshop/second-hand
+msgid "Create Used Unit"
+msgstr "Créer une occasion"
+
+#: webshop/second-hand
+msgid "{0} (second-hand)"
+msgstr "{0} (occasion)"
+
+#: webshop/second-hand
+msgid "{0} (refurbished)"
+msgstr "{0} (reconditionné)"
+
+#: webshop/second-hand
+msgid "A selling price is required."
+msgstr "Un prix de vente est requis."
+
+#: webshop/second-hand
+msgid "A second-hand unit is Second-hand or Refurbished."
+msgstr "Une unité d'occasion est soit d'occasion, soit reconditionnée."
+
+#: webshop/second-hand
+msgid "Create the used unit from a specific variant, not from the template."
+msgstr "Créez l'occasion depuis une variante précise, pas depuis le modèle."
+
+#: webshop/second-hand
+msgid "No warehouse to receive the unit into. Pick one."
+msgstr "Aucun entrepôt pour réceptionner l'unité. Choisissez-en un."
+
+#: webshop/second-hand
+msgid "Selling price"
+msgstr "Prix de vente"
+
+#: webshop/second-hand
+msgid "Cost"
+msgstr "Coût"
+
+#: webshop/second-hand
+msgid "What the unit cost you; its valuation in stock."
+msgstr "Ce que l'unité vous a coûté ; sa valeur en stock."
+
+#: webshop/second-hand
+msgid "Warranty (days)"
+msgstr "Garantie (jours)"
+
+#: webshop/second-hand
+msgid "Publish on the website"
+msgstr "Publier sur le site"
+
+#: webshop/second-hand
+msgid "Signs of use, missing accessories, replaced parts. Shown to the customer."
+msgstr "Traces d'usage, accessoires manquants, pièces remplacées. Visible par le client."
+
+#: webshop/second-hand
+msgid "The new item this unit is a used or refurbished copy of"
+msgstr "L'article neuf dont cette unité est l'exemplaire d'occasion ou reconditionné"
+
+#: webshop/second-hand
+msgid "Creating the used unit..."
+msgstr "Création de l'occasion..."
+
+#: webshop/second-hand
+msgid "Used unit of {0}"
+msgstr "Occasion de {0}"
+
+#: webshop/second-hand
+msgid "{0} used units"
+msgstr "{0} occasions"
+
+#: webshop/second-hand
+msgid "Used unit created"
+msgstr "Occasion créée"
+
+#: webshop/second-hand
+msgid "Upload this unit's own photos before selling it."
+msgstr "Ajoutez les photos de cette unité avant de la vendre."
+
+#: webshop/second-hand
+msgid "See it in the shop"
+msgstr "Voir dans la boutique"
+
+#: webshop/second-hand
+msgid "Create"
+msgstr "Créer"
+
+#: webshop/second-hand
+msgid "Second-hand products"
+msgstr "Occasions"

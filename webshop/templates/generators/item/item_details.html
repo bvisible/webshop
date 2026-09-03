@@ -30,12 +30,53 @@
 		</span>
 		<span itemprop="name">{{ _(doc.item_code) }}</span>
 	</p>
+	{# //// Neoffice — second-hand: a used or refurbished unit says so before
+	   the price, with its grade, its warranty and what the seller noticed. #}
+	{% if condition_info %}
+	<div class="product-condition">
+		<div class="product-condition__head">
+			<span class="condition-badge condition-badge--inline">{{ _(condition_info.condition) }}</span>
+			{% if condition_info.grade %}
+			<span class="product-condition__grade">{{ _(condition_info.grade) }}</span>
+			{% endif %}
+			{% if condition_info.warranty_months %}
+			<span class="product-condition__warranty">{{ _("{0} months warranty").format(condition_info.warranty_months) }}</span>
+			{% endif %}
+		</div>
+		{% if condition_info.details %}
+		<p class="product-condition__details">{{ condition_info.details }}</p>
+		{% endif %}
+		{% if condition_info.reference %}
+		<a class="product-condition__reference" href="/{{ condition_info.reference.route }}">{{ _("See the new model") }}</a>
+		{% endif %}
+	</div>
+	{% endif %}
 	{% if has_variants %}
 		<!-- configure template -->
 		{% include "templates/generators/item/item_configure_grid.html" %}
 	{% else %}
 		<!-- add variant to cart -->
 		{% include "templates/generators/item/item_add_to_cart.html" %}
+	{% endif %}
+	{# //// Neoffice — second-hand: the new item points at its used units. #}
+	{% if used_units %}
+	<div class="product-used-units">
+		<div class="product-used-units__title">{{ _("Also available second-hand") }}</div>
+		{% for unit in used_units %}
+		<a class="product-used-unit" href="/{{ unit.route }}">
+			{% if unit.thumbnail or unit.website_image %}
+			<img src="{{ unit.thumbnail or unit.website_image }}" alt="{{ unit.web_item_name }}" loading="lazy">
+			{% else %}
+			<span class="product-used-unit__abbr">{{ (unit.web_item_name or '?')[0] | upper }}</span>
+			{% endif %}
+			<span class="product-used-unit__body">
+				<span class="product-used-unit__name">{{ unit.web_item_name }}</span>
+				<span class="product-used-unit__meta">{{ _(unit.item_condition) }}{% if unit.condition_grade %} · {{ _(unit.condition_grade) }}{% endif %}</span>
+			</span>
+			{% if unit.formatted_price %}<span class="product-used-unit__price">{{ unit.formatted_price }}</span>{% endif %}
+		</a>
+		{% endfor %}
+	</div>
 	{% endif %}
 	<!-- trust / reassurance items (configured in Webshop Settings > Trust Badges) -->
 	{% set _long_text = frappe.utils.strip_html(doc.web_long_description or '') %}
@@ -156,3 +197,24 @@
 			webshop.webshop.wishlist.wishlist_action($btn);
 		});
 </script>
+
+{# //// Neoffice — second-hand styles, next to the markup they dress. #}
+<style>
+	.product-condition { margin: 4px 0 14px; padding: 12px 14px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fafafa; }
+	.product-condition__head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.9rem; color: #374151; }
+	.product-condition__grade { font-weight: 600; }
+	.product-condition__warranty::before { content: "\2713\00a0"; color: #16a34a; }
+	.product-condition__details { margin: 8px 0 0; color: #4b5563; font-size: 0.9rem; white-space: pre-line; }
+	.product-condition__reference { display: inline-block; margin-top: 8px; font-size: 0.85rem; }
+	/* the bundle positions .condition-badge in a card corner; in the buy box it is a plain pill */
+	.product-condition .condition-badge--inline { position: static !important; display: inline-flex !important; border-radius: 999px; }
+	.product-used-units { margin-top: 16px; padding-top: 14px; border-top: 1px solid #eef0f3; }
+	.product-used-units__title { font-weight: 600; font-size: 0.95rem; margin-bottom: 8px; color: #111827; }
+	.product-used-unit { display: flex; align-items: center; gap: 10px; padding: 8px 0; color: inherit; text-decoration: none; border-bottom: 1px dashed #eef0f3; }
+	.product-used-unit:hover { text-decoration: none; opacity: .85; }
+	.product-used-unit img, .product-used-unit__abbr { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; background: #f3f4f6; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-weight: 600; flex-shrink: 0; }
+	.product-used-unit__body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+	.product-used-unit__name { font-size: 0.85rem; line-height: 1.25; }
+	.product-used-unit__meta { font-size: 0.75rem; color: #6b7280; }
+	.product-used-unit__price { font-weight: 600; white-space: nowrap; }
+</style>

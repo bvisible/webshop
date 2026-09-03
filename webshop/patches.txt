@@ -31,3 +31,5 @@ webshop.patches.add_webshopsi_fee_field
 webshop.patches.migrate_webshopsi_into_webshop
 webshop.patches.uncollapse_checkout_display_section
 webshop.patches.add_webshop_po_marker_field
+webshop.patches.add_item_condition_fields
+webshop.patches.add_condition_shop_filter

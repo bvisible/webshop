@@ -1,54 +1,11 @@
-import frappe
-from frappe.utils import cint
-
-from webshop.webshop.product_data_engine.filters import ProductFiltersBuilder
 from frappe import _
+
+from webshop.webshop.product_data_engine.listing_context import build_listing_context
 
 sitemap = 1
 
 
 def get_context(context):
-	#//// Neoffice — themes print context.title as the visible page heading
-	#//// and as the last breadcrumb, and Frappe defaults it to the route
-	#//// name — untranslated. A French shop read "all-products" on screen while
-	#//// its browser tab said the translated title.
-	context.title = _("All Products")
-	# Add homepage as parent
-	context.body_class = "product-page"
-	context.parents = [{"name": frappe._("Home"), "route": "/"}]
-
-	filter_engine = ProductFiltersBuilder()
-	context.field_filters = filter_engine.get_field_filters()
-	context.attribute_filters = filter_engine.get_attribute_filters()
-	
-	# Add tag filters if enabled
-	if frappe.db.get_single_value("Webshop Settings", "enable_tag_filters"):
-		context.tag_filters = filter_engine.get_tag_filters()
-		
-	# Add price filters if enabled
-	enable_price_filter = frappe.db.get_single_value("Webshop Settings", "enable_price_filter")
-	
-	if enable_price_filter:
-		price_filters = filter_engine.get_price_filters()
-		# Avoid logging the entire price filters array which is too long
-		context.price_filters = price_filters
-
-	# Add product settings for sort order
-	context.product_settings = {
-		"default_product_sort": frappe.db.get_single_value("Webshop Settings", "default_product_sort") or "relevance"
-	}
-	
-	context.page_length = (
-		cint(frappe.db.get_single_value("Webshop Settings", "products_per_page")) or 20
-	)
-	
-	# Add stock filter settings
-	context.enable_stock_filter = bool(frappe.db.get_single_value("Webshop Settings", "enable_stock_filter"))
-	context.stock_filter_default_checked = bool(frappe.db.get_single_value("Webshop Settings", "stock_filter_default_checked"))
-
-	context.no_cache = 1
-
-	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
-
-	# Check and merge guest cart if needed
-	check_and_merge_guest_cart()
+	#//// Neoffice — the listing context moved to listing_context.py so that
+	#//// /occasions (the second-hand page) builds the very same page.
+	build_listing_context(context, _("All Products"))

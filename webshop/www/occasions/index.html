@@ -1,0 +1,8 @@
+{% extends "www/all-products/index.html" %}
+{# //// Neoffice — added file (second-hand feature). The page IS the product
+   listing: same template, same script, a locked facet (www/occasions/index.py).
+   Frappe attaches a page's own index.js only when its template defines no
+   script block, so the listing script is pulled in here rather than copied. #}
+{% block script %}
+<script>{% include "www/all-products/index.js" %}</script>
+{% endblock %}

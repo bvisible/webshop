@@ -630,6 +630,12 @@ webshop.ProductView =  class {
 		// Store search term for later use (title update, search box prefill)
 		this.search_term = search;
 
+		//// Neoffice — second-hand page: a facet the visitor cannot untick,
+		//// merged last so the stock and discount defaults above still apply.
+		if (window.locked_field_filters) {
+			Object.assign(field_filters, window.locked_field_filters);
+		}
+
 		const result = {
 			field_filters: field_filters,
 			attribute_filters: attribute_filters,

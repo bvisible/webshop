@@ -50,6 +50,26 @@
 		}
 	}
 	
+	/* //// Neoffice — second-hand badge (cards); stacks under the discount badge */
+	.condition-badge {
+		position: absolute;
+		top: 5px;
+		left: 5px;
+		z-index: 10;
+		background: #374151;
+		color: white;
+		padding: 4px 10px;
+		border-radius: 12px 4px 4px 4px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		display: flex;
+		align-items: center;
+	}
+	.discount-badge + .condition-badge {
+		top: 36px;
+	}
+
 	// Stock info in category section
 	.product-category-stock {
 		display: flex;

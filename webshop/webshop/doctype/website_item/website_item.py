@@ -430,6 +430,15 @@ class WebsiteItem(WebsiteGenerator):
 			else _meta_title
 		)
 
+		#//// Neoffice — second-hand: what the page says about a used unit, and
+		#//// the used units a new item has on offer. Both are None/empty on a
+		#//// shop that only sells new goods.
+		from webshop.webshop.utils.used_items import condition_info, condition_schema_url, get_used_units, is_second_hand
+
+		context.condition_info = condition_info(self)
+		context.condition_schema_url = condition_schema_url(self.get("item_condition"))
+		context.used_units = [] if is_second_hand(self.get("item_condition")) else get_used_units(self.item_code)
+
 		context.frequently_bought_together = None
 		if settings and settings.enable_frequently_bought_together:
 			from webshop.webshop.utils.frequently_bought_together import get_frequently_bought_together

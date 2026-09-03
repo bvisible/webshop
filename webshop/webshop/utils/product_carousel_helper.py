@@ -20,6 +20,7 @@ def _format_carousel_item(item):
         "brand": item.get("brand"),
         "description": item.get("short_description") or item.get("web_long_description", ""),
         "has_variants": item.get("has_variants"),
+        "item_condition": item.get("item_condition"),  #//// Neoffice — second-hand badge
         "abbr": _get_abbr(item.get("web_item_name") or item.get("item_name"))
     }
     
@@ -98,6 +99,7 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
             wi.web_item_name,
             wi.item_name,
             wi.item_code,
+            wi.item_condition,
             wi.website_image,
             wi.route,
             wi.item_group,

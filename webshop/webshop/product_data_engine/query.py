@@ -57,6 +57,10 @@ class ProductQuery:
 			"ranking",
 			"on_backorder",
 			"is_gift_card",
+			#//// Neoffice — second-hand: the cards badge used and refurbished
+			#//// units, and the product page block needs the grade.
+			"item_condition",
+			"condition_grade",
 		]
 		self._total_count_cache = None
 		# For multi-word search with custom SQL

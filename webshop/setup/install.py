@@ -302,6 +302,8 @@ CHAMPS_A_CREER_A_L_INSTALLATION = [
 	"add_birthday_field_to_contact",
 	"add_webshopsi_fee_field",
 	"add_webshop_po_marker_field",
+	"add_item_condition_fields",
+	"add_condition_shop_filter",
 ]
 
 

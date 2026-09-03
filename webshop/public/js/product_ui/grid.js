@@ -58,6 +58,14 @@ webshop.ProductGrid = class {
 			`;
 		}
 
+		//// Neoffice — second-hand: a used or refurbished unit is badged like a
+		//// discount, so a customer never mistakes it for new.
+		let condition_badge = '';
+		if (item.item_condition && item.item_condition !== 'New') {
+			const t = window.product_translations || {};
+			condition_badge = `<div class="condition-badge"><span>${t[item.item_condition] || item.item_condition}</span></div>`;
+		}
+
 		const {
 			container_style: container_style,
 			anchor_style: anchor_style,
@@ -67,7 +75,7 @@ webshop.ProductGrid = class {
 		if (image) {
 			return `
 				<div class="card-img-container"${container_style ? ` style="${container_style}"` : ''}>
-					${discount_badge}
+					${discount_badge}${condition_badge}
 					<a href="/${ item.route || '#' }" style="text-decoration: none;${anchor_style}">
 						<img itemprop="image" class="card-img" src="${ image }" alt="${ title }"${img_style ? ` style="${img_style}"` : ''}>
 					</a>
@@ -76,7 +84,7 @@ webshop.ProductGrid = class {
 		} else {
 			return `
 				<div class="card-img-container"${container_style ? ` style="${container_style}"` : ''}>
-					${discount_badge}
+					${discount_badge}${condition_badge}
 					<a href="/${ item.route || '#' }" style="text-decoration: none;${anchor_style}">
 						<div class="card-img-top no-image">
 							${ frappe.get_abbr(title) }

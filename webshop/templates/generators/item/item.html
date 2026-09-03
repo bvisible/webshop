@@ -473,7 +473,8 @@
 		"priceCurrency": {{ (_price.get('currency') or 'CHF') | tojson }},
 		"price": {{ _price.get('price_list_rate') | tojson }},
 		"availability": {{ ('https://schema.org/InStock' if _pi.get('in_stock') else 'https://schema.org/OutOfStock') | tojson }},
-		"itemCondition": "https://schema.org/NewCondition"
+		{#- //// Neoffice — second-hand: Google requires the true condition on a used or refurbished listing #}
+		"itemCondition": {{ condition_schema_url | tojson }}
 	}
 	{%- endif %}
 }

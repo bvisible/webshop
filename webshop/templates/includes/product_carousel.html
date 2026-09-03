@@ -45,6 +45,10 @@
                       <span>{{ item.discount }}</span>
                     </div>
                   {% endif %}
+                  {# //// Neoffice — second-hand badge, same spot as the discount #}
+                  {% if item.item_condition and item.item_condition != 'New' %}
+                    <div class="condition-badge"><span>{{ _(item.item_condition) }}</span></div>
+                  {% endif %}
                   <a href="/{{ item.route or '#' }}" style="text-decoration: none;">
                     {% if item.website_image %}
                       <img class="card-img" src="{{ item.website_image }}" alt="{{ item.web_item_name or item.item_name or item.name }}">
@@ -443,6 +447,22 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       }
       
+      /* //// Neoffice — second-hand badge; sits under the discount badge when both show */
+      .condition-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+        background: #374151;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      .discount-badge + .condition-badge { top: 40px; }
+
       .product-price-placeholder {
         color: #999;
         font-style: italic;

@@ -1,10 +1,10 @@
 {% from "webshop/templates/includes/macros.html" import attribute_filter_section, field_filter_section, discount_range_filters, tag_filter_section, price_filter_section, stock_filter_section %}
 {% extends "templates/web.html" %}
 
-{% block title %}{{ _("All Products") }}{% endblock %}
+{% block title %}{{ title }}{% endblock %}
 {% block header %}
 <div class="mb-6 d-flex justify-content-between align-items-center sticky-filter-header">
-  <div class="webshop-page-title">{{ _("All Products") }}</div>
+  <div class="webshop-page-title">{{ title }}</div>
   <button id="filterButton" class="filter-button d-md-none">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
     <span>{{ _("Filters") }}</span>
@@ -26,7 +26,7 @@
 			<div class="d-flex justify-content-between align-items-center mb-5 title-section">
 				<div class="mb-4 filters-title" > {{ _('Filters') }} </div>
 				<div class="d-flex">
-					<a class="mb-4 clear-filters" href="/all-products">{{ _('Clear All') }}</a>
+					<a class="mb-4 clear-filters" href="{{ listing_route or '/all-products' }}">{{ _('Clear All') }}</a>
 					<button id="closeFilterButton" class="close-filter-button d-md-none ml-3 mb-4">
 						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"/></svg>
 					</button>
@@ -110,9 +110,14 @@
 	
 	// Store product settings for JavaScript
 	window.product_settings = {{ product_settings|json }};
+	{# //// Neoffice — second-hand page: a facet the visitor cannot untick (views.js merges it into every query) #}
+	window.locked_field_filters = {{ (locked_field_filters or {})|json }};
 
 	window.product_translations = {
 		"Search": {{ _("Search")|json }},
+		"New": {{ _("New")|json }},
+		"Refurbished": {{ _("Refurbished")|json }},
+		"Second-hand": {{ _("Second-hand")|json }},
 		"Book a slot": {{ _("Book a slot")|json }},
 		"Search for Products": {{ _("Search for Products")|json }},
 		"Sort by:": {{ _("Sort by:")|json }},

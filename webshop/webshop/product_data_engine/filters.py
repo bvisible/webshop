@@ -37,9 +37,27 @@ class ProductFiltersBuilder:
 			item_filters, item_or_filters = {"published": 1}, []
 			if _excluded:
 				item_filters["name"] = ["not in", _excluded]
-			link_doctype_values = self.get_filtered_link_doctype_records(df)
+			#//// Neoffice — second-hand: a Select field has no linked doctype;
+			#//// its facet is the set of values the published items carry.
+			link_doctype_values = (
+				self.get_filtered_link_doctype_records(df) if df.fieldtype == "Link" else set()
+			)
 
-			if df.fieldtype == "Link":
+			if df.fieldtype == "Select":
+				if frappe.db.get_single_value("Webshop Settings", "hide_variants"):
+					item_filters["variant_of"] = ["is", "not set"]
+				values = [
+					v
+					for v in frappe.get_all(
+						"Website Item",
+						fields=[df.fieldname],
+						filters=item_filters,
+						distinct="True",
+						pluck=df.fieldname,
+					)
+					if v
+				]
+			elif df.fieldtype == "Link":
 				if self.item_group:
 					include_child = frappe.db.get_value("Item Group", self.item_group, "include_descendants")
 					if include_child:
@@ -108,6 +126,12 @@ class ProductFiltersBuilder:
 			if None in values:
 				values.remove(None)
 
+			#//// Neoffice — second-hand: every item carries a condition, so a
+			#//// shop that only sells new goods would get a one-value facet
+			#//// reading "New". Show the facet once there is a choice to make.
+			if df.fieldname == "item_condition" and not [v for v in values if v and v != "New"]:
+				continue
+
 			if values:
 				# If it's a category filter, get the hierarchical structure
 				if df.fieldname == 'item_group':
@@ -117,6 +141,11 @@ class ProductFiltersBuilder:
 				elif df.fieldname == 'brand':
 					brands_with_counts = self.get_brands_with_counts(values)
 					filter_data.append([df, brands_with_counts])
+				elif df.fieldtype == "Select":
+					#//// Neoffice — a Select keeps the order its options declare
+					options = (df.options or "").split("\n")
+					sorted_values = sorted(values, key=lambda v: options.index(v) if v in options else len(options))
+					filter_data.append([df, sorted_values])
 				else:
 					# Sort values alphabetically
 					sorted_values = sorted(values, key=lambda x: x.lower() if isinstance(x, str) else str(x))

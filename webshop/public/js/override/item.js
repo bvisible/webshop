@@ -200,3 +200,111 @@ frappe.ui.form.on("Item", {
 		}
 	}
 });
+
+//// Neoffice — second-hand: one button turns a new item into a used unit. A
+//// used unit is its own Item (own condition, own photos, own price, a
+//// quantity of one), linked to the new item through `condition_of_item`.
+//// Server side: webshop.webshop.utils.used_items.create_used_unit.
+frappe.ui.form.on("Item", {
+	refresh(frm) {
+		if (frm.doc.__islocal) return;
+		const condition = frm.doc.item_condition || "New";
+		if (condition !== "New") {
+			if (frm.doc.condition_of_item) {
+				frm.dashboard.add_indicator(
+					__("Used unit of {0}", [frm.doc.condition_of_item]),
+					"orange"
+				);
+			}
+			return;
+		}
+		if (frm.doc.has_variants) return;
+		frm.add_custom_button(
+			__("Create Used Unit"),
+			() => webshop_used_unit_dialog(frm),
+			__("Second-hand")
+		);
+		frappe.db
+			.count("Item", { filters: { condition_of_item: frm.doc.name } })
+			.then((n) => {
+				if (n) frm.dashboard.add_indicator(__("{0} used units", [n]), "orange");
+			});
+	},
+});
+
+function webshop_used_unit_dialog(frm) {
+	const d = new frappe.ui.Dialog({
+		title: __("Create Used Unit"),
+		fields: [
+			{
+				fieldname: "condition",
+				fieldtype: "Select",
+				label: __("Condition"),
+				options: "Second-hand\nRefurbished",
+				default: "Second-hand",
+				reqd: 1,
+			},
+			{
+				fieldname: "grade",
+				fieldtype: "Select",
+				label: __("Condition Grade"),
+				options: "\nLike New\nVery Good\nGood\nFair",
+			},
+			{
+				fieldname: "details",
+				fieldtype: "Small Text",
+				label: __("Condition Details"),
+				description: __(
+					"Signs of use, missing accessories, replaced parts. Shown to the customer."
+				),
+			},
+			{ fieldname: "col_1", fieldtype: "Column Break" },
+			{ fieldname: "price", fieldtype: "Currency", label: __("Selling price"), reqd: 1 },
+			{
+				fieldname: "cost",
+				fieldtype: "Currency",
+				label: __("Cost"),
+				default: 0,
+				description: __("What the unit cost you; its valuation in stock."),
+			},
+			{ fieldname: "qty", fieldtype: "Float", label: __("Quantity"), default: 1 },
+			{ fieldname: "warranty_days", fieldtype: "Int", label: __("Warranty (days)"), default: 365 },
+			{
+				fieldname: "warehouse",
+				fieldtype: "Link",
+				options: "Warehouse",
+				label: __("Warehouse"),
+				get_query: () => ({ filters: { is_group: 0 } }),
+			},
+			{ fieldname: "publish", fieldtype: "Check", label: __("Publish on the website"), default: 1 },
+		],
+		primary_action_label: __("Create"),
+		primary_action(values) {
+			d.hide();
+			frappe.call({
+				method: "webshop.webshop.utils.used_items.create_used_unit",
+				args: Object.assign({ item_code: frm.doc.name }, values),
+				freeze: true,
+				freeze_message: __("Creating the used unit..."),
+				callback(r) {
+					const unit = r.message;
+					if (!unit) return;
+					let message = __("Used unit of {0}", [frm.doc.name]) + ": ";
+					message += `<a href="/app/item/${encodeURIComponent(unit.item_code)}"><b>${frappe.utils.escape_html(unit.item_code)}</b></a>`;
+					if (unit.route) {
+						message += ` · <a href="/${unit.route}" target="_blank">${__("See it in the shop")}</a>`;
+					}
+					message += `<br><br>${__("Upload this unit's own photos before selling it.")}`;
+					frappe.msgprint({ title: __("Used unit created"), message, indicator: "green" });
+					frm.reload_doc();
+				},
+			});
+		},
+	});
+	frappe.db
+		.get_value("Item Price", { item_code: frm.doc.name, selling: 1 }, "price_list_rate")
+		.then((r) => {
+			if (r.message && r.message.price_list_rate) d.set_value("price", r.message.price_list_rate);
+		});
+	d.show();
+}

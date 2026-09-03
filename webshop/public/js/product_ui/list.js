@@ -60,6 +60,14 @@ webshop.ProductList = class {
 			`;
 		}
 
+		//// Neoffice — second-hand: a used or refurbished unit is badged like a
+		//// discount, so a customer never mistakes it for new.
+		let condition_badge = '';
+		if (item.item_condition && item.item_condition !== 'New') {
+			const t = window.product_translations || {};
+			condition_badge = `<div class="condition-badge"><span>${t[item.item_condition] || item.item_condition}</span></div>`;
+		}
+
 		const fit = (settings && settings.product_image_fit) || 'Contain';
 		const focus_map = {
 			'Center': 'center center',
@@ -79,7 +87,7 @@ webshop.ProductList = class {
 		if (image) {
 			image_html += `
 				<div class="col-2 border text-center rounded list-image" style="position: relative; overflow: hidden;">
-					${discount_badge}
+					${discount_badge}${condition_badge}
 					<a class="product-link product-list-link" href="/${ item.route || '#' }">
 						<img itemprop="image" class="website-image h-100 w-100" alt="${ title }"
 							src="${ image }"${img_style}>
@@ -90,7 +98,7 @@ webshop.ProductList = class {
 		} else {
 			image_html += `
 				<div class="col-2 border text-center rounded list-image" style="position: relative; overflow: hidden;">
-					${discount_badge}
+					${discount_badge}${condition_badge}
 					<a class="product-link product-list-link" href="/${ item.route || '#' }"
 						style="text-decoration: none">
 						<div class="card-img-top no-image-list">
