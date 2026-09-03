@@ -343,7 +343,10 @@ the order and the invoice, and drops the discount when A leaves. No second
 pricing engine. `webshop/utils/cross_sell.py` answers `get_offers(placement)`
 and `accept_offer()`; `public/js/cross_sell.js` draws the four placements
 (product page, cart page, drawer, checkout bump) with labels sent by the server
-(website pages have no `__()` catalogue).
+(website pages have no `__()` catalogue). The drawer of a Builder shop is not
+webshop's: `builder/templates/includes/header_footer/components/cart_drawer.html`
+(the `builder` fork) calls `webshop.cross_sell.load` itself — after the window's
+`load` event, because that script runs in the header before this bundle.
 
 > Three things the ERPNext fork had to learn (all marked `#//// Neoffice`,
 > `accounts_controller.py` and `pricing_rule/utils.py`): a discount-on-other-item
