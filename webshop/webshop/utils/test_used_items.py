@@ -84,7 +84,14 @@ class TestUsedItems(FrappeTestCase):
 		make_website_item(source)
 
 		result = used_items.create_used_unit(
-			source.name, price=40, condition="Second-hand", grade="Good", details="Scratches", cost=0, publish=1
+			source.name,
+			price=40,
+			condition="Second-hand",
+			grade="Good",
+			details="Scratches",
+			cost=0,
+			publish=1,
+			price_list=self.price_list,
 		)
 
 		unit = frappe.get_doc("Item", result["item_code"])
@@ -123,7 +130,7 @@ class TestUsedItems(FrappeTestCase):
 		self.assertEqual(info.reference.route, frappe.db.get_value("Website Item", {"item_code": source.name}, "route"))
 
 		# the second unit takes the next number
-		second = used_items.create_used_unit(source.name, price=35, publish=0)
+		second = used_items.create_used_unit(source.name, price=35, publish=0, price_list=self.price_list)
 		self.assertEqual(second["item_code"], f"{source.name}-USED-02")
 		self.assertIsNone(second["website_item"])
 

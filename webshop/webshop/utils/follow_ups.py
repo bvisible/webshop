@@ -185,12 +185,15 @@ def send_due_follow_ups():
 	)
 	sent = 0
 	for name in due:
+		# a savepoint, not a rollback: called from a test or a larger job, a
+		# full rollback would take the caller's own work with it
+		frappe.db.savepoint("purchase_follow_up")
 		try:
 			if process_entry(frappe.get_doc("Purchase Follow-up Entry", name), today):
 				sent += 1
-			frappe.db.commit()
+			frappe.db.release_savepoint("purchase_follow_up")
 		except Exception:
-			frappe.db.rollback()
+			frappe.db.rollback(save_point="purchase_follow_up")
 			frappe.log_error("Purchase follow-up failed", f"{name}\n{frappe.get_traceback()}")
 	return sent
 
@@ -288,7 +291,9 @@ def outgoing_sender():
 		return account
 	if "@" in (frappe.session.user or ""):
 		return frappe.session.user
-	return "noreply@" + (frappe.local.site or "example.com")
+	# a site called "test_site" makes no valid address: keep a real domain
+	site = frappe.local.site or ""
+	return "noreply@" + (site if "." in site else "example.com")
 
 
 def build_context(entry, flow):

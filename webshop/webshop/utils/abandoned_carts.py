@@ -69,12 +69,13 @@ def send_abandoned_cart_reminders():
 				continue
 		if unsubscribed(cart.contact_email, cart.party_name):
 			continue
+		frappe.db.savepoint("abandoned_cart")
 		try:
 			send_reminder(cart, step, settings, delays, previous_coupon=next((r.coupon_code for r in reminders if r.coupon_code), None))
-			frappe.db.commit()
+			frappe.db.release_savepoint("abandoned_cart")
 			sent += 1
 		except Exception:
-			frappe.db.rollback()
+			frappe.db.rollback(save_point="abandoned_cart")
 			frappe.log_error("Abandoned cart reminder failed", f"{cart.name}\n{frappe.get_traceback()}")
 	return sent
 

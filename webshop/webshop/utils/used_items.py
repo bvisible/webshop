@@ -156,6 +156,7 @@ def create_used_unit(
 	warranty_days=365,
 	warehouse=None,
 	publish=1,
+	price_list=None,
 ):
 	"""One click on the new item's form: a used unit, priced, in stock, published.
 
@@ -200,8 +201,10 @@ def create_used_unit(
 	unit.insert()
 
 	settings = frappe.get_cached_doc("Webshop Settings")
-	price_list = settings.price_list or frappe.db.get_value(
-		"Price List", {"selling": 1, "enabled": 1}, "name"
+	price_list = (
+		price_list
+		or settings.price_list
+		or frappe.db.get_value("Price List", {"selling": 1, "enabled": 1}, "name")
 	)
 	frappe.get_doc(
 		{
