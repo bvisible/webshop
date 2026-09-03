@@ -553,6 +553,16 @@ Full setup, gotchas and cleanup: `tests/e2e/README.md`.
 > a `pk_test_` key. No money moves, but the orders are real. Cleanup commands
 > are in `tests/e2e/README.md`.
 
+> **The suite buys the first product it finds — and a second-hand unit is one
+> of a kind.** The newest product in the catalogue was a used unit with one
+> piece in stock; the B2B spec ordered it for real, and seven cart tests then
+> failed on an item nobody could add twice. `premierArticleAchetable` skips
+> second-hand units, and every helper reads the product code from the buy
+> button: the Builder cart drawer sits in the header and its lines carry
+> `data-item-code` too. After a Playwright upgrade, run
+> `npx playwright install chromium` first — otherwise every test is red with
+> "Executable doesn't exist", and the shop has nothing to do with it.
+
 ### Testing with a non-desk account
 
 After any upstream merge, permission change or routing change, test with **three
