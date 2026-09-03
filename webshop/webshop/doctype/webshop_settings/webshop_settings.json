@@ -197,9 +197,9 @@
    "fieldname": "abandoned_cart_incentive_step",
    "fieldtype": "Select",
    "label": "Offer a coupon from email number",
-   "options": "\n2\n3",
+   "options": "\n1\n2\n3",
    "depends_on": "enable_abandoned_cart_emails",
-   "description": "Empty: no coupon, ever"
+   "description": "Empty: no coupon, ever. The literature says not before the second email; your call."
   },
   {
    "fieldname": "abandoned_cart_discount_percentage",

@@ -56,6 +56,7 @@ class TestUsedItems(FrappeTestCase):
 
 	@classmethod
 	def tearDownClass(cls):
+		cls.purge_items()
 		restore_webshop_settings(cls.snapshot)
 		if cls.added_filter_row:
 			settings = frappe.get_single("Webshop Settings")
@@ -65,6 +66,29 @@ class TestUsedItems(FrappeTestCase):
 			settings.save()
 			frappe.db.commit()
 		super().tearDownClass()
+
+	@classmethod
+	def purge_items(cls):
+		"""What a rollback should have taken away, in case something committed
+		on the way (a stock entry, a website item)."""
+		frappe.db.rollback()
+		codes = [r[0] for r in frappe.db.sql("select name from tabItem where name like %s", (f"{PREFIX} %% {cls.suffix}%",))]
+		for code in sorted(codes, key=lambda c: "-USED-" not in c):
+			try:
+				for name in frappe.get_all("Website Item", filters={"item_code": code}, pluck="name"):
+					frappe.delete_doc("Website Item", name, force=True, ignore_permissions=True)
+				frappe.db.delete("Item Price", {"item_code": code})
+				for se in frappe.get_all("Stock Entry Detail", filters={"item_code": code}, pluck="parent", distinct=True):
+					doc = frappe.get_doc("Stock Entry", se)
+					if doc.docstatus == 1:
+						doc.flags.ignore_permissions = True
+						doc.cancel()
+					frappe.delete_doc("Stock Entry", se, force=True, ignore_permissions=True)
+				frappe.db.delete("Bin", {"item_code": code})
+				frappe.delete_doc("Item", code, force=True, ignore_permissions=True)
+				frappe.db.commit()
+			except Exception:
+				frappe.db.rollback()
 
 	def make_source(self, label, **properties):
 		code = f"{PREFIX} {label} {self.suffix}"

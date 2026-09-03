@@ -68,6 +68,12 @@ class TestFollowUps(FrappeTestCase):
 		for code in (cls.item, cls.other):
 			for name in frappe.get_all("Website Item", filters={"item_code": code}, pluck="name"):
 				frappe.delete_doc("Website Item", name, force=True, ignore_permissions=True)
+			frappe.db.delete("Item Price", {"item_code": code})
+			try:
+				frappe.delete_doc("Item", code, force=True, ignore_permissions=True)
+			except Exception:
+				pass  # a cancelled order still points at it; the item is disabled below
+				frappe.db.set_value("Item", code, "disabled", 1)
 		restore_webshop_settings(cls.snapshot)
 		frappe.flags.mute_emails = False
 		frappe.db.commit()
