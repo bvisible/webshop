@@ -389,6 +389,23 @@ land on `/cart?add=ITEM&qty=1` and `/cart?coupon=CODE`
 > `/cart?add=` commits explicitly before redirecting. `frappe.sendmail` commits
 > on its own, which discards any savepoint around it.
 
+> **A coupon on the grand total is shown as pre-discount figures plus its own
+> line.** ERPNext folds a document-level discount into `net_total`, so a summary
+> that prints `net_total` next to the pre-discount tax and the full coupon line
+> shows three numbers that do not add up (29.61 + 2.66 − 3.56 displayed as
+> 32.00). Every summary — cart page, checkout (server render and
+> `checkout.js`), thank-you page, and the Builder cart drawer in the `builder`
+> fork — prints `total` minus the taxes included in the price, the tax rows'
+> `tax_amount`, then `-discount_amount`. Change one, change them all.
+
+> **The checkout removes the coupon before a shipping rule or a quantity
+> change, then puts it back.** The removal predates this work; what changed is
+> `restoreCoupon()`, which re-applies through `apply_coupon_code` so validity
+> and usage limits are checked again. That endpoint accepts the Coupon Code
+> document *name* as well as the code the customer types, because the
+> quotation only stores the name. Without this, the coupon from an
+> abandoned-cart email vanished at the shipping step.
+
 ## Integration Points
 
 ### ERPNext Dependencies
