@@ -465,7 +465,7 @@ bench --site sitename run-tests --skip-test-records --module webshop.webshop.uti
 bench --site sitename run-tests --app webshop
 ```
 
-**167 tests over 14 modules, green on `prod.local`** (second-hand 8, cross-sell 10, follow-ups 14 added on 2026-09-03). Three modules are not in
+**171 tests over 15 modules, green on `prod.local`** (second-hand 8, cross-sell 10, follow-ups 16 and desk 4, added on 2026-09-03). Three modules are not in
 that count — `shopping_cart`, `website_item`, `product_data_engine` — because
 they are built on ERPNext's test fixtures (`_Test Company`,
 `_Test Price List India`, `_Test Tax 1 - _TC`). Run those on a dedicated test
