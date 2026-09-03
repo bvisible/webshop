@@ -35,6 +35,9 @@ def handle_email_links():
             apply_coupon_code(coupon, "")
     except Exception:
         frappe.log_error("Cart link from an email failed", frappe.get_traceback())
+    # a GET is never committed by Frappe, and the redirect ends the request:
+    # without this the cart change (and the error log) would be rolled back
+    frappe.db.commit()
     frappe.local.flags.redirect_location = "/cart"
     raise frappe.Redirect
 

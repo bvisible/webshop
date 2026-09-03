@@ -95,7 +95,6 @@
 				window.location.href = "/login?redirect-to=" + encodeURIComponent(window.location.pathname + window.location.hash);
 			}
 		}
-	frappe.ready(() => {
 		$('.page_content').on('click', '.btn-write-review', (e) => {
 			// Bind action on write a review button
 			const $btn = $(e.currentTarget);
