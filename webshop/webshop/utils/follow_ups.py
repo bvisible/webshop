@@ -208,9 +208,13 @@ def send_due_follow_ups():
 		try:
 			if process_entry(frappe.get_doc("Purchase Follow-up Entry", name), today):
 				sent += 1
-			frappe.db.release_savepoint("purchase_follow_up")
 		except Exception:
-			frappe.db.rollback(save_point="purchase_follow_up")
+			# frappe.sendmail commits on its own and discards the savepoint:
+			# then a plain rollback undoes only this entry's failed work
+			try:
+				frappe.db.rollback(save_point="purchase_follow_up")
+			except Exception:
+				frappe.db.rollback()
 			frappe.log_error("Purchase follow-up failed", f"{name}\n{frappe.get_traceback()}")
 	return sent
 
@@ -372,12 +376,32 @@ def send_step(entry, flow, step):
 	return communication
 
 
+def customer_language(email):
+	"""The customer's own language, else the site's: the scheduler runs as
+	Administrator, whose language would otherwise write the unsubscribe
+	footer in English under a French email."""
+	return (
+		frappe.db.get_value("User", email, "language")
+		or frappe.db.get_single_value("System Settings", "language")
+		or "en"
+	)
+
+
 def send_customer_email(customer, email, subject, message):
 	"""A Communication on the Customer (its timeline shows it), then the mail.
 
 	The mail carries Frappe's unsubscribe link, scoped to the Customer: one
 	click stops every follow-up and reminder for that customer.
 	"""
+	previous_lang = frappe.local.lang
+	frappe.local.lang = customer_language(email)
+	try:
+		return _send_customer_email(customer, email, subject, message)
+	finally:
+		frappe.local.lang = previous_lang
+
+
+def _send_customer_email(customer, email, subject, message):
 	communication = frappe.get_doc(
 		{
 			"doctype": "Communication",

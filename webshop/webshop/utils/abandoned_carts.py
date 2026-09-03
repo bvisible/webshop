@@ -69,15 +69,24 @@ def send_abandoned_cart_reminders():
 				continue
 		if unsubscribed(cart.contact_email, cart.party_name):
 			continue
+		# a savepoint, not a full rollback (a test or a larger job may be the
+		# caller); frappe.sendmail commits on its own, which discards the
+		# savepoint, hence no release and a plain rollback as the fallback
 		frappe.db.savepoint("abandoned_cart")
 		try:
 			send_reminder(cart, step, settings, delays, previous_coupon=next((r.coupon_code for r in reminders if r.coupon_code), None))
-			frappe.db.release_savepoint("abandoned_cart")
 			sent += 1
 		except Exception:
-			frappe.db.rollback(save_point="abandoned_cart")
+			_rollback_to("abandoned_cart")
 			frappe.log_error("Abandoned cart reminder failed", f"{cart.name}\n{frappe.get_traceback()}")
 	return sent
+
+
+def _rollback_to(savepoint):
+	try:
+		frappe.db.rollback(save_point=savepoint)
+	except Exception:
+		frappe.db.rollback()
 
 
 def send_reminder(cart, step, settings, delays, previous_coupon=None):
