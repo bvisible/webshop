@@ -13,6 +13,7 @@ def after_install():
 	remove_ecommerce_settings_doctype()
 	add_custom_fields()
 	navbar_add_products_link()
+	register_desk()
 	say_thanks()
 
 
@@ -215,8 +216,16 @@ def say_thanks():
 
 
 def after_migrate():
-	"""Ensure Customer role has permission to create addresses in checkout."""
+	"""Ensure Customer role has permission to create addresses in checkout,
+	and that the Webshop workspace is still on the desk."""
 	setup_address_permissions()
+	register_desk()
+
+
+def register_desk():
+	from webshop.setup.desk import register_desk as _register_desk
+
+	_register_desk()
 
 
 def setup_address_permissions():
