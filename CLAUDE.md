@@ -368,6 +368,11 @@ Email Unsubscribe scoped to the Customer, linked from every mail), "ordered
 again", and a step missed by more than two weeks is skipped rather than sent
 late. A step can follow the item's `replenishment_days` (80% of the cycle).
 
+Webshop Settings (Emails tab) holds the master switch `enable_purchase_follow_ups`
+(off by default: nothing is enrolled, nothing goes out) and `follow_up_audience`
+(shop customers only, or every customer — each flow then keeps its own
+`only_website_orders`). The tab shows the figures (`get_email_stats`).
+
 `webshop/utils/abandoned_carts.py` runs hourly on the open shopping-cart
 Quotations of signed-in customers (Webshop Settings, Emails tab: delays,
 template, from which email a single-use coupon is generated). The email links
@@ -379,6 +384,10 @@ land on `/cart?add=ITEM&qty=1` and `/cart?coupon=CODE`
 
 > `frappe.db.has_column("Webshop Settings", ...)` raises TableMissingError: a
 > Single has no table — ask `frappe.get_meta(...).has_field()`.
+
+> A GET is never committed by Frappe, and `frappe.Redirect` ends the request:
+> `/cart?add=` commits explicitly before redirecting. `frappe.sendmail` commits
+> on its own, which discards any savepoint around it.
 
 ## Integration Points
 
