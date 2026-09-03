@@ -406,6 +406,27 @@ land on `/cart?add=ITEM&qty=1` and `/cart?coupon=CODE`
 > quotation only stores the name. Without this, the coupon from an
 > abandoned-cart email vanished at the shipping step.
 
+### Where the features live on the desk
+
+The workspace `Webshop` (`webshop/webshop/workspace/webshop/`) sits under
+`Website`, with counted shortcuts and four cards; forms get their buttons from
+`doctype_js` (Item, Item Group, Brand) and their connections from
+`override_doctype_dashboards` (Customer, Sales Order, Sales Invoice,
+Quotation) plus `purchase_follow_up_dashboard.py`. `webshop.webshop.tests.test_desk`
+checks all of it on a fresh install.
+
+> **The Neoffice theme deletes, after every migrate, every workspace that no
+> App Customization lists** (`neoffice_theme/migrations/cleanup_workspaces.py`
+> builds the sidebar from those), and Frappe's sync imports a workspace file
+> only once — a deleted record never comes back. `webshop/setup/desk.py`
+> (`after_install` and `after_migrate`) re-imports the file when the record is
+> missing and lists the workspace under the customization that carries
+> `Website`. A workspace shipped without that registration lives exactly one
+> migrate.
+
+> **Deleting a standard Workspace in `developer_mode` deletes its source
+> folder** from the app (`Workspace.on_trash`). `git checkout` brings it back.
+
 ## Integration Points
 
 ### ERPNext Dependencies
