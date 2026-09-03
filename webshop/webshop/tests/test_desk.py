@@ -10,7 +10,8 @@ class TestDesk(FrappeTestCase):
 		"""A fresh site gets the workspace with its shortcuts and cards."""
 		self.assertTrue(frappe.db.exists("Workspace", "Webshop"))
 		workspace = frappe.get_doc("Workspace", "Webshop")
-		self.assertEqual(workspace.parent_page, "Website")
+		# A root page: the Neoffice sidebar lists only the root pages of a module.
+		self.assertFalse(workspace.parent_page)
 		self.assertTrue(workspace.public)
 		linked = {row.link_to for row in workspace.links if row.type == "Link"}
 		for doctype in ("Cross Sell Offer", "Purchase Follow-up", "Purchase Follow-up Entry", "Abandoned Cart Reminder", "Webshop Settings"):

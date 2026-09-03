@@ -8,14 +8,14 @@ PARENT_WORKSPACE = "Website"
 
 
 def register_desk():
-	"""Keep the Webshop workspace alive and reachable under "Website".
+	"""Keep the Webshop workspace alive and reachable next to "Website".
 
 	Two things can take it away. Frappe's sync only imports the workspace file
 	once; a record deleted afterwards is not re-created. And the Neoffice theme
 	removes, after every migrate, every workspace that no App Customization
 	lists (its sidebar is built from those). So this runs after install and
 	after migrate: re-import the file when the record is gone, and list the
-	workspace under the customization that carries "Website" — whichever hook
+	workspace in the customization that carries "Website" — whichever hook
 	order the site has, the next cleanup then keeps it.
 	"""
 	ensure_workspace()
@@ -54,11 +54,13 @@ def ensure_app_customization_row():
 	if not parent_row:
 		return
 	customization = frappe.get_doc("App Customization", parent_row.parent)
+	# A root page on purpose: the theme's sidebar lists only the root pages of
+	# a module (children never show), so the workspace sits next to "Website"
+	# in the same module rather than under it.
 	customization.append(
 		"workspaces",
 		{
 			"workspace_name": WORKSPACE,
-			"parent_workspace": PARENT_WORKSPACE,
 			"sort_order": (parent_row.sort_order or 0) + 1,
 		},
 	)
