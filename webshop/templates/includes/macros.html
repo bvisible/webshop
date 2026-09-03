@@ -320,7 +320,10 @@
 		<!-- Overall Rating -->
 		<div class="col-md-4 text-center rating-overview">
 			<div class="rating-score-wrapper">
-				<h1 class="rating-score mb-0 mt-0">{{ average_rating or 0 }}</h1>
+				{# //// Neoffice — a figure, not a heading: as an <h1> the average score was
+   the page's second title for screen readers and for anything counting
+   titles; the font size comes from .rating-score, not from the tag. #}
+<p class="rating-score mb-0 mt-0">{{ average_rating or 0 }}</p>
 				<div class="rating-stars">
 					{% for i in range(1,6) %}
 						{% set fill_class = 'star-filled' if i <= average_whole_rating else 'star-empty' %}
