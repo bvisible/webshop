@@ -51,9 +51,27 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	context.stock_filter_default_checked = bool(
 		frappe.db.get_single_value("Webshop Settings", "stock_filter_default_checked")
 	)
+	#//// A way into the second-hand page from the catalogue: the theme's menu
+	#//// is the shop's own, so the listing itself says when there is
+	#//// something used to see.
+	context.second_hand_count = count_second_hand() if listing_route == "/all-products" else 0
 	context.no_cache = 1
 
 	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
 
 	check_and_merge_guest_cart()
 	return context
+
+
+def count_second_hand():
+	"""Published second-hand units this site lists (sold ones included, as on /occasions)."""
+	from webshop.webshop.multi_site import excluded_item_names
+	from webshop.webshop.utils.used_items import SECOND_HAND_CONDITIONS
+
+	names = frappe.get_all(
+		"Website Item",
+		filters={"published": 1, "item_condition": ("in", SECOND_HAND_CONDITIONS)},
+		pluck="name",
+	)
+	excluded = set(excluded_item_names())
+	return len([n for n in names if n not in excluded])

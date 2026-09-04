@@ -32,6 +32,15 @@
 					</button>
 				</div>
 			</div>
+			{# //// Neoffice — the second-hand page has no menu entry of its own
+			   (the header belongs to the theme): the catalogue points to it as
+			   soon as a used unit is published. #}
+			{% if second_hand_count %}
+				<a class="second-hand-link d-inline-flex align-items-center mb-4" href="/occasions">
+					<span class="condition-badge condition-badge--inline">{{ _("Second-hand") }}</span>
+					<span class="ml-2">{{ _("See the second-hand deals ({0})").format(second_hand_count) }}</span>
+				</a>
+			{% endif %}
 			<!-- field filters -->
 			{% if field_filters %}
 				{{ _(field_filter_section(field_filters)) }}

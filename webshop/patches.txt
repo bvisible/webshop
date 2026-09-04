@@ -35,3 +35,4 @@ webshop.patches.add_item_condition_fields
 webshop.patches.add_condition_shop_filter
 webshop.patches.add_item_replenishment_field
 webshop.patches.seed_follow_up_email_templates
+webshop.patches.move_item_condition_section

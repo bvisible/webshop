@@ -16,7 +16,7 @@ CONDITION_FIELDS = [
 		"label": "Condition",
 		# `brand` is the last field of the Details section; the next field
 		# is a Section Break, so this section holds nothing but its own fields.
-		"insert_after": "brand",
+		"insert_after": "uoms",
 	},
 	{
 		"fieldname": "item_condition",
@@ -26,7 +26,8 @@ CONDITION_FIELDS = [
 		"default": "New",
 		"insert_after": "condition_section",
 		"in_standard_filter": 1,
-	},
+			"description": "New for a normal product. Second-hand or Refurbished when this item is itself the used unit: give its grade, its story, and the new model it comes from.",
+		},
 	{
 		"fieldname": "condition_grade",
 		"fieldtype": "Select",

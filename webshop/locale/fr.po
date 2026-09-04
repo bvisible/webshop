@@ -5752,7 +5752,7 @@ msgstr "Occasion de {0}"
 
 #: webshop/second-hand
 msgid "{0} used units"
-msgstr "{0} occasions"
+msgstr "{0} occasion(s)"
 
 #: webshop/second-hand
 msgid "Used unit created"
@@ -6323,3 +6323,9 @@ msgstr "{} envoyées"
 msgctxt "second-hand unit"
 msgid "Sold"
 msgstr "Vendu"
+
+msgid "New for a normal product. Second-hand or Refurbished when this item is itself the used unit: give its grade, its story, and the new model it comes from."
+msgstr "Nouveau pour un produit normal. Occasion ou Reconditionné quand cet article est lui-même l'unité d'occasion : indiquez son état général, son histoire et le modèle neuf dont il vient."
+
+msgid "See the second-hand deals ({0})"
+msgstr "Voir les occasions ({0})"
