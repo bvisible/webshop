@@ -102,6 +102,8 @@ def ensure_shop_settings():
 	shared site a write to `tabSingles` waits on other suites' locks. What was
 	written is returned so tearDownClass can put it back.
 	"""
+	#//// Neoffice — added "company" (8165e65994 "test(assistant): la boutique neuve a aussi
+	#//// besoin de sa société pour un prix"): a fresh shop's price list also needs its company set.
 	wanted = {"enabled": 1, "show_price": 1, "price_list": selling_price_list(), "company": default_company()}
 	written = {}
 	for field, value in wanted.items():
