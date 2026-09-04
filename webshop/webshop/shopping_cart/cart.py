@@ -2817,6 +2817,71 @@ def get_applicable_shipping_rules(party=None, quotation=None):
 		# we need this in sorted order as per the position of the rule in the settings page
 		return [[rule, rule] for rule in shipping_rules]
 
+#//// Neoffice — added helpers (no upstream equivalent), used by get_shipping_rules
+#//// below to keep an inapplicable rule off the checkout. See the marker there.
+def _get_cart_net_weight(quotation):
+	"""Total net weight of the cart, in the company's weight unit."""
+	total_weight = flt(quotation.get("total_net_weight"))
+	if total_weight:
+		return total_weight
+
+	#//// total_net_weight is only filled once calculate_taxes_and_totals has run over
+	#//// rows that carry a weight; a cart read straight from the database may have
+	#//// neither, so the weight is rebuilt from the lines and, failing that, from the Item.
+	for item in (quotation.get("items") or []):
+		if item.get("total_weight"):
+			total_weight += flt(item.total_weight)
+			continue
+		weight_per_unit = flt(item.get("weight_per_unit"))
+		if not weight_per_unit and item.get("item_code"):
+			weight_per_unit = flt(frappe.get_cached_value("Item", item.item_code, "weight_per_unit"))
+		total_weight += weight_per_unit * flt(item.qty)
+
+	return total_weight
+
+
+#//// Neoffice — added helper (no upstream equivalent). See the marker in
+#//// get_shipping_rules below.
+def _shipping_rule_covers_cart(rule_name, quotation):
+	"""Whether this cart falls inside one of the rule's condition bands."""
+	try:
+		rule = frappe.get_cached_doc("Shipping Rule", rule_name)
+
+		#//// A fixed charge has no band: it always applies.
+		if rule.calculate_based_on == "Fixed":
+			return True
+
+		#//// "Multiple Constraints" is our own ERPNext mode: the amount comes out of a 3D
+		#//// packing pass (py3dbp) that is far too expensive to run once per rule while
+		#//// merely listing them. The rule is offered and ShippingRule.apply() has the last
+		#//// word — the same contract as before this filter existed.
+		if rule.calculate_based_on == "Multiple Constraints":
+			return True
+
+		if rule.calculate_based_on == "Net Weight":
+			value = _get_cart_net_weight(quotation)
+		else:
+			value = flt(quotation.get("base_net_total"))
+
+		conditions = rule.get("conditions") or []
+		if not conditions:
+			#//// A Net Total / Net Weight rule with no band cannot price anything: ERPNext
+			#//// throws "No conditions defined for the shipping rule" the moment it is applied.
+			return False
+
+		#//// Same comparison as ShippingRule.get_shipping_amount_from_rules(): an empty
+		#//// to_value means "and above".
+		for condition in conditions:
+			if not condition.to_value or (flt(condition.from_value) <= flt(value) <= flt(condition.to_value)):
+				return True
+
+		return False
+	except Exception:
+		#//// Fail open, as before: a rule we cannot read is offered and apply() decides.
+		frappe.log_error("Cart: could not check a shipping rule", frappe.get_traceback())
+		return True
+
+
 def get_shipping_rules(quotation=None, cart_settings=None):
 	if not quotation:
 		quotation = _get_cart_quotation()
@@ -2838,43 +2903,22 @@ def get_shipping_rules(quotation=None, cart_settings=None):
 				.where((sr_country.country == country) & (sr.disabled != 1) & (sr.shipping_rule_type == "Selling"))
 			)
 			result = query.run(as_list=True)
-			#//// Neoffice — upstream returns every rule of the territory. We keep the list but
-			#//// compute the cart weight and let each rule be checked, so an inapplicable rule
-			#//// is discovered here rather than at the payment step (6d4eca593f, 2025-12-12).
-			#//// TO REVIEW: the applicability check is a no-op — `applicable` is set True and the
-			#//// conditions loop does nothing, so every rule is still returned. The weight is
-			#//// computed and never used.
+			#//// Neoffice — upstream returns every rule whose country list covers the shipping
+			#//// address, applicable or not, so the buyer picked one at the checkout and only
+			#//// found out at the payment step that it charges nothing / does not cover their
+			#//// cart (6d4eca593f, 2025-12-12). ▼▼▼
+			#//// The filter that commit meant to write never ran: `applicable` was hardcoded to
+			#//// True and the conditions loop was a bare `pass`, so every rule came back and the
+			#//// cart weight was computed for nothing. It is implemented for real here — a rule
+			#//// is offered only when the cart falls inside one of its Shipping Rule Condition
+			#//// bands, read on the axis the rule itself declares (calculate_based_on), with the
+			#//// same comparison ShippingRule.get_shipping_amount_from_rules() uses, so what the
+			#//// checkout offers is what will actually apply. ▲▲▲
 			all_shipping_rules = [x[0] for x in result]
-			
-			# Filter rules based on applicability
-			# Calculate total weight if needed
-			total_weight = 0
-			if quotation.items:
-				for item in quotation.items:
-					item_doc = frappe.get_cached_doc("Item", item.item_code)
-					if hasattr(item_doc, "weight_per_unit") and item_doc.weight_per_unit:
-						total_weight += flt(item_doc.weight_per_unit) * flt(item.qty)
-			
-			# Check each rule's applicability
-			for rule_name in all_shipping_rules:
-				try:
-					rule = frappe.get_cached_doc("Shipping Rule", rule_name)
-					# Simple check if rule might be applicable based on conditions
-					# The actual validation will happen when apply_shipping_rule is called
-					applicable = True
-					
-					# Check if rule has weight-based conditions
-					if rule.conditions:
-						for condition in rule.conditions:
-							if condition.from_value and condition.to_value:
-								# For now, just add the rule and let apply_shipping_rule handle validation
-								pass
-					
-					if applicable:
-						shipping_rules.append(rule_name)
-				except Exception:
-					# If we can't check the rule, include it and let apply_shipping_rule handle it
-					shipping_rules.append(rule_name)
+			shipping_rules = [
+				rule_name for rule_name in all_shipping_rules
+				if _shipping_rule_covers_cart(rule_name, quotation)
+			]
 
 	return shipping_rules
 
