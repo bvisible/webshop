@@ -2500,7 +2500,13 @@ def get_party(user=None, ignore_permissions=False):
 			fullname_parts = fullname.split(' ', 1)  # Split into two parts at the first space
 			user_doc.first_name = fullname_parts[0]
 			user_doc.last_name = fullname_parts[1] if len(fullname_parts) > 1 else ""
-			user_doc.save()
+			#//// Neoffice — ignore_permissions, like every other write of this block
+			#//// (the roles save below, the Customer insert, the Contact insert).
+			#//// get_party() runs AS THE SHOPPER, a Website User with no write right on
+			#//// User: without it, the first product page opened by a customer whose
+			#//// account has no last_name died on PermissionError. Upstream never had
+			#//// the problem because it does not touch the User doc here at all.
+			user_doc.save(ignore_permissions=True)
 		
 		# Create contact with user information only if email is valid
 		contact = None
@@ -2585,7 +2591,7 @@ def get_party(user=None, ignore_permissions=False):
 		try:
 			customer.insert(ignore_permissions=True)
 
-			# Vérifier si l'email est valide avant de créer un contact
+			# Only create a contact when the e-mail is a valid one
 			if user and "@" in user:
 				contact = frappe.new_doc("Contact")
 				contact.update({
