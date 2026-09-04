@@ -496,6 +496,7 @@ The Assistant tab shows the month (`usage_stats`); the report
 under its Customer's connections. `tests/e2e/specs/08-assistant.spec.js`
 exercises the bubble against the real model, and skips when the switch is off.
 
+<!-- //// Neoffice — added: documents the fallback to the shop's selling-list Item Price when get_price's warehouse kwarg (fork-only) fails on stock ERPNext (87fd31ff01 "docs: le repli du prix de liste sur un ERPNext standard") -->
 > **`get_product_info_for_website` raises on stock ERPNext** (it passes
 > `warehouse=` to `get_price`, a keyword only our fork knows). The product
 > tools fall back to the Item Price of the shop's selling list — a price the
