@@ -3,9 +3,17 @@
 
 no_cache = 1
 
+#//// Neoffice — frappe was used below without being imported: /cart answered 500
+#//// (3c014716da, 2026-08-28).
 import frappe
 
 from webshop.webshop.shopping_cart.cart import get_cart_quotation
+#//// Neoffice — added: the links our follow-up e-mails send. ▼▼▼ /cart?add=ITEM&qty=N
+#//// (reorder) and /cart?coupon=CODE (abandoned-cart reminder) must DO what the e-mail
+#//// promised (b8160bb709, 2026-09-03). A guest is sent to sign in and comes back to
+#//// the same URL — a cart and a coupon belong to a customer. The explicit commit is
+#//// load-bearing: Frappe never commits a GET, and the redirect ends the request, so
+#//// without it the cart change would be rolled back. ▲▲▲
 from frappe import _
 
 

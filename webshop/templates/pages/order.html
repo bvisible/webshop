@@ -40,6 +40,9 @@
 					{% if enabled_checkout and (doc.doctype != "Sales Invoice" or doc.outstanding_amount > 0) %}
 					<a href="/api/method/erpnext.accounts.doctype.payment_request.payment_request.make_payment_request?dn={{ doc.name }}&dt={{ doc.doctype }}&submit_doc=1&order_type=Shopping Cart"
 						class="btn btn-primary btn-sm" id="pay-for-order">
+						{# //// Neoffice — on an invoice the button must offer what is left to pay, not the #}
+						{# //// grand total: a partly paid invoice asked for the whole amount again #}
+						{# //// (149f46beec, 2025-11-27). #}
 						{# For Sales Invoice, show outstanding amount; for others show grand total #}
 						{% if doc.doctype == "Sales Invoice" and doc.outstanding_amount > 0 %}
 							{{ _("Pay") }} {{ doc.get_formatted("outstanding_amount") }}
@@ -135,6 +138,9 @@
 		</div>
 	</div>
 
+	{# //// Neoffice — loyalty points are offered on a Sales Order only. On an invoice the #}
+	{# //// points were already booked when the order was placed, and the block let the #}
+	{# //// buyer spend them a second time (149f46beec, 2025-11-27). #}
 	{# Loyalty points only for Sales Order, not for Sales Invoice #}
 	{% if enabled_checkout and doc.doctype == "Sales Order" and doc.per_billed <= 0 %}
 		<div class="panel panel-default">
@@ -146,18 +152,21 @@
 							<div class="panel-heading">
 								<div class="row">
 									<div class="form-column col-sm-6 address-title">
+										{# //// Neoffice — hardcoded English string wrapped in _() (RULE #00 / i18n). #}
 										<strong>{{ _("Loyalty Points") }}</strong>
 									</div>
 								</div>
 							</div>
 
 							<div class="form-group">
+								{# //// Neoffice — hardcoded English string wrapped in _(). #}
 								<div class="h6">{{ _("Enter Loyalty Points") }}</div>
 								<div class="control-input-wrapper">
 									<div class="control-input">
 										<input class="form-control" type="number" min="0"
 											max="{{ available_loyalty_points }}" id="loyalty-point-to-redeem">
 									</div>
+									{# //// Neoffice — hardcoded English string wrapped in _(). #}
 									<p class="help-box small text-muted d-none d-sm-block"> {{ _("Available Points") }}: {{
 										available_loyalty_points }} </p>
 								</div>

@@ -19,6 +19,7 @@ from webshop.webshop.doctype.override_doctype.item_group import get_item_for_lis
 no_cache = 1
 
 
+#//// Neoffice — _ imported for the page title (9953f79418, 2026-08-26).
 from frappe import _
 
 
@@ -61,6 +62,11 @@ def get_product_data(search=None, start=0, limit=12):
 
 	# search term condition
 	if search:
+		#//// Neoffice — upstream searches name, web name, brand and long description. An exact
+		#//// item_code wins outright (a buyer pasting a reference), and otherwise the item
+		#//// code, the item group and the short description are searched too — the fields the
+		#//// AJAX dropdown already searched, so the two disagreed (87cde0532f, 2025-06-24;
+		#//// e5c9f74cf0, 2025-12-15).
 		# First check if search term matches an exact item_code
 		exact_match = frappe.db.exists("Website Item", {"item_code": cstr(search), "published": 1})
 		if exact_match:
@@ -84,6 +90,7 @@ def get_product_data(search=None, start=0, limit=12):
 		cint(start),
 	)
 
+	#//// Neoffice — the parameters follow the branch chosen above.
 	return frappe.db.sql(query, search_params, as_dict=1)  # nosemgrep
 
 
@@ -100,20 +107,29 @@ def search(query):
 
 @frappe.whitelist(allow_guest=True)
 def product_search(query, limit=10, fuzzy_search=True):
+	#//// Neoffice — RediSearch is off: the shop searches SQL directly (c54680b459 /
+	#//// e580d79023, 2025-12-15). RediSearch's autocomplete only indexed product names,
+	#//// which is narrower than what this dropdown must find, and the index had to be
+	#//// rebuilt after every clear-cache. from_redisearch stays in the payload for the
+	#//// JS contract.
 	"""Search products with priority: name > item_code > description.
 
 	Uses SQL search for comprehensive results across all fields.
 	RediSearch autocomplete is limited to product names only.
 	"""
+	#//// Neoffice — from_redisearch is always False now (see above); the key is kept
+	#//// because the front end still reads it.
 	search_results = {"from_redisearch": False, "results": []}
 
 	if not query:
 		return search_results
 
+	#//// Neoffice — the query is trimmed before use.
 	query = cstr(query).strip()
 	if not query:
 		return search_results
 
+	#//// Neoffice — the SQL search replaces the RediSearch query (see above).
 	# Use comprehensive SQL search for better results
 	# This searches in: web_item_name, item_name, item_code, brand, item_group, description
 	# with proper ordering (name matches first, then item_code, then description)
@@ -124,6 +140,10 @@ def product_search(query, limit=10, fuzzy_search=True):
 
 	site_condition = site_sql_condition("`tabWebsite Item`")
 
+	#//// Neoffice — one statement with a CASE that ranks the match: name first, then item
+	#//// code, then description, so the dropdown offers the obvious answer first
+	#//// (bfbe33fc4d, 2025-12-15). The site condition scopes it to the website profile
+	#//// being browsed (8a593a948a, 2026-07-08).
 	sql_query = """
 		SELECT
 			web_item_name, item_name, item_code, brand, route,
@@ -156,15 +176,19 @@ def product_search(query, limit=10, fuzzy_search=True):
 		LIMIT %(limit)s
 	""".format(site_condition=site_condition)
 
+	#//// Neoffice — the ordering is done by SQL now (see above).
 	results = frappe.db.sql(sql_query, {
 		"search": search_pattern,
 		"limit": cint(limit)
 	}, as_dict=1)
 
+	#//// Neoffice — match_priority is an internal column; it never leaves the endpoint.
 	# Remove the match_priority field from results (internal use only)
 	for r in results:
 		r.pop("match_priority", None)
 
+	#//// Neoffice — the SQL rows are returned as-is; upstream re-sorted the RediSearch
+	#//// documents by ranking in Python, which the ORDER BY above now does.
 	search_results["results"] = results
 	return search_results
 

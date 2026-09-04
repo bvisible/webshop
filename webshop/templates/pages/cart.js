@@ -66,6 +66,9 @@ $.extend(shopping_cart, {
 			shopping_cart.shopping_cart_update({
 				item_code,
 				qty: newVal,
+				//// Neoffice — the warehouse travels with every cart update: with multi-warehouse the
+				//// same product can be in the cart twice, from two sources, and the item code alone
+				//// no longer identifies the line (5bf2e88a1b, 2026-08-25).
 				additional_notes: notes,
 				warehouse
 			});
@@ -83,6 +86,7 @@ $.extend(shopping_cart, {
 			shopping_cart.shopping_cart_update({
 				item_code,
 				qty,
+				//// Neoffice — see above.
 				additional_notes: notes,
 				warehouse
 			});
@@ -99,6 +103,7 @@ $.extend(shopping_cart, {
 
 			shopping_cart.shopping_cart_update({
 				item_code: item_code,
+				//// Neoffice — removing a line must name its warehouse too (see above).
 				qty: 0,
 				warehouse
 			});
@@ -259,4 +264,5 @@ frappe.ready(function() {
 function show_terms() {
 	var html = $(".cart-terms").html();
 	frappe.msgprint(html);
+//// Neoffice — trailing newline at end of file removed (whitespace only).
 }

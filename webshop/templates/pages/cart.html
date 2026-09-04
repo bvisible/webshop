@@ -2,6 +2,7 @@
 
 {% block title %} {{ _("Shopping Cart") }} {% endblock %}
 
+{# //// Neoffice — the .webshop-page-title class (and the closing tag fixed from </h1> to </h3>): our themes print context.title as the visible page heading, so the shop's own heading was rendered a second time — and in English, because it is set before the site language is resolved (9953f79418, 2026-08-26). #}
 {% block header %}<h3 class="shopping-cart-header webshop-page-title mt-2 mb-6">{{ _("Shopping Cart") }}</h3>{% endblock %}
 
 {% block header_actions %}
@@ -82,6 +83,10 @@
 		<!-- Left section -->
 		<div class="col-md-8">
 			<div class="frappe-card p-5 mb-4">
+				{# //// Neoffice — an error slot above the table: the cart now answers with business #}
+				{# //// errors (out of stock, source unavailable) that have to be shown somewhere #}
+				{# //// (19e154e2b5, 2025-12-02). Upstream's "Items" header is dropped — the card #}
+				{# //// already carries the title. #}
 				<div id="cart-error" class="alert alert-danger" style="display: none;"></div>
 				<table class="table mt-3 cart-table">
 					<thead>
@@ -89,8 +94,11 @@
 							<th class="item-column">{{ _('Item') }}</th>
 							<th width="20%">{{ _('Quantity') }}</th>
 							{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
+								{# //// Neoffice — the mobile-only column classes are dropped: each line becomes a card #}
+								{# //// on mobile instead of a squeezed column (a62f5451a1, 2026-08-26). #}
 								<th width="20%" class="text-right">{{ _('Subtotal') }}</th>
 							{% endif %}
+							{# //// Neoffice — see above. #}
 							<th width="10%" class=""></th>
 						</tr>
 					</thead>
@@ -107,11 +115,14 @@
 
 				<div class="row mt-2">
 					<div class="col-3">
+						{# //// Neoffice — a guest is offered the sign-in rather than a link to "Past Orders", #}
+						{# //// which they cannot open (3bc2d836f1, 2025-02-11). #}
 						{% if frappe.session.user == "Guest" %}
 							<a class="btn btn-primary-light font-md" href="/login">
 								{{ _('Login') }}
 							</a>
 						{% else %}
+							{# //// Neoffice — the signed-in branch keeps upstream's behaviour (see above). #}
 							{% if cart_settings.enable_checkout %}
 								<a class="btn btn-primary-light font-md" href="/orders">
 									{{ _('Past Orders') }}
@@ -140,6 +151,9 @@
 
 			<!-- Terms and Conditions -->
 			{% if doc.items %}
+				{# //// Neoffice — the terms are shown on the cart only when the checkout page is off; #}
+				{# //// with it, they are read and accepted at the payment step instead (71dffb7b45, #}
+				{# //// 2025-06-26). #}
 				{% if doc.terms and not cart_settings.enable_checkout_page %}
 					<div class="t-and-c-container mt-4 frappe-card">
 						<h5>{{ _("Terms and Conditions") }}</h5>
@@ -148,11 +162,15 @@
 						</div>
 					</div>
 				{% endif %}
+			{# //// Neoffice — closes the branch above. #}
 			{% endif %}
 		</div>
 
 		<!-- Right section -->
 		<div class="col-md-4">
+			{# //// Neoffice — upstream's inline coupon block is replaced by the one in #}
+			{# //// includes/coupon_form.html, which also knows gift cards and the exclusion with #}
+			{# //// loyalty points (3bc2d836f1, 2025-02-11). #}
 			<div class="cart-payment-addresses">
 				<div class="mb-3 frappe-card p-5">
 					<div class="payment-summary">
@@ -164,10 +182,13 @@
 					</div>
 				</div>
 
+				{# //// Neoffice — the address block stays on the cart only when the checkout page is #}
+				{# //// off; the checkout collects the addresses itself (48e2708353, 2025-03-13). #}
 				{% if not cart_settings.enable_checkout_page %}
 					{% include "templates/includes/cart/cart_address.html" %}
 				{% endif %}
 			</div>
+		{# //// Neoffice — closes the block above. #}
 		</div>
 	</div>
 </div>
@@ -176,6 +197,7 @@
 	<div class="cart-empty-state">
 		<img src="/assets/webshop/images/cart-empty-state.png" alt="Empty State">
 	</div>
+	{# //// Neoffice — closing tag fixed: upstream closes a <div> with </p>. #}
 	<div class="cart-empty-message mt-4">{{ _('Your cart is Empty') }}</div>
 	{% if cart_settings.enable_checkout %}
 		<a class="btn btn-outline-primary" href="/orders" style="font-size: 16px;">
@@ -196,6 +218,9 @@
 {{ include_script("frappe-web.bundle.js") }}
 {{ include_script("controls.bundle.js") }}
 {{ include_script("dialog.bundle.js") }}
+{# //// Neoffice — frappe.boot is injected so the dialogs used by the cart (address, #}
+{# //// coupon) work on a web page, where the desk boot is not loaded (48e2708353, #}
+{# //// 2025-03-13). #}
 <script>
 	frappe.boot = {{ boot | json }}
 	// for backward compatibility of some libs

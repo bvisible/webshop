@@ -2,6 +2,7 @@
 
 {% block title %} {{ _("Product Search") }} {% endblock %}
 
+{# //// Neoffice — the .webshop-page-title class (and the closing tag fixed from </h1> to </h3>): our themes print context.title as the visible page heading, so the shop's own heading was rendered a second time — and in English, because it is set before the site language is resolved (9953f79418, 2026-08-26). #}
 {% block header %}<h2 class="webshop-page-title">{{ _("Product Search") }}</h2>{% endblock %}
 
 {% block page_content %}
