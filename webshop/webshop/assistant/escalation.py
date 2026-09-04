@@ -105,7 +105,8 @@ def create_support_ticket(ctx, subject, description, email):
 			"subject": subject or _("Demande depuis l'assistant de la boutique"),
 			"description": escape_html(description).replace("\n", "<br>"),
 			"raised_by": email,
-			"customer": ctx.customer,
+			# HD Ticket.customer links to Helpdesk's own HD Customer, not to ERPNext's
+			"customer": ctx.customer if ctx.customer and frappe.db.exists("HD Customer", ctx.customer) else None,
 			"agent_group": team if team and frappe.db.exists("HD Team", team) else None,
 			"via_customer_portal": 1,
 		}
