@@ -217,6 +217,8 @@ class WebshopSettings(Document):
 			return
 
 		# Check if entry already exists
+		#//// Neoffice — the loyalty entry of the portal menu, added or removed with the
+		#//// switch (2f63a51219, 2025-12-12).
 		exists = frappe.db.exists("Portal Menu Item", {
 			"route": "/loyalty_points",
 			"parenttype": "Portal Settings"

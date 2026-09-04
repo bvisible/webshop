@@ -4,6 +4,8 @@
 	'text-centre': align == 'Center',
 	'text-left': align == 'Left',
 }) -%}
+{# //// Neoffice — border dropped: the category cards are rendered inside our own card #}
+{# //// on the shop pages (48e2708353, 2025-03-13). #}
 <div class="card h-100 border-0">
 	{% if image %}
 	<img class="card-img-top" src="{{ image }}" alt="{{ title }}" style="max-height: 200px;">
