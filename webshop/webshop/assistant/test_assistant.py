@@ -4,8 +4,11 @@ answers what each test scripts, so what is exercised is everything around it —
 the identity of the tools, the loop, what gets written on the conversation,
 the limits, the endpoints.
 
-Fixtures are committed in setUpClass and purged in tearDownClass (see
-tests/utils.py); the Webshop Settings fields the tests flip are restored.
+Settings are never written: `api.settings()` is replaced by an in-memory copy
+of Webshop Settings with the switches this class needs. A Single survives the
+test rollback, and on a shared site (osiris) a write to `tabSingles` waits on
+whatever another test run holds — twice a lock timeout, before this.
+Fixtures are committed in setUpClass and purged in tearDownClass.
 """
 
 import json
@@ -22,12 +25,9 @@ from webshop.webshop.tests.utils import (
 	leaf_customer_group,
 	make_test_item,
 	portal_customer,
-	restore_webshop_settings,
 	selling_price_list,
-	snapshot_webshop_settings,
 )
 
-SETTINGS_FIELDS = ("enable_assistant", "assistant_guest_daily_limit", "assistant_monthly_token_cap", "assistant_llm_base_url")
 CUSTOMER = f"{PREFIX} Assistant Customer"
 USER = "wstest-assistant@example.com"
 OTHER_CUSTOMER = f"{PREFIX} Assistant Stranger"
@@ -44,7 +44,9 @@ class FakeModel:
 	def __call__(self, messages, tools_schema=None, settings=None, **kwargs):
 		self.seen.append(messages)
 		turn = self.turns.pop(0) if self.turns else "…"
-		out = frappe._dict(content="", tool_calls=[], prompt_tokens=100, completion_tokens=20, model="fake", duration_ms=5, finish_reason="stop")
+		out = frappe._dict(
+			content="", tool_calls=[], prompt_tokens=100, completion_tokens=20, model="fake", duration_ms=5, finish_reason="stop"
+		)
 		if isinstance(turn, str):
 			out.content = turn
 		else:
@@ -55,15 +57,24 @@ class FakeModel:
 		return out
 
 
+def test_settings(**overrides):
+	"""Webshop Settings as this class wants them, in memory only."""
+	doc = frappe.get_doc("Webshop Settings")
+	doc.enable_assistant = 1
+	doc.assistant_name = "Nora"
+	doc.assistant_guest_daily_limit = 30
+	doc.assistant_user_daily_limit = 200
+	doc.assistant_monthly_token_cap = 0
+	doc.assistant_llm_base_url = "http://fake.invalid/v1"
+	for key, value in overrides.items():
+		setattr(doc, key, value)
+	return doc
+
+
 class TestAssistant(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.settings_before = snapshot_webshop_settings(SETTINGS_FIELDS)
-		frappe.db.set_single_value("Webshop Settings", "enable_assistant", 1)
-		frappe.db.set_single_value("Webshop Settings", "assistant_guest_daily_limit", 30)
-		frappe.db.set_single_value("Webshop Settings", "assistant_monthly_token_cap", 0)
-		frappe.db.set_single_value("Webshop Settings", "assistant_llm_base_url", "http://fake.invalid/v1")
 		cls.purge()
 		item = make_test_item(ITEM, item_name="Machine à espresso", is_stock_item=0, standard_rate=349)
 		frappe.get_doc(
@@ -83,7 +94,6 @@ class TestAssistant(FrappeTestCase):
 	def tearDownClass(cls):
 		frappe.set_user("Administrator")
 		cls.purge()
-		restore_webshop_settings(cls.settings_before)
 		super().tearDownClass()
 
 	@classmethod
@@ -91,7 +101,9 @@ class TestAssistant(FrappeTestCase):
 		frappe.set_user("Administrator")
 		for name in frappe.get_all("Shop Assistant Conversation", filters={"user": USER}, pluck="name"):
 			frappe.delete_doc("Shop Assistant Conversation", name, force=True, ignore_permissions=True)
-		for name in frappe.get_all("Shop Assistant Conversation", filters={"guest_session": ["like", f"{PREFIX}%"]}, pluck="name"):
+		for name in frappe.get_all(
+			"Shop Assistant Conversation", filters={"guest_session": ["like", f"{PREFIX}%"]}, pluck="name"
+		):
 			frappe.delete_doc("Shop Assistant Conversation", name, force=True, ignore_permissions=True)
 		for customer in (CUSTOMER, OTHER_CUSTOMER):
 			for so in frappe.get_all("Sales Order", filters={"customer": customer}, pluck="name"):
@@ -130,7 +142,9 @@ class TestAssistant(FrappeTestCase):
 				"transaction_date": nowdate(),
 				"delivery_date": add_days(nowdate(), 5),
 				"selling_price_list": selling_price_list(),
-				"items": [{"item_code": cls.item_code, "qty": 1, "rate": 349, "delivery_date": add_days(nowdate(), 5)}],
+				"items": [
+					{"item_code": cls.item_code, "qty": 1, "rate": 349, "delivery_date": add_days(nowdate(), 5)}
+				],
 			}
 		)
 		so.flags.ignore_permissions = True
@@ -141,21 +155,33 @@ class TestAssistant(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		self.real_complete = llm.complete
+		self.real_settings = api.settings
+		self.settings = test_settings()
+		api.settings = lambda: self.settings
 
 	def tearDown(self):
 		llm.complete = self.real_complete
+		api.settings = self.real_settings
 		frappe.set_user("Administrator")
 
 	def guest_context(self, session="_WSTEST-guest-1"):
-		ctx = frappe._dict(user="Guest", customer=None, guest_session=session, settings=api.settings(), page_route="", conversation=None, summary=None)
-		return ctx
+		return frappe._dict(
+			user="Guest", customer=None, guest_session=session, settings=self.settings, page_route="", conversation=None, summary=None
+		)
 
 	def customer_context(self):
-		return frappe._dict(user=USER, customer=CUSTOMER, guest_session=None, settings=api.settings(), page_route="", conversation=None, summary=None)
+		return frappe._dict(
+			user=USER, customer=CUSTOMER, guest_session=None, settings=self.settings, page_route="", conversation=None, summary=None
+		)
 
 	def new_conversation(self, ctx):
 		doc = frappe.get_doc(
-			{"doctype": "Shop Assistant Conversation", "user": ctx.user if ctx.user != "Guest" else None, "customer": ctx.customer, "guest_session": ctx.guest_session}
+			{
+				"doctype": "Shop Assistant Conversation",
+				"user": ctx.user if ctx.user != "Guest" else None,
+				"customer": ctx.customer,
+				"guest_session": ctx.guest_session,
+			}
 		)
 		doc.flags.ignore_permissions = True
 		doc.insert()
@@ -216,8 +242,7 @@ class TestAssistant(FrappeTestCase):
 		self.assertEqual(roles, ["user", "assistant", "tool", "assistant"])
 		self.assertEqual(conversation.messages[2].tool_name, "get_store_hours")
 		self.assertEqual(conversation.prompt_tokens, 200)
-		self.assertEqual(conversation.message_count, 3)
-		# the tool result went back to the model as a tool message
+		self.assertEqual(conversation.message_count, 2)
 		last_call = fake.seen[-1]
 		self.assertEqual(last_call[-1]["role"], "tool")
 		self.assertIn("configured", last_call[-1]["content"])
@@ -240,8 +265,7 @@ class TestAssistant(FrappeTestCase):
 	def test_the_system_prompt_names_the_signed_in_customer(self):
 		from webshop.webshop.assistant import prompt
 
-		ctx = self.customer_context()
-		text = prompt.build(ctx)
+		text = prompt.build(self.customer_context())
 		self.assertIn(CUSTOMER, text)
 		self.assertIn("connecté", text)
 		guest = prompt.build(self.guest_context())
@@ -250,13 +274,8 @@ class TestAssistant(FrappeTestCase):
 	# --- the endpoints ---------------------------------------------------------
 
 	def test_config_is_off_when_the_switch_is_off(self):
-		frappe.db.set_single_value("Webshop Settings", "enable_assistant", 0)
-		frappe.clear_cache(doctype="Webshop Settings")
-		try:
-			self.assertEqual(api.get_config(), {"enabled": False})
-		finally:
-			frappe.db.set_single_value("Webshop Settings", "enable_assistant", 1)
-			frappe.clear_cache(doctype="Webshop Settings")
+		self.settings.enable_assistant = 0
+		self.assertEqual(api.get_config(), {"enabled": False})
 
 	def test_config_greets_the_customer_by_first_name(self):
 		frappe.set_user(USER)
@@ -286,16 +305,13 @@ class TestAssistant(FrappeTestCase):
 
 	def test_the_daily_limit_stops_the_visitor_politely(self):
 		llm.complete = FakeModel(["Oui.", "Non."])
-		frappe.db.set_single_value("Webshop Settings", "assistant_user_daily_limit", 1)
-		frappe.clear_cache(doctype="Webshop Settings")
+		self.settings.assistant_user_daily_limit = 1
 		frappe.set_user(USER)
 		try:
 			api.send("Un")
 			out = api.send("Deux")
 		finally:
 			frappe.set_user("Administrator")
-			frappe.db.set_single_value("Webshop Settings", "assistant_user_daily_limit", 200)
-			frappe.clear_cache(doctype="Webshop Settings")
 		self.assertTrue(out.get("limited"))
 
 	def test_a_model_failure_is_a_calm_sentence_not_a_traceback(self):

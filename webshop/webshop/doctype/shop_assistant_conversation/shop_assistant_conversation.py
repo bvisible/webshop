@@ -17,7 +17,9 @@ class ShopAssistantConversation(Document):
 		self.last_message_on = self.last_message_on or self.started_on
 
 	def validate(self):
-		self.message_count = len([m for m in self.messages if m.role in ("user", "assistant")])
+		# what the visitor saw: their turns and the assistant's answers, not the
+		# assistant's requests for tools
+		self.message_count = len([m for m in self.messages if m.role == "user" or (m.role == "assistant" and not m.tool_calls)])
 		self.prompt_tokens = sum(int(m.prompt_tokens or 0) for m in self.messages)
 		self.completion_tokens = sum(int(m.completion_tokens or 0) for m in self.messages)
 
