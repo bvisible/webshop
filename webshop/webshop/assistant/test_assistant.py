@@ -54,6 +54,9 @@ class FakeModel:
 
 	def __call__(self, messages, tools_schema=None, settings=None, **kwargs):
 		self.seen.append(messages)
+		#//// Neoffice — records whether tools were offered on each call, so a test can check
+		#//// the last round of the loop was made without tools (a1c7c75f97 "fix(assistant):
+		#//// après le dernier tour d'outils, le modèle répond sans outils")
 		self.tools_offered = getattr(self, "tools_offered", []) + [bool(tools_schema)]
 		turn = self.turns.pop(0) if self.turns else "…"
 		#//// Neoffice — TO REVIEW: "test(assistant): des réglages en mémoire, pas d'écriture dans
@@ -189,6 +192,10 @@ class TestAssistant(FrappeTestCase):
 
 	def setUp(self):
 		frappe.set_user("Administrator")
+		#//// Neoffice — frappe.log_error commits, so a conversation saved by a failing-model
+		#//// test in this class was still on the database for the next test of the same user;
+		#//// purge them here first (a1c7c75f97 "fix(assistant): après le dernier tour d'outils,
+		#//// le modèle répond sans outils")
 		# frappe.log_error commits: a conversation saved by a failing-model test
 		# would otherwise be found again by the next test of the same user
 		for name in frappe.get_all("Shop Assistant Conversation", filters={"user": USER}, pluck="name"):
@@ -303,6 +310,10 @@ class TestAssistant(FrappeTestCase):
 	def test_the_loop_stops_after_four_rounds_of_tools(self):
 		ctx = self.guest_context("_WSTEST-guest-loop")
 		conversation = self.new_conversation(ctx)
+		#//// Neoffice — script exactly MAX_TOOL_ROUNDS tool turns (was 6, an arbitrary
+		#//// overshoot) plus the final worded reply, and check the last call was made
+		#//// without tools (a1c7c75f97 "fix(assistant): après le dernier tour d'outils,
+		#//// le modèle répond sans outils")
 		fake = FakeModel([[("get_store_info", {})]] * engine.MAX_TOOL_ROUNDS + ["Fin."])
 		llm.complete = fake
 		out = engine.respond(conversation, "encore", ctx)
