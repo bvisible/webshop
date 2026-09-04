@@ -487,6 +487,7 @@ tokens each turn cost.
 > English.** The model reads the former; nobody else reads the latter in
 > French (RULE #00 and the `nora-engine` rule, same split).
 
+<!-- //// Neoffice — added: documents the usage report, nightly purge and customer-form conversations shipped with the assistant billing/retention work (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client") -->
 The Assistant tab shows the month (`usage_stats`); the report
 `Shop Assistant Usage` (by day or by customer, with the estimated cost from
 `assistant_token_price`) is what the service is billed from. A nightly job

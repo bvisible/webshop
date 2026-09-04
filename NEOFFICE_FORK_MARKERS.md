@@ -223,6 +223,7 @@ French shop.
 
 - `webshop/webshop/doctype/store_closure/store_closure.json` — new child table (`from_date`, `to_date`, `label`) of exceptional store closures, shown on `/store-hours` and the public opening-hours block — no upstream equivalent (afaa23b6d8 "feat(magasin): les horaires d'ouverture, saisis dans les réglages et affichés partout")
 - `webshop/webshop/doctype/store_opening_hours/store_opening_hours.json` — new child table (`weekday`, `opens`, `closes`), one row per opening range (two for a day with a lunch break) — no upstream equivalent (afaa23b6d8 "feat(magasin): les horaires d'ouverture, saisis dans les réglages et affichés partout")
+- `webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.json` — new report (by day or by customer, with the estimated cost) that the assistant service is billed from — no upstream equivalent (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
 
 ---
 
@@ -262,5 +263,6 @@ webshop/webshop/doctype/webshopsi_invoice_installments/webshopsi_invoice_install
 webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
 webshop/webshop/doctype/website_item/website_item.json
 webshop/webshop/doctype/website_item_warehouse_source/website_item_warehouse_source.json
+webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.json
 webshop/webshop/workspace/webshop/webshop.json
 ```

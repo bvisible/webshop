@@ -27,6 +27,7 @@ class TestDesk(FrappeTestCase):
 		for row in workspace.links:
 			if row.type == "Link" and row.link_type == "DocType":
 				self.assertTrue(frappe.db.exists("DocType", row.link_to), row.link_to)
+			#//// Neoffice — the workspace now also links the "Shop Assistant Usage" report (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
 			if row.type == "Link" and row.link_type == "Report":
 				self.assertTrue(frappe.db.exists("Report", row.link_to), row.link_to)
 		for row in workspace.shortcuts:

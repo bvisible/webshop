@@ -59,6 +59,7 @@ update_website_context = [
 # Scheduled Tasks
 scheduler_events = {
 	"daily": [
+		#//// Neoffice — nightly purge of old shop-assistant conversations, except the escalated ones (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
 		"webshop.webshop.assistant.api.purge_old_conversations",
 		"webshop.webshop.utils.frequently_bought_together.calculate_frequently_bought_together"
 	],
