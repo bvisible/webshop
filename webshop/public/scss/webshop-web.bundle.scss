@@ -338,3 +338,4 @@ body:has(.for-login-with-email-link) .page-breadcrumbs {
 .xsell-bump__instead { color: #6b7280; font-size: 0.8rem; }
 //// Neoffice — new store opening-hours styles, single source of truth for /store-hours and the public block (afaa23b6d8 "feat(magasin): les horaires d'ouverture, saisis dans les réglages et affichés partout")
 @import "./webshop_opening_hours";
+@import "./webshop_assistant";

@@ -9,5 +9,6 @@ import './js/product_ui/views'
 import './js/shopping_cart'
 import './js/cross_sell'
 import './js/opening_hours'
+import './js/assistant'
 import './js/wishlist'
 
