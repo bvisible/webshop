@@ -219,6 +219,13 @@ French shop.
 
 ---
 
+## Auto-marked (fork-markers workflow)
+
+- `webshop/webshop/doctype/store_closure/store_closure.json` — new child table (`from_date`, `to_date`, `label`) of exceptional store closures, shown on `/store-hours` and the public opening-hours block — no upstream equivalent (afaa23b6d8 "feat(magasin): les horaires d'ouverture, saisis dans les réglages et affichés partout")
+- `webshop/webshop/doctype/store_opening_hours/store_opening_hours.json` — new child table (`weekday`, `opens`, `closes`), one row per opening range (two for a day with a lunch break) — no upstream equivalent (afaa23b6d8 "feat(magasin): les horaires d'ouverture, saisis dans les réglages et affichés partout")
+
+---
+
 ## Path index
 
 Every path covered above, spelled in full (the marker checker matches literally).
@@ -244,6 +251,8 @@ webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json
 webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json
 webshop/webshop/doctype/purchase_follow_up_log/purchase_follow_up_log.json
 webshop/webshop/doctype/purchase_follow_up_step/purchase_follow_up_step.json
+webshop/webshop/doctype/store_closure/store_closure.json
+webshop/webshop/doctype/store_opening_hours/store_opening_hours.json
 webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
 webshop/webshop/doctype/webshop_settings/webshop_settings.json
 webshop/webshop/doctype/webshop_trust_item/webshop_trust_item.json
