@@ -707,6 +707,8 @@ frappe.ui.form.on("Webshop Settings", {
 				`${__("Emails go out every morning at 08:15; what a customer received shows in the customer's timeline and in {0}.", [link("Purchase Follow-up Entry", __("Purchase Follow-up Entry"))])}</p>`;
 			note.refresh_input();
 		}
+		//// Neoffice — the Assistant tab: shows the shop assistant's on/off status
+		//// on refresh (91bddb9fa1 "feat(assistant): le socle de l'assistant de la boutique").
 		fill_assistant_status(frm);
 		const field = frm.get_field("follow_up_status");
 		if (!field) return;
