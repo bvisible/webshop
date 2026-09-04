@@ -2919,63 +2919,75 @@ def get_customer_info():
 
 
 #//// Neoffice — added endpoint: the buyer edits their name / individual-vs-company on
-#//// the checkout. Renaming the Customer also renames its addresses' titles, which
-#//// ERPNext does not do (48e2708353, 2025-03-13).
-#//// TO REVIEW: rename_doc(force=True, ignore_permissions=True) on a name the caller
-#//// supplies — it is guarded only by the quotation being the caller's own cart.
+#//// the checkout (48e2708353, 2025-03-13). ▼▼▼
+#//// It used to end on rename_doc("Customer", …, force=True, ignore_permissions=True)
+#//// with a name the CALLER supplies, guarded only by the quotation being the caller's
+#//// own cart. A portal user could therefore rename their Customer record to anything:
+#//// force=True drops the doctype's allow_rename check and the permission check, and a
+#//// Customer rename cascades through every document that links it — quotations, orders,
+#//// invoices, payments, GL entries — plus its Contacts, Addresses and Portal Users.
+#//// Renaming is a desk operation, never a checkout one.
+#//// What the checkout actually needs is the DISPLAYED name, which is `customer_name`:
+#//// ERPNext keeps `name` and `customer_name` apart on purpose (editing a customer in
+#//// the desk changes customer_name and leaves the record id alone), the portal reads
+#//// doc.customer_name everywhere (order.html, checkout.html), and get_customer_info()
+#//// below returns customer_name too. So the field is written, the address titles that
+#//// display it are refreshed, the cart quotation's own fetched copy is refreshed — and
+#//// no record is renamed. ▲▲▲
 @frappe.whitelist()
 def update_customer_info(customer_name=None, customer_type=None):
 	"""Update customer information and related addresses"""
 	try:
 		quotation = get_cart_quotation().get('doc')
 		if not quotation or not quotation.party_name:
-			return {"success": False, "message": "No quotation or customer found"}
-			
+			#//// Neoffice — the checkout shows this message; it has to be translated.
+			return {"success": False, "message": _("No quotation or customer found")}
+
 		customer_doc = frappe.get_doc("Customer", quotation.party_name)
-		
+		previous_customer_name = customer_doc.customer_name
+
 		# Update customer fields if provided
 		if customer_name:
 			customer_doc.customer_name = customer_name
 		if customer_type:
 			customer_doc.customer_type = customer_type
-		
+
 		# Make sure default_currency is set
 		if not customer_doc.get("default_currency"):
 			from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
 			cart_settings = get_shopping_cart_settings()
 			if cart_settings.company:
 				customer_doc.default_currency = frappe.get_cached_value("Company", cart_settings.company, "default_currency")
-			
+
 		customer_doc.save(ignore_permissions=True)
-		
-		# Update address titles if customer name changed
-		if customer_name:
-			# Import the correct rename_doc function
-			from frappe.model.rename_doc import rename_doc
-			
-			# Rename customer document
-			if quotation.party_name != customer_name:
-				rename_doc("Customer", quotation.party_name, customer_name, force=True, ignore_permissions=True)
-				
-				# Update addresses
-				addresses = [quotation.customer_address, quotation.shipping_address_name]
-				for address_name in addresses:
-					if address_name:
-						address = frappe.get_doc("Address", address_name)
-						address.address_title = f"{customer_name} - {address.address_type}"
-						address.save(ignore_permissions=True)
-		
+
+		#//// Neoffice — the displayed name changed: refresh what copies it. The addresses
+		#//// carry it in their title, and the cart quotation holds a fetched copy that the
+		#//// order page prints — it would otherwise stay stale until the next save. See the
+		#//// block marker above: the Customer record itself is NOT renamed.
+		if customer_name and customer_name != previous_customer_name:
+			for address_name in (quotation.customer_address, quotation.shipping_address_name):
+				if address_name:
+					address = frappe.get_doc("Address", address_name)
+					address.address_title = f"{customer_name} - {address.address_type}"
+					address.save(ignore_permissions=True)
+
+			frappe.db.set_value("Quotation", quotation.name, "customer_name", customer_name)
+
 		frappe.db.commit()
 		return {
 			"success": True,
-			"message": "Customer information updated successfully"
+			#//// Neoffice — translated: the checkout surfaces this string.
+			"message": _("Customer information updated successfully")
 		}
 	except Exception as e:
 		frappe.db.rollback()
-		frappe.log_error(f"Error in update_customer_info", e)
+		#//// Neoffice — the failure is logged with its traceback and the browser gets a
+		#//// generic sentence: str(e) hands a raw exception message to the shop's visitors.
+		frappe.log_error("Cart: customer update failed", frappe.get_traceback())
 		return {
 			"success": False,
-			"message": str(e)
+			"message": _("Could not update the customer details")
 		}
 
 #//// Neoffice — added endpoint: the checkout writes the contact (name, phone,
