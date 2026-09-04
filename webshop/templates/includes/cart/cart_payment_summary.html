@@ -5,6 +5,8 @@
 </h6>
 {% endif %}
 
+{# //// Neoffice — the summary sits inside our own card; the border is dropped so it #}
+{# //// does not double the card of the page around it. #}
 <div class="card h-100 border-0">
 	<div class="card-body p-0">
 		{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
@@ -39,9 +41,16 @@
 					<td class="bill-content net-total text-right">{{ webshop_fmt_money(pre_discount.v, currency=doc.currency) }}</td>
 				</tr>
 
+				{# //// Neoffice — the tax rows are cleaned and merged below. ▼▼▼ Upstream prints #}
+				{# //// d.description raw, which on a Swiss shop reads "22007 - TVA 8.1% - ACME" and #}
+				{# //// shows TWO VAT lines (products and shipping). The account code and the internal #}
+				{# //// ids are stripped, and rows are merged by the rate extracted from the label #}
+				{# //// (9afd079f07 / b6d68532f2, 2026-07-06). ▲▲▲ #}
 				<!-- taxes: cleaned labels (no account codes / internal ids), VAT rows merged by rate -->
 				{% set ns = namespace(rows=[]) %}
 				{% for d in doc.taxes %}
+					{# //// Neoffice — see the block above; the loyalty charge line is excluded here because #}
+					{# //// it is rendered as its own row further down, not as a tax. #}
 					{% if d.tax_amount and not d.is_loyalty_points_reduction %}
 						{% set clean = namespace(parts=[], label="") %}
 						{% for p in (d.description or "").split(" - ") %}
@@ -74,6 +83,9 @@
 						{% endif %}
 					{% endif %}
 				{% endfor %}
+				{# //// Neoffice — the merged rows, then the coupon/gift-card discount and the loyalty #}
+				{# //// points — three lines upstream's summary has no notion of (3bc2d836f1, #}
+				{# //// 2025-02-11; 618eedfdb8, 2025-03-24; 1fe57465ee, 2026-09-03). #}
 				{% for row in ns.rows %}
 					<tr>
 						<td class="bill-label">{{ row.label }}</td>
@@ -107,6 +119,9 @@
 				
 			</table>
 
+			{# //// Neoffice — the "you will earn N points" block, with the wording taken from #}
+			{# //// Webshop Settings so a shop can phrase its own programme (6fea19b1fe, #}
+			{# //// 2025-06-17). #}
 			<!-- Loyalty Points to Earn -->
 			{% if cart_settings.enable_loyalty_points and (frappe.session.user != "Guest" or cart_settings.show_loyalty_points_for_guests) %}
 				{% set loyalty_program = frappe.get_doc("Loyalty Program", cart_settings.loyalty_program) if cart_settings.loyalty_program else None %}
@@ -154,6 +169,7 @@
 			<table class="table w-100 grand-total mt-6">
 				<tr>
 					<td class="bill-content net-total">{{ _("Grand Total") }}</td>
+					{# //// Neoffice — webshop_fmt_money instead of Frappe's get_formatted / fmt_money: it honours Webshop Settings.hide_currency_symbol_in_shop, so a shop selling in one currency does not repeat "CHF" on every line (0134ef756e, 2025-07-03). #}
 					<td class="bill-content net-total text-right">{{ webshop_fmt_money(doc.grand_total, currency=doc.currency) }}</td>
 				</tr>
 			</table>

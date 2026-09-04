@@ -1,6 +1,12 @@
+{# //// Neoffice — border dropped: the block sits inside our own card. #}
 <div class="card h-100 border-0">
 	<div class="card-body p-0">
 		{% if cart_settings.enable_checkout %}
+			{# //// Neoffice — upstream places the order straight from the cart. With #}
+			{# //// enable_checkout_page the button opens our four-step checkout instead, and a #}
+			{# //// customer whose group is listed in "B2B Customer Group" goes to the B2B tunnel #}
+			{# //// (3bc2d836f1, 2025-02-11; 48e2708353, 2025-03-13). Upstream's button is kept for #}
+			{# //// shops that do not enable the checkout page. #}
 			{% if cart_settings.enable_checkout_page %}
 				{% if cart_settings.activate_b2b_checkout and is_b2b_customer %}
 					<button class="btn btn-primary btn-checkout-b2b font-md w-100" type="button" onclick="window.location.href='/checkout_b2b'">

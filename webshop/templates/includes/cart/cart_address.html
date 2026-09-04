@@ -84,6 +84,9 @@ frappe.ready(() => {
 					fieldtype: 'Data',
 					reqd: 1
 				},
+				//// Neoffice — structured address: the street and the house number are two fields, as
+				//// Swiss Post and our carriers expect, instead of one free line (5fd5bda299,
+				//// 2026-07-17).
 				{
 					label: '{{ _("House No.") }}',
 					fieldname: 'custom_house_number',
@@ -126,12 +129,17 @@ frappe.ready(() => {
 						'Billing',
 						'Shipping'
 					],
+					//// Neoffice — the dialog defaults to a Shipping address: it is opened from the
+					//// checkout's delivery step, and leaving the type empty made the address invisible
+					//// to the shipping picker.
 					reqd: 1,
 					default: 'Shipping'
 				},
 				{
 					label: '{{ _("Postal Code") }}',
 					fieldname: 'pincode',
+					//// Neoffice — the postal code is required: a shipping rule is resolved by country
+					//// AND postal code, and an address without one silently matched no rule.
 					fieldtype: 'Data',
 					reqd: 1
 				},

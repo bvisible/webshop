@@ -4,6 +4,7 @@
 	<th class="text-left item-grand-total" colspan="1">
 		{{ _("Net Total") }}
 	</th>
+	{# //// Neoffice — right-aligned like the other totals, and webshop_fmt_money instead of Frappe's get_formatted / fmt_money: it honours Webshop Settings.hide_currency_symbol_in_shop, so a shop selling in one currency does not repeat "CHF" on every line (0134ef756e, 2025-07-03). #}
 	<th class="text-right item-grand-total totals" colspan="3">
 		{{ webshop_fmt_money(doc.total, currency=doc.currency) }}
 	</th>

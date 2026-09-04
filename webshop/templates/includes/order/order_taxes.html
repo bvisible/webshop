@@ -11,12 +11,18 @@
 	</div>
 {% endif %}
 
+{# //// Neoffice — the tax rows are cleaned and merged below. ▼▼▼ Same treatment as the #}
+{# //// cart summary: upstream prints the raw account description ("22007 - TVA 8.1% - #}
+{# //// ACME") and one row per tax section, so an order showed two VAT lines. The #}
+{# //// comment under this marker states the rule (8fbc962a42 / b6d68532f2, #}
+{# //// 2026-07-06). ▲▲▲ #}
 {#- Customer-friendly tax rows: strip account codes ("22007 - TVA 8.1%") and
     internal ids ("Economy_2kg"), keep just the "TVA x%" part for VAT rows and
     merge them by rate so the summary shows one VAT line instead of one per
     section (products + shipping). -#}
 {% set ns = namespace(rows=[]) %}
 {% for d in doc.taxes %}
+	{# //// Neoffice — see the block above (label cleaning + merge by rate). #}
 	{% if d.tax_amount and not d.is_loyalty_points_reduction %}
 		{% set clean = namespace(parts=[], label="") %}
 		{% for p in (d.description or "").split(" - ") %}
@@ -61,10 +67,13 @@
 				{{ frappe.utils.fmt_money(row.amount, currency=doc.currency) }}
 			</div>
 		</div>
+	{# //// Neoffice — closes the merged-rows loop (see the block above). #}
 	</div>
 {% endfor %}
 
 {% if doc.doctype == 'Quotation' %}
+	{# //// Neoffice — a gift card is a coupon too, and its discount has to appear on the #}
+	{# //// order (618eedfdb8, 2025-03-24). #}
 	{% if doc.coupon_code or doc.gift_card_coupon %}
 		<div class="w-100 mt-5 order-taxes font-weight-bold">
 			<div class="col-4 d-flex  border-btm pb-5">
@@ -78,6 +87,7 @@
 							* item.discount_percentage) / 100)) %}
 						{% endif %}
 					{% endfor %}
+					{# //// Neoffice — webshop_fmt_money instead of Frappe's get_formatted / fmt_money: it honours Webshop Settings.hide_currency_symbol_in_shop, so a shop selling in one currency does not repeat "CHF" on every line (0134ef756e, 2025-07-03). #}
 					{{ webshop_fmt_money((tot_quotation_discount | sum),currency=doc.currency) }} </div>
 			</div>
 		</div>
@@ -85,6 +95,7 @@
 {% endif %}
 
 {% if doc.doctype == 'Sales Order' %}
+	{# //// Neoffice — same as #4, for a Sales Order. #}
 	{% if doc.coupon_code or doc.gift_card_coupon %}
 		<div class="w-100 order-taxes mt-5">
 			<div class="col-4 d-flex  border-btm pb-5">
@@ -97,6 +108,7 @@
 						{%- for item in doc.items -%}
 						{% if total_amount.append((item.price_list_rate * item.qty)) %}{% endif %}
 						{% endfor %}
+						{# //// Neoffice — webshop_fmt_money instead of Frappe's get_formatted / fmt_money: it honours Webshop Settings.hide_currency_symbol_in_shop, so a shop selling in one currency does not repeat "CHF" on every line (0134ef756e, 2025-07-03). #}
 						{{ webshop_fmt_money((total_amount | sum),currency=doc.currency) }}
 					</span>
 				</div>
@@ -129,6 +141,7 @@
 						{% if tot_SO_discount.append((((item.price_list_rate * item.qty)
 						* item.discount_percentage) / 100)) %}{% endif %}
 						{% endfor %}
+						{# //// Neoffice — webshop_fmt_money instead of Frappe's get_formatted / fmt_money: it honours Webshop Settings.hide_currency_symbol_in_shop, so a shop selling in one currency does not repeat "CHF" on every line (0134ef756e, 2025-07-03). #}
 						{{ webshop_fmt_money((tot_SO_discount | sum),currency=doc.currency) }}
 					</span>
 				</div>
