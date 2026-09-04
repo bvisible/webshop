@@ -102,7 +102,7 @@ def ensure_shop_settings():
 	shared site a write to `tabSingles` waits on other suites' locks. What was
 	written is returned so tearDownClass can put it back.
 	"""
-	wanted = {"enabled": 1, "show_price": 1, "price_list": selling_price_list()}
+	wanted = {"enabled": 1, "show_price": 1, "price_list": selling_price_list(), "company": default_company()}
 	written = {}
 	for field, value in wanted.items():
 		current = frappe.db.get_single_value("Webshop Settings", field)
