@@ -14,6 +14,18 @@ from webshop.webshop.utils.loyalty_points import format_loyalty_points_message
 from webshop.webshop.shopping_cart.cart import get_party
 
 
+#//// Neoffice — added. The discount percentage as the item queries compute it,
+#//// spelled once so a count query that cannot reference the `discount_percent`
+#//// alias can still apply the very same rule as the query it counts.
+DISCOUNT_PERCENT_EXPR = (
+	"GREATEST("
+	"COALESCE(pr.discount_percentage, 0), "
+	"CASE WHEN ip_mrp.price_list_rate > 0 AND ip.price_list_rate > 0 "
+	"THEN ((ip_mrp.price_list_rate - ip.price_list_rate) / ip_mrp.price_list_rate * 100) "
+	"ELSE 0 END)"
+)
+
+
 class ProductQuery:
 	"""Query engine for product listing
 
@@ -94,6 +106,15 @@ class ProductQuery:
 		"""
 		# Track if discounts included in field filters
 		self.filter_with_discount = bool(fields.get("discount"))
+		#//// Neoffice — keep the VALUE of the filter, not just its presence.
+		#//// ProductFiltersBuilder.get_discount_filters() offers graded thresholds
+		#//// ("10% and below", "20% and below"…) and upstream honoured them in
+		#//// filter_results_by_discount(). Our SQL rewrite kept only the boolean, so
+		#//// every threshold returned the same thing — all discounted items — and the
+		#//// label on screen lied. See _discount_threshold_sql().
+		self.discount_threshold = (
+			flt(fields.get("discount")[0]) if fields and fields.get("discount") else None
+		)
 		result, discount_list, website_item_groups, cart_items, count = [], [], [], [], 0
 
 		if fields:
@@ -377,6 +398,19 @@ class ProductQuery:
 
 		return results
 	
+	#//// Neoffice — added. Upstream applies `discount_percent <= filter` in python
+	#//// (filter_results_by_discount); our discount queries run in SQL, so the same
+	#//// rule has to be expressed there or the graded filters are inert.
+	#//// The value is a float built by flt(), never caller text: interpolating it
+	#//// carries no injection risk, and the two parameter styles used across these
+	#//// queries (positional and named) make a placeholder impractical.
+	def _discount_threshold_sql(self, expression="discount_percent"):
+		"""SQL fragment restricting a discount query to the selected threshold."""
+		threshold = getattr(self, "discount_threshold", None)
+		if not threshold:
+			return ""
+		return f" AND {expression} <= {flt(threshold)}"
+
 	def query_items_with_discount_filter(self, start=0):
 		"""Query items that have active discounts using optimized SQL."""
 		# Use the new optimized method with caching
@@ -463,7 +497,7 @@ class ProductQuery:
 		)
 		SELECT *
 		FROM discounted_items
-		WHERE discount_percent > 0
+		WHERE discount_percent > 0{self._discount_threshold_sql()}
 		ORDER BY {order_by}
 		LIMIT %s OFFSET %s
 		"""
@@ -503,6 +537,7 @@ class ProductQuery:
 			) pr ON wi.item_code = pr.item_code
 			{where_clause}
 			AND (pr.discount_percentage > 0 OR (ip_mrp.price_list_rate > 0 AND ip.price_list_rate > 0))
+			{self._discount_threshold_sql(DISCOUNT_PERCENT_EXPR)}
 		) as discounted_count
 		"""
 		
@@ -836,32 +871,52 @@ class ProductQuery:
 		"Add filters for Item group page and include Website Item Groups."
 		from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
 
-		#//// Neoffice — the item-group branch is wrapped: a shop whose root group was renamed
-		#//// (a French install) made this raise and took the whole listing with it
-		#//// (1694f451eb, 2025-12-15).
+		#//// Neoffice — an Item Group page ALWAYS lists the items of its
+		#//// descendants. Upstream gates that on the group's `include_descendants`
+		#//// flag, which is off by default: a parent category then rendered empty
+		#//// while every product sat one level below. We descend unconditionally.
+		#////
+		#//// The group ITSELF is always part of the set, whatever its
+		#//// `show_in_website`: that flag means "offer this group in the menu and
+		#//// the filters", never "hide the products of the page being browsed".
+		#//// Deriving the list from get_child_groups_for_website(include_self=True)
+		#//// — which filters on show_in_website — silently dropped the parent's own
+		#//// items as soon as it had one published child.
+		#////
+		#//// The lookup stays wrapped: a shop whose root group had been renamed (a
+		#//// French install) made it raise and took the whole listing down with it
+		#//// (1694f451eb, 2025-12-15). Starting the set at [item_group] means such a
+		#//// page still lists its own products instead of nothing.
+		include_groups = [item_group]
 		try:
-			# Always include child groups when filtering
-			# This ensures that selecting a parent category shows all products from child categories
-			include_groups = get_child_groups_for_website(item_group, include_self=True)
-			#//// Neoffice — see above.
-			include_groups = [x.name for x in include_groups] if include_groups else []
+			include_groups += [
+				group.name
+				for group in (get_child_groups_for_website(item_group) or [])
+				if group.name != item_group
+			]
+		except Exception:
+			frappe.log_error(
+				"Webshop: item group filter",
+				f"Could not resolve the child groups of {item_group}:\n{frappe.get_traceback()}",
+			)
 
-			#//// Neoffice — the descendants of the selected group are included, so choosing a
-			#//// parent category shows the products of its children (upstream matches the exact
-			#//// group only).
-			if include_groups:
-				# Use regular filters for item_group to ensure proper count
-				self.filters.append(["item_group", "in", include_groups])
-			else:
-				# Fallback if no children found
-				self.filters.append(["item_group", "=", item_group])
-		except Exception as e:
-			frappe.log_error(f"Error in build_item_group_filters for {item_group}: {str(e)}")
-			# On error, at least filter by the item group itself
-			self.filters.append(["item_group", "=", item_group])
-		
-		# Note: Website Item Group filtering would require complex joins
-		# and is not included in the count query for performance reasons
+		#//// Neoffice — restored: these are OR filters, and the Website Item Group
+		#//// leg is back. A previous rewrite turned them into a hard AND filter and
+		#//// dropped the secondary-category leg as "complex joins", which killed the
+		#//// `website_item_groups` table: a product published into a second category
+		#//// from the desk never appeared on that category's page.
+		#//// It is expressed as a name list rather than upstream's doctype-qualified
+		#//// filter (`["Website Item Group", ...]`) because our count query builds raw
+		#//// SQL over `tabWebsite Item` alone and cannot join a child table.
+		item_group_filters = [["item_group", "in", include_groups]]
+
+		secondary = frappe.get_all(
+			"Website Item Group", filters={"item_group": item_group}, pluck="parent"
+		)
+		if secondary:
+			item_group_filters.append(["name", "in", sorted(set(secondary))])
+
+		self.or_filters.extend(item_group_filters)
 
 	def build_search_filters(self, search_term):
 		#//// Neoffice — the search is rewritten below. ▼▼▼ Upstream builds one LIKE per field
@@ -1383,7 +1438,7 @@ class ProductQuery:
 				AND (ip_mrp.valid_from IS NULL OR ip_mrp.valid_from <= CURDATE())
 				AND (ip_mrp.valid_upto IS NULL OR ip_mrp.valid_upto >= CURDATE())
 			WHERE {where_clause}
-			HAVING discount_percent > 0
+			HAVING discount_percent > 0{self._discount_threshold_sql()}
 		)
 		SELECT 
 			{field_list},
@@ -1446,7 +1501,7 @@ class ProductQuery:
 				AND (ip_mrp.valid_from IS NULL OR ip_mrp.valid_from <= CURDATE())
 				AND (ip_mrp.valid_upto IS NULL OR ip_mrp.valid_upto >= CURDATE())
 			WHERE {where_clause}
-			HAVING discount_percent > 0
+			HAVING discount_percent > 0{self._discount_threshold_sql()}
 		)
 		SELECT COUNT(DISTINCT name) FROM discounted_items
 		"""
