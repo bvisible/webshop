@@ -105,6 +105,9 @@ class TestAssistant(FrappeTestCase):
 			frappe.get_doc(
 				{"doctype": "Item Price", "item_code": item.name, "price_list": price_list, "price_list_rate": 349}
 			).insert(ignore_permissions=True)
+		#//// Neoffice — make_website_item returns [name, web_item_name], not the document
+		#//// (3348ed273a "test(assistant): make_website_item rend des noms, pas le document");
+		#//// re-fetch the Website Item explicitly before editing it.
 		make_website_item(item)  # returns [name, web_item_name], not the document
 		website_item = frappe.get_doc("Website Item", {"item_code": item.name})
 		website_item.published = 1
