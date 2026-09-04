@@ -1,4 +1,8 @@
 # //// Neoffice — added file (shop assistant, no upstream equivalent).
+#//// Neoffice — below: settings are read once into an in-memory copy instead of written
+#//// via frappe.db.set_single_value, since a write to tabSingles on a shared site (osiris)
+#//// waited on another suite's lock, twice, until timeout (807c98474e "test(assistant): des
+#//// réglages en mémoire, pas d'écriture dans tabSingles")
 """The assistant without a model: `llm.complete` is replaced by a fake that
 answers what each test scripts, so what is exercised is everything around it —
 the identity of the tools, the loop, what gets written on the conversation,
@@ -25,9 +29,16 @@ from webshop.webshop.tests.utils import (
 	leaf_customer_group,
 	make_test_item,
 	portal_customer,
+	#//// Neoffice — removed restore_webshop_settings import (807c98474e "test(assistant): des
+	#//// réglages en mémoire, pas d'écriture dans tabSingles"): settings are no longer snapshotted
+	#//// and restored via Webshop Settings, so this helper is unused here.
 	selling_price_list,
+	#//// Neoffice — removed snapshot_webshop_settings import (807c98474e, same commit): same
+	#//// reason as above.
 )
 
+#//// Neoffice — removed SETTINGS_FIELDS constant (807c98474e, same commit): it only listed the
+#//// fields snapshotted/restored around Webshop Settings, now replaced by an in-memory copy.
 CUSTOMER = f"{PREFIX} Assistant Customer"
 USER = "wstest-assistant@example.com"
 OTHER_CUSTOMER = f"{PREFIX} Assistant Stranger"
@@ -44,6 +55,8 @@ class FakeModel:
 	def __call__(self, messages, tools_schema=None, settings=None, **kwargs):
 		self.seen.append(messages)
 		turn = self.turns.pop(0) if self.turns else "…"
+		#//// Neoffice — TO REVIEW: "test(assistant): des réglages en mémoire, pas d'écriture dans
+		#//// tabSingles" (807c98474e) — reformatted only (line-length), reason not stated in the commit
 		out = frappe._dict(
 			content="", tool_calls=[], prompt_tokens=100, completion_tokens=20, model="fake", duration_ms=5, finish_reason="stop"
 		)
@@ -57,6 +70,10 @@ class FakeModel:
 		return out
 
 
+#//// Neoffice — added: builds the in-memory Webshop Settings copy that api.settings() is
+#//// monkeypatched to return during these tests, instead of writing to the Single via
+#//// frappe.db.set_single_value (807c98474e "test(assistant): des réglages en mémoire, pas
+#//// d'écriture dans tabSingles").
 def test_settings(**overrides):
 	"""Webshop Settings as this class wants them, in memory only."""
 	doc = frappe.get_doc("Webshop Settings")
@@ -75,6 +92,9 @@ class TestAssistant(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		#//// Neoffice — removed: snapshotting Webshop Settings and writing the assistant switches
+		#//// via frappe.db.set_single_value (807c98474e "test(assistant): des réglages en mémoire,
+		#//// pas d'écriture dans tabSingles"); replaced by test_settings(), read in-memory per test.
 		cls.purge()
 		# no standard_rate: ERPNext would write its own Item Price, and a second
 		# one on the same list is a duplicate
@@ -99,6 +119,8 @@ class TestAssistant(FrappeTestCase):
 	def tearDownClass(cls):
 		frappe.set_user("Administrator")
 		cls.purge()
+		#//// Neoffice — removed restore_webshop_settings(cls.settings_before) call (807c98474e,
+		#//// same commit): nothing was written to Webshop Settings, so there is nothing to restore.
 		super().tearDownClass()
 
 	@classmethod
@@ -106,6 +128,8 @@ class TestAssistant(FrappeTestCase):
 		frappe.set_user("Administrator")
 		for name in frappe.get_all("Shop Assistant Conversation", filters={"user": USER}, pluck="name"):
 			frappe.delete_doc("Shop Assistant Conversation", name, force=True, ignore_permissions=True)
+		#//// Neoffice — TO REVIEW: "test(assistant): des réglages en mémoire, pas d'écriture dans
+		#//// tabSingles" (807c98474e) — reformatted only (line-length), reason not stated in the commit
 		for name in frappe.get_all(
 			"Shop Assistant Conversation", filters={"guest_session": ["like", f"{PREFIX}%"]}, pluck="name"
 		):
@@ -147,6 +171,8 @@ class TestAssistant(FrappeTestCase):
 				"transaction_date": nowdate(),
 				"delivery_date": add_days(nowdate(), 5),
 				"selling_price_list": selling_price_list(),
+				#//// Neoffice — TO REVIEW: "test(assistant): des réglages en mémoire, pas d'écriture
+				#//// dans tabSingles" (807c98474e) — reformatted only (line-length), reason not stated
 				"items": [
 					{"item_code": cls.item_code, "qty": 1, "rate": 349, "delivery_date": add_days(nowdate(), 5)}
 				],
@@ -160,26 +186,36 @@ class TestAssistant(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		self.real_complete = llm.complete
+		#//// Neoffice — added: api.settings() is monkeypatched to return an in-memory copy for the
+		#//// duration of each test, so nothing is written to Webshop Settings (807c98474e
+		#//// "test(assistant): des réglages en mémoire, pas d'écriture dans tabSingles").
 		self.real_settings = api.settings
 		self.settings = test_settings()
 		api.settings = lambda: self.settings
 
 	def tearDown(self):
 		llm.complete = self.real_complete
+		#//// Neoffice — added: restores api.settings (807c98474e, same commit).
 		api.settings = self.real_settings
 		frappe.set_user("Administrator")
 
 	def guest_context(self, session="_WSTEST-guest-1"):
+		#//// Neoffice — uses self.settings (the in-memory copy) instead of calling api.settings(),
+		#//// which used to read Webshop Settings from the database (807c98474e, same commit).
 		return frappe._dict(
 			user="Guest", customer=None, guest_session=session, settings=self.settings, page_route="", conversation=None, summary=None
 		)
 
 	def customer_context(self):
+		#//// Neoffice — same reason as guest_context above: self.settings replaces api.settings()
+		#//// (807c98474e, same commit).
 		return frappe._dict(
 			user=USER, customer=CUSTOMER, guest_session=None, settings=self.settings, page_route="", conversation=None, summary=None
 		)
 
 	def new_conversation(self, ctx):
+		#//// Neoffice — TO REVIEW: "test(assistant): des réglages en mémoire, pas d'écriture dans
+		#//// tabSingles" (807c98474e) — reformatted only (line-length), reason not stated in the commit
 		doc = frappe.get_doc(
 			{
 				"doctype": "Shop Assistant Conversation",
@@ -247,6 +283,9 @@ class TestAssistant(FrappeTestCase):
 		self.assertEqual(roles, ["user", "assistant", "tool", "assistant"])
 		self.assertEqual(conversation.messages[2].tool_name, "get_store_hours")
 		self.assertEqual(conversation.prompt_tokens, 200)
+		#//// Neoffice — was 3: message_count no longer counts the model's tool-call requests, only
+		#//// what the visitor saw (807c98474e "test(assistant): des réglages en mémoire, pas
+		#//// d'écriture dans tabSingles"); see shop_assistant_conversation.py validate().
 		self.assertEqual(conversation.message_count, 2)
 		last_call = fake.seen[-1]
 		self.assertEqual(last_call[-1]["role"], "tool")
@@ -270,6 +309,8 @@ class TestAssistant(FrappeTestCase):
 	def test_the_system_prompt_names_the_signed_in_customer(self):
 		from webshop.webshop.assistant import prompt
 
+		#//// Neoffice — TO REVIEW: "test(assistant): des réglages en mémoire, pas d'écriture dans
+		#//// tabSingles" (807c98474e) — reformatted only (line-length), reason not stated in the commit
 		text = prompt.build(self.customer_context())
 		self.assertIn(CUSTOMER, text)
 		self.assertIn("connecté", text)
@@ -279,6 +320,10 @@ class TestAssistant(FrappeTestCase):
 	# --- the endpoints ---------------------------------------------------------
 
 	def test_config_is_off_when_the_switch_is_off(self):
+		#//// Neoffice — flips the in-memory settings copy directly instead of writing
+		#//// enable_assistant via frappe.db.set_single_value and clearing the doctype cache
+		#//// afterwards (807c98474e "test(assistant): des réglages en mémoire, pas d'écriture
+		#//// dans tabSingles").
 		self.settings.enable_assistant = 0
 		self.assertEqual(api.get_config(), {"enabled": False})
 
@@ -310,6 +355,8 @@ class TestAssistant(FrappeTestCase):
 
 	def test_the_daily_limit_stops_the_visitor_politely(self):
 		llm.complete = FakeModel(["Oui.", "Non."])
+		#//// Neoffice — same reason as test_config_is_off_when_the_switch_is_off above: flips the
+		#//// in-memory settings copy directly (807c98474e, same commit).
 		self.settings.assistant_user_daily_limit = 1
 		frappe.set_user(USER)
 		try:
@@ -317,6 +364,9 @@ class TestAssistant(FrappeTestCase):
 			out = api.send("Deux")
 		finally:
 			frappe.set_user("Administrator")
+		#//// Neoffice — removed: restoring assistant_user_daily_limit to 200 via
+		#//// frappe.db.set_single_value and clearing the cache (807c98474e, same commit) — the
+		#//// in-memory settings copy is discarded with the test, nothing to restore.
 		self.assertTrue(out.get("limited"))
 
 	def test_a_model_failure_is_a_calm_sentence_not_a_traceback(self):

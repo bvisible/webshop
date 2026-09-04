@@ -17,6 +17,9 @@ class ShopAssistantConversation(Document):
 		self.last_message_on = self.last_message_on or self.started_on
 
 	def validate(self):
+		#//// Neoffice — was: len([m for m in self.messages if m.role in ("user", "assistant")]),
+		#//// which also counted the assistant's own tool-call turns (807c98474e "test(assistant):
+		#//// des réglages en mémoire, pas d'écriture dans tabSingles").
 		# what the visitor saw: their turns and the assistant's answers, not the
 		# assistant's requests for tools
 		self.message_count = len([m for m in self.messages if m.role == "user" or (m.role == "assistant" and not m.tool_calls)])
