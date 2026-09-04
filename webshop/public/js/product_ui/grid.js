@@ -329,10 +329,10 @@ webshop.ProductGrid = class {
 	}
 
 	get_primary_button(item, settings) {
-		//// Neoffice — Une prestation réservable ne s'ajoute pas au panier d'ici :
-		// le panier recevrait une heure de cours SANS heure. Aucun créneau retenu,
-		// rien au planning, et le même créneau revendu le soir même. La vignette
-		// renvoie donc à la fiche, où l'on choisit son moment.
+		//// Neoffice — a bookable service is not added to the cart from here: the cart
+		//// would receive an hour of tuition WITH no hour. No slot held, nothing on the
+		//// planning, and the same slot sold again that same evening. The tile therefore
+		//// links to the product page, where you pick your moment.
 		if (item.bookable) {
 			return `
 				<a href="/${ item.route || '#' }">

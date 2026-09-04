@@ -227,16 +227,14 @@ $.extend(shopping_cart, {
 //// is more than that table — the empty-cart message, the totals and the checkout
 //// button live outside it — so removing the last line left a screen that was half
 //// true (1c8afc025a, 2026-08-03 "recharger quand la derniere ligne s'en va").
-//// TO REVIEW: the comment below is in French (RULE #00).
 
-					// Panier vidé de sa dernière ligne : on recharge. La page du
-					// panier n'est pas faite que du tableau — « Votre panier est
-					// vide », le bouton de paiement et le résumé vivent ailleurs,
-					// et remplacer le seul tableau laissait un écran à moitié
-					// vrai : plus une ligne, mais toujours un total et un bouton
-					// « Passer au paiement ».
-					const $lignes = $(".cart-items").find("tr[data-name]");
-					if (!$lignes.length && window.location.pathname.indexOf("/cart") === 0) {
+					// The cart just lost its last line: reload. The cart page is
+					// more than the table — "Your cart is empty", the checkout
+					// button and the summary live elsewhere — so replacing only the
+					// table left a screen that was half true: not a single line
+					// left, but still a total and a "Proceed to checkout" button.
+					const $rows = $(".cart-items").find("tr[data-name]");
+					if (!$rows.length && window.location.pathname.indexOf("/cart") === 0) {
 						window.location.reload();
 					}
 				}

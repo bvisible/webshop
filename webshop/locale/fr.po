@@ -216,6 +216,40 @@ msgstr "La ligne d'adresse 1 est requise"
 msgid "Address Line 2"
 msgstr "Adresse ligne 2"
 
+#: webshop/webshop/shopping_cart/cart.py
+msgid "Contact information updated successfully"
+msgstr "Coordonnées mises à jour"
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "Could not update the contact details"
+msgstr "Impossible de mettre à jour les coordonnées"
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "Could not update the customer details"
+msgstr "Impossible de mettre à jour les informations du client"
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "Customer information updated successfully"
+msgstr "Informations du client mises à jour"
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid ""
+"Gift card {0} is worth {1}, more than the order total ({2}). A new gift "
+"card ({3}) was created for the amount used; the remaining {4} stays on the "
+"original card."
+msgstr ""
+"La carte cadeau {0} vaut {1}, plus que le total de la commande ({2}). Une "
+"nouvelle carte cadeau ({3}) a été créée pour le montant utilisé ; le solde "
+"de {4} reste sur la carte d'origine."
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid ""
+"Gift card {0} split: {1} used and transferred to the new gift card {2}. {3} "
+"left on the original card."
+msgstr ""
+"Carte cadeau {0} divisée : {1} utilisés et transférés sur la nouvelle carte "
+"cadeau {2}. Solde de {3} sur la carte d'origine."
+
 #: webshop/templates/includes/cart/cart_address.html:88
 #: webshop/templates/pages/checkout.html:121
 #: webshop/templates/pages/checkout.html:231 webshop/www/my_addresses.html:34
@@ -2224,6 +2258,10 @@ msgstr "Points de fidélité"
 msgid "Loyalty Program"
 msgstr "Programme de fidélité"
 
+#: webshop/webshop/shopping_cart/cart.py
+msgid "Loyalty Program {0} has no expense account"
+msgstr "Le programme de fidélité {0} n'a pas de compte de charge"
+
 #: webshop/templates/pages/checkout.js:2010
 msgid "Loyalty points applied successfully"
 msgstr "Points de fidélité appliqués avec succès"
@@ -2235,6 +2273,10 @@ msgstr "Points de fidélité supprimés"
 #: webshop/webshop/shopping_cart/cart.py:2570
 msgid "Loyalty points value cannot exceed total amount"
 msgstr "La valeur des points de fidélité ne peut pas dépasser le montant total"
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "Loyalty program"
+msgstr "Programme de fidélité"
 
 #: webshop/templates/pages/loyalty_points.html:11
 msgid "Loyalty program is not enabled."
@@ -2485,6 +2527,10 @@ msgstr "Aucun produit trouvé pour"
 #: webshop/templates/includes/product_carousel.html:800
 msgid "No products on sale at the moment"
 msgstr "Aucun produit en promotion pour le moment"
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "No quotation or customer found"
+msgstr "Aucun devis ni client trouvé"
 
 #: webshop/templates/pages/thank_you.html:64
 msgid "No shipping address specified"
@@ -4226,6 +4272,10 @@ msgstr "Utilisé"
 #: webshop/webshop/doctype/wishlist/wishlist.json
 msgid "User"
 msgstr "Utilisateur"
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "User not logged in"
+msgstr "Utilisateur non connecté"
 
 #: webshop/controllers/payment_handler.py:52
 msgid "Using existing payment request"

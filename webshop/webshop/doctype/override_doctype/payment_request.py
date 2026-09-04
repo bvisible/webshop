@@ -23,27 +23,26 @@ class PaymentRequest(OriginalPaymentRequest):
             return
 
         if frappe.local.session.user == "Guest":
-            #//// Neoffice — un invité PEUT payer chez nous, et son paiement DOIT
-            #//// s'enregistrer. Le module de réservation encaisse sans jamais
-            #//// demander de compte : le client laisse ses coordonnées, un espace
-            #//// personnel naît en silence, et il paie dans la foulée — donc sans
-            #//// session ouverte.
+            #//// Neoffice — a guest CAN pay on our shops, and their payment MUST be
+            #//// recorded. The booking module takes money without ever asking for an
+            #//// account: the customer leaves their details, a personal space is created
+            #//// silently, and they pay straight away — so with no session open.
             #////
-            #//// Ce garde renvoyait avant tout traitement. Conséquence mesurée de
-            #//// bout en bout avec la carte de test le 2026-08-20 : la charge
-            #//// était CAPTURÉE chez Stripe, le Payment Request restait
-            #//// « Requested », la facture impayée, aucune écriture — et le client
-            #//// tombait sur « Non Autorisé ». Il payait pour rien.
+            #//// This guard used to return before any processing. Measured end to end
+            #//// with the test card on 2026-08-20: the charge was CAPTURED at Stripe, the
+            #//// Payment Request stayed "Requested", the invoice unpaid, no accounting
+            #//// entry — and the customer landed on "Not Authorized". They paid for
+            #//// nothing.
             #////
-            #//// Le garde reste pour le PANIER, qui a besoin d'une session pour
-            #//// créer sa commande (`place_order` lit le panier du visiteur). Une
-            #//// facture, elle, existe déjà : le bloc « Sales Invoice » plus bas
-            #//// bascule d'ailleurs en Administrator pour écrire le règlement.
+            #//// The guard stays for the CART, which needs a session to create its order
+            #//// (`place_order` reads the visitor's cart). An invoice, on the other hand,
+            #//// already exists: the "Sales Invoice" block below even switches to
+            #//// Administrator to write the payment.
             if self.reference_doctype != "Sales Invoice":
                 return
 
-        #//// Neoffice — lu sans permissions : un invité n'a pas accès aux
-        #//// réglages de la boutique, et c'est justement lui qu'on doit servir.
+        #//// Neoffice — read without permissions: a guest has no access to the shop's
+        #//// settings, and a guest is exactly who has to be served here.
         cart_settings = frappe.get_cached_doc("Webshop Settings")
 
         if not cart_settings.enabled:

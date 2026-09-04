@@ -100,28 +100,24 @@
 		{# //// free item (upstream), a gift card whose amount is part of the line, and a booking #}
 		{# //// extra — a tourist tax is people × nights, and correcting it in the cart would #}
 		{# //// only produce an amount that no longer matches the stay (42456db80c, 2026-08-03). #}
-		{# //// TO REVIEW: the Jinja comment below is in French (RULE #00). #}
 		<td class="text-right" style="width: 20%;">
 			<div class="d-flex container-qty">
-				{#
-					Une ligne calculée ne se retouche pas à la main. La taxe de
-					séjour est un nombre de personnes multiplié par un nombre de
-					nuits : la corriger dans le panier ne changerait ni les
-					personnes ni les nuits, ça ne ferait qu'un montant qui ne
-					correspond plus au séjour — et le prochain enregistrement le
-					recalculerait sous les yeux du client.
-
-					`booking_extra_of` porte la réservation dont la ligne dépend ;
-					`{{ }}` sur un champ absent rend vide, donc une boutique sans
-					le module ne voit aucune différence.
-				#}
-				{% set lie = d.get('booking_extra_of') %}
-				{% set disabled = 'disabled' if d.is_free_item or d.gift_card_data or lie else '' %}
+				{# //// A computed line is not retouched by hand. The tourist tax is a #}
+				{# //// number of people times a number of nights: correcting it in the #}
+				{# //// cart would change neither the people nor the nights, it would #}
+				{# //// only produce an amount that no longer matches the stay — and the #}
+				{# //// next save would recompute it under the customer's eyes. #}
+				{# //// `booking_extra_of` carries the booking this line depends on; #}
+				{# //// a missing field renders empty, so a shop without the booking #}
+				{# //// module sees no difference. #}
+				{% set booking_extra_of = d.get('booking_extra_of') %}
+				{% set disabled = 'disabled' if d.is_free_item or d.gift_card_data or booking_extra_of else '' %}
 				<div class="input-group number-spinner mt-1 mb-4 mr-2">
 					<span class="input-group-prepend d-sm-inline-block">
 						<button class="btn cart-btn" data-dir="dwn" {{ disabled }}>
 							{# //// Neoffice — same three cases (see above). #}
-							{{ '–' if not (d.is_free_item or d.gift_card_data or lie) else ''}}
+							{# //// Neoffice — `lie` renamed booking_extra_of (RULE #00). #}
+							{{ '–' if not (d.is_free_item or d.gift_card_data or booking_extra_of) else ''}}
 						</button>
 					</span>
 
@@ -134,7 +130,8 @@
 					<span class="input-group-append d-sm-inline-block">
 						<button class="btn cart-btn" data-dir="up" {{ disabled }}>
 							{# //// Neoffice — same three cases (see above). #}
-							{{ '+' if not (d.is_free_item or d.gift_card_data or lie) else ''}}
+							{# //// Neoffice — `lie` renamed booking_extra_of (RULE #00). #}
+							{{ '+' if not (d.is_free_item or d.gift_card_data or booking_extra_of) else ''}}
 						</button>
 					</span>
 				{# //// Neoffice — closes the spinner group (mobile layout). #}

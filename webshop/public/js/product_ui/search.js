@@ -60,9 +60,8 @@ webshop.ProductSearch = class {
 //// Neoffice — the dropdown shows prices, which upstream's search does not return:
 //// the results are enriched by a second call before being rendered (see
 //// fetchProductPrices below). 48e2708353, 2025-03-13.
-//// TO REVIEW: the comments in this file are in French (RULE #00).
 
-					// Si nous avons des résultats de produits, récupérer les informations de prix
+					// If there are product results, fetch their price information
 					if (product_results && product_results.length > 0) {
 						me.fetchProductPrices(product_results, () => {
 							me.populateResults(product_results);
@@ -220,17 +219,17 @@ webshop.ProductSearch = class {
 	//// Neoffice — added: prices for the dropdown results, in one call for the whole
 	//// page of results. A failure calls back anyway, so the dropdown still shows the
 	//// products without their price.
-	// Récupérer les informations de prix pour les produits
+	// Fetch the price information of the products
 	fetchProductPrices(products, callback) {
 		if (!products || products.length === 0) {
 			if (callback) callback();
 			return;
 		}
 		
-		// Créer un tableau des codes d'articles pour la requête
+		// Build the list of item codes for the request
 		const itemCodes = products.map(product => product.item_code);
 		
-		// Appeler l'API pour obtenir les informations de prix
+		// Call the API for the price information
 		frappe.call({
 			method: "webshop.webshop.api.get_product_price_info",
 			args: {
@@ -238,7 +237,7 @@ webshop.ProductSearch = class {
 			},
 			callback: (data) => {
 				if (data.message && Object.keys(data.message).length > 0) {
-					// Ajouter les informations de prix aux produits
+					// Attach the price information to the products
 					products.forEach(product => {
 						if (data.message[product.item_code]) {
 							const priceInfo = data.message[product.item_code];
@@ -288,12 +287,12 @@ webshop.ProductSearch = class {
 		product_results.forEach((res) => {
 			let thumbnail = res.thumbnail || '/assets/webshop/images/cart-empty-state.png';
 
-			// Préparer l'affichage du prix
+			// Prepare the price display
 			let priceHtml = '';
 			if (res.formatted_price) {
 				priceHtml = `<div class="product-price">${res.formatted_price}`;
 
-				// Ajouter le prix barré et la réduction si disponibles
+				// Add the struck-through price and the discount when available
 				if (res.formatted_mrp) {
 					priceHtml += `
 						<small class="striked-price">

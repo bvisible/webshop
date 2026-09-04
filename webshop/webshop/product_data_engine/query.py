@@ -1562,27 +1562,21 @@ class ProductQuery:
 		
 		return items
 
-#//// Neoffice — added helper. ▼▼▼ A course sold at 90 or 140 depending on the access
-#//// duration printed "CHF 90.00" flat, which reads as the price rather than the
-#//// cheapest one; it becomes "from CHF 90.00" (7eab718951 / 631cc99177 /
-#//// d960fe3968, 2026-08-03). Applied on formatted_price where the listing builds it,
-#//// so the tile, the search and the carousels all agree.
-#//// TO REVIEW: the docstring below is in French (RULE #00). ▲▲▲
+#//// Neoffice — added helper. ▼▼▼
+#//// 🔴 A course sold at 90 or at 140 depending on the access duration printed
+#//// "CHF 90.00" on its tile: the cheapest price shown as THE price, and the customer
+#//// found out the rest on the product page. It becomes "from CHF 90.00"
+#//// (7eab718951 / 631cc99177 / d960fe3968, 2026-08-03).
+#//// Applied to `formatted_price` where the search engine builds it: the grid, the
+#//// list and the search each render in their own JavaScript, and this is the only
+#//// place all three share — so the tile, the search and the carousels agree.
+#//// Silent when the training app is absent: a shop without courses must not depend
+#//// on it.
+#//// (The rationale used to live in the function's docstring, in French; RULE #00 —
+#//// it is fork-divergence prose, so it belongs in the marker.) ▲▲▲
 def prefix_from_when_several_offers(item) -> None:
 	#//// Neoffice — see the block above.
-	"""« dès CHF 90.– » quand l'article se vend à plusieurs prix.
-
-	🔴 Un cours vendu 90 ou 140 selon la durée d'accès affichait « CHF 90.00 »
-	sur sa vignette : le prix le plus bas présenté comme LE prix, et le client
-	découvrait le reste sur la fiche.
-
-	Posé sur `formatted_price` là où le moteur de recherche le fabrique : la
-	grille, la liste et la recherche ont chacune leur rendu en JavaScript, et
-	c'est le seul endroit qu'elles partagent toutes les trois.
-
-	Silencieux si l'app de formation n'est pas là : une boutique sans cours ne
-	doit pas dépendre d'elle.
-	"""
+	"""Prefix the formatted price with « from » when the item sells at several prices."""
 	#//// Neoffice — see the block above.
 	if not item.get("formatted_price"):
 		return
@@ -1594,23 +1588,23 @@ def prefix_from_when_several_offers(item) -> None:
 		item["formatted_price"] = frappe._("from") + " " + item["formatted_price"]
 
 
+#//// Neoffice — added helper (no upstream equivalent). ▼▼▼
+#//// A bookable service is not added to the cart from a tile.
+#//// 🔴 Jérémy, 2026-08-05, screenshot in hand: *"from the tile I could add to the
+#//// cart and I should not, you book…"*. He is right, and it is worse than a label:
+#//// the cart was receiving an hour of tuition **with no hour**. No slot held,
+#//// nothing on the planning, the teacher does not know they are working — and the
+#//// same slot is sold again that same evening. This is exactly the fault the POS
+#//// study names: *selling a bookable item like an ordinary one is a bug, not a
+#//// shortcut*. The tile therefore links to the product page, where the moment is
+#//// picked.
+#//// One query per PAGE, not one per tile: the catalogue shows twenty at a time, and
+#//// twenty round trips for a question that has the same answer for everyone is
+#//// twenty too many.
+#//// (The rationale used to live in the function's docstring, in French; RULE #00 —
+#//// it is fork-divergence prose, so it belongs in the marker.) ▲▲▲
 def mark_if_bookable(item) -> None:
-	"""Une prestation réservable ne s'ajoute pas au panier depuis une vignette.
-
-	🔴 Jérémy, le 2026-08-05, capture à l'appui : *« depuis la vignette j'ai pu
-	ajouter au panier et devrait pas, on réserve… »*. Il a raison, et c'est plus
-	grave qu'un libellé : le panier recevait une heure de cours **sans heure**.
-	Aucun créneau retenu, rien au planning, l'intervenant ne sait pas qu'il
-	travaille — et le même créneau se revend le soir même. C'est exactement la
-	faute que l'étude du POS nomme : *vendre un article réservable comme un
-	article ordinaire est un bug, pas un raccourci*.
-
-	La vignette renvoie donc à la fiche, où l'on choisit son moment.
-
-	Une seule requête par PAGE, pas une par vignette : le catalogue en affiche
-	vingt à la fois, et vingt allers-retours pour une question qui a la même
-	réponse pour tout le monde, c'est vingt de trop.
-	"""
+	"""Flag the items that are booked on their product page rather than added to the cart."""
 	code = item.get("item_code")
 	if not code:
 		return

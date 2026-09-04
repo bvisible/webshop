@@ -1809,10 +1809,10 @@ body[data-path=update-profile] {
 //// or input: the browser does not show a title attribute on a disabled control, and
 //// our checkout disables the pay button until the terms are accepted — with no way
 //// to tell the buyer why (48e2708353, 2025-03-13).
-//// TO REVIEW: the section comment below is in French (RULE #00). ▲▲▲
+//// ▲▲▲
 }
 
-// Styles pour les tooltips des boutons désactivés
+// Tooltips for disabled buttons
 button[disabled][title],
 input[disabled][title] {
     position: relative;

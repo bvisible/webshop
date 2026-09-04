@@ -776,8 +776,8 @@ def place_order():
 	sales_order.insert()
 	sales_order.submit()
 	
-	# Le split a déjà été fait avant l'insertion du sales order, 
-	# donc nous n'avons pas besoin de faire quoi que ce soit ici
+	# The gift card was already split before the sales order was inserted,
+	# so there is nothing left to do here.
 
 	if hasattr(frappe.local, "cookie_manager"):
 		frappe.local.cookie_manager.delete_cookie("cart_count")
@@ -793,8 +793,13 @@ def place_order():
 #//// (618eedfdb8, 2025-03-24 "Feat gift card split"). Doing it after submit rather
 #//// than in place_order is deliberate — the split must not happen if the order
 #//// creation itself fails.
-#//// TO REVIEW: the user-facing strings in this block are hardcoded French instead
-#//// of _() msgids (RULE #00), and two comments are French. ▲▲▲
+#//// TO REVIEW: process_gift_card_split is DEFINED TWICE in this file — this one,
+#//// and again further down (the "Process the splitting of a gift card when its amount
+#//// exceeds the order total" one). Python keeps the LAST definition, so the one below
+#//// is what process_gift_card_on_submit actually calls and this one is unreachable.
+#//// Reconciling the two is a behaviour change and is left out of the 2026-09-04
+#//// clean-up pass; its strings and comments were put into English all the same, so
+#//// whichever survives is readable. ▲▲▲
 def process_gift_card_on_submit(doc, method=None):
 	"""
 	Hook function called when a Sales Order is submitted.
@@ -890,9 +895,9 @@ def process_gift_card_split(sales_order, gift_card_data):
 		# Get customer info
 		customer_name = sales_order.customer
 		
-		# IMPORTANT: Contrairement à notre implémentation précédente, nous créons
-		# une nouvelle carte cadeau pour le montant UTILISÉ (pas pour le montant restant)
-		# et nous laissons le montant RESTANT sur la carte d'origine
+		# IMPORTANT: unlike our previous implementation, the NEW gift card carries the
+		# amount USED (not the excess), and the REMAINING amount stays on the original
+		# card.
 		
 		# Get or create pricing rule for the USED amount (not the excess amount)
 		pricing_rule_name = None
@@ -994,7 +999,9 @@ def process_gift_card_split(sales_order, gift_card_data):
 			"comment_type": "Info",
 			"reference_doctype": sales_order.doctype,
 			"reference_name": sales_order.name,
-			"content": _("Gift card {0} split: amount utilisé {1} transféré à une nouvelle carte cadeau {2}. Montant restant sur la carte originale: {3}.").format(
+			#//// Neoffice — the msgid is English (RULE #00); the French comes from
+			#//// webshop/locale/fr.po.
+			"content": _("Gift card {0} split: {1} used and transferred to the new gift card {2}. {3} left on the original card.").format(
 				old_code,
 				format_currency_value(used_amount, currency=sales_order.currency),
 				new_code,
@@ -1004,14 +1011,17 @@ def process_gift_card_split(sales_order, gift_card_data):
 		
 		# Show a message to the user about the split
 		frappe.msgprint(
-			_("Carte cadeau {0} valeur ({1}) excède le total de la commande ({2}). Une nouvelle carte cadeau ({3}) a été créée pour le montant utilisé. Le montant restant ({4}) est disponible sur la carte originale.").format(
+			#//// Neoffice — the msgid is English (RULE #00); the French comes from
+			#//// webshop/locale/fr.po.
+			_("Gift card {0} is worth {1}, more than the order total ({2}). A new gift card ({3}) was created for the amount used; the remaining {4} stays on the original card.").format(
 				old_code,
 				format_currency_value(gift_card_amount, currency=sales_order.currency),
 				format_currency_value(used_amount, currency=sales_order.currency),
 				new_code,
 				format_currency_value(excess_amount, currency=sales_order.currency)
 			),
-			title=_("Carte Cadeau Divisée")
+			#//// Neoffice — English msgid (RULE #00); the French is in webshop/locale/fr.po.
+			title=_("Gift Card Split")
 		)
 		
 	except Exception as e:
@@ -2604,7 +2614,6 @@ def get_party(user=None, ignore_permissions=False):
 		#//// another app): the buyer then falls back to the shop's guest_customer and keeps
 		#//// shopping instead of meeting a traceback. Errors are logged with the two-argument
 		#//// form (title, message).
-		#//// TO REVIEW: one comment inside is in French (RULE #00).
 		try:
 			customer.insert(ignore_permissions=True)
 
@@ -3005,6 +3014,8 @@ def update_customer_info(customer_name=None, customer_type=None):
 			return {"success": False, "message": _("No quotation or customer found")}
 
 		customer_doc = frappe.get_doc("Customer", quotation.party_name)
+		#//// Neoffice — kept to tell whether the displayed name really changed, since the
+		#//// record is no longer renamed (see the block marker above).
 		previous_customer_name = customer_doc.customer_name
 
 		# Update customer fields if provided
@@ -3046,6 +3057,7 @@ def update_customer_info(customer_name=None, customer_type=None):
 		#//// Neoffice — the failure is logged with its traceback and the browser gets a
 		#//// generic sentence: str(e) hands a raw exception message to the shop's visitors.
 		frappe.log_error("Cart: customer update failed", frappe.get_traceback())
+		#//// Neoffice — one generic translated sentence for the browser, never str(e).
 		return {
 			"success": False,
 			"message": _("Could not update the customer details")
@@ -3192,6 +3204,7 @@ def update_contact_info(first_name, last_name, email=None, phone=None, company_n
 	#//// sentence. The JSON shape the checkout reads is unchanged. ▲▲▲
 	except Exception:
 		frappe.log_error("Cart: contact update failed", frappe.get_traceback())
+		#//// Neoffice — one generic translated sentence for the browser, never str(e).
 		return {
 			"success": False,
 			"message": _("Could not update the contact details")
@@ -3405,6 +3418,7 @@ def get_loyalty_points_html():
 	else:
 		loyalty_points_details = frappe._dict({"loyalty_points": 0})
 
+	#//// Neoffice — see the block marker above; re-indented with tabs, nothing else.
 	# Round loyalty points to nearest 10
 	import math
 	raw_loyalty_points = float(loyalty_points_details.get("loyalty_points", 0))
@@ -4015,24 +4029,17 @@ def process_gift_card_split(sales_order, coupon_data):
 
 
 #//// Neoffice — added helper (a9615e2771, 2026-08-03 "retirer un morceau d'un sejour
-#//// emporte le reste, au bon moment"). A booking sold by neoffice_theme is one
-#//// product made of several cart lines (the stay, its tourist tax, its options);
-#//// removing one line has to remove the others, and it has to be decided HERE —
-#//// just before webshop decides whether to delete the draft quotation. The import is
-#//// optional: a shop without the booking module sees no difference.
-#//// TO REVIEW: the docstring is in French (RULE #00).
+#//// emporte le reste, au bon moment"). ▼▼▼
+#//// neoffice_theme's booking module sells a service as one block: the stay, its
+#//// tourist tax, its options. Removing one piece has to take the rest with it — and
+#//// that has to be decided HERE, in the same gesture, because it is right after this
+#//// that webshop chooses whether to delete its draft quotation. Done later, the tax
+#//// is left alone in the cart and the empty quotation survives.
+#//// The import is optional: a shop without the booking module sees no difference.
+#//// (The rationale used to live in the function's docstring, in French; RULE #00 —
+#//// it is fork-divergence prose, so it belongs in the marker.) ▲▲▲
 def _drop_booking_companions(quotation, removed_item, remaining):
-	"""Les lignes qui ne survivent pas au retrait d'un séjour.
-
-	Le module de réservation de neoffice_theme vend une prestation d'un bloc :
-	le séjour, sa taxe de séjour, ses options. Retirer un morceau doit emporter
-	le reste — et cela doit se décider ICI, dans le même geste, parce que c'est
-	juste après que webshop choisit de supprimer ou non son brouillon. Fait plus
-	tard, la taxe reste seule au panier et le devis vide survit.
-
-	Silencieux si le module n'est pas installé : une boutique sans réservation
-	ne voit aucune différence.
-	"""
+	"""Return the cart lines that do not survive the removal of a stay."""
 	try:
 		from neoffice_theme.booking.extras import companions_of_a_removed_line
 	except ImportError:
