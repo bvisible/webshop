@@ -105,6 +105,7 @@ def create_support_ticket(ctx, subject, description, email):
 			"subject": subject or _("Demande depuis l'assistant de la boutique"),
 			"description": escape_html(description).replace("\n", "<br>"),
 			"raised_by": email,
+			#//// Neoffice — HD Ticket.customer links to Helpdesk's own HD Customer, not to ERPNext's Customer; inserting the ERPNext one raised LinkValidationError and the request fell back to contact_team (231ad396f5 "fix(assistant): le ticket Helpdesk ne pointe pas un Client ERPNext")
 			# HD Ticket.customer links to Helpdesk's own HD Customer, not to ERPNext's
 			"customer": ctx.customer if ctx.customer and frappe.db.exists("HD Customer", ctx.customer) else None,
 			"agent_group": team if team and frappe.db.exists("HD Team", team) else None,
