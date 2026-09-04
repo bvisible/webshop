@@ -113,6 +113,16 @@ def get_product_filter_data(query_args=None):
 		start = 0
 #//// Neoffice — see above.
 
+	#//// Neoffice — restored. Upstream computes the sub-categories HERE; our
+	#//// rewrite of this endpoint kept only the reader below
+	#//// (`result.get("sub_categories", [])`) while ProductQuery.query() never
+	#//// returns that key. Every item group page therefore shipped an empty
+	#//// list and product_ui/views.js render_item_sub_categories() was dead
+	#//// code: no sub-category navigation on any shop of the fleet.
+	sub_categories = []
+	if item_group:
+		sub_categories = get_child_groups_for_website(item_group, immediate=True)
+
 	engine = ProductQuery()
 	#//// Neoffice — the discount filter is applied inside the query rather than after it:
 	#//// filtering afterwards returned short pages (8ba1a7ab46, 2025-06-08).
@@ -158,7 +168,7 @@ def get_product_filter_data(query_args=None):
 		#//// belongs to the caller's party before answering. ▲▲▲
 		"items_count": result.get("items_count"),
 		"total_count": result.get("total_count"),
-		"sub_categories": result.get("sub_categories", [])
+		"sub_categories": sub_categories,
 	}
 
 
