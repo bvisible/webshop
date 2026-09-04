@@ -2301,8 +2301,8 @@ def set_taxes(quotation, cart_settings):
 #//// Re-indented with tabs: the function came in with four-space indentation while
 #//// cart.py — upstream included — is tab-indented, so every diff of it fought the
 #//// file. Whitespace only, no behaviour change.
-#//// TO REVIEW: the account/cost centre come from the Loyalty Program without a guard
-#//// — a programme with no expense account will raise here.
+#//// The expense account is checked before the charge row is built: see the marker
+#//// inside the function.
 def apply_loyalty_points_tax(quotation):
 	"""Add tax line for loyalty points if necessary"""
 	if quotation.loyalty_points and quotation.loyalty_amount:
@@ -2322,7 +2322,21 @@ def apply_loyalty_points_tax(quotation):
 			loyalty_program = frappe.db.get_value("Customer", quotation.party_name, "loyalty_program")
 			if loyalty_program:
 				loyalty_program_doc = frappe.get_doc("Loyalty Program", loyalty_program)
-				
+
+				#//// Neoffice — guard added. expense_account is optional on Loyalty Program but
+				#//// account_head is mandatory on Sales Taxes and Charges, so a programme without
+				#//// one produced a charge row with an empty account: the cart then died on
+				#//// "Account Head is mandatory", which names neither the loyalty programme nor
+				#//// the setting to fix. Stopping here rather than skipping the row is deliberate
+				#//// — both callers reach this line with points ALREADY spent (apply_loyalty_points
+				#//// has written the Loyalty Point Entry, apply_cart_settings replays the row on an
+				#//// existing cart), so dropping it silently would take the discount off the totals
+				#//// while the buyer's points stay burnt.
+				if not loyalty_program_doc.expense_account:
+					frappe.throw(
+						_("Loyalty Program {0} has no expense account").format(loyalty_program)
+					)
+
 				# Calculate the correct idx value (should be the next available index)
 				max_idx = 0
 				for tax in quotation.taxes:
@@ -2335,7 +2349,9 @@ def apply_loyalty_points_tax(quotation):
 				quotation.append("taxes", {
 					"idx": next_idx,
 					"charge_type": "Actual",
-					"description": "Loyalty program",
+					#//// Neoffice — translated: this description is printed on the cart, the
+					#//// order and the invoice.
+					"description": _("Loyalty program"),
 					"account_head": loyalty_program_doc.expense_account,
 					"cost_center": loyalty_program_doc.cost_center,
 					"tax_amount": -quotation.loyalty_amount,
