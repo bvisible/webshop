@@ -171,10 +171,13 @@ def week(now, sched):
 	out = []
 	for index, name in enumerate(WEEKDAYS):
 		periods = sched.periods.get(index, [])
+		label = _(name)
 		out.append(
 			frappe._dict(
 				weekday=name,
-				label=_(name),
+				# French translations write weekdays in lower case; a sign in the
+				# window starts them with a capital.
+				label=label[:1].upper() + label[1:],
 				periods=[{"opens": format_clock(o), "closes": format_clock(c)} for o, c in periods],
 				text=day_text(periods),
 				closed=not periods,
