@@ -440,6 +440,7 @@ class ProductQuery:
 			order_by = "ranking DESC"
 		
 		# Build optimized query that combines discount detection and price sorting
+		#//// Neoffice — applies the selected discount threshold here too (c3ba312 "fix(shop): item group pages lost their own items, their secondary categories and the discount threshold"); see _discount_threshold_sql().
 		query_sql = f"""
 		WITH discounted_items AS (
 			SELECT 
@@ -510,6 +511,7 @@ class ProductQuery:
 		items = frappe.db.sql(query_sql, query_values, as_dict=True)
 		
 		# Get count of discounted items
+		#//// Neoffice — same discount threshold applied to the count query, see _discount_threshold_sql() (c3ba312 "fix(shop): item group pages lost their own items, their secondary categories and the discount threshold").
 		count_sql = f"""
 		SELECT COUNT(*)
 		FROM (
@@ -1397,6 +1399,7 @@ class ProductQuery:
 		field_list = ", ".join([f"wi.`{field}`" for field in self.fields])
 		
 		# Use CTE to pre-filter items with discounts
+		#//// Neoffice — applies the selected discount threshold here too (c3ba312 "fix(shop): item group pages lost their own items, their secondary categories and the discount threshold"); see _discount_threshold_sql().
 		sql = f"""
 		WITH discounted_items AS (
 			SELECT DISTINCT 
@@ -1462,6 +1465,7 @@ class ProductQuery:
 		items = frappe.db.sql(sql, values, as_dict=True)
 		
 		# Get count using the same discount logic as main query
+		#//// Neoffice — same discount threshold applied to the count query, see _discount_threshold_sql() (c3ba312 "fix(shop): item group pages lost their own items, their secondary categories and the discount threshold").
 		count_sql = f"""
 		WITH discounted_items AS (
 			SELECT DISTINCT 

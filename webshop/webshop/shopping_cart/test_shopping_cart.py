@@ -197,6 +197,7 @@ class TestShoppingCart(unittest.TestCase):
 		from erpnext.controllers.item_variant import create_variant
 		from erpnext.stock.doctype.item.test_item import make_item
 
+		#//// Neoffice — reset the per-request settings cache before exercising the opt-out (3b14c6b8c "test(webshop): align the upstream suite with the behaviour this fork wants"): the @change_settings decorator above only writes the Webshop Settings doc, not this cache.
 		# the settings doc is cached per request; the decorator above only wrote it
 		frappe.local.shopping_cart_settings = None
 

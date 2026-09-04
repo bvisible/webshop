@@ -21,10 +21,12 @@ class TestWebshopSettings(unittest.TestCase):
 		# committed `set use_for_shopping_cart = 0` across the table and then set
 		# them ALL to 1 — on a live site that silently enrols every tax rule in
 		# the shopping cart, including the ones deliberately kept out of it.
+		#//// Neoffice — renamed to English identifiers (83f9f23aa "chore(webshop): English identifiers in test_webshop_settings"): this helper and its locals were in French (avant, _restaurer_regles, nom, valeur).
 		before = {
 			r.name: r.use_for_shopping_cart
 			for r in frappe.get_all("Tax Rule", fields=["name", "use_for_shopping_cart"])
 		}
+		#//// Neoffice — renamed to English identifiers, see above (83f9f23aa).
 		self.addCleanup(self._restore_tax_rules, before)
 
 		frappe.db.sql("update `tabTax Rule` set use_for_shopping_cart = 0")

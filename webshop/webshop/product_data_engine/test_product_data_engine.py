@@ -142,6 +142,7 @@ class TestProductDataEngine(unittest.TestCase):
 		valid_item_groups = item_group_facet_names(item_group_filters[1])
 
 		self.assertEqual(docfield.options, "Item Group")
+		#//// Neoffice — pins the facet shape itself, see item_group_facet_names() above (3b14c6b8c "test(webshop): align the upstream suite with the behaviour this fork wants"): the item group facet is a tree of {name, count, children}, not a flat list of names.
 		self.assertTrue(
 			all(isinstance(node, dict) and "count" in node for node in item_group_filters[1]),
 			"the item group facet must carry a product count per group",
@@ -155,6 +156,7 @@ class TestProductDataEngine(unittest.TestCase):
 		#'Products' and 'Raw Materials' both have 'show_in_website' enabled
 		item_group_filters = field_filters[0]
 		docfield = item_group_filters[0]
+		#//// Neoffice — see item_group_facet_names() above.
 		valid_item_groups = item_group_facet_names(item_group_filters[1])
 
 		self.assertEqual(docfield.options, "Item Group")
