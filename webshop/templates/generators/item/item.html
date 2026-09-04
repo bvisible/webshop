@@ -7,6 +7,9 @@
 {% block title %} {{ html_title or title }} {% endblock %}
 
 {% block breadcrumbs %}
+{# //// Neoffice — upstream renders Frappe's breadcrumbs at the top of the page. They are #}
+{# //// rendered inside the buy-box card, under the product title, instead (035b28d02b / #}
+{# //// 1c5119014b, 2026-07-06). #}
 {# breadcrumbs render inside the buy-box card, under the product title #}
 {% endblock %}
 
@@ -16,6 +19,9 @@
 	<div class="item-content">
 		<div class="product-page-content" itemscope itemtype="http://schema.org/Product">
 			<!-- Image, Description, Add to Cart -->
+			{# //// Neoffice — added: the product header (title + breadcrumbs) above the cards, and #}
+			{# //// the page is cut into distinct cards rather than one long column (6599cec9d6 / #}
+			{# //// 6cb3ad6997, 2026-07-06; one title only, 7bf95830e5, 2026-08-26). #}
 			<!-- Product header: title + breadcrumbs above the cards, left aligned -->
 			<div class="product-header-block">
 				<div class="d-flex align-items-start justify-content-between">
@@ -84,6 +90,10 @@
 				{% include "templates/generators/item/item_image.html" %}
 				{% include "templates/generators/item/item_details.html" %}
 			</div>
+			{# //// Neoffice — added: the buy-box card, the bundle contents (4a5c209e89, 2025-06-19), #}
+			{# //// the cross-sell and frequently-bought-together blocks (3c1e847e26, 2025-06-24; #}
+			{# //// 8c29208cca, 2026-09-03), the SEO metas / JSON-LD (ed337ce4a3, 2026-07-06) and the #}
+			{# //// mobile buy bar (0d17ac8d40, 2026-08-26). #}
 			
 <style>
 	/* Product page: harmonized section styling */
@@ -358,6 +368,9 @@
 	</div>
 	{% endif %}
 
+	{# //// Neoffice — the information and reviews block comes second on mobile: the buy box #}
+	{# //// must be reachable without scrolling past the description (0d17ac8d40, #}
+	{# //// 2026-08-26). #}
 	<!-- Info and reviews section (will be second on mobile) -->
 	{% if has_tabs or has_specs or has_content or has_reviews %}
 	{% if has_recommendations %}
@@ -373,6 +386,9 @@
 		<div class="item-content {{ 'mt-minus-2' if has_tabs else '' }}">
 			<div class="product-page-content" itemscope itemtype="http://schema.org/Product">
 				<!-- Product Specifications Table Section -->
+				{# //// Neoffice — the tabs/specs/reviews sections are only rendered when they have #}
+				{# //// something in them; upstream always draws the headings, so a product with no #}
+				{# //// review showed an empty titled block (7bf95830e5, 2026-08-26). #}
 				{% if has_tabs %}
 					<div class="category-tabs">
 						<!-- tabs -->
@@ -380,6 +396,7 @@
 								add_top_padding=0, add_bottom_padding=0)
 							}}
 					</div>
+				{# //// Neoffice — see above. #}
 				{% elif has_specs %}
 					{% include "templates/generators/item/item_specifications.html"%}
 				{% endif %}
@@ -388,14 +405,17 @@
 				{{ doc.website_content or '' }}
 
 				<!-- Reviews and Comments -->
+				{# //// Neoffice — see above. #}
 				{% if has_reviews %}
 					{% include "templates/generators/item/item_reviews.html"%}
 				{% endif %}
 			</div>
 		</div>
+	{# //// Neoffice — upstream's trailing blocks are replaced by the card layout above. #}
 	</div>
 	{% endif %}
 </div>
+{# //// Neoffice — closes the page (see above). #}
 {% endif %}
 
 {% endblock %}

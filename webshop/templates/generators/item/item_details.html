@@ -3,6 +3,9 @@
 {% set product_info = shopping_cart.product_info %}
 {% set price_info = product_info.get('price') or {} %}
 
+{# //// Neoffice — the details column width follows the gallery (a product with no image #}
+{# //// gets the full width), and the upstream header block is replaced by the buy-box #}
+{# //// card of item.html (5ce9a4ec4c / a2f5dc2153, 2026-08-03). #}
 <div class="col-md-8 product-details {{ width_class }}">
 	<!-- title, wishlist and breadcrumbs render above the cards (item.html) -->
 
@@ -16,6 +19,8 @@
 		<span class="product-item-group">
 			{{ _(doc.item_group) }}
 		</span>
+		{# //// Neoffice — the brand is shown on the product page; upstream prints only the item #}
+		{# //// group. #}
 		{% if doc.brand %}
 		<span class="product-separator">•</span>
 		<span class="product-brand">
@@ -53,6 +58,8 @@
 	{% endif %}
 	{% if has_variants %}
 		<!-- configure template -->
+		{# //// Neoffice — the grid variant selector is included instead of upstream's dropdown #}
+		{# //// configurator (6fea19b1fe, 2025-06-17). #}
 		{% include "templates/generators/item/item_configure_grid.html" %}
 	{% else %}
 		<!-- add variant to cart -->
@@ -146,6 +153,10 @@
 	{% endif %}
 </div>
 
+{# //// Neoffice — added <style> block: the description card and its clamped excerpt. #}
+{# //// Kept inline because these blocks are rendered inside a Builder page, outside the #}
+{# //// shop's SCSS bundle (0b86ab6b9d, 2026-07-06 — the styles had been appended outside #}
+{# //// the template blocks and were never rendered). #}
 <style>
 	.product-separator {
 		margin: 0 0.5rem;

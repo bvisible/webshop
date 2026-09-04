@@ -1,6 +1,8 @@
 {% from "webshop/templates/includes/macros.html" import user_review, ratings_summary %}
 
 <div class="mt-4 ratings-reviews-section">
+	{# //// Neoffice — the reviews block becomes a card with its own container, to match the #}
+	{# //// other blocks of the product page (7bf95830e5 / 110d27e81f, 2026-08-26). #}
 	<div class="reviews-container">
 		<!-- Title and Action -->
 		<div class="reviews-header-wrapper d-flex justify-content-between align-items-center mb-4">
@@ -11,9 +13,13 @@
 			   Bought Together): same visual level should be the same heading level. #}
 				<h2 class="reviews-title mb-0 mt-0">
 				{{ _("Customer Reviews") }}
+				{# //// Neoffice — the count is shown next to the heading, and the heading is a plain #}
+				{# //// h2 — the average rating used to be rendered as the page title (3f438cc148, #}
+				{# //// 2026-09-03 "la note moyenne n'est plus un titre de page"). #}
 				{% if total_reviews %}
 					<span class="review-count-badge">{{ total_reviews }}</span>
 				{% endif %}
+			{# //// Neoffice — see above. #}
 			</h2>
 
 			<!-- Write a Review for legitimate users -->
@@ -42,14 +48,18 @@
 			{{ ratings_summary(reviews, reviews_per_rating, average_rating, average_whole_rating, for_summary=True, total_reviews=total_reviews) }}
 
 
+		{# //// Neoffice — see above. #}
 		</div>
 		{% endif %}
 
+		{# //// Neoffice — reviews and comments in one section, with the empty state we added #}
+		{# //// (upstream renders nothing when a product has no review). #}
 		<!-- Reviews and Comments -->
 		<div class="reviews-list-section {{ 'mt-5' if total_reviews else '' }}">
 			{% if reviews %}
 				<div class="reviews-list">
 					{{ user_review(reviews) }}
+				{# //// Neoffice — see above. #}
 				</div>
 
 				{% if total_reviews > 4 %}

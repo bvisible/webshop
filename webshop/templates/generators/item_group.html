@@ -1,7 +1,12 @@
+{# //// Neoffice — the two filter macros we added are imported too (discount range and #}
+{# //// tag filters) — see macros.html (8ba1a7ab46, 2025-06-08; 6fea19b1fe, 2025-06-17). #}
 {% from "webshop/templates/includes/macros.html" import field_filter_section, attribute_filter_section, discount_range_filters, tag_filter_section, price_filter_section, stock_filter_section %}
 {% extends "templates/web.html" %}
 
 {% block header %}
+{# //// Neoffice — the category header becomes the sticky filter bar on mobile: the #}
+{# //// filter button has to stay reachable while scrolling a long listing (48db60993c / #}
+{# //// 93512008a9, 2025-12-17). #}
 <div class="mb-6 d-flex justify-content-between align-items-center sticky-filter-header">
   <div>{{ _(item_group_name) }}</div>
   <button id="filterButton" class="filter-button d-md-none">
@@ -45,10 +50,13 @@
 		</div>
 
 		<div class="col-12 order-1 col-md-3 order-md-1">
+			{# //// Neoffice — the overlay behind the mobile filter drawer. #}
 			<div id="filterOverlay" class="filter-overlay d-md-none"></div>
 			<div class="collapse d-md-block mr-4 filters-section" id="product-filters">
 				<div class="d-flex justify-content-between align-items-center mb-5 title-section">
 					<div class="mb-4 filters-title" > {{ _('Filters') }} </div>
+					{# //// Neoffice — the filter column and the results share a flex row so the sidebar can #}
+					{# //// be sticky (e2f341b4d5, 2026-07-06). #}
 					<div class="d-flex">
 						<a class="mb-4 clear-filters" href="/{{ doc.route }}">{{ _('Clear All') }}</a>
 						<button id="closeFilterButton" class="close-filter-button d-md-none ml-3 mb-4">
@@ -61,6 +69,10 @@
 
 				<!-- attribute filters -->
 				{{ attribute_filter_section(attribute_filters) }}
+				{# //// Neoffice — the price, stock, discount and tag filters are rendered here; upstream #}
+				{# //// renders field and attribute filters only (8ba1a7ab46, 2025-06-08; 6fea19b1fe, #}
+				{# //// 2025-06-17), and the recently-viewed block is pinned last in the sidebar #}
+				{# //// (399e15746a / 3e9182f8bb, 2026-07-06). #}
 				
 				<!-- tag filters -->
 				{% if tag_filters %}
@@ -123,6 +135,10 @@
 </div>
 
 <script>
+	//// Neoffice — the shop's settings are handed to the listing bundle through the page:
+	//// this file is a template, the bundle is not, and window.product_settings /
+	//// window.product_translations are the only channel between them (dd08553e88,
+	//// 2025-12-15).
 	// Store stock filter settings for JavaScript
 	window.stock_filter_settings = {
 		enabled: {{ enable_stock_filter|json }},
@@ -177,6 +193,8 @@
 			let path = window.location.pathname + '?' + frappe.utils.get_url_from_dict(query_params);
 			window.location.href = path;
 		});
+//// Neoffice — the mobile filter drawer, the sticky header sentinel and the
+//// recently-viewed tracker (48db60993c, 2025-12-17; 399e15746a, 2026-07-06).
 
 		// Handle mobile filters
 		const filterButton = document.getElementById('filterButton');
@@ -273,6 +291,9 @@
 		}
 	});
 </script>
+{# //// Neoffice — the SEO block of a category page: real <title>, description, canonical #}
+{# //// and JSON-LD (ed337ce4a3 / f94822992c / f39c6eb87b, 2026-07-06 — the title was #}
+{# //// re-set later in get_context, so it had to be suffixed there too). #}
 
 <style>
 	/* Sticky filter header on mobile */

@@ -1,12 +1,21 @@
+{# //// Neoffice — the gallery is rebuilt from here down. ▼▼▼ Upstream shows one image #}
+{# //// with a carousel of slides underneath. Ours is a thumbnail column with a main #}
+{# //// image that switches without reloading, plus a full-screen zoom (0c10921750, #}
+{# //// 2025-06-18 "Feat. gallery switch"), and the whole thing is responsive #}
+{# //// (912b84dbf6, 2025-06-25 "image mobile"). ▲▲▲ #}
 {% set column_size = 6 if slides else 4 %}
 <div class="col-md-{{ column_size }} h-100 d-flex mb-4 product-image-wrapper">
 	{% if slides %}
+		{# //// Neoffice — the thumbnail column is a flex column, hidden under md (the mobile #}
+		{# //// layout swipes the main image instead). #}
 		<div class="item-slideshow d-flex flex-column mr-3 d-none d-md-flex">
 			{% for item in slides %}
 			{# //// Neoffice — an auto-generated slideshow has no heading, so
 			   every thumbnail carried an empty alt. Falls back to the product
 			   name and the position, which is what a screen reader needs. #}
 			<img class="item-slideshow-image mb-2 {% if loop.first %}active{% endif %}"
+					{# //// Neoffice — lazy loading and async decoding on the thumbnails: a product with #}
+					{# //// fifteen images blocked the page paint (912b84dbf6, 2025-06-25). #}
 					src="{{ item.image }}" loading="lazy" decoding="async"
 					alt="{{ item.heading or _('{0} — image {1}').format(_(doc.web_item_name), loop.index) }}">
 			{% endfor %}
@@ -31,9 +40,12 @@
 					src="{{ item.image }}" loading="lazy" decoding="async"
 					alt="{{ item.heading or _('{0} — image {1}').format(_(doc.web_item_name), loop.index) }}">
 			{% endfor %}
+		{# //// Neoffice — closes the thumbnail column (see the block above). #}
 		</div>
 		<script>
 			frappe.ready(() => {
+				//// Neoffice — the switching logic only drives the DESKTOP thumbnails; the mobile
+				//// layout duplicates them, and selecting by class alone matched both.
 				// Only select desktop thumbnails for the slideshow logic
 				const slides = document.querySelectorAll('.item-slideshow:not(.item-slideshow-mobile) .item-slideshow-image');
 				const totalSlides = slides.length;
@@ -44,6 +56,9 @@
 				// Click on thumbnail
 				$('.page_content').on('click', '.item-slideshow-image', (e) => {
 					const $img = $(e.currentTarget);
+					//// Neoffice — thumbnails are matched on their src, not on their index: the same
+					//// image can legitimately appear twice (a variant reusing the template's picture)
+					//// and the index then pointed at the wrong slide.
 					// Get index based on the src attribute to handle duplicated thumbnails
 					const clickedSrc = $img.attr('src');
 					let index = 0;
@@ -105,12 +120,15 @@
 					const $img = $(slides[index]);
 					const link = $img.prop('src');
 					const $product_image = $('.product-image');
+					//// Neoffice — see the gallery block above.
 					
 					// Fade effect
 					$product_image.find('img').fadeOut(200, function() {
 						$(this).prop('src', link).fadeIn(200);
 					});
 					$product_image.find('a').prop('href', link);
+					//// Neoffice — see the gallery block above (main image switching, keyboard and
+					//// swipe handling).
 					
 					// Update active state for all thumbnails with the same src
 					$('.item-slideshow-image').each(function() {
@@ -168,6 +186,8 @@
 				<line x1="6" y1="6" x2="18" y2="18"></line>
 			</svg>
 		</button>
+		{# //// Neoffice — added: the full-screen zoom view; upstream has none (0c10921750, #}
+		{# //// 2025-06-18). #}
 		<div class="zoom-content">
 			<button class="zoom-nav zoom-prev" aria-label="Previous image">‹</button>
 			<div class="zoom-image-container"></div>
@@ -198,17 +218,22 @@
 		height: 100vh;
 		width: 100vw;
 		display: flex;
+		/* //// Neoffice — zoom overlay layout (see above). */
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+		/* //// Neoffice — a near-opaque backdrop so the photo is read against nothing else. */
 		background: rgba(0, 0, 0, 0.95);
 		z-index: 1080;
 	}
 
+	/* //// Neoffice — the close button of the zoom view (see above). */
 	.image-zoom-view .close {
 		position: absolute;
+		/* //// Neoffice — its position. */
 		right: 2rem;
 		top: 2rem;
+		/* //// Neoffice — above Frappe's own modals (z-index). */
 		z-index: 1090;
 		background: transparent;
 		border: none;
@@ -223,6 +248,7 @@
 
 	.image-zoom-view svg {
 		color: var(--white);
+		/* //// Neoffice — the rest of the gallery and zoom styles (see the block above). */
 		width: 30px;
 		height: 30px;
 	}
@@ -516,6 +542,7 @@
 <script>
 	frappe.ready(() => {
 		const $zoom_wrapper = $('.image-zoom-view');
+		//// Neoffice — the zoom behaviour (see the block above).
 		const $zoom_container = $('.zoom-image-container');
 		let zoomImages = [];
 		let currentZoomIndex = 0;
@@ -540,6 +567,7 @@
 			const $img = $(e.target);
 			const src = $img.prop('src');
 			if (!src) return;
+			//// Neoffice — see the block above.
 			
 			// Find the index of the clicked image
 			currentZoomIndex = zoomImages.indexOf(src);
@@ -548,6 +576,7 @@
 			show_zoom_preview();
 		});
 
+		//// Neoffice — the close button binding (see the block above).
 		// Close button
 		$zoom_wrapper.on('click', '.close', hide_zoom_preview);
 		
@@ -577,9 +606,11 @@
 
 		// Keyboard navigation
 		$(document).on('keydown', (e) => {
+			//// Neoffice — Escape and arrow keys only act while the zoom is open.
 			if (!$zoom_wrapper.is(':visible')) return;
 			
 			if (e.key === 'Escape') {
+				//// Neoffice — see the block above.
 				hide_zoom_preview();
 			} else if (e.key === 'ArrowLeft') {
 				e.preventDefault();
@@ -592,14 +623,19 @@
 			}
 		});
 
+		//// Neoffice — see the block above.
 		function show_zoom_preview() {
 			$zoom_wrapper.show();
+			//// Neoffice — see the block above.
 			update_zoom_image();
 			$('body').css('overflow', 'hidden'); // Prevent scrolling
 		}
 
+		//// Neoffice — see the block above.
 		function hide_zoom_preview() {
 			$zoom_wrapper.hide();
+			//// Neoffice — the zoom container is emptied on close so a large image is not kept
+			//// in memory for the rest of the visit.
 			$zoom_container.empty();
 			$('body').css('overflow', ''); // Restore scrolling
 		}

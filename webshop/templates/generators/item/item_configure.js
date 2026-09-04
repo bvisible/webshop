@@ -188,6 +188,8 @@ class ItemConfigure {
 		this.dialog.$status_area.empty();
 	}
 
+	//// Neoffice — enable_guest_cart is threaded in: the dialog must know whether a guest
+	//// may add to the cart or has to sign in first (b9f319c437, 2025-02-24).
 	get_html_for_item_found({ filtered_items_count, filtered_items, exact_match, product_info, enable_guest_cart}) {
 		const one_item = exact_match.length === 1
 			? exact_match[0]
@@ -195,6 +197,9 @@ class ItemConfigure {
 				? filtered_items[0]
 				: '';
 
+		//// Neoffice — upstream always renders the add-to-cart button. On a shop that refuses
+		//// guest carts an anonymous visitor is offered the sign-in instead of a button that
+		//// silently fails.
 		let item_add_to_cart = '';
 		if (enable_guest_cart == 0 && frappe.session.user == "Guest") {
 			item_add_to_cart = `
@@ -251,6 +256,8 @@ class ItemConfigure {
 	}
 
 	btn_add_to_cart(e) {
+		//// Neoffice — the cached variant selection is dropped once the item is in the cart,
+		//// or reopening the page re-selected a variant the buyer had already bought.
 		localStorage.removeItem(this.get_cache_key());
 		const item_code = $(e.currentTarget).data('item-code');
 		const additional_notes = Object.keys(this.range_values || {}).map(attribute => {
@@ -262,6 +269,8 @@ class ItemConfigure {
 			qty: 1
 		});
 		this.dialog.hide();
+		//// Neoffice — the buyer is sent to the cart after adding from the configurator
+		//// (upstream leaves them in the dialog).
 		// redirect to cart
 		window.location.href = '/cart';
 	}

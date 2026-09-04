@@ -11,6 +11,9 @@
 			<span aria-hidden="true">?</span>
 			<span class="btn-inquiry__label">{{ _('A question?') }}</span>
 		</button>
+		/* //// Neoffice — the label is hidden on desktop (the button is a small square next to */
+		/* //// "add to cart") and shown on mobile, where it stretches full width and a lone */
+		/* //// "?" tells nobody anything (69db8ac57d, 2026-08-26). */
 		<style>
 			/* Desktop: the small square button next to "Add to cart" keeps just
 			   the mark. Mobile: it stretches full width under the cart button,

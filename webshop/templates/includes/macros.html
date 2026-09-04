@@ -1,3 +1,6 @@
+{# //// Neoffice — added macro: the price filter (two-handle slider + min/max inputs). #}
+{# //// Upstream's sidebar has field and attribute filters only (6fea19b1fe, #}
+{# //// 2025-06-17). #}
 {%- macro price_filter_section(price_filters)-%}
 {% if price_filters %}
 	<div class="mb-4 filter-block pb-5">
@@ -111,6 +114,8 @@
 	<div class="row">
 		{% for card in section.section_cards %}
 		<div class="col-md-{{ section.column_value }} mb-4">
+			{# //// Neoffice — the category card stretches to the row height so a grid of cards #}
+			{# //// lines up (48e2708353, 2025-03-13). #}
 			<div class="card h-100 border-0 justify-content-between">
 				{% if card.image %}
 				<img itemprop="image" class="card-img-top h-75" src="{{ card.image }}" loading="lazy" alt="{{ _(card.title) }}"></img>
@@ -118,6 +123,8 @@
 				<div itemprop="image" class="card-body">
 					<h5 class="card-title">{{ _(card.title) }}</h5>
 					<p class="card-subtitle mb-2 text-muted">{{ _(card.subtitle) or '' }}</p>
+					{# //// Neoffice — the card text goes through _() so a shop in French does not print an #}
+					{# //// English category description. #}
 					<p class="card-text">{{ _(card.content) or '' | truncate(140, True) }}</p>
 				</div>
 				<div class="card-body flex-grow-0">
@@ -149,6 +156,7 @@
 	<div class="card featured-item {{ align_items_class }}" style="height: 360px;">
 		{% if image %}
 		<div class="row no-gutters">
+			{# //// Neoffice — column width of the category card (48e2708353, 2025-03-13). #}
 			<div class="col-md-6 ml-4">
 				<img class="card-img" src="{{ image }}" alt="{{ _(title) }}">
 			</div>
@@ -195,6 +203,8 @@
 	<div class="mt-4">
 		<a href="/{{ item.route or '#' }}">
 			<div class="product-title">
+				{# //// Neoffice — upstream prints the raw title; through _() it can be translated like #}
+				{# //// every other label (9942bc8dfa, 2025-01-17 backported, and our own catalogues). #}
 				{{ _(title) or '' }}
 			</div>
 		</a>
@@ -212,6 +222,9 @@
 {%- endmacro -%}
 
 
+{# //// Neoffice — cart_settings is threaded through the wishlist macros so the card can #}
+{# //// tell whether the shop allows a guest to add to the cart (b9f319c437, #}
+{# //// 2025-02-24). #}
 {%- macro wishlist_card(item, settings, cart_settings=None) %}
 {%- set title = item.web_item_name or ''-%}
 {%- set title = title[:90] + "..." if title|len > 90 else title -%}
@@ -234,11 +247,13 @@
 			</div>
 		</div>
 
+		{# //// Neoffice — see above (cart_settings passed down). #}
 		{{ wishlist_card_body(item, title, settings, cart_settings) }}
 	</div>
 </div>
 {%- endmacro -%}
 
+{# //// Neoffice — see above (cart_settings passed down). #}
 {%- macro wishlist_card_body(item, title, settings, cart_settings=None) %}
 <div class="card-body card-body-flex text-left" style="width: 100%;">
 	<div class="mt-4">
@@ -246,6 +261,10 @@
 		<div class="product-category">{{ _(item.item_group) or '' }}</div>
 	</div>
 	<div  class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
+		{# //// Neoffice — upstream prints item.formatted_price, which is formatted server-side #}
+		{# //// with the site's currency. Ours goes through webshop_fmt_money so the shop's #}
+		{# //// "hide currency symbol" setting applies (0134ef756e, 2025-07-03), and a course #}
+		{# //// sold in several durations shows "from X" (7eab718951, 2026-08-03). #}
 		{% if item.get("price_info") %}
 			{% if course_offer_count(item.get('item_code')) > 1 %}<small class="text-muted">{{ _("from") }}</small> {% endif %}{{ webshop_fmt_money(item.price_info.get("price_list_rate", 0), currency=item.price_info.get("currency")) }}
 		{% elif item.get("price") %}
@@ -256,6 +275,7 @@
 
 		{% if item.get("formatted_mrp") %}
 			<small class="ml-1 striked-price">
+				{# //// Neoffice — same for the struck-through list price (see above). #}
 				<s>
 				{% if item.get("price_info") and item.get("price_info").get("mrp") %}
 					{{ webshop_fmt_money(item.price_info.get("mrp"), currency=item.price_info.get("currency")) }}
@@ -267,6 +287,8 @@
 				</s>
 			</small>
 			<small class="ml-1 product-info-green" >
+				{# //// Neoffice — "- 20%" instead of upstream's "20% OFF": one string fewer to #}
+				{# //// translate, and the label read badly in French. #}
 				- {{ _(item.discount) }}
 			</small>
 		{% endif %}
@@ -274,6 +296,10 @@
 
 	{% if (item.available and settings.show_stock_availability) or (not settings.show_stock_availability) %}
 		<!-- Show move to cart button if in stock or if showing stock availability is disabled -->
+		{# //// Neoffice — upstream always renders the "Move to Cart" button. On a shop that #}
+		{# //// does not allow guest carts, an anonymous visitor pressing it got a redirect to #}
+		{# //// /login with no explanation; they are now told, and offered the sign-in #}
+		{# //// (b9f319c437, 2025-02-24). #}
 		{% if cart_settings and cart_settings.enable_guest_cart == 0 and frappe.session.user == "Guest" %}
 			<a href="/login" class="btn btn-primary btn-add-to-cart mr-2 w-30-40"
 				role="button">
@@ -338,6 +364,10 @@
 			</div>
 		</div>
 
+		{# //// Neoffice — the ratings block is rebuilt: upstream prints a title with the #}
+		{# //// average, ours draws a per-star breakdown with progress bars (48e2708353, #}
+		{# //// 2025-03-13). The average is no longer rendered as a page heading (3f438cc148, #}
+		{# //// 2026-09-03 "la note moyenne n'est plus un titre de page"). #}
 		<!-- Rating Breakdown -->
 		<div class="col-md-8 rating-breakdown">
 			{% for percent in reviews_per_rating %}
@@ -350,11 +380,14 @@
 						<div class="progress-bar" role="progressbar"
 							aria-valuenow="{{ percent }}"
 							aria-valuemin="0" aria-valuemax="100"
+							{# //// Neoffice — the bar width (see the ratings block above). #}
 							style="width: {{ percent }}%">
 						</div>
 					</div>
+					{# //// Neoffice — the percentage label (see the ratings block above). #}
 					<span class="percent-label">{{ percent }}%</span>
 				</div>
+			{# //// Neoffice — see the ratings block above. #}
 			{% endfor %}
 		</div>
 	</div>
@@ -365,6 +398,9 @@
 <!-- User Reviews -->
 <div class="user-reviews">
 	{% for review in reviews %}
+		{# //// Neoffice — a review is rendered as a card with its own header, star row and a #}
+		{# //// "Verified Purchase" badge — the flag our purchase follow-up e-mails set #}
+		{# //// (5d19e3fed9, 2026-09-03). Upstream prints a title and a paragraph. #}
 		<div class="review-card">
 			<div class="review-header d-flex justify-content-between align-items-start">
 				<div class="review-info">
@@ -392,10 +428,13 @@
 			</div>
 			
 			{% if review.comment %}
+				{# //// Neoffice — the review body (see the review card above). #}
 				<div class="review-content">
 					<p class="mb-3">{{ _(review.comment) }}</p>
 				</div>
 			{% endif %}
+			{# //// Neoffice — the review footer: author and date with an icon, replacing upstream's #}
+			{# //// signature line (see the review card above). #}
 			
 			<div class="review-footer">
 				<div class="reviewer-info">
@@ -413,6 +452,11 @@
 {%- endmacro -%}
 
 {%- macro field_filter_section(filters)-%}
+{# //// Neoffice — the field filter macro is rewritten below. ▼▼▼ What it adds: item #}
+{# //// groups rendered as a collapsible tree instead of a flat list, brands carrying #}
+{# //// their product count and collapsed to 12 with an expand toggle (311a475390, #}
+{# //// 2026-07-06), a lookup box from 20 values (10 for item groups), and "See all" #}
+{# //// links to /shop-by-category. ▲▲▲ #}
 {% if filters %}
 {% for field_filter in filters %}
 	{%- set item_field =  field_filter[0] %}
@@ -420,12 +464,19 @@
 	<div class="mb-4 filter-block pb-5">
 		<div class="filter-label mb-3">{{ _(item_field.label) }}</div>
 
+		{# //// Neoffice — the lookup box appears from 20 values, or from 10 for item groups, #}
+		{# //// and its placeholder is really translated (upstream emits the literal text #}
+		{# //// `_('Search')` inside the attribute — the call is not evaluated there). #}
 		{% if values | len > 20 or (item_field.fieldname == 'item_group' and values | len > 10) %}
 		<!-- show inline filter if values more than 20 (or 10 for item groups) -->
 		<input type="text" class="form-control form-control-sm mb-2 filter-lookup-input" placeholder="{{ _('Search') }} {{ _(item_field.label) + 's' }}"/>
 		{% endif %}
 
 		{% if values %}
+		{# //// Neoffice — see the block marker on the macro above (item-group tree, brand #}
+		{# //// counts, collapse to 12, "See all" links). The <script> and <style> below are #}
+		{# //// inline on purpose: this markup is rendered inside a Builder page, outside the #}
+		{# //// shop bundle. #}
 		{% if item_field.fieldname == 'item_group' %}
 			<div class="filter-options" style="max-height: fit-content;">
 		{% else %}
@@ -495,12 +546,16 @@
 		<div class="mt-3">
 			<a href="/shop-by-category" class="btn btn-sm btn-outline-primary">{{ _('See all item groups') }}</a>
 		</div>
+		{# //// Neoffice — closes the brand/item-group branch above. #}
 		{% endif %}
 		{% else %}
 		<i class="text-muted">{{ _('No values') }}</i>
 		{% endif %}
 	</div>
 {% endfor %}
+{# //// Neoffice — added macro: renders the item groups as a tree (parent/child), which #}
+{# //// upstream lists flat — a shop with three levels of categories was unusable #}
+{# //// (6fea19b1fe, 2025-06-17). #}
 {% endif %}
 {%- endmacro -%}
 
@@ -540,12 +595,15 @@
 {%- endmacro -%}
 
 {%- macro attribute_filter_section(filters)-%}
+{# //// Neoffice — the attribute filter macro gets the same lookup box as the field #}
+{# //// filters below. #}
 {% if filters %}
 {% for attribute in filters %}
 	<div class="mb-4 filter-block pb-5">
 		<div class="filter-label mb-3">{{ _(attribute.name) }}</div>
 		{% if attribute.item_attribute_values | len > 20 %}
 		<!-- show inline filter if values more than 20 -->
+		{# //// Neoffice — the placeholder is really translated here too (see #21). #}
 		<input type="text" class="form-control form-control-sm mb-2 filter-lookup-input" placeholder="{{ _('Search') }} {{ _(attribute.name) + 's' }}"/>
 		{% endif %}
 
@@ -571,6 +629,8 @@
 		{% endif %}
 	</div>
 {% endfor %}
+{# //// Neoffice — added: the tag filter macro (Webshop Settings.enable_tag_filters), #}
+{# //// which upstream does not have (6fea19b1fe, 2025-06-17). #}
 {% endif %}
 {%- endmacro -%}
 
@@ -603,6 +663,9 @@
 {%- endmacro -%}
 
 {%- macro recommended_item_row(item)-%}
+{# //// Neoffice — the recommended-item row is a flex row so the cards keep the same #}
+{# //// height as the "frequently bought together" block next to it (3c1e847e26, #}
+{# //// 2025-06-24). #}
 <div class="recommended-item mt-6 d-flex">
 	<div class="r-item-image">
 		{% if item.website_item_thumbnail %}
@@ -623,6 +686,9 @@
 			{% set price = item.get('price_info') %}
 			<div class="mt-2">
 				<span class="item-price">
+					{# //// Neoffice — the recommended item's price goes through webshop_fmt_money like #}
+					{# //// everywhere else (0134ef756e, 2025-07-03); the upstream markup it replaces is #}
+					{# //// kept in a Jinja comment just below. #}
 					{#
 						Un cours vendu en plusieurs durées n'a pas UN prix : la
 						vignette montrait le plus bas comme s'il l'était, et le

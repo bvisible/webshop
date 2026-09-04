@@ -9,20 +9,27 @@
 <div class="item-cart row mt-2" data-variant-item-code="{{ item_code }}">
 	<div class="col-md-12">
 		<!-- Price and Availability -->
+		{# //// Neoffice — a gift card has no price to print: its amount is chosen by the buyer #}
+		{# //// in the block added below (3bc2d836f1, 2025-02-11). #}
 		{% if cart_settings.show_price and product_info.price and not (frappe.db.get_single_value('Webshop Settings', 'enable_gift_cards') and doc.is_gift_card) %}
 			{% set price_info = product_info.price %}
 
 			<div class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
 				<!-- Final Price -->
 				{% if price_info.formatted_mrp %}
+					{# //// Neoffice — prices go through webshop_fmt_money so the shop's "hide currency #}
+					{# //// symbol" setting applies; upstream prints the server-formatted string #}
+					{# //// (0134ef756e, 2025-07-03). #}
 					<span itemprop="lowPrice" content="{{ price_info.formatted_price_sales_uom }}">{{ webshop_fmt_money(price_info.get("price_list_rate", 0) * price_info.get("conversion_factor", 1), currency=price_info.get("currency")) }}</span>
 				{% else %}
+					{# //// Neoffice — see above (webshop_fmt_money). #}
 					<span itemprop="highPrice" content="{{ price_info.formatted_price_sales_uom }}">{{ webshop_fmt_money(price_info.get("price_list_rate", 0) * price_info.get("conversion_factor", 1), currency=price_info.get("currency")) }}</span>
 				{% endif %}
 
 				<!-- Striked Price and Discount  -->
 				{% if price_info.formatted_mrp %}
 					<small itemprop="highPrice" class="formatted-price">
+						{# //// Neoffice — see above (webshop_fmt_money on the struck-through price). #}
 						<s>MRP {{ webshop_fmt_money(price_info.get("mrp") or price_info.get("price_list_rate", 0), currency=price_info.get("currency")) }}</s>
 					</small>
 					<small class="ml-1 formatted-price in-green">
@@ -32,9 +39,13 @@
 
 				<!-- Price per UOM -->
 				<small class="formatted-price ml-2">
+					{# //// Neoffice — see above (webshop_fmt_money on the per-unit price). #}
 					({{ webshop_fmt_money(price_info.get("price_list_rate", 0), currency=price_info.get("currency")) }} / {{ product_info.uom }})
 				</small>
 			</div>
+			{# //// Neoffice — added: the trust block and the description excerpt inside the buy box #}
+			{# //// (608ab427f1 / 02775e7eaf, 2026-07-06), and the second-hand condition line #}
+			{# //// (d984eff855, 2026-09-03). #}
 			
 			<!-- Loyalty Points Info -->
 			{% if loyalty_points_info and loyalty_points_info.earned_text %}
@@ -103,6 +114,8 @@
 				</div>
 			{% elif product_info.in_stock == 0 %}
 				<span class="no-stock out-of-stock">
+					{# //// Neoffice — a second-hand item that is gone reads "sold", not "out of stock" — #}
+					{# //// there will not be another one (27fd4e9e80, 2026-09-03). #}
 					{{ sold_out_label }}
 				</span>
 			{% elif product_info.in_stock == 1 %}
@@ -150,6 +163,11 @@
 			</div>
 		{% endif %}
 
+		{# //// Neoffice — added, down to the buy button. ▼▼▼ The gift-card block (choose an #}
+		{# //// amount or type one, name the recipient, write a message) and the multi-warehouse #}
+		{# //// source selector, neither of which upstream has (3bc2d836f1, 2025-02-11; #}
+		{# //// 5bf2e88a1b / 011cf27c3a, 2026-08-25). A bookable service is not offered an #}
+		{# //// "add to cart" here at all (377166be21, 2026-08-13). ▲▲▲ #}
 		{% if frappe.db.get_single_value('Webshop Settings', 'enable_gift_cards') and doc.is_gift_card %}
 			<div class="gift-card-section mb-4">
 				{% set cart = frappe.call('webshop.webshop.shopping_cart.cart.get_cart_quotation') %}
@@ -245,7 +263,9 @@
 				{% else %}
 					<a href="/cart" class="btn btn-light btn-view-in-cart mr-2 font-md"
 						role="button">
+						{# //// Neoffice — "View in Cart" / "View in Quote" follows the checkout setting. #}
 						{{ _("View in Cart") if cart_settings.enable_checkout else _("View in Quote") }}
+					{# //// Neoffice — upstream's variant/quote block is replaced by the one above. #}
 					</a>
 				{% endif %}
 			</div>
@@ -325,6 +345,7 @@
 					{% endif %}
 				</div>
 			</div>
+		{# //// Neoffice — closes the block above. #}
 		{% endif %}
 	</div>
 </div>
@@ -384,6 +405,10 @@
 </style>
 
 <script>
+//// Neoffice — added script: the gift-card amount fields, the warehouse source
+//// selector and the quantity spinner talk to update_cart from here (3bc2d836f1,
+//// 2025-02-11; 011cf27c3a, 2026-08-25 "brancher le sélecteur sur les vrais points
+//// d'ajout au panier").
 frappe.ready(() => {
 	const bar = document.getElementById('webshop-buybar');
 	const realBtn = document.querySelector('.item-cart .btn-add-to-cart');
@@ -537,6 +562,8 @@ frappe.ready(() => {
 			const $btn = $(this);
 			$btn.prop('disabled', true);
 			const item_code = $btn.data('item-code');
+			//// Neoffice — the quantity is read from our spinner input; upstream reads a field
+			//// our markup does not have.
 			// Get quantity from input
 			const $qtyInput = $btn.closest('.mb-4').find('.item-qty');
 			const qty = parseInt($qtyInput.val()) || 1;
@@ -563,6 +590,7 @@ frappe.ready(() => {
 						frappe.throw(__('Please enter a valid amount'));
 						return;
 					}
+				//// Neoffice — see above.
 				} else {
 					amount = parseFloat($selectedAmount.val());
 				}
