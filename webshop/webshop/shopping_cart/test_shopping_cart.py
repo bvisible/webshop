@@ -230,6 +230,10 @@ class TestShoppingCart(unittest.TestCase):
 
 		self.assertEqual(quote_doctstatus, 1)
 
+	#//// Neoffice — added test (44178504a1, 2025-11-25). Locks the fix of 0ef0381e9c: a
+	#//// Customer created from the shop must come out with customer_primary_contact set
+	#//// and the Contact flagged primary/billing — without it the portal showed the
+	#//// buyer no contact and ERPNext could not invoice the order.
 	def test_new_customer_has_primary_contact(self):
 		"""Test that a new customer created from webshop has primary contact set correctly."""
 		# Create a new user that doesn't have a customer yet
