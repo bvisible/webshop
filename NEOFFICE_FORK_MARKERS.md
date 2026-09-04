@@ -172,6 +172,43 @@ is recognised for what it is.
 
 ---
 
+## Hunks that cannot physically carry a marker
+
+Sixteen changed lines sit **inside a JavaScript template literal** (or, for the
+last one, inside a Python docstring), more than three lines from its opening
+statement. A `//// Neoffice` comment placed there would be rendered into the
+page's HTML — it would be a change to the output, not a comment — so the rule
+"comments only" and the rule "every hunk carries a marker" cannot both hold.
+They are recorded here instead. The surrounding block always carries its own
+marker; these lines belong to it.
+
+| file:line | what it is |
+|---|---|
+| `webshop/public/js/product_ui/grid.js:251` | `- 20%` instead of upstream's `20% OFF` (label dropped rather than translated: this bundle has no `__()`) |
+| `webshop/public/js/product_ui/grid.js:353` | "Explore" read from `window.product_translations` |
+| `webshop/public/js/product_ui/grid.js:368` | "Add to Cart" / "Add to Quote" read from `window.product_translations` |
+| `webshop/public/js/product_ui/grid.js:377` | "Go to Cart" / "Go to Quote", same |
+| `webshop/public/js/product_ui/list.js:105` | the Cover/Contain fit style on the row image |
+| `webshop/public/js/product_ui/list.js:203` | `- 20%` instead of `20% OFF` |
+| `webshop/public/js/product_ui/list.js:293` | "Available on backorder", same translation channel |
+| `webshop/public/js/product_ui/list.js:313` | "In stock", same |
+| `webshop/public/js/product_ui/list.js:355` | "Explore", same |
+| `webshop/public/js/product_ui/list.js:372` | "Add to Cart" / "Add to Quote", same |
+| `webshop/public/js/product_ui/list.js:386` | "Go to Cart" / "Go to Quote", same |
+| `webshop/public/js/product_ui/search.js:319` | `.product-name-result` class on the dropdown result title |
+| `webshop/public/js/product_ui/search.js:321` | the price block added to a dropdown result |
+| `webshop/public/js/product_ui/views.js:912` | translated placeholder of the search box |
+| `webshop/public/js/product_ui/views.js:2034` | translated "No products found" empty state |
+| `webshop/webshop/product_data_engine/query.py:90` | the `sort_order` line of `ProductQuery.query()`'s docstring (sorting is ours) |
+
+The eleven `window.product_translations` lines all have one cause, stated at
+length on the markers around them: `dd08553e88` (2025-12-15) replaced Frappe's
+`__()` with `window.product_translations` in these bundles, because `__()` is
+not loaded on the shop's public pages and every label came out in English on a
+French shop.
+
+---
+
 ## What is deliberately NOT marked
 
 - `.github/**` — CI is ours end to end (`79e90016ab`, 2026-08-29: the workflow
