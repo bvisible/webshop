@@ -96,12 +96,18 @@ $.extend(shopping_cart, {
 				if(opts.callback)
 					opts.callback(r);
 			}
+		//// Neoffice — upstream refuses the whole update_cart to a guest and redirects to
+		//// /login. With enable_guest_cart the call goes through for everyone; the guest
+		//// redirect now happens only where a shop really requires an account (see the
+		//// bind_add_to_cart_action block below). 3bc2d836f1, 2025-02-11.
 		});
 	},
 
 	set_cart_count: function(animate=false) {
 		$(".intermediate-empty-cart").remove();
 
+		//// Neoffice — upstream forces the badge to 0 for a guest. A guest has a real cart
+		//// here, so the cookie is read like for anyone else.
 		var cart_count = frappe.get_cookie("cart_count");
 
 		if(cart_count) {
@@ -201,6 +207,9 @@ $.extend(shopping_cart, {
 			item_code,
 			qty,
 			additional_notes,
+			//// Neoffice — the chosen warehouse travels with the line: with multi-warehouse the
+			//// same product can be in the cart twice, from two sources (5bf2e88a1b,
+			//// 2026-08-25).
 			warehouse,
 			with_items: 1,
 			btn: this,
@@ -214,6 +223,11 @@ $.extend(shopping_cart, {
 					if (cart_dropdown != true) {
 						$(".cart-icon").hide();
 					}
+//// Neoffice — added. Upstream replaces the items table in place; on /cart the page
+//// is more than that table — the empty-cart message, the totals and the checkout
+//// button live outside it — so removing the last line left a screen that was half
+//// true (1c8afc025a, 2026-08-03 "recharger quand la derniere ligne s'en va").
+//// TO REVIEW: the comment below is in French (RULE #00).
 
 					// Panier vidé de sa dernière ligne : on recharge. La page du
 					// panier n'est pas faite que du tableau — « Votre panier est
@@ -250,6 +264,10 @@ $.extend(shopping_cart, {
 			$btn.prop('disabled', true);
 
 			if (frappe.session.user==="Guest") {
+				//// Neoffice — upstream sends every guest to /login. The shop's own setting decides:
+				//// with enable_guest_cart the item is added and the buy button flips to "go to
+				//// cart" exactly as for a signed-in buyer; without it, the upstream redirect is
+				//// kept (3bc2d836f1, 2025-02-11).
 				frappe.call({
 					method: 'webshop.webshop.doctype.webshop_settings.webshop_settings.get_shopping_cart_settings',
 					callback: function(r) {

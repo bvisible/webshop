@@ -48,6 +48,9 @@ frappe.ui.form.on("Item", {
 					frappe.call({
 						method: "webshop.webshop.doctype.website_item.website_item.get_item_warehouses",
 						args: {
+							//// Neoffice — upstream passes the whole doc; only the item code is needed to read
+							//// the warehouses, and passing the doc sent the entire Item over the wire on every
+							//// publish (31e16e2ee3, 2025-03-19 "feat use warehouse default").
 							item_code: frm.doc.item_code,
 						},
 						callback: function(warehouse_result) {
@@ -187,6 +190,11 @@ frappe.ui.form.on("Item", {
 							});
 						}
 					});
+					//// Neoffice — upstream adds the button to the __('Actions') group. "Publish in
+					//// Website" is the action a shop manager looks for first, so it is a hero button
+					//// on the form instead (6c45056c46 / 3042844da1, 2026-07-08), and the dialog it
+					//// opens lets the seller pick which sites to publish to when the bench serves
+					//// several (c61d26c41a, 2026-07-08).
 					}
 				});
 			} else {

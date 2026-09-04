@@ -6,6 +6,9 @@
 	--body-bg-color:  var(--gray-50);
 }
 
+//// Neoffice — upstream paints only body.product-page. The same page background is
+//// given to the whole shop and to the portal pages (/me, /list, /update-profile),
+//// which otherwise stayed stark white next to it (48e2708353, 2025-03-13).
 body, body.product-page,
 body[data-path=me], body[data-path=list], 
 body[data-path=update-profile] {
@@ -132,6 +135,8 @@ body[data-path=update-profile] {
 	}
 
 
+	//// Neoffice — the card image container becomes the box the Cover/Contain fit works
+	//// in (aspect-ratio set inline by grid.js) (31feefcae6, 2026-04-19).
 	.card-img-container {
 		width: 100%;
 	}
@@ -139,6 +144,8 @@ body[data-path=update-profile] {
 	.card-img {
 		max-height: 210px;
 		object-fit: contain;
+		//// Neoffice — white card ground and no max-height, so a cover-fit image fills the
+		//// card instead of being letterboxed (3cec45d8b4, 2026-04-19).
 		background: var(--neutral-white);
 		margin: 1rem;
 		width: calc( 100% - 2rem);
@@ -168,12 +175,16 @@ body[data-path=update-profile] {
 	.card-body-flex {
 		display: flex;
 		flex-direction: column;
+		//// Neoffice — card body padding (48e2708353, 2025-03-13 "Big update").
 		padding: 0 1rem;
 	}
 
 	.product-title {
+		//// Neoffice — card title size (48e2708353, 2025-03-13).
 		font-size: 16px;
 		color: var(--gray-800);
+		//// Neoffice — card title weight and clamp, so two-line titles stop breaking the
+		//// grid's row height (48e2708353, 2025-03-13).
 		font-weight: 600;
 	}
 
@@ -202,10 +213,13 @@ body[data-path=update-profile] {
 
 	.product-price {
 		font-size: 18px;
+		//// Neoffice — price weight/size on the card (48e2708353, 2025-03-13).
 		font-weight: 500;
 		color: var(--gray-600);
 		margin: var(--margin-sm) 0;
 		margin-bottom: auto !important;
+		//// Neoffice — the price no longer carries the upstream top margin: the category and
+		//// stock line now sits above it (0d17ac8d40, 2026-08-26).
 		margin-top: 0 !important;
 		.striked-price {
 			font-weight: 500;
@@ -220,6 +234,8 @@ body[data-path=update-profile] {
 	}
 
 	.item-card {
+		//// Neoffice — tighter padding: the card carries more lines than upstream's (stock,
+		//// loyalty, badges).
 		padding: var(--padding-sm);
 	}
 
@@ -277,6 +293,7 @@ body[data-path=update-profile] {
 		font-size: 20px;
 		font-weight: 700;
 		color: var(--text-color);
+		//// Neoffice — the buy button spans the card width.
 		width: 100%;
 	}
 
@@ -303,6 +320,8 @@ body[data-path=update-profile] {
 		}
 
 		.filter-label {
+			//// Neoffice — smaller type in the card footer (339f6aa721, 2025-06-23 "fix css";
+			//// the commit gives no further rationale).
 			font-size: 14px;
 			font-weight: 600;
 			color: var(--gray-700);
@@ -327,6 +346,8 @@ body[data-path=update-profile] {
 	height: 14px !important;
 }
 
+//// Neoffice — added: the collapsible category tree in the filter sidebar, which
+//// upstream renders flat (6fea19b1fe, 2025-06-17).
 .toggle-children {
 	cursor: pointer;
 	width: 20px;
@@ -383,6 +404,7 @@ body[data-path=update-profile] {
 		max-width: 50%;
 
 		.btn-add-to-cart {
+			//// Neoffice — the filter blocks and the sidebar scrollbar (6fea19b1fe, 2025-06-17).
 			width: fit-content;
 			display: inline-flex;
 			align-items: center;
@@ -428,6 +450,7 @@ body[data-path=update-profile] {
 
 	@media (max-width: 789px) {
 		.product-details {
+			//// Neoffice — the list image may exceed the column on mobile; capped.
 			max-width: 100% !important;
 
 			.btn-add-to-cart {
@@ -450,6 +473,7 @@ body[data-path=update-profile] {
 	}
 
 	.product-title {
+		//// Neoffice — product title size on the item page (48e2708353, 2025-03-13).
 		font-size: 22px;
 		font-weight: 600;
 		color: var(--text-color);
@@ -461,6 +485,9 @@ body[data-path=update-profile] {
 		color: var(--gray-800);
 	}
 
+	//// Neoffice — the long description keeps the seller's own formatting (headings,
+	//// lists) instead of inheriting the page's paragraph style (a4de30bb28,
+	//// 2026-07-06).
 	.product-description > * {
       color: inherit!important; /* Inherit color from parent */
       background-color: transparent!important;
@@ -543,6 +570,8 @@ body[data-path=update-profile] {
 				width: 40%;
 			}
 		}
+//// Neoffice — added: the gift-card amount chooser on the product page; upstream has
+//// no gift cards (3bc2d836f1, 2025-02-11).
 
 		.gift-card-amounts {
 			.form-check {
@@ -577,6 +606,8 @@ body[data-path=update-profile] {
 	}
 }
 
+//// Neoffice — the same layout is shared with the "frequently bought together"
+//// block we added (3c1e847e26, 2025-06-24).
 // Item Recommendations and Frequently Bought Together
 .recommended-item-section,
 .frequently-bought-section {
@@ -592,6 +623,8 @@ body[data-path=update-profile] {
 		min-height: 0px;
 
 		.r-item-image {
+			//// Neoffice — a minimum height so the two recommendation blocks line up
+			//// (110d27e81f, 2026-08-26).
 			min-height: 60px;
 			width: 40%;
 
@@ -633,6 +666,8 @@ body[data-path=update-profile] {
 				color: var(--gray-500);
 			}
 		}
+//// Neoffice — the recommendation cards get the same height (110d27e81f,
+//// 2026-08-26).
 
 		.recommended-item {
 			&:first-child {
@@ -648,6 +683,8 @@ body[data-path=update-profile] {
 	font-size: 14px;
 	.product-item-group {
 		padding-right: .25rem;
+		//// Neoffice — separator commented out rather than removed (upstream draws it).
+		//// TO REVIEW: dead declaration.
 		/* border-right: solid 1px var(--text-muted); */
 	}
 
@@ -729,6 +766,7 @@ body[data-path=update-profile] {
 	align-items: center;
 	height: 16px;
 	font-size: 10px;
+	//// Neoffice — rounded corners on the cart badge (48e2708353, 2025-03-13).
 	border-radius: var(--border-radius-tiny);
 }
 
@@ -785,6 +823,8 @@ body[data-path=update-profile] {
 			tr {
 				margin-bottom: 1rem;
 			}
+//// Neoffice — the cart page layout is rebuilt below; upstream's table styling is
+//// replaced (3bc2d836f1, 2025-02-11 and the mobile pass of 2026-08-26).
 
 			th {
 				font-weight: normal;
@@ -798,14 +838,18 @@ body[data-path=update-profile] {
 				color: var(--text-color);
 			}
 
+			//// Neoffice — the cart table header (see above).
 			thead th {
 				border-top: 0;
 			}
 
 			.cart-item-image {
 				width: 20%;
+				//// Neoffice — column widths of the cart table.
 				min-width: 50px;
 				img {
+					//// Neoffice — the line thumbnail is capped so a portrait image does not stretch the
+					//// row.
 					max-height: 100px;
 				}
 			}
@@ -813,6 +857,7 @@ body[data-path=update-profile] {
 			.cart-items {
 				.item-title {
 					width: 80%;
+					//// Neoffice — the line title size.
 					font-size: 16px;
 					font-weight: 600;
 					color: var(--text-color);
@@ -828,6 +873,8 @@ body[data-path=update-profile] {
 					font-weight: 500;
 				}
 
+				//// Neoffice — struck-through original price on a discounted cart line; upstream
+				//// shows one price only (3bc2d836f1, 2025-02-11).
 				.original-price{
 					font-size: 16px;
 					font-weight: 600;
@@ -838,6 +885,8 @@ body[data-path=update-profile] {
 					color: var(--text-muted);
 				}
 
+				//// Neoffice — the discount line (coupon, gift card, loyalty points) in the cart
+				//// totals — three kinds of line upstream does not have.
 				.discount-line {
 					display: flex;
 					align-items: center;
@@ -877,6 +926,7 @@ body[data-path=update-profile] {
 					font-weight: 700;
 					color: var(--text-color);
 				}
+				//// Neoffice — the grand-total row of the cart.
 				.item-grand-total.totals {
 					padding-left: 10px;
 				}
@@ -906,6 +956,7 @@ body[data-path=update-profile] {
 				float: right;
 				cursor: pointer;
 				margin-top: .25rem;
+				//// Neoffice — spacing in the totals block.
 				margin-right: .5rem;
 				justify-content: center;
 			}
@@ -977,6 +1028,7 @@ body[data-path=update-profile] {
 		.number-spinner {
 			width: 75%;
 			min-width: 105px;
+			//// Neoffice — rounded corners on the quantity spinner.
 			border-radius: 6px;
 
 			.cart-btn {
@@ -996,6 +1048,8 @@ body[data-path=update-profile] {
 			.cart-qty {
 				height: 28px;
 				font-size: 13px;
+				//// Neoffice — the spinner buttons (fe33a6af00 / 08d5fb67e1, 2026-08-26: on mobile
+				//// the spinner had turned vertical and was crushed to 30px).
 				width: 22px;
 				padding: 0;
 				&:disabled {
@@ -1115,6 +1169,7 @@ body[data-path=update-profile] {
 	position: absolute;
 	text-align: center;
 	width: 22px;
+    //// Neoffice — the cart indicator badge size.
     height: 22px;
     right: 22px;
     top: -6px;
@@ -1139,6 +1194,7 @@ body[data-path=update-profile] {
 	cursor: pointer;
 	width: 28px;
 	height: 28px;
+	//// Neoffice — the wishlist heart position on the card.
 	right: 20px;
 	top: 20px;
 
@@ -1329,8 +1385,13 @@ body[data-path=update-profile] {
 }
 
 .ratings-reviews-section {
+	//// Neoffice — the reviews block is rebuilt from here down. ▼▼▼ Upstream renders a
+	//// bare list of reviews; ours is a card with a rating summary, per-star progress
+	//// bars and a "write a review" button (48e2708353, 2025-03-13, and the product-page
+	//// card pass 7bf95830e5 / 110d27e81f, 2026-08-26). ▲▲▲
 	margin-top: 3rem;
 
+	//// Neoffice — reviews header (see the block above).
 	.reviews-header-wrapper {
 		.reviews-title {
 			font-size: 24px;
@@ -1340,6 +1401,7 @@ body[data-path=update-profile] {
 			align-items: center;
 			gap: 12px;
 
+			//// Neoffice — the review-count badge (see the block above).
 			.review-count-badge {
 				background: var(--primary);
 				color: white;
@@ -1351,6 +1413,7 @@ body[data-path=update-profile] {
 		}
 	}
 
+	//// Neoffice — the "write a review" button (see the block above).
 	.btn-write-review {
 		padding: .75rem 1.5rem;
 		font-size: 14px;
@@ -1359,12 +1422,15 @@ body[data-path=update-profile] {
 		align-items: center;
 		transition: all 0.2s ease;
 
+		//// Neoffice — its hover state (see the block above).
 		&:hover {
 			transform: translateY(-1px);
 			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 		}
+	//// Neoffice — see the block above.
 	}
 
+	//// Neoffice — the rating summary card (see the block above).
 	.reviews-summary-card {
 		background: var(--gray-50);
 		border-radius: 12px;
@@ -1372,10 +1438,14 @@ body[data-path=update-profile] {
 		margin-bottom: 2rem;
 	}
 
+	//// Neoffice — reviews list and empty state (see the reviews block above).
 	.reviews-list-section {
 		margin-top: 2rem;
 	}
 
+	//// Neoffice — the empty state of the reviews block: upstream renders nothing at all
+	//// when a product has no review, which left a titled section with a blank body
+	//// (7bf95830e5, 2026-08-26).
 	.no-reviews-section {
 		background: var(--gray-50);
 		border-radius: 12px;
@@ -1390,6 +1460,7 @@ body[data-path=update-profile] {
 }
 
 .rating-summary-section {
+	//// Neoffice — the rating overview and its stars (see the block above).
 	.rating-overview {
 		.rating-score-wrapper {
 			padding: 1.5rem;
@@ -1433,6 +1504,7 @@ body[data-path=update-profile] {
 				border-radius: 4px;
 				overflow: hidden;
 
+				//// Neoffice — the per-star progress bars (see the block above).
 				.progress-bar {
 					background: var(--yellow-300);
 					transition: width 0.6s ease;
@@ -1449,6 +1521,7 @@ body[data-path=update-profile] {
 	}
 }
 
+//// Neoffice — the user reviews list (see the block above).
 .user-reviews {
 	.review-card {
 		background: white;
@@ -1463,6 +1536,7 @@ body[data-path=update-profile] {
 			transform: translateY(-2px);
 		}
 
+		//// Neoffice — a review's header, author and date (see the block above).
 		.review-header {
 			margin-bottom: 1rem;
 
@@ -1523,10 +1597,12 @@ body[data-path=update-profile] {
 	}
 }
 
+//// Neoffice — filled/empty star colours (see the block above).
 .star-filled {
 	fill: var(--yellow-300);
 }
 
+//// Neoffice — empty star colour (see the reviews block above).
 .star-empty {
 	fill: var(--gray-300);
 }
@@ -1540,6 +1616,8 @@ body[data-path=update-profile] {
 		--star-fill: var(--yellow-300);
 	}
 }
+//// Neoffice — the review signature block replaces upstream's inline author line
+//// (see the block above).
 
 .review-signature {
 	display: flex;
@@ -1589,6 +1667,7 @@ body[data-path=update-profile] {
 	.recent-search {
 		padding: .5rem .5rem;
 		border-radius: var(--border-radius);
+		//// Neoffice — the rating progress bars layout (see the block above).
 		display: flex;
 
 		&:hover {
@@ -1600,6 +1679,7 @@ body[data-path=update-profile] {
 #search-box {
 	background-color: white;
 	height: 100%;
+	//// Neoffice — indentation of the review body (see the block above).
 	padding-left: 2.5rem!important;
 	border: 1px solid var(--gray-200);
 }
@@ -1651,6 +1731,8 @@ body[data-path=update-profile] {
 	object-fit: cover;
 }
 
+//// Neoffice — the product name in the search dropdown, which our search.js labels
+//// with .product-name-result (912d29f1f4, 2025-12-14).
 .product-name-result {
     font-weight: 600;
     font-size: 16px;
@@ -1723,6 +1805,11 @@ body[data-path=update-profile] {
 
 .w-fit {
 	width: fit-content !important;
+//// Neoffice — added, to the end of the file. ▼▼▼ A CSS tooltip on a DISABLED button
+//// or input: the browser does not show a title attribute on a disabled control, and
+//// our checkout disables the pay button until the terms are accepted — with no way
+//// to tell the buyer why (48e2708353, 2025-03-13).
+//// TO REVIEW: the section comment below is in French (RULE #00). ▲▲▲
 }
 
 // Styles pour les tooltips des boutons désactivés

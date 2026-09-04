@@ -62,6 +62,10 @@ frappe.ready(function() {
 
 		frappe.provide('webshop.shopping_cart');
 
+		//// Neoffice — the quantity is read from the spinner input rather than from
+		//// `.cart-qty` (our spinner markup), and the call goes through
+		//// webshop.webshop.shopping_cart (the namespace the bundle really defines —
+		//// upstream's webshop.shopping_cart was undefined here). 3bc2d836f1, 2025-02-11.
 		var item_code = get_item_code();
 		var additional_notes = null;
 		var qty = $("#item-spinner input").val();
@@ -71,6 +75,10 @@ frappe.ready(function() {
 			qty: qty,
 			additional_notes: additional_notes,
 			callback: function(r) {
+				//// Neoffice — the endpoint can answer with a business error (out of stock, source
+				//// unavailable) instead of an exception; upstream only tested r.exc, so the buyer
+				//// was silently sent to a cart that had not been updated (19e154e2b5, 2025-12-02;
+				//// 5bf2e88a1b, 2026-08-25).
 				if (r.message.error) {
 					frappe.msgprint({
 						title: __('Error'),
@@ -79,6 +87,8 @@ frappe.ready(function() {
 					});
 					return;
 				}
+				//// Neoffice — on success the buyer goes to the cart (upstream flips the button in
+				//// place, which on the product page left them with no way forward).
 				window.location.href = "/cart";
 			},
 			btn: this,

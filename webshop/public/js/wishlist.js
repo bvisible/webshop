@@ -99,6 +99,10 @@ $.extend(wishlist, {
 			return;
 		}
 
+		//// Neoffice — added: the wishlist counter lives in the Builder-built header, which
+		//// is not re-rendered by upstream's set_wishlist_count. The badge is updated in
+		//// place, optimistically, and rolled back if the call fails (da044ea692,
+		//// 2025-03-13 "add template wishlist").
 		// Function to update the wishlist badge
 		const updateWishlistBadge = function(action) {
 			const wishlistBadge = document.getElementById('wishlistBadge');
@@ -124,12 +128,14 @@ $.extend(wishlist, {
 			btn.addClass("like-action-wished");
 			this.toggle_button_class($wish_icon, 'wished', 'not-wished');
 
+			//// Neoffice — optimistic decrement (see above).
 			// Update the badge (-1)
 			updateWishlistBadge('remove');
 
 			let args = { item_code: btn.data('item-code') };
 			let failure_action = function() {
 				me.toggle_button_class($wish_icon, 'not-wished', 'wished');
+				//// Neoffice — rollback when the removal fails (see above).
 				// Cancel the badge update on failure
 				updateWishlistBadge('add');
 			};
@@ -140,12 +146,14 @@ $.extend(wishlist, {
 			btn.addClass("like-action-wished");
 			this.toggle_button_class($wish_icon, 'not-wished', 'wished');
 
+			//// Neoffice — optimistic increment (see above).
 			// Update the badge (+1)
 			updateWishlistBadge('add');
 
 			let args = {item_code: btn.data('item-code')};
 			let failure_action = function() {
 				me.toggle_button_class($wish_icon, 'wished', 'not-wished');
+				//// Neoffice — rollback when the addition fails (see above).
 				// Cancel the badge update on failure
 				updateWishlistBadge('remove');
 			};
