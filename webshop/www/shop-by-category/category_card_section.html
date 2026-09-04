@@ -2,6 +2,9 @@
 <!-- style defined at shop-by-category index -->
 <div class="card category-card" data-type="{{ type }}" data-name="{{ title }}">
 	{% if image %}
+	{# //// Neoffice — the image is centred inside a fixed-height box instead of being #}
+	{# //// stretched: brand logos have very different aspect ratios and upstream's #}
+	{# //// height: 80% distorted them (48e2708353, 2025-03-13). #}
 	<div class="card-img-wrapper" style="height: 80%;display: flex;align-items: center;padding: 25px;">
 		<img class="card-img-top" src="{{ image }}" alt="{{ title }}" >
 	</div>

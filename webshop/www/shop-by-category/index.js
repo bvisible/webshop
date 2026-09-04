@@ -1,4 +1,8 @@
 $(() => {
+	//// Neoffice — added: a search box and an A-Z sort over the category/brand cards.
+	//// Upstream renders the cards flat, and a shop with 200 brands was unusable
+	//// (48e2708353, 2025-03-13). The block is injected after the section title once the
+	//// tabs have rendered, because the tabs are built by the theme.
 	// Create and move filters
 	function createAndMoveFilters() {
 		// Create HTML for filters and sorting options
@@ -84,6 +88,8 @@ $(() => {
 			window.location.href = "/all-products?field_filters=" + JSON.stringify(filters);
 		}
 	});
+	//// Neoffice — sorting rebuilds the card list in place and re-applies the search
+	//// filter afterwards, so the two controls compose (48e2708353, 2025-03-13).
 	
 	// Update URL when a tab is manually activated
 	$('.nav-tabs .nav-link').on('shown.bs.tab', function (e) {

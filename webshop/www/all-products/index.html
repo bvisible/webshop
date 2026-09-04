@@ -1,8 +1,17 @@
+{# //// Neoffice — three filter macros we added are imported: tags, price and the stock #}
+{# //// filter (6fea19b1fe, 2025-06-17; 8ba1a7ab46, 2025-06-08). #}
 {% from "webshop/templates/includes/macros.html" import attribute_filter_section, field_filter_section, discount_range_filters, tag_filter_section, price_filter_section, stock_filter_section %}
 {% extends "templates/web.html" %}
 
+{# //// Neoffice — the title comes from the context so the page can say what was #}
+{# //// searched ("Search: …") instead of the fixed "All Products" (d579b1c02a, #}
+{# //// 2025-12-14). #}
 {% block title %}{{ title }}{% endblock %}
 {% block header %}
+{# //// Neoffice — the heading becomes the sticky filter bar on mobile: the filter button #}
+{# //// has to stay reachable while scrolling a long listing (48db60993c / 669f0cfd48, #}
+{# //// 2025-12-17). The .webshop-page-title class stops the theme printing the title a #}
+{# //// second time (9953f79418, 2026-08-26). #}
 <div class="mb-6 d-flex justify-content-between align-items-center sticky-filter-header">
   <div class="webshop-page-title">{{ title }}</div>
   <button id="filterButton" class="filter-button d-md-none">
@@ -21,10 +30,13 @@
 
 	<!-- Filters Section -->
 	<div class="col-12 order-1 col-md-3 order-md-1">
+		{# //// Neoffice — the overlay behind the mobile filter drawer. #}
 		<div id="filterOverlay" class="filter-overlay d-md-none"></div>
 		<div class="collapse d-md-block mr-4 filters-section" id="product-filters">
 			<div class="d-flex justify-content-between align-items-center mb-5 title-section">
 				<div class="mb-4 filters-title" > {{ _('Filters') }} </div>
+				{# //// Neoffice — "Clear All" keeps the current listing route (a category page reuses #}
+				{# //// this template), and the drawer gets a close button on mobile. #}
 				<div class="d-flex">
 					<a class="mb-4 clear-filters" href="{{ listing_route or '/all-products' }}">{{ _('Clear All') }}</a>
 					<button id="closeFilterButton" class="close-filter-button d-md-none ml-3 mb-4">
@@ -50,6 +62,12 @@
 			{% if attribute_filters %}
 				{{ _(attribute_filter_section(attribute_filters)) }}
 			{% endif %}
+{# //// Neoffice — added: the tag, price and stock facets, the sidebar extras (sticky #}
+{# //// sidebar, active-filter chips, live counter) and the recently-viewed block, pinned #}
+{# //// last with flex order because the discount facet is injected later by JS #}
+{# //// (aa359d0e0a / 3e9182f8bb / 9f7ff98013, 2026-07-06). The <style> and <script> are #}
+{# //// inline because this markup can be rendered inside a Builder page, outside the #}
+{# //// shop bundle. #}
 
 			<!-- tag filters -->
 			{% if tag_filters %}
@@ -172,6 +190,9 @@
 			let path = window.location.pathname + '?' + frappe.utils.get_url_from_dict(query_params);
 			window.location.href = path;
 		});
+//// Neoffice — the mobile filter drawer and the sticky header: opening, closing, the
+//// overlay, and a placeholder that keeps the page from jumping when the header goes
+//// fixed (48db60993c → 164d590b4a, 2025-12-17).
 
 		// Handle mobile filters
 		const filterButton = document.getElementById('filterButton');
@@ -269,6 +290,8 @@
 	});
 </script>
 
+/* //// Neoffice — the styles of the mobile filter drawer and the sticky header (same */
+/* //// series). Inline for the same reason as above. */
 <style>
 	/* Sticky filter header on mobile */
 	@media (max-width: 767.98px) {

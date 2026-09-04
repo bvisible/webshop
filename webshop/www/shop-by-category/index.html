@@ -1,4 +1,6 @@
 {% extends "templates/web.html" %}
+{# //// Neoffice — the page lists categories AND brands, so the title says so #}
+{# //// (48e2708353, 2025-03-13). #}
 {% block title %}{{ _('Category and Brands') }}{% endblock %}
 
 {% block head_include %}
@@ -11,6 +13,7 @@
 		width: 300px !important;
 		margin: 30px !important;
 	}
+	/* //// Neoffice — styles of the search and sort bar added to this page (see index.js). */
 	.category-filter-section {
 		margin-bottom: 20px;
 		padding: 15px;

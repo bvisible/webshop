@@ -7,6 +7,8 @@ $(() => {
 
 			let view_type = localStorage.getItem("product_view") || "List View";
 
+			//// Neoffice — the stock filter's initial state: the buyer's own preference when they
+			//// have one, the shop's default otherwise (8ba1a7ab46, 2025-06-08).
 			// Get stock filter settings
 			let stock_filter_default = false;
 			if (window.stock_filter_settings && window.stock_filter_settings.enabled) {
@@ -25,11 +27,14 @@ $(() => {
 			new webshop.ProductView({
 				view_type: view_type,
 				products_section: $('#product-listing'),
+				//// Neoffice — see above.
 				item_group: me.item_group,
 				stock_filter_default: stock_filter_default
 			});
 
 			this.bind_card_actions();
+			//// Neoffice — the category tree is interactive (see below); upstream's category facet
+			//// is a flat list.
 			this.bind_hierarchical_category_actions();
 		}
 
@@ -37,6 +42,8 @@ $(() => {
 			webshop.webshop.shopping_cart.bind_add_to_cart_action();
 			webshop.webshop.wishlist.bind_wishlist_action();
 		}
+//// Neoffice — expand/collapse of the hierarchical category filter (6fea19b1fe,
+//// 2025-06-17).
 
 		bind_hierarchical_category_actions() {
 			// Handle click on +/- buttons to deploy/collapse categories
