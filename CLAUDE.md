@@ -457,6 +457,36 @@ fixes it.
 > 12:00 and 13:30 it announced "tomorrow at 10:00". Closed for lunch means
 > "today at 13:30"; a closure hides the whole day and names itself.
 
+### The shop assistant
+
+`webshop/webshop/assistant/` is the chat bubble's whole brain: `api.py` (three
+public endpoints, identity from the session only), `engine.py` (the agent
+loop: system prompt, memory, last turns, at most four rounds of tools),
+`tools.py` (the toolbox — and the whole of it), `prompt.py` (French, the model
+reads it), `llm.py` (any OpenAI-compatible endpoint; Nora's by default),
+`escalation.py` (Raven, email, Helpdesk ticket, each with a fallback). Settings
+live on the Assistant tab of Webshop Settings; conversations are
+`Shop Assistant Conversation` with their `Shop Assistant Message` rows and the
+tokens each turn cost.
+
+> **A tool never takes an identity as an argument.** `get_my_orders` reads
+> `frappe.session.user`, resolves the customer through `get_party` (the cart's
+> own path) and returns "sign in" to a guest. `get_order(number)` filters on
+> that customer too: somebody else's order is "not found". Results are explicit
+> dicts — what a tool does not name, the model never sees; there is no path to
+> a purchase price or a valuation.
+
+> **The model is scripted in tests, never called.** `test_assistant.py`
+> replaces `llm.complete` with a fake and `api.settings()` with an in-memory
+> copy of Webshop Settings: no `tabSingles` write, which on a shared site
+> waited on another suite's lock until it timed out. A real answer from Nora
+> was checked by hand on osiris (hours, products with prices and links, the
+> customer's order).
+
+> **Descriptions and returned texts of tools are French, the code is
+> English.** The model reads the former; nobody else reads the latter in
+> French (RULE #00 and the `nora-engine` rule, same split).
+
 ## Integration Points
 
 ### ERPNext Dependencies

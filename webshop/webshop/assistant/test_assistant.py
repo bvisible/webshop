@@ -76,10 +76,14 @@ class TestAssistant(FrappeTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.purge()
-		item = make_test_item(ITEM, item_name="Machine à espresso", is_stock_item=0, standard_rate=349)
-		frappe.get_doc(
-			{"doctype": "Item Price", "item_code": item.name, "price_list": selling_price_list(), "price_list_rate": 349}
-		).insert(ignore_permissions=True)
+		# no standard_rate: ERPNext would write its own Item Price, and a second
+		# one on the same list is a duplicate
+		item = make_test_item(ITEM, item_name="Machine à espresso", is_stock_item=0)
+		price_list = selling_price_list()
+		if not frappe.db.exists("Item Price", {"item_code": item.name, "price_list": price_list}):
+			frappe.get_doc(
+				{"doctype": "Item Price", "item_code": item.name, "price_list": price_list, "price_list_rate": 349}
+			).insert(ignore_permissions=True)
 		website_item = make_website_item(item)
 		website_item.published = 1
 		website_item.short_description = "Une machine à espresso compacte pour le bureau"
