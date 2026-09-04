@@ -496,6 +496,12 @@ The Assistant tab shows the month (`usage_stats`); the report
 under its Customer's connections. `tests/e2e/specs/08-assistant.spec.js`
 exercises the bubble against the real model, and skips when the switch is off.
 
+> **`get_product_info_for_website` raises on stock ERPNext** (it passes
+> `warehouse=` to `get_price`, a keyword only our fork knows). The product
+> tools fall back to the Item Price of the shop's selling list — a price the
+> shop published, never a buying list — so the CI's fresh site and a shop on a
+> plain ERPNext still get a price.
+
 > **`HD Ticket.customer` links to Helpdesk's own `HD Customer`, not to
 > ERPNext's Customer.** Setting the ERPNext name made the insert fail on
 > `LinkValidationError`; the ticket now only carries it when an HD Customer of
