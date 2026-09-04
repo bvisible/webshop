@@ -84,7 +84,8 @@ class TestAssistant(FrappeTestCase):
 			frappe.get_doc(
 				{"doctype": "Item Price", "item_code": item.name, "price_list": price_list, "price_list_rate": 349}
 			).insert(ignore_permissions=True)
-		website_item = make_website_item(item)
+		make_website_item(item)  # returns [name, web_item_name], not the document
+		website_item = frappe.get_doc("Website Item", {"item_code": item.name})
 		website_item.published = 1
 		website_item.short_description = "Une machine à espresso compacte pour le bureau"
 		website_item.save(ignore_permissions=True)
