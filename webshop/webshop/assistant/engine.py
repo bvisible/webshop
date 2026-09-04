@@ -32,7 +32,8 @@ def respond(conversation, text, ctx):
 	reply = ""
 	spent = []
 	while True:
-		out = llm.complete(messages, schemas, ctx.settings)
+		# past the last round, the model gets no tools: it has to answer in words
+		out = llm.complete(messages, schemas if rounds < MAX_TOOL_ROUNDS else None, ctx.settings)
 		spent.append(out)
 		if out.tool_calls and rounds < MAX_TOOL_ROUNDS:
 			messages.append({"role": "assistant", "content": out.content or None, "tool_calls": out.tool_calls})

@@ -54,6 +54,7 @@ class FakeModel:
 
 	def __call__(self, messages, tools_schema=None, settings=None, **kwargs):
 		self.seen.append(messages)
+		self.tools_offered = getattr(self, "tools_offered", []) + [bool(tools_schema)]
 		turn = self.turns.pop(0) if self.turns else "…"
 		#//// Neoffice — TO REVIEW: "test(assistant): des réglages en mémoire, pas d'écriture dans
 		#//// tabSingles" (807c98474e) — reformatted only (line-length), reason not stated in the commit
@@ -185,6 +186,11 @@ class TestAssistant(FrappeTestCase):
 
 	def setUp(self):
 		frappe.set_user("Administrator")
+		# frappe.log_error commits: a conversation saved by a failing-model test
+		# would otherwise be found again by the next test of the same user
+		for name in frappe.get_all("Shop Assistant Conversation", filters={"user": USER}, pluck="name"):
+			frappe.delete_doc("Shop Assistant Conversation", name, force=True, ignore_permissions=True)
+		frappe.db.commit()
 		self.real_complete = llm.complete
 		#//// Neoffice — added: api.settings() is monkeypatched to return an in-memory copy for the
 		#//// duration of each test, so nothing is written to Webshop Settings (807c98474e
@@ -294,10 +300,14 @@ class TestAssistant(FrappeTestCase):
 	def test_the_loop_stops_after_four_rounds_of_tools(self):
 		ctx = self.guest_context("_WSTEST-guest-loop")
 		conversation = self.new_conversation(ctx)
-		llm.complete = FakeModel([[("get_store_info", {})]] * 6 + ["Fin."])
+		fake = FakeModel([[("get_store_info", {})]] * engine.MAX_TOOL_ROUNDS + ["Fin."])
+		llm.complete = fake
 		out = engine.respond(conversation, "encore", ctx)
 		self.assertEqual(out.rounds, engine.MAX_TOOL_ROUNDS)
 		self.assertEqual(out.reply, "Fin.")
+		# the last call carried no tools: the model had to answer in words
+		self.assertEqual(len(fake.seen), engine.MAX_TOOL_ROUNDS + 1)
+		self.assertFalse(fake.tools_offered[-1])
 
 	def test_an_empty_answer_falls_back_to_a_sentence(self):
 		ctx = self.guest_context("_WSTEST-guest-empty")
