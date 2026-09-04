@@ -440,6 +440,7 @@ checks all of it on a fresh install.
 > **Deleting a standard Workspace in `developer_mode` deletes its source
 > folder** from the app (`Workspace.on_trash`). `git checkout` brings it back.
 
+<!-- //// Neoffice — added: documents the store-hours feature as one source of truth across settings, endpoint, page, include and Builder block (a3aa43ce16 "docs: les horaires du magasin, une seule source de vérité") -->
 ### Store hours
 
 `webshop/webshop/utils/store_hours.py` is the one source of truth: rows on
