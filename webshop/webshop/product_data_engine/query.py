@@ -498,6 +498,7 @@ class ProductQuery:
 		)
 		SELECT *
 		FROM discounted_items
+		-- //// Neoffice — discount threshold applied in SQL (c3ba31203f): the filter label promised N percent and less, the query returned every discount
 		WHERE discount_percent > 0{self._discount_threshold_sql()}
 		ORDER BY {order_by}
 		LIMIT %s OFFSET %s
@@ -538,6 +539,7 @@ class ProductQuery:
 				GROUP BY pri.item_code
 			) pr ON wi.item_code = pr.item_code
 			{where_clause}
+			-- //// Neoffice — discount threshold applied in SQL (c3ba31203f): the filter label promised N percent and less, the query returned every discount
 			AND (pr.discount_percentage > 0 OR (ip_mrp.price_list_rate > 0 AND ip.price_list_rate > 0))
 			{self._discount_threshold_sql(DISCOUNT_PERCENT_EXPR)}
 		) as discounted_count
@@ -1441,6 +1443,7 @@ class ProductQuery:
 				AND (ip_mrp.valid_from IS NULL OR ip_mrp.valid_from <= CURDATE())
 				AND (ip_mrp.valid_upto IS NULL OR ip_mrp.valid_upto >= CURDATE())
 			WHERE {where_clause}
+			-- //// Neoffice — discount threshold applied in SQL (c3ba31203f): the filter label promised N percent and less, the query returned every discount
 			HAVING discount_percent > 0{self._discount_threshold_sql()}
 		)
 		SELECT 
@@ -1505,6 +1508,7 @@ class ProductQuery:
 				AND (ip_mrp.valid_from IS NULL OR ip_mrp.valid_from <= CURDATE())
 				AND (ip_mrp.valid_upto IS NULL OR ip_mrp.valid_upto >= CURDATE())
 			WHERE {where_clause}
+			-- //// Neoffice — discount threshold applied in SQL (c3ba31203f): the filter label promised N percent and less, the query returned every discount
 			HAVING discount_percent > 0{self._discount_threshold_sql()}
 		)
 		SELECT COUNT(DISTINCT name) FROM discounted_items
