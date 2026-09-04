@@ -35,4 +35,7 @@ webshop.patches.add_item_condition_fields
 webshop.patches.add_condition_shop_filter
 webshop.patches.add_item_replenishment_field
 webshop.patches.seed_follow_up_email_templates
+#//// Neoffice — moves the Condition section on sites that already ran
+#//// add_item_condition_fields, to match its new insert_after (0227bfd0
+#//// "feat(occasion): une section État qui n'avale rien, expliquée, et un chemin depuis le catalogue").
 webshop.patches.move_item_condition_section

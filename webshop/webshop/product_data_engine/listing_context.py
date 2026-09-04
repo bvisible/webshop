@@ -63,6 +63,10 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	return context
 
 
+#//// Neoffice — powers the catalogue's "See second-hand items (n)" link:
+#//// /occasions has no menu entry of its own (the menu is the theme's), so
+#//// the listing itself says when there is something used to see
+#//// (0227bfd0 "feat(occasion): une section État qui n'avale rien, expliquée, et un chemin depuis le catalogue").
 def count_second_hand():
 	"""Published second-hand units this site lists (sold ones included, as on /occasions)."""
 	from webshop.webshop.multi_site import excluded_item_names

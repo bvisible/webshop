@@ -16,6 +16,9 @@ CONDITION_FIELDS = [
 		"label": "Condition",
 		# `brand` is the last field of the Details section; the next field
 		# is a Section Break, so this section holds nothing but its own fields.
+		#//// Neoffice — moved from "brand" to "uoms" so the section closes the
+		#//// Details tab, after the units of measure, instead of splitting it
+		#//// (0227bfd0 "feat(occasion): une section État qui n'avale rien, expliquée, et un chemin depuis le catalogue").
 		"insert_after": "uoms",
 	},
 	{
@@ -26,6 +29,8 @@ CONDITION_FIELDS = [
 		"default": "New",
 		"insert_after": "condition_section",
 		"in_standard_filter": 1,
+			#//// Neoffice — the choice says what it's for, so it isn't picked
+			#//// blindly (0227bfd0 "feat(occasion): une section État qui n'avale rien, expliquée, et un chemin depuis le catalogue").
 			"description": "New for a normal product. Second-hand or Refurbished when this item is itself the used unit: give its grade, its story, and the new model it comes from.",
 		},
 	{
