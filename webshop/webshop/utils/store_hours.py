@@ -171,10 +171,12 @@ def week(now, sched):
 	out = []
 	for index, name in enumerate(WEEKDAYS):
 		periods = sched.periods.get(index, [])
+		#//// Neoffice — weekday label extracted to a variable so it can be capitalized below (f4e951550a "fix(horaires): les jours prennent une majuscule, comme sur une enseigne")
 		label = _(name)
 		out.append(
 			frappe._dict(
 				weekday=name,
+				#//// Neoffice — capitalizes the weekday label like a shop sign, since French translations write weekdays lowercase (f4e951550a "fix(horaires): les jours prennent une majuscule, comme sur une enseigne")
 				# French translations write weekdays in lower case; a sign in the
 				# window starts them with a capital.
 				label=label[:1].upper() + label[1:],
