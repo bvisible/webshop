@@ -3,9 +3,8 @@
 #//// Neoffice — added imports. `random`/`re` mint and validate gift-card codes,
 #//// `json` reads the gift_card_data blob carried on the quotation items, `os`
 #//// resolves the per-gateway checkout templates (3bc2d836f1, 2025-02-11 "Add gift
-#//// cards and improve shopping cart"). TO REVIEW: `from locale import currency` is
-#//// dead — nothing in this file uses it, and it shadows nothing; a leftover.
-from locale import currency
+#//// cards and improve shopping cart"). `from locale import currency` sat here too
+#//// — dead, nothing in the file ever called it; removed 2026-09-04.
 import os
 import json
 import re

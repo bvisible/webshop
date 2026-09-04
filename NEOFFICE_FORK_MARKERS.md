@@ -44,7 +44,6 @@ No upstream equivalent; the whole file is ours.
 | `webshop/webshop/doctype/abandoned_cart_reminder/abandoned_cart_reminder.json` | abandoned-cart reminders | `5d19e3fed9` (2026-09-03) |
 | `webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json`, `website_item_warehouse_source/website_item_warehouse_source.json` | multi-warehouse: the shop's sources, and the per-product override | `5bf2e88a1b` (2026-08-25), `98bdb60ccf` (2026-08-26) |
 | `webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json`, `webshopsi_country/webshopsi_country.json`, `webshopsi_invoice_installments/webshopsi_invoice_installments.json` | the "Facture" (pay-on-invoice) method, folded in from the standalone `webshopsi_integration` app | `662c26b650` (2026-05-26) |
-| `webshop/webshop/web_form/gift_card/gift_card.json` | legacy gift-card Web Form, now unpublished by `patches/disable_gift_card_web_form.py`. TO REVIEW: droppable with the form | `3bc2d836f1`, `73119aae66` (2025-02-11), `d579b1c02a` |
 | `webshop/webshop/workspace/webshop/webshop.json` | the "Webshop" desk workspace — a **root** page of the Website module, so the Neoffice sidebar lists it | `86e2609b57`, `01c6358b19` (2026-09-03) |
 
 ### DocType JSON — upstream files we MODIFY
@@ -254,6 +253,5 @@ webshop/webshop/doctype/webshopsi_invoice_installments/webshopsi_invoice_install
 webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
 webshop/webshop/doctype/website_item/website_item.json
 webshop/webshop/doctype/website_item_warehouse_source/website_item_warehouse_source.json
-webshop/webshop/web_form/gift_card/gift_card.json
 webshop/webshop/workspace/webshop/webshop.json
 ```

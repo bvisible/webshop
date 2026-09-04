@@ -683,9 +683,9 @@ body[data-path=update-profile] {
 	font-size: 14px;
 	.product-item-group {
 		padding-right: .25rem;
-		//// Neoffice — separator commented out rather than removed (upstream draws it).
-		//// TO REVIEW: dead declaration.
-		/* border-right: solid 1px var(--text-muted); */
+		//// Neoffice — upstream rules a vertical line between the item group and the
+		//// item code; our cart lines do not carry one. The declaration was left commented
+		//// out, which is not a decision anyone can read — deleted 2026-09-04.
 	}
 
 	.product-item-code {

@@ -276,44 +276,11 @@ webshop.ProductList = class {
 	}
 
 	get_stock_availability(item, settings) {
-		//// Neoffice — emptied: the stock status is rendered inline with the category
-		//// (0d17ac8d40, 2026-08-26).
-		//// TO REVIEW: everything below the `return ``;` is upstream's code, now dead.
-		// Remove stock availability from here since we show it inline with category
-		return ``;
-		if (settings.show_stock_availability && !item.has_variants) {
-			if (item.on_backorder) {
-				//// Neoffice — upstream calls frappe's __(); this file is a bundle served to the
-				//// shop, where __() is not loaded, so the string came out in English on a French
-				//// shop. Translations come from window.product_translations (dd08553e88,
-				//// 2025-12-15).
-				return `
-					<br>
-					<span class="out-of-stock mt-2" style="color: var(--primary-color)">
-						${ window.product_translations && window.product_translations["Available on backorder"] || "Available on backorder" }
-					</span>
-				`;
-			} else if (!item.in_stock) {
-				//// Neoffice — upstream calls frappe's __(); this file is a bundle served to the
-				//// shop, where __() is not loaded, so the string came out in English on a French
-				//// shop. Translations come from window.product_translations (dd08553e88,
-				//// 2025-12-15).
-				return `
-					<br>
-					<span class="out-of-stock mt-2">${ window.product_translations && window.product_translations["Out of stock"] || "Out of stock" }</span>
-				`;
-			} else if (item.is_stock) {
-				//// Neoffice — upstream calls frappe's __(); this file is a bundle served to the
-				//// shop, where __() is not loaded, so the string came out in English on a French
-				//// shop. Translations come from window.product_translations (dd08553e88,
-				//// 2025-12-15).
-				return `
-					<br>
-					<span class="in-stock in-green has-stock mt-2"
-						style="font-size: 14px;">${ window.product_translations && window.product_translations["In stock"] || "In stock" }</span>
-				`;
-			}
-		}
+		//// Neoffice — emptied: the stock status is rendered inline with the category,
+		//// next to it, by get_inline_stock_info() (0d17ac8d40, 2026-08-26). Upstream's
+		//// body used to sit below the `return ``;` where nothing could ever reach it;
+		//// deleted 2026-09-04 — `git show frappe/webshop:webshop/public/js/product_ui/
+		//// list.js` has it if the inline rendering is ever dropped.
 		return ``;
 	}
 

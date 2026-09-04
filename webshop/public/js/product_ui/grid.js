@@ -305,10 +305,10 @@ webshop.ProductGrid = class {
 		`;
 	}
 
-	//// Neoffice — added: the loyalty badge, and get_stock_availability is emptied
-	//// because the status is now inline with the category (see #8). The dead body
-	//// below is upstream's, kept unreachable.
-	//// TO REVIEW: dead code after `return ``;` — worth deleting.
+	//// Neoffice — added: the loyalty badge, and get_stock_availability below is
+	//// emptied because the status is now rendered inline with the category (see #8).
+	//// Upstream's body is gone from here, not merely unreachable — `git show
+	//// frappe/webshop:webshop/public/js/product_ui/grid.js` has it.
 	get_loyalty_points_html(item) {
 		if (!item.loyalty_points_html) return '';
 		
