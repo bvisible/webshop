@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\": \"hdr_quick\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Quick Access</b></span>\", \"col\": 12}}, {\"id\": \"sc_settings\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Webshop Settings\", \"col\": 3}}, {\"id\": \"sc_used\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Second-hand units\", \"col\": 3}}, {\"id\": \"sc_xsell\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cross-sell offers\", \"col\": 3}}, {\"id\": \"sc_followups\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Follow-ups scheduled\", \"col\": 3}}, {\"id\": \"sc_carts\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Abandoned carts\", \"col\": 3}}, {\"id\": \"sc_page\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Second-hand page\", \"col\": 3}}, {\"id\": \"spacer_1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"hdr_masters\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\", \"col\": 12}}, {\"id\": \"card_catalogue\", \"type\": \"card\", \"data\": {\"card_name\": \"Catalogue\", \"col\": 4}}, {\"id\": \"card_xsell\", \"type\": \"card\", \"data\": {\"card_name\": \"Cross-sell\", \"col\": 4}}, {\"id\": \"card_emails\", \"type\": \"card\", \"data\": {\"card_name\": \"Customer emails\", \"col\": 4}}, {\"id\": \"card_settings\", \"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4}}]",
+ "content": "[{\"id\": \"hdr_quick\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Quick Access</b></span>\", \"col\": 12}}, {\"id\": \"sc_settings\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Webshop Settings\", \"col\": 3}}, {\"id\": \"sc_used\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Second-hand units\", \"col\": 3}}, {\"id\": \"sc_xsell\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cross-sell offers\", \"col\": 3}}, {\"id\": \"sc_followups\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Follow-ups scheduled\", \"col\": 3}}, {\"id\": \"sc_carts\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Abandoned carts\", \"col\": 3}}, {\"id\": \"sc_page\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Second-hand page\", \"col\": 3}}, {\"id\": \"spacer_1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"hdr_masters\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\", \"col\": 12}}, {\"id\": \"card_catalogue\", \"type\": \"card\", \"data\": {\"card_name\": \"Catalogue\", \"col\": 4}}, {\"id\": \"card_xsell\", \"type\": \"card\", \"data\": {\"card_name\": \"Cross-sell\", \"col\": 4}}, {\"id\": \"card_emails\", \"type\": \"card\", \"data\": {\"card_name\": \"Customer emails and assistant\", \"col\": 4}}, {\"id\": \"card_settings\", \"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4}}]",
  "creation": "2026-09-03 15:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -134,8 +134,8 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Customer emails",
-   "link_count": 5,
+   "label": "Customer emails and assistant",
+   "link_count": 7,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -193,6 +193,26 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Shop Assistant Conversation",
+   "link_count": 0,
+   "link_to": "Shop Assistant Conversation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Shop Assistant Usage",
+   "link_count": 0,
+   "link_to": "Shop Assistant Usage",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Settings",
    "link_count": 3,
    "link_type": "DocType",
@@ -230,7 +250,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-03 15:20:00.000000",
+ "modified": "2026-09-04 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop",

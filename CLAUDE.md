@@ -487,6 +487,20 @@ tokens each turn cost.
 > English.** The model reads the former; nobody else reads the latter in
 > French (RULE #00 and the `nora-engine` rule, same split).
 
+The Assistant tab shows the month (`usage_stats`); the report
+`Shop Assistant Usage` (by day or by customer, with the estimated cost from
+`assistant_token_price`) is what the service is billed from. A nightly job
+(`purge_old_conversations`) forgets conversations older than
+`assistant_retention_days`, except the escalated ones. A conversation shows
+under its Customer's connections. `tests/e2e/specs/08-assistant.spec.js`
+exercises the bubble against the real model, and skips when the switch is off.
+
+> **`HD Ticket.customer` links to Helpdesk's own `HD Customer`, not to
+> ERPNext's Customer.** Setting the ERPNext name made the insert fail on
+> `LinkValidationError`; the ticket now only carries it when an HD Customer of
+> that name exists, and falls back to a message to the team when the ticket
+> cannot be created at all.
+
 ## Integration Points
 
 ### ERPNext Dependencies

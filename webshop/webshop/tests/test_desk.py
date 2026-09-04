@@ -27,6 +27,8 @@ class TestDesk(FrappeTestCase):
 		for row in workspace.links:
 			if row.type == "Link" and row.link_type == "DocType":
 				self.assertTrue(frappe.db.exists("DocType", row.link_to), row.link_to)
+			if row.type == "Link" and row.link_type == "Report":
+				self.assertTrue(frappe.db.exists("Report", row.link_to), row.link_to)
 		for row in workspace.shortcuts:
 			if row.type == "DocType":
 				self.assertTrue(frappe.db.exists("DocType", row.link_to), row.link_to)

@@ -59,6 +59,7 @@ update_website_context = [
 # Scheduled Tasks
 scheduler_events = {
 	"daily": [
+		"webshop.webshop.assistant.api.purge_old_conversations",
 		"webshop.webshop.utils.frequently_bought_together.calculate_frequently_bought_together"
 	],
 	#//// Neoffice — abandoned carts: one look per hour at the carts left behind

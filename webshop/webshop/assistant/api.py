@@ -266,3 +266,21 @@ def get_usage_stats():
 def usage_stats():
 	frappe.only_for(("System Manager", "Website Manager"))
 	return get_usage_stats()
+
+
+def purge_old_conversations():
+	"""Nightly: forget conversations older than the retention, except the ones
+	that were handed to the team — those are the trace the team may need."""
+	days = cint(settings().get("assistant_retention_days")) or 90
+	cutoff = add_days(now_datetime(), -days)
+	names = frappe.get_all(
+		"Shop Assistant Conversation",
+		filters={"last_message_on": ["<", cutoff], "status": ["!=", "Escalated"]},
+		pluck="name",
+		limit=500,
+	)
+	for name in names:
+		frappe.delete_doc("Shop Assistant Conversation", name, force=True, ignore_permissions=True)
+	if names:
+		frappe.db.commit()
+	return len(names)

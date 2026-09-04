@@ -6673,3 +6673,21 @@ msgstr "Transmis à l'équipe"
 
 msgid "Estimated cost"
 msgstr "Coût estimé"
+
+msgid "Shop assistant"
+msgstr "Assistant de la boutique"
+
+msgid "Shop Assistant Usage"
+msgstr "Consommation de l'assistant"
+
+msgid "Customer emails and assistant"
+msgstr "Emails clients et assistant"
+
+msgid "Group By"
+msgstr "Regrouper par"
+
+msgid "Day"
+msgstr "Jour"
+
+msgid "Visiteur"
+msgstr "Visiteur"
