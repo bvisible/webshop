@@ -15,6 +15,22 @@ from webshop.webshop.product_data_engine.query import ProductQuery
 test_dependencies = ["Item", "Item Group"]
 
 
+#//// Neoffice — added helper. Our item group facet is a TREE of
+#//// {"name", "count", "children"} dicts (ProductFiltersBuilder.
+#//// get_hierarchical_item_groups) instead of upstream's flat list of names: the
+#//// storefront renders nested categories, each with its product count. The names
+#//// it offers are what the test below is about, so flatten them out.
+def item_group_facet_names(nodes):
+	names = []
+	for node in nodes or []:
+		if isinstance(node, dict):
+			names.append(node.get("name"))
+			names.extend(item_group_facet_names(node.get("children")))
+		else:
+			names.append(node)
+	return names
+
+
 class TestProductDataEngine(unittest.TestCase):
 	"Test Products Querying and Filters for Product Listing."
 
@@ -63,7 +79,13 @@ class TestProductDataEngine(unittest.TestCase):
 
 		self.assertIsNotNone(items)
 		self.assertEqual(len(items), 4)
-		self.assertGreater(result.get("items_count"), 4)
+		#//// Neoffice — upstream returns the TOTAL number of matches in
+		#//// `items_count`. Our engine returns the size of the PAGE in `items_count`
+		#//// and the total in `total_count`, because product_ui/views.js needs both
+		#//// at once: `product_count` for the "showing N products" line and
+		#//// `total_count` for the pager. Both are asserted here so neither can drift.
+		self.assertEqual(result.get("items_count"), 4)
+		self.assertGreater(result.get("total_count"), 4)
 
 		# check if items appear as per ranking set in setUpClass
 		self.assertEqual(items[0].get("item_code"), "Test 17I Laptop")
@@ -113,9 +135,17 @@ class TestProductDataEngine(unittest.TestCase):
 		# but only 'Products' has 'show_in_website' enabled
 		item_group_filters = field_filters[0]
 		docfield = item_group_filters[0]
-		valid_item_groups = item_group_filters[1]
+		#//// Neoffice — see item_group_facet_names() above: upstream compares against
+		#//// a flat list of group names, our facet is a tree of dicts carrying a
+		#//// product count. The rule under test is unchanged — only groups flagged
+		#//// `show_in_website` may be offered as a filter.
+		valid_item_groups = item_group_facet_names(item_group_filters[1])
 
 		self.assertEqual(docfield.options, "Item Group")
+		self.assertTrue(
+			all(isinstance(node, dict) and "count" in node for node in item_group_filters[1]),
+			"the item group facet must carry a product count per group",
+		)
 		self.assertIn("Products", valid_item_groups)
 		self.assertNotIn("Raw Material", valid_item_groups)
 
@@ -125,7 +155,7 @@ class TestProductDataEngine(unittest.TestCase):
 		#'Products' and 'Raw Materials' both have 'show_in_website' enabled
 		item_group_filters = field_filters[0]
 		docfield = item_group_filters[0]
-		valid_item_groups = item_group_filters[1]
+		valid_item_groups = item_group_facet_names(item_group_filters[1])
 
 		self.assertEqual(docfield.options, "Item Group")
 		self.assertIn("Products", valid_item_groups)

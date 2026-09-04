@@ -52,9 +52,25 @@ class TestItemGroupProductDataEngine(unittest.TestCase):
 		items = result.get("items")
 		item_codes = [item.get("item_code") for item in items]
 
-		self.assertEqual(len(items), 2)
-		self.assertIn("Test Mobile A", item_codes)
-		self.assertNotIn("Test Mobile C", item_codes)
+		#//// Neoffice — upstream expects 2 here: with `include_descendants` off, an
+		#//// Item Group page lists only what sits DIRECTLY in the group, and its test
+		#//// asserts that 'Test Mobile C' (one level below) stays out.
+		#//// Our engine always descends (query.build_item_group_filters): the flag is
+		#//// off by default, so a parent category rendered empty while every product
+		#//// sat one level below it. The page therefore lists the group AND its
+		#//// published descendants — A and B in the group itself, C and D in
+		#//// '_Test Item Group B - 1', E in '_Test Item Group B - 2'.
+		#//// The `include_descendants = 0` set above is deliberately left in place:
+		#//// it is precisely what this test now pins as ignored.
+		self.assertEqual(len(items), 5)
+		for expected in (
+			"Test Mobile A",
+			"Test Mobile B",
+			"Test Mobile C",
+			"Test Mobile D",
+			"Test Mobile E",
+		):
+			self.assertIn(expected, item_codes)
 
 	def test_products_in_multiple_item_groups(self):
 		"""Test if product is visible on multiple item group pages barring its own."""

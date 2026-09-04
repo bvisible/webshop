@@ -181,12 +181,24 @@ class TestShoppingCart(unittest.TestCase):
 			"default_customer_group": "_Test Customer Group",
 			"price_list": "_Test Price List India",
 			"show_price": 1,
+			#//// Neoffice — upstream only checks stock when the order is PLACED
+			#//// (_place_order), so it can add a stockless variant to the cart with
+			#//// the default settings. We check at ADD time too, which is what the
+			#//// setting's own label promises ("Allow items not in stock to be added
+			#//// to cart"): a customer must not fill a basket the shop cannot ship.
+			#//// This test is about publishing a template and ordering a variant that
+			#//// has no Website Item of its own — nothing to do with stock — so it
+			#//// opts out of the guard. The guard itself is pinned by the test below.
+			"allow_items_not_in_stock": 1,
 		},
 	)
 	def test_add_item_variant_without_web_item_to_cart(self):
 		"Test adding Variants having no Website Items in cart via Template Web Item."
 		from erpnext.controllers.item_variant import create_variant
 		from erpnext.stock.doctype.item.test_item import make_item
+
+		# the settings doc is cached per request; the decorator above only wrote it
+		frappe.local.shopping_cart_settings = None
 
 		template_item = make_item(
 			"Test-Tshirt-Temp",
@@ -209,6 +221,46 @@ class TestShoppingCart(unittest.TestCase):
 
 		# test if items are rendered without error
 		frappe.render_template("templates/includes/cart/cart_items.html", cart)
+
+	@change_settings(
+		"Webshop Settings",
+		{
+			"company": "_Test Company",
+			"enabled": 1,
+			"default_customer_group": "_Test Customer Group",
+			"price_list": "_Test Price List India",
+			"allow_items_not_in_stock": 0,
+		},
+	)
+	#//// Neoffice — added test, the counterpart of the opt-out in
+	#//// test_add_item_variant_without_web_item_to_cart above. Upstream checks stock
+	#//// only when the order is PLACED, so nothing upstream covers this guard.
+	#//// Both directions are asserted: refused while the shop forbids it, accepted
+	#//// as soon as the shop allows it — otherwise a cart that refused EVERYTHING
+	#//// would pass the first half just as well.
+	def test_out_of_stock_item_is_refused_by_the_cart(self):
+		"""A stock item with nothing on the shelf cannot be put in the cart."""
+		from erpnext.stock.doctype.item.test_item import make_item
+
+		item = make_item("Test Out Of Stock Item", {"is_stock_item": 1})
+		warehouse = frappe.db.get_value("Warehouse", {"company": "_Test Company", "is_group": 0}, "name")
+		if not frappe.db.exists("Website Item", {"item_code": item.name}):
+			web_item = make_website_item(item, save=False)
+			web_item.website_warehouse = warehouse
+			web_item.save()
+		frappe.local.shopping_cart_settings = None
+
+		with self.assertRaises(frappe.ValidationError) as refused:
+			update_cart(item.name, 1)
+		self.assertIn("not in stock", str(refused.exception))
+
+		# ... and it goes through the moment the shop allows it
+		frappe.db.set_single_value("Webshop Settings", "allow_items_not_in_stock", 1)
+		frappe.local.shopping_cart_settings = None
+		update_cart(item.name, 1)
+
+		quotation = _get_cart_quotation()
+		self.assertIn(item.name, [row.item_code for row in quotation.get("items")])
 
 	@change_settings("Webshop Settings", {"save_quotations_as_draft": 1})
 	def test_cart_without_checkout_and_draft_quotation(self):
