@@ -1,3 +1,6 @@
+//// Neoffice — added file (no upstream equivalent). Styles of the four-step checkout
+//// page, which upstream does not have (its flow is cart -> place order)
+//// (3bc2d836f1, 2025-02-11, then the payment-method work e4603de9cf / 3bba482749).
 // Checkout styles
 body[data-path="checkout"] {
   background: var(--body-bg-color);

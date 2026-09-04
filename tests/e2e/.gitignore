@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent). Ignores of the Playwright suite
+#//// we added (d2a0754333, 2026-08-27 "test(e2e): suite Playwright"): its node_modules,
+#//// its stored session (.auth), its reports, and the .diag-*/.explore-* throwaway
+#//// scripts a debugging session leaves behind (cf76ed12c8).
 node_modules/
 .auth/
 test-results/

@@ -1,3 +1,8 @@
+#//// Neoffice — added file (no upstream equivalent). Endpoints of the shop sign-in
+#//// dialog: check an e-mail, create an account, start an OAuth flow — without
+#//// leaving the shop and without losing the cart (3bc2d836f1, 2025-02-11). An
+#//// address already taken now signs the visitor in instead of failing (428f770c19,
+#//// 2026-04-08 "handle existing users in shop create_account (WI-00297)").
 import frappe
 from frappe import _
 from frappe.utils import validate_email_address

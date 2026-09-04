@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent).
+#//// Quotation.payment_gateway: the cart remembers which gateway the buyer picked, so
+#//// a resumed checkout re-opens the same tile instead of the shop default
+#//// (3bc2d836f1, 2025-02-11).
 import frappe
 
 def execute():

@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent). Thin glue for the TWINT tile; the
+#//// transaction itself lives in the `payments` app since twint_integration was folded
+#//// into it (7edfb905be, 2026-05-19). The docstring below says what stays where.
 """Webshop TWINT glue.
 
 The actual transaction creation lives in :mod:`payments.integrations.twint.api`

@@ -1,3 +1,8 @@
+//// Neoffice — added file (no upstream equivalent). The same product search as
+//// search.js, written without jQuery, for the Builder-built navbar: the header is
+//// rendered by the Builder page and cannot rely on the shop bundle's jQuery being
+//// present (48e2708353, 2025-03-13 "Big update"; Enter handling 837f5904f8,
+//// 2025-12-14 "use keydown instead of keypress").
 // Check if webshop object exists
 if (typeof webshop === 'undefined') {
     window.webshop = {};

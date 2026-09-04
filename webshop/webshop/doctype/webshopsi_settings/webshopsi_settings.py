@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent). The "Facture" (pay-on-invoice)
+#//// settings and the checkout context they build: restricted countries, age check,
+#//// instalment plans and their fee (662c26b650, 2026-05-26; the fee is read from the
+#//// Payment Terms Template since 4efe747cf0, 2026-07-11).
 # Copyright (c) 2025, Neoffice Team and contributors
 # For license information, please see license.txt
 

@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent).
+#//// Unpublishes the legacy `gift-card` Web Form and frees the `gift-cards` route for
+#//// our own page (d579b1c02a, 2025-12-14). Deleting the Web Form would take the
+#//// submitted records with it, so it is unpublished and renamed instead.
 import frappe
 
 

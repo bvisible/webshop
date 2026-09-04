@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent). Copies the Item creation date
+#//// onto its Website Item so "New arrivals" sorts on when the product existed, not on
+#//// when it was published — a bulk publication otherwise makes the whole catalogue
+#//// new on the same day (3c1e847e26, 2025-06-24).
 import frappe
 from frappe import _
 

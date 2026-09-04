@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent).
+#//// Payment Request.from_checkout: a Payment Request raised by our checkout must be
+#//// told apart from one a salesperson e-mailed by hand — only the first may conclude
+#//// an order on its own and redirect to /thank_you (3bc2d836f1, 2025-02-11).
 import frappe
 
 def execute():

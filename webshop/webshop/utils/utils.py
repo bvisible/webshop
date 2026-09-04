@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent). Jinja helpers exposed to the
+#//// Builder-built templates, chiefly format_currency_value, which honours the shop's
+#//// "hide currency symbol" setting — a shop that sells in one currency does not want
+#//// "CHF" on every tile (0804898032, 2025-03-05; setting 0134ef756e, 2025-07-03).
 import frappe
 import json
 

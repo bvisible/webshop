@@ -1,3 +1,8 @@
+#//// Neoffice — added file (no upstream equivalent). Test fixtures resolved from the
+#//// site instead of assumed: upstream's tests name "Products", "Standard Selling",
+#//// "All Customer Groups", none of which exist on a site installed in French, so
+#//// every one of them errored before its first assertion (0971ecdb0a, 2026-08-29
+#//// "réparer la suite Python et trois défauts qu'elle cachait").
 # Copyright (c) 2026, bVisible and contributors
 # License: GNU General Public License v3. See license.txt
 

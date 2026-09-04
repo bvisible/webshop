@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent).
+#//// Sales Taxes and Charges.is_loyalty_points_reduction: points spent are booked as a
+#//// negative charge line, and this flag is what lets the cart, the summary and the
+#//// invoice tell that line apart from a real tax (3bc2d836f1, 2025-02-11).
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 

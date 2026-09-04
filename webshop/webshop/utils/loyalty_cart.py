@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent). Computes the points a cart would
+#//// earn, for the "you will earn N points" line (6fea19b1fe, 2025-06-17).
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 

@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent). Sets website_warehouse in bulk on
+#//// every Website Item, for a shop that changes the warehouse it sells from —
+#//// otherwise it is one form at a time (630d4334d1, 2025-06-24).
 import frappe
 from frappe import _
 

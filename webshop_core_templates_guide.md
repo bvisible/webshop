@@ -1,3 +1,8 @@
+<!-- //// Neoffice — added file (no upstream equivalent). Reference for the shop template -->
+<!-- //// includes we added (brand carousel, cart drawer, mobile menu, product carousel, -->
+<!-- //// search box, user header, wishlist): what each one needs in its context and how a -->
+<!-- //// Builder page includes it (6fea19b1fe, 2025-06-17, and the two commits that -->
+<!-- //// followed it). -->
 # Webshop Core Templates Documentation
 
 This guide documents the core template includes for the Frappe Webshop, detailing their purpose, required context variables, optional parameters, usage examples, and dependencies.

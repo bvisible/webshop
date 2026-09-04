@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent). Context of the shop maintenance
+#//// mode: which surface is closed (site, shop, or both) and until when (deb34ad632,
+#//// 2025-06-19 "Feat. maintenance mode"). Frappe's own maintenance_mode closes the
+#//// whole site including the desk, which is not what a shop owner wants.
 import frappe
 from frappe.utils import now_datetime, get_datetime, formatdate, cint
 from datetime import datetime

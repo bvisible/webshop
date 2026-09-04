@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent). Context of the maintenance page;
+#//// it is reached through MaintenancePageRenderer, not by its route (deb34ad632,
+#//// 2025-06-19).
 import frappe
 
 no_cache = 1

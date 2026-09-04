@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent). Context of the address book page:
+#//// signs the visitor out to /login when anonymous, and refuses when the account has
+#//// no customer (a807dc8a10, 2026-01-03).
 import frappe
 from frappe import _
 from webshop.webshop.shopping_cart.cart import get_party, get_address_docs

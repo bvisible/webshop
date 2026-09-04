@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent).
+#//// loyalty_program / loyalty_points / loyalty_amount on Quotation, Sales Order and
+#//// Sales Invoice: ERPNext carries loyalty on the invoice only, so points spent in a
+#//// cart were lost between the quotation and the order (3bc2d836f1, 2025-02-11).
 import frappe
 
 def execute():

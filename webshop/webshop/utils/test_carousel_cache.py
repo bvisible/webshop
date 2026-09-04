@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent). Covers the carousel cache added
+#//// by 64566abecd (2025-06-26 "Feat. cache template") — key generation, invalidation
+#//// and the fallback when the cache is cold.
 import unittest
 import frappe
 from frappe.tests.utils import FrappeTestCase

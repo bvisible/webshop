@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent).
+#//// Reconciles the data of the former standalone `webshopsi_integration` app so it
+#//// can be uninstalled without losing the configured instalment plans (662c26b650,
+#//// 2026-05-26). The module docstring below states the two steps and their order.
 """Fold the former `webshopsi_integration` app into `webshop`.
 
 The "Facture / pay-by-invoice" payment method used to live in a standalone

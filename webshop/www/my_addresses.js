@@ -1,3 +1,7 @@
+//// Neoffice — added file (no upstream equivalent). Behaviour of the address book:
+//// create, edit and delete over our own endpoints in webshop/webshop/api.py, which
+//// re-check that the address belongs to the caller's party (a807dc8a10 /
+//// 49e4068f7f, 2026-01-03; street + house number 5fd5bda299, 2026-07-17).
 // Address Management Page JavaScript
 
 let currentAddressName = null;

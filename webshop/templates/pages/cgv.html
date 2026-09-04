@@ -1,3 +1,8 @@
+{# //// Neoffice — added file (no upstream equivalent). Renders the shop's terms and #}
+{# //// conditions (a Terms and Conditions document named in Webshop Settings) on its own #}
+{# //// page, so the checkout can link to it (71dffb7b45, 2025-06-26 "add cgv terms and #}
+{# //// conditions support"). Swiss law requires the buyer to be able to read them #}
+{# //// before paying; upstream's checkout links nothing. #}
 {% extends "templates/web.html" %}
 
 {% block title %}{{ cgv_title }}{% endblock %}

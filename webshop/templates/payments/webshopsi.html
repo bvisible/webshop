@@ -1,3 +1,7 @@
+{# //// Neoffice — added file (no upstream equivalent). The "Facture" tile — pay on #}
+{# //// invoice, optionally in instalments, with the provider's age check. It came from #}
+{# //// the standalone `webshopsi_integration` app, folded in here (662c26b650, #}
+{# //// 2026-05-26). Upstream's shop cannot sell on invoice. #}
 {% set payment_context = frappe.call('webshop.webshop.doctype.webshopsi_settings.webshopsi_settings.get_payment_context', 
     reference_doctype=reference_doctype, 
     reference_docname=reference_docname) %}

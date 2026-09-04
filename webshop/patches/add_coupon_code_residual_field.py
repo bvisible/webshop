@@ -1,3 +1,8 @@
+#//// Neoffice — added file (no upstream equivalent).
+#//// Coupon Code.coupon_code_residual: when a gift card is only partly spent we issue
+#//// a second card for the balance, and this link says which card it came from
+#//// (618eedfdb8, 2025-03-24 "Feat gift card split"). ERPNext coupons are all-or-
+#//// nothing, so upstream needs no such link.
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 

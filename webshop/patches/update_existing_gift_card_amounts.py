@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent).
+#//// Back-fills gift_card_amount on cards issued before the field existed, from their
+#//// Pricing Rule (73119aae66, 2025-02-11). TO REVIEW: droppable once every fleet
+#//// site has run it.
 import frappe
 
 def execute():

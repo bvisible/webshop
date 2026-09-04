@@ -1,3 +1,7 @@
+//// Neoffice — added file (no upstream equivalent). Behaviour of the grid variant
+//// selector: loads every variant in one call, applies Pricing Rules to each price
+//// and switches the buy box without a page reload (6fea19b1fe, 2025-06-17; stock
+//// labels made translatable by a20e0dd1f8, 2026-07-06 — they were hardcoded English).
 class ItemConfigureGrid {
 	constructor(item_code, item_name) {
 		this.item_code = item_code;

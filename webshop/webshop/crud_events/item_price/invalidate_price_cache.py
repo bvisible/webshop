@@ -1,3 +1,8 @@
+#//// Neoffice — added file (no upstream equivalent). Drops the shop's price caches
+#//// when an Item Price changes. Our listing caches prices and discounts to keep the
+#//// facets fast; upstream reads them live and needs no invalidation (e7a63e7680,
+#//// 2025-12-02 "add automatic cache invalidation for Pricing Rule and Item Price
+#//// changes").
 """
 Invalidate webshop cache when Item Prices are created, modified, or deleted.
 This ensures that price information is always up-to-date on the webshop.

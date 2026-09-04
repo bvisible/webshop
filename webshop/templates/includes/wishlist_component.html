@@ -1,3 +1,6 @@
+{# //// Neoffice — added file (no upstream equivalent). Wishlist icon and counter for the #}
+{# //// Builder-built header. Upstream renders the wishlist link inside its own navbar, #}
+{# //// which our shops do not use (da044ea692, 2025-03-13 "add template wishlist"). #}
 {% set wishlist_data = get_wishlist_data() %}
 {% if not '/wishlist' in frappe.request.path and frappe.session.user != 'Guest' %}
   <div id="wishlist-data" 

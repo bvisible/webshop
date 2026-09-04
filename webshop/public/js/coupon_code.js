@@ -1,3 +1,7 @@
+//// Neoffice — added file (no upstream equivalent). Desk script on Coupon Code: shows
+//// gift_card_amount only for a Gift Card coupon and keeps it in step with the
+//// Pricing Rule it is fetched from (73119aae66, 2025-02-11). Wired in hooks.py
+//// doctype_js — upstream registers no script on Coupon Code.
 frappe.ui.form.on('Coupon Code', {
     refresh: function(frm) {
         // Show or hide the gift card amount field

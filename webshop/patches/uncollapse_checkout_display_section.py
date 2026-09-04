@@ -1,3 +1,8 @@
+#//// Neoffice — added file (no upstream equivalent).
+#//// Repairs data our own earlier patch created: the "Display in Checkout" section was
+#//// inserted collapsible=1, which hid the fields that document a payment method to
+#//// the buyer (7a1fa7d1c3, 2026-07-13). TO REVIEW: droppable once every fleet site
+#//// has run it.
 import frappe
 
 

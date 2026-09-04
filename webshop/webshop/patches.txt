@@ -1,3 +1,8 @@
+#//// Neoffice — added file. TO REVIEW: origin unknown at file level — a second
+#//// patches.txt inside the module folder, listing one patch under a v15_0 path that
+#//// does not exist in this tree; the app's real patch list is webshop/patches.txt.
+#//// Frappe only reads the one named in the app's root, so this file is inert. Added
+#//// by 3bc2d836f1 (2025-02-11) with no explanation. Candidate for deletion.
 [pre_model_sync]
 
 [post_model_sync]

@@ -1,3 +1,9 @@
+#//// Neoffice — added file (no upstream equivalent). Covers the two parts of our
+#//// payment path where a mistake costs real money: idempotency (charging a buyer
+#//// twice) and who may conclude a payment. Upstream has no payment controller and
+#//// therefore no such test (0231a6f96d, 2026-08-29 "couvrir le multi-site et le
+#//// paiement — 94 → 135 tests"). The module docstring below records what the
+#//// previous version asserted — its own mocks — and why it proved nothing.
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 

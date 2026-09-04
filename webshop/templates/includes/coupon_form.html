@@ -1,3 +1,7 @@
+{# //// Neoffice — added file (no upstream equivalent). The coupon / gift-card form of #}
+{# //// the cart page. It also enforces the rule upstream has no reason to know: a cart #}
+{# //// takes a promo code OR loyalty points, never both (3bc2d836f1, 2025-02-11; #}
+{# //// gift-card split 618eedfdb8). #}
 {% set show_coupon_code = cart_settings.show_apply_coupon_code_in_website and cart_settings.enable_checkout %}
 {% if show_coupon_code == 1%}
 <div class="form-group frappe-card p-5">

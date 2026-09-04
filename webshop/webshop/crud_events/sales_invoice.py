@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent). Carries loyalty points from the
+#//// cart through to the invoice: ERPNext books loyalty on the invoice only, so
+#//// points spent in a Shopping Cart order were lost on the way (3bc2d836f1,
+#//// 2025-02-11).
 import frappe
 from frappe import _
 from webshop.webshop.shopping_cart.cart import remove_loyalty_points

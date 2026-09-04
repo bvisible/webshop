@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
+{# //// Neoffice — added file (no upstream equivalent). One of the seven sitemaps our #}
+{# //// shops publish (index, pages, products, categories, brands, blog) — Frappe's #}
+{# //// built-in /sitemap.xml lists Website Route Meta only and ignores Website Items, #}
+{# //// item groups, brands and Builder pages (84530bf61b, 2025-06-26 "add sitemap #}
+{# //// generation for webshop pages"). Each one builds its URLs on the current site's #}
+{# //// domain and caches per site (3b98d9b1d4, 2026-07-08 multi-site). #}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 	{%- for link in links %}

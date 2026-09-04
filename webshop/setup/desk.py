@@ -1,3 +1,8 @@
+#//// Neoffice — added file (no upstream equivalent). Keeps the "Webshop" workspace on
+#//// the desk: Frappe imports a workspace file once, and the Neoffice theme deletes,
+#//// after every migrate, every workspace no App Customization lists (fa76f6b515,
+#//// 2026-09-03 "l'espace Boutique en ligne survit au nettoyage du thème"; root page
+#//// 01c6358b19). Upstream ships no workspace, so nothing there needs defending.
 # Copyright (c) 2026, Neoffice. What keeps the Webshop workspace on the desk.
 import os
 

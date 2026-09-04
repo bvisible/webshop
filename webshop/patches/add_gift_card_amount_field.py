@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent).
+#//// Coupon Code.gift_card_amount, fetched from the Pricing Rule discount: a gift
+#//// card has a face value, which an ERPNext coupon does not carry — it only knows a
+#//// Pricing Rule (73119aae66, 2025-02-11 "feat: Add gift card amount field").
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 

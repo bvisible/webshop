@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent). XML escaping and URL quoting
+#//// shared by the seven sitemaps (84530bf61b, 2025-06-26). A product name with an
+#//// ampersand made the whole sitemap unparseable for Google.
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 

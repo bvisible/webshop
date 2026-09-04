@@ -1,3 +1,6 @@
+/* //// Neoffice — added file (no upstream equivalent). Styles of the cart drawer, kept */
+/* //// next to its template because the drawer is included by Builder-built headers, */
+/* //// outside the shop's SCSS bundle (48e2708353, 2025-03-13 "Big update"). */
 .header-cart {
   position: relative;
 }

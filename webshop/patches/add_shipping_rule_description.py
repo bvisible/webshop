@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent).
+#//// Shipping Rule.description (translatable): the checkout shows the buyer what each
+#//// shipping option means; upstream only ever renders the rule's name (3bc2d836f1,
+#//// 2025-02-11).
 import frappe
 
 def execute():

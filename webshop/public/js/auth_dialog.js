@@ -1,3 +1,8 @@
+//// Neoffice — added file (no upstream equivalent). The sign-in / create-account
+//// dialog of the shop. Upstream sends the visitor to /login and back, which loses
+//// the cart and the step the buyer was on; this signs them in in place, over the
+//// same endpoints (3bc2d836f1, 2025-02-11; existing-user handling 428f770c19,
+//// 2026-04-08 "handle existing users in shop create_account (WI-00297)").
 frappe.showLoginDialog = function(opts) {
     if (!opts) opts = {};
     const forceLogin = opts.forceLogin || false;

@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent). Rebuilds Website Item routes in
+#//// bulk after a rename or an item-group move. Upstream computes a route once, at
+#//// creation, and leaves stale URLs behind (3c1e847e26, 2025-06-24).
 import frappe
 from frappe import _
 from frappe.utils import cstr

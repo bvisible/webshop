@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent).
+#//// temp_coupon_code and gift_card_to_split on Quotation: cart.py had been writing
+#//// them since the gift-card split, but no patch created them — on a fresh install
+#//// the fields did not exist (bc67ec7b28, 2025-12-15 "add missing gift card fields").
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 

@@ -1,3 +1,8 @@
+<!-- //// Neoffice — added file (no upstream equivalent). How to run the Playwright suite, -->
+<!-- //// what it needs, and what it leaves behind on the target site (d2a0754333 / -->
+<!-- //// 1c36a8f365 / 7698e3fc18, 2026-08-27). Upstream ships no browser test at all; -->
+<!-- //// these cover what an endpoint test cannot say — that the pages work in a browser. -->
+<!-- //// Written in French, like the rest of the operator-facing documentation. -->
 # Tests de bout en bout (Playwright)
 
 Tests navigateur de la boutique : connexion, création de compte, catalogue, fiche

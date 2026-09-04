@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent). Context of the terms page: reads
+#//// Webshop Settings.checkout_cgv (71dffb7b45, 2025-06-26).
 import frappe
 from frappe import _
 
