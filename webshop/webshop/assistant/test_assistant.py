@@ -92,13 +92,32 @@ def test_settings(**overrides):
 	return doc
 
 
+def ensure_shop_settings():
+	"""A fresh site (CI) has no price list and hides prices; osiris has both.
+
+	Only what is missing is written — a Single survives the rollback, and on a
+	shared site a write to `tabSingles` waits on other suites' locks. What was
+	written is returned so tearDownClass can put it back.
+	"""
+	wanted = {"enabled": 1, "show_price": 1, "price_list": selling_price_list()}
+	written = {}
+	for field, value in wanted.items():
+		current = frappe.db.get_single_value("Webshop Settings", field)
+		if not current:
+			written[field] = current
+			frappe.db.set_single_value("Webshop Settings", field, value)
+	if written:
+		frappe.db.commit()
+		frappe.local.shopping_cart_settings = None
+		frappe.clear_cache()
+	return written
+
+
 class TestAssistant(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		#//// Neoffice — removed: snapshotting Webshop Settings and writing the assistant switches
-		#//// via frappe.db.set_single_value (807c98474e "test(assistant): des réglages en mémoire,
-		#//// pas d'écriture dans tabSingles"); replaced by test_settings(), read in-memory per test.
+		cls.settings_written = ensure_shop_settings()
 		cls.purge()
 		# no standard_rate: ERPNext would write its own Item Price, and a second
 		# one on the same list is a duplicate
@@ -126,8 +145,13 @@ class TestAssistant(FrappeTestCase):
 	def tearDownClass(cls):
 		frappe.set_user("Administrator")
 		cls.purge()
-		#//// Neoffice — removed restore_webshop_settings(cls.settings_before) call (807c98474e,
-		#//// same commit): nothing was written to Webshop Settings, so there is nothing to restore.
+		# only what ensure_shop_settings() wrote on a fresh site goes back
+		for field, value in cls.settings_written.items():
+			frappe.db.set_single_value("Webshop Settings", field, value)
+		if cls.settings_written:
+			frappe.db.commit()
+			frappe.local.shopping_cart_settings = None
+			frappe.clear_cache()
 		super().tearDownClass()
 
 	@classmethod
