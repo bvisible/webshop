@@ -1,0 +1,70 @@
+/* //// Neoffice — added file (store hours, no upstream equivalent).
+   The opening-hours block, after the one blowbackshop.ch shows in its footer:
+   a centred header, an open/closed banner, one rounded row per day with today
+   set apart. Colours are variables so a theme can retune them without
+   touching the markup. */
+
+.webshop-opening-hours:not(.has-hours) { display: none !important; }
+
+.wsh-hours {
+	--wsh-hours-row: #f6f7f9;
+	--wsh-hours-text: #1f2937;
+	--wsh-hours-muted: #6b7280;
+	--wsh-hours-today: linear-gradient(90deg, var(--primary, #b5683f) 0%, #1a1a1a 100%);
+	--wsh-hours-open-bg: #d9f5e3;
+	--wsh-hours-open-text: #14532d;
+	--wsh-hours-closed-bg: #f8d7da;
+	--wsh-hours-closed-text: #7f1d1d;
+	max-width: 560px;
+	margin: 0 auto;
+	color: var(--wsh-hours-text);
+	font-size: 1rem;
+
+	&__head { text-align: center; margin-bottom: 1.25rem; }
+	&__icon { font-size: 2.75rem; line-height: 1; margin-bottom: .75rem; }
+	&__title { font-size: 1.75rem; font-weight: 500; margin: 0 0 .35rem; }
+	&__date { color: var(--wsh-hours-muted); font-size: .95rem; }
+
+	&__status {
+		display: flex; flex-direction: column; align-items: center; gap: .25rem;
+		padding: 1rem 1.25rem; border-radius: 14px; margin-bottom: 1rem; text-align: center;
+		strong { font-size: 1.1rem; display: inline-flex; align-items: center; gap: .5rem; }
+		span { font-size: .95rem; }
+		&.is-open { background: var(--wsh-hours-open-bg); color: var(--wsh-hours-open-text); }
+		&.is-closed { background: var(--wsh-hours-closed-bg); color: var(--wsh-hours-closed-text); }
+	}
+	&__pulse {
+		width: 10px; height: 10px; border-radius: 50%; background: currentColor;
+		animation: wsh-hours-pulse 1.6s ease-in-out infinite;
+	}
+
+	&__list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .5rem; }
+	&__day {
+		display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+		padding: .9rem 1.25rem; border-radius: 14px; background: var(--wsh-hours-row);
+		&.is-closed .wsh-hours__day-hours { color: #c0392b; font-style: italic; }
+		&.is-today {
+			background: var(--wsh-hours-today); color: #fff; font-weight: 600;
+			transform: scale(1.02); box-shadow: 0 8px 20px rgba(0, 0, 0, .12);
+			.wsh-hours__day-hours { color: #fff; font-style: normal; }
+		}
+	}
+	&__day-name { font-weight: 500; }
+	&__day-hours { text-align: right; }
+
+	&__closures {
+		list-style: none; padding: 0; margin: 1rem 0 0; color: var(--wsh-hours-closed-text);
+		li { padding: .5rem .75rem; border-radius: 10px; background: var(--wsh-hours-closed-bg); margin-bottom: .35rem; font-size: .95rem; }
+	}
+	&__note { margin: 1rem 0 0; color: var(--wsh-hours-muted); font-size: .9rem; text-align: center; }
+}
+
+@keyframes wsh-hours-pulse {
+	0%, 100% { opacity: 1; transform: scale(1); }
+	50% { opacity: .45; transform: scale(.75); }
+}
+
+@media (max-width: 480px) {
+	.wsh-hours__day { flex-direction: column; align-items: flex-start; gap: .25rem; }
+	.wsh-hours__day-hours { text-align: left; }
+}

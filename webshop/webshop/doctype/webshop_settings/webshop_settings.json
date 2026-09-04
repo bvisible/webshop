@@ -104,6 +104,16 @@
   "guest_display_settings_section",
   "hide_price_for_guest",
   "redirect_on_action",
+  "tab_store",
+  "store_contact_section",
+  "store_address",
+  "store_contact_column",
+  "store_phone",
+  "store_email",
+  "store_hours_section",
+  "store_hours",
+  "store_closures",
+  "store_hours_note",
   "tab_emails",
   "abandoned_cart_section",
   "enable_abandoned_cart_emails",
@@ -158,6 +168,63 @@
    "label": "Features"
   },
   {
+   "fieldname": "tab_store",
+   "fieldtype": "Tab Break",
+   "label": "Store"
+  },
+  {
+   "fieldname": "store_contact_section",
+   "fieldtype": "Section Break",
+   "label": "Where the store is"
+  },
+  {
+   "description": "As it should read on the opening-hours page and in the assistant's answers",
+   "fieldname": "store_address",
+   "fieldtype": "Small Text",
+   "label": "Address"
+  },
+  {
+   "fieldname": "store_contact_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "store_phone",
+   "fieldtype": "Data",
+   "label": "Phone",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "store_email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "description": "One row per opening period: a day with a lunch break has two rows. Shown on /store-hours, in the opening-hours block, and told by the assistant.",
+   "fieldname": "store_hours_section",
+   "fieldtype": "Section Break",
+   "label": "Opening Hours"
+  },
+  {
+   "fieldname": "store_hours",
+   "fieldtype": "Table",
+   "label": "Opening Hours",
+   "options": "Store Opening Hours"
+  },
+  {
+   "description": "Holidays, inventory, a move: the day counts as closed whatever the weekly hours say",
+   "fieldname": "store_closures",
+   "fieldtype": "Table",
+   "label": "Exceptional Closures",
+   "options": "Store Closure"
+  },
+  {
+   "description": "For example: closed on public holidays",
+   "fieldname": "store_hours_note",
+   "fieldtype": "Small Text",
+   "label": "Note under the hours"
+  },
+  {
    "fieldname": "tab_emails",
    "fieldtype": "Tab Break",
    "label": "Emails"
@@ -168,52 +235,52 @@
    "label": "Abandoned Carts"
   },
   {
+   "default": "0",
+   "description": "Signed-in customers only: a guest cart has no address to write to",
    "fieldname": "enable_abandoned_cart_emails",
    "fieldtype": "Check",
-   "label": "Remind customers of an abandoned cart",
-   "default": "0",
-   "description": "Signed-in customers only: a guest cart has no address to write to"
+   "label": "Remind customers of an abandoned cart"
   },
   {
-   "fieldname": "abandoned_cart_delays",
-   "fieldtype": "Data",
-   "label": "Reminders (hours after the last change)",
    "default": "1,24,72",
    "depends_on": "enable_abandoned_cart_emails",
-   "description": "One email per delay, comma separated"
+   "description": "One email per delay, comma separated",
+   "fieldname": "abandoned_cart_delays",
+   "fieldtype": "Data",
+   "label": "Reminders (hours after the last change)"
   },
   {
+   "depends_on": "enable_abandoned_cart_emails",
    "fieldname": "abandoned_cart_template",
    "fieldtype": "Link",
    "label": "Email Template",
-   "options": "Email Template",
-   "depends_on": "enable_abandoned_cart_emails"
+   "options": "Email Template"
   },
   {
    "fieldname": "column_break_abandoned",
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "enable_abandoned_cart_emails",
+   "description": "Empty: no coupon, ever. The literature says not before the second email; your call.",
    "fieldname": "abandoned_cart_incentive_step",
    "fieldtype": "Select",
    "label": "Offer a coupon from email number",
-   "options": "\n1\n2\n3",
-   "depends_on": "enable_abandoned_cart_emails",
-   "description": "Empty: no coupon, ever. The literature says not before the second email; your call."
+   "options": "\n1\n2\n3"
   },
   {
+   "default": "10",
+   "depends_on": "eval:doc.enable_abandoned_cart_emails && doc.abandoned_cart_incentive_step",
    "fieldname": "abandoned_cart_discount_percentage",
    "fieldtype": "Percent",
-   "label": "Coupon discount (%)",
-   "default": "10",
-   "depends_on": "eval:doc.enable_abandoned_cart_emails && doc.abandoned_cart_incentive_step"
+   "label": "Coupon discount (%)"
   },
   {
+   "default": "7",
+   "depends_on": "eval:doc.enable_abandoned_cart_emails && doc.abandoned_cart_incentive_step",
    "fieldname": "abandoned_cart_coupon_validity_days",
    "fieldtype": "Int",
-   "label": "Coupon valid for (days)",
-   "default": "7",
-   "depends_on": "eval:doc.enable_abandoned_cart_emails && doc.abandoned_cart_incentive_step"
+   "label": "Coupon valid for (days)"
   },
   {
    "fieldname": "follow_up_section",
@@ -221,20 +288,20 @@
    "label": "Purchase Follow-ups"
   },
   {
+   "default": "0",
+   "description": "Nothing is enrolled and nothing goes out while this is off",
    "fieldname": "enable_purchase_follow_ups",
    "fieldtype": "Check",
-   "label": "Send follow-up emails after a purchase",
-   "default": "0",
-   "description": "Nothing is enrolled and nothing goes out while this is off"
+   "label": "Send follow-up emails after a purchase"
   },
   {
+   "default": "Webshop customers only",
+   "depends_on": "enable_purchase_follow_ups",
+   "description": "All customers: orders and invoices from the counter or the desk enrol too, when the follow-up itself allows it",
    "fieldname": "follow_up_audience",
    "fieldtype": "Select",
    "label": "Who receives them",
-   "options": "Webshop customers only\nAll customers",
-   "default": "Webshop customers only",
-   "depends_on": "enable_purchase_follow_ups",
-   "description": "All customers: orders and invoices from the counter or the desk enrol too, when the follow-up itself allows it"
+   "options": "Webshop customers only\nAll customers"
   },
   {
    "fieldname": "column_break_follow_up",
@@ -977,7 +1044,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-08-29 14:30:00.000000",
+ "modified": "2026-09-04 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

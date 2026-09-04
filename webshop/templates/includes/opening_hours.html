@@ -1,0 +1,35 @@
+{# //// Neoffice — added file (store hours, no upstream equivalent).
+   The store's opening hours. Drawn by opening_hours.js from the public endpoint
+   and refreshed every minute; when the controller passes `hours`, the week is
+   also written here so the page reads without JavaScript and for search engines.
+   In a Builder page, the same block is one HTML element:
+   <div class="webshop-opening-hours" data-autoload></div> #}
+<div class="webshop-opening-hours{% if hours and hours.configured %} has-hours{% endif %}" data-autoload>
+	{% if hours and hours.configured %}
+	<div class="wsh-hours">
+		<div class="wsh-hours__head">
+			<div class="wsh-hours__icon" aria-hidden="true">🕒</div>
+			<h3 class="wsh-hours__title">{{ hours.title }}</h3>
+			<div class="wsh-hours__date">{{ hours.today_text }}</div>
+		</div>
+		<div class="wsh-hours__status {{ 'is-open' if hours.is_open else 'is-closed' }}">
+			<strong>{{ hours.headline }}</strong>
+			{% if hours.detail %}<span>{{ hours.detail }}</span>{% endif %}
+		</div>
+		<ul class="wsh-hours__list">
+			{% for day in hours.week %}
+			<li class="wsh-hours__day{{ ' is-today' if day.is_today else '' }}{{ ' is-closed' if day.closed else '' }}">
+				<span class="wsh-hours__day-name">{{ day.label }}</span>
+				<span class="wsh-hours__day-hours">{{ day.text }}</span>
+			</li>
+			{% endfor %}
+		</ul>
+		{% if hours.closures %}
+		<ul class="wsh-hours__closures">
+			{% for closure in hours.closures %}<li>{{ closure.text }}</li>{% endfor %}
+		</ul>
+		{% endif %}
+		{% if hours.note %}<p class="wsh-hours__note">{{ hours.note }}</p>{% endif %}
+	</div>
+	{% endif %}
+</div>

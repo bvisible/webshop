@@ -1,0 +1,21 @@
+{# //// Neoffice — added file (store hours, no upstream equivalent). #}
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="container store-hours-page my-5">
+	{% if hours.configured %}
+		{% include "templates/includes/opening_hours.html" %}
+		{% if hours.address or hours.phone or hours.email %}
+		<div class="store-hours-page__contact text-center mt-5">
+			{% if hours.address %}<p class="mb-1">{{ hours.address | replace("\n", "<br>") }}</p>{% endif %}
+			{% if hours.phone %}<p class="mb-1"><a href="tel:{{ hours.phone | replace(' ', '') }}">{{ hours.phone }}</a></p>{% endif %}
+			{% if hours.email %}<p class="mb-1"><a href="mailto:{{ hours.email }}">{{ hours.email }}</a></p>{% endif %}
+		</div>
+		{% endif %}
+	{% else %}
+		<div class="text-center text-muted py-5">{{ _("Opening hours are not published.") }}</div>
+	{% endif %}
+</div>
+{% endblock %}

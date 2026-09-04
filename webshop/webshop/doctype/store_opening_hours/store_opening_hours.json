@@ -1,0 +1,48 @@
+{
+ "actions": [],
+ "creation": "2026-09-04 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "weekday",
+  "opens",
+  "closes"
+ ],
+ "fields": [
+  {
+   "fieldname": "weekday",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Weekday",
+   "options": "Monday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday",
+   "reqd": 1
+  },
+  {
+   "fieldname": "opens",
+   "fieldtype": "Time",
+   "in_list_view": 1,
+   "label": "Opens",
+   "reqd": 1
+  },
+  {
+   "fieldname": "closes",
+   "fieldtype": "Time",
+   "in_list_view": 1,
+   "label": "Closes",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-04 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Store Opening Hours",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

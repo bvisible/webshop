@@ -6382,3 +6382,84 @@ msgstr "Voir les occasions ({0})"
 
 msgid "Empty: the warehouse the shop sells from."
 msgstr "Vide : l'entrepôt d'où vend la boutique."
+
+msgid "Where the store is"
+msgstr "Où est le magasin"
+
+msgid "As it should read on the opening-hours page and in the assistant's answers"
+msgstr "Telle qu'elle doit se lire sur la page des horaires et dans les réponses de l'assistant"
+
+msgid "Opening Hours"
+msgstr "Horaires d'ouverture"
+
+msgid "Opening hours"
+msgstr "Horaires d'ouverture"
+
+msgid "One row per opening period: a day with a lunch break has two rows. Shown on /store-hours, in the opening-hours block, and told by the assistant."
+msgstr "Une ligne par plage d'ouverture : un jour avec pause de midi a deux lignes. Affiché sur /store-hours, dans le bloc des horaires, et dit par l'assistant."
+
+msgid "Exceptional Closures"
+msgstr "Fermetures exceptionnelles"
+
+msgid "Holidays, inventory, a move: the day counts as closed whatever the weekly hours say"
+msgstr "Vacances, inventaire, déménagement : le jour compte comme fermé, quoi que disent les horaires de la semaine"
+
+msgid "Note under the hours"
+msgstr "Note sous les horaires"
+
+msgid "For example: closed on public holidays"
+msgstr "Par exemple : fermé les jours fériés"
+
+msgid "Weekday"
+msgstr "Jour"
+
+msgid "Opens"
+msgstr "Ouvre"
+
+msgid "Closes"
+msgstr "Ferme"
+
+msgid "Reason shown to customers"
+msgstr "Motif affiché aux clients"
+
+msgid "Currently open"
+msgstr "Actuellement ouvert"
+
+msgid "Currently closed"
+msgstr "Actuellement fermé"
+
+msgid "Closed: {0}"
+msgstr "Fermé : {0}"
+
+msgid "Closes in {0}"
+msgstr "Fermeture dans {0}"
+
+msgid "Opens today at {0}"
+msgstr "Ouverture aujourd'hui à {0}"
+
+msgid "Opens tomorrow at {0}"
+msgstr "Ouverture demain à {0}"
+
+msgid "Opens {0} at {1}"
+msgstr "Ouverture {0} à {1}"
+
+msgid "Opens on {0} at {1}"
+msgstr "Ouverture le {0} à {1}"
+
+msgid "{0}h {1}min"
+msgstr "{0}h {1}min"
+
+msgid "{0} min"
+msgstr "{0} min"
+
+msgid "non-stop"
+msgstr "non-stop"
+
+msgid "from {0} to {1}"
+msgstr "du {0} au {1}"
+
+msgid "Closed {0}"
+msgstr "Fermé {0}"
+
+msgid "Opening hours are not published."
+msgstr "Les horaires d'ouverture ne sont pas publiés."
