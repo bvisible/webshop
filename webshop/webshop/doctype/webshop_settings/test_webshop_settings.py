@@ -17,16 +17,15 @@ class TestWebshopSettings(unittest.TestCase):
 		#//// Neoffice — every shipping rule is put back exactly as it was. The previous version
 		#//// re-enabled them all indiscriminately, so a shop that had a rule disabled on
 		#//// purpose came out of the test suite with it enabled (0971ecdb0a, 2026-08-29 "réparer la suite Python et trois défauts qu'elle cachait").
-		#//// TO REVIEW: the helper below is named in French (_restaurer_regles) — RULE #00.
 		# Put every rule back the way it was, one by one. The previous version
 		# committed `set use_for_shopping_cart = 0` across the table and then set
 		# them ALL to 1 — on a live site that silently enrols every tax rule in
 		# the shopping cart, including the ones deliberately kept out of it.
-		avant = {
+		before = {
 			r.name: r.use_for_shopping_cart
 			for r in frappe.get_all("Tax Rule", fields=["name", "use_for_shopping_cart"])
 		}
-		self.addCleanup(self._restaurer_regles, avant)
+		self.addCleanup(self._restore_tax_rules, before)
 
 		frappe.db.sql("update `tabTax Rule` set use_for_shopping_cart = 0")
 		frappe.db.commit()  # nosemgrep
@@ -37,9 +36,9 @@ class TestWebshopSettings(unittest.TestCase):
 			self.assertRaises(ShoppingCartSetupError, cart_settings.validate_tax_rule)
 
 	#//// Neoffice — see above.
-	def _restaurer_regles(self, avant):
-		for nom, valeur in avant.items():
-			frappe.db.set_value("Tax Rule", nom, "use_for_shopping_cart", valeur, update_modified=False)
+	def _restore_tax_rules(self, before):
+		for name, value in before.items():
+			frappe.db.set_value("Tax Rule", name, "use_for_shopping_cart", value, update_modified=False)
 		frappe.db.commit()
 
 	def test_invalid_filter_fields(self):
