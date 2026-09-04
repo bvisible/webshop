@@ -92,6 +92,9 @@ def test_settings(**overrides):
 	return doc
 
 
+#//// Neoffice — added (c81fe963b2 "test(assistant): un site neuf reçoit une liste de
+#//// prix et l'affichage des prix"): CI runs on an empty shop, so without a price
+#//// list the search rendered "price on request"; write only what is missing.
 def ensure_shop_settings():
 	"""A fresh site (CI) has no price list and hides prices; osiris has both.
 
@@ -117,6 +120,8 @@ class TestAssistant(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		#//// Neoffice — added (c81fe963b2 "test(assistant): un site neuf reçoit une liste
+		#//// de prix et l'affichage des prix"): write what a fresh site is missing, restored below
 		cls.settings_written = ensure_shop_settings()
 		cls.purge()
 		# no standard_rate: ERPNext would write its own Item Price, and a second
@@ -145,6 +150,8 @@ class TestAssistant(FrappeTestCase):
 	def tearDownClass(cls):
 		frappe.set_user("Administrator")
 		cls.purge()
+		#//// Neoffice — added (c81fe963b2 "test(assistant): un site neuf reçoit une liste
+		#//// de prix et l'affichage des prix"): put back only what ensure_shop_settings() wrote
 		# only what ensure_shop_settings() wrote on a fresh site goes back
 		for field, value in cls.settings_written.items():
 			frappe.db.set_single_value("Webshop Settings", field, value)
