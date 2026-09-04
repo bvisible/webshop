@@ -125,7 +125,11 @@ class PaymentRequest(OriginalPaymentRequest):
         #//// Neoffice — the callback runs without a session (the PSP is the caller), so the
         #//// user is set explicitly; the finally block that restored it was removed because it
         #//// corrupted the session user (847f9137c3, 2025-12-12).
-        #//// TO REVIEW: this block is indented with spaces while the file uses tabs.
+        #//// Indentation: this file is four-space indented in frappe/webshop develop too
+        #//// (`git show frappe/webshop:webshop/webshop/doctype/override_doctype/
+        #//// payment_request.py`), so it stays that way — re-tabbing it would rewrite every
+        #//// line of a file we barely touch and turn the next upstream merge into a
+        #//// whole-file conflict for nothing.
         # Set the user to Administrator to avoid permission errors
         frappe.set_user("Administrator")
         # Call the set_as_paid method

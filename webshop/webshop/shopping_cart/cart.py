@@ -2298,52 +2298,54 @@ def set_taxes(quotation, cart_settings):
 #//// the cart has to show the discount before there is an invoice, so the points are
 #//// carried as a charge line flagged is_loyalty_points_reduction, re-indexed so
 #//// ERPNext's own tax ordering stays valid (3bc2d836f1, 2025-02-11).
-#//// TO REVIEW: this function is indented with SPACES while the rest of the file uses
-#//// tabs, and the account/cost centre come from the Loyalty Program without a guard
+#//// Re-indented with tabs: the function came in with four-space indentation while
+#//// cart.py — upstream included — is tab-indented, so every diff of it fought the
+#//// file. Whitespace only, no behaviour change.
+#//// TO REVIEW: the account/cost centre come from the Loyalty Program without a guard
 #//// — a programme with no expense account will raise here.
 def apply_loyalty_points_tax(quotation):
-    """Add tax line for loyalty points if necessary"""
-    if quotation.loyalty_points and quotation.loyalty_amount:
-        # Check if loyalty points tax line exists
-        has_loyalty_tax = False
-        loyalty_tax_idx = None
-        
-        for i, tax in enumerate(quotation.taxes):
-            if tax.is_loyalty_points_reduction:
-                has_loyalty_tax = True
-                tax.tax_amount = -quotation.loyalty_amount
-                loyalty_tax_idx = i
-                break
-        
-        # If tax line does not exist, add it manually at the end
-        if not has_loyalty_tax:
-            loyalty_program = frappe.db.get_value("Customer", quotation.party_name, "loyalty_program")
-            if loyalty_program:
-                loyalty_program_doc = frappe.get_doc("Loyalty Program", loyalty_program)
-                
-                # Calculate the correct idx value (should be the next available index)
-                max_idx = 0
-                for tax in quotation.taxes:
-                    if tax.idx > max_idx:
-                        max_idx = tax.idx
-                
-                next_idx = max_idx + 1
-                
-                # Add the loyalty tax with the correct idx value
-                quotation.append("taxes", {
-                    "idx": next_idx,
-                    "charge_type": "Actual",
-                    "description": "Loyalty program",
-                    "account_head": loyalty_program_doc.expense_account,
-                    "cost_center": loyalty_program_doc.cost_center,
-                    "tax_amount": -quotation.loyalty_amount,
-                    "is_loyalty_points_reduction": 1
-                })
-        
-        # Ensure sequential idx values after modifications
-        quotation.taxes.sort(key=lambda x: x.idx)
-        for i, tax in enumerate(quotation.taxes):
-            tax.idx = i + 1
+	"""Add tax line for loyalty points if necessary"""
+	if quotation.loyalty_points and quotation.loyalty_amount:
+		# Check if loyalty points tax line exists
+		has_loyalty_tax = False
+		loyalty_tax_idx = None
+		
+		for i, tax in enumerate(quotation.taxes):
+			if tax.is_loyalty_points_reduction:
+				has_loyalty_tax = True
+				tax.tax_amount = -quotation.loyalty_amount
+				loyalty_tax_idx = i
+				break
+		
+		# If tax line does not exist, add it manually at the end
+		if not has_loyalty_tax:
+			loyalty_program = frappe.db.get_value("Customer", quotation.party_name, "loyalty_program")
+			if loyalty_program:
+				loyalty_program_doc = frappe.get_doc("Loyalty Program", loyalty_program)
+				
+				# Calculate the correct idx value (should be the next available index)
+				max_idx = 0
+				for tax in quotation.taxes:
+					if tax.idx > max_idx:
+						max_idx = tax.idx
+				
+				next_idx = max_idx + 1
+				
+				# Add the loyalty tax with the correct idx value
+				quotation.append("taxes", {
+					"idx": next_idx,
+					"charge_type": "Actual",
+					"description": "Loyalty program",
+					"account_head": loyalty_program_doc.expense_account,
+					"cost_center": loyalty_program_doc.cost_center,
+					"tax_amount": -quotation.loyalty_amount,
+					"is_loyalty_points_reduction": 1
+				})
+		
+		# Ensure sequential idx values after modifications
+		quotation.taxes.sort(key=lambda x: x.idx)
+		for i, tax in enumerate(quotation.taxes):
+			tax.idx = i + 1
 				
 def get_party(user=None, ignore_permissions=False):
 	"""Return the customer (Customer) for the current user"""
@@ -3358,56 +3360,57 @@ def get_coupon_html():
 #//// Neoffice — added endpoint: the loyalty block, with the balance rounded DOWN to a
 #//// multiple of ten because a programme redeems in tens and the buyer was offered a
 #//// number they could not spend (3bc2d836f1, 2025-02-11).
-#//// TO REVIEW: this function is indented with SPACES while the file uses tabs.
+#//// Re-indented with tabs: it came in with four-space indentation while cart.py —
+#//// upstream included — is tab-indented. Whitespace only, no behaviour change.
 @frappe.whitelist(allow_guest=True)
 def get_loyalty_points_html():
-    quotation = _get_cart_quotation()
-    cart_settings = frappe.get_cached_doc("Webshop Settings")
-    
-    # Check if user is logged in and get loyalty points
-    customer_info = get_party()
-    customer = customer_info.name if customer_info else None
-    
-    # Get available loyalty points
-    loyalty_points_details = {}
-    if customer:
-        try:
-            # Get customer's loyalty program first
-            loyalty_program = frappe.db.get_value("Customer", customer, "loyalty_program")
-            if loyalty_program:
-                loyalty_points_details = get_loyalty_program_details_with_points(
-                    customer,
-                    loyalty_program,
-                    company=quotation.company,
-                    silent=True
-                )
-        except Exception as e:
-            frappe.log_error(f"Error getting loyalty points", e)
-            loyalty_points_details = frappe._dict({"loyalty_points": 0})
-    else:
-        loyalty_points_details = frappe._dict({"loyalty_points": 0})
+	quotation = _get_cart_quotation()
+	cart_settings = frappe.get_cached_doc("Webshop Settings")
+	
+	# Check if user is logged in and get loyalty points
+	customer_info = get_party()
+	customer = customer_info.name if customer_info else None
+	
+	# Get available loyalty points
+	loyalty_points_details = {}
+	if customer:
+		try:
+			# Get customer's loyalty program first
+			loyalty_program = frappe.db.get_value("Customer", customer, "loyalty_program")
+			if loyalty_program:
+				loyalty_points_details = get_loyalty_program_details_with_points(
+					customer,
+					loyalty_program,
+					company=quotation.company,
+					silent=True
+				)
+		except Exception as e:
+			frappe.log_error(f"Error getting loyalty points", e)
+			loyalty_points_details = frappe._dict({"loyalty_points": 0})
+	else:
+		loyalty_points_details = frappe._dict({"loyalty_points": 0})
 
-    # Round loyalty points to nearest 10
-    import math
-    raw_loyalty_points = float(loyalty_points_details.get("loyalty_points", 0))
-    rounded_loyalty_points = math.floor(raw_loyalty_points / 10) * 10
-    
-    # Update the loyalty_points_details with rounded points
-    loyalty_points_details["loyalty_points"] = rounded_loyalty_points
-    
-    # Calculate equivalent value based on rounded points
-    conversion_factor = loyalty_points_details.get("conversion_factor", 0)
-    equivalent_value = rounded_loyalty_points * conversion_factor
-    
-    context = {
-        "doc": quotation,
-        "cart_settings": cart_settings,
-        "available_loyalty_points": rounded_loyalty_points,
-        "conversion_factor": conversion_factor,
-        "loyalty_points_value": format_currency_value(equivalent_value, currency=quotation.currency),
-    }
-    
-    return frappe.render_template("templates/includes/loyalty_points_form.html", context)
+	# Round loyalty points to nearest 10
+	import math
+	raw_loyalty_points = float(loyalty_points_details.get("loyalty_points", 0))
+	rounded_loyalty_points = math.floor(raw_loyalty_points / 10) * 10
+	
+	# Update the loyalty_points_details with rounded points
+	loyalty_points_details["loyalty_points"] = rounded_loyalty_points
+	
+	# Calculate equivalent value based on rounded points
+	conversion_factor = loyalty_points_details.get("conversion_factor", 0)
+	equivalent_value = rounded_loyalty_points * conversion_factor
+	
+	context = {
+		"doc": quotation,
+		"cart_settings": cart_settings,
+		"available_loyalty_points": rounded_loyalty_points,
+		"conversion_factor": conversion_factor,
+		"loyalty_points_value": format_currency_value(equivalent_value, currency=quotation.currency),
+	}
+	
+	return frappe.render_template("templates/includes/loyalty_points_form.html", context)
 
 #//// Neoffice — added endpoint (replaces upstream's remove_coupon_code at this
 #//// position). Spends points on the cart: checks the balance, caps the value at the
