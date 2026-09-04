@@ -1,4 +1,6 @@
 import frappe
+#//// Neoffice — getdate/nowdate imported for the expiry adjustment below (batches past
+#//// their expiry date must not be sold on the shop).
 from frappe.utils import flt, getdate, nowdate
 
 from erpnext.stock.doctype.batch.batch import get_batch_qty
@@ -25,6 +27,11 @@ def get_web_item_qty_in_stock(item_code, item_warehouse_field, warehouse=None):
 		warehouses = [warehouse] if warehouse else []
 
 	total_stock = 0.0
+#//// Neoffice — the stock of a webshop item is computed here for every surface (card,
+#//// product page, cart). ▼▼▼ It differs from upstream on three points: reserved
+#//// quantities are deducted (S.actual_qty - S.reserved_qty), POS invoices not yet
+#//// consolidated are subtracted (17128042fc, 2025-12-05), and expired batches are
+#//// removed. A shop selling in store and online oversold otherwise. ▲▲▲
 
 	# Non-stock items are always considered in stock
 	if not is_stock_item:
@@ -33,6 +40,7 @@ def get_web_item_qty_in_stock(item_code, item_warehouse_field, warehouse=None):
 		)
 
 	if warehouses:
+		#//// Neoffice — see the block above.
 		for wh in warehouses:
 			# Use actual_qty - reserved_qty to get available stock
 			# This excludes:
@@ -41,6 +49,7 @@ def get_web_item_qty_in_stock(item_code, item_warehouse_field, warehouse=None):
 			# And properly accounts for:
 			# - Physical stock (actual_qty)
 			# - Reserved for Sales Orders (reserved_qty)
+			#//// Neoffice — reserved quantities deducted (see the block above).
 			stock_qty = frappe.db.sql(
 				"""
 				select (S.actual_qty - S.reserved_qty) / IFNULL(C.conversion_factor, 1)
@@ -48,10 +57,12 @@ def get_web_item_qty_in_stock(item_code, item_warehouse_field, warehouse=None):
 				inner join `tabItem` I on S.item_code = I.Item_code
 				left join `tabUOM Conversion Detail` C on I.sales_uom = C.uom and C.parent = I.Item_code
 				where S.item_code=%s and S.warehouse=%s""",
+				#//// Neoffice — see the block above.
 				(item_code, wh),
 			)
 
 			if stock_qty:
+				#//// Neoffice — expired batches are taken out of what the shop may promise.
 				qty = adjust_qty_for_expired_items(item_code, stock_qty, wh)
 				# Subtract POS reserved quantities (unconsolidated POS Invoices)
 				# POS reservations are not included in projected_qty
@@ -66,6 +77,9 @@ def get_web_item_qty_in_stock(item_code, item_warehouse_field, warehouse=None):
 	)
 
 
+#//// Neoffice — added helper: the quantity held by POS invoices that are not
+#//// consolidated yet. It exists nowhere in ERPNext, and projected_qty does not know
+#//// about it (17128042fc, 2025-12-05).
 def get_pos_reserved_qty(item_code, warehouse):
 	"""
 	Get reserved quantity from unconsolidated POS Invoices.

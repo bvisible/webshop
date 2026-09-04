@@ -7,6 +7,9 @@ from frappe.utils import flt
 from webshop.webshop.doctype.item_review.item_review import get_customer
 from webshop.webshop.shopping_cart.product_info import get_product_info_for_website
 from webshop.webshop.utils.product import get_non_stock_item_status
+#//// Neoffice — added imports: the loyalty message shown on a product card, and the
+#//// currency formatter that honours the shop's "hide currency symbol" setting
+#//// (6fea19b1fe, 2025-06-17; 0134ef756e, 2025-07-03).
 from webshop.webshop.utils.loyalty_points import format_loyalty_points_message
 from webshop.webshop.shopping_cart.cart import get_party
 
@@ -46,6 +49,8 @@ class ProductQuery:
 			"item_name",
 			"item_code",
 			"website_image",
+			#//// Neoffice — image_focus travels with the listing rows: the card computes its
+			#//// cover-fit object-position from it (31feefcae6, 2026-04-19).
 			"image_focus",
 			"variant_of",
 			"has_variants",
@@ -62,6 +67,9 @@ class ProductQuery:
 			"item_condition",
 			"condition_grade",
 		]
+		#//// Neoffice — added state: the cached total (the listing shows "N of M"), the
+		#//// search term kept for the match-priority ordering, and the sort order
+		#//// (2591df1013, 2025-12-14; bfbe33fc4d, 2025-12-15).
 		self._total_count_cache = None
 		# For multi-word search with custom SQL
 		self._search_sql_condition = None
@@ -69,6 +77,9 @@ class ProductQuery:
 		# Store search term for match priority ordering
 		self._search_term = None
 
+	#//// Neoffice — the signature takes a price condition and a sort order; upstream's
+	#//// listing has neither a price filter nor sorting (6fea19b1fe, 2025-06-17;
+	#//// 3c1e847e26, 2025-06-24).
 	def query(self, attributes=None, fields=None, search_term=None, start=0, item_group=None, price_condition=None, sort_order=None):
 		"""
 		Args:
@@ -93,12 +104,16 @@ class ProductQuery:
 			self.build_search_filters(search_term)
 		if self.settings.hide_variants:
 			self.filters.append(["variant_of", "is", "not set"])
+		#//// Neoffice — the price range restricts the item set before the facets are counted,
+		#//// otherwise the facets described a different catalogue from the one shown.
 		if price_condition:
 			self.build_price_filters(price_condition)
 		# Add stock filter if requested
 		if fields and fields.get("in_stock"):
 			self.build_stock_filters(True)
 
+		#//// Neoffice — the sort order is kept on the instance: it is applied in the query
+		#//// methods below, after the filters.
 		# Store sort order for use in query
 		self.sort_order = sort_order
 		
@@ -108,6 +123,8 @@ class ProductQuery:
 			result, count = self.query_items_with_attributes(attributes, start)
 		else:
 			result, count = self.query_items(start=start)
+#//// Neoffice — upstream discards the search term once the filters are built; it is
+#//// kept for the match-priority CASE (bfbe33fc4d, 2025-12-15).
 
 		if self.settings.enabled:
 			cart_items = self.get_cart_items()
@@ -118,10 +135,16 @@ class ProductQuery:
 		if discount_list:
 			discounts = [min(discount_list), max(discount_list)]
 
+		#//// Neoffice — the discount filter is applied inside the query methods rather than
+		#//// as a post-filter: filtering afterwards broke the paging (the page came back
+		#//// short) (8ba1a7ab46, 2025-06-08).
 		# Note: Discount filtering is now handled directly in the query methods
 		# for better performance (query_items_with_discount_filter and 
 		# query_items_with_discount_and_price_sort)
 
+		#//// Neoffice — the payload carries the totals the listing needs (items_count vs
+		#//// total_count) so the pager and the "N of M" counter agree (2591df1013,
+		#//// 2025-12-14).
 		return {
 			"items": result, 
 			"items_count": len(result),
@@ -726,6 +749,7 @@ class ProductQuery:
 		        filters (dict): Filters
 		"""
 		for field, values in filters.items():
+			#//// Neoffice — a facet with no value is dropped instead of being rendered empty.
 			if not values:
 				continue
 				
@@ -793,6 +817,8 @@ class ProductQuery:
 			# handle multiselect fields in filter addition
 			meta = frappe.get_meta("Website Item", cached=True)
 			df = meta.get_field(field)
+			#//// Neoffice — Table MultiSelect fields (our tag filters) are read through their
+			#//// child table; upstream only knows Link and Select (6fea19b1fe, 2025-06-17).
 			if df and df.fieldtype == "Table MultiSelect":
 				child_doctype = df.options
 				child_meta = frappe.get_meta(child_doctype, cached=True)
@@ -810,12 +836,19 @@ class ProductQuery:
 		"Add filters for Item group page and include Website Item Groups."
 		from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
 
+		#//// Neoffice — the item-group branch is wrapped: a shop whose root group was renamed
+		#//// (a French install) made this raise and took the whole listing with it
+		#//// (1694f451eb, 2025-12-15).
 		try:
 			# Always include child groups when filtering
 			# This ensures that selecting a parent category shows all products from child categories
 			include_groups = get_child_groups_for_website(item_group, include_self=True)
+			#//// Neoffice — see above.
 			include_groups = [x.name for x in include_groups] if include_groups else []
 
+			#//// Neoffice — the descendants of the selected group are included, so choosing a
+			#//// parent category shows the products of its children (upstream matches the exact
+			#//// group only).
 			if include_groups:
 				# Use regular filters for item_group to ensure proper count
 				self.filters.append(["item_group", "in", include_groups])
@@ -831,6 +864,11 @@ class ProductQuery:
 		# and is not included in the count query for performance reasons
 
 	def build_search_filters(self, search_term):
+		#//// Neoffice — the search is rewritten below. ▼▼▼ Upstream builds one LIKE per field
+		#//// on the whole term, so "glock 17" matched nothing when the product is "Glock 17
+		#//// Gen5". Words are matched independently and ALL must be found, in any field
+		#//// (0ca4b97e72, 2025-12-12), and the results are ordered by where the match
+		#//// happened — name, then code, then description (bfbe33fc4d, 2025-12-15). ▲▲▲
 		"""Query search term in specified fields with fuzzy multi-word matching.
 
 		Improvements over simple LIKE search:
@@ -842,6 +880,7 @@ class ProductQuery:
 		Args:
 		        search_term (str): Search candidate
 		"""
+		#//// Neoffice — an empty search is not a filter (see the block above).
 		if not search_term or not search_term.strip():
 			return
 
@@ -857,6 +896,8 @@ class ProductQuery:
 			return
 
 		# Default fields to search from
+		#//// Neoffice — item_code and item_group are searched too: a buyer pasting a
+		#//// reference found nothing (87cde0532f, 2025-06-24; e5c9f74cf0, 2025-12-15).
 		default_fields = {"item_code", "item_name", "description", "web_long_description", "item_group"}
 
 		# Get meta search fields
@@ -868,6 +909,9 @@ class ProductQuery:
 		if frappe.db.count("Website Item", cache=True) > 50000:
 			search_fields.discard("web_long_description")
 
+		#//// Neoffice — see the block marker above: multi-word matching, the SQL condition it
+		#//// produces, the match-priority CASE and the price filters (which upstream does
+		#//// not have at all).
 		# Split search term into individual words and normalize
 		# This allows "glock 17" to match "Glock 17 Gen5" regardless of order or case
 		words = [w.strip().lower() for w in search_term.split() if w.strip()]
@@ -1062,6 +1106,8 @@ class ProductQuery:
 			):
 				item.wished = True
 
+			#//// Neoffice — the loyalty points a product earns are computed for the card
+			#//// (6fea19b1fe, 2025-06-17).
 			# Add loyalty points information if enabled
 			if self.settings.enable_loyalty_points and (frappe.session.user != "Guest" or self.settings.show_loyalty_points_for_guests):
 				if item.get("formatted_price") and item.get("price_list_rate"):
@@ -1074,12 +1120,16 @@ class ProductQuery:
 
 	def get_price_discount_info(self, item, price_object, discount_list):
 		"""Modify item object and add price details."""
+		#//// Neoffice — prices are formatted with the shop's currency setting (0134ef756e,
+		#//// 2025-07-03).
 		from webshop.webshop.utils.utils import format_currency_value
 		
 		fields = ["formatted_mrp", "formatted_price", "price_list_rate"]
 		for field in fields:
 			item[field] = price_object.get(field)
 
+		#//// Neoffice — see above: formatted_price is overridden after upstream has built it,
+		#//// so the setting applies everywhere the listing shows a price.
 		# Override formatted_price with our custom formatting
 		if price_object.get("price_list_rate") is not None:
 			item["formatted_price"] = format_currency_value(
@@ -1110,9 +1160,13 @@ class ProductQuery:
 		from webshop.templates.pages.wishlist import (
 			get_stock_availability as get_stock_availability_from_template,
 		)
+		#//// Neoffice — the stock shown on a card is the webshop stock (projected, minus POS
+		#//// reservations, per source when multi-warehouse is on) — see utils/product.py
+		#//// (17128042fc / f3d9fb5de7, 2025-12; 5bf2e88a1b, 2026-08-25).
 		from webshop.webshop.utils.product import get_web_item_qty_in_stock
 
 		item.in_stock = False
+		#//// Neoffice — see above.
 		item.stock_qty = 0
 		warehouse = item.get("website_warehouse")
 		is_stock_item = frappe.get_cached_value("Item", item.item_code, "is_stock_item")
@@ -1449,7 +1503,14 @@ class ProductQuery:
 		
 		return items
 
+#//// Neoffice — added helper. ▼▼▼ A course sold at 90 or 140 depending on the access
+#//// duration printed "CHF 90.00" flat, which reads as the price rather than the
+#//// cheapest one; it becomes "from CHF 90.00" (7eab718951 / 631cc99177 /
+#//// d960fe3968, 2026-08-03). Applied on formatted_price where the listing builds it,
+#//// so the tile, the search and the carousels all agree.
+#//// TO REVIEW: the docstring below is in French (RULE #00). ▲▲▲
 def prefix_from_when_several_offers(item) -> None:
+	#//// Neoffice — see the block above.
 	"""« dès CHF 90.– » quand l'article se vend à plusieurs prix.
 
 	🔴 Un cours vendu 90 ou 140 selon la durée d'accès affichait « CHF 90.00 »
@@ -1463,6 +1524,7 @@ def prefix_from_when_several_offers(item) -> None:
 	Silencieux si l'app de formation n'est pas là : une boutique sans cours ne
 	doit pas dépendre d'elle.
 	"""
+	#//// Neoffice — see the block above.
 	if not item.get("formatted_price"):
 		return
 	try:

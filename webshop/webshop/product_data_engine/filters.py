@@ -3,11 +3,17 @@
 import frappe
 from frappe import _
 from frappe.utils import floor
+#//// Neoffice — the currency formatter honours the shop's "hide currency symbol"
+#//// setting (0134ef756e, 2025-07-03).
 from webshop.webshop.utils.utils import format_currency_value
 
 
 class ProductFiltersBuilder:
 	def __init__(self, item_group=None):
+		#//// Neoffice — upstream reads the filter configuration from the Item Group when there
+		#//// is one, and from Webshop Settings otherwise, so two categories offered different
+		#//// facets on the same shop. The shop's own configuration wins everywhere
+		#//// (8ba1a7ab46, 2025-06-08).
 		# Always use Webshop Settings for filters configuration
 		# This ensures consistent filter display across all pages
 		self.doc = frappe.get_doc("Webshop Settings")
@@ -16,6 +22,7 @@ class ProductFiltersBuilder:
 	def get_field_filters(self):
 		from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
 
+#//// Neoffice — see above.
 
 		if not self.doc.enable_field_filters:
 			return
@@ -92,6 +99,9 @@ class ProductFiltersBuilder:
 				)
 
 				values = list(set(item_values) & link_doctype_values)  # intersection of both
+				#//// Neoffice — added: the price facet (min/max of the current result set) and the
+				#//// discount facet, neither of which upstream has (6fea19b1fe, 2025-06-17;
+				#//// 8ba1a7ab46, 2025-06-08).
 				
 				# Special handling for item_group to include parents
 				if df.fieldname == 'item_group' and values:
@@ -307,6 +317,9 @@ class ProductFiltersBuilder:
 		return filters
 
 	def get_attribute_filters(self):
+		#//// Neoffice — the attribute facets are gated on Webshop Settings; a shop that hides
+		#//// variants must not offer attribute filters at all, and the two settings are
+		#//// mutually exclusive (b103d68868 / 0c15976673, 2025-11-30).
 		if not self.doc.enable_attribute_filters:
 			return
 
@@ -332,6 +345,8 @@ class ProductFiltersBuilder:
 				continue
 
 			values = attribute_value_map[attribute]
+			#//// Neoffice — attribute values are sorted alphabetically; upstream returns them in
+			#//// the order the Item Attribute happens to list them.
 			# Sort attribute values alphabetically
 			sorted_values = sorted(values, key=lambda x: x.lower() if isinstance(x, str) else str(x))
 			out.append(frappe._dict(name=attribute, item_attribute_values=sorted_values))

@@ -166,8 +166,12 @@ def get_next_attribute_and_values(item_code, selected_attributes):
 				exact_match.append(item_code)
 
 	filtered_items_count = len(filtered_items)
+	#//// Neoffice — the shop settings are read here so the answer can carry
+	#//// enable_guest_cart (see below): the variant dialog has to know whether a guest may
+	#//// add to the cart (b9f319c437, 2025-02-24).
 	cart_settings = get_shopping_cart_settings()
 
+	#//// Neoffice — see above.
 	if exact_match:
 		product_info = get_item_variant_price_dict(exact_match[0], cart_settings)
 		if product_info:
@@ -225,11 +229,16 @@ def get_next_attribute_and_values(item_code, selected_attributes):
 	else:
 		warehouses = [warehouse] if warehouse else []
 
+	#//// Neoffice — upstream reads Bin.actual_qty. projected_qty is what the shop may
+	#//// promise (it deducts the open Sales Orders), and POS invoices not yet consolidated
+	#//// hold stock that projected_qty ignores — a shop selling in store and online
+	#//// oversold (17128042fc, 2025-12-05; f3d9fb5de7, 2025-12-06).
 	for wh in warehouses:
 		# Use projected_qty which accounts for reserved quantities from Sales Orders
 		bin_qty = flt(
 			frappe.db.get_value("Bin", {"item_code": product_id, "warehouse": wh}, "projected_qty")
 		)
+		#//// Neoffice — see above (POS reservations).
 		# Subtract POS reserved quantities (unconsolidated POS Invoices)
 		# POS reservations are not included in projected_qty
 		from webshop.webshop.utils.product import get_pos_reserved_qty
@@ -244,6 +253,7 @@ def get_next_attribute_and_values(item_code, selected_attributes):
 		"exact_match": exact_match,
 		"product_info": product_info,
 		"available_qty": available_qty,
+		#//// Neoffice — enable_guest_cart travels to the variant dialog (see #1).
 		"enable_guest_cart": cart_settings.enable_guest_cart,
 	}
 
@@ -286,12 +296,16 @@ def get_item_variant_price_dict(item_code, cart_settings):
 		# Show Price if logged in.
 		# If not logged in, check if price is hidden for guest.
 		if not is_guest or not cart_settings.hide_price_for_guest:
+			#//// Neoffice — with the guest cart on, the price list is the one resolved for the site
+			#//// being browsed rather than the shop default: a professional site with its own
+			#//// tariff showed the standard price to guests (422e3c3c71, 2026-08-28).
 			price_list = cart_settings.price_list if not cart_settings.enable_guest_cart else _set_price_list(cart_settings, None)
 			# Get website_warehouse for Pricing Rule matching
 			website_warehouse = frappe.db.get_value(
 				"Website Item", {"item_code": item_code}, "website_warehouse"
 			)
 			price = get_price(
+				#//// Neoffice — see above.
 				item_code, price_list, cart_settings.default_customer_group, cart_settings.company,
 				warehouse=website_warehouse
 			)
