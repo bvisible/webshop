@@ -176,6 +176,9 @@ class WebsiteItem(WebsiteGenerator):
 
 		if self.website_image and not self.thumbnail:
 			file_doc = None
+			#//// Neoffice — the website image is resolved from the Item's own attachments: a
+			#//// variant published without an image showed nothing, where the template had one
+			#//// (8f351c4819, 2025-03-18).
 			
 			# Check if the file exists
 			existing_files = frappe.get_all(
@@ -187,6 +190,8 @@ class WebsiteItem(WebsiteGenerator):
 				limit=1
 			)
 
+			#//// Neoffice — an image already attached under the same URL is reused instead of being
+			#//// duplicated on every save.
 			# If a file with this URL already exists
 			if existing_files:
 				try:
@@ -220,12 +225,16 @@ class WebsiteItem(WebsiteGenerator):
 					},
 				)
 			except frappe.DoesNotExistError:
+				#//// Neoffice — the failure is logged with the two-argument form (title, message);
+				#//// upstream lets it bubble up and the publication fails with a traceback.
 				frappe.log_error(
 					"Image Debug - File Not Attached Yet",
 					f"No file with URL {self.website_image} attached to {self.doctype} {self.name}"
 				)
 				pass
 				# cleanup
+				#//// Neoffice — publishing must not fail on a message queued by another app: the
+				#//// message log is drained and reported instead of aborting the save.
 				if frappe.local.message_log:
 					frappe.local.message_log.pop()
 			except (requests.exceptions.HTTPError, requests.exceptions.SSLError) as e:
@@ -238,6 +247,7 @@ class WebsiteItem(WebsiteGenerator):
 						_("Warning: Invalid SSL certificate on attachment {0}").format(
 							self.website_image
 						)
+					#//// Neoffice — see above.
 					)
 				self.website_image = None
 
@@ -253,6 +263,7 @@ class WebsiteItem(WebsiteGenerator):
 						}
 					).save()
 
+				#//// Neoffice — same guard on the second image path (see above).
 				except Exception as e:
 					frappe.log_error(
 						"Image Debug - Error Creating File",
@@ -309,6 +320,8 @@ class WebsiteItem(WebsiteGenerator):
 		self.set_shopping_cart_data(context)
 
 		settings = context.shopping_cart.cart_settings
+		#//// Neoffice — multi-site: a Website Item can be published to some sites only, and
+		#//// the publish dialog writes the chosen ones here (c61d26c41a, 2026-07-08).
 		
 		# Add loyalty points information
 		if settings.enable_loyalty_points:
@@ -713,6 +726,8 @@ class WebsiteItem(WebsiteGenerator):
 			.join(wi)
 			.on(ri.item_code == wi.item_code)
 			.select(
+				#//// Neoffice — the carousel query selects the fields the card needs (image focus,
+				#//// condition, warehouse sources).
 				wi.item_code,
 				wi.route,
 				wi.web_item_name,
@@ -736,6 +751,9 @@ class WebsiteItem(WebsiteGenerator):
 			if is_guest and settings.hide_price_for_guest:
 				return items
 
+			#//// Neoffice — with the guest cart on, the price list is the one resolved for the site
+			#//// being browsed, not the shop default: a professional site showed the standard
+			#//// tariff (422e3c3c71, 2026-08-28).
 			selling_price_list = settings.price_list if not settings.enable_guest_cart else _set_price_list(settings, None)
 			party = get_party()
 
@@ -746,8 +764,13 @@ class WebsiteItem(WebsiteGenerator):
 					settings.default_customer_group,
 					settings.company,
 					party=party,
+					#//// Neoffice — the website_warehouse is passed to get_price so a Pricing Rule scoped
+					#//// to a warehouse matches (d23d979933, 2025-12-05).
 					warehouse=item.get("website_warehouse"),
 				)
+				#//// Neoffice — the price fields are flattened onto the row: the carousel template
+				#//// renders them directly and could not reach into price_info (e00db198ca /
+				#//// 98b2c47fe6, 2025-11-24).
 				# Flatten price_info fields for carousel compatibility
 				if item.price_info:
 					from webshop.webshop.utils.utils import format_currency_value
@@ -851,6 +874,11 @@ def check_if_user_is_customer(user=None):
 
 	return True if customer else False
 
+#//// Neoffice — added endpoints, to the end of the file. ▼▼▼ get_item_warehouses (the
+#//// publish dialog proposes the warehouse holding the most stock, 31e16e2ee3,
+#//// 2025-03-19), the multi-site publication helpers (c61d26c41a, 2026-07-08) and the
+#//// image helpers used when an Item carries several attachments (8f351c4819,
+#//// 2025-03-18). ▲▲▲
 @frappe.whitelist()
 def get_item_warehouses(item_code):
 	"""
@@ -883,6 +911,7 @@ def make_website_item(doc, save=True):
 	website_item = frappe.new_doc("Website Item")
 	website_item.web_item_name = doc.get("item_name")
 
+	#//// Neoffice — see the block above (default warehouse = the one with the most stock).
 	# Define default warehouse (one with the most stock)
 	warehouses_with_stock = get_item_warehouses(doc.get("item_code"))
 	if warehouses_with_stock:
@@ -907,6 +936,7 @@ def make_website_item(doc, save=True):
 	):
 		website_item.website_image = doc.get("image")
 
+	#//// Neoffice — see the block above (an Item with several images).
 	# Check if there are multiple images attached to the Item
 	item_images = []
 	

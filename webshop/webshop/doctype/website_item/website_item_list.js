@@ -93,4 +93,5 @@ frappe.listview_settings['Website Item'] = {
 			});
 		}, false);
 	}
+//// Neoffice — trailing newline added at end of file (whitespace only).
 };

@@ -56,6 +56,8 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 
 		filter_engine = ProductFiltersBuilder(self.name)
 
+		#//// Neoffice — SEO on category pages: real meta description, canonical and JSON-LD;
+		#//// upstream renders a bare title (ed337ce4a3, 2026-07-06).
 		# SEO: meta tags for category pages
 		_cat_desc = frappe.utils.strip_html(self.get("description") or "") or ("%s - %s" % (self.name, frappe.db.get_single_value("Website Settings", "app_name") or ""))
 		metatags = frappe._dict(context.get("metatags") or {})
@@ -67,6 +69,7 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 
 		context.field_filters = filter_engine.get_field_filters()
 		context.attribute_filters = filter_engine.get_attribute_filters()
+		#//// Neoffice — see above.
 		
 		# Add tag filters if enabled
 		if frappe.db.get_single_value("Webshop Settings", "enable_tag_filters"):
@@ -102,12 +105,18 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 			context.slideshow = values
 
 		context.no_breadcrumbs = False
+		#//// Neoffice — the page title is suffixed with the shop name here as well: get_context
+		#//// re-set it further down, so suffixing only in one place lost it (f39c6eb87b,
+		#//// 2026-07-06).
 		_site_name = frappe.db.get_single_value("Website Settings", "app_name")
 		_base_title = self.website_title or self.name
 		context.title = _base_title + " | " + _site_name if _site_name and _site_name != "Frappe" else _base_title
 		context.name = self.name
 		context.item_group_name = self.item_group_name
 
+		#//// Neoffice — a visitor who signs in on a category page keeps the cart they filled as
+		#//// a guest: the two carts are merged (e0435e0dd6, 2025-06-26 "Fix bug login and merge
+		#//// cart").
 		from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
 
 		# Check and merge guest cart if needed

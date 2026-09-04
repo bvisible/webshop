@@ -148,6 +148,9 @@ def add_item_review(web_item, title, rating, comment=None):
 		doc.save()
 
 
+#//// Neoffice — added helper: whether the customer really bought the item, used to flag
+#//// a review as a verified purchase — the badge the review card shows and the
+#//// purchase follow-up e-mails rely on (5d19e3fed9, 2026-09-03).
 def has_bought(customer, item_code):
 	if not customer or not item_code:
 		return False

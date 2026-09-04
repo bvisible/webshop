@@ -5,8 +5,12 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+#//// Neoffice — flt imported for the gift-card amounts and the price filter bounds.
 from frappe.utils import cint, flt
 
+#//// Neoffice — only the module-loaded probe is kept: RediSearch is disabled and the
+#//// search runs on SQL (c54680b459 / e580d79023, 2025-12-15), so the settings that
+#//// configured the index were removed from the DocType.
 from webshop.webshop.redisearch_utils import is_search_module_loaded
 from webshop.webshop.utils.frequently_bought_together import calculate_frequently_bought_together
 
@@ -49,6 +53,8 @@ class WebshopSettings(Document):
 
 		frappe.clear_document_cache("Webshop Settings", "Webshop Settings")
 
+		#//// Neoffice — the gift-card switch is remembered before the save so after_save can
+		#//// add or remove the portal menu entry when it changes (2f63a51219, 2025-12-12).
 		# Save current state of enable_gift_cards for comparison in after_save
 		self.enable_gift_cards_pre_save = frappe.db.get_single_value(
 			"Webshop Settings", "enable_gift_cards"
@@ -138,6 +144,9 @@ class WebshopSettings(Document):
 					)
 
 	def after_save(self):
+		#//// Neoffice — the currency-symbol cache is dropped when the settings change, or a
+		#//// shop kept printing "CHF" for an hour after turning the setting off (0134ef756e,
+		#//// 2025-07-03).
 		# Clear currency symbol cache when settings change
 		frappe.cache().delete_value("webshop_hide_currency_symbol")
 	
@@ -146,6 +155,9 @@ class WebshopSettings(Document):
 		if self.enable_gift_cards == self.enable_gift_cards_pre_save:
 			return
 
+		#//// Neoffice — the portal menu entries for loyalty points and gift cards are created
+		#//// or removed here, matching the switches; the old hyphenated route is cleaned up
+		#//// (2f63a51219 / 9909429ca3, 2025-12-12).
 		# Check if entry already exists (check both old and new routes)
 		exists = frappe.db.exists("Portal Menu Item", {
 			"route": "/gift_cards",
@@ -257,6 +269,8 @@ class WebshopSettings(Document):
 			if row.fieldname not in valid_fields:
 				frappe.throw(
 					_(
+						#//// Neoffice — Table MultiSelect is accepted as a filter field type (our tag
+						#//// filters) — upstream allows Link and Select only (6fea19b1fe, 2025-06-17).
 						"Filter Fields Row #{0}: Fieldname {1} must be of type 'Link', 'Select' or 'Table MultiSelect'"
 					).format(row.idx, frappe.bold(row.fieldname))
 				)
@@ -265,6 +279,9 @@ class WebshopSettings(Document):
 		if not (self.enable_attribute_filters and self.filter_attributes):
 			return
 
+		#//// Neoffice — "Hide Variants" and "Enable Attribute Filters" are mutually exclusive,
+		#//// and the shop is told so explicitly instead of silently getting an empty facet
+		#//// (b103d68868, 2025-11-30).
 		# if attribute filters are enabled with filter_attributes configured,
 		# hide_variants cannot be enabled - they are mutually exclusive features
 		if self.hide_variants:
@@ -279,6 +296,7 @@ class WebshopSettings(Document):
 	def validate_checkout(self):
 		if self.enable_checkout and not self.payment_gateway_account:
 			self.enable_checkout = 0
+#//// Neoffice — the RediSearch validation block is removed with the feature (see #2).
 
 	def validate_price_list_exchange_rate(self):
 		"Check if exchange rate exists for Price List currency (to Company's currency)."
@@ -312,6 +330,8 @@ class WebshopSettings(Document):
 		if not frappe.db.get_value("Tax Rule", {"use_for_shopping_cart": 1}, "name"):
 			frappe.throw(frappe._("Set Tax Rule for shopping cart"), ShoppingCartSetupError)
 
+	#//// Neoffice — the territory helpers are kept but no longer private to the tax
+	#//// lookup: the shipping-rule helper below reuses them.
 	def get_name_from_territory(self, territory, fieldname, doctype):
 		"""Gets document name for a given territory"""
 		name = None
@@ -330,6 +350,7 @@ class WebshopSettings(Document):
 		return name
 
 	def get_tax_master(self, billing_territory):
+		#//// Neoffice — see above.
 		"""Gets tax template for a given territory"""
 		tax_master = None
 		if billing_territory:
@@ -347,6 +368,8 @@ class WebshopSettings(Document):
 		return tax_master
 
 	def get_shipping_rules(self, shipping_territory):
+		#//// Neoffice — the shipping rules of a territory are read for the checkout, which
+		#//// needs to offer them before an order exists (6d4eca593f, 2025-12-12).
 		"""Gets shipping rules for a given territory"""
 		shipping_rules = []
 		if shipping_territory:
@@ -388,6 +411,9 @@ class WebshopSettings(Document):
 			"webshop.www.sitemap_pages.get_web_page_links"
 		]
 
+		#//// Neoffice — every cache the shop builds (prices, discounts, facets, carousels,
+		#//// sitemaps) is dropped when the settings change; upstream clears none of them
+		#//// (84d621a387, 2025-06-23; e7a63e7680, 2025-12-02).
 		# Clear each cache using frappe.cache()
 		cache = frappe.cache()
 		for key in cache_keys:
@@ -429,6 +455,11 @@ class WebshopSettings(Document):
 def validate_cart_settings(doc=None, method=None):
 	frappe.get_doc("Webshop Settings", "Webshop Settings").run_method("validate")
 
+#//// Neoffice — added endpoints, to the end of the file. ▼▼▼ The settings the front end
+#//// reads (get_shopping_cart_settings is called by the listing bundle, hence
+#//// allow_guest), the category order tree of the settings form (cdc2a139cf /
+#//// f1d92302aa, 2025-12-15) and the sitemap regeneration button (bb199f2e1f /
+#//// 53e16ab3d0, 2026-01-07). ▲▲▲
 @frappe.whitelist(allow_guest=True)
 def get_shopping_cart_settings():
     settings = frappe.get_cached_doc("Webshop Settings")
@@ -474,6 +505,7 @@ def check_shopping_cart_enabled():
 
 def show_attachments():
 	return get_shopping_cart_settings().show_attachments
+#//// Neoffice — see the block above.
 
 
 @frappe.whitelist()

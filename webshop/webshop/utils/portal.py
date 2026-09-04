@@ -4,6 +4,8 @@ from frappe.utils.nestedset import get_root_of
 from erpnext.portal.utils import create_customer_or_supplier
 
 from webshop.webshop.doctype.webshop_settings.webshop_settings import (
+	#//// Neoffice — whitespace only: this file differs from upstream by indentation alone
+	#//// (`git diff -w` is empty). Resolve any merge conflict by taking upstream's side.
 	get_shopping_cart_settings,
 )
 from webshop.webshop.shopping_cart.cart import get_debtors_account
@@ -62,4 +64,5 @@ def update_debtors_account():
 		{"accounts": [{"company": cart_settings.company, "account": debtors_account}]}
 	)
 
+	#//// Neoffice — whitespace only (see above).
 	return party

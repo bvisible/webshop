@@ -9,12 +9,17 @@ frappe.ui.form.on("Webshop Settings", {
 		}
 
 		frm.set_query('payment_gateway_account', function() {
+			//// Neoffice — the price-list query is scoped to selling lists; upstream offers every
+			//// price list, including buying ones, which then priced the shop at cost.
 			return { 'filters': {
 				'payment_channel': ['in', ["Email", "Phone"]]
 			 } };
 		});
 	},
 	refresh: function(frm) {
+		//// Neoffice — the interactive category order tree: a shop orders its categories by
+		//// drag and drop, and the weightages are written back (cdc2a139cf / f1d92302aa,
+		//// 2025-12-15).
 		// Initialize Category Order Tree
 		render_category_order_tree(frm);
 		if (frm.doc.enabled) {
@@ -28,6 +33,10 @@ frappe.ui.form.on("Webshop Settings", {
 			);
 		}
 
+		//// Neoffice — added, down to the end of the form script. ▼▼▼ The sitemap buttons
+		//// (bb199f2e1f, 2026-01-07), the category tree with its collapse/expand state
+		//// (c4b9b135bd, 2025-12-15) and the client-side guard that refuses "Hide Variants"
+		//// together with "Enable Attribute Filters" (0c15976673, 2025-11-30). ▲▲▲
 		// Add sitemap view button
 		frm.add_custom_button(__('View Sitemap'), function() {
 			window.open('/sitemap_index.xml', '_blank');
@@ -258,6 +267,7 @@ frappe.ui.form.on("Webshop Settings", {
 			frm.set_value('default_customer_group', '');
 			frm.set_value('quotation_series', '');
 		}
+	//// Neoffice — see the block above.
 	},
 	enable_checkout_page: function(frm) {
 		if (frm.doc.enable_checkout_page) {

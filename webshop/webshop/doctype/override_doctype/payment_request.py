@@ -1,6 +1,9 @@
 import frappe
+#//// Neoffice — _ imported for the messages returned to the buyer.
 from frappe import _
 from frappe.utils import get_url
+#//// Neoffice — place_order is called from on_payment_authorized below (see next
+#//// marker).
 from webshop.webshop.shopping_cart.cart import place_order
 
 from erpnext.accounts.doctype.payment_request.payment_request import (
@@ -46,6 +49,10 @@ class PaymentRequest(OriginalPaymentRequest):
         if not cart_settings.enabled:
             return
 
+        #//// Neoffice — upstream's on_payment_authorized only sets the status. Our checkout
+        #//// raises the Payment Request against the QUOTATION, so the order has to be created
+        #//// here, once the PSP has confirmed — and idempotently, because a PSP retries its
+        #//// callback (392e3c313a / 57f71797e1, 2026-06-02).
         # If it's a Quotation, create the Sales Order
         if self.reference_doctype == "Quotation":
             payment_request = self
@@ -115,6 +122,10 @@ class PaymentRequest(OriginalPaymentRequest):
                 }
             ).get(success_url, "/me")
 
+        #//// Neoffice — the callback runs without a session (the PSP is the caller), so the
+        #//// user is set explicitly; the finally block that restored it was removed because it
+        #//// corrupted the session user (847f9137c3, 2025-12-12).
+        #//// TO REVIEW: this block is indented with spaces while the file uses tabs.
         # Set the user to Administrator to avoid permission errors
         frappe.set_user("Administrator")
         # Call the set_as_paid method

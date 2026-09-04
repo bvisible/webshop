@@ -5,12 +5,15 @@
 import json
 
 import frappe
+#//// Neoffice — _ imported for the messages our endpoints return to the buyer.
 from frappe import _
 from frappe.utils import cint
 
 from webshop.webshop.product_data_engine.filters import ProductFiltersBuilder
 from webshop.webshop.product_data_engine.query import ProductQuery
 from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
+#//// Neoffice — the discounted-products queries behind the "on sale" filter, which
+#//// upstream does not have (8ba1a7ab46, 2025-06-08).
 from webshop.webshop.utils.discount_query import get_discounted_items_query, get_items_with_pricing_rule_discount
 from webshop.webshop.utils.import_gift_cards import import_gift_cards_from_excel, get_gift_card_import_template
 
@@ -35,6 +38,9 @@ def get_product_filter_data(query_args=None):
 		query_args = json.loads(query_args)
 
 	query_args = frappe._dict(query_args or {})
+	#//// Neoffice — the endpoint takes the price condition, the sort order and the search
+	#//// term the toolbar sends; upstream's payload has none of them (6fea19b1fe,
+	#//// 2025-06-17; 3c1e847e26, 2025-06-24; d579b1c02a, 2025-12-14).
 	
 	# Debug logging for filter issues
 	if frappe.conf.developer_mode:
@@ -52,6 +58,7 @@ def get_product_filter_data(query_args=None):
 		search = query_args.get("search")
 		field_filters = query_args.get("field_filters", {})
 		attribute_filters = query_args.get("attribute_filters", {})
+		#//// Neoffice — see above (sort order, price range, infinite-scroll paging).
 		sort_order = query_args.get("sort_order", "relevance")
 		
 		# Try to parse price_range
@@ -87,6 +94,9 @@ def get_product_filter_data(query_args=None):
 		item_group = query_args.get("item_group")
 		from_filters = query_args.get("from_filters")
 	else:
+		#//// Neoffice — the arguments are read defensively: a filter URL shared from a phone
+		#//// arrives double-encoded, and upstream's bare unpacking raised, leaving the listing
+		#//// empty with only a console error.
 		search, attribute_filters, field_filters, start, item_group, from_filters = (
 			None,
 			None,
@@ -101,8 +111,11 @@ def get_product_filter_data(query_args=None):
 	# if new filter is checked, reset start to show filtered items from page 1
 	if from_filters:
 		start = 0
+#//// Neoffice — see above.
 
 	engine = ProductQuery()
+	#//// Neoffice — the discount filter is applied inside the query rather than after it:
+	#//// filtering afterwards returned short pages (8ba1a7ab46, 2025-06-08).
 	
 	# Pass price_condition to the query
 	result = engine.query(
@@ -117,9 +130,11 @@ def get_product_filter_data(query_args=None):
 
 	# discount filter data
 	filters = {}
+	#//// Neoffice — the discount facet is built from the result set.
 	discounts = result.get("discounts")
 
 	if discounts:
+		#//// Neoffice — see above.
 		filters["discount"] = get_discount_filters(discounts)
 	
 	# Get price filters based on current field filters
@@ -130,9 +145,17 @@ def get_product_filter_data(query_args=None):
 		filters["price_filters"] = price_filters
 
 	return {
+		#//// Neoffice — the payload carries both counts (this page, and the whole result set)
+		#//// so the pager and the "N of M" counter agree.
 		"items": result.get("items"),
 		"filters": filters,
 		"settings": engine.settings,
+		#//// Neoffice — added, to the end of the file. ▼▼▼ Endpoints upstream has no
+		#//// equivalent for: prices for the search dropdown (48e2708353, 2025-03-13), the
+		#//// customer's addresses for the checkout address book (3dc2779c0d, 2026-08-26),
+		#//// cross-sell offers for the cart (8c29208cca, 2026-09-03) and the helpers of the
+		#//// /my_addresses page (49e4068f7f, 2026-01-03). Each one re-checks that the document
+		#//// belongs to the caller's party before answering. ▲▲▲
 		"items_count": result.get("items_count"),
 		"total_count": result.get("total_count"),
 		"sub_categories": result.get("sub_categories", [])
