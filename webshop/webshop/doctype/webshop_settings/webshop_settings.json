@@ -114,6 +114,35 @@
   "store_hours",
   "store_closures",
   "store_hours_note",
+  "tab_assistant",
+  "assistant_section",
+  "enable_assistant",
+  "assistant_name",
+  "assistant_welcome",
+  "assistant_column_look",
+  "assistant_position",
+  "assistant_color",
+  "assistant_status",
+  "assistant_knowledge_section",
+  "assistant_knowledge",
+  "assistant_llm_section",
+  "assistant_llm_base_url",
+  "assistant_llm_api_key",
+  "assistant_column_llm",
+  "assistant_llm_model",
+  "assistant_llm_timeout",
+  "assistant_limits_section",
+  "assistant_guest_daily_limit",
+  "assistant_user_daily_limit",
+  "assistant_retention_days",
+  "assistant_column_limits",
+  "assistant_monthly_token_cap",
+  "assistant_token_price",
+  "assistant_escalation_section",
+  "assistant_escalation_channel",
+  "assistant_support_email",
+  "assistant_column_escalation",
+  "assistant_helpdesk_team",
   "tab_emails",
   "abandoned_cart_section",
   "enable_abandoned_cart_emails",
@@ -223,6 +252,177 @@
    "fieldname": "store_hours_note",
    "fieldtype": "Small Text",
    "label": "Note under the hours"
+  },
+  {
+   "fieldname": "tab_assistant",
+   "fieldtype": "Tab Break",
+   "label": "Assistant"
+  },
+  {
+   "fieldname": "assistant_section",
+   "fieldtype": "Section Break",
+   "label": "Shop Assistant"
+  },
+  {
+   "default": "0",
+   "description": "A chat bubble on every page of the shop: products at their selling price, opening hours, and the signed-in customer's orders, invoices and quotations",
+   "fieldname": "enable_assistant",
+   "fieldtype": "Check",
+   "label": "Enable the shop assistant"
+  },
+  {
+   "default": "Nora",
+   "depends_on": "enable_assistant",
+   "fieldname": "assistant_name",
+   "fieldtype": "Data",
+   "label": "Assistant name"
+  },
+  {
+   "depends_on": "enable_assistant",
+   "description": "Empty: a default greeting, with the customer's first name when signed in",
+   "fieldname": "assistant_welcome",
+   "fieldtype": "Small Text",
+   "label": "Welcome message"
+  },
+  {
+   "fieldname": "assistant_column_look",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Bottom right",
+   "depends_on": "enable_assistant",
+   "fieldname": "assistant_position",
+   "fieldtype": "Select",
+   "label": "Position",
+   "options": "Bottom right\nBottom left"
+  },
+  {
+   "depends_on": "enable_assistant",
+   "description": "Empty: the theme's primary colour",
+   "fieldname": "assistant_color",
+   "fieldtype": "Color",
+   "label": "Bubble colour"
+  },
+  {
+   "fieldname": "assistant_status",
+   "fieldtype": "HTML",
+   "label": "This month"
+  },
+  {
+   "depends_on": "enable_assistant",
+   "fieldname": "assistant_knowledge_section",
+   "fieldtype": "Section Break",
+   "label": "What the assistant should know"
+  },
+  {
+   "description": "Delivery, returns, payment, warranty, anything the assistant must be able to answer. Plain text; it is read by the model, not shown as is.",
+   "fieldname": "assistant_knowledge",
+   "fieldtype": "Text",
+   "label": "Knowledge"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "enable_assistant",
+   "fieldname": "assistant_llm_section",
+   "fieldtype": "Section Break",
+   "label": "Language model"
+  },
+  {
+   "description": "OpenAI-compatible endpoint, e.g. https://host/v1. Empty: Nora's model of this instance.",
+   "fieldname": "assistant_llm_base_url",
+   "fieldtype": "Data",
+   "label": "API base URL"
+  },
+  {
+   "fieldname": "assistant_llm_api_key",
+   "fieldtype": "Password",
+   "label": "API key"
+  },
+  {
+   "fieldname": "assistant_column_llm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Empty: the default model of the endpoint",
+   "fieldname": "assistant_llm_model",
+   "fieldtype": "Data",
+   "label": "Model"
+  },
+  {
+   "default": "25",
+   "fieldname": "assistant_llm_timeout",
+   "fieldtype": "Int",
+   "label": "Timeout (seconds)"
+  },
+  {
+   "depends_on": "enable_assistant",
+   "fieldname": "assistant_limits_section",
+   "fieldtype": "Section Break",
+   "label": "Limits and usage"
+  },
+  {
+   "default": "30",
+   "fieldname": "assistant_guest_daily_limit",
+   "fieldtype": "Int",
+   "label": "Messages per day, visitor"
+  },
+  {
+   "default": "200",
+   "fieldname": "assistant_user_daily_limit",
+   "fieldtype": "Int",
+   "label": "Messages per day, signed-in customer"
+  },
+  {
+   "default": "90",
+   "description": "Older closed conversations are deleted by the nightly job",
+   "fieldname": "assistant_retention_days",
+   "fieldtype": "Int",
+   "label": "Keep conversations (days)"
+  },
+  {
+   "fieldname": "assistant_column_limits",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Empty: no cap. Beyond it the assistant asks the visitor to write to the team.",
+   "fieldname": "assistant_monthly_token_cap",
+   "fieldtype": "Int",
+   "label": "Monthly token cap"
+  },
+  {
+   "description": "For the estimated cost on the usage report; what the service is billed at",
+   "fieldname": "assistant_token_price",
+   "fieldtype": "Currency",
+   "label": "Price per 1,000 tokens"
+  },
+  {
+   "depends_on": "enable_assistant",
+   "fieldname": "assistant_escalation_section",
+   "fieldtype": "Section Break",
+   "label": "Handing over to the team"
+  },
+  {
+   "description": "Channel name or id that receives the requests; empty when Raven is not used",
+   "fieldname": "assistant_escalation_channel",
+   "fieldtype": "Data",
+   "label": "Raven channel"
+  },
+  {
+   "description": "Empty: the website's email",
+   "fieldname": "assistant_support_email",
+   "fieldtype": "Data",
+   "label": "Support email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "assistant_column_escalation",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "HD Team that gets the tickets; needs the Helpdesk app",
+   "fieldname": "assistant_helpdesk_team",
+   "fieldtype": "Data",
+   "label": "Helpdesk team"
   },
   {
    "fieldname": "tab_emails",
@@ -1044,7 +1244,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-04 12:00:00.000000",
+ "modified": "2026-09-04 14:30:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

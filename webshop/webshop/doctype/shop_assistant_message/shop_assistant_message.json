@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "creation": "2026-09-04 14:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "role",
+  "sent_on",
+  "content",
+  "tool_name",
+  "tool_call_id",
+  "tool_calls",
+  "model",
+  "prompt_tokens",
+  "completion_tokens",
+  "duration_ms"
+ ],
+ "fields": [
+  {
+   "fieldname": "role",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Role",
+   "options": "user\nassistant\ntool\nsystem",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sent_on",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Sent On"
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Long Text",
+   "in_list_view": 1,
+   "label": "Content"
+  },
+  {
+   "fieldname": "tool_name",
+   "fieldtype": "Data",
+   "label": "Tool"
+  },
+  {
+   "fieldname": "tool_call_id",
+   "fieldtype": "Data",
+   "label": "Tool Call Id"
+  },
+  {
+   "description": "The calls the model asked for, as it sent them",
+   "fieldname": "tool_calls",
+   "fieldtype": "Code",
+   "label": "Tool Calls",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "model",
+   "fieldtype": "Data",
+   "label": "Model"
+  },
+  {
+   "fieldname": "prompt_tokens",
+   "fieldtype": "Int",
+   "label": "Prompt Tokens"
+  },
+  {
+   "fieldname": "completion_tokens",
+   "fieldtype": "Int",
+   "label": "Completion Tokens"
+  },
+  {
+   "fieldname": "duration_ms",
+   "fieldtype": "Int",
+   "label": "Duration (ms)"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-04 14:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Shop Assistant Message",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -231,7 +231,8 @@ jobs:
             webshop.webshop.doctype.cross_sell_offer.test_cross_sell_offer \
             webshop.webshop.utils.test_follow_ups \
             webshop.webshop.tests.test_desk \
-            webshop.webshop.utils.test_store_hours
+            webshop.webshop.utils.test_store_hours \
+            webshop.webshop.assistant.test_assistant
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || echec="$echec $m"

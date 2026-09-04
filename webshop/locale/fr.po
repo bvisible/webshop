@@ -6463,3 +6463,213 @@ msgstr "Fermé {0}"
 
 msgid "Opening hours are not published."
 msgstr "Les horaires d'ouverture ne sont pas publiés."
+
+msgid "Assistant"
+msgstr "Assistant"
+
+msgid "Shop Assistant"
+msgstr "Assistant de la boutique"
+
+msgid "Enable the shop assistant"
+msgstr "Activer l'assistant de la boutique"
+
+msgid "A chat bubble on every page of the shop: products at their selling price, opening hours, and the signed-in customer's orders, invoices and quotations"
+msgstr "Une pastille de chat sur chaque page de la boutique : les produits à leur prix de vente, les horaires, et les commandes, factures et devis du client connecté"
+
+msgid "Assistant name"
+msgstr "Nom de l'assistant"
+
+msgid "Welcome message"
+msgstr "Message d'accueil"
+
+msgid "Empty: a default greeting, with the customer's first name when signed in"
+msgstr "Vide : un accueil par défaut, avec le prénom du client quand il est connecté"
+
+msgid "Position"
+msgstr "Position"
+
+msgid "Bottom right"
+msgstr "En bas à droite"
+
+msgid "Bottom left"
+msgstr "En bas à gauche"
+
+msgid "Bubble colour"
+msgstr "Couleur de la pastille"
+
+msgid "Empty: the theme's primary colour"
+msgstr "Vide : la couleur principale du thème"
+
+msgid "This month"
+msgstr "Ce mois-ci"
+
+msgid "What the assistant should know"
+msgstr "Ce que l'assistant doit savoir"
+
+msgid "Knowledge"
+msgstr "Connaissances"
+
+msgid "Delivery, returns, payment, warranty, anything the assistant must be able to answer. Plain text; it is read by the model, not shown as is."
+msgstr "Livraison, retours, paiement, garantie, tout ce que l'assistant doit savoir répondre. Texte simple ; il est lu par le modèle, pas affiché tel quel."
+
+msgid "Language model"
+msgstr "Modèle de langage"
+
+msgid "API base URL"
+msgstr "URL de base de l'API"
+
+msgid "OpenAI-compatible endpoint, e.g. https://host/v1. Empty: Nora's model of this instance."
+msgstr "Endpoint compatible OpenAI, par exemple https://hote/v1. Vide : le modèle Nora de cette instance."
+
+msgid "API key"
+msgstr "Clé API"
+
+msgid "Model"
+msgstr "Modèle"
+
+msgid "Empty: the default model of the endpoint"
+msgstr "Vide : le modèle par défaut de l'endpoint"
+
+msgid "Timeout (seconds)"
+msgstr "Délai maximum (secondes)"
+
+msgid "Limits and usage"
+msgstr "Limites et consommation"
+
+msgid "Messages per day, visitor"
+msgstr "Messages par jour, visiteur"
+
+msgid "Messages per day, signed-in customer"
+msgstr "Messages par jour, client connecté"
+
+msgid "Keep conversations (days)"
+msgstr "Conserver les conversations (jours)"
+
+msgid "Older closed conversations are deleted by the nightly job"
+msgstr "Les conversations fermées plus anciennes sont supprimées par le job de nuit"
+
+msgid "Monthly token cap"
+msgstr "Plafond mensuel de jetons"
+
+msgid "Empty: no cap. Beyond it the assistant asks the visitor to write to the team."
+msgstr "Vide : pas de plafond. Au-delà, l'assistant invite le visiteur à écrire à l'équipe."
+
+msgid "Price per 1,000 tokens"
+msgstr "Prix pour 1 000 jetons"
+
+msgid "For the estimated cost on the usage report; what the service is billed at"
+msgstr "Pour le coût estimé du rapport d'usage ; le tarif facturé pour le service"
+
+msgid "Handing over to the team"
+msgstr "Passer la main à l'équipe"
+
+msgid "Raven channel"
+msgstr "Canal Raven"
+
+msgid "Channel name or id that receives the requests; empty when Raven is not used"
+msgstr "Nom ou identifiant du canal qui reçoit les demandes ; vide si Raven n'est pas utilisé"
+
+msgid "Support email"
+msgstr "Email du support"
+
+msgid "Empty: the website's email"
+msgstr "Vide : l'email du site"
+
+msgid "Helpdesk team"
+msgstr "Équipe Helpdesk"
+
+msgid "HD Team that gets the tickets; needs the Helpdesk app"
+msgstr "Équipe HD qui reçoit les tickets ; nécessite l'app Helpdesk"
+
+msgid "Shop Assistant Conversation"
+msgstr "Conversation de l'assistant"
+
+msgid "Shop Assistant Message"
+msgstr "Message de l'assistant"
+
+msgid "Guest Session"
+msgstr "Session invité"
+
+msgid "The visitor's cart cookie when nobody is signed in"
+msgstr "Le cookie de panier du visiteur quand personne n'est connecté"
+
+msgid "Started On"
+msgstr "Commencée le"
+
+msgid "Last Message On"
+msgstr "Dernier message le"
+
+msgid "The last page the visitor wrote from"
+msgstr "La dernière page depuis laquelle le visiteur a écrit"
+
+msgid "Messages"
+msgstr "Messages"
+
+msgid "What the assistant remembers"
+msgstr "Ce dont l'assistant se souvient"
+
+msgid "Summary"
+msgstr "Résumé"
+
+msgid "Rewritten by the model every ten messages: what the customer is after, what was promised"
+msgstr "Réécrit par le modèle tous les dix messages : ce que cherche le client, ce qui a été promis"
+
+msgid "Usage and escalation"
+msgstr "Consommation et transmission"
+
+msgid "Prompt Tokens"
+msgstr "Jetons d'entrée"
+
+msgid "Completion Tokens"
+msgstr "Jetons de sortie"
+
+msgid "Escalated To"
+msgstr "Transmis à"
+
+msgid "Team"
+msgstr "Équipe"
+
+msgid "Helpdesk Ticket"
+msgstr "Ticket Helpdesk"
+
+msgid "The HD Ticket opened for this conversation, when Helpdesk is installed"
+msgstr "Le ticket HD ouvert pour cette conversation, quand Helpdesk est installé"
+
+msgid "Escalation Note"
+msgstr "Note de transmission"
+
+msgid "Role"
+msgstr "Rôle"
+
+msgid "Tool"
+msgstr "Outil"
+
+msgid "Tool Call Id"
+msgstr "Identifiant de l'appel"
+
+msgid "Tool Calls"
+msgstr "Appels d'outils"
+
+msgid "The calls the model asked for, as it sent them"
+msgstr "Les appels demandés par le modèle, tels qu'envoyés"
+
+msgid "Duration (ms)"
+msgstr "Durée (ms)"
+
+msgid "The assistant has no language model configured."
+msgstr "L'assistant n'a pas de modèle de langage configuré."
+
+msgid "The assistant is not enabled."
+msgstr "L'assistant n'est pas activé."
+
+msgid "Conversations"
+msgstr "Conversations"
+
+msgid "Tokens used"
+msgstr "Jetons consommés"
+
+msgid "Handed over to the team"
+msgstr "Transmis à l'équipe"
+
+msgid "Estimated cost"
+msgstr "Coût estimé"

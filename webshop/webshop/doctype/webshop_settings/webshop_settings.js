@@ -707,6 +707,7 @@ frappe.ui.form.on("Webshop Settings", {
 				`${__("Emails go out every morning at 08:15; what a customer received shows in the customer's timeline and in {0}.", [link("Purchase Follow-up Entry", __("Purchase Follow-up Entry"))])}</p>`;
 			note.refresh_input();
 		}
+		fill_assistant_status(frm);
 		const field = frm.get_field("follow_up_status");
 		if (!field) return;
 		frappe.call({
@@ -730,3 +731,29 @@ frappe.ui.form.on("Webshop Settings", {
 		});
 	},
 });
+
+
+//// Neoffice — the Assistant tab: what the shop assistant did this month, and
+//// what it cost, so the switch and the cap are decided with the figures in view.
+function fill_assistant_status(frm) {
+	const field = frm.get_field("assistant_status");
+	if (!field) return;
+	frappe.call({
+		method: "webshop.webshop.assistant.api.usage_stats",
+		callback(r) {
+			const d = r.message || {};
+			const row = (label, value, route) =>
+				`<div class="d-flex justify-content-between py-1 border-bottom"><a class="text-muted" href="${route}">${label}</a><strong>${value}</strong></div>`;
+			const cap = d.monthly_cap ? ` / ${d.monthly_cap}` : "";
+			field.$wrapper.html(
+				`<div style="max-width: 420px">` +
+					row(__("Conversations"), d.conversations || 0, "/app/shop-assistant-conversation") +
+					row(__("Messages"), d.messages || 0, "/app/shop-assistant-conversation") +
+					row(__("Tokens used"), `${(d.tokens || 0).toLocaleString()}${cap}`, "/app/shop-assistant-conversation") +
+					row(__("Handed over to the team"), d.escalated || 0, "/app/shop-assistant-conversation?status=Escalated") +
+					(d.estimated_cost != null ? row(__("Estimated cost"), format_currency(d.estimated_cost), "/app/shop-assistant-conversation") : "") +
+					`</div>`
+			);
+		},
+	});
+}

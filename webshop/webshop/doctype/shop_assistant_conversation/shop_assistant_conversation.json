@@ -1,0 +1,189 @@
+{
+ "actions": [],
+ "autoname": "format:CHAT-{#####}",
+ "creation": "2026-09-04 14:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "customer",
+  "user",
+  "guest_session",
+  "column_break_head",
+  "started_on",
+  "last_message_on",
+  "page_route",
+  "message_count",
+  "summary_section",
+  "summary",
+  "messages_section",
+  "messages",
+  "usage_section",
+  "prompt_tokens",
+  "completion_tokens",
+  "column_break_usage",
+  "escalated_to",
+  "helpdesk_ticket",
+  "escalation_note"
+ ],
+ "fields": [
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Open\nEscalated\nClosed"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User"
+  },
+  {
+   "description": "The visitor's cart cookie when nobody is signed in",
+   "fieldname": "guest_session",
+   "fieldtype": "Data",
+   "label": "Guest Session"
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "started_on",
+   "fieldtype": "Datetime",
+   "label": "Started On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_message_on",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Last Message On",
+   "read_only": 1
+  },
+  {
+   "description": "The last page the visitor wrote from",
+   "fieldname": "page_route",
+   "fieldtype": "Data",
+   "label": "Page"
+  },
+  {
+   "fieldname": "message_count",
+   "fieldtype": "Int",
+   "label": "Messages",
+   "read_only": 1
+  },
+  {
+   "fieldname": "summary_section",
+   "fieldtype": "Section Break",
+   "label": "What the assistant remembers"
+  },
+  {
+   "description": "Rewritten by the model every ten messages: what the customer is after, what was promised",
+   "fieldname": "summary",
+   "fieldtype": "Small Text",
+   "label": "Summary"
+  },
+  {
+   "fieldname": "messages_section",
+   "fieldtype": "Section Break",
+   "label": "Messages"
+  },
+  {
+   "fieldname": "messages",
+   "fieldtype": "Table",
+   "label": "Messages",
+   "options": "Shop Assistant Message"
+  },
+  {
+   "fieldname": "usage_section",
+   "fieldtype": "Section Break",
+   "label": "Usage and escalation"
+  },
+  {
+   "fieldname": "prompt_tokens",
+   "fieldtype": "Int",
+   "label": "Prompt Tokens",
+   "read_only": 1
+  },
+  {
+   "fieldname": "completion_tokens",
+   "fieldtype": "Int",
+   "label": "Completion Tokens",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_usage",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "escalated_to",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Escalated To",
+   "options": "\nTeam\nHelpdesk"
+  },
+  {
+   "description": "The HD Ticket opened for this conversation, when Helpdesk is installed",
+   "fieldname": "helpdesk_ticket",
+   "fieldtype": "Data",
+   "label": "Helpdesk Ticket"
+  },
+  {
+   "fieldname": "escalation_note",
+   "fieldtype": "Small Text",
+   "label": "Escalation Note",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-04 14:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Shop Assistant Conversation",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Website Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Sales User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}
