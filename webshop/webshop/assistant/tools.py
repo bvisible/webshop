@@ -68,7 +68,10 @@ def _product_card(item, ctx, with_details=False):
 		"item_code": item.item_code,
 		"name": item.web_item_name,
 		"url": "/" + item.route if item.route else None,
-		"price": price.get("formatted_price") or price.get("formatted_price_sales_uom") or _("prix sur demande"),
+		"price": price.get("formatted_price")
+		or price.get("formatted_price_sales_uom")
+		or _list_price(item.item_code)
+		or _("prix sur demande"),
 		"in_stock": bool(info.get("in_stock")),
 		"condition": _(item.item_condition) if item.item_condition and item.item_condition != "New" else None,
 	}
@@ -95,6 +98,28 @@ def _product_card(item, ctx, with_details=False):
 		card["description"] = (text[:DESCRIPTION_CHARS] + "…") if len(text) > DESCRIPTION_CHARS else text
 		card["used_units"] = _used_units(item.item_code)
 	return card
+
+
+def _list_price(item_code):
+	"""The shop's list price, when the full pricing path could not answer.
+
+	`get_product_info_for_website` prices through pricing rules and the site's
+	list; on an ERPNext without our fork it raises on a keyword it does not
+	know. A plain Item Price is still a selling price the shop published —
+	never a buying list (`selling = 1`)."""
+	settings = frappe.get_cached_doc("Webshop Settings")
+	price_list = settings.get("price_list") or frappe.db.get_value("Price List", {"selling": 1, "enabled": 1}, "name")
+	if not price_list:
+		return None
+	row = frappe.db.get_value(
+		"Item Price",
+		{"item_code": item_code, "price_list": price_list, "selling": 1},
+		["price_list_rate", "currency"],
+		as_dict=True,
+	)
+	if not row:
+		return None
+	return fmt_money(flt(row.price_list_rate), currency=row.currency or frappe.db.get_value("Price List", price_list, "currency"))
 
 
 def _used_units(item_code):
