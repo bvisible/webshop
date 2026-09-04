@@ -440,6 +440,22 @@ checks all of it on a fresh install.
 > **Deleting a standard Workspace in `developer_mode` deletes its source
 > folder** from the app (`Workspace.on_trash`). `git checkout` brings it back.
 
+### Store hours
+
+`webshop/webshop/utils/store_hours.py` is the one source of truth: rows on
+Webshop Settings (`store_hours`, several per weekday; `store_closures` for
+holidays), a public endpoint (`get_opening_hours`), the `/store-hours` page,
+the include `templates/includes/opening_hours.html`, and the block any Builder
+page can carry as one element (`<div class="webshop-opening-hours"
+data-autoload>`), drawn and refreshed every minute by `public/js/opening_hours.js`.
+Every computation takes the clock as an argument, so `test_store_hours.py`
+fixes it.
+
+> **The next opening is looked for on the current day first.** The footer
+> widget this replaces (blowbackshop.ch) started from tomorrow, so between
+> 12:00 and 13:30 it announced "tomorrow at 10:00". Closed for lunch means
+> "today at 13:30"; a closure hides the whole day and names itself.
+
 ## Integration Points
 
 ### ERPNext Dependencies
