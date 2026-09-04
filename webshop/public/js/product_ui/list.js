@@ -4,11 +4,15 @@ webshop.ProductList = class {
 		- settings: Webshop Settings
 		- products_section: Products Wrapper
 		- preference: If preference is not list view, render but hide
+		//// Neoffice — no_render: the infinite scroll builds a view only to call
+		//// get_item_html on it, without rendering (2591df1013, 2025-12-14).
 		- no_render: If true, don't render on construction (for infinite scroll)
 	*/
 	constructor(options) {
 		Object.assign(this, options);
 
+		//// Neoffice — see no_render above: the constructor returns before touching the
+		//// DOM.
 		if (this.no_render) {
 			return; // Don't render, just create instance for get_item_html
 		}
@@ -26,6 +30,9 @@ webshop.ProductList = class {
 		let html = `<br><br>`;
 
 		this.items.forEach(item => {
+			//// Neoffice — the card markup is moved into get_item_html so the infinite scroll
+			//// can render one item at a time; upstream builds it inline in this loop
+			//// (2591df1013, 2025-12-14).
 			html += me.get_item_html(item);
 		});
 
@@ -33,6 +40,7 @@ webshop.ProductList = class {
 		$product_wrapper.append(html);
 	}
 
+	//// Neoffice — added: one card, extracted from the loop above (see #3).
 	get_item_html(item) {
 		let title = item.web_item_name || item.item_name || item.item_code || "";
 		title = title.length > 200 ? title.substr(0, 200) + "..." : title;
@@ -85,6 +93,10 @@ webshop.ProductList = class {
 			: '';
 
 		if (image) {
+			//// Neoffice — the row image gets the badges (discount, second-hand condition) and
+			//// the Cover/Contain fit styles, like the grid card (31feefcae6, 2026-04-19;
+			//// d984eff855, 2026-09-03).
+			//// Neoffice — the fit styles on the image itself (see above).
 			image_html += `
 				<div class="col-2 border text-center rounded list-image" style="position: relative; overflow: hidden;">
 					${discount_badge}${condition_badge}
@@ -96,6 +108,7 @@ webshop.ProductList = class {
 				</div>
 			`;
 		} else {
+			//// Neoffice — same badges and overflow on the no-image row (see above).
 			image_html += `
 				<div class="col-2 border text-center rounded list-image" style="position: relative; overflow: hidden;">
 					${discount_badge}${condition_badge}
@@ -143,6 +156,12 @@ webshop.ProductList = class {
 	}
 
 	get_item_details(item, settings) {
+		//// Neoffice — upstream prints one block: code, then description. Ours splits on
+		//// whether the line is a gift card (no stock, no price to show) and otherwise
+		//// puts the stock status on the same line as the category, so the row keeps its
+		//// height on a phone (0d17ac8d40, 2026-08-26). "Item Code" is translated through
+		//// window.product_translations because __() is not loaded in this bundle
+		//// (dd08553e88, 2025-12-15).
 		let details = '';
 		if (item.is_gift_card) {
 			details = `
@@ -185,8 +204,12 @@ webshop.ProductList = class {
 				</small>
 			`;
 		}
+//// Neoffice — the stock line is no longer appended here (it is inline with the
+//// category, see #8).
 
 		details += `</div>`;
+		//// Neoffice — the loyalty-points badge; upstream has no loyalty programme
+		//// (6fea19b1fe, 2025-06-17).
 		
 		// Add loyalty points if available
 		if (item.loyalty_points_html) {
@@ -253,10 +276,17 @@ webshop.ProductList = class {
 	}
 
 	get_stock_availability(item, settings) {
+		//// Neoffice — emptied: the stock status is rendered inline with the category
+		//// (0d17ac8d40, 2026-08-26).
+		//// TO REVIEW: everything below the `return ``;` is upstream's code, now dead.
 		// Remove stock availability from here since we show it inline with category
 		return ``;
 		if (settings.show_stock_availability && !item.has_variants) {
 			if (item.on_backorder) {
+				//// Neoffice — upstream calls frappe's __(); this file is a bundle served to the
+				//// shop, where __() is not loaded, so the string came out in English on a French
+				//// shop. Translations come from window.product_translations (dd08553e88,
+				//// 2025-12-15).
 				return `
 					<br>
 					<span class="out-of-stock mt-2" style="color: var(--primary-color)">
@@ -264,11 +294,19 @@ webshop.ProductList = class {
 					</span>
 				`;
 			} else if (!item.in_stock) {
+				//// Neoffice — upstream calls frappe's __(); this file is a bundle served to the
+				//// shop, where __() is not loaded, so the string came out in English on a French
+				//// shop. Translations come from window.product_translations (dd08553e88,
+				//// 2025-12-15).
 				return `
 					<br>
 					<span class="out-of-stock mt-2">${ window.product_translations && window.product_translations["Out of stock"] || "Out of stock" }</span>
 				`;
 			} else if (item.is_stock) {
+				//// Neoffice — upstream calls frappe's __(); this file is a bundle served to the
+				//// shop, where __() is not loaded, so the string came out in English on a French
+				//// shop. Translations come from window.product_translations (dd08553e88,
+				//// 2025-12-15).
 				return `
 					<br>
 					<span class="in-stock in-green has-stock mt-2"
@@ -307,6 +345,10 @@ webshop.ProductList = class {
 			`;
 		}
 		if (item.has_variants || item.is_gift_card || settings.enable_guest_cart == 0 && frappe.session.user == "Guest") {
+			//// Neoffice — upstream calls frappe's __(); this file is a bundle served to the
+			//// shop, where __() is not loaded, so the string came out in English on a French
+			//// shop. Translations come from window.product_translations (dd08553e88,
+			//// 2025-12-15).
 			return `
 				<a href="/${ item.route || '#' }">
 					<div class="btn btn-sm btn-explore-variants btn mb-0 mt-0">

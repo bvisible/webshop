@@ -7,6 +7,13 @@ webshop.ProductView =  class {
 	constructor(options) {
 		Object.assign(this, options);
 		this.preference = this.view_type;
+		//// Neoffice — added, down to load_settings below. ▼▼▼ Upstream's constructor
+		//// just calls make(). Ours reads the shop's default view type from Webshop
+		//// Settings (default_view_type) before rendering, honours the ?discount= and
+		//// ?sort= parameters the carousels and the home page link to — storing them in
+		//// localStorage and cleaning them off the URL so a refresh does not re-apply
+		//// them — and keeps the buyer's own view/sort/filter preferences between visits
+		//// (8ba1a7ab46, 2025-06-08; 3c1e847e26, 2025-06-24; 2591df1013, 2025-12-14). ▲▲▲
 		this.total_product_count = null;  // Initialize to null to detect first load
 		this.stock_filter_default = options.stock_filter_default || false;
 		
@@ -83,6 +90,10 @@ webshop.ProductView =  class {
 	}
 
 	make(from_filters=false) {
+		//// Neoffice — upstream empties the products section and rebuilds the toolbar on
+		//// every call, so changing a filter blanked the page. The existing products stay
+		//// on screen while the new ones load (51aab2af64, 2025-12-16), and the infinite
+		//// scroll state is reset only when the filters actually changed (abea03c4d5).
 		// Don't empty products_section immediately - keep existing products visible during loading
 		// Only empty on initial load (when there are no products yet)
 		const hasExistingProducts = $('#products-grid-area').length || $('#products-list-area').length;
@@ -109,6 +120,9 @@ webshop.ProductView =  class {
 		this.get_item_filter_data(from_filters);
 	}
 
+	//// Neoffice — added. The listing is also the search results page on our shops
+	//// (/all-products?search=…), so the title, the breadcrumb and the search box have
+	//// to say what was searched (912d29f1f4 / d579b1c02a, 2025-12-14).
 	update_page_header_for_search() {
 		// Update page header and breadcrumb when search term is present
 		if (!this.search_term) return;
@@ -157,6 +171,8 @@ webshop.ProductView =  class {
 	}
 
 	prepare_toolbar() {
+		//// Neoffice — the toolbar stacks on mobile (upstream: one flex row, which crushed
+		//// the search box and the sort selector under 768px).
 		this.products_section.append(`
 			<div class="toolbar d-flex flex-column flex-md-row align-items-center">
 			</div>
@@ -165,11 +181,20 @@ webshop.ProductView =  class {
 		// On desktop: search, view toggles, sort
 		this.prepare_search();
 		this.prepare_view_toggler();
+		//// Neoffice — two additions to the toolbar: the sort selector and the active-filter
+		//// chips (see below).
 		this.prepare_sort_selector();
 		this.prepare_active_filters_display();
 
 		new webshop.ProductSearch();
 	}
+	//// Neoffice — added, down to prepare_view_toggler. ▼▼▼ Upstream shows no trace of
+	//// the filters in force: a buyer landing on a filtered listing (from a carousel,
+	//// or after a reload) saw a short catalogue with no explanation. Every active
+	//// filter — stock, discount, field, attribute, price — is rendered as a chip that
+	//// removes it when clicked (8d180aac8b, 2025-12-14). The stock/discount chips
+	//// target `input.stock-filter` / `input.discount-filter` directly because the
+	//// class is on the input, not on a wrapper (ac1d09fbff, 2025-12-16). ▲▲▲
 	
 	prepare_active_filters_display() {
 		// Add a section to show active filters
@@ -362,12 +387,20 @@ webshop.ProductView =  class {
 
 	prepare_view_toggler() {
 
+		//// Neoffice — upstream's second view is `#image-view`; ours is `#grid` (grid/list
+		//// toggle rather than image/list). Same rename below in disable_view_toggler,
+		//// render_view_toggler and set_view_state.
 		if (!$("#list").length || !$("#grid").length) {
 			this.render_view_toggler();
 			this.bind_view_toggler_actions();
 			this.set_view_state();
 		}
 	}
+	//// Neoffice — added. Upstream offers no sorting at all: the listing comes back in
+	//// the query's own order. Five orders, the default read from Webshop Settings
+	//// (default_product_sort) and the choice kept in localStorage (3c1e847e26,
+	//// 2025-06-24). Labels come from window.product_translations — this file is a
+	//// bundle, so frappe's __() is not available to it (dd08553e88, 2025-12-15).
 	
 	prepare_sort_selector() {
 		// Get saved sort order or use default from settings
@@ -424,10 +457,13 @@ webshop.ProductView =  class {
 		this.from_filters = from_filters;
 		let args = this.get_query_filters();
 
+		//// Neoffice — the header/breadcrumb are updated on each query, not only on load.
 		// Update page header for search (if search term present)
 		this.update_page_header_for_search();
 
 		this.disable_view_toggler(true);
+		//// Neoffice — upstream has no loading state. A skeleton is shown instead of
+		//// blanking the list (567e038dd5, 2025-12-16).
 		this.show_product_loader();
 
 		frappe.call({
@@ -437,14 +473,23 @@ webshop.ProductView =  class {
 			},
 			callback: function(result) {
 				if (!result || result.exc || !result.message || result.message.exc) {
+					//// Neoffice — the loader must be hidden on the error path too, or a failed query
+					//// left the skeleton spinning for ever.
 					me.hide_product_loader();
 					me.render_no_products_section(true);
+				//// Neoffice — trailing whitespace only.
 				} else {					
 					// Sub Category results are independent of Items
+					//// Neoffice — upstream reads result.message["sub_categories"].length without
+					//// checking the key exists; the API omits it entirely when there are none.
 					if (me.item_group && result.message["sub_categories"] && result.message["sub_categories"].length) {
 						me.render_item_sub_categories(result.message["sub_categories"]);
 					}
 
+					//// Neoffice — the discount filter and the price range are rebuilt on every result
+					//// (upstream only builds them from the first response, so the price slider kept
+					//// the bounds of the unfiltered catalogue), and any leftover "no products"
+					//// message is removed before rendering (8ba1a7ab46, 2025-06-08).
 					// Always render discount filters
 					me.re_render_discount_filters();
 					
@@ -458,9 +503,13 @@ webshop.ProductView =  class {
 					
 					if (!result.message["items"].length) {
 						// if result has no items or result is empty
+						//// Neoffice — hide the skeleton before showing the empty state.
 						me.hide_product_loader();
 						me.render_no_products_section();
 					} else {
+						//// Neoffice — the results are stored on the view BEFORE rendering, because the
+						//// infinite scroll and the live counter read them afterwards; upstream stores
+						//// them after the render.
 						// Store products before rendering
 						me.products = result.message["items"];
 						me.product_count = result.message["items_count"];
@@ -474,6 +523,8 @@ webshop.ProductView =  class {
 						me.render_list_view(result.message["items"], result.message["settings"]);
 						me.render_grid_view(result.message["items"], result.message["settings"]);
 
+						//// Neoffice — the catalogue's total is remembered from the first load, so the
+						//// counter can say "12 of 340" once a filter is applied.
 						// Store total product count on first load
 						if (me.total_product_count === null) {
 							me.total_product_count = result.message.total_products || me.product_count;
@@ -487,6 +538,9 @@ webshop.ProductView =  class {
 						// filter persistence is handle on filter change event
 						me.bind_filters();
 						me.restore_filters_state();
+					//// Neoffice — the discount checkbox is restored from localStorage on every render:
+					//// it is not a URL filter, so a re-render otherwise showed it unchecked while the
+					//// filter was still applied.
 					} else {
 						// Always restore discount checkbox state from localStorage
 						const saved_discount_preference = localStorage.getItem('discount_filter_checked');
@@ -497,6 +551,7 @@ webshop.ProductView =  class {
 
 					// Bottom paging
 					me.add_paging_section(result.message["settings"]);
+					//// Neoffice — refresh the active-filter chips after each result.
 					
 					// Update active filters display
 					me.update_active_filters_display();
@@ -509,6 +564,7 @@ webshop.ProductView =  class {
 
 	disable_view_toggler(disable=false) {
 		$('#list').prop('disabled', disable);
+		//// Neoffice — `#image-view` → `#grid`, see prepare_view_toggler above.
 		$('#grid').prop('disabled', disable);
 	}
 
@@ -540,6 +596,10 @@ webshop.ProductView =  class {
 	}
 
 	prepare_product_area_wrapper(view) {
+		//// Neoffice — reuse the existing area instead of appending a second one: with the
+		//// products kept on screen during loading, appending created a duplicate
+		//// #products-grid-area and the page showed the catalogue twice (abea03c4d5,
+		//// 2025-12-16).
 		// Check if the area already exists - if so, just clear it and return
 		const existingArea = $(`#products-${view}-area`);
 		if (existingArea.length) {
@@ -549,7 +609,10 @@ webshop.ProductView =  class {
 
 		// Create new area only if it doesn't exist
 		let left_margin = view == "list" ? "ml-2" : "";
+		//// Neoffice — mt-6 → mt-2: the toolbar above is now two rows on mobile.
 		let top_margin = view == "list" ? "mt-2" : "mt-minus-1";
+		//// Neoffice — upstream emits a <br> before the product area; dropped with the
+		//// toolbar rework.
 		return this.products_section.append(`
 			<div id="products-${view}-area" class="row products-list ${ top_margin } ${ left_margin }" itemscope itemtype="https://schema.org/Product"></div>
 		`);
@@ -557,6 +620,13 @@ webshop.ProductView =  class {
 
 	get_query_filters() {
 		const filters = frappe.utils.get_query_params();
+		//// Neoffice — added, down to the end of get_query_filters. ▼▼▼ Three things
+		//// upstream does not do: it reads a price_range filter (6fea19b1fe, 2025-06-17);
+		//// it parses the JSON filters defensively — a filter URL shared from a phone
+		//// arrives double-encoded and upstream's bare JSON.parse threw, leaving the
+		//// listing empty with only a console error; and the stock/discount filters are
+		//// read from localStorage, not from the URL, because they are a per-visitor
+		//// preference rather than a shareable filter (8ba1a7ab46, 2025-06-08). ▲▲▲
 		let {field_filters, attribute_filters, price_range} = filters;
 
 		// Safe parsing with proper decoding for mobile compatibility
@@ -627,6 +697,8 @@ webshop.ProductView =  class {
 		// Get search parameter from URL
 		const search = filters.search || null;
 
+		//// Neoffice — the search term is kept on the view for the title and the search box
+		//// (d579b1c02a, 2025-12-14).
 		// Store search term for later use (title update, search box prefill)
 		this.search_term = search;
 
@@ -641,18 +713,26 @@ webshop.ProductView =  class {
 			attribute_filters: attribute_filters,
 			item_group: this.item_group,
 			start: filters.start || null,
+			//// Neoffice — from_filters and the sort order are sent to the API; upstream sends
+			//// neither (the API has no sorting).
 			from_filters: this.from_filters || false,
 			price_range: price_range || null, // Add the price_range parameter to the query
 			sort_order: this.current_sort || 'relevance', // Add sort order
 			search: search // Add search parameter to the query
 		};
+		//// Neoffice — the built filters are returned rather than assigned, so
+		//// change_route_with_filters and the live counter can reuse them.
 		return result;
 	}
 
 	add_paging_section(settings) {
 		$(".product-paging-area").remove();
+		//// Neoffice — remove the infinite-scroll sentinel before rebuilding the paging.
 		$(".infinite-scroll-loader").remove();
 
+		//// Neoffice — the paging section is rebuilt on every filter change, so the
+		//// infinite-scroll observer must be disconnected here or it kept loading pages of
+		//// the PREVIOUS filter (abea03c4d5, 2025-12-16).
 		// Reset infinite scroll state when paging section is rebuilt (e.g., after filter change)
 		if (this.infinite_scroll_observer) {
 			this.infinite_scroll_observer.disconnect();
@@ -660,6 +740,8 @@ webshop.ProductView =  class {
 		}
 		this.infinite_scroll_state = null;
 
+		//// Neoffice — the pager reads the results stored on the view; nothing to page
+		//// when the query returned before the first render.
 		if (!this.products) return;
 
 		// Check if infinite scroll is enabled
@@ -668,6 +750,10 @@ webshop.ProductView =  class {
 			return;
 		}
 
+		//// Neoffice — added, down to the end of add_paging_section. ▼▼▼ Upstream ships one
+		//// "More" button. Ours is a real pager (first/previous/numbered pages with
+		//// ellipsis/next/last) driven by the query string, plus the infinite-scroll mode
+		//// when the shop enables it (2591df1013, 2025-12-14). ▲▲▲
 		let query_params = frappe.utils.get_query_params();
 		let start = query_params.start ? cint(JSON.parse(query_params.start)) : 0;
 		let page_length = settings.products_per_page || 0;
@@ -708,14 +794,19 @@ webshop.ProductView =  class {
 					<div class="btn-group">
 		`;
 
+		//// Neoffice — previous button (see the block above).
 		// Previous button (except for first page)
 		if (current_page > 1) {
+			//// Neoffice — page buttons carry their data-start (see the block above).
 			paging_html += `
 				<button class="btn btn-default btn-prev" data-start="${(current_page - 2) * page_length}">
 					<svg class="es-icon icon-xs"><use href="#icon-left"></use></svg>
 				</button>`;
+		//// Neoffice — see the block above.
 		}
 
+		//// Neoffice — a window of page numbers, not all of them: a 300-page catalogue
+		//// printed 300 buttons.
 		// Only show limited page numbers for better UX
 		let max_visible_pages = 7;
 		let half_visible = Math.floor(max_visible_pages / 2);
@@ -729,6 +820,7 @@ webshop.ProductView =  class {
 
 		// First page and ellipsis if needed
 		if (start_page > 1) {
+			//// Neoffice — first page + ellipsis (see the block above).
 			paging_html += `
 				<button class="btn btn-default btn-page" data-start="0">1</button>`;
 			if (start_page > 2) {
@@ -747,6 +839,7 @@ webshop.ProductView =  class {
 				</button>`;
 		}
 
+		//// Neoffice — last page + ellipsis (see the block above).
 		// Last page and ellipsis if needed
 		if (end_page < total_pages) {
 			if (end_page < total_pages - 1) {
@@ -758,6 +851,7 @@ webshop.ProductView =  class {
 				</button>`;
 		}
 
+		//// Neoffice — next button (see the block above).
 		// Next button (except for last page)
 		if (current_page < total_pages) {
 			paging_html += `
@@ -765,6 +859,8 @@ webshop.ProductView =  class {
 					<svg class="es-icon icon-xs"><use href="#icon-right"></use></svg>
 				</button>`;
 		}
+//// Neoffice — the pager is only rendered when there is more than one page, and the
+//// counter says how many products the filters left (see the block above).
 
 		const translations = window.product_translations || {};
 		const pageText = translations["Page"] || "Page";
@@ -804,8 +900,11 @@ webshop.ProductView =  class {
 	}
 
 	prepare_search() {
+		//// Neoffice — the placeholder is translated through window.product_translations;
+		//// this bundle has no access to frappe's __() (dd08553e88, 2025-12-15).
 		const searchPlaceholder = (window.product_translations && window.product_translations["Search for Products"]) || "Search for Products";
 		
+		//// Neoffice — the search box takes the free space and stacks on mobile.
 		$(".toolbar").append(`
 			<div class="input-group flex-grow-1 mb-2 mb-md-0 mr-md-3">
 				<div class="dropdown w-100" id="dropdownMenuSearch">
@@ -829,11 +928,14 @@ webshop.ProductView =  class {
 	}
 
 	render_view_toggler() {
+		//// Neoffice — the view toggles keep their own container so the toolbar can wrap.
 		$(".toolbar").append(`<div class="toggle-container d-flex justify-content-between align-items-center flex-grow-0"></div>`);
 
 		["btn-list-view", "btn-grid-view"].forEach(view => {
 			let icon = view === "btn-list-view" ? "list" : "image-view";
+			//// Neoffice — `image-view` → `grid` (see prepare_view_toggler).
 			let view_id = view === "btn-list-view" ? "list" : "grid";
+			//// Neoffice — the button carries the view id used everywhere else.
 			$(".toggle-container").append(`
 				<div class="form-group mb-0" id="toggle-view">
 					<button id="${ view_id }" class="btn ${ view } mr-2">
@@ -860,6 +962,7 @@ webshop.ProductView =  class {
 			localStorage.setItem("product_view", "List View");
 		});
 
+		//// Neoffice — `#image-view` → `#grid`.
 		$("#grid").click(function() {
 			let $btn = $(this);
 			$btn.removeClass('btn-primary');
@@ -875,8 +978,10 @@ webshop.ProductView =  class {
 	set_view_state() {
 		if (this.preference === "List View") {
 			$("#list").addClass('btn-primary');
+			//// Neoffice — `#image-view` → `#grid`.
 			$("#grid").removeClass('btn-primary');
 		} else {
+			//// Neoffice — `#image-view` → `#grid`.
 			$("#grid").addClass('btn-primary');
 			$("#list").removeClass('btn-primary');
 		}
@@ -884,16 +989,26 @@ webshop.ProductView =  class {
 
 	bind_paging_action() {
 		let me = this;
+		//// Neoffice — upstream binds only its "More" button; ours binds the three kinds of
+		//// pager button (2591df1013, 2025-12-14).
 		$('.btn-prev, .btn-next, .btn-page').on('click', function(e) {
 			const $btn = $(this);
 			const start = $btn.data('start');
 
 			let query_params = frappe.utils.get_query_params();
 			query_params.start = start;
+			//// Neoffice — the whole query string is rewritten, so a page change keeps the
+			//// filters that are in the URL.
 			window.location.search = me.get_query_string(query_params);
 		});
 	}
 
+	//// Neoffice — added, down to update_infinite_scroll_status. ▼▼▼ Infinite scroll
+	//// (Webshop Settings.enable_infinite_scroll): an IntersectionObserver on a
+	//// sentinel loads the next page and APPENDS it, where upstream replaces the list.
+	//// from_filters is deliberately NOT sent on pages 2+ — sending it reset the
+	//// server-side filter state and page 2 came back as page 1 (aa3d5621b2,
+	//// 2025-12-16). ▲▲▲
 	add_infinite_scroll(settings) {
 		let me = this;
 		let page_length = settings.products_per_page || 12;
@@ -1108,15 +1223,23 @@ webshop.ProductView =  class {
 		this.restore_discount_filter();
 	}
 
+	//// Neoffice — the discount filter block is built here rather than served by the
+	//// API, so it can be re-rendered without a round-trip (8ba1a7ab46, 2025-06-08).
 	get_discount_filter_html() {
 		$("#discount-filters").remove();
+		//// Neoffice — translated through window.product_translations (dd08553e88).
 		const translations = window.product_translations || {};
 
+		//// Neoffice — the discount checkbox is inserted next to the stock filter in the
+		//// sidebar; upstream has neither.
 		// Find the stock filter section
 		const $stockFilter = $('#product-filters').find('.filter-block').filter(function() {
 			return $(this).find('.filter-label').text().includes('Availability');
 		});
 
+		//// Neoffice — the discount block is always rendered (upstream renders a facet only
+		//// when the API returns values for it), so the box keeps its place when the
+		//// current result set happens to hold no discounted product.
 		// Always show the discount filter section before stock filter
 		const discountSection = `
 			<div id="discount-filters" class="mb-4 filter-block pb-5">
@@ -1124,12 +1247,14 @@ webshop.ProductView =  class {
 			</div>
 		`;
 
+		//// Neoffice — see above (placement next to the stock filter).
 		if ($stockFilter.length) {
 			$stockFilter.before(discountSection);
 		} else {
 			// If no stock filter, append to the end
 			$("#product-filters").append(discountSection);
 		}
+//// Neoffice — see above.
 
 		let html = `<div class="filter-options">`;
 
@@ -1160,6 +1285,8 @@ webshop.ProductView =  class {
 	restore_discount_filter() {
 		const filters = frappe.utils.get_query_params();
 		let field_filters = filters.field_filters;
+		//// Neoffice — restore_discount_filter: the state lives in localStorage, so it has
+		//// to be re-applied after every render.
 		
 		// First check URL parameters
 		if (field_filters) {
@@ -1176,6 +1303,8 @@ webshop.ProductView =  class {
 				}
 			}
 
+			//// Neoffice — the discount filter is also mirrored into field_filters when it comes
+			//// from the URL (?discount=true from a carousel).
 			if (field_filters && field_filters["discount"]) {
 				const values = field_filters["discount"];
 				const selector = values.map(value => {
@@ -1200,6 +1329,7 @@ webshop.ProductView =  class {
 
 	bind_discount_filter_action() {
 		let me = this;
+		//// Neoffice — see above.
 		
 		// Preload discount results if discount filter was previously enabled
 		if (localStorage.getItem('discount_filter_checked') === 'true' && !this.preload_in_progress) {
@@ -1209,6 +1339,8 @@ webshop.ProductView =  class {
 		$('.discount-filter').on('change', (e) => {
 			const $checkbox = $(e.target);
 			const is_checked = $checkbox.is(':checked');
+			//// Neoffice — bind_discount_filter_action: checking the box re-queries and stores
+			//// the preference; upstream has no such filter.
 			
 			// Récupérer la valeur du filtre à partir de l'attribut data-filter-value
 			const filter_value = $checkbox.attr('data-filter-value');
@@ -1255,6 +1387,8 @@ webshop.ProductView =  class {
 				this.field_filters["discount"].push(filter_value);
 			}
 
+			//// Neoffice — an empty discount filter is removed from field_filters, or the query
+			//// carried `discount: []` and returned nothing.
 			if (!this.field_filters["discount"] || this.field_filters["discount"].length === 0) {
 				delete this.field_filters["discount"];
 			}
@@ -1262,6 +1396,9 @@ webshop.ProductView =  class {
 			me.change_route_with_filters();
 		});
 	}
+	//// Neoffice — preloadDiscountResults: the discounted list is fetched in the
+	//// background so ticking the box is instant (84d621a387, 2025-06-23 "new
+	//// optimized method with caching").
 	
 	preloadDiscountResults() {
 		// Avoid duplicate preloading
@@ -1296,6 +1433,8 @@ webshop.ProductView =  class {
 		let me = this;
 		this.field_filters = {};
 		this.attribute_filters = {};
+		//// Neoffice — tag filters (Webshop Settings.enable_tag_filters), which upstream
+		//// does not have (6fea19b1fe, 2025-06-17).
 		this.tag_filters = [];
 		this.price_range = {};
 		
@@ -1330,6 +1469,7 @@ webshop.ProductView =  class {
 
 			const $checkbox = $(e.target);
 			const is_checked = $checkbox.is(':checked');
+			//// Neoffice — see above (tag filters bound like the field filters).
 			
 			// Reset price filter if another filter is modified
 			if (!$checkbox.is('.price-filter')) {
@@ -1377,6 +1517,8 @@ webshop.ProductView =  class {
 				if (this.attribute_filters[attribute_name].length === 0) {
 					delete this.attribute_filters[attribute_name];
 				}
+			//// Neoffice — the three filter classes we add are recognised here alongside
+			//// upstream's field filters.
 			} else if ($checkbox.is('.field-filter') || $checkbox.is('.discount-filter') || $checkbox.is('.tag-filter')) {
 				const {
 					filterName: filter_name,
@@ -1387,6 +1529,8 @@ webshop.ProductView =  class {
 					// clear previous discount filter to accomodate new
 					delete this.field_filters["discount"];
 				}
+				//// Neoffice — a filter change resets the paging and the infinite scroll before
+				//// re-querying (abea03c4d5, 2025-12-16).
 				
 				// Handle special handling for tag filters
 				if ($checkbox.is('.tag-filter')) {
@@ -1432,6 +1576,8 @@ webshop.ProductView =  class {
 			const keyword = ($input.val() || '').toLowerCase();
 			const $filter_options = $input.next('.filter-options');
 
+			//// Neoffice — added: the keyword box filters the facet values themselves (a shop
+			//// with 200 brands was unusable), and the price filter is wired here.
 			if (!keyword) {
 				// If search is cleared, show all and collapse hierarchical groups
 				$filter_options.find('.filter-lookup-wrapper').show();
@@ -1496,6 +1642,8 @@ webshop.ProductView =  class {
 				if (this.price_slider_initialized) {
 					this.bind_price_filters();
 				}
+			//// Neoffice — update_price_filter_range: the slider bounds follow the current
+			//// result set, so they stay meaningful after a filter (6fea19b1fe, 2025-06-17).
 			}
 		}
 	}
@@ -1541,6 +1689,10 @@ webshop.ProductView =  class {
 				'left': `${min_pos}%`,
 				'width': `${max_pos - min_pos}%`
 			});
+			//// Neoffice — added, down to refresh_list_view. ▼▼▼ bind_price_filters: the
+			//// two-handle price slider and its two number inputs, debounced, writing a
+			//// price_range filter into the URL. Upstream filters on attributes and item groups
+			//// only (6fea19b1fe, 2025-06-17). ▲▲▲
 			
 			$min_input.val(current_min);
 			$max_input.val(current_max);
@@ -1710,6 +1862,9 @@ webshop.ProductView =  class {
 			start = 0; // show items from first page if new filters are triggered
 		}
 
+		//// Neoffice — the stock and discount filters are NOT written into the URL: they are
+		//// a per-visitor preference kept in localStorage, and putting them in the route
+		//// made every shared link carry someone else's preferences.
 		// Create a copy of field_filters excluding localStorage-managed filters
 		let url_field_filters = {};
 		if (this.field_filters) {
@@ -1761,6 +1916,7 @@ webshop.ProductView =  class {
 
 	restore_filters_state() {
 		const filters = frappe.utils.get_query_params();
+		//// Neoffice — price_range is restored from the URL like the other filters.
 		let {field_filters, attribute_filters, price_range} = filters;
 		
 		// Track if we have any filters in URL
@@ -1778,6 +1934,7 @@ webshop.ProductView =  class {
 			}
 			this.field_filters = field_filters;
 		}
+		//// Neoffice — see above (restoring our own filters after a reload).
 		
 		// Always restore localStorage-managed filters regardless of URL filters
 		// Stock filter
@@ -1824,6 +1981,8 @@ webshop.ProductView =  class {
 			}
 			this.attribute_filters = attribute_filters;
 		}
+		//// Neoffice — the stock/discount checkboxes are restored from localStorage, the
+		//// rest from the URL.
 		
 		// Restore price filters state
 		if (price_range) {
@@ -1858,7 +2017,10 @@ webshop.ProductView =  class {
 	}
 
 	render_no_products_section(error=false) {
+		//// Neoffice — the two messages below are translated through
+		//// window.product_translations (dd08553e88, 2025-12-15).
 		const translations = window.product_translations || {};
+		//// Neoffice — translated error message (see above).
 		let error_section = `
 			<div class="mt-4 w-100 alert alert-error font-md">
 				${ translations["Something went wrong. Please refresh or contact us."] || "Something went wrong. Please refresh or contact us." }
@@ -1902,6 +2064,8 @@ webshop.ProductView =  class {
 		for (let key in object) {
 			const value = object[key];
 			if (value) {
+				//// Neoffice — a filter value that is an object must be stringified before it goes
+				//// into the query string, or the URL carried [object Object].
 				// For JSON values, ensure they are properly stringified
 				if (typeof value === 'object') {
 					url.append(key, JSON.stringify(value));
@@ -1927,6 +2091,11 @@ webshop.ProductView =  class {
 		}
 		return exists ? obj : undefined;
 	}
+//// Neoffice — added, down to hide_product_loader at the end of the file. ▼▼▼
+//// show_product_loader paints a SKELETON of cards in place of the list instead of
+//// upstream's blanking: with the products kept visible during loading, an overlay
+//// spinner made the page look frozen (567e038dd5, 2025-12-16 "always use skeleton
+//// loading instead of overlay spinner"). ▲▲▲
 
 	disable_view_toggler(disable) {
 		$('#list').prop('disabled', disable);

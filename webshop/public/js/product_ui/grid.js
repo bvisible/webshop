@@ -4,11 +4,15 @@ webshop.ProductGrid = class {
 		- settings: Webshop Settings
 		- products_section: Products Wrapper
 		- preference: If preference is not grid view, render but hide
+		//// Neoffice — no_render: the infinite scroll builds a view only to call
+		//// get_item_html on it, without rendering (2591df1013, 2025-12-14).
 		- no_render: If true, don't render on construction (for infinite scroll)
 	*/
 	constructor(options) {
 		Object.assign(this, options);
 
+		//// Neoffice — see no_render above: the constructor returns before touching the
+		//// DOM.
 		if (this.no_render) {
 			return; // Don't render, just create instance for get_item_html
 		}
@@ -26,6 +30,9 @@ webshop.ProductGrid = class {
 		let html = ``;
 
 		this.items.forEach(item => {
+			//// Neoffice — the card markup is moved into get_item_html so the infinite scroll
+			//// can render one item at a time; upstream builds it inline in this loop
+			//// (2591df1013, 2025-12-14).
 			html += me.get_item_html(item);
 		});
 
@@ -33,6 +40,7 @@ webshop.ProductGrid = class {
 		$product_wrapper.append(html);
 	}
 
+	//// Neoffice — added: one card, extracted from the loop above (see #3).
 	get_item_html(item) {
 		let title = item.web_item_name || item.item_name || item.item_code || "";
 		title = title.length > 90 ? title.substr(0, 90) + "..." : title;
@@ -73,6 +81,10 @@ webshop.ProductGrid = class {
 		} = this.get_image_fit_styles(item);
 
 		if (image) {
+			//// Neoffice — added to the image block: the discount and second-hand-condition
+			//// badges (d984eff855, 2026-09-03 "produits d'occasion"), and the inline styles
+			//// of the Cover/Contain image fit with its per-item focus point (31feefcae6 /
+			//// 3eae27c5b3 / 3cec45d8b4, 2026-04-19) — upstream always letterboxes the image.
 			return `
 				<div class="card-img-container"${container_style ? ` style="${container_style}"` : ''}>
 					${discount_badge}${condition_badge}
@@ -82,6 +94,7 @@ webshop.ProductGrid = class {
 				</div>
 			`;
 		} else {
+			//// Neoffice — same badges and fit styles on the no-image card (see above).
 			return `
 				<div class="card-img-container"${container_style ? ` style="${container_style}"` : ''}>
 					${discount_badge}${condition_badge}
@@ -95,6 +108,8 @@ webshop.ProductGrid = class {
 		}
 	}
 
+	//// Neoffice — added helper. The comment below says why the styles are inline
+	//// rather than in the SCSS bundle (31feefcae6, 2026-04-19).
 	// Compute inline styles for Cover/Contain fit + per-item focus.
 	// Keeping it here (not SCSS) lets the Webshop Settings toggle take
 	// effect without a fresh `bench build`.
@@ -146,10 +161,14 @@ webshop.ProductGrid = class {
 		}
 
 		body_html += `</div>`;
+		//// Neoffice — category and stock status share one line on the card; upstream puts
+		//// the stock message under the price, which pushed the buy button off a phone
+		//// screen (0d17ac8d40, 2026-08-26).
 		
 		// Category and stock info in same line
 		body_html += `<div class="product-category-stock">`;
 		body_html += `<div class="product-category" itemprop="name">${ item.item_group || '' }</div>`;
+		//// Neoffice — the inline stock status (see above).
 		
 		// Add stock info if settings allow
 		if (settings.show_stock_availability && !item.has_variants) {
@@ -159,8 +178,11 @@ webshop.ProductGrid = class {
 		body_html += `</div>`;
 
 		if (item.formatted_price) {
+			//// Neoffice — price and loyalty points share a wrapper (6fea19b1fe, 2025-06-17).
 			body_html += `<div class="price-loyalty-wrapper">`;
 			body_html += this.get_price_html(item);
+			//// Neoffice — the loyalty-points badge next to the price; upstream has no loyalty
+			//// programme (6fea19b1fe, 2025-06-17).
 			
 			// Add loyalty points icon next to price
 			if (item.loyalty_points_html) {
@@ -178,6 +200,7 @@ webshop.ProductGrid = class {
 	}
 
 	get_title(item, title) {
+		//// Neoffice — the card title link loses its underline (style only).
 		let title_html = `
 			<a href="/${ item.route || '#' }" style=" text-decoration: none;">
 				<div class="product-title" itemprop="name">
@@ -209,6 +232,8 @@ webshop.ProductGrid = class {
 	}
 
 	get_price_html(item) {
+		//// Neoffice — a gift card has no list price to show: its amount is chosen by the
+		//// buyer on the product page (3bc2d836f1, 2025-02-11).
 		if (item.is_gift_card) {
 			return '';
 		}
@@ -280,6 +305,10 @@ webshop.ProductGrid = class {
 		`;
 	}
 
+	//// Neoffice — added: the loyalty badge, and get_stock_availability is emptied
+	//// because the status is now inline with the category (see #8). The dead body
+	//// below is upstream's, kept unreachable.
+	//// TO REVIEW: dead code after `return ``;` — worth deleting.
 	get_loyalty_points_html(item) {
 		if (!item.loyalty_points_html) return '';
 		
@@ -314,6 +343,10 @@ webshop.ProductGrid = class {
 			`;
 		}
 		if (item.has_variants || item.is_gift_card || settings.enable_guest_cart == 0 && frappe.session.user == "Guest") {
+			//// Neoffice — upstream calls frappe's __(); this file is a bundle served to the
+			//// shop, where __() is not loaded, so the string came out in English on a French
+			//// shop. Translations come from window.product_translations (dd08553e88,
+			//// 2025-12-15).
 			return `
 				<a href="/${ item.route || '#' }">
 					<div class="btn btn-sm btn-explore-variants w-100 mt-4">

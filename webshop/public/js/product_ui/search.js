@@ -57,6 +57,10 @@ webshop.ProductSearch = class {
 
 					// Populate product results
 					product_results = data.message ? data.message.product_results : null;
+//// Neoffice — the dropdown shows prices, which upstream's search does not return:
+//// the results are enriched by a second call before being rendered (see
+//// fetchProductPrices below). 48e2708353, 2025-03-13.
+//// TO REVIEW: the comments in this file are in French (RULE #00).
 
 					// Si nous avons des résultats de produits, récupérer les informations de prix
 					if (product_results && product_results.length > 0) {
@@ -82,6 +86,10 @@ webshop.ProductSearch = class {
 
 			this.search_dropdown.removeClass("hidden");
 		});
+//// Neoffice — added: Enter goes to the full results page rather than doing
+//// nothing, which is what a buyer expects from a search box (912d29f1f4,
+//// 2025-12-14). keydown, not keypress: keypress does not fire for Enter in every
+//// browser (837f5904f8, 2025-12-14).
 
 		// Handle Enter key to navigate to search results page
 		this.searchBox.on("keydown", (e) => {
@@ -209,6 +217,9 @@ webshop.ProductSearch = class {
 		this.attachEventListenersToChips();
 	}
 
+	//// Neoffice — added: prices for the dropdown results, in one call for the whole
+	//// page of results. A failure calls back anyway, so the dropdown still shows the
+	//// products without their price.
 	// Récupérer les informations de prix pour les produits
 	fetchProductPrices(products, callback) {
 		if (!products || products.length === 0) {
@@ -248,6 +259,9 @@ webshop.ProductSearch = class {
 
 	populateResults(product_results) {
 		if (!product_results || product_results.length === 0) {
+			//// Neoffice — upstream empties the container silently when nothing matches, so the
+			//// buyer could not tell a slow search from an empty one. Says so instead, above
+			//// three characters (4ab27b43f4, 2025-12-14).
 			// Show "no results" message only if there's a search query
 			const searchQuery = this.searchBox.val().trim();
 			if (searchQuery.length >= 3) {
@@ -269,6 +283,8 @@ webshop.ProductSearch = class {
 
 		let html = "";
 
+		//// Neoffice — the price, its struck-through list price and the discount, rendered
+		//// from what fetchProductPrices added.
 		product_results.forEach((res) => {
 			let thumbnail = res.thumbnail || '/assets/webshop/images/cart-empty-state.png';
 
@@ -294,6 +310,8 @@ webshop.ProductSearch = class {
 				priceHtml = `<div class="product-price">${res.price_stock_uom}</div>`;
 			}
 
+			//// Neoffice — the result title gets a class so the shop can style it.
+			//// Neoffice — the price block in the result row (see #5).
 			html += `
 				<div class="dropdown-item" style="display: flex;">
 					<img class="item-thumb col-2" src=${encodeURI(thumbnail)} />
@@ -306,6 +324,8 @@ webshop.ProductSearch = class {
 			`;
 		});
 
+		//// Neoffice — added: a "View all results" link to the full listing; upstream's
+		//// dropdown is a dead end (912d29f1f4, 2025-12-14).
 		// Add "View all results" link
 		const searchQuery = this.searchBox.val().trim();
 		html += `
