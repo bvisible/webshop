@@ -1115,8 +1115,8 @@ def _set_delivery_dates_from_sources(sales_order, cart_settings=None):
 #////
 #//// Exists because a customer whose card was declined could no longer empty
 #//// their cart — see the LinkExistsError branch in update_cart.
-def _liberer_demandes_de_paiement_infructueuses(quotation_name):
-	demandes = frappe.get_all(
+def _release_unsuccessful_payment_requests(quotation_name):
+	requests = frappe.get_all(
 		"Payment Request",
 		filters={
 			"reference_doctype": "Quotation",
@@ -1126,20 +1126,22 @@ def _liberer_demandes_de_paiement_infructueuses(quotation_name):
 		},
 		fields=["name", "docstatus"],
 	)
-	for demande in demandes:
+	#//// Neoffice — body of the added helper marked above. `requests` / `request` were
+	#//// named `demandes` / `demande`, renamed under RULE #00 with the function itself.
+	for request in requests:
 		try:
-			doc = frappe.get_doc("Payment Request", demande.name)
+			doc = frappe.get_doc("Payment Request", request.name)
 			doc.flags.ignore_permissions = True
 			if doc.docstatus == 1:
 				doc.cancel()
 			else:
 				doc.delete()
 		except Exception:
-			#//// Une demande qu'on n'arrive pas à libérer ne doit pas faire
-			#//// échouer l'opération: la suppression qui suit dira si elle bloque
-			#//// encore, et l'erreur remontera alors avec son vrai motif.
+			#//// A request we cannot release must not fail the operation: the delete
+			#//// that follows will say whether it still blocks, and the error will
+			#//// then surface with its real cause.
 			frappe.log_error(
-				"Webshop: libération de demande de paiement impossible",
+				"Webshop: could not release a payment request",
 				frappe.get_traceback(),
 			)
 			frappe.clear_messages()
@@ -1152,10 +1154,9 @@ def _liberer_demandes_de_paiement_infructueuses(quotation_name):
 #//// source, each line with its own delivery estimate.
 @frappe.whitelist(allow_guest=True)
 def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty=False, price_list_rate=None, gift_card_data=None, warehouse=None):
-	#//// Neoffice multi-site — sur un site réservé aux professionnels, remplir
-	#//// un panier demande un compte. La garde vit ici plutôt que dans le
-	#//// gabarit: masquer un bouton n'est pas une permission, et cet endpoint
-	#//// est appelable directement.
+	#//// Neoffice multi-site — on a site reserved for business accounts, filling a
+	#//// cart requires an account. The guard lives here rather than in the template:
+	#//// hiding a button is not a permission, and this endpoint is callable directly.
 	from webshop.webshop.multi_site import exiger_connexion_pour_acheter
 
 	exiger_connexion_pour_acheter()
@@ -1403,25 +1404,26 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			items = [item_dict] if qty > 0 else []
 		
 		result = create_guest_quotation(items)
-		# Le panier du visiteur vient d'être supprimé parce qu'il ne restait
-		# rien : on rend quand même la page vide, sinon la ligne retirée reste
-		# affichée jusqu'au prochain rechargement.
+		# The visitor's cart was just deleted because nothing was left in it: render
+		# the empty page anyway, otherwise the removed line stays on screen until the
+		# next reload.
 		if result is None and isinstance(items, list) and not items:
 			set_cart_count(None)
 			if cint(with_items):
-				# Le devis vient d'être supprimé : il n'y a plus rien à lire.
-				# `get_cart_quotation(None)` rend un contexte dont `doc` est nul,
-				# et le gabarit du total demande `doc.total` — 500 en pleine
-				# figure du visiteur, pour un panier qu'il a simplement vidé.
-				# Un devis neuf en mémoire, jamais enregistré, dit « zéro » sans
-				# rien inventer.
-				vide = frappe.new_doc("Quotation")
-				# La devise du site, pas celle de Webshop Settings : ce doctype
-				# n'en porte pas, et le lui demander lève une erreur — donc un
-				# 417 à la place du panier vide.
-				vide.currency = frappe.defaults.get_global_default("currency")
+				# The quotation was just deleted: there is nothing left to read.
+				# `get_cart_quotation(None)` returns a context whose `doc` is None, and
+				# the totals template asks for `doc.total` — a 500 in the visitor's face
+				# for a cart they merely emptied. A fresh in-memory quotation, never
+				# saved, says "zero" without inventing anything.
+				#//// Neoffice — added branch (upstream has no guest cart). `empty_cart` was
+				#//// named `vide`, renamed under RULE #00.
+				empty_cart = frappe.new_doc("Quotation")
+				# The site currency, not Webshop Settings': that doctype carries none,
+				# and asking it for one raises — a 417 instead of the empty cart.
+				empty_cart.currency = frappe.defaults.get_global_default("currency")
 				context = {
-					"doc": vide,
+					#//// Neoffice — the placeholder renamed just above.
+					"doc": empty_cart,
 					"cart_settings": frappe.get_cached_doc("Webshop Settings"),
 					"shipping_addresses": [],
 					"billing_addresses": [],
@@ -1486,10 +1488,10 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			]
 		else:
 			quotation_items = quotation.get("items", {"item_code": ["!=", item_code]})
-		# Une réservation se vend d'un bloc : le séjour, sa taxe, ses options.
-		# Retirer le séjour doit emporter le reste ICI, avant de décider si le
-		# panier est vide — sinon la taxe survit seule, le devis n'est pas
-		# supprimé, et le client ne peut plus rien recommencer.
+		# A booking is sold as one block: the stay, its tax, its options. Removing
+		# the stay has to take the rest with it HERE, before deciding whether the
+		# cart is empty — otherwise the tax survives alone, the quotation is not
+		# deleted, and the customer can never start over.
 		quotation_items = _drop_booking_companions(quotation, item_code, quotation_items)
 		if quotation_items:
 			quotation.set("items", quotation_items)
@@ -1591,7 +1593,9 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			quotation = None
 		except frappe.LinkExistsError:
 			frappe.clear_messages()
-			_liberer_demandes_de_paiement_infructueuses(quotation.name)
+			#//// Neoffice — added helper, renamed under RULE #00 (was
+			#//// _liberer_demandes_de_paiement_infructueuses).
+			_release_unsuccessful_payment_requests(quotation.name)
 			quotation.delete()
 			quotation = None
 
@@ -3078,7 +3082,8 @@ def update_contact_info(first_name, last_name, email=None, phone=None, company_n
 			"message": _("User not logged in")
 		}
 
-	#//// Neoffice — see update_contact_info above.
+	#//// Neoffice — same contract as update_customer_info above: the whole body is
+	#//// wrapped so the checkout always gets the success/message shape back.
 	try:
 		# Get current quotation
 		quotation = get_cart_quotation().get('doc')
@@ -3186,7 +3191,7 @@ def update_contact_info(first_name, last_name, email=None, phone=None, company_n
 		quotation.save(ignore_permissions=True)
 
 		#//// Neoffice — the checkout reads this shape (success/message) rather than a
-		#//// document; see update_contact_info above. The message is translated because the
+		#//// document; see update_customer_info above. The message is translated because the
 		#//// checkout prints it.
 		return {
 			"success": True,
