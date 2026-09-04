@@ -6329,3 +6329,6 @@ msgstr "Nouveau pour un produit normal. Occasion ou Reconditionné quand cet art
 
 msgid "See the second-hand deals ({0})"
 msgstr "Voir les occasions ({0})"
+
+msgid "Empty: the warehouse the shop sells from."
+msgstr "Vide : l'entrepôt d'où vend la boutique."

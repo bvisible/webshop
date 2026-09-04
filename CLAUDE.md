@@ -327,6 +327,16 @@ Website Item mirrors them (`fetch_from` + `crud_events/item/update_website_item.
   new item's page.
 - The value is `Second-hand`, not `Used`: `Used` is already translated
   "Utilisé" (coupons) in `fr.po`.
+- **Two ways in, both verified on screen.** Either set the Item's `Condition`
+  to Second-hand / Refurbished (the grade, story and "used unit of" fields
+  appear, the Website Item mirrors on save, `/occasions` lists it at once), or
+  press "Create Used Unit" on the new item, which does all of that plus the
+  price, the stock receipt and the publication in one dialog.
+- **The Condition section closes the Item's Details tab (`insert_after: uoms`),
+  not `brand`.** A custom field lands right after its anchor, ahead of the
+  older ones sharing it; a section break after `brand` therefore swallowed
+  every other app's fields there (attachments, collection, alcohol flag).
+  `move_item_condition_section` relocates it on existing sites.
 - `/occasions` is `/all-products` with the Condition facet locked
   (`www/occasions`, `product_data_engine/listing_context.py`,
   `window.locked_field_filters`). Webshop Settings accepts a **Select** as a

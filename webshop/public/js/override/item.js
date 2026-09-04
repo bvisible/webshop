@@ -280,6 +280,7 @@ function webshop_used_unit_dialog(frm) {
 				fieldtype: "Link",
 				options: "Warehouse",
 				label: __("Warehouse"),
+				description: __("Empty: the warehouse the shop sells from."),
 				get_query: () => ({ filters: { is_group: 0 } }),
 			},
 			{ fieldname: "publish", fieldtype: "Check", label: __("Publish on the website"), default: 1 },
