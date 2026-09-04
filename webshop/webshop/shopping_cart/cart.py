@@ -2999,9 +2999,10 @@ def update_customer_info(customer_name=None, customer_type=None):
 def update_contact_info(first_name, last_name, email=None, phone=None, company_name=None):
 	"""Update contact information from checkout page"""
 	if not frappe.session.user:
+		#//// Neoffice — translated: every message of this endpoint is shown by the checkout.
 		return {
 			"success": False,
-			"message": "User not logged in"
+			"message": _("User not logged in")
 		}
 
 	#//// Neoffice — see update_contact_info above.
@@ -3009,9 +3010,10 @@ def update_contact_info(first_name, last_name, email=None, phone=None, company_n
 		# Get current quotation
 		quotation = get_cart_quotation().get('doc')
 		if not quotation:
+			#//// Neoffice — translated, see the guard at the top of this endpoint.
 			return {
 				"success": False,
-				"message": "No active quotation found"
+				"message": _("No active quotation found")
 			}
 
 		# Check if contact exists for user
@@ -3111,23 +3113,27 @@ def update_contact_info(first_name, last_name, email=None, phone=None, company_n
 		quotation.save(ignore_permissions=True)
 
 		#//// Neoffice — the checkout reads this shape (success/message) rather than a
-		#//// document; see update_contact_info above.
-		#//// TO REVIEW: the two messages here are not wrapped in _() (they do surface in the
-		#//// checkout when the call fails).
+		#//// document; see update_contact_info above. The message is translated because the
+		#//// checkout prints it.
 		return {
 			"success": True,
-			"message": "Contact information updated successfully"
+			"message": _("Contact information updated successfully")
 		}
 
 	#//// Neoffice — the checkout must not break on a contact it could not save: the
 	#//// failure is reported in the same success/message shape and the buyer keeps
-	#//// going (48e2708353, 2025-03-13).
-	#//// TO REVIEW: str(e) is returned to the browser — a raw exception message can
-	#//// leak internals; and the failure is not logged.
-	except Exception as e:
+	#//// going (48e2708353, 2025-03-13). ▼▼▼
+	#//// It used to return str(e) and log nothing: the shop's visitors were shown a raw
+	#//// exception message (a mandatory field name, a doctype, a SQL fragment) while the
+	#//// only trace of the failure — the traceback — was thrown away, so nobody could tell
+	#//// afterwards WHY a checkout had failed. The traceback now goes to Error Log with the
+	#//// two-argument form (title ≤ 140 chars, message), and the buyer gets one translated
+	#//// sentence. The JSON shape the checkout reads is unchanged. ▲▲▲
+	except Exception:
+		frappe.log_error("Cart: contact update failed", frappe.get_traceback())
 		return {
 			"success": False,
-			"message": str(e)
+			"message": _("Could not update the contact details")
 		}
 
 @frappe.whitelist(allow_guest=True)
