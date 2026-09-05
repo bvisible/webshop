@@ -60,7 +60,10 @@ module.exports = defineConfig({
 			//// Runs signed OUT: sign-in, account creation and what a visitor must
 			//// not reach are precisely the subject here.
 			name: 'invite',
-			testMatch: /(01-authentification|07-nouveau-client)\.spec\.js/,
+			//// Neoffice — 08-assistant added: its signed-out tests (no first name in the
+			//// greeting, the guest's email field on the team form) skipped forever, since
+			//// this project never matched the file and a conditional skip reads as a pass.
+			testMatch: /(01-authentification|07-nouveau-client|08-assistant)\.spec\.js/,
 			use: {...devices['Desktop Chrome']},
 		},
 		{

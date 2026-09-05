@@ -586,6 +586,20 @@ endpoint whose id travels in a redirect URL.
 > every one of them died on a LinkValidationError before its first assertion.
 > `make_test_item()` wraps ERPNext's `make_item` for the same reason.
 
+> **A test run on a real site kills that site's outgoing email.** Any
+> `bench run-tests` on `prod.local` — even a module that sends nothing, like
+> `test_store_hours` — recreates Frappe's fixture Email Account
+> `_Test Comm Account 1`, and it takes `default_outgoing` from the shop's real
+> account. Its SMTP host is `smtp.example.com`, which does not resolve, so every
+> mail after that fails: on osiris the queue held 281 Error, 108 stuck Sending
+> and 41 Not Sent before this was found. `--skip-test-records` does not prevent
+> it. After running tests on a real site, put the default back:
+> `frappe.delete_doc_if_exists("Email Account", "_Test Comm Account 1")` then
+> set `default_outgoing` on the shop's account. The symptom a customer sees is a
+> modal "Incorrect Configuration / Outgoing mail server or port invalid" popped
+> by a `frappe.throw` inside `frappe.sendmail` — which is why the assistant's
+> escalation mails go through `_send_quietly`.
+
 > **`--skip-test-records` is what makes the suite runnable on a real site.**
 > Without it, Frappe first builds ERPNext's test records and crashes on a
 > Warehouse whose company is null. And if a test record on the site is itself
