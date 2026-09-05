@@ -32,7 +32,20 @@ def _team_channel(settings):
 
 
 def _support_email(settings):
-	return (settings.get("assistant_support_email") or "").strip() or frappe.db.get_single_value("Website Settings", "email")
+	"""Where the team is written to: the assistant's own address, else the shop's.
+
+	`Website Settings.email` is the last resort and is asked for only when the field
+	exists: it does not on a stock Frappe, where `get_single_value` raises
+	"Field email does not exist" and took the whole escalation down with it.
+	"""
+	# //// Neoffice — was: an unguarded get_single_value("Website Settings", "email").
+	# //// That field is ours, not upstream's; on a plain Frappe every escalation raised.
+	for value in ((settings.get("assistant_support_email") or ""), (settings.get("store_email") or "")):
+		if value.strip():
+			return value.strip()
+	if frappe.get_meta("Website Settings").has_field("email"):
+		return frappe.db.get_single_value("Website Settings", "email")
+	return None
 
 
 def _customer_label(ctx, email):

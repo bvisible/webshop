@@ -558,22 +558,44 @@ class TestAssistant(FrappeTestCase):
 		self.assertIn("visiteur@example.com", self._recipients(mailed))
 
 	def test_the_confirmation_reaches_a_customer_who_stopped_the_follow_ups(self):
+		"""The follow-ups' unsubscribe must not swallow a transactional receipt."""
 		from webshop.webshop.assistant import escalation
 
-		if not frappe.db.exists("Email Account", {"enable_outgoing": 1}):
-			self.skipTest("no outgoing email account: nothing can be queued here")
 		ctx = self.customer_context()
 		self.new_conversation(ctx)
 		# the customer once clicked the follow-ups' unsubscribe link, scoped to their Customer
 		unsub = {"email": USER, "reference_doctype": "Customer", "reference_name": CUSTOMER}
 		if not frappe.db.exists("Email Unsubscribe", unsub):
 			frappe.get_doc({"doctype": "Email Unsubscribe", **unsub}).insert(ignore_permissions=True)
-		before = frappe.db.count("Email Queue Recipient", {"recipient": USER})
-		escalation._notify_customer(USER, "Votre demande a été transmise", "Bonjour", ctx)
-		self.assertEqual(frappe.db.count("Email Queue Recipient", {"recipient": USER}), before + 1)
+		# //// Neoffice — the mail is captured, not read back from Email Queue: under test
+		# //// Frappe mutes outgoing mail, so a queue assertion passed on osiris (where a run
+		# //// had left an account behind) and failed on CI's fresh site.
+		mailed = []
+		real = frappe.sendmail
+		frappe.sendmail = lambda *args, **kwargs: mailed.append(kwargs)
+		try:
+			escalation._notify_customer(USER, "Votre demande a été transmise", "Bonjour", ctx)
+		finally:
+			frappe.sendmail = real
+		self.assertEqual([c.get("recipients") for c in mailed], [[USER]])
+		# the giveaway of the follow-ups' path, the one that carries the unsubscribe
+		self.assertNotIn("unsubscribe_message", mailed[0])
 		self.assertTrue(
 			frappe.db.exists("Communication", {"reference_doctype": "Customer", "reference_name": CUSTOMER, "subject": "Votre demande a été transmise"})
 		)
+
+	def test_the_support_email_falls_back_without_a_website_settings_field(self):
+		"""A stock Frappe has no Website Settings.email: asking for it used to raise."""
+		from webshop.webshop.assistant import escalation
+
+		self.settings.assistant_support_email = "support@example.com"
+		self.assertEqual(escalation._support_email(self.settings), "support@example.com")
+		self.settings.assistant_support_email = ""
+		self.settings.store_email = "boutique@example.com"
+		self.assertEqual(escalation._support_email(self.settings), "boutique@example.com")
+		self.settings.store_email = ""
+		# whatever the site carries, it must answer instead of raising
+		escalation._support_email(self.settings)
 
 	def test_the_answering_machine_speaks_the_merchant_s_words(self):
 		self.settings.assistant_offline_message = "Nora fait une pause."
