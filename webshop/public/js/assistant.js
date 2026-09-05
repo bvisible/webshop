@@ -121,6 +121,7 @@ webshop.assistant = {
 		} else {
 			this.renderSuggestions();
 		}
+		// //// Neoffice ▼▼▼ — the answering machine: notice bar and "leave a message" form when the model is unreachable or a limit is hit, so a stuck visitor still has a way to reach the team (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 		// the answering machine: the server already knows it cannot answer right now
 		if (c.notice && c.notice.reply) {
 			this.el.suggestions.innerHTML = "";
@@ -195,6 +196,7 @@ webshop.assistant = {
 			return "";
 		}
 	},
+	// //// Neoffice ▲▲▲
 
 	renderSuggestions() {
 		const L = this.config.labels;
@@ -247,6 +249,7 @@ webshop.assistant = {
 			const out = await this.api("webshop.webshop.assistant.api.send", { message: text, page_route: this.route() });
 			this.typing(false);
 			this.addMessage("assistant", (out && out.reply) || this.config.labels.error);
+			// //// Neoffice — the answering machine: switch to the "leave a message" form once the endpoint itself reports it cannot answer (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 			// the answering machine: the notice was just shown, now the form, with the words it could not answer
 			if (out && out.unavailable && out.leave_message) this.showLeaveForm(text, out.email_required);
 		} catch (e) {

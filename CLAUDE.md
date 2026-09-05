@@ -509,6 +509,7 @@ exercises the bubble against the real model, and skips when the switch is off.
 > that name exists, and falls back to a message to the team when the ticket
 > cannot be created at all.
 
+<!-- //// Neoffice — added: the answering machine section, documenting the scripted notice and the "leave a message" escalation path used when the model is unreachable or a limit is hit (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte") -->
 **The answering machine.** When the model fails (timeout, 503, nothing
 configured), or the visitor's daily limit or the shop's monthly cap is reached,
 `send` does not apologise and stop: it answers with a scripted notice (the

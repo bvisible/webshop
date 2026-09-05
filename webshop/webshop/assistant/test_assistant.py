@@ -446,6 +446,7 @@ class TestAssistant(FrappeTestCase):
 		frappe.set_user(USER)
 		try:
 			out = api.send("Ça marche ?")
+			# //// Neoffice — checks the outage flag actually skips the model, and that get_config's notice reflects it too (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 			# the failure armed the flag: the next message is answered at once, the model is not called
 			fake = FakeModel(["Oui."])
 			llm.complete = fake
@@ -456,6 +457,7 @@ class TestAssistant(FrappeTestCase):
 		finally:
 			frappe.set_user("Administrator")
 		self.assertTrue(out.get("failed"))
+		# //// Neoffice ▼▼▼ — new coverage for the answering machine: outage assertions, then the "leave a message" tape (team notified with no model involved, guest email required, a broken SMTP config never surfacing to the visitor, the confirmation bypassing the follow-ups' unsubscribe) and the merchant-worded notice (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 		self.assertEqual(out["unavailable"], "outage")
 		self.assertTrue(out["leave_message"])
 		self.assertNotIn("Traceback", out["reply"])
@@ -587,3 +589,4 @@ class TestAssistant(FrappeTestCase):
 		status = api.store_status_line(self.settings)
 		if status:
 			self.assertIn(status, guest["reply"])
+		# //// Neoffice ▲▲▲

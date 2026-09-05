@@ -57,6 +57,7 @@
 	}
 	&__note { align-self: center; font-size: .8rem; color: #6b7280; }
 
+	//// Neoffice — the answering machine's "leave a message" card and form (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 	/* the answering machine's form: reaches the team without the model */
 	&__leave {
 		align-self: stretch; background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 12px 14px;

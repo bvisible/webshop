@@ -58,6 +58,7 @@ def _post_to_raven(channel, text):
 		return False
 
 
+# //// Neoffice — repurposed for the answering machine's "leave a message" confirmation, sent outside the follow-ups' unsubscribe-scoped path (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 def _notify_customer(email, subject, message, ctx):
 	"""The confirmation the visitor asked for a moment ago.
 
@@ -72,6 +73,7 @@ def _notify_customer(email, subject, message, ctx):
 
 	conversation = ctx.conversation
 	try:
+		# //// Neoffice — logged straight on the Customer's timeline instead of through the follow-ups' outgoing path, whose Customer-scoped unsubscribe would otherwise swallow it (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 		if ctx.customer:
 			frappe.get_doc(
 				{
@@ -89,6 +91,7 @@ def _notify_customer(email, subject, message, ctx):
 			).insert(ignore_permissions=True)
 	except Exception:
 		frappe.log_error("Shop assistant: customer notification failed", frappe.get_traceback())
+	# //// Neoffice — through _send_quietly so a broken SMTP config (osiris) never bubbles frappe.throw's "Incorrect Configuration" back to the public visitor (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 	# the mail on its own quiet path: an SMTP error must not surface to the visitor
 	_send_quietly(
 		recipients=[email],
@@ -108,6 +111,7 @@ def contact_team(ctx, summary, email):
 	channel_done = _post_to_raven(_team_channel(settings), text)
 	support = _support_email(settings)
 	if support:
+		# //// Neoffice — through _send_quietly, same SMTP-failure guard as the customer confirmation below (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 		_send_quietly(
 			recipients=[support],
 			subject=_("Assistant boutique : {0} demande l'équipe").format(who),

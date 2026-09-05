@@ -11,6 +11,7 @@ the session and nothing else:
 import frappe
 from frappe import _
 from frappe.rate_limiter import rate_limit
+# //// Neoffice — the answering machine's "leave a message" form validates a guest's email before escalating (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 from frappe.utils import add_days, cint, now_datetime, validate_email_address
 
 from webshop.webshop.assistant import engine
@@ -211,6 +212,7 @@ def labels():
 		"open": _("Ouvrir l'assistant"),
 		"error": _("Le message n'est pas parti. Réessayez dans un instant."),
 		"limit": _("Vous avez atteint la limite de messages pour aujourd'hui."),
+		# //// Neoffice — labels for the answering machine's "leave a message" form (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 		"leave_title": _("Laisser un message à l'équipe"),
 		"leave_placeholder": _("Votre message pour l'équipe…"),
 		"leave_email": _("Votre adresse email"),
@@ -246,6 +248,7 @@ def get_config(page_route=None):
 		"signed_in": bool(ctx.user and ctx.user != "Guest"),
 		"history": history,
 		"labels": labels(),
+		# //// Neoffice — the answering machine (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 		# the answering machine speaks from the first screen when it has to
 		"notice": unavailable(ctx, reason) if (reason := unavailable_reason(ctx, conversation)) else None,
 	}
@@ -267,6 +270,7 @@ def _monthly_cap_reached(ctx):
 	return bool(cap) and engine.monthly_tokens() >= cap
 
 
+# //// Neoffice — the answering machine: what a "no answer" actually means (outage, daily limit, monthly cap), and what to write on the conversation for the outage case (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 def unavailable_reason(ctx, conversation=None):
 	if in_outage():
 		return "outage"
@@ -319,6 +323,7 @@ def send(message, page_route=None):
 		out = engine.respond(conversation, text, ctx)
 	except Exception:
 		frappe.log_error("Shop assistant: reply failed", frappe.get_traceback())
+		# //// Neoffice — the answering machine: arm the outage flag so the next visitors get the notice at once, and answer this one the same way instead of a bare error (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 		mark_outage()
 		# respond() already wrote the visitor's words on the conversation
 		result = _answering_machine(conversation, ctx, "outage")
@@ -327,6 +332,7 @@ def send(message, page_route=None):
 	return {"reply": out.reply, "conversation": out.conversation, "escalated": conversation.status == "Escalated"}
 
 
+# //// Neoffice ▼▼▼ — the answering machine's tape: the "leave a message" endpoint and the escalation it triggers, reached with no model involved when the model is down or a limit is hit (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=5, seconds=600)
 def leave_message(message, email=None, page_route=None):
@@ -372,6 +378,7 @@ def leave(ctx, text, email=None):
 	conversation.flags.ignore_permissions = True
 	conversation.save()
 	return {"reply": reply, "conversation": conversation.name, "escalated": True, "via": out.get("via")}
+# //// Neoffice ▲▲▲
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
