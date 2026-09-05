@@ -22,6 +22,9 @@ class WebshopSettings(Document):
 	def onload(self):
 		self.get("__onload").quotation_series = frappe.get_meta("Quotation").get_options("naming_series")
 
+		# //// Neoffice — removed the is_redisearch_loaded write (1f1e3a5204 "chore: remove
+		# //// RediSearch — no fleet bench carries an index any more"): it wrote to a field
+		# //// the DocType JSON no longer has.
 
 	def validate(self):
 		self.validate_field_filters(self.filter_fields, self.enable_field_filters)

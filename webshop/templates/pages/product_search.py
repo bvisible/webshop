@@ -5,6 +5,9 @@ import json
 
 import frappe
 from frappe.utils import cint, cstr
+# //// Neoffice — removed the Query import and the redisearch_utils import (1f1e3a5204
+# //// "chore: remove RediSearch — no fleet bench carries an index any more"): the module
+# //// was disabled since 2025-12-15 and no fleet bench still carries an index.
 from webshop.webshop.shopping_cart.product_info import set_product_info_for_website
 from webshop.webshop.doctype.override_doctype.item_group import get_item_for_list_in_html
 
@@ -189,6 +192,10 @@ def product_search(query, limit=10, fuzzy_search=True):
 
 def clean_up_query(query):
 	return "".join(c for c in query if c.isalnum() or c.isspace())
+
+
+# //// Neoffice — removed convert_to_dict, unused since RediSearch's removal (1f1e3a5204
+# //// "chore: remove RediSearch — no fleet bench carries an index any more").
 
 
 @frappe.whitelist(allow_guest=True)

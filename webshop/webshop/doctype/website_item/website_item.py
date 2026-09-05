@@ -15,6 +15,9 @@ from frappe.website.doctype.website_slideshow.website_slideshow import get_slide
 from frappe.website.website_generator import WebsiteGenerator
 
 from webshop.webshop.doctype.item_review.item_review import get_item_reviews
+# //// Neoffice — removed the redisearch_utils import (1f1e3a5204 "chore: remove
+# //// RediSearch — no fleet bench carries an index any more"): no fleet bench still
+# //// carries an index, and the three call sites below are gone with it.
 from webshop.webshop.shopping_cart.cart import _set_price_list
 from webshop.webshop.doctype.override_doctype.item_group import (
     get_parent_item_groups,
@@ -79,6 +82,8 @@ class WebsiteItem(WebsiteGenerator):
 
 	def on_trash(self):
 		super(WebsiteItem, self).on_trash()
+		# //// Neoffice — removed delete_item_from_index (1f1e3a5204 "chore: remove
+		# //// RediSearch — no fleet bench carries an index any more").
 		self.publish_unpublish_desk_item(publish=False)
 
 	def validate_duplicate_website_item(self):
@@ -840,6 +845,8 @@ def invalidate_cache_for_web_item(doc):
 		invalidate_cache_for(doc, item_group)
 
 	# Update Search Cache
+	# //// Neoffice — removed update_index_for_item (1f1e3a5204 "chore: remove
+	# //// RediSearch — no fleet bench carries an index any more").
 
 	invalidate_item_variants_cache_for_website(doc)
 
@@ -1020,6 +1027,8 @@ def make_website_item(doc, save=True):
 	website_item.save()
 
 	# Add to search cache
+	# //// Neoffice — removed insert_item_to_index (1f1e3a5204 "chore: remove
+	# //// RediSearch — no fleet bench carries an index any more").
 
 	return [website_item.name, website_item.web_item_name]
 
