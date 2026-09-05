@@ -558,9 +558,11 @@ class TestAssistant(FrappeTestCase):
 		self.assertIn("visiteur@example.com", self._recipients(mailed))
 
 	def test_the_confirmation_reaches_a_customer_who_stopped_the_follow_ups(self):
+		# //// Neoffice — docstring added (8f821f80e9 "fix(assistant): l'escalade ne dépend plus d'un champ que Frappe standard n'a pas"): the test was rewritten below, no longer just checking the queue
 		"""The follow-ups' unsubscribe must not swallow a transactional receipt."""
 		from webshop.webshop.assistant import escalation
 
+		# //// Neoffice — removed the "no outgoing email account" skipTest guard (8f821f80e9 "fix(assistant): l'escalade ne dépend plus d'un champ que Frappe standard n'a pas"): the test now captures frappe.sendmail directly instead of reading Email Queue Recipient, so no outgoing email account is required on the site
 		ctx = self.customer_context()
 		self.new_conversation(ctx)
 		# the customer once clicked the follow-ups' unsubscribe link, scoped to their Customer
@@ -584,6 +586,7 @@ class TestAssistant(FrappeTestCase):
 			frappe.db.exists("Communication", {"reference_doctype": "Customer", "reference_name": CUSTOMER, "subject": "Votre demande a été transmise"})
 		)
 
+	# //// Neoffice — added test (8f821f80e9 "fix(assistant): l'escalade ne dépend plus d'un champ que Frappe standard n'a pas"): _support_email used to call Website Settings.email unguarded, a field that belongs to us and does not exist on stock Frappe, raising and taking down the whole escalation
 	def test_the_support_email_falls_back_without_a_website_settings_field(self):
 		"""A stock Frappe has no Website Settings.email: asking for it used to raise."""
 		from webshop.webshop.assistant import escalation
