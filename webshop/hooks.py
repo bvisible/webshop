@@ -24,7 +24,6 @@ after_install = "webshop.setup.install.after_install"
 # //// search then returned nothing until someone rebuilt it by hand
 # //// (ce5220b7e7 / 2c14d7c948, 2025-12-14 "auto-rebuild Redis search index").
 after_migrate = "webshop.setup.install.after_migrate"
-after_clear_cache = "webshop.webshop.redisearch_utils.rebuild_index_after_clear_cache"
 on_logout = "webshop.webshop.shopping_cart.utils.clear_cart_count"
 on_session_creation = [
 	# //// Neoffice — body re-indented from 4 spaces to tabs by our editor config

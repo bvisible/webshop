@@ -5,14 +5,6 @@ import json
 
 import frappe
 from frappe.utils import cint, cstr
-from redis.commands.search.query import Query
-
-from webshop.webshop.redisearch_utils import (
-	WEBSITE_ITEM_CATEGORY_AUTOCOMPLETE,
-	WEBSITE_ITEM_INDEX,
-	WEBSITE_ITEM_NAME_AUTOCOMPLETE,
-	is_redisearch_enabled,
-)
 from webshop.webshop.shopping_cart.product_info import set_product_info_for_website
 from webshop.webshop.doctype.override_doctype.item_group import get_item_for_list_in_html
 
@@ -107,18 +99,20 @@ def search(query):
 
 @frappe.whitelist(allow_guest=True)
 def product_search(query, limit=10, fuzzy_search=True):
-	# //// Neoffice — RediSearch is off: the shop searches SQL directly (c54680b459 /
-	# //// e580d79023, 2025-12-15). RediSearch's autocomplete only indexed product names,
-	# //// which is narrower than what this dropdown must find, and the index had to be
-	# //// rebuilt after every clear-cache. from_redisearch stays in the payload for the
-	# //// JS contract.
+	# //// Neoffice — RediSearch is REMOVED from this fork (tracker #223): it was
+	# //// disabled in 2025-12-15 (c54680b459 / e580d79023) because its autocomplete
+	# //// only indexed product names — narrower than what this dropdown must find —
+	# //// and the index had to be rebuilt after every clear-cache. No fleet bench
+	# //// carried an index any more (measured 2026-09-05). Upstream still ships the
+	# //// feature, so these files conflict at the next merge: take OURS, the module
+	# //// is gone. `from_redisearch` stays in the payload — no front end in this repo
+	# //// reads it, but an instance's own script might, and the key costs nothing.
 	"""Search products with priority: name > item_code > description.
 
 	Uses SQL search for comprehensive results across all fields.
 	RediSearch autocomplete is limited to product names only.
 	"""
-	# //// Neoffice — from_redisearch is always False now (see above); the key is kept
-	# //// because the front end still reads it.
+	# //// Neoffice — always False, kept for the payload contract (see above).
 	search_results = {"from_redisearch": False, "results": []}
 
 	if not query:
@@ -197,32 +191,17 @@ def clean_up_query(query):
 	return "".join(c for c in query if c.isalnum() or c.isspace())
 
 
-def convert_to_dict(redis_search_doc):
-	return redis_search_doc.__dict__
-
-
 @frappe.whitelist(allow_guest=True)
 def get_category_suggestions(query):
 	search_results = {"results": []}
 
-	if not is_redisearch_enabled():
-		# Redisearch module not enabled, query db
-		categories = frappe.db.get_all(
-			"Item Group",
-			filters={"name": ["like", "%{0}%".format(query)], "show_in_website": 1},
-			fields=["name", "route"],
-		)
-		search_results["results"] = categories
-		return search_results
-
-	if not query:
-		return search_results
-
-	ac = frappe.cache().ft()
-	suggestions = ac.sugget(WEBSITE_ITEM_CATEGORY_AUTOCOMPLETE, query, num=10, with_payloads=True)
-
-	results = [json.loads(s.payload) for s in suggestions]
-
-	search_results["results"] = results
-
+	# //// Neoffice — RediSearch is gone from this fork (tracker #223): the module was
+	# //// disabled since 2025-12-15 and no fleet site carried an index (measured
+	# //// 2026-09-05, FT._LIST on every bench). This is the branch that always ran.
+	categories = frappe.db.get_all(
+		"Item Group",
+		filters={"name": ["like", "%{0}%".format(query)], "show_in_website": 1},
+		fields=["name", "route"],
+	)
+	search_results["results"] = categories
 	return search_results

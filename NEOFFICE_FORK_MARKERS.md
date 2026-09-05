@@ -266,3 +266,20 @@ webshop/webshop/doctype/website_item_warehouse_source/website_item_warehouse_sou
 webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.json
 webshop/webshop/workspace/webshop/webshop.json
 ```
+
+### RediSearch removed (2026-09-05, tracker #223) — take OURS at the merge
+
+`webshop/webshop/redisearch_utils.py` is **deleted**, with its hook and every call site:
+`hooks.py` (`after_clear_cache`), `doctype/website_item/website_item.py` (3 calls + import),
+`doctype/webshop_settings/webshop_settings.py` (`is_redisearch_loaded`, a write to a field the
+JSON no longer has), `templates/pages/product_search.py` (imports, the always-true
+`is_redisearch_enabled()` guard in `get_category_suggestions`, the unreachable autocomplete tail,
+the unused `Query` import and `convert_to_dict`).
+
+Why: the module was disabled in 2025-12-15 and **no fleet bench carried an index** — measured on
+2026-09-05 with `MODULE LIST` + `FT._LIST` on every active instance (15 dedicated benches hold only
+`helpdesk_idx`, the 4 Lite tenants have no module at all).
+
+**Upstream `frappe/webshop develop` still ships RediSearch**, so all these files conflict at the next
+merge. Resolve them in favour of OURS: the feature is gone on purpose, not lost. The only survivor is
+the `from_redisearch: False` key in the `product_search` payload, kept for the response contract.

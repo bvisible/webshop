@@ -15,11 +15,6 @@ from frappe.website.doctype.website_slideshow.website_slideshow import get_slide
 from frappe.website.website_generator import WebsiteGenerator
 
 from webshop.webshop.doctype.item_review.item_review import get_item_reviews
-from webshop.webshop.redisearch_utils import (
-    delete_item_from_index,
-    insert_item_to_index,
-    update_index_for_item,
-)
 from webshop.webshop.shopping_cart.cart import _set_price_list
 from webshop.webshop.doctype.override_doctype.item_group import (
     get_parent_item_groups,
@@ -84,7 +79,6 @@ class WebsiteItem(WebsiteGenerator):
 
 	def on_trash(self):
 		super(WebsiteItem, self).on_trash()
-		delete_item_from_index(self)
 		self.publish_unpublish_desk_item(publish=False)
 
 	def validate_duplicate_website_item(self):
@@ -846,7 +840,6 @@ def invalidate_cache_for_web_item(doc):
 		invalidate_cache_for(doc, item_group)
 
 	# Update Search Cache
-	update_index_for_item(doc)
 
 	invalidate_item_variants_cache_for_website(doc)
 
@@ -1027,7 +1020,6 @@ def make_website_item(doc, save=True):
 	website_item.save()
 
 	# Add to search cache
-	insert_item_to_index(website_item)
 
 	return [website_item.name, website_item.web_item_name]
 

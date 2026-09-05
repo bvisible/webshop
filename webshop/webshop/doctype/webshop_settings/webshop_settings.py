@@ -11,7 +11,6 @@ from frappe.utils import cint, flt
 # //// Neoffice — only the module-loaded probe is kept: RediSearch is disabled and the
 # //// search runs on SQL (c54680b459 / e580d79023, 2025-12-15), so the settings that
 # //// configured the index were removed from the DocType.
-from webshop.webshop.redisearch_utils import is_search_module_loaded
 from webshop.webshop.utils.frequently_bought_together import calculate_frequently_bought_together
 
 
@@ -23,8 +22,6 @@ class WebshopSettings(Document):
 	def onload(self):
 		self.get("__onload").quotation_series = frappe.get_meta("Quotation").get_options("naming_series")
 
-		# flag >> if redisearch is installed and loaded
-		self.is_redisearch_loaded = is_search_module_loaded()
 
 	def validate(self):
 		self.validate_field_filters(self.filter_fields, self.enable_field_filters)
