@@ -627,10 +627,14 @@ def _peut_conclure(payment_request_id: str, argent_constate: bool = True) -> boo
 	user = frappe.session.user
 
 	# 1. le serveur lui-même (tâche de fond, page de retour côté serveur)
+	# //// Neoffice — RULE #00 pass: local variable renamed from French to
+	# //// English "user" (e646274dd3 "chore: RULE #00 pass on identifiers —
+	# //// multi_site functions and the local variables")
 	if user == "Administrator":
 		return True
 
 	# 2. le personnel
+	# //// Neoffice — "user" renamed from French, see the marker above (e646274dd3)
 	if user != "Guest" and "System Manager" in frappe.get_roles():
 		return True
 
@@ -647,20 +651,28 @@ def _peut_conclure(payment_request_id: str, argent_constate: bool = True) -> boo
 	except Exception:
 		pass
 
+	# //// Neoffice — call site updated for the "user" rename (e646274dd3)
 	if user == "Guest":
 		return False
 
 	# 3. l'ACHETEUR, de retour de sa passerelle : c'est sa demande.
+	# //// Neoffice — RULE #00 pass: local variables renamed from French to
+	# //// English "beneficiary", "customers"/"suppliers", and the log_error title
+	# //// (e646274dd3 "chore: RULE #00 pass on identifiers — multi_site functions
+	# //// and the local variables")
 	beneficiary = frappe.db.get_value("Payment Request", payment_request_id, "party")
 	if not beneficiary:
 		return False
 	try:
 		from erpnext.controllers.website_list_for_contact import get_customers_suppliers
 
+		# //// Neoffice — "customers"/"suppliers" renamed from French, see the marker above (e646274dd3)
 		customers, _suppliers = get_customers_suppliers("Sales Order", user)
 	except Exception:
+		# //// Neoffice — log_error title renamed from French, see the marker above (e646274dd3)
 		frappe.log_error("Webshop: right to complete a payment", frappe.get_traceback())
 		return False
+	# //// Neoffice — "customers" renamed from French, see the marker above (e646274dd3)
 	return beneficiary in (customers or [])
 
 

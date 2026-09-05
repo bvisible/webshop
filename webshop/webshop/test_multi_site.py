@@ -83,6 +83,8 @@ class TestDegradationSansProfil(unittest.TestCase):
 		self.assertEqual(multi_site.site_sql_predicate("wi"), "")
 		self.assertEqual(multi_site.site_sql_condition("wi"), "")
 
+	# //// Neoffice — call site updated for the RULE #00 rename to site_is_business_only
+	# //// (e646274dd3 "chore: RULE #00 pass on identifiers — multi_site functions and the local variables")
 	def test_site_is_not_reserved(self):
 		self.assertFalse(multi_site.site_is_business_only())
 
@@ -92,6 +94,7 @@ class TestDegradationSansProfil(unittest.TestCase):
 		frappe.set_user("Guest")
 		self.addCleanup(frappe.set_user, utilisateur)
 
+		# //// Neoffice — call site updated for the RULE #00 rename to require_login_to_buy (e646274dd3)
 		multi_site.require_login_to_buy()  # must not raise
 
 	def test_price_list_falls_back_to_the_settings(self):
@@ -248,12 +251,15 @@ class TestAvecProfil(unittest.TestCase):
 
 	# --- who may buy ------------------------------------------------------
 
+	# //// Neoffice — RULE #00 rename to site_is_business_only, this call site updated
+	# //// (e646274dd3 "chore: RULE #00 pass on identifiers — multi_site functions and the local variables")
 	def test_a_professional_site_is_reserved(self):
 		with self._sur(PROFIL_B):
 			self.assertTrue(multi_site.site_is_business_only())
 
 	def test_a_consumer_site_is_not(self):
 		with self._sur(PROFIL_A):
+			# //// Neoffice — call site updated for the RULE #00 rename (e646274dd3)
 			self.assertFalse(multi_site.site_is_business_only())
 
 	def test_a_guest_cannot_buy_on_a_professional_site(self):
@@ -263,10 +269,12 @@ class TestAvecProfil(unittest.TestCase):
 
 		with self._sur(PROFIL_B):
 			with self.assertRaises(frappe.PermissionError):
+				# //// Neoffice — call site updated for the RULE #00 rename to require_login_to_buy (e646274dd3)
 				multi_site.require_login_to_buy()
 
 	def test_a_signed_in_user_may_buy_on_a_professional_site(self):
 		with self._sur(PROFIL_B):
+			# //// Neoffice — call site updated for the RULE #00 rename (e646274dd3)
 			multi_site.require_login_to_buy()  # must not raise
 
 	def test_a_guest_may_buy_on_a_consumer_site(self):
@@ -275,6 +283,7 @@ class TestAvecProfil(unittest.TestCase):
 		self.addCleanup(frappe.set_user, utilisateur)
 
 		with self._sur(PROFIL_A):
+			# //// Neoffice — call site updated for the RULE #00 rename (e646274dd3)
 			multi_site.require_login_to_buy()  # must not raise
 
 	# --- which catalogue is served ---------------------------------------

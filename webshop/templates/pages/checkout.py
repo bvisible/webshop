@@ -1000,6 +1000,9 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 		frappe.log_error("payment_methods_global_error", f"Error retrieving payment methods: {str(e)}")
 		return {"error": True, "message": str(e)}
 
+# //// Neoffice — RULE #00 pass: parameters/locals renamed from French to
+# //// English ("methods", "quotation", "fields") (e646274dd3 "chore: RULE #00
+# //// pass on identifiers — multi_site functions and the local variables")
 def _intent_metadata(methods, quotation) -> dict | None:  # noqa: ANN001
 	"""//// Neoffice — what we hand the driver, and nothing more.
 
@@ -1009,6 +1012,7 @@ def _intent_metadata(methods, quotation) -> dict | None:  # noqa: ANN001
 	behaviour.
 	"""
 	meta = {}
+	# //// Neoffice — "methods"/"quotation"/"fields" renamed from French, see the marker above (e646274dd3)
 	if methods:
 		meta["payment_methods"] = methods
 	fields = _contact_fields(quotation)
@@ -1039,6 +1043,9 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 	the screen does not have to know which gateway it faces.
 	"""
 	cart = get_cart_quotation()
+	# //// Neoffice — RULE #00 pass: local variable renamed from French to
+	# //// English "quotation" (e646274dd3 "chore: RULE #00 pass on identifiers
+	# //// — multi_site functions and the local variables")
 	quotation = (cart or {}).get("doc")
 	if not quotation:
 		frappe.throw(_("Your basket is empty"))
@@ -1069,18 +1076,24 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 	# own side (`_get_cart_quotation`) and can land on a different quotation —
 	# lived through on 2026-08-24: an empty quotation, refused for missing
 	# "items", and the path fell back to `legacy` with nobody understanding why.
+	# //// Neoffice — RULE #00 pass: locals renamed from French to English
+	# //// ("payment_request", "quotation") (e646274dd3 "chore: RULE #00 pass on
+	# //// identifiers — multi_site functions and the local variables")
 	payment_request = PaymentHandler().create_payment_request(
 		quotation_id=quotation.name,
 		payment_gateway=gateway,
 		idempotency_token="intent-{0}-{1}".format(quotation.name, payment_gateway_account),
 	)
+	# //// Neoffice — "payment_request" renamed from French, see the marker above (e646274dd3)
 	if not payment_request or payment_request.get("status") != "success" or not payment_request.get("payment_request_id"):
 		frappe.log_error(
 			"Webshop: pas de Payment Request pour l'intention",
+			# //// Neoffice — "quotation"/"payment_request" renamed from French, see the marker above (e646274dd3)
 			"quotation={0} methode={1} retour={2}".format(quotation.name, payment_gateway_account, payment_request),
 		)
 		return {"action": "legacy"}
 
+	# //// Neoffice — local variable renamed from French to English "amount" (e646274dd3)
 	amount = flt(quotation.get("rounded_total") or quotation.get("grand_total"))
 	# //// Neoffice — the restriction travels as metadata, not as channel
 	# //// configuration: the channel is shared by every tile of the provider, and
@@ -1094,9 +1107,14 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		provider=couple[0],
 		channel=couple[1],
 		# Les intentions comptent en centimes.
+		# //// Neoffice — RULE #00 pass: locals renamed from French to English
+		# //// ("amount", "quotation") (e646274dd3 "chore: RULE #00 pass on
+		# //// identifiers — multi_site functions and the local variables")
 		amount=int(round(amount * 100)),
 		currency=quotation.currency or "CHF",
 		reference_doctype="Payment Request",
+		# //// Neoffice — "payment_request"/"methods"/"quotation" renamed from
+		# //// French, see the marker above (e646274dd3)
 		reference_name=payment_request["payment_request_id"],
 		metadata=_intent_metadata(methods, quotation),
 	)
@@ -1147,6 +1165,7 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 			"inline": _renders_inline(payment_gateway_account),
 		}
 	if quoi == "display_qr_payload":
+		# //// Neoffice — "amount"/"quotation" renamed from French to English (e646274dd3)
 		return {"action": "qr", "intent": intention.get("intent_name"), "payload": charge,
 			"amount": amount, "currency": quotation.currency}
 	if quoi == "requires_confirmation" or intention.get("client_secret"):
@@ -1185,10 +1204,14 @@ def cart_intent_state(intent: str) -> dict:
 	if not row or row.reference_doctype != "Payment Request":
 		frappe.throw(_("Nothing to pay"))
 
+	# //// Neoffice — RULE #00 pass: local variable renamed from French to
+	# //// English "payment_request" (e646274dd3 "chore: RULE #00 pass on
+	# //// identifiers — multi_site functions and the local variables")
 	payment_request = frappe.db.get_value(
 		"Payment Request", row.reference_name,
 		["status", "reference_doctype", "reference_name", "party"], as_dict=True
 	)
+	# //// Neoffice — "payment_request" renamed from French, see the marker above (e646274dd3)
 	if not payment_request:
 		frappe.throw(_("Nothing to pay"))
 
@@ -1200,11 +1223,15 @@ def cart_intent_state(intent: str) -> dict:
 	# cart refuses the answer at precisely the moment the page needs it — the page
 	# would stay on "waiting" while the order exists. Lived through on
 	# 2026-08-24: order BC-2026-00343 created, page never told.
+	# //// Neoffice — RULE #00 pass: locals renamed from French to English
+	# //// ("me", "is_mine") (e646274dd3 "chore: RULE #00 pass on identifiers —
+	# //// multi_site functions and the local variables")
 	me = get_party()
 	is_mine = bool(me) and payment_request.party and payment_request.party == me.name
 	if not is_mine:
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
+	# //// Neoffice — "payment_request" renamed from French, see the marker above (e646274dd3)
 	if payment_request.reference_doctype == "Sales Order":
 		return {"done": True, "redirect_to": "/thank_you?sales_order={0}".format(payment_request.reference_name)}
 	if payment_request.status in ("Paid", "Completed"):
@@ -1250,6 +1277,9 @@ def _restricted_methods(payment_gateway_account: str) -> list[str]:
 	return []
 
 
+# //// Neoffice — RULE #00 pass: parameter renamed from French to English
+# //// "quotation" (e646274dd3 "chore: RULE #00 pass on identifiers —
+# //// multi_site functions and the local variables")
 def _contact_fields(quotation) -> dict:  # noqa: ANN001
 	"""//// Neoffice — what the hosted page must already know about the shopper.
 
@@ -1261,10 +1291,14 @@ def _contact_fields(quotation) -> dict:  # noqa: ANN001
 	Shape the API expects: `{"email": {"value": "..."}}`. We only send what we
 	have — an empty field is worth less than no field at all.
 	"""
+	# //// Neoffice — RULE #00 pass: local variable renamed from French to
+	# //// English "values" (e646274dd3 "chore: RULE #00 pass on identifiers —
+	# //// multi_site functions and the local variables")
 	values = {
 		"email": quotation.get("contact_email"),
 		"forename": quotation.get("contact_person_name") or quotation.get("customer_name"),
 	}
+	# //// Neoffice — "values" renamed from French, see the marker above (e646274dd3)
 	if not values["forename"] and quotation.get("contact_person"):
 		values["forename"] = frappe.db.get_value("Contact", quotation.contact_person, "first_name")
 	return {k: {"value": v} for k, v in values.items() if v}

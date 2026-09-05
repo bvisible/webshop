@@ -86,8 +86,12 @@ class CarouselCacheManager:
         # right and removed nothing at all. Carousels then kept serving stale
         # products until the TTL ran out, whatever changed in the catalogue.
         # delete_keys() is the pattern-aware form and skips that second prefix.
+        # //// Neoffice — RULE #00 pass: local variable renamed from French to
+        # //// English "key_pattern" (e646274dd3 "chore: RULE #00 pass on
+        # //// identifiers — multi_site functions and the local variables")
         key_pattern = f"{self.cache_prefix}:*{pattern}*" if pattern else f"{self.cache_prefix}:*"
         try:
+            # //// Neoffice — call site updated for the same rename (e646274dd3)
             frappe.cache().delete_keys(key_pattern)
         except Exception as e:
             frappe.log_error("Carousel Cache Error", f"Error clearing carousel cache: {str(e)}")
