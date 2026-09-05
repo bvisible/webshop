@@ -119,6 +119,7 @@
   "enable_assistant",
   "assistant_name",
   "assistant_welcome",
+  "assistant_offline_message",
   "assistant_column_look",
   "assistant_position",
   "assistant_color",
@@ -283,6 +284,13 @@
    "fieldname": "assistant_welcome",
    "fieldtype": "Small Text",
    "label": "Welcome message"
+  },
+  {
+   "depends_on": "enable_assistant",
+   "description": "Shown when the assistant cannot answer: model unreachable, daily limit or monthly cap reached. The store's opening status and a form to leave a message to the team follow it. Empty: a default sentence.",
+   "fieldname": "assistant_offline_message",
+   "fieldtype": "Small Text",
+   "label": "Unavailable message"
   },
   {
    "fieldname": "assistant_column_look",
@@ -1244,7 +1252,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-04 14:30:00.000000",
+ "modified": "2026-09-05 09:40:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

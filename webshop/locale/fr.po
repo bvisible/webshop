@@ -6691,3 +6691,9 @@ msgstr "Jour"
 
 msgid "Visiteur"
 msgstr "Visiteur"
+
+msgid "Unavailable message"
+msgstr "Message d'indisponibilité"
+
+msgid "Shown when the assistant cannot answer: model unreachable, daily limit or monthly cap reached. The store's opening status and a form to leave a message to the team follow it. Empty: a default sentence."
+msgstr "Affiché quand l'assistant ne peut pas répondre : modèle injoignable, limite journalière ou plafond mensuel atteint. Le statut d'ouverture du magasin et un formulaire pour laisser un message à l'équipe suivent. Vide : une phrase par défaut."

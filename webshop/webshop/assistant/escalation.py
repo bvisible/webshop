@@ -10,6 +10,23 @@ from frappe import _
 from frappe.utils import escape_html, get_url, now_datetime
 
 
+# //// Neoffice — a public visitor must never see the shop's mail-server error. frappe.sendmail
+# //// resolves the outgoing account inline and frappe.throw's "Incorrect Configuration" when it
+# //// cannot (osiris: the SMTP host does not resolve); the throw is caught, but the message it
+# //// already pushed on the log still travels back to the browser as a modal. Restore the log.
+def _send_quietly(**kwargs):
+	"""Queue a mail; on any failure log it and leave the visitor's message log untouched."""
+	saved = list(frappe.local.message_log or [])
+	try:
+		frappe.sendmail(**kwargs)
+		return True
+	except Exception:
+		frappe.log_error("Shop assistant: mail not sent", frappe.get_traceback())
+		return False
+	finally:
+		frappe.local.message_log = saved
+
+
 def _team_channel(settings):
 	return (settings.get("assistant_escalation_channel") or "").strip()
 
@@ -42,15 +59,44 @@ def _post_to_raven(channel, text):
 
 
 def _notify_customer(email, subject, message, ctx):
-	from webshop.webshop.utils.follow_ups import send_customer_email
+	"""The confirmation the visitor asked for a moment ago.
 
+	Transactional, so it is not sent through the follow-ups' path: that one carries
+	Frappe's unsubscribe scoped to the Customer, and a customer who once stopped the
+	reminders was silently dropped here too (nothing queued, nothing logged). The
+	mail references the conversation instead; the Customer's timeline still shows it.
+	"""
+	# //// Neoffice — was send_customer_email(): its Customer-scoped unsubscribe swallowed
+	# //// this confirmation for a customer who had opted out of the follow-ups.
+	from webshop.webshop.utils.follow_ups import outgoing_sender
+
+	conversation = ctx.conversation
 	try:
 		if ctx.customer:
-			send_customer_email(ctx.customer, email, subject, message)
-		else:
-			frappe.sendmail(recipients=[email], subject=subject, message=message)
+			frappe.get_doc(
+				{
+					"doctype": "Communication",
+					"communication_type": "Communication",
+					"communication_medium": "Email",
+					"sent_or_received": "Sent",
+					"subject": subject,
+					"content": message,
+					"sender": outgoing_sender(),
+					"recipients": email,
+					"reference_doctype": "Customer",
+					"reference_name": ctx.customer,
+				}
+			).insert(ignore_permissions=True)
 	except Exception:
 		frappe.log_error("Shop assistant: customer notification failed", frappe.get_traceback())
+	# the mail on its own quiet path: an SMTP error must not surface to the visitor
+	_send_quietly(
+		recipients=[email],
+		subject=subject,
+		message=message,
+		reference_doctype="Shop Assistant Conversation" if conversation else None,
+		reference_name=conversation.name if conversation else None,
+	)
 
 
 def contact_team(ctx, summary, email):
@@ -62,16 +108,13 @@ def contact_team(ctx, summary, email):
 	channel_done = _post_to_raven(_team_channel(settings), text)
 	support = _support_email(settings)
 	if support:
-		try:
-			frappe.sendmail(
-				recipients=[support],
-				subject=_("Assistant boutique : {0} demande l'équipe").format(who),
-				message=text.replace("\n", "<br>"),
-				reference_doctype="Shop Assistant Conversation" if conversation else None,
-				reference_name=conversation.name if conversation else None,
-			)
-		except Exception:
-			frappe.log_error("Shop assistant: team email failed", frappe.get_traceback())
+		_send_quietly(
+			recipients=[support],
+			subject=_("Assistant boutique : {0} demande l'équipe").format(who),
+			message=text.replace("\n", "<br>"),
+			reference_doctype="Shop Assistant Conversation" if conversation else None,
+			reference_name=conversation.name if conversation else None,
+		)
 	if conversation:
 		conversation.status = "Escalated"
 		conversation.escalated_to = "Team"

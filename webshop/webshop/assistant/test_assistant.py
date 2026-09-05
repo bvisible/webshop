@@ -241,11 +241,14 @@ class TestAssistant(FrappeTestCase):
 		self.real_settings = api.settings
 		self.settings = test_settings()
 		api.settings = lambda: self.settings
+		# //// Neoffice — the outage flag lives in Redis, which no rollback touches
+		api.clear_outage()
 
 	def tearDown(self):
 		llm.complete = self.real_complete
 		# //// Neoffice — added: restores api.settings (807c98474e, same commit).
 		api.settings = self.real_settings
+		api.clear_outage()
 		frappe.set_user("Administrator")
 
 	def guest_context(self, session="_WSTEST-guest-1"):
@@ -425,8 +428,17 @@ class TestAssistant(FrappeTestCase):
 		# //// frappe.db.set_single_value and clearing the cache (807c98474e, same commit) — the
 		# //// in-memory settings copy is discarded with the test, nothing to restore.
 		self.assertTrue(out.get("limited"))
+		# //// Neoffice — the limit is the answering machine now: a reason, an invitation, the form
+		self.assertEqual(out["unavailable"], "limit")
+		self.assertTrue(out["leave_message"])
+		self.assertFalse(out["email_required"])
+		self.assertIn("limite", out["reply"])
+		self.assertIn("message", out["reply"])
 
-	def test_a_model_failure_is_a_calm_sentence_not_a_traceback(self):
+	# //// Neoffice — was test_a_model_failure_is_a_calm_sentence_not_a_traceback, which only
+	# //// checked the canned FALLBACK; the failure now switches the bubble to the answering
+	# //// machine and arms an outage flag that spares the next visitors the 25 s wait.
+	def test_a_model_failure_switches_to_the_answering_machine(self):
 		def broken(*args, **kwargs):
 			raise RuntimeError("model down")
 
@@ -434,7 +446,144 @@ class TestAssistant(FrappeTestCase):
 		frappe.set_user(USER)
 		try:
 			out = api.send("Ça marche ?")
+			# the failure armed the flag: the next message is answered at once, the model is not called
+			fake = FakeModel(["Oui."])
+			llm.complete = fake
+			again = api.send("Et maintenant ?")
+			cfg = api.get_config()
+			api.clear_outage()
+			after = api.send("Et maintenant ?")
 		finally:
 			frappe.set_user("Administrator")
 		self.assertTrue(out.get("failed"))
-		self.assertEqual(out["reply"], engine.FALLBACK)
+		self.assertEqual(out["unavailable"], "outage")
+		self.assertTrue(out["leave_message"])
+		self.assertNotIn("Traceback", out["reply"])
+		self.assertIn("message", out["reply"])
+		self.assertEqual(again["unavailable"], "outage")
+		self.assertEqual(cfg["notice"]["unavailable"], "outage")
+		self.assertEqual(after["reply"], "Oui.")
+		self.assertEqual(len(fake.seen), 1)
+		doc = frappe.get_doc("Shop Assistant Conversation", out["conversation"])
+		self.assertEqual([m.role for m in doc.messages], ["user", "assistant"] * 3)
+
+	# --- the answering machine's tape ------------------------------------------
+
+	def _muted_team(self, escalation, posted, mailed):
+		"""Raven and the mail recorded instead of sent; returns what to put back."""
+		real = (escalation._post_to_raven, frappe.sendmail)
+		escalation._post_to_raven = lambda channel, text: bool(posted.append((channel, text))) or True
+		frappe.sendmail = lambda *args, **kwargs: mailed.append(kwargs)
+		return real
+
+	@staticmethod
+	def _recipients(mailed):
+		out = []
+		for call in mailed:
+			r = call.get("recipients") or []
+			out += [r] if isinstance(r, str) else list(r)
+		return out
+
+	def test_a_broken_mail_server_never_reaches_the_visitor(self):
+		"""When frappe.sendmail throws on a misconfigured SMTP, no message reaches the browser."""
+		from webshop.webshop.assistant import escalation
+
+		def boom(*args, **kwargs):
+			frappe.msgprint("Serveur de messagerie sortant ou port invalide", title="Configuration incorrecte")
+			raise frappe.OutgoingEmailError("smtp down")
+
+		real = frappe.sendmail
+		frappe.sendmail = boom
+		frappe.clear_messages()
+		ctx = self.customer_context()
+		self.new_conversation(ctx)
+		try:
+			out = escalation.contact_team(ctx, summary="Rappelez-moi", email=USER)
+		finally:
+			frappe.sendmail = real
+		self.assertTrue(out["escalated"])
+		# the SMTP error was swallowed: nothing queued for the browser to pop up
+		self.assertEqual(frappe.local.message_log, [])
+
+	def test_leave_message_reaches_the_team_without_the_model(self):
+		from webshop.webshop.assistant import escalation
+
+		def broken(*args, **kwargs):
+			raise AssertionError("the model must not be called")
+
+		llm.complete = broken
+		self.settings.assistant_support_email = "team@example.com"
+		self.settings.assistant_escalation_channel = "_WSTEST channel"
+		posted, mailed = [], []
+		real_raven, real_sendmail = self._muted_team(escalation, posted, mailed)
+		frappe.set_user(USER)
+		try:
+			out = api.leave_message("Ma souris est arrivée cassée.")
+		finally:
+			frappe.set_user("Administrator")
+			escalation._post_to_raven, frappe.sendmail = real_raven, real_sendmail
+		self.assertTrue(out["escalated"])
+		self.assertEqual(out["via"], "raven")
+		self.assertIn(USER, out["reply"])
+		doc = frappe.get_doc("Shop Assistant Conversation", out["conversation"])
+		self.assertEqual(doc.status, "Escalated")
+		self.assertEqual(doc.escalated_to, "Team")
+		self.assertEqual(doc.escalation_note, "Ma souris est arrivée cassée.")
+		self.assertEqual([m.role for m in doc.messages], ["user", "assistant"])
+		self.assertEqual(posted[0][0], "_WSTEST channel")
+		self.assertIn("cassée", posted[0][1])
+		# the team's email and the customer's confirmation
+		recipients = self._recipients(mailed)
+		self.assertIn("team@example.com", recipients)
+		self.assertIn(USER, recipients)
+
+	def test_leave_message_as_a_guest_needs_a_valid_email(self):
+		from webshop.webshop.assistant import escalation
+
+		ctx = self.guest_context("_WSTEST-guest-leave")
+		self.new_conversation(ctx)
+		with self.assertRaises(frappe.ValidationError):
+			api.leave(ctx, "Aidez-moi", email="pas-un-email")
+		posted, mailed = [], []
+		real_raven, real_sendmail = self._muted_team(escalation, posted, mailed)
+		try:
+			out = api.leave(ctx, "Aidez-moi", email="visiteur@example.com")
+		finally:
+			escalation._post_to_raven, frappe.sendmail = real_raven, real_sendmail
+		self.assertTrue(out["escalated"])
+		self.assertIn("visiteur@example.com", out["reply"])
+		self.assertEqual(ctx.conversation.status, "Escalated")
+		self.assertIn("visiteur@example.com", self._recipients(mailed))
+
+	def test_the_confirmation_reaches_a_customer_who_stopped_the_follow_ups(self):
+		from webshop.webshop.assistant import escalation
+
+		if not frappe.db.exists("Email Account", {"enable_outgoing": 1}):
+			self.skipTest("no outgoing email account: nothing can be queued here")
+		ctx = self.customer_context()
+		self.new_conversation(ctx)
+		# the customer once clicked the follow-ups' unsubscribe link, scoped to their Customer
+		unsub = {"email": USER, "reference_doctype": "Customer", "reference_name": CUSTOMER}
+		if not frappe.db.exists("Email Unsubscribe", unsub):
+			frappe.get_doc({"doctype": "Email Unsubscribe", **unsub}).insert(ignore_permissions=True)
+		before = frappe.db.count("Email Queue Recipient", {"recipient": USER})
+		escalation._notify_customer(USER, "Votre demande a été transmise", "Bonjour", ctx)
+		self.assertEqual(frappe.db.count("Email Queue Recipient", {"recipient": USER}), before + 1)
+		self.assertTrue(
+			frappe.db.exists("Communication", {"reference_doctype": "Customer", "reference_name": CUSTOMER, "subject": "Votre demande a été transmise"})
+		)
+
+	def test_the_answering_machine_speaks_the_merchant_s_words(self):
+		self.settings.assistant_offline_message = "Nora fait une pause."
+		guest = api.unavailable(self.guest_context(), "outage")
+		self.assertTrue(guest["reply"].startswith("Nora fait une pause."))
+		self.assertIn("message", guest["reply"])
+		self.assertTrue(guest["email_required"])
+		customer = api.unavailable(self.customer_context(), "cap")
+		self.assertFalse(customer["email_required"])
+		limit = api.unavailable(self.customer_context(), "limit")
+		self.assertTrue(limit["reply"].startswith("Vous avez atteint la limite"))
+		# the shop's opening status is part of the notice whenever hours are published
+		status = api.store_status_line(self.settings)
+		if status:
+			self.assertIn(status, guest["reply"])

@@ -11,7 +11,7 @@ the session and nothing else:
 import frappe
 from frappe import _
 from frappe.rate_limiter import rate_limit
-from frappe.utils import add_days, cint, now_datetime
+from frappe.utils import add_days, cint, now_datetime, validate_email_address
 
 from webshop.webshop.assistant import engine
 from webshop.webshop.doctype.shop_assistant_conversation.shop_assistant_conversation import (
@@ -23,6 +23,10 @@ RESUME_WITHIN_DAYS = 30
 HISTORY_SHOWN = 12
 DEFAULT_GUEST_DAILY = 30
 DEFAULT_USER_DAILY = 200
+# //// Neoffice — the answering machine: after the model fails, nobody is made to wait
+# //// on the dead endpoint for OUTAGE_SECONDS; the notice is served at once from this flag.
+OUTAGE_KEY = "webshop_assistant_outage"
+OUTAGE_SECONDS = 120
 
 
 def settings():
@@ -31,6 +35,72 @@ def settings():
 
 def enabled(s=None):
 	return bool(cint((s or settings()).get("enable_assistant")))
+
+
+def signed_in(ctx):
+	return bool(ctx.user and ctx.user != "Guest")
+
+
+# //// Neoffice — the answering machine. When the model is unreachable or the visitor's
+# //// quota is spent, the bubble does not apologise and stop: it says why, gives the
+# //// shop's opening status and takes a message for the team — no model involved.
+def _outage_key():
+	return frappe.cache().make_key(OUTAGE_KEY)
+
+
+def in_outage():
+	"""True for OUTAGE_SECONDS after the model failed: nobody waits 25 s on a dead endpoint.
+
+	Straight to Redis, not through get_value/set_value: the request-local cache keeps a
+	miss as None, and a set with an expiry does not refresh it, so the flag armed a
+	moment ago would read as "no outage" for the rest of the request.
+	"""
+	return bool(frappe.cache().get(_outage_key()))
+
+
+def mark_outage():
+	frappe.cache().setex(_outage_key(), OUTAGE_SECONDS, str(now_datetime()))
+
+
+def clear_outage():
+	frappe.cache().delete(_outage_key())
+
+
+def store_status_line(s):
+	"""What an answering machine says about the shop: open until when, or opens again when."""
+	from webshop.webshop.utils.store_hours import opening_hours
+
+	try:
+		data = opening_hours(settings=s)
+	except Exception:
+		frappe.log_error("Shop assistant: store status failed", frappe.get_traceback())
+		return ""
+	if not data.configured:
+		return ""
+	line = " · ".join(p for p in (data.headline, data.detail) if p) + "."
+	if data.is_open and data.phone:
+		line += " " + _("Vous pouvez aussi nous appeler au {0}.").format(data.phone)
+	return line
+
+
+def unavailable(ctx, reason):
+	"""The notice the visitor reads instead of an answer, and what the widget does with it.
+
+	`reason` is "outage" (the model failed), "limit" (the visitor's messages for today)
+	or "cap" (the shop's tokens for the month). The words are the merchant's when set.
+	"""
+	s = ctx.settings
+	if reason == "limit":
+		lead = labels()["limit"]
+	else:
+		lead = (s.get("assistant_offline_message") or "").strip() or _("L'assistant n'est pas disponible pour le moment.")
+	invite = _("Laissez-nous votre message ci-dessous : l'équipe vous répond par email.")
+	return {
+		"reply": " ".join(p for p in (lead, store_status_line(s), invite) if p),
+		"unavailable": reason,
+		"leave_message": True,
+		"email_required": not signed_in(ctx),
+	}
 
 
 def context(page_route=None, conversation=None):
@@ -141,6 +211,12 @@ def labels():
 		"open": _("Ouvrir l'assistant"),
 		"error": _("Le message n'est pas parti. Réessayez dans un instant."),
 		"limit": _("Vous avez atteint la limite de messages pour aujourd'hui."),
+		"leave_title": _("Laisser un message à l'équipe"),
+		"leave_placeholder": _("Votre message pour l'équipe…"),
+		"leave_email": _("Votre adresse email"),
+		"leave_send": _("Envoyer à l'équipe"),
+		"leave_cancel": _("Annuler"),
+		"leave_error": _("Le message n'a pas pu partir. Réessayez, ou écrivez-nous directement."),
 		"suggestions": [
 			_("Vos horaires ?"),
 			_("Où en est ma commande ?"),
@@ -170,6 +246,8 @@ def get_config(page_route=None):
 		"signed_in": bool(ctx.user and ctx.user != "Guest"),
 		"history": history,
 		"labels": labels(),
+		# the answering machine speaks from the first screen when it has to
+		"notice": unavailable(ctx, reason) if (reason := unavailable_reason(ctx, conversation)) else None,
 	}
 
 
@@ -189,6 +267,30 @@ def _monthly_cap_reached(ctx):
 	return bool(cap) and engine.monthly_tokens() >= cap
 
 
+def unavailable_reason(ctx, conversation=None):
+	if in_outage():
+		return "outage"
+	if conversation and _daily_limit_reached(conversation, ctx):
+		return "limit"
+	if _monthly_cap_reached(ctx):
+		return "cap"
+	return None
+
+
+def _answering_machine(conversation, ctx, reason, user_text=None):
+	"""The notice, written on the conversation when the visitor's words were (outage only)."""
+	out = unavailable(ctx, reason)
+	if reason == "outage":
+		if user_text:
+			conversation.add_message("user", user_text)
+		conversation.add_message("assistant", out["reply"])
+		conversation.flags.ignore_permissions = True
+		conversation.save()
+	out["conversation"] = conversation.name
+	out["limited"] = reason in ("limit", "cap")
+	return out
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=20, seconds=600)
 def send(message, page_route=None):
@@ -204,25 +306,72 @@ def send(message, page_route=None):
 	if not conversation:
 		frappe.throw(_("Impossible d'ouvrir une conversation pour cette session."))
 	ctx.conversation = conversation
-	if _daily_limit_reached(conversation, ctx):
-		return {"reply": labels()["limit"], "limited": True, "conversation": conversation.name}
-	if _monthly_cap_reached(ctx):
-		return {
-			"reply": _("L'assistant est indisponible pour le moment. Écrivez-nous, nous vous répondrons rapidement."),
-			"limited": True,
-			"conversation": conversation.name,
-		}
 	if ctx.page_route:
 		conversation.page_route = ctx.page_route
+	# //// Neoffice — was: the limit label alone, the cap sentence alone, and on a model
+	# //// failure the canned FALLBACK; each left the visitor with nothing to do. Now every
+	# //// one of them is the answering machine, and a failure arms the outage flag so the
+	# //// next visitors get the notice at once instead of a 25 s wait.
+	reason = unavailable_reason(ctx, conversation)
+	if reason:
+		return _answering_machine(conversation, ctx, reason, user_text=text)
 	try:
 		out = engine.respond(conversation, text, ctx)
 	except Exception:
 		frappe.log_error("Shop assistant: reply failed", frappe.get_traceback())
-		conversation.add_message("assistant", engine.FALLBACK)
-		conversation.flags.ignore_permissions = True
-		conversation.save()
-		return {"reply": engine.FALLBACK, "conversation": conversation.name, "failed": True}
+		mark_outage()
+		# respond() already wrote the visitor's words on the conversation
+		result = _answering_machine(conversation, ctx, "outage")
+		result["failed"] = True
+		return result
 	return {"reply": out.reply, "conversation": out.conversation, "escalated": conversation.status == "Escalated"}
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=5, seconds=600)
+def leave_message(message, email=None, page_route=None):
+	"""The answering machine's tape: the visitor's words go to the team as they are."""
+	s = settings()
+	if not enabled(s):
+		frappe.throw(_("The assistant is not enabled."), frappe.PermissionError)
+	text = (message or "").strip()[:MAX_MESSAGE_CHARS]
+	if not text:
+		frappe.throw(_("Le message est vide."))
+	return leave(context(page_route), text, email)
+
+
+def leave(ctx, text, email=None):
+	"""Hand `text` to the team through the escalation path, without the model.
+
+	A signed-in visitor is written to at the session's address, whatever the form
+	said; a guest has to give a valid one. The conversation turns Escalated, the
+	team is told (Raven, support email), the visitor gets a confirmation.
+	"""
+	from webshop.webshop.assistant import escalation
+
+	if signed_in(ctx):
+		email = frappe.db.get_value("User", ctx.user, "email") or ctx.user
+	else:
+		email = validate_email_address((email or "").strip()) if email else None
+		if not email:
+			frappe.throw(_("Indiquez une adresse email valide pour que l'équipe puisse vous répondre."))
+	conversation = ctx.conversation or find_conversation(ctx, create=True)
+	if not conversation:
+		frappe.throw(_("Impossible d'ouvrir une conversation pour cette session."))
+	ctx.conversation = conversation
+	# the form is prefilled with the words the model could not answer: no second copy
+	last_user = next((m for m in reversed(conversation.messages) if m.role == "user"), None)
+	if not last_user or (last_user.content or "").strip() != text:
+		conversation.add_message("user", text)
+	out = escalation.contact_team(ctx, summary=text, email=email)
+	reply = _("C'est transmis. L'équipe vous répond à {0}.").format(email)
+	status = store_status_line(ctx.settings)
+	if status:
+		reply = f"{reply} {status}"
+	conversation.add_message("assistant", reply)
+	conversation.flags.ignore_permissions = True
+	conversation.save()
+	return {"reply": reply, "conversation": conversation.name, "escalated": True, "via": out.get("via")}
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])

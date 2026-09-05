@@ -81,7 +81,12 @@ webshop.assistant = {
 			e.preventDefault();
 			this.send(this.el.input.value);
 		});
-		this.el.team.addEventListener("click", () => this.send(L.suggestions[L.suggestions.length - 1]));
+		//// Neoffice — was: the link sent the last suggestion through the model, so a model
+		//// outage also cut the customer off from the team. It now opens the direct form.
+		this.el.team.addEventListener("click", () => {
+			this.showLeaveForm("", !this.config.signed_in);
+			this.scroll();
+		});
 		this.el.reset.addEventListener("click", () => this.reset());
 	},
 
@@ -115,6 +120,79 @@ webshop.assistant = {
 			this.el.suggestions.innerHTML = "";
 		} else {
 			this.renderSuggestions();
+		}
+		// the answering machine: the server already knows it cannot answer right now
+		if (c.notice && c.notice.reply) {
+			this.el.suggestions.innerHTML = "";
+			this.addMessage("assistant", c.notice.reply);
+			if (c.notice.leave_message) this.showLeaveForm("", c.notice.email_required);
+		}
+	},
+
+	// The form that reaches the team without the model: shown when the assistant
+	// cannot answer, and behind the "talk to the team" link. One at a time.
+	showLeaveForm(prefill, emailRequired) {
+		const L = this.config.labels;
+		const old = this.el.messages.querySelector(".wsh-assistant__leave");
+		if (old) old.remove();
+		const card = document.createElement("div");
+		card.className = "wsh-assistant__leave";
+		card.innerHTML =
+			`<div class="wsh-assistant__leave-title">${this.escape(L.leave_title)}</div>` +
+			`<form class="wsh-assistant__leave-form">` +
+			(emailRequired
+				? `<input type="email" class="wsh-assistant__leave-email" required maxlength="140" autocomplete="email" placeholder="${this.escape(L.leave_email)}">`
+				: "") +
+			`<textarea class="wsh-assistant__leave-text" rows="3" required maxlength="1000" placeholder="${this.escape(L.leave_placeholder)}">${this.escape(prefill || "")}</textarea>` +
+			`<div class="wsh-assistant__leave-error" hidden></div>` +
+			`<div class="wsh-assistant__leave-actions">` +
+			`<button type="button" class="wsh-assistant__leave-cancel">${this.escape(L.leave_cancel)}</button>` +
+			`<button type="submit" class="wsh-assistant__leave-send">${this.escape(L.leave_send)}</button></div></form>`;
+		this.el.messages.appendChild(card);
+		const form = card.querySelector("form");
+		const text = card.querySelector(".wsh-assistant__leave-text");
+		const email = card.querySelector(".wsh-assistant__leave-email");
+		const error = card.querySelector(".wsh-assistant__leave-error");
+		const button = card.querySelector(".wsh-assistant__leave-send");
+		card.querySelector(".wsh-assistant__leave-cancel").addEventListener("click", () => card.remove());
+		form.addEventListener("submit", async (e) => {
+			e.preventDefault();
+			const message = text.value.trim();
+			if (!message || (email && !email.value.trim())) return;
+			button.disabled = true;
+			error.hidden = true;
+			try {
+				const out = await this.api("webshop.webshop.assistant.api.leave_message", {
+					message,
+					email: email ? email.value.trim() : undefined,
+					page_route: this.route(),
+				});
+				card.remove();
+				this.addMessage("user", message);
+				this.addMessage("assistant", (out && out.reply) || L.leave_error);
+			} catch (err) {
+				error.textContent = this.serverMessage(err) || L.leave_error;
+				error.hidden = false;
+				button.disabled = false;
+			}
+		});
+		this.scroll();
+		setTimeout(() => (email && !email.value ? email : text).focus(), 50);
+		return card;
+	},
+
+	// What frappe.throw said, if the response carries it; else nothing.
+	serverMessage(err) {
+		try {
+			const raw = err && err.responseJSON && err.responseJSON._server_messages;
+			if (!raw) return "";
+			const first = JSON.parse(raw)[0];
+			const parsed = typeof first === "string" ? JSON.parse(first) : first;
+			const tmp = document.createElement("div");
+			tmp.innerHTML = (parsed && parsed.message) || "";
+			return tmp.textContent.trim();
+		} catch (e) {
+			return "";
 		}
 	},
 
@@ -169,6 +247,8 @@ webshop.assistant = {
 			const out = await this.api("webshop.webshop.assistant.api.send", { message: text, page_route: this.route() });
 			this.typing(false);
 			this.addMessage("assistant", (out && out.reply) || this.config.labels.error);
+			// the answering machine: the notice was just shown, now the form, with the words it could not answer
+			if (out && out.unavailable && out.leave_message) this.showLeaveForm(text, out.email_required);
 		} catch (e) {
 			this.typing(false);
 			this.addMessage("assistant", this.config.labels.error);

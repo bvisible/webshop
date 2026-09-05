@@ -50,6 +50,20 @@ test.describe('Assistant de la boutique', () => {
 		expect(greeting).toMatch(/^Bonjour !/);
 	});
 
+	test('le lien « Parler à l’équipe » ouvre un formulaire qui part sans le modèle', async ({ page }, testInfo) => {
+		await page.locator('#wsh-assistant .wsh-assistant__bubble').click();
+		await page.locator('#wsh-assistant .wsh-assistant__team').click();
+		const card = page.locator('#wsh-assistant .wsh-assistant__leave');
+		await expect(card).toBeVisible();
+		await expect(card.locator('.wsh-assistant__leave-text')).toBeVisible();
+		//// A visitor has to say where to answer; a signed-in customer is written to at the session's address.
+		if (testInfo.project.name === 'invite') await expect(card.locator('.wsh-assistant__leave-email')).toHaveCount(1);
+		if (testInfo.project.name === 'client') await expect(card.locator('.wsh-assistant__leave-email')).toHaveCount(0);
+		//// Nothing is sent: the message would reach the real team of the target shop.
+		await card.locator('.wsh-assistant__leave-cancel').click();
+		await expect(card).toHaveCount(0);
+	});
+
 	test('un client connecté est salué par son prénom', async ({ page }, testInfo) => {
 		test.skip(testInfo.project.name !== 'client', 'projet client seulement');
 		await page.locator('#wsh-assistant .wsh-assistant__bubble').click();

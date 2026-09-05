@@ -56,6 +56,26 @@
 		&--user { align-self: flex-end; background: var(--wsh-assistant-user); border-bottom-right-radius: 6px; }
 	}
 	&__note { align-self: center; font-size: .8rem; color: #6b7280; }
+
+	/* the answering machine's form: reaches the team without the model */
+	&__leave {
+		align-self: stretch; background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 12px 14px;
+		display: flex; flex-direction: column; gap: 8px;
+	}
+	&__leave-title { font-weight: 600; font-size: .9rem; }
+	&__leave-form { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+	&__leave-email, &__leave-text {
+		width: 100%; border: 1px solid #d1d5db; border-radius: 10px; padding: 8px 10px; font-size: 14px; font-family: inherit; color: inherit;
+		&:focus { outline: none; border-color: var(--wsh-assistant-color); }
+	}
+	&__leave-text { resize: vertical; min-height: 72px; }
+	&__leave-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+	&__leave-cancel { border: 0; background: transparent; color: #6b7280; font-size: .85rem; cursor: pointer; text-decoration: underline; }
+	&__leave-send {
+		border: 0; border-radius: 10px; padding: 8px 12px; background: var(--wsh-assistant-color); color: #fff; font-weight: 600; cursor: pointer;
+		&[disabled] { opacity: .6; cursor: default; }
+	}
+	&__leave-error { color: #b91c1c; font-size: .85rem; }
 	&__typing {
 		align-self: flex-start; font-size: .85rem; color: #6b7280; display: flex; align-items: center; gap: 4px;
 		span { width: 6px; height: 6px; border-radius: 50%; background: #9ca3af; animation: wsh-assistant-dot 1.2s infinite; }

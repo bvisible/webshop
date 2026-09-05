@@ -4685,3 +4685,8 @@ msgstr ""
 msgid "{{ payment_context.terms_title }}"
 msgstr ""
 
+msgid "Unavailable message"
+msgstr ""
+
+msgid "Shown when the assistant cannot answer: model unreachable, daily limit or monthly cap reached. The store's opening status and a form to leave a message to the team follow it. Empty: a default sentence."
+msgstr ""

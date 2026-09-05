@@ -509,6 +509,19 @@ exercises the bubble against the real model, and skips when the switch is off.
 > that name exists, and falls back to a message to the team when the ticket
 > cannot be created at all.
 
+**The answering machine.** When the model fails (timeout, 503, nothing
+configured), or the visitor's daily limit or the shop's monthly cap is reached,
+`send` does not apologise and stop: it answers with a scripted notice (the
+merchant's `assistant_offline_message`, the store's opening status from
+`store_hours`, an invitation) and the widget shows a form whose text reaches
+the team through `leave_message` → `escalation.contact_team`, with no model
+involved: Raven, support email, confirmation to the visitor, conversation
+Escalated. A failure arms a 120 s outage flag in Redis (`OUTAGE_KEY`) so the
+next visitors get the notice at once instead of a 25 s wait, and `get_config`
+carries the notice from the first screen. The "Talk to the team" link opens
+that form directly. A signed-in visitor is written to at the session's address
+whatever the form says; a guest must give a valid one.
+
 ## Integration Points
 
 ### ERPNext Dependencies
