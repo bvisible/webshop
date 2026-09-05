@@ -17,6 +17,13 @@ test.describe('Assistant de la boutique', () => {
 		test.skip(!(await assistantEnabled(page)), "l'assistant n'est pas activé sur cette boutique");
 		await page.goto('/all-products');
 		await page.waitForLoadState('networkidle');
+		//// Neoffice — a conversation is resumed for 30 days, so without this the panel opens
+		//// on the previous run's turns and every count assertion below is off by that history.
+		await page.evaluate(() => new Promise((resolve) => {
+			frappe.call({ method: 'webshop.webshop.assistant.api.reset', type: 'POST', args: {}, callback: resolve, error: resolve });
+		}));
+		await page.reload();
+		await page.waitForLoadState('networkidle');
 	});
 
 	test('la pastille est là et s’ouvre sur un accueil', async ({ page }) => {

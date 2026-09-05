@@ -1157,9 +1157,9 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 	# //// Neoffice multi-site — on a site reserved for business accounts, filling a
 	# //// cart requires an account. The guard lives here rather than in the template:
 	# //// hiding a button is not a permission, and this endpoint is callable directly.
-	from webshop.webshop.multi_site import exiger_connexion_pour_acheter
+	from webshop.webshop.multi_site import require_login_to_buy
 
-	exiger_connexion_pour_acheter()
+	require_login_to_buy()
 
 	# Convert gift_card_data from JSON if necessary
 	if gift_card_data and isinstance(gift_card_data, str):

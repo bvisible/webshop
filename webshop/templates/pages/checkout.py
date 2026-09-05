@@ -1000,7 +1000,7 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 		frappe.log_error("payment_methods_global_error", f"Error retrieving payment methods: {str(e)}")
 		return {"error": True, "message": str(e)}
 
-def _intent_metadata(moyens, devis) -> dict | None:  # noqa: ANN001
+def _intent_metadata(methods, quotation) -> dict | None:  # noqa: ANN001
 	"""//// Neoffice — what we hand the driver, and nothing more.
 
 	Two things only, each for a precise reason: the method restriction (one tile
@@ -1009,11 +1009,11 @@ def _intent_metadata(moyens, devis) -> dict | None:  # noqa: ANN001
 	behaviour.
 	"""
 	meta = {}
-	if moyens:
-		meta["payment_methods"] = moyens
-	champs = _contact_fields(devis)
-	if champs:
-		meta["fields"] = champs
+	if methods:
+		meta["payment_methods"] = methods
+	fields = _contact_fields(quotation)
+	if fields:
+		meta["fields"] = fields
 	return meta or None
 
 
@@ -1039,8 +1039,8 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 	the screen does not have to know which gateway it faces.
 	"""
 	cart = get_cart_quotation()
-	devis = (cart or {}).get("doc")
-	if not devis:
+	quotation = (cart or {}).get("doc")
+	if not quotation:
 		frappe.throw(_("Your basket is empty"))
 
 	if not _intent_is_wanted(payment_gateway_account):
@@ -1069,19 +1069,19 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 	# own side (`_get_cart_quotation`) and can land on a different quotation —
 	# lived through on 2026-08-24: an empty quotation, refused for missing
 	# "items", and the path fell back to `legacy` with nobody understanding why.
-	demande = PaymentHandler().create_payment_request(
-		quotation_id=devis.name,
+	payment_request = PaymentHandler().create_payment_request(
+		quotation_id=quotation.name,
 		payment_gateway=gateway,
-		idempotency_token="intent-{0}-{1}".format(devis.name, payment_gateway_account),
+		idempotency_token="intent-{0}-{1}".format(quotation.name, payment_gateway_account),
 	)
-	if not demande or demande.get("status") != "success" or not demande.get("payment_request_id"):
+	if not payment_request or payment_request.get("status") != "success" or not payment_request.get("payment_request_id"):
 		frappe.log_error(
 			"Webshop: pas de Payment Request pour l'intention",
-			"devis={0} methode={1} retour={2}".format(devis.name, payment_gateway_account, demande),
+			"quotation={0} methode={1} retour={2}".format(quotation.name, payment_gateway_account, payment_request),
 		)
 		return {"action": "legacy"}
 
-	montant = flt(devis.get("rounded_total") or devis.get("grand_total"))
+	amount = flt(quotation.get("rounded_total") or quotation.get("grand_total"))
 	# //// Neoffice — the restriction travels as metadata, not as channel
 	# //// configuration: the channel is shared by every tile of the provider, and
 	# //// a restriction placed there would apply to the tiles that do not want it
@@ -1089,16 +1089,16 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 	# //// (`payments/drivers/payrexx/web_driver.py` even re-reads it in the
 	# //// response and logs when the gateway dropped it); the others ignore it
 	# //// without a sound.
-	moyens = _restricted_methods(payment_gateway_account)
+	methods = _restricted_methods(payment_gateway_account)
 	intention = create_intent(
 		provider=couple[0],
 		channel=couple[1],
 		# Les intentions comptent en centimes.
-		amount=int(round(montant * 100)),
-		currency=devis.currency or "CHF",
+		amount=int(round(amount * 100)),
+		currency=quotation.currency or "CHF",
 		reference_doctype="Payment Request",
-		reference_name=demande["payment_request_id"],
-		metadata=_intent_metadata(moyens, devis),
+		reference_name=payment_request["payment_request_id"],
+		metadata=_intent_metadata(methods, quotation),
 	)
 	charge = intention.get("next_action_payload")
 	if isinstance(charge, str):
@@ -1148,7 +1148,7 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		}
 	if quoi == "display_qr_payload":
 		return {"action": "qr", "intent": intention.get("intent_name"), "payload": charge,
-			"amount": montant, "currency": devis.currency}
+			"amount": amount, "currency": quotation.currency}
 	if quoi == "requires_confirmation" or intention.get("client_secret"):
 		return {"action": "confirm", "intent": intention.get("intent_name"),
 			"client_secret": intention.get("client_secret"), "payload": charge}
@@ -1185,11 +1185,11 @@ def cart_intent_state(intent: str) -> dict:
 	if not row or row.reference_doctype != "Payment Request":
 		frappe.throw(_("Nothing to pay"))
 
-	demande = frappe.db.get_value(
+	payment_request = frappe.db.get_value(
 		"Payment Request", row.reference_name,
 		["status", "reference_doctype", "reference_name", "party"], as_dict=True
 	)
-	if not demande:
+	if not payment_request:
 		frappe.throw(_("Nothing to pay"))
 
 	# The request must belong to THIS customer — otherwise an intent number would
@@ -1200,14 +1200,14 @@ def cart_intent_state(intent: str) -> dict:
 	# cart refuses the answer at precisely the moment the page needs it — the page
 	# would stay on "waiting" while the order exists. Lived through on
 	# 2026-08-24: order BC-2026-00343 created, page never told.
-	moi = get_party()
-	sien = bool(moi) and demande.party and demande.party == moi.name
-	if not sien:
+	me = get_party()
+	is_mine = bool(me) and payment_request.party and payment_request.party == me.name
+	if not is_mine:
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	if demande.reference_doctype == "Sales Order":
-		return {"done": True, "redirect_to": "/thank_you?sales_order={0}".format(demande.reference_name)}
-	if demande.status in ("Paid", "Completed"):
+	if payment_request.reference_doctype == "Sales Order":
+		return {"done": True, "redirect_to": "/thank_you?sales_order={0}".format(payment_request.reference_name)}
+	if payment_request.status in ("Paid", "Completed"):
 		return {"done": True, "redirect_to": None}
 	return {"done": False, "status": row.status}
 
@@ -1250,7 +1250,7 @@ def _restricted_methods(payment_gateway_account: str) -> list[str]:
 	return []
 
 
-def _contact_fields(devis) -> dict:  # noqa: ANN001
+def _contact_fields(quotation) -> dict:  # noqa: ANN001
 	"""//// Neoffice — what the hosted page must already know about the shopper.
 
 	Payrexx makes an e-mail field **mandatory** and refuses to submit without it
@@ -1261,13 +1261,13 @@ def _contact_fields(devis) -> dict:  # noqa: ANN001
 	Shape the API expects: `{"email": {"value": "..."}}`. We only send what we
 	have — an empty field is worth less than no field at all.
 	"""
-	valeurs = {
-		"email": devis.get("contact_email"),
-		"forename": devis.get("contact_person_name") or devis.get("customer_name"),
+	values = {
+		"email": quotation.get("contact_email"),
+		"forename": quotation.get("contact_person_name") or quotation.get("customer_name"),
 	}
-	if not valeurs["forename"] and devis.get("contact_person"):
-		valeurs["forename"] = frappe.db.get_value("Contact", devis.contact_person, "first_name")
-	return {k: {"value": v} for k, v in valeurs.items() if v}
+	if not values["forename"] and quotation.get("contact_person"):
+		values["forename"] = frappe.db.get_value("Contact", quotation.contact_person, "first_name")
+	return {k: {"value": v} for k, v in values.items() if v}
 
 
 def _renders_inline(payment_gateway_account: str) -> bool:

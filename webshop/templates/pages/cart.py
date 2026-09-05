@@ -56,9 +56,9 @@ def get_context(context):
     # //// Neoffice multi-site — un site réservé aux professionnels ne montre pas
     # //// son panier à un visiteur anonyme. Le catalogue reste ouvert (vitrine),
     # //// le panier et la commande demandent un compte.
-    from webshop.webshop.multi_site import site_reserve_aux_professionnels
+    from webshop.webshop.multi_site import site_is_business_only
 
-    if frappe.session.user == "Guest" and site_reserve_aux_professionnels():
+    if frappe.session.user == "Guest" and site_is_business_only():
         frappe.local.flags.redirect_location = "/login?redirect-to=/cart"
         raise frappe.Redirect
 

@@ -20,7 +20,7 @@ def get_current_profile_name() -> str | None:
 	return getattr(frappe.local, "website_profile", None)
 
 
-def site_reserve_aux_professionnels() -> bool:
+def site_is_business_only() -> bool:
 	"""True when the site being browsed only serves approved business accounts.
 
 	Reads the resolved Website Profile's ``b2b_only`` flag. False everywhere a
@@ -30,7 +30,7 @@ def site_reserve_aux_professionnels() -> bool:
 	return bool(profile and profile.get("b2b_only"))
 
 
-def exiger_connexion_pour_acheter():
+def require_login_to_buy():
 	"""Refuse a cart action to an anonymous visitor on a professional site.
 
 	//// Neoffice — the b2b_only gate in neoffice_theme only guards SIGN-IN, and
@@ -40,7 +40,7 @@ def exiger_connexion_pour_acheter():
 	"""
 	if frappe.session.user != "Guest":
 		return
-	if not site_reserve_aux_professionnels():
+	if not site_is_business_only():
 		return
 	frappe.throw(
 		_("Please log in to shop on this site."),

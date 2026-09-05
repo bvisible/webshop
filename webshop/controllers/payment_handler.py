@@ -624,14 +624,14 @@ def create_payment_request(quotation_id=None, gateway_settings=None, idempotency
 # //// d'aucun. Le cas 4 est la VRAIE invariante : l'argent est constaté, peu
 # //// importe qui le signale.
 def _peut_conclure(payment_request_id: str, argent_constate: bool = True) -> bool:
-	utilisateur = frappe.session.user
+	user = frappe.session.user
 
 	# 1. le serveur lui-même (tâche de fond, page de retour côté serveur)
-	if utilisateur == "Administrator":
+	if user == "Administrator":
 		return True
 
 	# 2. le personnel
-	if utilisateur != "Guest" and "System Manager" in frappe.get_roles():
+	if user != "Guest" and "System Manager" in frappe.get_roles():
 		return True
 
 	# 4. l'argent est CONSTATÉ : une intention aboutie porte sur cette demande.
@@ -647,21 +647,21 @@ def _peut_conclure(payment_request_id: str, argent_constate: bool = True) -> boo
 	except Exception:
 		pass
 
-	if utilisateur == "Guest":
+	if user == "Guest":
 		return False
 
 	# 3. l'ACHETEUR, de retour de sa passerelle : c'est sa demande.
-	beneficiaire = frappe.db.get_value("Payment Request", payment_request_id, "party")
-	if not beneficiaire:
+	beneficiary = frappe.db.get_value("Payment Request", payment_request_id, "party")
+	if not beneficiary:
 		return False
 	try:
 		from erpnext.controllers.website_list_for_contact import get_customers_suppliers
 
-		clients, _fournisseurs = get_customers_suppliers("Sales Order", utilisateur)
+		customers, _suppliers = get_customers_suppliers("Sales Order", user)
 	except Exception:
-		frappe.log_error("Webshop: droit de conclure un paiement", frappe.get_traceback())
+		frappe.log_error("Webshop: right to complete a payment", frappe.get_traceback())
 		return False
-	return beneficiaire in (clients or [])
+	return beneficiary in (customers or [])
 
 
 @frappe.whitelist(allow_guest=True)

@@ -86,9 +86,9 @@ class CarouselCacheManager:
         # right and removed nothing at all. Carousels then kept serving stale
         # products until the TTL ran out, whatever changed in the catalogue.
         # delete_keys() is the pattern-aware form and skips that second prefix.
-        motif = f"{self.cache_prefix}:*{pattern}*" if pattern else f"{self.cache_prefix}:*"
+        key_pattern = f"{self.cache_prefix}:*{pattern}*" if pattern else f"{self.cache_prefix}:*"
         try:
-            frappe.cache().delete_keys(motif)
+            frappe.cache().delete_keys(key_pattern)
         except Exception as e:
             frappe.log_error("Carousel Cache Error", f"Error clearing carousel cache: {str(e)}")
     

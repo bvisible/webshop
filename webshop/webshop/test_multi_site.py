@@ -84,7 +84,7 @@ class TestDegradationSansProfil(unittest.TestCase):
 		self.assertEqual(multi_site.site_sql_condition("wi"), "")
 
 	def test_site_is_not_reserved(self):
-		self.assertFalse(multi_site.site_reserve_aux_professionnels())
+		self.assertFalse(multi_site.site_is_business_only())
 
 	def test_a_guest_may_still_shop(self):
 		"""The b2b gate must never fire where no professional site is configured."""
@@ -92,7 +92,7 @@ class TestDegradationSansProfil(unittest.TestCase):
 		frappe.set_user("Guest")
 		self.addCleanup(frappe.set_user, utilisateur)
 
-		multi_site.exiger_connexion_pour_acheter()  # must not raise
+		multi_site.require_login_to_buy()  # must not raise
 
 	def test_price_list_falls_back_to_the_settings(self):
 		attendu = frappe.db.get_single_value("Webshop Settings", "price_list")
@@ -250,11 +250,11 @@ class TestAvecProfil(unittest.TestCase):
 
 	def test_a_professional_site_is_reserved(self):
 		with self._sur(PROFIL_B):
-			self.assertTrue(multi_site.site_reserve_aux_professionnels())
+			self.assertTrue(multi_site.site_is_business_only())
 
 	def test_a_consumer_site_is_not(self):
 		with self._sur(PROFIL_A):
-			self.assertFalse(multi_site.site_reserve_aux_professionnels())
+			self.assertFalse(multi_site.site_is_business_only())
 
 	def test_a_guest_cannot_buy_on_a_professional_site(self):
 		utilisateur = frappe.session.user
@@ -263,11 +263,11 @@ class TestAvecProfil(unittest.TestCase):
 
 		with self._sur(PROFIL_B):
 			with self.assertRaises(frappe.PermissionError):
-				multi_site.exiger_connexion_pour_acheter()
+				multi_site.require_login_to_buy()
 
 	def test_a_signed_in_user_may_buy_on_a_professional_site(self):
 		with self._sur(PROFIL_B):
-			multi_site.exiger_connexion_pour_acheter()  # must not raise
+			multi_site.require_login_to_buy()  # must not raise
 
 	def test_a_guest_may_buy_on_a_consumer_site(self):
 		utilisateur = frappe.session.user
@@ -275,7 +275,7 @@ class TestAvecProfil(unittest.TestCase):
 		self.addCleanup(frappe.set_user, utilisateur)
 
 		with self._sur(PROFIL_A):
-			multi_site.exiger_connexion_pour_acheter()  # must not raise
+			multi_site.require_login_to_buy()  # must not raise
 
 	# --- which catalogue is served ---------------------------------------
 

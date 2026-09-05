@@ -486,7 +486,7 @@ def get_shopping_cart_settings():
         # //// sans risquer d'en oublier une.
         # ////
         # //// L'affichage n'est pas la permission: update_cart refuse de son côté
-        # //// (multi_site.exiger_connexion_pour_acheter).
+        # //// (multi_site.require_login_to_buy).
         if profile.get("b2b_only"):
             settings_dict["enable_guest_cart"] = 0
     return settings_dict
