@@ -586,6 +586,7 @@ endpoint whose id travels in a redirect URL.
 > every one of them died on a LinkValidationError before its first assertion.
 > `make_test_item()` wraps ERPNext's `make_item` for the same reason.
 
+<!-- //// Neoffice — documents the _Test Comm Account 1 / default_outgoing trap found while auditing the assistant test suite (74db9a51d5 "test(assistant): la spec tourne aussi déconnectée, et repart d'une conversation neuve") -->
 > **A test run on a real site kills that site's outgoing email.** Any
 > `bench run-tests` on `prod.local` — even a module that sends nothing, like
 > `test_store_hours` — recreates Frappe's fixture Email Account
