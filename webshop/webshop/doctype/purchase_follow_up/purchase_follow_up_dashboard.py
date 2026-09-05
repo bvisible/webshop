@@ -1,4 +1,4 @@
-#//// Neoffice — added file (purchase follow-ups, no upstream equivalent).
+# //// Neoffice — added file (purchase follow-ups, no upstream equivalent).
 from frappe import _
 
 

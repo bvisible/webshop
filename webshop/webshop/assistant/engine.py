@@ -32,10 +32,10 @@ def respond(conversation, text, ctx):
 	reply = ""
 	spent = []
 	while True:
-		#//// Neoffice — a model that asked for a tool on the last round used to get the
-		#//// canned fallback sentence; it is now called once more without tools and must
-		#//// answer in words (a1c7c75f97 "fix(assistant): après le dernier tour d'outils,
-		#//// le modèle répond sans outils")
+		# //// Neoffice — a model that asked for a tool on the last round used to get the
+		# //// canned fallback sentence; it is now called once more without tools and must
+		# //// answer in words (a1c7c75f97 "fix(assistant): après le dernier tour d'outils,
+		# //// le modèle répond sans outils")
 		# past the last round, the model gets no tools: it has to answer in words
 		out = llm.complete(messages, schemas if rounds < MAX_TOOL_ROUNDS else None, ctx.settings)
 		spent.append(out)

@@ -7,11 +7,11 @@ from webshop.webshop.doctype.webshop_settings.test_webshop_settings import (
 )
 from webshop.webshop.doctype.website_item.website_item import make_website_item
 from webshop.webshop.variant_selector.utils import get_next_attribute_and_values
-#//// Neoffice — fixtures resolved from the site instead of upstream's hard-coded
-#//// English names ("Products", "Standard Selling"), which do not exist on a site
-#//// installed in French: every test errored before its first assertion (0971ecdb0a, 2026-08-29 "réparer la suite Python et trois défauts qu'elle cachait").
-#//// TO REVIEW: several helpers and constants in this file are named in French
-#//// (reconstruire_cache_variantes, _reactiver) — RULE #00.
+# //// Neoffice — fixtures resolved from the site instead of upstream's hard-coded
+# //// English names ("Products", "Standard Selling"), which do not exist on a site
+# //// installed in French: every test errored before its first assertion (0971ecdb0a, 2026-08-29 "réparer la suite Python et trois défauts qu'elle cachait").
+# //// TO REVIEW: several helpers and constants in this file are named in French
+# //// (reconstruire_cache_variantes, _reactiver) — RULE #00.
 from webshop.webshop.tests.utils import (
 	default_company,
 	make_test_item,
@@ -24,8 +24,8 @@ from webshop.webshop.tests.utils import (
 test_dependencies = ["Item"]
 
 
-#//// Neoffice — added helper: the variant cache has to be rebuilt explicitly, or the
-#//// test read what a previous run left behind.
+# //// Neoffice — added helper: the variant cache has to be rebuilt explicitly, or the
+# //// test read what a previous run left behind.
 def reconstruire_cache_variantes(item_code):
 	"""Rebuild the variant cache here and now.
 
@@ -61,9 +61,9 @@ class TestVariantSelector(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		#//// Neoffice — the suite cleans what an earlier committed run left in the database;
-		#//// FrappeTestCase's rollback does not cover what was committed (9335b4dc83,
-		#//// 2026-08-26 "la suite ne laisse plus rien derrière elle").
+		# //// Neoffice — the suite cleans what an earlier committed run left in the database;
+		# //// FrappeTestCase's rollback does not cover what was committed (9335b4dc83,
+		# //// 2026-08-26 "la suite ne laisse plus rien derrière elle").
 		# Whatever an earlier run committed is still in the database, and
 		# create_variant would hit "Duplicate entry 'Test-Tshirt-Temp-L-R'".
 		cls._purger()
@@ -75,7 +75,7 @@ class TestVariantSelector(FrappeTestCase):
 
 		template_item = make_test_item(
 			"Test-Tshirt-Temp",
-			#//// Neoffice — see above.
+			# //// Neoffice — see above.
 			**{
 				# has_variantS. Without the s it is not a field of Item, so the
 				# item was never a template and create_variant below produced a
@@ -103,9 +103,9 @@ class TestVariantSelector(FrappeTestCase):
 
 		make_website_item(template_item)  # publish template not variants
 
-		#//// Neoffice — the fixtures are committed on purpose: the rollback between tests would
-		#//// otherwise take them with it, and the next test rebuilt them (9335b4dc83,
-		#//// 2026-08-26).
+		# //// Neoffice — the fixtures are committed on purpose: the rollback between tests would
+		# //// otherwise take them with it, and the next test rebuilt them (9335b4dc83,
+		# //// 2026-08-26).
 		# Commit, or the rollback FrappeTestCase runs between tests takes these
 		# fixtures with it and every test then reports the variants as missing.
 		# The suite passed before only because an earlier run had left the same
@@ -155,8 +155,8 @@ class TestVariantSelector(FrappeTestCase):
 		# disable small red tshirt, now there are no small tshirts.
 		# but there are some red tshirts
 		small_variant = frappe.get_doc("Item", "Test-Tshirt-Temp-S-R")
-		#//// Neoffice — the disabled variant is re-enabled whatever happens: leaving it
-		#//// disabled made the NEXT test fail for a reason that had nothing to do with it.
+		# //// Neoffice — the disabled variant is re-enabled whatever happens: leaving it
+		# //// disabled made the NEXT test fail for a reason that had nothing to do with it.
 		# Re-enable it whatever happens: leaving it disabled makes the NEXT test
 		# see no small tshirt at all, and that one then fails for a reason of our
 		# own making. It used to be re-enabled after the assertion below — which
@@ -165,7 +165,7 @@ class TestVariantSelector(FrappeTestCase):
 		self.addCleanup(self._reactiver, small_variant.name)
 
 		small_variant.disabled = 1
-		#//// Neoffice — see above.
+		# //// Neoffice — see above.
 		small_variant.save()
 		# save() only enqueues the rebuild, on the "long" queue, and enqueue does
 		# not run inline under tests (is_async=True, now=False). Without this the
@@ -177,7 +177,7 @@ class TestVariantSelector(FrappeTestCase):
 		# Only L and M attribute values must be fetched since S is disabled
 		self.assertEqual(len(attr_data[0]["values"]), 2)  # ['Medium', 'Large']
 
-	#//// Neoffice — see above.
+	# //// Neoffice — see above.
 	def _reactiver(self, nom):
 		frappe.db.set_value("Item", nom, "disabled", 0)
 
@@ -207,9 +207,9 @@ class TestVariantSelector(FrappeTestCase):
 		"""
 		from webshop.webshop.doctype.website_item.test_website_item import make_web_item_price
 
-		#//// Neoffice — variant pricing goes through get_price(..., warehouse=...), so the test
-		#//// has to give the item a warehouse or the Pricing Rule never matches (d23d979933,
-		#//// 2025-12-05).
+		# //// Neoffice — variant pricing goes through get_price(..., warehouse=...), so the test
+		# //// has to give the item a warehouse or the Pricing Rule never matches (d23d979933,
+		# //// 2025-12-05).
 		# Variant pricing goes through get_price(..., warehouse=...), and that
 		# argument only exists on the bvisible fork of ERPNext, where a Pricing
 		# Rule can be scoped to a warehouse. On a standard ERPNext the call
@@ -222,9 +222,9 @@ class TestVariantSelector(FrappeTestCase):
 			self.skipTest("this ERPNext's get_price takes no warehouse")
 
 		frappe.set_user("Administrator")
-		#//// Neoffice — Webshop Settings is a Single: a rollback does not undo a write to it,
-		#//// so the previous values are restored explicitly (e331d19b9d, 2026-08-26 "la suite
-		#//// ne reconfigure plus la boutique du site").
+		# //// Neoffice — Webshop Settings is a Single: a rollback does not undo a write to it,
+		# //// so the previous values are restored explicitly (e331d19b9d, 2026-08-26 "la suite
+		# //// ne reconfigure plus la boutique du site").
 		# Webshop Settings is a Single: rollback will not undo this once anything
 		# commits, so put the shop's own values back when the test ends.
 		self.addCleanup(
@@ -238,18 +238,18 @@ class TestVariantSelector(FrappeTestCase):
 		# demand a rupee-formatted string that only held for that one currency.
 		setup_webshop_settings(
 			{
-				#//// Neoffice — company and customer group read from the site (see #1).
+				# //// Neoffice — company and customer group read from the site (see #1).
 				"company": default_company(),
 				"enabled": 1,
-				#//// Neoffice — see above.
+				# //// Neoffice — see above.
 				"default_customer_group": root_customer_group(),
 				"price_list": selling_price_list(),
 				"show_price": 1,
 			}
 		)
 
-		#//// Neoffice — the price is created on the shop's own price list, not on a name
-		#//// assumed to exist (see #1).
+		# //// Neoffice — the price is created on the shop's own price list, not on a name
+		# //// assumed to exist (see #1).
 		make_web_item_price(
 			item_code="Test-Tshirt-Temp-S-R",
 			price_list_rate=100,
@@ -259,14 +259,14 @@ class TestVariantSelector(FrappeTestCase):
 		frappe.local.shopping_cart_settings = None  # clear cached settings values
 		next_values = get_next_attribute_and_values(
 			"Test-Tshirt-Temp", selected_attributes={"Test Size": "Small", "Test Colour": "Red"}
-		#//// Neoffice — see above.
+		# //// Neoffice — see above.
 		)
 		price_info = next_values["product_info"]["price"]
-#//// Neoffice — see above.
+# //// Neoffice — see above.
 
 		self.assertEqual(next_values["exact_match"][0], "Test-Tshirt-Temp-S-R")
 		self.assertEqual(price_info["price_list_rate"], 100.0)
-		#//// Neoffice — the assertion is on the shop's currency, whichever it is: the previous
-		#//// version asserted a literal "$ 100.00" and failed on any site not in USD.
+		# //// Neoffice — the assertion is on the shop's currency, whichever it is: the previous
+		# //// version asserted a literal "$ 100.00" and failed on any site not in USD.
 		# Formatted in the shop's currency, whichever that is.
 		self.assertIn("100.00", price_info["formatted_price_sales_uom"])

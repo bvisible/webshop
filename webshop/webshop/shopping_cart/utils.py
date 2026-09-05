@@ -41,9 +41,9 @@ def update_website_context(context):
 	cart_enabled = is_cart_enabled()
 	context["shopping_cart_enabled"] = cart_enabled
 
-	#//// Neoffice — added: the wishlist icon lives in the Builder-built header, which is
-	#//// rendered on every page, so the flag has to be in the website context and not
-	#//// only on the shop's own pages (da044ea692, 2025-03-13 "add template wishlist").
+	# //// Neoffice — added: the wishlist icon lives in the Builder-built header, which is
+	# //// rendered on every page, so the flag has to be in the website context and not
+	# //// only on the shop's own pages (da044ea692, 2025-03-13 "add template wishlist").
 	# Include wishlist component in all pages
 	if frappe.db.get_single_value("Webshop Settings", "enable_wishlist"):
 		context["include_wishlist"] = True

@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent). Glue for the Wallee tile: reads
-#//// the configured checkout mode and owns the route URLs the JS relies on. The
-#//// transaction itself lives in the `payments` app (043924b1d5, 2025-12-10).
+# //// Neoffice — added file (no upstream equivalent). Glue for the Wallee tile: reads
+# //// the configured checkout mode and owns the route URLs the JS relies on. The
+# //// transaction itself lives in the `payments` app (043924b1d5, 2025-12-10).
 """Webshop Wallee glue.
 
 The actual transaction creation lives in :mod:`payments.integrations.wallee.api`

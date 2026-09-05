@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent). Asserts that a fresh install
-#//// really puts the Webshop workspace on the desk and that every link on it points
-#//// at an installed DocType — the features have to be reachable, not only importable
-#//// (fa76f6b515 / 01c6358b19, 2026-09-03).
+# //// Neoffice — added file (no upstream equivalent). Asserts that a fresh install
+# //// really puts the Webshop workspace on the desk and that every link on it points
+# //// at an installed DocType — the features have to be reachable, not only importable
+# //// (fa76f6b515 / 01c6358b19, 2026-09-03).
 # Copyright (c) 2026, Neoffice. What a fresh install puts in the desk.
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -27,7 +27,7 @@ class TestDesk(FrappeTestCase):
 		for row in workspace.links:
 			if row.type == "Link" and row.link_type == "DocType":
 				self.assertTrue(frappe.db.exists("DocType", row.link_to), row.link_to)
-			#//// Neoffice — the workspace now also links the "Shop Assistant Usage" report (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
+			# //// Neoffice — the workspace now also links the "Shop Assistant Usage" report (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
 			if row.type == "Link" and row.link_type == "Report":
 				self.assertTrue(frappe.db.exists("Report", row.link_to), row.link_to)
 		for row in workspace.shortcuts:

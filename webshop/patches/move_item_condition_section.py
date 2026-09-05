@@ -1,4 +1,4 @@
-#//// Neoffice — added file (second-hand units, no upstream equivalent).
+# //// Neoffice — added file (second-hand units, no upstream equivalent).
 import frappe
 
 

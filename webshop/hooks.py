@@ -15,30 +15,30 @@ web_include_css = "webshop-web.bundle.css"
 web_include_js = "web.bundle.js"
 
 after_install = "webshop.setup.install.after_install"
-#//// Neoffice — added. Upstream only wires after_install, so a shop that was
-#//// installed before a field/portal-menu change never got it: after_migrate
-#//// re-runs our idempotent setup (custom fields, portal menu, workspace) on
-#//// every deploy (6112d75f8c, 2026-08-29 "une installation neuve créait 3
-#//// champs personnalisés sur 20"). after_clear_cache rebuilds the RediSearch
-#//// index, which `bench clear-cache` drops without telling anyone — the shop
-#//// search then returned nothing until someone rebuilt it by hand
-#//// (ce5220b7e7 / 2c14d7c948, 2025-12-14 "auto-rebuild Redis search index").
+# //// Neoffice — added. Upstream only wires after_install, so a shop that was
+# //// installed before a field/portal-menu change never got it: after_migrate
+# //// re-runs our idempotent setup (custom fields, portal menu, workspace) on
+# //// every deploy (6112d75f8c, 2026-08-29 "une installation neuve créait 3
+# //// champs personnalisés sur 20"). after_clear_cache rebuilds the RediSearch
+# //// index, which `bench clear-cache` drops without telling anyone — the shop
+# //// search then returned nothing until someone rebuilt it by hand
+# //// (ce5220b7e7 / 2c14d7c948, 2025-12-14 "auto-rebuild Redis search index").
 after_migrate = "webshop.setup.install.after_migrate"
 after_clear_cache = "webshop.webshop.redisearch_utils.rebuild_index_after_clear_cache"
 on_logout = "webshop.webshop.shopping_cart.utils.clear_cart_count"
 on_session_creation = [
-	#//// Neoffice — body re-indented from 4 spaces to tabs by our editor config
-	#//// (no behaviour change). Kept as-is: reverting it would be a second
-	#//// whitespace churn on top of the first. Expect whitespace conflicts here
-	#//// at the next upstream merge — resolve by taking OUR side.
+	# //// Neoffice — body re-indented from 4 spaces to tabs by our editor config
+	# //// (no behaviour change). Kept as-is: reverting it would be a second
+	# //// whitespace churn on top of the first. Expect whitespace conflicts here
+	# //// at the next upstream merge — resolve by taking OUR side.
 	"webshop.webshop.utils.portal.update_debtors_account",
 	"webshop.webshop.shopping_cart.utils.set_cart_count",
 ]
 
-#//// Neoffice — added. Our shops are built with Builder, whose pages replaced
-#//// the upstream /home, /navbar and /footer routes, and our listing lives at
-#//// /all-products; without these the old upstream URLs (still in customers'
-#//// bookmarks and in Google's index) 404ed instead of landing on the shop.
+# //// Neoffice — added. Our shops are built with Builder, whose pages replaced
+# //// the upstream /home, /navbar and /footer routes, and our listing lives at
+# //// /all-products; without these the old upstream URLs (still in customers'
+# //// bookmarks and in Google's index) 404ed instead of landing on the shop.
 website_redirects = [
 	{"source": "/home", "target": "/"},
 	{"source": "/homepage", "target": "/"},
@@ -49,28 +49,28 @@ website_redirects = [
 
 update_website_context = [
 	"webshop.webshop.shopping_cart.utils.update_website_context",
-	#//// Neoffice — added with the shop maintenance mode (deb34ad632, 2025-06-19
-	#//// "Feat. maintenance mode"): the veil has to be injected into EVERY web
-	#//// page's context, not only the /maintenance route, otherwise a visitor
-	#//// already deep in the shop kept browsing it while it was closed.
+	# //// Neoffice — added with the shop maintenance mode (deb34ad632, 2025-06-19
+	# //// "Feat. maintenance mode"): the veil has to be injected into EVERY web
+	# //// page's context, not only the /maintenance route, otherwise a visitor
+	# //// already deep in the shop kept browsing it while it was closed.
 	"webshop.webshop.maintenance_context.inject_maintenance_css",
 ]
 
 # Scheduled Tasks
 scheduler_events = {
 	"daily": [
-		#//// Neoffice — nightly purge of old shop-assistant conversations, except the escalated ones (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
+		# //// Neoffice — nightly purge of old shop-assistant conversations, except the escalated ones (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
 		"webshop.webshop.assistant.api.purge_old_conversations",
 		"webshop.webshop.utils.frequently_bought_together.calculate_frequently_bought_together"
 	],
-	#//// Neoffice — abandoned carts: one look per hour at the carts left behind
+	# //// Neoffice — abandoned carts: one look per hour at the carts left behind
 	"hourly": ["webshop.webshop.utils.abandoned_carts.send_abandoned_cart_reminders"],
-	#//// Neoffice — purchase follow-ups go out in the morning, not at midnight
+	# //// Neoffice — purchase follow-ups go out in the morning, not at midnight
 	"cron": {"15 8 * * *": ["webshop.webshop.utils.follow_ups.send_due_follow_ups"]},
 }
 
-#//// Neoffice — follow-ups and cart reminders show under the customer's
-#//// connections, next to its orders.
+# //// Neoffice — follow-ups and cart reminders show under the customer's
+# //// connections, next to its orders.
 override_doctype_dashboards = {
 	"Customer": "webshop.webshop.utils.follow_ups.customer_dashboard",
 	"Sales Order": "webshop.webshop.utils.follow_ups.sales_order_dashboard",
@@ -81,23 +81,23 @@ override_doctype_dashboards = {
 website_generators = ["Website Item", "Item Group"]
 
 override_doctype_class = {
-	#//// Neoffice — the three upstream entries are unchanged apart from the
-	#//// 4-spaces-to-tabs re-indentation (see on_session_creation above).
+	# //// Neoffice — the three upstream entries are unchanged apart from the
+	# //// 4-spaces-to-tabs re-indentation (see on_session_creation above).
 	"Payment Request": "webshop.webshop.doctype.override_doctype.payment_request.PaymentRequest",
 	"Item Group": "webshop.webshop.doctype.override_doctype.item_group.WebshopItemGroup",
 	"Item": "webshop.webshop.doctype.override_doctype.item.WebshopItem",
-	#//// Neoffice — added: a webshop order that is paid must end as an INVOICE,
-	#//// not stop at the Sales Order (536741147b, 2026-07-27 "facturer la
-	#//// commande payée au lieu de s'arrêter à la commande client").
+	# //// Neoffice — added: a webshop order that is paid must end as an INVOICE,
+	# //// not stop at the Sales Order (536741147b, 2026-07-27 "facturer la
+	# //// commande payée au lieu de s'arrêter à la commande client").
 	"Sales Invoice": "webshop.webshop.doctype.override_doctype.sales_invoice.SalesInvoice"
 }
 
 doctype_js = {
 	"Item": "public/js/override/item.js",
-	#//// Neoffice — added: the cross-sell / order-bump offers are configured from
-	#//// the Item Group and Brand forms (8c29208cca, 2026-09-03 "offres croisées
-	#//// et order bump, portés par une Pricing Rule générée"), and the gift-card
-	#//// Coupon Code form gets its own script (23c0ae97d9, 2025-02-11).
+	# //// Neoffice — added: the cross-sell / order-bump offers are configured from
+	# //// the Item Group and Brand forms (8c29208cca, 2026-09-03 "offres croisées
+	# //// et order bump, portés par une Pricing Rule générée"), and the gift-card
+	# //// Coupon Code form gets its own script (23c0ae97d9, 2025-02-11).
 	"Item Group": "public/js/override/cross_sell_trigger.js",
 	"Brand": "public/js/override/cross_sell_trigger.js",
 	"Homepage": "public/js/override/homepage.js",
@@ -144,24 +144,24 @@ doc_events = {
 			"webshop.webshop.crud_events.tax_rule.validate_use_for_cart.execute",
 		],
 	},
-	#//// Neoffice — multi-warehouse: webshop Sales Order lines sourced from a
-	#//// supplier warehouse prepare a draft Purchase Order (stacked per
-	#//// supplier) or a Material Request. Gated inside on Webshop Settings
-	#//// (enable_multi_warehouse + enable_supplier_procurement) and on
-	#//// order_type "Shopping Cart"; never raises into the submit.
+	# //// Neoffice — multi-warehouse: webshop Sales Order lines sourced from a
+	# //// supplier warehouse prepare a draft Purchase Order (stacked per
+	# //// supplier) or a Material Request. Gated inside on Webshop Settings
+	# //// (enable_multi_warehouse + enable_supplier_procurement) and on
+	# //// order_type "Shopping Cart"; never raises into the submit.
 	"Sales Order": {
 		"on_submit": [
 			"webshop.webshop.multi_warehouse.procurement.process_sales_order",
-			#//// Neoffice — purchase follow-ups enrol the customer; a cart
-			#//// that became an order stops being "abandoned".
+			# //// Neoffice — purchase follow-ups enrol the customer; a cart
+			# //// that became an order stops being "abandoned".
 			"webshop.webshop.utils.follow_ups.enroll_from_sales_order",
 			"webshop.webshop.utils.abandoned_carts.mark_converted",
 		],
 		"on_cancel": ["webshop.webshop.utils.follow_ups.on_cancel"],
 	},
-	#//// Neoffice — multi-warehouse: ERPNext reserves the received goods for
-	#//// the customer order on its own (Stock Settings); this only writes the
-	#//// timeline comment on the Sales Order so the seller side sees it.
+	# //// Neoffice — multi-warehouse: ERPNext reserves the received goods for
+	# //// the customer order on its own (Stock Settings); this only writes the
+	# //// timeline comment on the Sales Order so the seller side sees it.
 	"Purchase Receipt": {
 		"on_submit": [
 			"webshop.webshop.multi_warehouse.procurement.notify_sales_orders_on_receipt",
@@ -198,16 +198,16 @@ has_website_permission = {
     "Item Group": "webshop.webshop.doctype.website_item.website_item.has_website_permission_for_item_group"
 }
 
-#//// Neoffice — everything below is added; upstream's hooks.py ends at
-#//// has_website_permission. ▼▼▼
-#////   · website_route_rules: the PSPs (Stripe, Wallee, TWINT, Payrexx, PayPal)
-#////     call back one fixed public URL; upstream has no such entry point
-#////     (f3f669f6f3, 2025-02-11 "move PayPal payment handling to a dedicated
-#////     module", then 7edfb905be / 77e7ed3c19 for the other gateways).
-#////   · page_renderer: the maintenance veil must beat the website router for
-#////     EVERY route, which only a page renderer can do (deb34ad632, 2025-06-19).
-#////   · jinja.methods: helpers our Builder-built templates call directly
-#////     (cart drawer, carousels, wishlist) — upstream templates need none.
+# //// Neoffice — everything below is added; upstream's hooks.py ends at
+# //// has_website_permission. ▼▼▼
+# ////   · website_route_rules: the PSPs (Stripe, Wallee, TWINT, Payrexx, PayPal)
+# ////     call back one fixed public URL; upstream has no such entry point
+# ////     (f3f669f6f3, 2025-02-11 "move PayPal payment handling to a dedicated
+# ////     module", then 7edfb905be / 77e7ed3c19 for the other gateways).
+# ////   · page_renderer: the maintenance veil must beat the website router for
+# ////     EVERY route, which only a page renderer can do (deb34ad632, 2025-06-19).
+# ////   · jinja.methods: helpers our Builder-built templates call directly
+# ////     (cart drawer, carousels, wishlist) — upstream templates need none.
 website_route_rules = [
 	{"from_route": "/api/payment/callback", "to_route": "webshop.controllers.payment_handler.payment_callback"}
 ]

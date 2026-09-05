@@ -1,8 +1,8 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// Two indexes on `tabItem Price` (price_list, selling, price_list_rate): our price
-#//// slider and discount filter range-scan prices on every listing request, which
-#//// upstream's listing never does (8ba1a7ab46, 2025-06-08 "enhance product filtering
-#//// with stock availability and discount improvements").
+# //// Neoffice — added file (no upstream equivalent).
+# //// Two indexes on `tabItem Price` (price_list, selling, price_list_rate): our price
+# //// slider and discount filter range-scan prices on every listing request, which
+# //// upstream's listing never does (8ba1a7ab46, 2025-06-08 "enhance product filtering
+# //// with stock availability and discount improvements").
 import frappe
 
 def execute():

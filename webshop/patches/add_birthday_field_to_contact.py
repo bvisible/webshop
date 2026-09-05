@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// Contact.birthday, required by the "Facture" (webshopsi) method: the provider
-#//// refuses an order when the buyer's age cannot be checked (662c26b650, 2026-05-26
-#//// "fold webshopsi_integration (Facture method) into webshop").
+# //// Neoffice — added file (no upstream equivalent).
+# //// Contact.birthday, required by the "Facture" (webshopsi) method: the provider
+# //// refuses an order when the buyer's age cannot be checked (662c26b650, 2026-05-26
+# //// "fold webshopsi_integration (Facture method) into webshop").
 import frappe
 
 def execute():

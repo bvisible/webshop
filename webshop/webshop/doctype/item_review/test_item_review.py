@@ -16,10 +16,10 @@ from webshop.webshop.doctype.item_review.item_review import (
 )
 from webshop.webshop.doctype.website_item.website_item import make_website_item
 from webshop.webshop.shopping_cart.cart import get_party
-#//// Neoffice — fixtures resolved from the site rather than upstream's hard-coded
-#//// English names (0971ecdb0a, 2026-08-29 "réparer la suite Python et trois défauts qu'elle cachait").
-#//// TO REVIEW: constants in this file are named in French (QUATRE_ETOILES,
-#//// TROIS_ETOILES) — RULE #00.
+# //// Neoffice — fixtures resolved from the site rather than upstream's hard-coded
+# //// English names (0971ecdb0a, 2026-08-29 "réparer la suite Python et trois défauts qu'elle cachait").
+# //// TO REVIEW: constants in this file are named in French (QUATRE_ETOILES,
+# //// TROIS_ETOILES) — RULE #00.
 from webshop.webshop.tests.utils import (
 	make_test_item,
 	restore_webshop_settings,
@@ -36,14 +36,14 @@ QUATRE_ETOILES = 4 / 5
 
 class TestItemReview(unittest.TestCase):
 	def setUp(self):
-		#//// Neoffice — the item is created by our own fixture helper (see above).
+		# //// Neoffice — the item is created by our own fixture helper (see above).
 		item = make_test_item("Test Mobile Phone")
 		if not frappe.db.exists("Website Item", {"item_code": "Test Mobile Phone"}):
 			make_website_item(item, save=True)
 
 		frappe.set_user("Administrator")
-		#//// Neoffice — Webshop Settings is a Single: what the shop had is put back rather than
-		#//// relying on the rollback (e331d19b9d, 2026-08-26).
+		# //// Neoffice — Webshop Settings is a Single: what the shop had is put back rather than
+		# //// relying on the rollback (e331d19b9d, 2026-08-26).
 		# Webshop Settings is a Single, so put back what the shop had rather than
 		# a hard-coded 0: this suite used to leave reviews switched OFF on the
 		# site it ran against, whatever the setting was before it started.
@@ -52,15 +52,15 @@ class TestItemReview(unittest.TestCase):
 		setup_webshop_settings({"enable_reviews": 1, "enabled": 1})
 		frappe.local.shopping_cart_settings = None
 
-		#//// Neoffice — creating a User sends a welcome mail; whether this suite passes must
-		#//// not depend on an SMTP server being reachable.
+		# //// Neoffice — creating a User sends a welcome mail; whether this suite passes must
+		# //// not depend on an SMTP server being reachable.
 		# Creating a User sends a welcome mail. Whether this suite passes must
 		# not depend on an SMTP server being reachable from wherever it runs.
 		self._emails_avant = frappe.flags.mute_emails
 		frappe.flags.mute_emails = True
 
 	def tearDown(self):
-		#//// Neoffice — see above.
+		# //// Neoffice — see above.
 		frappe.flags.mute_emails = self._emails_avant
 		frappe.set_user("Administrator")
 
@@ -70,7 +70,7 @@ class TestItemReview(unittest.TestCase):
 			frappe.delete_doc("Item Review", review.name)
 
 		website_item_doc.delete()
-		#//// Neoffice — see the settings restore above.
+		# //// Neoffice — see the settings restore above.
 		# The settings are put back by the cleanup registered in setUp.
 
 	def test_add_and_get_item_reviews_from_customer(self):
@@ -82,8 +82,8 @@ class TestItemReview(unittest.TestCase):
 
 		# create customer and contact against user
 		customer = get_party()
-		#//// Neoffice — the Customer link is undone whatever happens: left in place it made the
-		#//// next test believe the user had already bought.
+		# //// Neoffice — the Customer link is undone whatever happens: left in place it made the
+		# //// next test believe the user had already bought.
 		# Undo it whatever happens below: leaving a Customer linked to this user
 		# turns the non-customer test into a customer one, and it then fails for
 		# a reason that has nothing to do with what it checks.
@@ -98,12 +98,12 @@ class TestItemReview(unittest.TestCase):
 
 		# post review on "Test Mobile Phone"
 		try:
-			#//// Neoffice — the review is created through the real endpoint, with the contact that
-			#//// links the user to the customer — without it the endpoint refuses (8c70994589 /
-			#//// 754c2712b6, 2026-08-29).
+			# //// Neoffice — the review is created through the real endpoint, with the contact that
+			# //// links the user to the customer — without it the endpoint refuses (8c70994589 /
+			# //// 754c2712b6, 2026-08-29).
 			add_item_review(web_item, "Great Product", QUATRE_ETOILES, "Would recommend this product")
 			review_name = frappe.db.get_value("Item Review", {"website_item": web_item})
-		#//// Neoffice — the failure is reported with its cause instead of a bare assert.
+		# //// Neoffice — the failure is reported with its cause instead of a bare assert.
 		except Exception as e:
 			# Say WHAT went wrong: swallowing it leaves "Error while publishing
 			# review for WEB-ITM-0001" and nothing to act on.
@@ -114,15 +114,15 @@ class TestItemReview(unittest.TestCase):
 
 		self.assertEqual(len(review_data.reviews), 1)
 		self.assertTrue(review_data.average_rating)
-		#//// Neoffice — the bucket index is stated: a four-star review is index 3, and the
-		#//// previous version asserted on the wrong one while still passing.
+		# //// Neoffice — the bucket index is stated: a four-star review is index 3, and the
+		# //// previous version asserted on the wrong one while still passing.
 		# Index 3 is the four-star bucket: the sole review is 100% of them.
 		self.assertEqual(review_data.reviews_per_rating[3], 100)
 		self.assertEqual(review_data.reviews_per_rating[0], 0)
 
 		frappe.set_user("Administrator")
-#//// Neoffice — coverage of the rating breakdown and of the verified-purchase flag
-#//// (5d19e3fed9, 2026-09-03).
+# //// Neoffice — coverage of the rating breakdown and of the verified-purchase flag
+# //// (5d19e3fed9, 2026-09-03).
 
 	def _lier_contact(self, email, customer):
 		"""Make this user reachable as that customer, the way the portal does."""
@@ -164,12 +164,12 @@ class TestItemReview(unittest.TestCase):
 	def test_add_item_review_from_non_customer(self):
 		"Check if logged in user (who is not a customer yet) is blocked from posting reviews."
 		web_item = frappe.db.get_value("Website Item", {"item_code": "Test Mobile Phone"})
-		#//// Neoffice — the non-customer case uses a real user created for the test.
+		# //// Neoffice — the non-customer case uses a real user created for the test.
 		test_user = create_user("test_non_customer_reviewer@example.com", "Customer")
 		frappe.set_user(test_user.name)
 
 		with self.assertRaises(UnverifiedReviewer):
-			#//// Neoffice — see above.
+			# //// Neoffice — see above.
 			add_item_review(web_item, "Great Product", TROIS_ETOILES, "Would recommend this product")
 
 		# tear down

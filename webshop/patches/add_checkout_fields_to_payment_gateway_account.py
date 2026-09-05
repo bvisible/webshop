@@ -1,8 +1,8 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// The checkout tiles: each Payment Gateway Account gets its own title, description,
-#//// logo and order, so the buyer reads "TWINT" and not "TWINT - CHF - pri". Upstream
-#//// has no checkout page and no such fields (3bc2d836f1, 2025-02-11 "Add gift cards
-#//// and improve shopping cart"; the section was un-collapsed by 7a1fa7d1c3).
+# //// Neoffice — added file (no upstream equivalent).
+# //// The checkout tiles: each Payment Gateway Account gets its own title, description,
+# //// logo and order, so the buyer reads "TWINT" and not "TWINT - CHF - pri". Upstream
+# //// has no checkout page and no such fields (3bc2d836f1, 2025-02-11 "Add gift cards
+# //// and improve shopping cart"; the section was un-collapsed by 7a1fa7d1c3).
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 

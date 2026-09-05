@@ -5,7 +5,7 @@ from urllib.parse import quote
 
 import frappe
 from frappe.utils import nowdate
-#//// Neoffice multi-site: build absolute URLs on the current site's domain
+# //// Neoffice multi-site: build absolute URLs on the current site's domain
 from webshop.webshop.multi_site import site_url as get_url
 from frappe.utils.caching import redis_cache
 from frappe.website.router import get_doctypes_with_web_view, get_pages
@@ -17,7 +17,7 @@ base_template_path = "www/sitemap.xml"
 
 def get_context(context):
     """Generate the sitemap XML including all published content"""
-    #//// Neoffice multi-site: vary the redis cache key per site
+    # //// Neoffice multi-site: vary the redis cache key per site
     from webshop.webshop.multi_site import get_current_profile_name
     links = []
 

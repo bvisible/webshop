@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// Defaults for the "in stock" listing filter added by 8ba1a7ab46 (2025-06-08).
-#//// The fields themselves are declared in webshop_settings.json; this only seeds a
-#//// value on sites that already existed, where the JSON default never lands.
+# //// Neoffice — added file (no upstream equivalent).
+# //// Defaults for the "in stock" listing filter added by 8ba1a7ab46 (2025-06-08).
+# //// The fields themselves are declared in webshop_settings.json; this only seeds a
+# //// value on sites that already existed, where the JSON default never lands.
 import frappe
 
 def execute():

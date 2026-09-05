@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// Quotation.gift_card_coupon / gift_card_original_amount: a cart paid partly with a
-#//// gift card must remember which card and for how much, so the balance can be
-#//// re-issued if the order is cancelled (618eedfdb8, 2025-03-24 "Feat gift card split").
+# //// Neoffice — added file (no upstream equivalent).
+# //// Quotation.gift_card_coupon / gift_card_original_amount: a cart paid partly with a
+# //// gift card must remember which card and for how much, so the balance can be
+# //// re-issued if the order is cancelled (618eedfdb8, 2025-03-24 "Feat gift card split").
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 

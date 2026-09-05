@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// Quotation.guest_session_id: upstream requires an account before a cart exists.
-#//// Our shops let a visitor fill a cart and sign in at checkout, so the draft
-#//// quotation is keyed on the browser session until then (3bc2d836f1, 2025-02-11).
+# //// Neoffice — added file (no upstream equivalent).
+# //// Quotation.guest_session_id: upstream requires an account before a cart exists.
+# //// Our shops let a visitor fill a cart and sign in at checkout, so the draft
+# //// quotation is keyed on the browser session until then (3bc2d836f1, 2025-02-11).
 import frappe
 
 def execute():

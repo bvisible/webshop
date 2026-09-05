@@ -118,16 +118,16 @@ class CrossSellOffer(Document):
 			"disable": 0 if self.enabled else 1,
 			"valid_from": self.valid_from,
 			"valid_upto": self.valid_upto,
-			#//// Two offers on the same trigger ("ink" and "paper" with the
-			#//// printer) are two rules on the same line; without this flag ERPNext
-			#//// keeps one of them and, on equal priority, refuses the cart.
+			# //// Two offers on the same trigger ("ink" and "paper" with the
+			# //// printer) are two rules on the same line; without this flag ERPNext
+			# //// keeps one of them and, on equal priority, refuses the cart.
 			"apply_multiple_pricing_rules": 1,
 			"has_priority": 1,
 			"priority": str(cint(self.priority) or 5),
 			"min_qty": 0,
 			"max_qty": 0,
-			#//// a Link named `customer_group` gets the session default (Selling Settings)
-			#//// the moment the document is inserted — hence the longer fieldname.
+			# //// a Link named `customer_group` gets the session default (Selling Settings)
+			# //// the moment the document is inserted — hence the longer fieldname.
 			"customer_group": self.only_customer_group,
 			"applicable_for": "Customer Group" if self.only_customer_group else None,
 		}

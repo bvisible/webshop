@@ -7,13 +7,13 @@ from webshop.webshop.shopping_cart.cart import get_cart_quotation, get_party, _g
 
 def get_context(context):
     """Context for the B2B checkout page"""
-    #//// Neoffice — Frappe derives context.title from the route when nobody
-    #//// sets it, and never translates it; themes print it as the visible
-    #//// page heading, so the page read "checkout-b2b".
-    #////
-    #//// Deliberately NOT _("Checkout"): that string is shared with the cart
-    #//// button, where fr renders it "Paiement" — right for a button, wrong for
-    #//// a page heading that then repeats a step name. Same fix as checkout.py.
+    # //// Neoffice — Frappe derives context.title from the route when nobody
+    # //// sets it, and never translates it; themes print it as the visible
+    # //// page heading, so the page read "checkout-b2b".
+    # ////
+    # //// Deliberately NOT _("Checkout"): that string is shared with the cart
+    # //// button, where fr renders it "Paiement" — right for a button, wrong for
+    # //// a page heading that then repeats a step name. Same fix as checkout.py.
     context.title = _("Your order")
     context.no_cache = 1
     context.show_sidebar = 0
@@ -84,17 +84,17 @@ def get_context(context):
     context.update(cart_info)
     
     # Add customer information to context
-    #//// Neoffice — was get_value("Customer", party, "customer_name"), passing
-    #//// the whole party DOCUMENT where a name is expected.
-    #////
-    #//// Frappe treats a non-string second argument as a FILTER dict, so instead
-    #//// of "the name of this customer" the query became "the name of some
-    #//// customer matching these fields" — and returned whichever row came
-    #//// first. Measured on osiris: a quotation belonging to "Test B2B Webshop"
-    #//// rendered « Société : E2E Nouveau », the name of an unrelated customer.
-    #////
-    #//// That is one company's name shown to another company, on the page where
-    #//// they confirm an order billed to their account.
+    # //// Neoffice — was get_value("Customer", party, "customer_name"), passing
+    # //// the whole party DOCUMENT where a name is expected.
+    # ////
+    # //// Frappe treats a non-string second argument as a FILTER dict, so instead
+    # //// of "the name of this customer" the query became "the name of some
+    # //// customer matching these fields" — and returned whichever row came
+    # //// first. Measured on osiris: a quotation belonging to "Test B2B Webshop"
+    # //// rendered « Société : E2E Nouveau », the name of an unrelated customer.
+    # ////
+    # //// That is one company's name shown to another company, on the page where
+    # //// they confirm an order billed to their account.
     context.customer_name = frappe.db.get_value("Customer", party.name, "customer_name")
     
     return context

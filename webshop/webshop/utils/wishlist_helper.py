@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent). Jinja helper giving the wishlist
-#//// count to the Builder-built header (da044ea692, 2025-03-13).
+# //// Neoffice — added file (no upstream equivalent). Jinja helper giving the wishlist
+# //// count to the Builder-built header (da044ea692, 2025-03-13).
 import frappe
 from frappe import _
 

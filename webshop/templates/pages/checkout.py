@@ -14,48 +14,48 @@ from erpnext.accounts.doctype.shipping_rule.shipping_rule import ShippingRule
 
 no_cache = 1
 
-#//// Neoffice — the labels Frappe's own dialogs put on screen.
-#//// They go through `__()` in the browser, hence through a dictionary a public
-#//// page never receives: they showed up in English in the middle of a French
-#//// checkout. We seed them into the template.
+# //// Neoffice — the labels Frappe's own dialogs put on screen.
+# //// They go through `__()` in the browser, hence through a dictionary a public
+# //// page never receives: they showed up in English in the middle of a French
+# //// checkout. We seed them into the template.
 _JS_MESSAGES = (
 	"Yes", "No", "Close", "Cancel", "Confirm", "Error", "Message", "Not permitted",
-	#//// Neoffice — the order summary is rebuilt in JS after every change, so
-	#//// its labels need to travel to the page like the dialog ones.
+	# //// Neoffice — the order summary is rebuilt in JS after every change, so
+	# //// its labels need to travel to the page like the dialog ones.
 	"{0} items", "Subtotal excl. tax ({0} items)",
-	#//// Neoffice — failures now speak to the shopper instead of dying in
-	#//// the console, so their wording has to travel too.
+	# //// Neoffice — failures now speak to the shopper instead of dying in
+	# //// the console, so their wording has to travel too.
 	"Something went wrong. Please try again.",
 	"The quantity could not be updated. Please try again.",
 	"The server is taking too long to answer. Please check your connection and try again.",
 	"Payment methods could not be loaded. Please try again.",
-	#//// Neoffice — address book, rendered in JS.
+	# //// Neoffice — address book, rendered in JS.
 	"New address", "Default", "Delivery",
 	"This address could not be selected. Please try again.",
-	#//// Neoffice — the terms line of an intent-engine tile is built in JS
-	#//// (wrapWithTerms), so its words travel through here like the rest. Without
-	#//// them the shopper read « I accept the conditions générales » — half
-	#//// English, in the middle of a French checkout, right above the button that
-	#//// takes their money. Seen on the Payrexx tiles, 31.08.2026.
+	# //// Neoffice — the terms line of an intent-engine tile is built in JS
+	# //// (wrapWithTerms), so its words travel through here like the rest. Without
+	# //// them the shopper read « I accept the conditions générales » — half
+	# //// English, in the middle of a French checkout, right above the button that
+	# //// takes their money. Seen on the Payrexx tiles, 31.08.2026.
 	"I accept the", "terms and conditions", "Continue to payment",
-	#//// Neoffice — the mention that replaces the checkbox on a tile whose
-	#//// payment happens inside a frame (see wrapWithTerms).
+	# //// Neoffice — the mention that replaces the checkbox on a tile whose
+	# //// payment happens inside a frame (see wrapWithTerms).
 	"By using this payment form, you accept the",
 )
 
 
-#//// Neoffice — added helper (no upstream equivalent).
-#////
-#//// The TWINT overlay lives in the `payments` app (`twint_dialog.js`, injected
-#//// site-wide through `web_include_js`) and draws itself entirely in JS, so its
-#//// `__()` calls resolve against `frappe._messages` — and a portal page only
-#//// ever holds what this controller hands it. The whole dialog therefore read
-#//// English on a French shop, its translations present and correct in the app's
-#//// own fr.po but never sent to the page. Seen on osiris, 01.09.2026.
-#////
-#//// Read from the file rather than listed by hand: a hand-kept list rots the
-#//// moment someone edits the overlay, and it rots silently — one more English
-#//// line in a French checkout, noticed by a customer and not by us.
+# //// Neoffice — added helper (no upstream equivalent).
+# ////
+# //// The TWINT overlay lives in the `payments` app (`twint_dialog.js`, injected
+# //// site-wide through `web_include_js`) and draws itself entirely in JS, so its
+# //// `__()` calls resolve against `frappe._messages` — and a portal page only
+# //// ever holds what this controller hands it. The whole dialog therefore read
+# //// English on a French shop, its translations present and correct in the app's
+# //// own fr.po but never sent to the page. Seen on osiris, 01.09.2026.
+# ////
+# //// Read from the file rather than listed by hand: a hand-kept list rots the
+# //// moment someone edits the overlay, and it rots silently — one more English
+# //// line in a French checkout, noticed by a customer and not by us.
 @lru_cache(maxsize=1)
 def _payment_dialog_messages() -> tuple[tuple[str, str | None], ...]:
 	"""Return the (message, context) pairs the TWINT overlay asks `__()` for."""
@@ -76,12 +76,12 @@ def _payment_dialog_messages() -> tuple[tuple[str, str | None], ...]:
 	return tuple(seen)
 
 
-#//// Neoffice — added helper (no upstream equivalent).
-#////
-#//// Builds the dictionary the template seeds `frappe._messages` with. A message
-#//// carrying a context is keyed "message:context", which is the exact spelling
-#//// frappe/public/js/frappe/translate.js looks up — get it wrong and the string
-#//// falls back to English while looking perfectly translated in the .po.
+# //// Neoffice — added helper (no upstream equivalent).
+# ////
+# //// Builds the dictionary the template seeds `frappe._messages` with. A message
+# //// carrying a context is keyed "message:context", which is the exact spelling
+# //// frappe/public/js/frappe/translate.js looks up — get it wrong and the string
+# //// falls back to English while looking perfectly translated in the .po.
 def _js_message_dict() -> dict:
 	messages = {m: _(m) for m in _JS_MESSAGES}
 	for message, context in _payment_dialog_messages():
@@ -90,11 +90,11 @@ def _js_message_dict() -> dict:
 	return messages
 
 
-#//// Neoffice — added helper (no upstream equivalent).
-#////
-#//// Sends an anonymous visitor to the sign-in page when the site they are on is
-#//// flagged b2b_only. Returns silently everywhere else, so a fleet without
-#//// Website Profiles — or a plain B2C site — behaves exactly as before.
+# //// Neoffice — added helper (no upstream equivalent).
+# ////
+# //// Sends an anonymous visitor to the sign-in page when the site they are on is
+# //// flagged b2b_only. Returns silently everywhere else, so a fleet without
+# //// Website Profiles — or a plain B2C site — behaves exactly as before.
 def _require_login_on_b2b_site():
 	if frappe.session.user != "Guest":
 		return
@@ -103,44 +103,44 @@ def _require_login_on_b2b_site():
 	if not profile or not profile.get("b2b_only"):
 		return
 
-	#//// To /login, never to /app: a portal customer has no desk.
+	# //// To /login, never to /app: a portal customer has no desk.
 	frappe.local.flags.redirect_location = "/login?redirect-to=/checkout"
 	raise frappe.Redirect
 
 
 def get_context(context):
 	"""Context for the payment page"""
-	#//// Neoffice multi-site — a trade-only site requires a signed-in visitor
-	#//// in order to ORDER.
-	#////
-	#//// The existing check (check_website_profile_login) only covers signing in,
-	#//// and explicitly exempts Guest: an anonymous visitor could therefore fill a
-	#//// cart on the B2B domain, reach this funnel and walk it through — at the
-	#//// prices reserved for resellers. Verified on osiris.
-	#////
-	#//// Browsing stays allowed (the catalogue doubles as a shop window); it is
-	#//// ordering that requires an approved account.
+	# //// Neoffice multi-site — a trade-only site requires a signed-in visitor
+	# //// in order to ORDER.
+	# ////
+	# //// The existing check (check_website_profile_login) only covers signing in,
+	# //// and explicitly exempts Guest: an anonymous visitor could therefore fill a
+	# //// cart on the B2B domain, reach this funnel and walk it through — at the
+	# //// prices reserved for resellers. Verified on osiris.
+	# ////
+	# //// Browsing stays allowed (the catalogue doubles as a shop window); it is
+	# //// ordering that requires an approved account.
 	_require_login_on_b2b_site()
 
-	#//// Neoffice — Frappe derives context.title from the route when nobody
-	#//// sets it, and never translates it; themes print it as the visible
-	#//// page heading, so the page read "checkout".
-	#////
-	#//// Deliberately NOT _("Checkout"): that string is shared with the cart
-	#//// button, where fr renders it "Paiement" — which is right for a button but
-	#//// made the page heading and the breadcrumb read "Paiement" while the
-	#//// shopper stood on step 2, next to a step 4 also labelled "Paiement".
+	# //// Neoffice — Frappe derives context.title from the route when nobody
+	# //// sets it, and never translates it; themes print it as the visible
+	# //// page heading, so the page read "checkout".
+	# ////
+	# //// Deliberately NOT _("Checkout"): that string is shared with the cart
+	# //// button, where fr renders it "Paiement" — which is right for a button but
+	# //// made the page heading and the breadcrumb read "Paiement" while the
+	# //// shopper stood on step 2, next to a step 4 also labelled "Paiement".
 	context.title = _("Your order")
 	context.js_messages = frappe.as_json(_js_message_dict())
-	#//// Neoffice — the one thing client-side currency formatting cannot know
-	#//// on its own. Seeded once instead of being re-asked through a round trip
-	#//// for every amount displayed.
-	#////
-	#//// Same precedence as utils.format_currency_value: a shop that answered
-	#//// the question ("Yes" or "No") decides on its own, and only an unset
-	#//// shop setting defers to the ERPNext global. Writing this as a plain
-	#//// `or` would be wrong — an explicit "No" would still let the global
-	#//// hide the symbol.
+	# //// Neoffice — the one thing client-side currency formatting cannot know
+	# //// on its own. Seeded once instead of being re-asked through a round trip
+	# //// for every amount displayed.
+	# ////
+	# //// Same precedence as utils.format_currency_value: a shop that answered
+	# //// the question ("Yes" or "No") decides on its own, and only an unset
+	# //// shop setting defers to the ERPNext global. Writing this as a plain
+	# //// `or` would be wrong — an explicit "No" would still let the global
+	# //// hide the symbol.
 	_shop_hide = frappe.db.get_single_value("Webshop Settings", "hide_currency_symbol_in_shop")
 	if _shop_hide:
 		context.hide_currency_symbol = _shop_hide == "Yes"
@@ -277,14 +277,14 @@ def get_context(context):
 		context.cgv_tc_name = cgv_terms
 		context.cgv_terms = frappe.db.get_value("Terms and Conditions", cgv_terms, "terms")
 
-	#//// Neoffice — the terms label, handed to the browser.
-	#////
-	#//// The six gateway templates print `cgv_tc_name` — the name of the Terms
-	#//// and Conditions record the merchant picked. A tile drawn by the intent
-	#//// engine is built in JS, which never saw that value, so it printed a
-	#//// hard-coded "terms and conditions" instead. Same line, two spellings, on
-	#//// the same page: the shopper read one label on the Stripe tile and another
-	#//// on the Payrexx card tile. Seeded here so both paths say the same thing.
+	# //// Neoffice — the terms label, handed to the browser.
+	# ////
+	# //// The six gateway templates print `cgv_tc_name` — the name of the Terms
+	# //// and Conditions record the merchant picked. A tile drawn by the intent
+	# //// engine is built in JS, which never saw that value, so it printed a
+	# //// hard-coded "terms and conditions" instead. Same line, two spellings, on
+	# //// the same page: the shopper read one label on the Stripe tile and another
+	# //// on the Payrexx card tile. Seeded here so both paths say the same thing.
 	context.terms_label_json = frappe.as_json(
 		context.get("cgv_tc_name") or _("terms and conditions")
 	)
@@ -915,13 +915,13 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 				# Get gateway type from name
 				gateway_type = payment_gateway.gateway.split('-')[0].split()[0].lower().strip()
 				
-				#//// Neoffice — what a shopper should read: "Payrexx", not
-				#//// "Payrexx - CHF - pri". A gateway account name carries the
-				#//// currency and sometimes an operational suffix: it names the
-				#//// RECORD, not the payment method. So we prefer, in order: the
-				#//// label the merchant wrote, then the GATEWAY name, then the
-				#//// account for want of anything better. Same rule as the
-				#//// booking surface (`neoffice_theme.booking.checkout._moyen_lisible`).
+				# //// Neoffice — what a shopper should read: "Payrexx", not
+				# //// "Payrexx - CHF - pri". A gateway account name carries the
+				# //// currency and sometimes an operational suffix: it names the
+				# //// RECORD, not the payment method. So we prefer, in order: the
+				# //// label the merchant wrote, then the GATEWAY name, then the
+				# //// account for want of anything better. Same rule as the
+				# //// booking surface (`neoffice_theme.booking.checkout._moyen_lisible`).
 				title = (
 					payment_gateway_account.checkout_title
 					or payment_gateway_account.payment_gateway
@@ -929,7 +929,7 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 				)
 				logo_html = f"<img src='{payment_gateway_account.logo}' alt='{title}' class='payment-logo'>" if payment_gateway_account.logo else ""
 				description = payment_gateway_account.checkout_description or ""
-				#//// Neoffice — the cart, or the document the caller named.
+				# //// Neoffice — the cart, or the document the caller named.
 				quotation_doc = _document_a_payer(reference_doctype, reference_docname)
 
 				# Hide installment-based methods entirely when the cart doesn't reach
@@ -1055,14 +1055,14 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 
 	from payments.api.intent import create_intent
 
-	#//// Neoffice — the intent hangs off the PAYMENT REQUEST, never off the
-	#//// quotation. It is the Payment Request that the `payments` return pages
-	#//// know how to conclude (`payments/www/{wallee,payrexx}/success.py`: they
-	#//// test `reference_doctype == "Payment Request"`), and it is the one that
-	#//// turns a cart into an order. An intent pinned to the Quotation would
-	#//// take the money with nobody creating the order — the customer would pay
-	#//// for nothing. We reuse the webshop factory, which is idempotent: two
-	#//// clicks on the same cart make one request.
+	# //// Neoffice — the intent hangs off the PAYMENT REQUEST, never off the
+	# //// quotation. It is the Payment Request that the `payments` return pages
+	# //// know how to conclude (`payments/www/{wallee,payrexx}/success.py`: they
+	# //// test `reference_doctype == "Payment Request"`), and it is the one that
+	# //// turns a cart into an order. An intent pinned to the Quotation would
+	# //// take the money with nobody creating the order — the customer would pay
+	# //// for nothing. We reuse the webshop factory, which is idempotent: two
+	# //// clicks on the same cart make one request.
 	from webshop.controllers.payment_handler import PaymentHandler
 
 	# We NAME the quotation. Without it the factory re-resolves the cart on its
@@ -1082,13 +1082,13 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		return {"action": "legacy"}
 
 	montant = flt(devis.get("rounded_total") or devis.get("grand_total"))
-	#//// Neoffice — the restriction travels as metadata, not as channel
-	#//// configuration: the channel is shared by every tile of the provider, and
-	#//// a restriction placed there would apply to the tiles that do not want it
-	#//// too. Drivers that know how to filter read it
-	#//// (`payments/drivers/payrexx/web_driver.py` even re-reads it in the
-	#//// response and logs when the gateway dropped it); the others ignore it
-	#//// without a sound.
+	# //// Neoffice — the restriction travels as metadata, not as channel
+	# //// configuration: the channel is shared by every tile of the provider, and
+	# //// a restriction placed there would apply to the tiles that do not want it
+	# //// too. Drivers that know how to filter read it
+	# //// (`payments/drivers/payrexx/web_driver.py` even re-reads it in the
+	# //// response and logs when the gateway dropped it); the others ignore it
+	# //// without a sound.
 	moyens = _restricted_methods(payment_gateway_account)
 	intention = create_intent(
 		provider=couple[0],
@@ -1106,11 +1106,11 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 	charge = charge or {}
 	quoi = (intention.get("next_action_type") or "none").strip()
 
-	#//// Neoffice — the intent screen is drawn by the browser, so both of its
-	#//// labels go through `__()`. And the client dictionary holds only what
-	#//// some call already sent it: without this, a French checkout shows
-	#//// "Or type 12345 in the app." under the QR. Frappe merges the `__messages`
-	#//// of THIS response before the callback draws.
+	# //// Neoffice — the intent screen is drawn by the browser, so both of its
+	# //// labels go through `__()`. And the client dictionary holds only what
+	# //// some call already sent it: without this, a French checkout shows
+	# //// "Or type 12345 in the app." under the QR. Frappe merges the `__messages`
+	# //// of THIS response before the callback draws.
 	from frappe.translate import send_translations
 
 	send_translations({
@@ -1118,11 +1118,11 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 		"Or type {0} in the app.": _("Or type {0} in the app."),
 		"Waiting for your payment…": _("Waiting for your payment…"),
 		"Payment not received. You can try again.": _("Payment not received. You can try again."),
-		#//// Neoffice — the intent screen's labels travel through here for the same
-		#//// reason as the QR ones just above: the browser dictionary holds only
-		#//// what some call already sent it, and these strings live in JS rendered
-		#//// by Jinja, which the extractor never sees. Without them a French
-		#//// checkout reads "Accept the terms…".
+		# //// Neoffice — the intent screen's labels travel through here for the same
+		# //// reason as the QR ones just above: the browser dictionary holds only
+		# //// what some call already sent it, and these strings live in JS rendered
+		# //// by Jinja, which the extractor never sees. Without them a French
+		# //// checkout reads "Accept the terms…".
 		"Accept the terms and conditions to pay": _("Accept the terms and conditions to pay"),
 		"Accept the terms and conditions below to pay": _(
 			"Accept the terms and conditions below to pay"
@@ -1142,8 +1142,8 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 			"action": "redirect",
 			"url": charge["url"],
 			"intent": intention.get("intent_name"),
-			#//// Neoffice — the screen decides whether to frame or to redirect; the
-			#//// server merely states what the merchant chose for this tile.
+			# //// Neoffice — the screen decides whether to frame or to redirect; the
+			# //// server merely states what the merchant chose for this tile.
 			"inline": _renders_inline(payment_gateway_account),
 		}
 	if quoi == "display_qr_payload":
@@ -1342,10 +1342,10 @@ def get_payment_template(payment_gateway_account, context=None):
 				key: f"{value}-{clean_id}" for key, value in context_ids.items()
 			})
 
-		#//// Neoffice — what gets paid for: whatever the caller names in its
-		#//// context, else the cart. Without this, a booking invoice was answered
-		#//// "Your basket is empty" when it never had a cart at all, and its
-		#//// reference was overwritten further down anyway.
+		# //// Neoffice — what gets paid for: whatever the caller names in its
+		# //// context, else the cart. Without this, a booking invoice was answered
+		# //// "Your basket is empty" when it never had a cart at all, and its
+		# //// reference was overwritten further down anyway.
 		quotation_doc = _document_a_payer(
 			context.get("reference_doctype"), context.get("reference_docname")
 		)
@@ -1369,9 +1369,9 @@ def get_payment_template(payment_gateway_account, context=None):
 			"payment_gateway_account": payment_gateway_account,
 			"gateway_settings": gateway_info["settings"],
 			"_": frappe._,
-			#//// Neoffice — `setdefault` rather than overwrite: the caller may pay
-			#//// for something other than a cart (a booking invoice), and it said so
-			#//// in its context. These four lines erased that right afterwards.
+			# //// Neoffice — `setdefault` rather than overwrite: the caller may pay
+			# //// for something other than a cart (a booking invoice), and it said so
+			# //// in its context. These four lines erased that right afterwards.
 			"amount": (context.get("amount")
 				or (quotation_doc.get("rounded_total") or quotation_doc.get("grand_total") if quotation_doc else 0)),
 			"quotation_id": context.get("quotation_id") or (quotation_doc.name if quotation_doc else ""),

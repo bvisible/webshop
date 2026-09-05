@@ -109,9 +109,9 @@ def create_guest_quotation(items=None):
 
     # Add items to the quotation
     for item in items:
-        #//// Neoffice — multi-warehouse: a line carrying its stock source
-        #//// keeps it across the guest-cart rebuild; only sourceless lines
-        #//// fall back to the historical website_warehouse lookup.
+        # //// Neoffice — multi-warehouse: a line carrying its stock source
+        # //// keeps it across the guest-cart rebuild; only sourceless lines
+        # //// fall back to the historical website_warehouse lookup.
         item_dict = {
             "doctype": "Quotation Item",
             "item_code": item.get("item_code"),
@@ -334,10 +334,10 @@ def check_and_merge_guest_cart():
                 apply_cart_settings(customer, user_doc)
                             
             # Merge items
-            #//// Neoffice — multi-warehouse: merge guest lines into the user
-            #//// cart per (item_code, warehouse) so a same-item line on
-            #//// another stock source stays its own line with its own lead
-            #//// time. Sourceless lines merge on item_code as before.
+            # //// Neoffice — multi-warehouse: merge guest lines into the user
+            # //// cart per (item_code, warehouse) so a same-item line on
+            # //// another stock source stays its own line with its own lead
+            # //// time. Sourceless lines merge on item_code as before.
             if guest_doc.items:
                 existing_items = {
                     (item.item_code, item.warehouse or None): item

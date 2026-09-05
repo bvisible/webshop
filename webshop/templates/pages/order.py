@@ -38,10 +38,10 @@ def get_context(context):
 	if not frappe.has_website_permission(context.doc):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
-	#//// Neoffice — upstream reads context.doc.customer, which a Quotation does not have
-	#//// (it carries party_name / customer_name), so the loyalty block never appeared on a
-	#//// quotation. The guard `if context.doc.get("customer")` is dropped with it
-	#//// (618eedfdb8, 2025-03-24).
+	# //// Neoffice — upstream reads context.doc.customer, which a Quotation does not have
+	# //// (it carries party_name / customer_name), so the loyalty block never appeared on a
+	# //// quotation. The guard `if context.doc.get("customer")` is dropped with it
+	# //// (618eedfdb8, 2025-03-24).
 	# check for the loyalty program of the customer
 	customer_loyalty_program = frappe.db.get_value(
 		"Customer", context.doc.customer_name, "loyalty_program"
@@ -51,13 +51,13 @@ def get_context(context):
 		from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
 			get_loyalty_program_details_with_points,
 		)
-		#//// Neoffice — see above.
+		# //// Neoffice — see above.
 		import math
 
-		#//// Neoffice — the balance is rounded DOWN to a multiple of ten, because a programme
-		#//// redeems in tens and the buyer was shown a number they could not spend; its cash
-		#//// value goes through format_currency_value so the shop's currency setting applies
-		#//// (0134ef756e, 2025-07-03).
+		# //// Neoffice — the balance is rounded DOWN to a multiple of ten, because a programme
+		# //// redeems in tens and the buyer was shown a number they could not spend; its cash
+		# //// value goes through format_currency_value so the shop's currency setting applies
+		# //// (0134ef756e, 2025-07-03).
 		loyalty_program_details = get_loyalty_program_details_with_points(
 			context.doc.customer_name, customer_loyalty_program
 		)

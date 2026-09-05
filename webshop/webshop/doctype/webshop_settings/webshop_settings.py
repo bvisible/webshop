@@ -5,12 +5,12 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-#//// Neoffice — flt imported for the gift-card amounts and the price filter bounds.
+# //// Neoffice — flt imported for the gift-card amounts and the price filter bounds.
 from frappe.utils import cint, flt
 
-#//// Neoffice — only the module-loaded probe is kept: RediSearch is disabled and the
-#//// search runs on SQL (c54680b459 / e580d79023, 2025-12-15), so the settings that
-#//// configured the index were removed from the DocType.
+# //// Neoffice — only the module-loaded probe is kept: RediSearch is disabled and the
+# //// search runs on SQL (c54680b459 / e580d79023, 2025-12-15), so the settings that
+# //// configured the index were removed from the DocType.
 from webshop.webshop.redisearch_utils import is_search_module_loaded
 from webshop.webshop.utils.frequently_bought_together import calculate_frequently_bought_together
 
@@ -30,11 +30,11 @@ class WebshopSettings(Document):
 		self.validate_field_filters(self.filter_fields, self.enable_field_filters)
 		self.validate_attribute_filters()
 		self.validate_checkout()
-		#//// Neoffice — multi-warehouse: validate the source table and, on
-		#//// activation, set the two ERPNext prerequisites (Selling and Buying
-		#//// "allow multiple items"), without which a two-line order of the
-		#//// same item is rejected. Done here so activating the feature is
-		#//// self-contained instead of relying on a fleet-wide patch.
+		# //// Neoffice — multi-warehouse: validate the source table and, on
+		# //// activation, set the two ERPNext prerequisites (Selling and Buying
+		# //// "allow multiple items"), without which a two-line order of the
+		# //// same item is rejected. Done here so activating the feature is
+		# //// self-contained instead of relying on a fleet-wide patch.
 		self.validate_multi_warehouse()
 
 		# Désactiver les options en cascade
@@ -53,8 +53,8 @@ class WebshopSettings(Document):
 
 		frappe.clear_document_cache("Webshop Settings", "Webshop Settings")
 
-		#//// Neoffice — the gift-card switch is remembered before the save so after_save can
-		#//// add or remove the portal menu entry when it changes (2f63a51219, 2025-12-12).
+		# //// Neoffice — the gift-card switch is remembered before the save so after_save can
+		# //// add or remove the portal menu entry when it changes (2f63a51219, 2025-12-12).
 		# Save current state of enable_gift_cards for comparison in after_save
 		self.enable_gift_cards_pre_save = frappe.db.get_single_value(
 			"Webshop Settings", "enable_gift_cards"
@@ -69,7 +69,7 @@ class WebshopSettings(Document):
 		self.update_gift_cards_menu()
 		self.update_loyalty_points_menu()
 
-	#//// Neoffice — added method (multi-warehouse feature).
+	# //// Neoffice — added method (multi-warehouse feature).
 	def validate_multi_warehouse(self):
 		if not self.enable_multi_warehouse:
 			return
@@ -144,9 +144,9 @@ class WebshopSettings(Document):
 					)
 
 	def after_save(self):
-		#//// Neoffice — the currency-symbol cache is dropped when the settings change, or a
-		#//// shop kept printing "CHF" for an hour after turning the setting off (0134ef756e,
-		#//// 2025-07-03).
+		# //// Neoffice — the currency-symbol cache is dropped when the settings change, or a
+		# //// shop kept printing "CHF" for an hour after turning the setting off (0134ef756e,
+		# //// 2025-07-03).
 		# Clear currency symbol cache when settings change
 		frappe.cache().delete_value("webshop_hide_currency_symbol")
 	
@@ -155,9 +155,9 @@ class WebshopSettings(Document):
 		if self.enable_gift_cards == self.enable_gift_cards_pre_save:
 			return
 
-		#//// Neoffice — the portal menu entries for loyalty points and gift cards are created
-		#//// or removed here, matching the switches; the old hyphenated route is cleaned up
-		#//// (2f63a51219 / 9909429ca3, 2025-12-12).
+		# //// Neoffice — the portal menu entries for loyalty points and gift cards are created
+		# //// or removed here, matching the switches; the old hyphenated route is cleaned up
+		# //// (2f63a51219 / 9909429ca3, 2025-12-12).
 		# Check if entry already exists (check both old and new routes)
 		exists = frappe.db.exists("Portal Menu Item", {
 			"route": "/gift_cards",
@@ -217,8 +217,8 @@ class WebshopSettings(Document):
 			return
 
 		# Check if entry already exists
-		#//// Neoffice — the loyalty entry of the portal menu, added or removed with the
-		#//// switch (2f63a51219, 2025-12-12).
+		# //// Neoffice — the loyalty entry of the portal menu, added or removed with the
+		# //// switch (2f63a51219, 2025-12-12).
 		exists = frappe.db.exists("Portal Menu Item", {
 			"route": "/loyalty_points",
 			"parenttype": "Portal Settings"
@@ -258,9 +258,9 @@ class WebshopSettings(Document):
 			return
 
 		web_item_meta = frappe.get_meta("Website Item")
-		#//// Neoffice — second-hand: a Select facet (the item condition) is as
-		#//// filterable as a Link; the builder reads its values off the
-		#//// published items (filters.py) and the query path is the generic one.
+		# //// Neoffice — second-hand: a Select facet (the item condition) is as
+		# //// filterable as a Link; the builder reads its values off the
+		# //// published items (filters.py) and the query path is the generic one.
 		valid_fields = [
 			df.fieldname
 			for df in web_item_meta.fields
@@ -271,8 +271,8 @@ class WebshopSettings(Document):
 			if row.fieldname not in valid_fields:
 				frappe.throw(
 					_(
-						#//// Neoffice — Table MultiSelect is accepted as a filter field type (our tag
-						#//// filters) — upstream allows Link and Select only (6fea19b1fe, 2025-06-17).
+						# //// Neoffice — Table MultiSelect is accepted as a filter field type (our tag
+						# //// filters) — upstream allows Link and Select only (6fea19b1fe, 2025-06-17).
 						"Filter Fields Row #{0}: Fieldname {1} must be of type 'Link', 'Select' or 'Table MultiSelect'"
 					).format(row.idx, frappe.bold(row.fieldname))
 				)
@@ -281,9 +281,9 @@ class WebshopSettings(Document):
 		if not (self.enable_attribute_filters and self.filter_attributes):
 			return
 
-		#//// Neoffice — "Hide Variants" and "Enable Attribute Filters" are mutually exclusive,
-		#//// and the shop is told so explicitly instead of silently getting an empty facet
-		#//// (b103d68868, 2025-11-30).
+		# //// Neoffice — "Hide Variants" and "Enable Attribute Filters" are mutually exclusive,
+		# //// and the shop is told so explicitly instead of silently getting an empty facet
+		# //// (b103d68868, 2025-11-30).
 		# if attribute filters are enabled with filter_attributes configured,
 		# hide_variants cannot be enabled - they are mutually exclusive features
 		if self.hide_variants:
@@ -298,7 +298,7 @@ class WebshopSettings(Document):
 	def validate_checkout(self):
 		if self.enable_checkout and not self.payment_gateway_account:
 			self.enable_checkout = 0
-#//// Neoffice — the RediSearch validation block is removed with the feature (see #2).
+# //// Neoffice — the RediSearch validation block is removed with the feature (see #2).
 
 	def validate_price_list_exchange_rate(self):
 		"Check if exchange rate exists for Price List currency (to Company's currency)."
@@ -332,8 +332,8 @@ class WebshopSettings(Document):
 		if not frappe.db.get_value("Tax Rule", {"use_for_shopping_cart": 1}, "name"):
 			frappe.throw(frappe._("Set Tax Rule for shopping cart"), ShoppingCartSetupError)
 
-	#//// Neoffice — the territory helpers are kept but no longer private to the tax
-	#//// lookup: the shipping-rule helper below reuses them.
+	# //// Neoffice — the territory helpers are kept but no longer private to the tax
+	# //// lookup: the shipping-rule helper below reuses them.
 	def get_name_from_territory(self, territory, fieldname, doctype):
 		"""Gets document name for a given territory"""
 		name = None
@@ -352,7 +352,7 @@ class WebshopSettings(Document):
 		return name
 
 	def get_tax_master(self, billing_territory):
-		#//// Neoffice — see above.
+		# //// Neoffice — see above.
 		"""Gets tax template for a given territory"""
 		tax_master = None
 		if billing_territory:
@@ -370,8 +370,8 @@ class WebshopSettings(Document):
 		return tax_master
 
 	def get_shipping_rules(self, shipping_territory):
-		#//// Neoffice — the shipping rules of a territory are read for the checkout, which
-		#//// needs to offer them before an order exists (6d4eca593f, 2025-12-12).
+		# //// Neoffice — the shipping rules of a territory are read for the checkout, which
+		# //// needs to offer them before an order exists (6d4eca593f, 2025-12-12).
 		"""Gets shipping rules for a given territory"""
 		shipping_rules = []
 		if shipping_territory:
@@ -413,9 +413,9 @@ class WebshopSettings(Document):
 			"webshop.www.sitemap_pages.get_web_page_links"
 		]
 
-		#//// Neoffice — every cache the shop builds (prices, discounts, facets, carousels,
-		#//// sitemaps) is dropped when the settings change; upstream clears none of them
-		#//// (84d621a387, 2025-06-23; e7a63e7680, 2025-12-02).
+		# //// Neoffice — every cache the shop builds (prices, discounts, facets, carousels,
+		# //// sitemaps) is dropped when the settings change; upstream clears none of them
+		# //// (84d621a387, 2025-06-23; e7a63e7680, 2025-12-02).
 		# Clear each cache using frappe.cache()
 		cache = frappe.cache()
 		for key in cache_keys:
@@ -457,36 +457,36 @@ class WebshopSettings(Document):
 def validate_cart_settings(doc=None, method=None):
 	frappe.get_doc("Webshop Settings", "Webshop Settings").run_method("validate")
 
-#//// Neoffice — added endpoints, to the end of the file. ▼▼▼ The settings the front end
-#//// reads (get_shopping_cart_settings is called by the listing bundle, hence
-#//// allow_guest), the category order tree of the settings form (cdc2a139cf /
-#//// f1d92302aa, 2025-12-15) and the sitemap regeneration button (bb199f2e1f /
-#//// 53e16ab3d0, 2026-01-07). ▲▲▲
+# //// Neoffice — added endpoints, to the end of the file. ▼▼▼ The settings the front end
+# //// reads (get_shopping_cart_settings is called by the listing bundle, hence
+# //// allow_guest), the category order tree of the settings form (cdc2a139cf /
+# //// f1d92302aa, 2025-12-15) and the sitemap regeneration button (bb199f2e1f /
+# //// 53e16ab3d0, 2026-01-07). ▲▲▲
 @frappe.whitelist(allow_guest=True)
 def get_shopping_cart_settings():
     settings = frappe.get_cached_doc("Webshop Settings")
     settings_dict = settings.as_dict()
-    #//// Neoffice multi-site: non-empty Website Profile fields shadow the global
-    #//// Single (per-site price list / guest customer); everything else falls
-    #//// back to the Single, so instances without profiles are untouched.
+    # //// Neoffice multi-site: non-empty Website Profile fields shadow the global
+    # //// Single (per-site price list / guest customer); everything else falls
+    # //// back to the Single, so instances without profiles are untouched.
     profile = getattr(frappe.local, "website_profile_doc", None)
     if profile:
         for field in ("price_list", "guest_customer"):
             if profile.get(field):
                 settings_dict[field] = profile[field]
 
-        #//// Neoffice multi-site — un site réservé aux professionnels n'a pas de
-        #//// panier invité, quoi que dise le réglage global.
-        #////
-        #//// Passer par ce drapeau plutôt que par les gabarits: ils testent déjà
-        #//// `enable_guest_cart == 0 and user == "Guest"` pour remplacer
-        #//// « Ajouter au panier » par « Pour ajouter au panier, veuillez vous
-        #//// connecter ». Le poser ici suffit donc à changer le bouton partout —
-        #//// fiche produit, listes, vignettes — sans toucher une seule vue, et
-        #//// sans risquer d'en oublier une.
-        #////
-        #//// L'affichage n'est pas la permission: update_cart refuse de son côté
-        #//// (multi_site.exiger_connexion_pour_acheter).
+        # //// Neoffice multi-site — un site réservé aux professionnels n'a pas de
+        # //// panier invité, quoi que dise le réglage global.
+        # ////
+        # //// Passer par ce drapeau plutôt que par les gabarits: ils testent déjà
+        # //// `enable_guest_cart == 0 and user == "Guest"` pour remplacer
+        # //// « Ajouter au panier » par « Pour ajouter au panier, veuillez vous
+        # //// connecter ». Le poser ici suffit donc à changer le bouton partout —
+        # //// fiche produit, listes, vignettes — sans toucher une seule vue, et
+        # //// sans risquer d'en oublier une.
+        # ////
+        # //// L'affichage n'est pas la permission: update_cart refuse de son côté
+        # //// (multi_site.exiger_connexion_pour_acheter).
         if profile.get("b2b_only"):
             settings_dict["enable_guest_cart"] = 0
     return settings_dict
@@ -507,7 +507,7 @@ def check_shopping_cart_enabled():
 
 def show_attachments():
 	return get_shopping_cart_settings().show_attachments
-#//// Neoffice — see the block above.
+# //// Neoffice — see the block above.
 
 
 @frappe.whitelist()

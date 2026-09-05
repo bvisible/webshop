@@ -1,8 +1,8 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// gift_card_data (hidden JSON) on the three sales item tables: a line bought as a
-#//// gift card carries the recipient, the message and the generated code until the
-#//// invoice is submitted and the codes are issued (3bc2d836f1, 2025-02-11; hidden +
-#//// read-only since 437c6d54d7).
+# //// Neoffice — added file (no upstream equivalent).
+# //// gift_card_data (hidden JSON) on the three sales item tables: a line bought as a
+# //// gift card carries the recipient, the message and the generated code until the
+# //// invoice is submitted and the codes are issued (3bc2d836f1, 2025-02-11; hidden +
+# //// read-only since 437c6d54d7).
 import frappe
 
 def add_gift_card_data_field(doctype, insert_after):

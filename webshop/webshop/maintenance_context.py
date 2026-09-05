@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent). Hides the Builder-rendered
-#//// header and footer on /login while the site is closed, by injecting CSS into the
-#//// page context — the login page is served by Frappe and does not go through our
-#//// page renderer (deb34ad632, 2025-06-19).
+# //// Neoffice — added file (no upstream equivalent). Hides the Builder-rendered
+# //// header and footer on /login while the site is closed, by injecting CSS into the
+# //// page context — the login page is served by Frappe and does not go through our
+# //// page renderer (deb34ad632, 2025-06-19).
 import frappe
 from frappe.utils import cint
 

@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent). Bulk import of gift cards from a
-#//// spreadsheet, for shops migrating an existing stock of cards; creates the Pricing
-#//// Rule per face value as it goes (fa067cd0d9, 2025-07-03 "Feat. import gift card").
+# //// Neoffice — added file (no upstream equivalent). Bulk import of gift cards from a
+# //// spreadsheet, for shops migrating an existing stock of cards; creates the Pricing
+# //// Rule per face value as it goes (fa067cd0d9, 2025-07-03 "Feat. import gift card").
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 

@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent). Points earned per item and their
-#//// cash value, used by the product card, the product page and the cart (6fea19b1fe,
-#//// 2025-06-17; French wording bcf0b88d5c, 2026-08-03).
+# //// Neoffice — added file (no upstream equivalent). Points earned per item and their
+# //// cash value, used by the product card, the product page and the cart (6fea19b1fe,
+# //// 2025-06-17; French wording bcf0b88d5c, 2026-08-03).
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 

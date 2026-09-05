@@ -20,7 +20,7 @@ def _format_carousel_item(item):
         "brand": item.get("brand"),
         "description": item.get("short_description") or item.get("web_long_description", ""),
         "has_variants": item.get("has_variants"),
-        "item_condition": item.get("item_condition"),  #//// Neoffice — second-hand badge
+        "item_condition": item.get("item_condition"),  # //// Neoffice — second-hand badge
         "abbr": _get_abbr(item.get("web_item_name") or item.get("item_name"))
     }
     
@@ -58,7 +58,7 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
     if not settings.enabled:
         return []
     
-    #//// Neoffice multi-site — le tarif du site prime (carrousels).
+    # //// Neoffice multi-site — le tarif du site prime (carrousels).
     from webshop.webshop.multi_site import effective_price_list
 
     price_list = (
@@ -76,7 +76,7 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
         "wi.published = 1",
         "(wi.variant_of IS NULL OR wi.variant_of = '')",
     ]
-    #//// Neoffice multi-site: scope to the current site
+    # //// Neoffice multi-site: scope to the current site
     from webshop.webshop.multi_site import site_sql_predicate
     _site_pred = site_sql_predicate("wi")
     if _site_pred:

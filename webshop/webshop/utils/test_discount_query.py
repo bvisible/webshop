@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent). Covers the discounted-products
-#//// query behind the "on sale" filter (6fea19b1fe, 2025-06-17). Fixtures are resolved
-#//// from the site, never hard-coded, and are the module's own item and price list, so
-#//// a run cannot be silently skipped by an empty catalogue (0971ecdb0a, 2026-08-29).
+# //// Neoffice — added file (no upstream equivalent). Covers the discounted-products
+# //// query behind the "on sale" filter (6fea19b1fe, 2025-06-17). Fixtures are resolved
+# //// from the site, never hard-coded, and are the module's own item and price list, so
+# //// a run cannot be silently skipped by an empty catalogue (0971ecdb0a, 2026-08-29).
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 

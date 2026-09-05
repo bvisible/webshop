@@ -1,10 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
-#//// Neoffice — added imports. `random`/`re` mint and validate gift-card codes,
-#//// `json` reads the gift_card_data blob carried on the quotation items, `os`
-#//// resolves the per-gateway checkout templates (3bc2d836f1, 2025-02-11 "Add gift
-#//// cards and improve shopping cart"). `from locale import currency` sat here too
-#//// — dead, nothing in the file ever called it; removed 2026-09-04.
+# //// Neoffice — added imports. `random`/`re` mint and validate gift-card codes,
+# //// `json` reads the gift_card_data blob carried on the quotation items, `os`
+# //// resolves the per-gateway checkout templates (3bc2d836f1, 2025-02-11 "Add gift
+# //// cards and improve shopping cart"). `from locale import currency` sat here too
+# //// — dead, nothing in the file ever called it; removed 2026-09-04.
 import os
 import json
 import re
@@ -19,21 +19,21 @@ from frappe.utils import cint, cstr, flt, get_fullname
 from frappe.utils.nestedset import get_root_of
 
 from erpnext.accounts.utils import get_account_name
-#//// Neoffice — added imports, and the block below is re-indented from four spaces
-#//// to tabs by our editor config (no behaviour change; take OUR side on the
-#//// whitespace at the merge). get_price applies Pricing Rules to a cart line — our
-#//// gift cards and multi-site price lists need the resolved price, not the raw
-#//// Item Price. format_currency_value honours the shop's "hide currency symbol"
-#//// setting (0134ef756e, 2025-07-03). get_loyalty_program_details_with_points is
-#//// the ERPNext entry point for the loyalty balance the cart spends (3bc2d836f1,
-#//// 2025-02-11).
+# //// Neoffice — added imports, and the block below is re-indented from four spaces
+# //// to tabs by our editor config (no behaviour change; take OUR side on the
+# //// whitespace at the merge). get_price applies Pricing Rules to a cart line — our
+# //// gift cards and multi-site price lists need the resolved price, not the raw
+# //// Item Price. format_currency_value honours the shop's "hide currency symbol"
+# //// setting (0134ef756e, 2025-07-03). get_loyalty_program_details_with_points is
+# //// the ERPNext entry point for the loyalty balance the cart spends (3bc2d836f1,
+# //// 2025-02-11).
 from erpnext.utilities.product import get_price
 from webshop.webshop.doctype.webshop_settings.webshop_settings import (
 	get_shopping_cart_settings,
 )
 from webshop.webshop.utils.product import get_web_item_qty_in_stock
-#//// Neoffice — added: every amount the shop prints goes through it, so the
-#//// "hide currency symbol" setting is honoured everywhere (0134ef756e, 2025-07-03).
+# //// Neoffice — added: every amount the shop prints goes through it, so the
+# //// "hide currency symbol" setting is honoured everywhere (0134ef756e, 2025-07-03).
 from webshop.webshop.utils.utils import format_currency_value
 
 try:
@@ -41,23 +41,23 @@ try:
 except ImportError:
 	from erpnext.selling.doctype.quotation.mapper import _make_sales_order
 
-#//// Neoffice — added: the ERPNext entry point for the loyalty balance the cart
-#//// spends (3bc2d836f1, 2025-02-11 "Add gift cards and improve shopping cart").
+# //// Neoffice — added: the ERPNext entry point for the loyalty balance the cart
+# //// spends (3bc2d836f1, 2025-02-11 "Add gift cards and improve shopping cart").
 from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
 	get_loyalty_program_details_with_points,
 )
 
-#//// Neoffice — body re-indented to tabs only.
+# //// Neoffice — body re-indented to tabs only.
 class WebsitePriceListMissingError(frappe.ValidationError):
 	pass
 
 def set_cart_count(quotation=None):
-	#//// Neoffice — upstream reads the cart of the signed-in user only, so an anonymous
-	#//// visitor's badge always showed 0. Our shops let a visitor fill a cart before
-	#//// signing in (Webshop Settings.enable_guest_cart), so the guest branch resolves —
-	#//// or creates — the quotation keyed on the guest_session_id cookie. The count is
-	#//// read defensively (`if quotation else 0`) because create_guest_quotation can
-	#//// legitimately return nothing (3bc2d836f1, 2025-02-11).
+	# //// Neoffice — upstream reads the cart of the signed-in user only, so an anonymous
+	# //// visitor's badge always showed 0. Our shops let a visitor fill a cart before
+	# //// signing in (Webshop Settings.enable_guest_cart), so the guest branch resolves —
+	# //// or creates — the quotation keyed on the guest_session_id cookie. The count is
+	# //// read defensively (`if quotation else 0`) because create_guest_quotation can
+	# //// legitimately return nothing (3bc2d836f1, 2025-02-11).
 	if cint(frappe.db.get_singles_value("Webshop Settings", "enabled")):
 		if frappe.session.user == "Guest":
 			# For guests, use guest cart
@@ -75,18 +75,18 @@ def set_cart_count(quotation=None):
 			frappe.local.cookie_manager.set_cookie("cart_count", cart_count)
 
 
-#//// Neoffice — upstream: @frappe.whitelist(). Opened to guests because the cart
-#//// drawer and the /cart page are rendered for anonymous visitors on our shops.
-#//// The function itself never trusts the caller: every path resolves the party
-#//// from the session, or from the guest_session_id cookie, never from an argument
-#//// (3bc2d836f1, 2025-02-11).
+# //// Neoffice — upstream: @frappe.whitelist(). Opened to guests because the cart
+# //// drawer and the /cart page are rendered for anonymous visitors on our shops.
+# //// The function itself never trusts the caller: every path resolves the party
+# //// from the session, or from the guest_session_id cookie, never from an argument
+# //// (3bc2d836f1, 2025-02-11).
 @frappe.whitelist(allow_guest=True)
 def get_cart_quotation(doc=None):
 	party = get_party()
-	#//// Neoffice — added. Upstream assumes get_party() always answers; a signed-in user
-	#//// with no Customer yet (a fresh account, or a staff member browsing the shop)
-	#//// raised an AttributeError on the next line. Returns an empty but well-shaped
-	#//// context instead, so the page renders with an empty cart.
+	# //// Neoffice — added. Upstream assumes get_party() always answers; a signed-in user
+	# //// with no Customer yet (a fresh account, or a staff member browsing the shop)
+	# //// raised an AttributeError on the next line. Returns an empty but well-shaped
+	# //// context instead, so the page renders with an empty cart.
 	if not party and frappe.session.user != "Guest":
 		# If no party (guest without active cart)
 		return {
@@ -98,11 +98,11 @@ def get_cart_quotation(doc=None):
 		}
 
 	if not doc:
-		#//// Neoffice — added guest branch (3bc2d836f1, 2025-02-11). Upstream builds the
-		#//// cart from _get_cart_quotation(party), which needs a Customer. Here the
-		#//// quotation is found by the guest_session_id cookie, and created if there is
-		#//// none; every failure path returns the same empty-context shape rather than
-		#//// throwing, because this runs on a page an anonymous visitor is entitled to see.
+		# //// Neoffice — added guest branch (3bc2d836f1, 2025-02-11). Upstream builds the
+		# //// cart from _get_cart_quotation(party), which needs a Customer. Here the
+		# //// quotation is found by the guest_session_id cookie, and created if there is
+		# //// none; every failure path returns the same empty-context shape rather than
+		# //// throwing, because this runs on a page an anonymous visitor is entitled to see.
 		if frappe.session.user == "Guest":
 			# For guests, find existing quotation
 			guest_session_id = frappe.request.cookies.get('guest_session_id')
@@ -158,34 +158,34 @@ def get_cart_quotation(doc=None):
 			set_cart_count(doc)
 
 	addresses = get_address_docs(party=party)
-	#//// Neoffice — upstream: `if not doc.customer_address and addresses:`. doc can now
-	#//// legitimately be None (guest with no cart yet), and this ran before any check.
+	# //// Neoffice — upstream: `if not doc.customer_address and addresses:`. doc can now
+	# //// legitimately be None (guest with no cart yet), and this ran before any check.
 	if doc and not doc.customer_address and addresses:
 		update_cart_address("billing", addresses[0].name)
 
-	#//// Neoffice — do the same for the shipping address.
-	#////
-	#//// The B2C tunnel survives without one: its shipping step falls back to the
-	#//// billing address unless "ship to different" is ticked. The B2B page does
-	#//// not — templates/includes/cart/cart_address.html renders an address ONLY
-	#//// when it is already the one on the quotation, so with no shipping address
-	#//// it showed nothing at all: no picker, no way to choose, the shipping
-	#//// methods stuck on "select an address first", and "Place Order" disabled
-	#//// forever. A B2B customer simply could not order, with nothing on screen
-	#//// saying why.
-	#////
-	#//// Same address as billing, so taxes and shipping rules are unchanged.
+	# //// Neoffice — do the same for the shipping address.
+	# ////
+	# //// The B2C tunnel survives without one: its shipping step falls back to the
+	# //// billing address unless "ship to different" is ticked. The B2B page does
+	# //// not — templates/includes/cart/cart_address.html renders an address ONLY
+	# //// when it is already the one on the quotation, so with no shipping address
+	# //// it showed nothing at all: no picker, no way to choose, the shipping
+	# //// methods stuck on "select an address first", and "Place Order" disabled
+	# //// forever. A B2B customer simply could not order, with nothing on screen
+	# //// saying why.
+	# ////
+	# //// Same address as billing, so taxes and shipping rules are unchanged.
 	if doc and not doc.get("shipping_address_name") and addresses:
 		update_cart_address("shipping", addresses[0].name)
-		#//// update_cart_address writes to the database through its OWN copy of
-		#//// the quotation; the `doc` we are about to return was loaded before
-		#//// that and still shows the old value, which reads like the assignment
-		#//// failed and sends whoever is debugging in the wrong direction.
-		#////
-		#//// Mirrored in memory rather than reloaded: doc.reload() re-reads the
-		#//// document WITH permission checks, and a Website User may not read a
-		#//// Quotation directly — it turned every cart read into a 403
-		#//// "Pas d'autorisation pour Devis". The value is the one just written.
+		# //// update_cart_address writes to the database through its OWN copy of
+		# //// the quotation; the `doc` we are about to return was loaded before
+		# //// that and still shows the old value, which reads like the assignment
+		# //// failed and sends whoever is debugging in the wrong direction.
+		# ////
+		# //// Mirrored in memory rather than reloaded: doc.reload() re-reads the
+		# //// document WITH permission checks, and a Website User may not read a
+		# //// Quotation directly — it turned every cart read into a 403
+		# //// "Pas d'autorisation pour Devis". The value is the one just written.
 		doc.shipping_address_name = addresses[0].name
 
 	if doc:
@@ -227,14 +227,14 @@ def get_cart_quotation(doc=None):
 	# Get customer information for B2B verification
 	customer_info = None
 	is_b2b_customer = False
-	#//// Neoffice — was get_value("Customer", doc.customer_name, …). customer_name
-	#//// is the LABEL (fetched from party_name.customer_name), while Frappe
-	#//// resolves a link by its ID. They match only while customers are named
-	#//// after themselves. This site names them by series, and 5 of its 202
-	#//// customers already differ ("Acme Corp - 2" vs "Acme Corp"): for those,
-	#//// the lookup returned None, so is_b2b_customer stayed False and a genuine
-	#//// B2B customer was silently sent to the B2C checkout — with no error to
-	#//// explain it. party_name is the actual link field.
+	# //// Neoffice — was get_value("Customer", doc.customer_name, …). customer_name
+	# //// is the LABEL (fetched from party_name.customer_name), while Frappe
+	# //// resolves a link by its ID. They match only while customers are named
+	# //// after themselves. This site names them by series, and 5 of its 202
+	# //// customers already differ ("Acme Corp - 2" vs "Acme Corp"): for those,
+	# //// the lookup returned None, so is_b2b_customer stayed False and a genuine
+	# //// B2B customer was silently sent to the B2C checkout — with no error to
+	# //// explain it. party_name is the actual link field.
 	party_id = (doc.get("party_name") or doc.get("customer_name")) if doc else None
 	if party_id and frappe.session.user != "Guest":
 		customer_info = frappe.db.get_value("Customer", party_id, ["name", "customer_group"], as_dict=1)
@@ -266,21 +266,21 @@ def get_cart_quotation(doc=None):
 		frappe.log_error("Loyalty Points Error in get_cart_quotation", str(e))
 
 	return {
-		#//// Neoffice — same reason: doc may be None for a guest with no cart.
+		# //// Neoffice — same reason: doc may be None for a guest with no cart.
 		"doc": decorate_quotation_doc(doc) if doc else None,
 		"shipping_addresses": get_shipping_addresses(party),
 		"billing_addresses": get_billing_addresses(party),
-		#//// Neoffice — upstream passes only the party. The rules depend on the cart too
-		#//// (weight, contents, and "no shipping when every line is a gift card"), so the
-		#//// quotation is passed down (6d4eca593f, 2025-12-12).
+		# //// Neoffice — upstream passes only the party. The rules depend on the cart too
+		# //// (weight, contents, and "no shipping when every line is a gift card"), so the
+		# //// quotation is passed down (6d4eca593f, 2025-12-12).
 		"shipping_rules": get_applicable_shipping_rules(party, doc),
 		"cart_settings": frappe.get_cached_doc("Webshop Settings"),
-		#//// Neoffice — added to the context. Everything the checkout renders in one call:
-		#//// the loyalty balance and its cash value (3bc2d836f1, 2025-02-11), whether the
-		#//// customer goes through the B2B tunnel (48e2708353, 2025-03-13), and whether the
-		#//// loyalty block is shown to guests. Added here rather than in a second endpoint
-		#//// because the checkout was making four round-trips per step (70745ad0c3,
-		#//// 2026-08-26 "supprimer les allers-retours inutiles").
+		# //// Neoffice — added to the context. Everything the checkout renders in one call:
+		# //// the loyalty balance and its cash value (3bc2d836f1, 2025-02-11), whether the
+		# //// customer goes through the B2B tunnel (48e2708353, 2025-03-13), and whether the
+		# //// loyalty block is shown to guests. Added here rather than in a second endpoint
+		# //// because the checkout was making four round-trips per step (70745ad0c3,
+		# //// 2026-08-26 "supprimer les allers-retours inutiles").
 		"available_loyalty_points": available_loyalty_points,
 		"loyalty_points_value": loyalty_points_value,
 		"loyalty_program_details": loyalty_program_details,
@@ -292,30 +292,30 @@ def get_cart_quotation(doc=None):
 	}
 
 
-#//// Neoffice — was `if address.address_type == "Shipping"`.
-#////
-#//// address_type is a LABEL in Frappe, not a permission: any address of the
-#//// party may be shipped to. A customer whose only address is typed "Billing" —
-#//// the default when the shop creates one, and the common case for a company
-#//// with a single site — got an empty list here. On the B2B page that is fatal:
-#//// cart_address.html iterates this list, so nothing was rendered, the shipping
-#//// methods stayed on "select an address first", and "Place Order" could never
-#//// be enabled. The customer saw a dead page with no explanation.
-#////
-#//// Addresses genuinely marked for shipping still come first, so nothing
-#//// changes for a shop that does type them.
+# //// Neoffice — was `if address.address_type == "Shipping"`.
+# ////
+# //// address_type is a LABEL in Frappe, not a permission: any address of the
+# //// party may be shipped to. A customer whose only address is typed "Billing" —
+# //// the default when the shop creates one, and the common case for a company
+# //// with a single site — got an empty list here. On the B2B page that is fatal:
+# //// cart_address.html iterates this list, so nothing was rendered, the shipping
+# //// methods stayed on "select an address first", and "Place Order" could never
+# //// be enabled. The customer saw a dead page with no explanation.
+# ////
+# //// Addresses genuinely marked for shipping still come first, so nothing
+# //// changes for a shop that does type them.
 @frappe.whitelist()
 def get_shipping_addresses(party=None):
 	if not party:
 		party = get_party()
 	addresses = get_address_docs(party=party)
 
-	#//// Neoffice — upstream filters `if address.address_type == "Shipping"`, which hid
-	#//// every other address from the shipping picker. An address type is a LABEL, not a
-	#//// permission: a customer whose only address is typed "Billing" could not check out
-	#//// at all (c36f7a3411, 2026-08-27 "le type d'adresse est une etiquette, pas une
-	#//// permission"). We now sort instead of filtering — typed Shipping first, then the
-	#//// flagged one, then the rest.
+	# //// Neoffice — upstream filters `if address.address_type == "Shipping"`, which hid
+	# //// every other address from the shipping picker. An address type is a LABEL, not a
+	# //// permission: a customer whose only address is typed "Billing" could not check out
+	# //// at all (c36f7a3411, 2026-08-27 "le type d'adresse est une etiquette, pas une
+	# //// permission"). We now sort instead of filtering — typed Shipping first, then the
+	# //// flagged one, then the rest.
 	def rang(address):
 		if address.address_type == "Shipping":
 			return 0
@@ -327,23 +327,23 @@ def get_shipping_addresses(party=None):
 			"title": address.address_title,
 			"display": address.display,
 		}
-		#//// Neoffice — sorted, not filtered (see rang above).
+		# //// Neoffice — sorted, not filtered (see rang above).
 		for address in sorted(addresses, key=rang)
 	]
 
 
 @frappe.whitelist()
-#//// Neoffice — same fix as get_shipping_addresses, for the mirror case: a
-#//// customer whose only address is typed "Shipping" or "Office" could not be
-#//// billed. Addresses actually typed "Billing" still come first.
+# //// Neoffice — same fix as get_shipping_addresses, for the mirror case: a
+# //// customer whose only address is typed "Shipping" or "Office" could not be
+# //// billed. Addresses actually typed "Billing" still come first.
 def get_billing_addresses(party=None):
 	if not party:
 		party = get_party()
 	addresses = get_address_docs(party=party)
 
-	#//// Neoffice — same as the shipping list above: upstream filtered on the address
-	#//// type and left a customer with only a "Shipping" address unable to be billed
-	#//// (c36f7a3411, 2026-08-27). Sorted, not filtered.
+	# //// Neoffice — same as the shipping list above: upstream filtered on the address
+	# //// type and left a customer with only a "Shipping" address unable to be billed
+	# //// (c36f7a3411, 2026-08-27). Sorted, not filtered.
 	def rang(address):
 		if address.address_type == "Billing":
 			return 0
@@ -355,21 +355,21 @@ def get_billing_addresses(party=None):
 			"title": address.address_title,
 			"display": address.display,
 		}
-		#//// Neoffice — sorted, not filtered (see rang above).
+		# //// Neoffice — sorted, not filtered (see rang above).
 		for address in sorted(addresses, key=rang)
 	]
 
 
-#//// Neoffice — added endpoint. get_billing_addresses / get_shipping_addresses
-#//// filter strictly on address_type, so an address a customer created as
-#//// "Office" or "Personal" — perfectly ordinary in Frappe — belonged to
-#//// neither list and was simply invisible at checkout. Frappe itself puts no
-#//// such restriction: any address of the party can be used for billing or
-#//// shipping, address_type being a label, not a permission.
-#////
-#//// This returns every address linked to the customer, with the fields the
-#//// checkout form needs to prefill itself, so picking one costs no extra
-#//// round trip. `preferred` marks the one Frappe would pick by default.
+# //// Neoffice — added endpoint. get_billing_addresses / get_shipping_addresses
+# //// filter strictly on address_type, so an address a customer created as
+# //// "Office" or "Personal" — perfectly ordinary in Frappe — belonged to
+# //// neither list and was simply invisible at checkout. Frappe itself puts no
+# //// such restriction: any address of the party can be used for billing or
+# //// shipping, address_type being a label, not a permission.
+# ////
+# //// This returns every address linked to the customer, with the fields the
+# //// checkout form needs to prefill itself, so picking one costs no extra
+# //// round trip. `preferred` marks the one Frappe would pick by default.
 @frappe.whitelist()
 def get_customer_addresses():
 	party = get_party()
@@ -429,13 +429,13 @@ def place_order():
 	quotation.company = cart_settings.company
 	
 	# Save the coupon info for later use
-	#//// Neoffice — added block (618eedfdb8, 2025-03-24 "Feat gift card split";
-	#//// f114dc4b5d, 2025-12-12). Upstream knows coupons, not gift cards: a coupon is
-	#//// spent whole or not at all. A gift card worth more than the order has to keep
-	#//// its balance, so before the order is made we cap the discount at the order total
-	#//// and record what was used and what is left; the split itself happens after the
-	#//// Sales Order exists (process_gift_card_split below). temp_coupon_code is read
-	#//// here because the code is entered on the cart, before the quotation is submitted.
+	# //// Neoffice — added block (618eedfdb8, 2025-03-24 "Feat gift card split";
+	# //// f114dc4b5d, 2025-12-12). Upstream knows coupons, not gift cards: a coupon is
+	# //// spent whole or not at all. A gift card worth more than the order has to keep
+	# //// its balance, so before the order is made we cap the discount at the order total
+	# //// and record what was used and what is left; the split itself happens after the
+	# //// Sales Order exists (process_gift_card_split below). temp_coupon_code is read
+	# //// here because the code is entered on the cart, before the quotation is submitted.
 	coupon_data = None
 	gift_card_to_split = False
 	
@@ -501,11 +501,11 @@ def place_order():
 	if not (quotation.shipping_address_name or quotation.customer_address):
 		frappe.throw(_("Set Shipping Address or Billing Address"))
 
-	#//// Neoffice — added. Upstream leaves the quotation in draft and lets
-	#//// _make_sales_order submit it. Our checkout can reach this point from a PSP
-	#//// callback where the quotation was already saved but not submitted, and
-	#//// _make_sales_order then refused it (eb8089afc5, 2025-12-11 "Submit quotation
-	#//// before creating Sales Order in payment handler").
+	# //// Neoffice — added. Upstream leaves the quotation in draft and lets
+	# //// _make_sales_order submit it. Our checkout can reach this point from a PSP
+	# //// callback where the quotation was already saved but not submitted, and
+	# //// _make_sales_order then refused it (eb8089afc5, 2025-12-11 "Submit quotation
+	# //// before creating Sales Order in payment handler").
 	# Submit quotation if it's still in draft state
 	if quotation.docstatus == 0:
 		quotation.flags.ignore_permissions = True
@@ -712,21 +712,21 @@ def place_order():
 		if is_gift_card_item(first_item.item_code):
 			sales_order.skip_delivery_note = 1
 
-	#//// Neoffice — multi-warehouse: the line's warehouse is the source the
-	#//// shopper chose — never overwrite it here (the historical overwrite is
-	#//// what killed per-line sources at order time). Validate each line
-	#//// against ITS source (own basis: Bin or Item field). Feature off: the
-	#//// historical overwrite + single-warehouse validation are kept as is.
+	# //// Neoffice — multi-warehouse: the line's warehouse is the source the
+	# //// shopper chose — never overwrite it here (the historical overwrite is
+	# //// what killed per-line sources at order time). Validate each line
+	# //// against ITS source (own basis: Bin or Item field). Feature off: the
+	# //// historical overwrite + single-warehouse validation are kept as is.
 	from webshop.webshop.multi_warehouse import sources as mw_sources
 
 	multi_enabled = mw_sources.is_enabled(cart_settings)
 
 	if not cint(cart_settings.allow_items_not_in_stock):
 		for item in sales_order.get("items"):
-			#//// Neoffice — multi-warehouse (5bf2e88a1b, 2026-08-25). Upstream forces every line
-			#//// onto the Website Item's single website_warehouse. When the shop sells from
-			#//// several sources, the line already carries the warehouse the buyer chose and
-			#//// overwriting it would move the order to the wrong stock.
+			# //// Neoffice — multi-warehouse (5bf2e88a1b, 2026-08-25). Upstream forces every line
+			# //// onto the Website Item's single website_warehouse. When the shop sells from
+			# //// several sources, the line already carries the warehouse the buyer chose and
+			# //// overwriting it would move the order to the wrong stock.
 			if not multi_enabled:
 				item.warehouse = frappe.db.get_value(
 					"Website Item", {"item_code": item.item_code}, "website_warehouse"
@@ -734,16 +734,16 @@ def place_order():
 			is_stock_item = frappe.db.get_value("Item", item.item_code, "is_stock_item")
 
 			if is_stock_item:
-				#//// Neoffice — the stock check follows the same rule: ask the CHOSEN source for its
-				#//// quantity (a supplier source answers on its lead time, not on stock), fall back
-				#//// to the line's warehouse, and only then to upstream's website_warehouse
-				#//// (5bf2e88a1b, 2026-08-25).
+				# //// Neoffice — the stock check follows the same rule: ask the CHOSEN source for its
+				# //// quantity (a supplier source answers on its lead time, not on stock), fall back
+				# //// to the line's warehouse, and only then to upstream's website_warehouse
+				# //// (5bf2e88a1b, 2026-08-25).
 				source_row = (
 					mw_sources.get_source_for_warehouse(item.warehouse, cart_settings)
 					if multi_enabled
 					else None
 				)
-				#//// Neoffice — see the source_row block above (multi-warehouse stock check).
+				# //// Neoffice — see the source_row block above (multi-warehouse stock check).
 				if source_row:
 					source_qty = mw_sources.get_source_qty(item.item_code, source_row)
 					item_stock = frappe._dict(
@@ -766,9 +766,9 @@ def place_order():
 						)
 					)
 
-	#//// Neoffice — multi-warehouse: promise a delivery date per line from its
-	#//// source's lead time (order_type "Shopping Cart" skips ERPNext's own
-	#//// delivery_date computation), header = latest line.
+	# //// Neoffice — multi-warehouse: promise a delivery date per line from its
+	# //// source's lead time (order_type "Shopping Cart" skips ERPNext's own
+	# //// delivery_date computation), header = latest line.
 	if multi_enabled:
 		_set_delivery_dates_from_sources(sales_order, cart_settings)
 
@@ -785,21 +785,21 @@ def place_order():
 	return sales_order.name
 
 
-#//// Neoffice — added block, down to request_for_quotation below. ▼▼▼
-#//// Upstream has no gift cards; ERPNext's Coupon Code is single-use and carries no
-#//// balance. A card worth more than the order must not be burnt: on submit of the
-#//// Sales Order we create a NEW card for the amount actually USED (marked used) and
-#//// leave the REMAINDER on the original card, then record both on the order
-#//// (618eedfdb8, 2025-03-24 "Feat gift card split"). Doing it after submit rather
-#//// than in place_order is deliberate — the split must not happen if the order
-#//// creation itself fails.
-#//// TO REVIEW: process_gift_card_split is DEFINED TWICE in this file — this one,
-#//// and again further down (the "Process the splitting of a gift card when its amount
-#//// exceeds the order total" one). Python keeps the LAST definition, so the one below
-#//// is what process_gift_card_on_submit actually calls and this one is unreachable.
-#//// Reconciling the two is a behaviour change and is left out of the 2026-09-04
-#//// clean-up pass; its strings and comments were put into English all the same, so
-#//// whichever survives is readable. ▲▲▲
+# //// Neoffice — added block, down to request_for_quotation below. ▼▼▼
+# //// Upstream has no gift cards; ERPNext's Coupon Code is single-use and carries no
+# //// balance. A card worth more than the order must not be burnt: on submit of the
+# //// Sales Order we create a NEW card for the amount actually USED (marked used) and
+# //// leave the REMAINDER on the original card, then record both on the order
+# //// (618eedfdb8, 2025-03-24 "Feat gift card split"). Doing it after submit rather
+# //// than in place_order is deliberate — the split must not happen if the order
+# //// creation itself fails.
+# //// TO REVIEW: process_gift_card_split is DEFINED TWICE in this file — this one,
+# //// and again further down (the "Process the splitting of a gift card when its amount
+# //// exceeds the order total" one). Python keeps the LAST definition, so the one below
+# //// is what process_gift_card_on_submit actually calls and this one is unreachable.
+# //// Reconciling the two is a behaviour change and is left out of the 2026-09-04
+# //// clean-up pass; its strings and comments were put into English all the same, so
+# //// whichever survives is readable. ▲▲▲
 def process_gift_card_on_submit(doc, method=None):
 	"""
 	Hook function called when a Sales Order is submitted.
@@ -999,8 +999,8 @@ def process_gift_card_split(sales_order, gift_card_data):
 			"comment_type": "Info",
 			"reference_doctype": sales_order.doctype,
 			"reference_name": sales_order.name,
-			#//// Neoffice — the msgid is English (RULE #00); the French comes from
-			#//// webshop/locale/fr.po.
+			# //// Neoffice — the msgid is English (RULE #00); the French comes from
+			# //// webshop/locale/fr.po.
 			"content": _("Gift card {0} split: {1} used and transferred to the new gift card {2}. {3} left on the original card.").format(
 				old_code,
 				format_currency_value(used_amount, currency=sales_order.currency),
@@ -1011,8 +1011,8 @@ def process_gift_card_split(sales_order, gift_card_data):
 		
 		# Show a message to the user about the split
 		frappe.msgprint(
-			#//// Neoffice — the msgid is English (RULE #00); the French comes from
-			#//// webshop/locale/fr.po.
+			# //// Neoffice — the msgid is English (RULE #00); the French comes from
+			# //// webshop/locale/fr.po.
 			_("Gift card {0} is worth {1}, more than the order total ({2}). A new gift card ({3}) was created for the amount used; the remaining {4} stays on the original card.").format(
 				old_code,
 				format_currency_value(gift_card_amount, currency=sales_order.currency),
@@ -1020,7 +1020,7 @@ def process_gift_card_split(sales_order, gift_card_data):
 				new_code,
 				format_currency_value(excess_amount, currency=sales_order.currency)
 			),
-			#//// Neoffice — English msgid (RULE #00); the French is in webshop/locale/fr.po.
+			# //// Neoffice — English msgid (RULE #00); the French is in webshop/locale/fr.po.
 			title=_("Gift Card Split")
 		)
 		
@@ -1044,10 +1044,10 @@ def request_for_quotation():
 	return quotation.name
 
 
-#//// Neoffice — added helper (multi-warehouse). Warehouse of the first cart
-#//// line already holding this item, guest or logged-in, so an implicit add
-#//// (grid button, +1 spinner) keeps feeding the source the shopper already
-#//// chose instead of silently moving the line.
+# //// Neoffice — added helper (multi-warehouse). Warehouse of the first cart
+# //// line already holding this item, guest or logged-in, so an implicit add
+# //// (grid button, +1 spinner) keeps feeding the source the shopper already
+# //// chose instead of silently moving the line.
 def _find_existing_line_warehouse(item_code):
 	quotation_name = None
 	if frappe.session.user == "Guest":
@@ -1085,11 +1085,11 @@ def _find_existing_line_warehouse(item_code):
 	)
 
 
-#//// Neoffice — added helper (multi-warehouse). Sets delivery_date per Sales
-#//// Order line from its source's lead time and the header to the latest
-#//// line. Called by both order paths (place_order and the payment handler);
-#//// ERPNext's own delivery_date logic does not run for order_type
-#//// "Shopping Cart".
+# //// Neoffice — added helper (multi-warehouse). Sets delivery_date per Sales
+# //// Order line from its source's lead time and the header to the latest
+# //// line. Called by both order paths (place_order and the payment handler);
+# //// ERPNext's own delivery_date logic does not run for order_type
+# //// "Shopping Cart".
 def _set_delivery_dates_from_sources(sales_order, cart_settings=None):
 	from webshop.webshop.multi_warehouse import sources as mw_sources
 	from webshop.webshop.multi_warehouse.delays import estimate_delivery_date
@@ -1106,15 +1106,15 @@ def _set_delivery_dates_from_sources(sales_order, cart_settings=None):
 		sales_order.delivery_date = latest
 
 
-#//// Neoffice — added helper (no upstream equivalent).
-#////
-#//// Cancels the payment requests of a cart that were never honoured, so the
-#//// quotation they point at can be deleted. Only Draft and Failed ones: a
-#//// request that actually succeeded belongs to a real order and is never
-#//// touched here.
-#////
-#//// Exists because a customer whose card was declined could no longer empty
-#//// their cart — see the LinkExistsError branch in update_cart.
+# //// Neoffice — added helper (no upstream equivalent).
+# ////
+# //// Cancels the payment requests of a cart that were never honoured, so the
+# //// quotation they point at can be deleted. Only Draft and Failed ones: a
+# //// request that actually succeeded belongs to a real order and is never
+# //// touched here.
+# ////
+# //// Exists because a customer whose card was declined could no longer empty
+# //// their cart — see the LinkExistsError branch in update_cart.
 def _release_unsuccessful_payment_requests(quotation_name):
 	requests = frappe.get_all(
 		"Payment Request",
@@ -1126,8 +1126,8 @@ def _release_unsuccessful_payment_requests(quotation_name):
 		},
 		fields=["name", "docstatus"],
 	)
-	#//// Neoffice — body of the added helper marked above. `requests` / `request` were
-	#//// named `demandes` / `demande`, renamed under RULE #00 with the function itself.
+	# //// Neoffice — body of the added helper marked above. `requests` / `request` were
+	# //// named `demandes` / `demande`, renamed under RULE #00 with the function itself.
 	for request in requests:
 		try:
 			doc = frappe.get_doc("Payment Request", request.name)
@@ -1137,9 +1137,9 @@ def _release_unsuccessful_payment_requests(quotation_name):
 			else:
 				doc.delete()
 		except Exception:
-			#//// A request we cannot release must not fail the operation: the delete
-			#//// that follows will say whether it still blocks, and the error will
-			#//// then surface with its real cause.
+			# //// A request we cannot release must not fail the operation: the delete
+			# //// that follows will say whether it still blocks, and the error will
+			# //// then surface with its real cause.
 			frappe.log_error(
 				"Webshop: could not release a payment request",
 				frappe.get_traceback(),
@@ -1147,16 +1147,16 @@ def _release_unsuccessful_payment_requests(quotation_name):
 			frappe.clear_messages()
 
 
-#//// Neoffice — multi-warehouse: `warehouse` selects the stock source of the
-#//// line. None keeps the historical behaviour (single website_warehouse, or
-#//// the auto-picked source when the feature is on). Cart lines merge on
-#//// (item_code, warehouse) so the same item can sit in the cart once per
-#//// source, each line with its own delivery estimate.
+# //// Neoffice — multi-warehouse: `warehouse` selects the stock source of the
+# //// line. None keeps the historical behaviour (single website_warehouse, or
+# //// the auto-picked source when the feature is on). Cart lines merge on
+# //// (item_code, warehouse) so the same item can sit in the cart once per
+# //// source, each line with its own delivery estimate.
 @frappe.whitelist(allow_guest=True)
 def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty=False, price_list_rate=None, gift_card_data=None, warehouse=None):
-	#//// Neoffice multi-site — on a site reserved for business accounts, filling a
-	#//// cart requires an account. The guard lives here rather than in the template:
-	#//// hiding a button is not a permission, and this endpoint is callable directly.
+	# //// Neoffice multi-site — on a site reserved for business accounts, filling a
+	# //// cart requires an account. The guard lives here rather than in the template:
+	# //// hiding a button is not a permission, and this endpoint is callable directly.
 	from webshop.webshop.multi_site import exiger_connexion_pour_acheter
 
 	exiger_connexion_pour_acheter()
@@ -1193,12 +1193,12 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 	if price_list_rate and not is_gift_card:
 		frappe.throw(_("Price can only be modified for gift cards"))
 
-	#//// Neoffice — multi-warehouse: resolve the target stock source of this
-	#//// cart line before validating. Explicit warehouse wins; otherwise an
-	#//// existing line of the item keeps its source (stable, no surprise
-	#//// moves), and a first add auto-picks the first source covering the
-	#//// quantity. Feature off: warehouse stays None and every path below
-	#//// behaves exactly as before.
+	# //// Neoffice — multi-warehouse: resolve the target stock source of this
+	# //// cart line before validating. Explicit warehouse wins; otherwise an
+	# //// existing line of the item keeps its source (stable, no surprise
+	# //// moves), and a first add auto-picks the first source covering the
+	# //// quantity. Feature off: warehouse stays None and every path below
+	# //// behaves exactly as before.
 	from webshop.webshop.multi_warehouse import sources as mw_sources
 
 	cart_settings = frappe.get_cached_doc("Webshop Settings")
@@ -1222,9 +1222,9 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			# Check if item is a stock item
 			is_stock_item = frappe.db.get_value("Item", item_code, "is_stock_item")
 			if is_stock_item:
-				#//// Neoffice — multi-warehouse: validate against the targeted
-				#//// source (its own basis: Bin or Item field), not the global
-				#//// website_warehouse.
+				# //// Neoffice — multi-warehouse: validate against the targeted
+				# //// source (its own basis: Bin or Item field), not the global
+				# //// website_warehouse.
 				if multi_enabled and warehouse:
 					source_row = mw_sources.get_source_for_warehouse(warehouse, cart_settings)
 					if source_row:
@@ -1249,8 +1249,8 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 					frappe.throw(_("{0} is not in stock").format(item_code))
 
 				# Calculate the total quantity (existing + new)
-				#//// Neoffice — multi-warehouse: the existing quantity is the
-				#//// one already targeting the same source, not the whole item.
+				# //// Neoffice — multi-warehouse: the existing quantity is the
+				# //// one already targeting the same source, not the whole item.
 				line_filters = {'item_code': item_code}
 				if multi_enabled and warehouse:
 					line_filters['warehouse'] = warehouse
@@ -1335,10 +1335,10 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			existing_items = []
 			found_item = False
 			for item in quotation.items:
-				#//// Neoffice — multi-warehouse: a line only matches when it
-				#//// targets the same source; same-item lines on another
-				#//// source are kept untouched. Feature off: item_code alone,
-				#//// as before.
+				# //// Neoffice — multi-warehouse: a line only matches when it
+				# //// targets the same source; same-item lines on another
+				# //// source are kept untouched. Feature off: item_code alone,
+				# //// as before.
 				same_line = item.item_code == item_code and (
 					not multi_enabled or (item.warehouse or None) == (warehouse or None)
 				)
@@ -1368,8 +1368,8 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 					item_dict = {
 						"item_code": item.item_code,
 						"qty": item.qty,
-						#//// Neoffice — multi-warehouse: preserve the source of
-						#//// untouched lines across the guest-cart rebuild.
+						# //// Neoffice — multi-warehouse: preserve the source of
+						# //// untouched lines across the guest-cart rebuild.
 						"warehouse": item.warehouse,
 					}
 					# Keep existing gift card data
@@ -1415,14 +1415,14 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 				# the totals template asks for `doc.total` — a 500 in the visitor's face
 				# for a cart they merely emptied. A fresh in-memory quotation, never
 				# saved, says "zero" without inventing anything.
-				#//// Neoffice — added branch (upstream has no guest cart). `empty_cart` was
-				#//// named `vide`, renamed under RULE #00.
+				# //// Neoffice — added branch (upstream has no guest cart). `empty_cart` was
+				# //// named `vide`, renamed under RULE #00.
 				empty_cart = frappe.new_doc("Quotation")
 				# The site currency, not Webshop Settings': that doctype carries none,
 				# and asking it for one raises — a 417 instead of the empty cart.
 				empty_cart.currency = frappe.defaults.get_global_default("currency")
 				context = {
-					#//// Neoffice — the placeholder renamed just above.
+					# //// Neoffice — the placeholder renamed just above.
 					"doc": empty_cart,
 					"cart_settings": frappe.get_cached_doc("Webshop Settings"),
 					"shipping_addresses": [],
@@ -1464,19 +1464,19 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 
 	quotation = _get_cart_quotation()
 	
-	#//// Neoffice — added guard. _get_cart_quotation() can now return None (guest with
-	#//// no cart, or a cart just emptied), where upstream always got a document
-	#//// (b38414f95d, 2025-11-14 "Handle None quotation in update_cart return").
+	# //// Neoffice — added guard. _get_cart_quotation() can now return None (guest with
+	# //// no cart, or a cart just emptied), where upstream always got a document
+	# //// (b38414f95d, 2025-11-14 "Handle None quotation in update_cart return").
 	# Check if quotation exists
 	if not quotation:
 		return {"success": False, "message": _("No cart found")}
 
 	empty_card = False
 	if qty == 0:
-		#//// Neoffice — multi-warehouse: with an explicit source, only the
-		#//// line targeting it is removed; the same item on another source
-		#//// stays. Feature off (or no source given): every line of the item
-		#//// goes, as before.
+		# //// Neoffice — multi-warehouse: with an explicit source, only the
+		# //// line targeting it is removed; the same item on another source
+		# //// stays. Feature off (or no source given): every line of the item
+		# //// goes, as before.
 		if multi_enabled and warehouse:
 			quotation_items = [
 				d
@@ -1499,16 +1499,16 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			empty_card = True
 
 	else:
-		#//// Neoffice — multi-warehouse: the target source was resolved at the
-		#//// top of update_cart; feature off resolves the single
-		#//// website_warehouse exactly as before.
+		# //// Neoffice — multi-warehouse: the target source was resolved at the
+		# //// top of update_cart; feature off resolves the single
+		# //// website_warehouse exactly as before.
 		if not multi_enabled:
 			warehouse = frappe.get_cached_value(
 				"Website Item", {"item_code": item_code}, "website_warehouse"
 			)
 
-		#//// Neoffice — multi-warehouse: merge on (item_code, warehouse) so
-		#//// one line per source can coexist for the same item.
+		# //// Neoffice — multi-warehouse: merge on (item_code, warehouse) so
+		# //// one line per source can coexist for the same item.
 		if multi_enabled:
 			quotation_items = [
 				d
@@ -1519,11 +1519,11 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 		else:
 			quotation_items = quotation.get("items", {"item_code": item_code})
 		if not quotation_items:
-			#//// Neoffice — upstream appends the line and lets set_price_list_and_rate price it.
-			#//// A gift card has no Item Price: its price IS the face value the buyer chose, so
-			#//// the rate is written on the line and the chosen amount/recipient kept in
-			#//// gift_card_data — otherwise the next repricing reset it to zero (3bc2d836f1,
-			#//// 2025-02-11; qty > 1 f114dc4b5d, 2025-12-12).
+			# //// Neoffice — upstream appends the line and lets set_price_list_and_rate price it.
+			# //// A gift card has no Item Price: its price IS the face value the buyer chose, so
+			# //// the rate is written on the line and the chosen amount/recipient kept in
+			# //// gift_card_data — otherwise the next repricing reset it to zero (3bc2d836f1,
+			# //// 2025-02-11; qty > 1 f114dc4b5d, 2025-12-12).
 			item_dict = {
 				"doctype": "Quotation Item",
 				"item_code": item_code,
@@ -1537,15 +1537,15 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 				if gift_card_data:
 					item_dict["gift_card_data"] = gift_card_data
 			quotation.append("items", item_dict)
-		#//// Neoffice — an existing line now also carries the chosen warehouse
-		#//// (multi-warehouse, 5bf2e88a1b, 2026-08-25).
+		# //// Neoffice — an existing line now also carries the chosen warehouse
+		# //// (multi-warehouse, 5bf2e88a1b, 2026-08-25).
 		else:
 			quotation_items[0].warehouse = warehouse
 			quotation_items[0].additional_notes = additional_notes
-			#//// Neoffice — upstream always REPLACES the quantity, so "add to cart" on a product
-			#//// already in the cart reset it to 1 instead of adding. add_qty distinguishes the
-			#//// two callers (the product page adds, the cart page sets); a quantity that falls
-			#//// to zero removes the line (48e2708353, 2025-03-13).
+			# //// Neoffice — upstream always REPLACES the quantity, so "add to cart" on a product
+			# //// already in the cart reset it to 1 instead of adding. add_qty distinguishes the
+			# //// two callers (the product page adds, the cart page sets); a quantity that falls
+			# //// to zero removes the line (48e2708353, 2025-03-13).
 			new_qty = quotation_items[0].qty + qty if add_qty else qty
 			if new_qty > 0:
 				quotation_items[0].qty = new_qty
@@ -1565,36 +1565,36 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 
 	quotation.payment_schedule = []
 	if not empty_card:
-		#//// Neoffice — ignore_version: the cart is saved on every quantity keystroke and
-		#//// each save was writing a Version row, which made a busy shop's Version table the
-		#//// largest in the database for no readable history.
+		# //// Neoffice — ignore_version: the cart is saved on every quantity keystroke and
+		# //// each save was writing a Version row, which made a busy shop's Version table the
+		# //// largest in the database for no readable history.
 		quotation.save(ignore_version=True)
 	else:
-		#//// Neoffice — emptying the cart deletes the quotation, and that delete
-		#//// can be REFUSED: once a payment has been attempted, a Payment Request
-		#//// links to it and Frappe raises LinkExistsError.
-		#////
-		#//// The customer then simply cannot empty their cart — removing the last
-		#//// line fails with a technical error and the line stays. Reproduced on
-		#//// osiris: "Impossible de supprimer ou d'annuler, car Devis … est
-		#//// associé à Requête de Paiement ACC-PRQ-…".
-		#////
-		#//// Saving the quotation empty is not an option either: ERPNext requires
-		#//// at least one line, so that save fails too and the whole transaction
-		#//// rolls back — the line reappears and the cart is stuck for good.
-		#////
-		#//// What actually blocks is a payment request that never succeeded
-		#//// (Draft, or Failed after a declined card). Those carry no accounting
-		#//// value, so they are cancelled — which releases the link — and the
-		#//// quotation goes. A request that DID succeed is left untouched: the
-		#//// cart was ordered, and that is a different story.
+		# //// Neoffice — emptying the cart deletes the quotation, and that delete
+		# //// can be REFUSED: once a payment has been attempted, a Payment Request
+		# //// links to it and Frappe raises LinkExistsError.
+		# ////
+		# //// The customer then simply cannot empty their cart — removing the last
+		# //// line fails with a technical error and the line stays. Reproduced on
+		# //// osiris: "Impossible de supprimer ou d'annuler, car Devis … est
+		# //// associé à Requête de Paiement ACC-PRQ-…".
+		# ////
+		# //// Saving the quotation empty is not an option either: ERPNext requires
+		# //// at least one line, so that save fails too and the whole transaction
+		# //// rolls back — the line reappears and the cart is stuck for good.
+		# ////
+		# //// What actually blocks is a payment request that never succeeded
+		# //// (Draft, or Failed after a declined card). Those carry no accounting
+		# //// value, so they are cancelled — which releases the link — and the
+		# //// quotation goes. A request that DID succeed is left untouched: the
+		# //// cart was ordered, and that is a different story.
 		try:
 			quotation.delete()
 			quotation = None
 		except frappe.LinkExistsError:
 			frappe.clear_messages()
-			#//// Neoffice — added helper, renamed under RULE #00 (was
-			#//// _liberer_demandes_de_paiement_infructueuses).
+			# //// Neoffice — added helper, renamed under RULE #00 (was
+			# //// _liberer_demandes_de_paiement_infructueuses).
 			_release_unsuccessful_payment_requests(quotation.name)
 			quotation.delete()
 			quotation = None
@@ -1602,10 +1602,10 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 	set_cart_count(quotation)
 
 	if cint(with_items):
-		#//// Neoffice — added guard. get_cart_quotation reads addresses and shipping rules; a
-		#//// guest legitimately has no permission on those, and upstream's version simply
-		#//// threw a PermissionError at a visitor who had just added an item. The guest gets
-		#//// the reduced context the cart drawer actually needs.
+		# //// Neoffice — added guard. get_cart_quotation reads addresses and shipping rules; a
+		# //// guest legitimately has no permission on those, and upstream's version simply
+		# //// threw a PermissionError at a visitor who had just added an item. The guest gets
+		# //// the reduced context the cart drawer actually needs.
 		try:
 			context = get_cart_quotation(quotation)
 		except frappe.PermissionError:
@@ -1630,16 +1630,16 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			"taxes_and_totals": frappe.render_template(
 				"templates/includes/cart/cart_payment_summary.html", context
 			),
-			#//// Neoffice — the quotation itself, alongside the rendered HTML.
-			#//// The context above already holds it, so this costs nothing here
-			#//// and saves the caller a second round trip: the checkout used to
-			#//// throw this HTML away and immediately call get_cart_quotation
-			#//// to obtain the very document we had in hand.
+			# //// Neoffice — the quotation itself, alongside the rendered HTML.
+			# //// The context above already holds it, so this costs nothing here
+			# //// and saves the caller a second round trip: the checkout used to
+			# //// throw this HTML away and immediately call get_cart_quotation
+			# //// to obtain the very document we had in hand.
 			"doc": context.get("doc"),
 		}
 	else:
-		#//// Neoffice — quotation may be None when the last line was removed and the cart
-		#//// deleted itself (b38414f95d, 2025-11-14).
+		# //// Neoffice — quotation may be None when the last line was removed and the cart
+		# //// deleted itself (b38414f95d, 2025-11-14).
 		return {"name": quotation.name if quotation else None}
 
 @frappe.whitelist()
@@ -1653,18 +1653,18 @@ def get_shopping_cart_menu(context=None):
 def add_new_address(doc):
 	doc = frappe.parse_json(doc)
 	doc.update({"doctype": "Address"})
-	#//// Neoffice — upstream saved immediately with ignore_permissions=True. We first
-	#//// link the address to the caller's own Customer and only then save WITHOUT
-	#//// ignore_permissions, so the Address permission rules still apply: an unlinked
-	#//// address created with ignore_permissions belonged to nobody and was invisible in
-	#//// the customer's address book afterwards (4c9773bf93, 2026-01-03).
+	# //// Neoffice — upstream saved immediately with ignore_permissions=True. We first
+	# //// link the address to the caller's own Customer and only then save WITHOUT
+	# //// ignore_permissions, so the Address permission rules still apply: an unlinked
+	# //// address created with ignore_permissions belonged to nobody and was invisible in
+	# //// the customer's address book afterwards (4c9773bf93, 2026-01-03).
 	address = frappe.get_doc(doc)
 
-	#//// Neoffice — see above; and when the address is flagged primary, the Customer's
-	#//// customer_primary_address AND its displayed primary_address text are updated —
-	#//// ERPNext only fills the text when the address is saved from the desk form, so a
-	#//// customer created from the checkout showed an empty address in every list
-	#//// (5bcccd131a / aeddc82961, 2025-11-25 and 2025-11-30).
+	# //// Neoffice — see above; and when the address is flagged primary, the Customer's
+	# //// customer_primary_address AND its displayed primary_address text are updated —
+	# //// ERPNext only fills the text when the address is saved from the desk form, so a
+	# //// customer created from the checkout showed an empty address in every list
+	# //// (5bcccd131a / aeddc82961, 2025-11-25 and 2025-11-30).
 	# Add link to current customer if not already provided
 	if not address.links:
 		party = get_party()
@@ -1690,8 +1690,8 @@ def add_new_address(doc):
 				customer.save(ignore_permissions=True)
 				break
 
-	#//// Neoffice — returns the saved address (the customer link and the primary-address
-	#//// update above happen before this return).
+	# //// Neoffice — returns the saved address (the customer link and the primary-address
+	# //// update above happen before this return).
 	return address
 
 @frappe.whitelist(allow_guest=True)
@@ -1735,24 +1735,24 @@ def create_lead_for_item_inquiry(lead, subject, message):
 def get_terms_and_conditions(terms_name):
 	return frappe.db.get_value("Terms and Conditions", terms_name, "terms")
 
-#//// Neoffice — upstream: @frappe.whitelist(). Guests reach this while checking out
-#//// on a shop with enable_guest_cart. The body below re-reads the quotation from the
-#//// session; the caller only names one of its own addresses.
+# //// Neoffice — upstream: @frappe.whitelist(). Guests reach this while checking out
+# //// on a shop with enable_guest_cart. The body below re-reads the quotation from the
+# //// session; the caller only names one of its own addresses.
 @frappe.whitelist(allow_guest=True)
 def update_cart_address(address_type, address_name):
-	#//// Neoffice — the whole body is rewritten (upstream: read the address, set it on
-	#//// the quotation, save, render). ▼▼▼ What it adds:
-	#////   · a guest path — a guest has no read permission on Address, so the display is
-	#////     built from the document we just read instead of from get_*_addresses();
-	#////   · a null-safe cart (`Cart not found`) instead of an AttributeError;
-	#////   · the shipping rule is cleared when the new address is in a country the rule
-	#////     does not serve — it used to survive the change and then refuse the order at
-	#////     the payment step (6d4eca593f, 2025-12-12);
-	#////   · totals/conversion rates are defaulted before calculate_taxes_and_totals,
-	#////     which raised on a cart that had never been priced;
-	#////   · the errors are logged and turned into one message the buyer can act on.
-	#//// The finally block resets frappe.flags.ignore_permissions — it must not leak to
-	#//// the rest of the request. ▲▲▲
+	# //// Neoffice — the whole body is rewritten (upstream: read the address, set it on
+	# //// the quotation, save, render). ▼▼▼ What it adds:
+	# ////   · a guest path — a guest has no read permission on Address, so the display is
+	# ////     built from the document we just read instead of from get_*_addresses();
+	# ////   · a null-safe cart (`Cart not found`) instead of an AttributeError;
+	# ////   · the shipping rule is cleared when the new address is in a country the rule
+	# ////     does not serve — it used to survive the change and then refuse the order at
+	# ////     the payment step (6d4eca593f, 2025-12-12);
+	# ////   · totals/conversion rates are defaulted before calculate_taxes_and_totals,
+	# ////     which raised on a cart that had never been priced;
+	# ////   · the errors are logged and turned into one message the buyer can act on.
+	# //// The finally block resets frappe.flags.ignore_permissions — it must not leak to
+	# //// the rest of the request. ▲▲▲
 	try:
 		# Temporarily ignore permissions to allow reading addresses
 		frappe.flags.ignore_permissions = True
@@ -1765,7 +1765,7 @@ def update_cart_address(address_type, address_name):
 		address_display = get_address_display(address_doc)
 		new_country = address_doc.get("country")
 
-		#//// Neoffice — see the block marker above (guest display, shipping-rule country).
+		# //// Neoffice — see the block marker above (guest display, shipping-rule country).
 		if address_type.lower() == "billing":
 			quotation.customer_address = address_name
 			quotation.address_display = address_display
@@ -1801,7 +1801,7 @@ def update_cart_address(address_type, address_name):
 					None,
 				)
 
-			#//// Neoffice — see the block marker above (6d4eca593f, 2025-12-12).
+			# //// Neoffice — see the block marker above (6d4eca593f, 2025-12-12).
 			# Check if current shipping rule is valid for the new country
 			# If not, clear it so the user can select a compatible one
 			if quotation.shipping_rule and new_country:
@@ -1852,9 +1852,9 @@ def update_cart_address(address_type, address_name):
 		context = get_cart_quotation(quotation)
 		context["address"] = address_doc
 
-		#//// Neoffice — same payload as upstream, but reached from inside our try/except and
-		#//// after the recalculation above; the except turns any failure into one readable
-		#//// message instead of a traceback in the buyer's face.
+		# //// Neoffice — same payload as upstream, but reached from inside our try/except and
+		# //// after the recalculation above; the except turns any failure into one readable
+		# //// message instead of a traceback in the buyer's face.
 		return {
 			"taxes": frappe.render_template(
 				"templates/includes/order/order_taxes.html", context
@@ -1885,10 +1885,10 @@ def decorate_quotation_doc(doc):
 	for d in doc.get("items", []):
 		item_code = d.item_code
 		fields = ["web_item_name", "thumbnail", "website_image", "description", "route"]
-		#//// Neoffice — a cart line for a variant showed the template's name and image;
-		#//// the buyer could not tell two lines apart. The variant's own name and image are
-		#//// resolved here (8f351c4819, 2025-03-18 "fix bug contact and image website
-		#//// item").
+		# //// Neoffice — a cart line for a variant showed the template's name and image;
+		# //// the buyer could not tell two lines apart. The variant's own name and image are
+		# //// resolved here (8f351c4819, 2025-03-18 "fix bug contact and image website
+		# //// item").
 		variant_item_name = None
 		variant_image = None
 
@@ -1924,11 +1924,11 @@ def decorate_quotation_doc(doc):
 			d.website_image = website_item_data.get("website_image")
 			d.thumbnail = website_item_data.get("thumbnail") or website_item_data.get("website_image")
 
-		#//// Neoffice — multi-warehouse: the line's warehouse is the source the
-		#//// shopper chose — rendering the cart must not overwrite it (that
-		#//// historical overwrite is what made two-source lines impossible).
-		#//// Instead, decorate the line with its shopper-facing label and
-		#//// delivery estimate. Feature off: historical overwrite kept as is.
+		# //// Neoffice — multi-warehouse: the line's warehouse is the source the
+		# //// shopper chose — rendering the cart must not overwrite it (that
+		# //// historical overwrite is what made two-source lines impossible).
+		# //// Instead, decorate the line with its shopper-facing label and
+		# //// delivery estimate. Feature off: historical overwrite kept as is.
 		from webshop.webshop.multi_warehouse import sources as mw_sources
 
 		if mw_sources.is_enabled():
@@ -1942,9 +1942,9 @@ def decorate_quotation_doc(doc):
 				"Website Item", {"item_code": item_code}, "website_warehouse"
 			)
 
-			#//// Neoffice — upstream sets d.warehouse unconditionally. It is now inside the
-			#//// branch above: a line that already carries the warehouse the buyer chose
-			#//// (multi-warehouse) must keep it (5bf2e88a1b, 2026-08-25).
+			# //// Neoffice — upstream sets d.warehouse unconditionally. It is now inside the
+			# //// branch above: a line that already carries the warehouse the buyer chose
+			# //// (multi-warehouse) must keep it (5bf2e88a1b, 2026-08-25).
 			d.warehouse = website_warehouse
 
 	return doc
@@ -1953,9 +1953,9 @@ def _get_cart_quotation(party=None):
 	"""Return the open Quotation of type "Shopping Cart" or make a new one"""
 	if not party:
 		party = get_party()
-		#//// Neoffice — added guest branch: upstream returns nothing without a party, so an
-		#//// anonymous visitor had no cart at all. The quotation is keyed on the
-		#//// guest_session_id cookie and created on demand (3bc2d836f1, 2025-02-11).
+		# //// Neoffice — added guest branch: upstream returns nothing without a party, so an
+		# //// anonymous visitor had no cart at all. The quotation is keyed on the
+		# //// guest_session_id cookie and created on demand (3bc2d836f1, 2025-02-11).
 		if not party:
 			# For guests, find the last quotation
 			if frappe.session.user == "Guest":
@@ -1999,16 +1999,16 @@ def _get_cart_quotation(party=None):
 
 	if quotation:
 		qdoc = frappe.get_doc("Quotation", quotation[0].name)
-		#//// Neoffice — a cart left open overnight kept yesterday's transaction_date, and
-		#//// ERPNext then refused the invoice with "Due Date cannot be before Posting Date"
-		#//// (f241c2d9c0, 2025-12-12).
+		# //// Neoffice — a cart left open overnight kept yesterday's transaction_date, and
+		# //// ERPNext then refused the invoice with "Due Date cannot be before Posting Date"
+		# //// (f241c2d9c0, 2025-12-12).
 		# Update transaction date if necessary
 		from frappe.utils import today
 		if qdoc.transaction_date != today():
 			qdoc.transaction_date = today()
 	else:
 		company = frappe.db.get_single_value("Webshop Settings", "company")
-		#//// Neoffice — same reason for a freshly created cart.
+		# //// Neoffice — same reason for a freshly created cart.
 		from frappe.utils import today
 		qdoc = frappe.get_doc(
 			{
@@ -2022,19 +2022,19 @@ def _get_cart_quotation(party=None):
 				"docstatus": 0,
 				"__islocal": 1,
 				"party_name": party.name,
-				#//// Neoffice — a cart created today must carry today's date, or ERPNext refuses the
-				#//// invoice later with "Due Date cannot be before Posting Date" (f241c2d9c0,
-				#//// 2025-12-12).
+				# //// Neoffice — a cart created today must carry today's date, or ERPNext refuses the
+				# //// invoice later with "Due Date cannot be before Posting Date" (f241c2d9c0,
+				# //// 2025-12-12).
 				"transaction_date": today()
 			}
 		)
 
-		#//// Neoffice — upstream resolves the contact by `email_id == session user`, which
-		#//// fails whenever the customer's contact carries a different primary e-mail (a
-		#//// company account, an address changed since). We look for ANY contact linked to
-		#//// the Customer, preferring the primary one, and create one if there is none —
-		#//// without a contact the quotation cannot be turned into an invoice (912b84dbf6,
-		#//// 2025-06-25 "Fix bug contact, shipping rules and image mobile").
+		# //// Neoffice — upstream resolves the contact by `email_id == session user`, which
+		# //// fails whenever the customer's contact carries a different primary e-mail (a
+		# //// company account, an address changed since). We look for ANY contact linked to
+		# //// the Customer, preferring the primary one, and create one if there is none —
+		# //// without a contact the quotation cannot be turned into an invoice (912b84dbf6,
+		# //// 2025-06-25 "Fix bug contact, shipping rules and image mobile").
 		# Get contact that belongs to this customer
 		contact_person = None
 		if party.name:
@@ -2081,8 +2081,8 @@ def _get_cart_quotation(party=None):
 
 	return qdoc
 
-#//// Neoffice — blank-line/whitespace only above; the body below adds the currency
-#//// default (see next marker).
+# //// Neoffice — blank-line/whitespace only above; the body below adds the currency
+# //// default (see next marker).
 @frappe.whitelist()
 def update_party(fullname, company_name=None, mobile_no=None, phone=None):
 	party = get_party()
@@ -2090,10 +2090,10 @@ def update_party(fullname, company_name=None, mobile_no=None, phone=None):
 	party.customer_name = company_name or fullname
 	party.customer_type = "Company" if company_name else "Individual"
 	
-	#//// Neoffice — added. A Customer created from the shop had no default_currency, and
-	#//// ERPNext then priced its cart in the wrong currency on a multi-currency company
-	#//// (a0c1c321dc, 2026-08-03 — Webshop Settings carries no currency field, so the
-	#//// company's is used).
+	# //// Neoffice — added. A Customer created from the shop had no default_currency, and
+	# //// ERPNext then priced its cart in the wrong currency on a multi-currency company
+	# //// (a0c1c321dc, 2026-08-03 — Webshop Settings carries no currency field, so the
+	# //// company's is used).
 	# Make sure default_currency is set
 	if not party.get("default_currency"):
 		from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
@@ -2128,8 +2128,8 @@ def apply_cart_settings(party=None, quotation=None):
 	if not quotation:
 		quotation = _get_cart_quotation(party)
 
-	#//// Neoffice — see _get_cart_quotation: a cart older than a day must be re-dated
-	#//// before ERPNext prices it (f241c2d9c0, 2025-12-12).
+	# //// Neoffice — see _get_cart_quotation: a cart older than a day must be re-dated
+	# //// before ERPNext prices it (f241c2d9c0, 2025-12-12).
 	# Update transaction date if necessary
 	from frappe.utils import today
 	if quotation.transaction_date != today():
@@ -2157,10 +2157,10 @@ def apply_cart_settings(party=None, quotation=None):
 
 	set_price_list_and_rate(quotation, cart_settings)
 
-	#//// Neoffice — added. The country can change between two calls (the buyer edits the
-	#//// address); leaving a rule that does not serve the new country made
-	#//// calculate_taxes_and_totals throw in the middle of the checkout (6d4eca593f,
-	#//// 2025-12-12).
+	# //// Neoffice — added. The country can change between two calls (the buyer edits the
+	# //// address); leaving a rule that does not serve the new country made
+	# //// calculate_taxes_and_totals throw in the middle of the checkout (6d4eca593f,
+	# //// 2025-12-12).
 	# Validate shipping rule before calculating taxes
 	# If the current shipping rule is not valid for the shipping address country, clear it
 	if quotation.shipping_rule and quotation.shipping_address_name:
@@ -2172,23 +2172,23 @@ def apply_cart_settings(party=None, quotation=None):
 
 	set_taxes(quotation, cart_settings)
 	
-	#//// Neoffice — points spent are booked as a negative charge line; it has to be
-	#//// (re)applied after set_taxes, which rebuilds the tax table (3bc2d836f1,
-	#//// 2025-02-11).
+	# //// Neoffice — points spent are booked as a negative charge line; it has to be
+	# //// (re)applied after set_taxes, which rebuilds the tax table (3bc2d836f1,
+	# //// 2025-02-11).
 	apply_loyalty_points_tax(quotation)
 
-	#//// Neoffice — added: the shop's terms are attached to every cart so they appear on
-	#//// the order and the invoice (71dffb7b45, 2025-06-26 "add cgv terms and conditions
-	#//// support").
+	# //// Neoffice — added: the shop's terms are attached to every cart so they appear on
+	# //// the order and the invoice (71dffb7b45, 2025-06-26 "add cgv terms and conditions
+	# //// support").
 	# Set terms and conditions from Webshop Settings if it's a new quotation
 	if cart_settings.quotation_terms:
 		quotation_terms = cart_settings.quotation_terms
 		quotation.tc_name = quotation_terms
 		quotation.terms = frappe.db.get_value("Terms and Conditions", quotation_terms, "terms")
 
-	#//// Neoffice — moved to the END of apply_cart_settings (upstream calls it before the
-	#//// taxes). The rule's charge is itself a tax line, so applying it first had it
-	#//// wiped by set_taxes.
+	# //// Neoffice — moved to the END of apply_cart_settings (upstream calls it before the
+	# //// taxes). The rule's charge is itself a tax line, so applying it first had it
+	# //// wiped by set_taxes.
 	_apply_shipping_rule(party, quotation, cart_settings)
 
 def set_price_list_and_rate(quotation, cart_settings):
@@ -2201,10 +2201,10 @@ def set_price_list_and_rate(quotation, cart_settings):
 		quotation.currency
 	) = quotation.plc_conversion_rate = quotation.conversion_rate = None
 	for item in quotation.get("items"):
-		#//// Neoffice — upstream blanks every rate and refetches from the price list. A gift
-		#//// card has no price list entry — its rate IS the face value chosen by the buyer,
-		#//// kept in gift_card_data — so it is skipped here; without this the card fell to
-		#//// zero on the next cart save (3bc2d836f1, 2025-02-11; 0b07bf847e, 2025-07-01).
+		# //// Neoffice — upstream blanks every rate and refetches from the price list. A gift
+		# //// card has no price list entry — its rate IS the face value chosen by the buyer,
+		# //// kept in gift_card_data — so it is skipped here; without this the card fell to
+		# //// zero on the next cart save (3bc2d836f1, 2025-02-11; 0b07bf847e, 2025-07-01).
 		is_gift_card = is_gift_card_item(item.item_code)
 		# Skip price update for gift cards
 		if is_gift_card:
@@ -2233,12 +2233,12 @@ def set_price_list_and_rate(quotation, cart_settings):
 			"selling_price_list", quotation.selling_price_list
 		)
 
-#//// Neoffice — upstream picks the price list from the customer, then the shop
-#//// default. On a bench serving several shops the site being browsed comes first:
-#//// a professional site with its own price list was billing the standard tariff
-#//// (705e78792f, 2026-08-28 "le panier facturait le tarif standard sur un site a
-#//// tarif propre"). The quotation is passed in so a saved cart keeps the list it
-#//// was priced with.
+# //// Neoffice — upstream picks the price list from the customer, then the shop
+# //// default. On a bench serving several shops the site being browsed comes first:
+# //// a professional site with its own price list was billing the standard tariff
+# //// (705e78792f, 2026-08-28 "le panier facturait le tarif standard sur un site a
+# //// tarif propre"). The quotation is passed in so a saved cart keeps the list it
+# //// was priced with.
 def _set_price_list(cart_settings, quotation=None):
 	"""Set price list based on the site being browsed, the customer, or the default"""
 	from erpnext.accounts.party import get_default_price_list
@@ -2246,20 +2246,20 @@ def _set_price_list(cart_settings, quotation=None):
 	party_name = quotation.get("party_name") if quotation else get_party().get("name")
 	selling_price_list = None
 
-	#//// Neoffice multi-site — the price list of the SITE wins.
-	#////
-	#//// The catalogue and the product page already price against the resolved
-	#//// Website Profile (product_data_engine/query.py shadows
-	#//// settings.price_list the same way). The cart did not: it went straight to
-	#//// the customer default, then Webshop Settings.
-	#////
-	#//// So on the B2B domain a customer saw 199.00 in the listing, 199.00 on the
-	#//// product page — and their cart charged 549.00, the standard rate.
-	#//// Measured on osiris with item 6882C006. A shop that shows one price and
-	#//// bills another is the one defect a webshop cannot have.
-	#////
-	#//// Only sites that actually define a price list are affected; everywhere
-	#//// else the historical order below is untouched.
+	# //// Neoffice multi-site — the price list of the SITE wins.
+	# ////
+	# //// The catalogue and the product page already price against the resolved
+	# //// Website Profile (product_data_engine/query.py shadows
+	# //// settings.price_list the same way). The cart did not: it went straight to
+	# //// the customer default, then Webshop Settings.
+	# ////
+	# //// So on the B2B domain a customer saw 199.00 in the listing, 199.00 on the
+	# //// product page — and their cart charged 549.00, the standard rate.
+	# //// Measured on osiris with item 6882C006. A shop that shows one price and
+	# //// bills another is the one defect a webshop cannot have.
+	# ////
+	# //// Only sites that actually define a price list are affected; everywhere
+	# //// else the historical order below is untouched.
 	profile = getattr(frappe.local, "website_profile_doc", None)
 	if profile and profile.get("price_list"):
 		selling_price_list = profile["price_list"]
@@ -2307,15 +2307,15 @@ def set_taxes(quotation, cart_settings):
 	quotation.append_taxes_from_master()
 	quotation.append_taxes_from_item_tax_template()
 	
-#//// Neoffice — added function. ERPNext books loyalty redemption on the invoice only;
-#//// the cart has to show the discount before there is an invoice, so the points are
-#//// carried as a charge line flagged is_loyalty_points_reduction, re-indexed so
-#//// ERPNext's own tax ordering stays valid (3bc2d836f1, 2025-02-11).
-#//// Re-indented with tabs: the function came in with four-space indentation while
-#//// cart.py — upstream included — is tab-indented, so every diff of it fought the
-#//// file. Whitespace only, no behaviour change.
-#//// The expense account is checked before the charge row is built: see the marker
-#//// inside the function.
+# //// Neoffice — added function. ERPNext books loyalty redemption on the invoice only;
+# //// the cart has to show the discount before there is an invoice, so the points are
+# //// carried as a charge line flagged is_loyalty_points_reduction, re-indexed so
+# //// ERPNext's own tax ordering stays valid (3bc2d836f1, 2025-02-11).
+# //// Re-indented with tabs: the function came in with four-space indentation while
+# //// cart.py — upstream included — is tab-indented, so every diff of it fought the
+# //// file. Whitespace only, no behaviour change.
+# //// The expense account is checked before the charge row is built: see the marker
+# //// inside the function.
 def apply_loyalty_points_tax(quotation):
 	"""Add tax line for loyalty points if necessary"""
 	if quotation.loyalty_points and quotation.loyalty_amount:
@@ -2336,15 +2336,15 @@ def apply_loyalty_points_tax(quotation):
 			if loyalty_program:
 				loyalty_program_doc = frappe.get_doc("Loyalty Program", loyalty_program)
 
-				#//// Neoffice — guard added. expense_account is optional on Loyalty Program but
-				#//// account_head is mandatory on Sales Taxes and Charges, so a programme without
-				#//// one produced a charge row with an empty account: the cart then died on
-				#//// "Account Head is mandatory", which names neither the loyalty programme nor
-				#//// the setting to fix. Stopping here rather than skipping the row is deliberate
-				#//// — both callers reach this line with points ALREADY spent (apply_loyalty_points
-				#//// has written the Loyalty Point Entry, apply_cart_settings replays the row on an
-				#//// existing cart), so dropping it silently would take the discount off the totals
-				#//// while the buyer's points stay burnt.
+				# //// Neoffice — guard added. expense_account is optional on Loyalty Program but
+				# //// account_head is mandatory on Sales Taxes and Charges, so a programme without
+				# //// one produced a charge row with an empty account: the cart then died on
+				# //// "Account Head is mandatory", which names neither the loyalty programme nor
+				# //// the setting to fix. Stopping here rather than skipping the row is deliberate
+				# //// — both callers reach this line with points ALREADY spent (apply_loyalty_points
+				# //// has written the Loyalty Point Entry, apply_cart_settings replays the row on an
+				# //// existing cart), so dropping it silently would take the discount off the totals
+				# //// while the buyer's points stay burnt.
 				if not loyalty_program_doc.expense_account:
 					frappe.throw(
 						_("Loyalty Program {0} has no expense account").format(loyalty_program)
@@ -2362,8 +2362,8 @@ def apply_loyalty_points_tax(quotation):
 				quotation.append("taxes", {
 					"idx": next_idx,
 					"charge_type": "Actual",
-					#//// Neoffice — translated: this description is printed on the cart, the
-					#//// order and the invoice.
+					# //// Neoffice — translated: this description is printed on the cart, the
+					# //// order and the invoice.
 					"description": _("Loyalty program"),
 					"account_head": loyalty_program_doc.expense_account,
 					"cost_center": loyalty_program_doc.cost_center,
@@ -2381,12 +2381,12 @@ def get_party(user=None, ignore_permissions=False):
 	if not user:
 		user = frappe.session.user
 
-	#//// Neoffice — added. Upstream has no notion of a guest party. When
-	#//// enable_guest_cart is on, the shop's configured guest_customer stands in, so the
-	#//// cart, the taxes and the shipping rules work exactly as for a signed-in buyer
-	#//// (3bc2d836f1, 2025-02-11). Returns None — never a real Customer — when the shop
-	#//// does not allow guest carts (04fab0f907, 2026-08-28: a professional site refuses
-	#//// an anonymous order).
+	# //// Neoffice — added. Upstream has no notion of a guest party. When
+	# //// enable_guest_cart is on, the shop's configured guest_customer stands in, so the
+	# //// cart, the taxes and the shipping rules work exactly as for a signed-in buyer
+	# //// (3bc2d836f1, 2025-02-11). Returns None — never a real Customer — when the shop
+	# //// does not allow guest carts (04fab0f907, 2026-08-28: a professional site refuses
+	# //// an anonymous order).
 	if user == "Guest":
 		# Check if guest cart is enabled
 		if frappe.db.get_single_value("Webshop Settings", "enable_guest_cart"):
@@ -2399,11 +2399,11 @@ def get_party(user=None, ignore_permissions=False):
 				})
 		return None
 
-	#//// Neoffice — added, and it is the FIRST lookup on purpose. Upstream resolves the
-	#//// party through the Contact, which picks the wrong Customer whenever a person is
-	#//// a contact of several (a company and their own account): the buyer then saw
-	#//// someone else's cart. Portal User is the authoritative link (0ef0381e9c,
-	#//// 2025-11-25).
+	# //// Neoffice — added, and it is the FIRST lookup on purpose. Upstream resolves the
+	# //// party through the Contact, which picks the wrong Customer whenever a person is
+	# //// a contact of several (a company and their own account): the buyer then saw
+	# //// someone else's cart. Portal User is the authoritative link (0ef0381e9c,
+	# //// 2025-11-25).
 	# Check if the user already exists as a Portal User
 	# This is the MOST RELIABLE way to find the correct customer
 	existing_customers = frappe.db.sql("""
@@ -2428,19 +2428,19 @@ def get_party(user=None, ignore_permissions=False):
 	party = None
 
 	if contact_name:
-		#//// Neoffice — ignore_permissions is a caller-supplied flag (added with the
-		#//// multi-warehouse and follow-up jobs, which run without a session). The cached
-		#//// read is only taken on that path; a web request still goes through get_doc and
-		#//// its permission check.
+		# //// Neoffice — ignore_permissions is a caller-supplied flag (added with the
+		# //// multi-warehouse and follow-up jobs, which run without a session). The cached
+		# //// read is only taken on that path; a web request still goes through get_doc and
+		# //// its permission check.
 		contact = frappe.get_cached_doc("Contact", contact_name) if ignore_permissions else frappe.get_doc("Contact", contact_name)
 		if contact.links:
 			party_doctype = contact.links[0].link_doctype
 			party = contact.links[0].link_name
 
-	#//// Neoffice — third fallback: a Contact whose e-mail matches but which is not
-	#//// linked to the session user. Without it, a customer whose portal user was
-	#//// created after their contact had no party at all and could not check out
-	#//// (0ef0381e9c, 2025-11-25).
+	# //// Neoffice — third fallback: a Contact whose e-mail matches but which is not
+	# //// linked to the session user. Without it, a customer whose portal user was
+	# //// created after their contact had no party at all and could not check out
+	# //// (0ef0381e9c, 2025-11-25).
 	# Try another method: search for customer by email in contact
 	if not party:
 		# Search for customer with matching email
@@ -2468,7 +2468,7 @@ def get_party(user=None, ignore_permissions=False):
 		debtors_account = get_debtors_account(cart_settings)
 
 	if party:
-		#//// Neoffice — same caller-supplied flag as above; the web path is unchanged.
+		# //// Neoffice — same caller-supplied flag as above; the web path is unchanged.
 		doc = frappe.get_cached_doc(party_doctype, party) if ignore_permissions else frappe.get_doc(party_doctype, party)
 		if doc.doctype in ["Customer", "Supplier"]:
 			if not frappe.db.exists("Portal User", {"parent": doc.name, "user": user}):
@@ -2477,10 +2477,10 @@ def get_party(user=None, ignore_permissions=False):
 				doc.flags.ignore_mandatory = True
 				doc.save()
 
-			#//// Neoffice — added. Frappe's Address permissions are owner-based for a Website
-			#//// User: an address created by the shop under another owner was invisible to the
-			#//// customer it belongs to, and the checkout showed an empty address book
-			#//// (4c9773bf93, 2026-01-03).
+			# //// Neoffice — added. Frappe's Address permissions are owner-based for a Website
+			# //// User: an address created by the shop under another owner was invisible to the
+			# //// customer it belongs to, and the checkout showed an empty address book
+			# //// (4c9773bf93, 2026-01-03).
 			# Update address ownership if needed
 			addresses = frappe.get_all("Dynamic Link", 
 				filters={
@@ -2507,23 +2507,23 @@ def get_party(user=None, ignore_permissions=False):
 
 		return doc
 
-	#//// Neoffice — upstream: `elif not frappe.db.exists("Portal User", ...)`, chained to
-	#//// the contact lookup. Made a separate `if` so that the three lookups above all get
-	#//// a chance before a SECOND customer is created for the same person — the
-	#//// duplicate-customer bug (0ef0381e9c, 2025-11-25).
+	# //// Neoffice — upstream: `elif not frappe.db.exists("Portal User", ...)`, chained to
+	# //// the contact lookup. Made a separate `if` so that the three lookups above all get
+	# //// a chance before a SECOND customer is created for the same person — the
+	# //// duplicate-customer bug (0ef0381e9c, 2025-11-25).
 	# Only create new customer if we really can't find one
 	if not frappe.db.exists("Portal User", {"user": user}):
 		if not cart_settings.enabled:
 			frappe.local.flags.redirect_location = "/contact"
 			raise frappe.Redirect
 		customer = frappe.new_doc("Customer")
-		#//// Neoffice — added block, down to customer.update below. ▼▼▼ Upstream creates the
-		#//// Customer from get_fullname() alone. We also: split a one-word full name into
-		#//// first/last (ERPNext refuses a customer with an empty last name on some
-		#//// settings), prepare the primary contact, grant the Customer role — without it the
-		#//// buyer cannot read their own orders in the portal — and read the company's
-		#//// default currency. The TimestampMismatchError retry is real: the same request can
-		#//// save the User twice (0ef0381e9c / 74403819fc, 2025-11). ▲▲▲
+		# //// Neoffice — added block, down to customer.update below. ▼▼▼ Upstream creates the
+		# //// Customer from get_fullname() alone. We also: split a one-word full name into
+		# //// first/last (ERPNext refuses a customer with an empty last name on some
+		# //// settings), prepare the primary contact, grant the Customer role — without it the
+		# //// buyer cannot read their own orders in the portal — and read the company's
+		# //// default currency. The TimestampMismatchError retry is real: the same request can
+		# //// save the User twice (0ef0381e9c / 74403819fc, 2025-11). ▲▲▲
 		user_doc = frappe.get_doc("User", user)
 		fullname = get_fullname(user)
 		# If user has no last_name, try to deduce it
@@ -2531,12 +2531,12 @@ def get_party(user=None, ignore_permissions=False):
 			fullname_parts = fullname.split(' ', 1)  # Split into two parts at the first space
 			user_doc.first_name = fullname_parts[0]
 			user_doc.last_name = fullname_parts[1] if len(fullname_parts) > 1 else ""
-			#//// Neoffice — ignore_permissions, like every other write of this block
-			#//// (the roles save below, the Customer insert, the Contact insert).
-			#//// get_party() runs AS THE SHOPPER, a Website User with no write right on
-			#//// User: without it, the first product page opened by a customer whose
-			#//// account has no last_name died on PermissionError. Upstream never had
-			#//// the problem because it does not touch the User doc here at all.
+			# //// Neoffice — ignore_permissions, like every other write of this block
+			# //// (the roles save below, the Customer insert, the Contact insert).
+			# //// get_party() runs AS THE SHOPPER, a Website User with no write right on
+			# //// User: without it, the first product page opened by a customer whose
+			# //// account has no last_name died on PermissionError. Upstream never had
+			# //// the problem because it does not touch the User doc here at all.
 			user_doc.save(ignore_permissions=True)
 		
 		# Create contact with user information only if email is valid
@@ -2590,13 +2590,13 @@ def get_party(user=None, ignore_permissions=False):
 
 		customer.update(
 			{
-				#//// Neoffice — upstream uses get_fullname(), which returns the e-mail when the User
-				#//// has no name, so shops ended up with customers named "jane@example.com".
+				# //// Neoffice — upstream uses get_fullname(), which returns the e-mail when the User
+				# //// has no name, so shops ended up with customers named "jane@example.com".
 				"customer_name": f"{user_doc.first_name} {user_doc.last_name}".strip(),
 				"customer_type": "Individual",
 				"customer_group": get_shopping_cart_settings().default_customer_group,
 				"territory": get_root_of("Territory"),
-				#//// Neoffice — see above: without it a multi-currency company priced the cart wrong.
+				# //// Neoffice — see above: without it a multi-currency company priced the cart wrong.
 				"default_currency": company_currency
 			}
 		)
@@ -2613,11 +2613,11 @@ def get_party(user=None, ignore_permissions=False):
 			)
 
 		customer.flags.ignore_mandatory = True
-		#//// Neoffice — upstream inserts the customer and the contact bare. Wrapped because
-		#//// the insert can legitimately fail (a mandatory custom field on Customer added by
-		#//// another app): the buyer then falls back to the shop's guest_customer and keeps
-		#//// shopping instead of meeting a traceback. Errors are logged with the two-argument
-		#//// form (title, message).
+		# //// Neoffice — upstream inserts the customer and the contact bare. Wrapped because
+		# //// the insert can legitimately fail (a mandatory custom field on Customer added by
+		# //// another app): the buyer then falls back to the shop's guest_customer and keeps
+		# //// shopping instead of meeting a traceback. Errors are logged with the two-argument
+		# //// form (title, message).
 		try:
 			customer.insert(ignore_permissions=True)
 
@@ -2696,7 +2696,7 @@ def get_debtors_account(cart_settings):
 	else:
 		return debtors_account_name
 
-#//// Neoffice — signature re-indented to tabs; the guest handling below is ours.
+# //// Neoffice — signature re-indented to tabs; the guest handling below is ours.
 def get_address_docs(
 	doctype=None,
 	txt=None,
@@ -2711,9 +2711,9 @@ def get_address_docs(
 	if not party:
 		return []
 
-	#//// Neoffice — added. For a guest the party is a plain dict (see get_party), which
-	#//// has no .doctype/.name — upstream's filters raised an AttributeError on the very
-	#//// first cart render of an anonymous visitor.
+	# //// Neoffice — added. For a guest the party is a plain dict (see get_party), which
+	# //// has no .doctype/.name — upstream's filters raised an AttributeError on the very
+	# //// first cart render of an anonymous visitor.
 	# Handle guest customers
 	if frappe.session.user == "Guest" and isinstance(party, dict):
 		# For guests with a dict party, we need to handle it differently
@@ -2737,10 +2737,10 @@ def get_address_docs(
 	out = []
 
 	for a in address_names:
-		#//// Neoffice — added. get_address_display reads the Address; a Website User has no
-		#//// permission on the addresses of the shop's guest customer, and one such address
-		#//// made the whole cart page 403. An address the caller may not read is skipped,
-		#//// not fatal.
+		# //// Neoffice — added. get_address_display reads the Address; a Website User has no
+		# //// permission on the addresses of the shop's guest customer, and one such address
+		# //// made the whole cart page 403. An address the caller may not read is skipped,
+		# //// not fatal.
 		try:
 			# For guests, we need to bypass permission checks
 			if frappe.session.user == "Guest":
@@ -2770,9 +2770,9 @@ def apply_shipping_rule(shipping_rule):
 
 	return get_cart_quotation(quotation)
 
-#//// Neoffice — added helper (6d4eca593f, 2025-12-12). Upstream never re-checks a
-#//// rule against the address: the buyer picked "Swiss Post", then changed the
-#//// country, and the order failed at the payment step with ERPNext's own error.
+# //// Neoffice — added helper (6d4eca593f, 2025-12-12). Upstream never re-checks a
+# //// rule against the address: the buyer picked "Swiss Post", then changed the
+# //// country, and the order failed at the payment step with ERPNext's own error.
 def _is_shipping_rule_valid_for_country(shipping_rule_name, country):
 	"""Check if a shipping rule is valid for the given country"""
 	if not shipping_rule_name or not country:
@@ -2790,15 +2790,15 @@ def _is_shipping_rule_valid_for_country(shipping_rule_name, country):
 	return len(result) > 0
 
 
-#//// Neoffice — rewritten. ▼▼▼ Upstream auto-selects the first applicable rule and
-#//// applies it. Three differences:
-#////   · a cart made only of gift cards carries no shipping at all — a card is
-#////     e-mailed (3bc2d836f1, 2025-02-11);
-#////   · nothing is auto-selected: the buyer chooses at the checkout step, otherwise
-#////     the cart showed a shipping charge before an address was even known;
-#////   · a rule that raises "not within the range" (weight/value outside its bands)
-#////     is dropped and the cart keeps working, instead of 500-ing the page. Any
-#////     other exception is re-raised. ▲▲▲
+# //// Neoffice — rewritten. ▼▼▼ Upstream auto-selects the first applicable rule and
+# //// applies it. Three differences:
+# ////   · a cart made only of gift cards carries no shipping at all — a card is
+# ////     e-mailed (3bc2d836f1, 2025-02-11);
+# ////   · nothing is auto-selected: the buyer chooses at the checkout step, otherwise
+# ////     the cart showed a shipping charge before an address was even known;
+# ////   · a rule that raises "not within the range" (weight/value outside its bands)
+# ////     is dropped and the cart keeps working, instead of 500-ing the page. Any
+# ////     other exception is re-raised. ▲▲▲
 def _apply_shipping_rule(party=None, quotation=None, cart_settings=None):
 	# Check if all items are gift cards
 	all_items_are_gift_cards = True
@@ -2813,17 +2813,17 @@ def _apply_shipping_rule(party=None, quotation=None, cart_settings=None):
 		quotation.run_method("calculate_taxes_and_totals")
 		return
 
-	#//// Neoffice — see the block above.
+	# //// Neoffice — see the block above.
 	# Don't auto-apply shipping rules on initial load
 	# Let the user select them on checkout
 	if not quotation.shipping_rule:
 		# Just calculate totals without shipping
-		#//// Neoffice — nothing is auto-selected: the buyer picks a shipping method at the
-		#//// checkout step (see the block marker on _apply_shipping_rule above).
+		# //// Neoffice — nothing is auto-selected: the buyer picks a shipping method at the
+		# //// checkout step (see the block marker on _apply_shipping_rule above).
 		quotation.run_method("calculate_taxes_and_totals")
 		return
 
-	#//// Neoffice — see the block above (a rule out of range must not break the cart).
+	# //// Neoffice — see the block above (a rule out of range must not break the cart).
 	if quotation.shipping_rule:
 		try:
 			quotation.run_method("apply_shipping_rule")
@@ -2847,17 +2847,17 @@ def get_applicable_shipping_rules(party=None, quotation=None):
 		# we need this in sorted order as per the position of the rule in the settings page
 		return [[rule, rule] for rule in shipping_rules]
 
-#//// Neoffice — added helpers (no upstream equivalent), used by get_shipping_rules
-#//// below to keep an inapplicable rule off the checkout. See the marker there.
+# //// Neoffice — added helpers (no upstream equivalent), used by get_shipping_rules
+# //// below to keep an inapplicable rule off the checkout. See the marker there.
 def _get_cart_net_weight(quotation):
 	"""Total net weight of the cart, in the company's weight unit."""
 	total_weight = flt(quotation.get("total_net_weight"))
 	if total_weight:
 		return total_weight
 
-	#//// total_net_weight is only filled once calculate_taxes_and_totals has run over
-	#//// rows that carry a weight; a cart read straight from the database may have
-	#//// neither, so the weight is rebuilt from the lines and, failing that, from the Item.
+	# //// total_net_weight is only filled once calculate_taxes_and_totals has run over
+	# //// rows that carry a weight; a cart read straight from the database may have
+	# //// neither, so the weight is rebuilt from the lines and, failing that, from the Item.
 	for item in (quotation.get("items") or []):
 		if item.get("total_weight"):
 			total_weight += flt(item.total_weight)
@@ -2870,21 +2870,21 @@ def _get_cart_net_weight(quotation):
 	return total_weight
 
 
-#//// Neoffice — added helper (no upstream equivalent). See the marker in
-#//// get_shipping_rules below.
+# //// Neoffice — added helper (no upstream equivalent). See the marker in
+# //// get_shipping_rules below.
 def _shipping_rule_covers_cart(rule_name, quotation):
 	"""Whether this cart falls inside one of the rule's condition bands."""
 	try:
 		rule = frappe.get_cached_doc("Shipping Rule", rule_name)
 
-		#//// A fixed charge has no band: it always applies.
+		# //// A fixed charge has no band: it always applies.
 		if rule.calculate_based_on == "Fixed":
 			return True
 
-		#//// "Multiple Constraints" is our own ERPNext mode: the amount comes out of a 3D
-		#//// packing pass (py3dbp) that is far too expensive to run once per rule while
-		#//// merely listing them. The rule is offered and ShippingRule.apply() has the last
-		#//// word — the same contract as before this filter existed.
+		# //// "Multiple Constraints" is our own ERPNext mode: the amount comes out of a 3D
+		# //// packing pass (py3dbp) that is far too expensive to run once per rule while
+		# //// merely listing them. The rule is offered and ShippingRule.apply() has the last
+		# //// word — the same contract as before this filter existed.
 		if rule.calculate_based_on == "Multiple Constraints":
 			return True
 
@@ -2895,19 +2895,19 @@ def _shipping_rule_covers_cart(rule_name, quotation):
 
 		conditions = rule.get("conditions") or []
 		if not conditions:
-			#//// A Net Total / Net Weight rule with no band cannot price anything: ERPNext
-			#//// throws "No conditions defined for the shipping rule" the moment it is applied.
+			# //// A Net Total / Net Weight rule with no band cannot price anything: ERPNext
+			# //// throws "No conditions defined for the shipping rule" the moment it is applied.
 			return False
 
-		#//// Same comparison as ShippingRule.get_shipping_amount_from_rules(): an empty
-		#//// to_value means "and above".
+		# //// Same comparison as ShippingRule.get_shipping_amount_from_rules(): an empty
+		# //// to_value means "and above".
 		for condition in conditions:
 			if not condition.to_value or (flt(condition.from_value) <= flt(value) <= flt(condition.to_value)):
 				return True
 
 		return False
 	except Exception:
-		#//// Fail open, as before: a rule we cannot read is offered and apply() decides.
+		# //// Fail open, as before: a rule we cannot read is offered and apply() decides.
 		frappe.log_error("Cart: could not check a shipping rule", frappe.get_traceback())
 		return True
 
@@ -2933,17 +2933,17 @@ def get_shipping_rules(quotation=None, cart_settings=None):
 				.where((sr_country.country == country) & (sr.disabled != 1) & (sr.shipping_rule_type == "Selling"))
 			)
 			result = query.run(as_list=True)
-			#//// Neoffice — upstream returns every rule whose country list covers the shipping
-			#//// address, applicable or not, so the buyer picked one at the checkout and only
-			#//// found out at the payment step that it charges nothing / does not cover their
-			#//// cart (6d4eca593f, 2025-12-12). ▼▼▼
-			#//// The filter that commit meant to write never ran: `applicable` was hardcoded to
-			#//// True and the conditions loop was a bare `pass`, so every rule came back and the
-			#//// cart weight was computed for nothing. It is implemented for real here — a rule
-			#//// is offered only when the cart falls inside one of its Shipping Rule Condition
-			#//// bands, read on the axis the rule itself declares (calculate_based_on), with the
-			#//// same comparison ShippingRule.get_shipping_amount_from_rules() uses, so what the
-			#//// checkout offers is what will actually apply. ▲▲▲
+			# //// Neoffice — upstream returns every rule whose country list covers the shipping
+			# //// address, applicable or not, so the buyer picked one at the checkout and only
+			# //// found out at the payment step that it charges nothing / does not cover their
+			# //// cart (6d4eca593f, 2025-12-12). ▼▼▼
+			# //// The filter that commit meant to write never ran: `applicable` was hardcoded to
+			# //// True and the conditions loop was a bare `pass`, so every rule came back and the
+			# //// cart weight was computed for nothing. It is implemented for real here — a rule
+			# //// is offered only when the cart falls inside one of its Shipping Rule Condition
+			# //// bands, read on the axis the rule itself declares (calculate_based_on), with the
+			# //// same comparison ShippingRule.get_shipping_amount_from_rules() uses, so what the
+			# //// checkout offers is what will actually apply. ▲▲▲
 			all_shipping_rules = [x[0] for x in result]
 			shipping_rules = [
 				rule_name for rule_name in all_shipping_rules
@@ -2971,10 +2971,10 @@ def show_terms(doc):
 	return doc.tc_name
 
 @frappe.whitelist(allow_guest=True)
-#//// Neoffice — added endpoint, and it REPLACES upstream's apply_coupon_code /
-#//// remove_coupon_code pair at this position (ours live further down, returning the
-#//// updated quotation). The checkout needs the customer type and name to decide
-#//// between the private and the company form (48e2708353, 2025-03-13).
+# //// Neoffice — added endpoint, and it REPLACES upstream's apply_coupon_code /
+# //// remove_coupon_code pair at this position (ours live further down, returning the
+# //// updated quotation). The checkout needs the customer type and name to decide
+# //// between the private and the company form (48e2708353, 2025-03-13).
 def get_customer_info():
 	"""Get customer information including customer type and name from the current quotation"""
 	try:
@@ -2992,34 +2992,34 @@ def get_customer_info():
 		return None
 
 
-#//// Neoffice — added endpoint: the buyer edits their name / individual-vs-company on
-#//// the checkout (48e2708353, 2025-03-13). ▼▼▼
-#//// It used to end on rename_doc("Customer", …, force=True, ignore_permissions=True)
-#//// with a name the CALLER supplies, guarded only by the quotation being the caller's
-#//// own cart. A portal user could therefore rename their Customer record to anything:
-#//// force=True drops the doctype's allow_rename check and the permission check, and a
-#//// Customer rename cascades through every document that links it — quotations, orders,
-#//// invoices, payments, GL entries — plus its Contacts, Addresses and Portal Users.
-#//// Renaming is a desk operation, never a checkout one.
-#//// What the checkout actually needs is the DISPLAYED name, which is `customer_name`:
-#//// ERPNext keeps `name` and `customer_name` apart on purpose (editing a customer in
-#//// the desk changes customer_name and leaves the record id alone), the portal reads
-#//// doc.customer_name everywhere (order.html, checkout.html), and get_customer_info()
-#//// below returns customer_name too. So the field is written, the address titles that
-#//// display it are refreshed, the cart quotation's own fetched copy is refreshed — and
-#//// no record is renamed. ▲▲▲
+# //// Neoffice — added endpoint: the buyer edits their name / individual-vs-company on
+# //// the checkout (48e2708353, 2025-03-13). ▼▼▼
+# //// It used to end on rename_doc("Customer", …, force=True, ignore_permissions=True)
+# //// with a name the CALLER supplies, guarded only by the quotation being the caller's
+# //// own cart. A portal user could therefore rename their Customer record to anything:
+# //// force=True drops the doctype's allow_rename check and the permission check, and a
+# //// Customer rename cascades through every document that links it — quotations, orders,
+# //// invoices, payments, GL entries — plus its Contacts, Addresses and Portal Users.
+# //// Renaming is a desk operation, never a checkout one.
+# //// What the checkout actually needs is the DISPLAYED name, which is `customer_name`:
+# //// ERPNext keeps `name` and `customer_name` apart on purpose (editing a customer in
+# //// the desk changes customer_name and leaves the record id alone), the portal reads
+# //// doc.customer_name everywhere (order.html, checkout.html), and get_customer_info()
+# //// below returns customer_name too. So the field is written, the address titles that
+# //// display it are refreshed, the cart quotation's own fetched copy is refreshed — and
+# //// no record is renamed. ▲▲▲
 @frappe.whitelist()
 def update_customer_info(customer_name=None, customer_type=None):
 	"""Update customer information and related addresses"""
 	try:
 		quotation = get_cart_quotation().get('doc')
 		if not quotation or not quotation.party_name:
-			#//// Neoffice — the checkout shows this message; it has to be translated.
+			# //// Neoffice — the checkout shows this message; it has to be translated.
 			return {"success": False, "message": _("No quotation or customer found")}
 
 		customer_doc = frappe.get_doc("Customer", quotation.party_name)
-		#//// Neoffice — kept to tell whether the displayed name really changed, since the
-		#//// record is no longer renamed (see the block marker above).
+		# //// Neoffice — kept to tell whether the displayed name really changed, since the
+		# //// record is no longer renamed (see the block marker above).
 		previous_customer_name = customer_doc.customer_name
 
 		# Update customer fields if provided
@@ -3037,10 +3037,10 @@ def update_customer_info(customer_name=None, customer_type=None):
 
 		customer_doc.save(ignore_permissions=True)
 
-		#//// Neoffice — the displayed name changed: refresh what copies it. The addresses
-		#//// carry it in their title, and the cart quotation holds a fetched copy that the
-		#//// order page prints — it would otherwise stay stale until the next save. See the
-		#//// block marker above: the Customer record itself is NOT renamed.
+		# //// Neoffice — the displayed name changed: refresh what copies it. The addresses
+		# //// carry it in their title, and the cart quotation holds a fetched copy that the
+		# //// order page prints — it would otherwise stay stale until the next save. See the
+		# //// block marker above: the Customer record itself is NOT renamed.
 		if customer_name and customer_name != previous_customer_name:
 			for address_name in (quotation.customer_address, quotation.shipping_address_name):
 				if address_name:
@@ -3053,42 +3053,42 @@ def update_customer_info(customer_name=None, customer_type=None):
 		frappe.db.commit()
 		return {
 			"success": True,
-			#//// Neoffice — translated: the checkout surfaces this string.
+			# //// Neoffice — translated: the checkout surfaces this string.
 			"message": _("Customer information updated successfully")
 		}
 	except Exception as e:
 		frappe.db.rollback()
-		#//// Neoffice — the failure is logged with its traceback and the browser gets a
-		#//// generic sentence: str(e) hands a raw exception message to the shop's visitors.
+		# //// Neoffice — the failure is logged with its traceback and the browser gets a
+		# //// generic sentence: str(e) hands a raw exception message to the shop's visitors.
 		frappe.log_error("Cart: customer update failed", frappe.get_traceback())
-		#//// Neoffice — one generic translated sentence for the browser, never str(e).
+		# //// Neoffice — one generic translated sentence for the browser, never str(e).
 		return {
 			"success": False,
 			"message": _("Could not update the customer details")
 		}
 
-#//// Neoffice — added endpoint: the checkout writes the contact (name, phone,
-#//// company) back onto the customer's Contact, which upstream only lets the desk do
-#//// (48e2708353, 2025-03-13; is_primary_mobile_no rather than is_primary_phone,
-#//// 74403819fc, 2025-11-27 — a mobile number written to the phone field never showed
-#//// on the portal).
+# //// Neoffice — added endpoint: the checkout writes the contact (name, phone,
+# //// company) back onto the customer's Contact, which upstream only lets the desk do
+# //// (48e2708353, 2025-03-13; is_primary_mobile_no rather than is_primary_phone,
+# //// 74403819fc, 2025-11-27 — a mobile number written to the phone field never showed
+# //// on the portal).
 @frappe.whitelist()
 def update_contact_info(first_name, last_name, email=None, phone=None, company_name=None):
 	"""Update contact information from checkout page"""
 	if not frappe.session.user:
-		#//// Neoffice — translated: every message of this endpoint is shown by the checkout.
+		# //// Neoffice — translated: every message of this endpoint is shown by the checkout.
 		return {
 			"success": False,
 			"message": _("User not logged in")
 		}
 
-	#//// Neoffice — same contract as update_customer_info above: the whole body is
-	#//// wrapped so the checkout always gets the success/message shape back.
+	# //// Neoffice — same contract as update_customer_info above: the whole body is
+	# //// wrapped so the checkout always gets the success/message shape back.
 	try:
 		# Get current quotation
 		quotation = get_cart_quotation().get('doc')
 		if not quotation:
-			#//// Neoffice — translated, see the guard at the top of this endpoint.
+			# //// Neoffice — translated, see the guard at the top of this endpoint.
 			return {
 				"success": False,
 				"message": _("No active quotation found")
@@ -3170,46 +3170,46 @@ def update_contact_info(first_name, last_name, email=None, phone=None, company_n
 				contact.phone_nos[0].is_primary_mobile_no = 1
 				contact.phone_nos[0].is_primary_phone = 0
 
-		#//// Neoffice — the contact written from the checkout also carries the billing
-		#//// address and is saved with ignore_mandatory, because a shop's Contact often
-		#//// has mandatory custom fields the buyer is never shown; the quotation is then
-		#//// re-pointed at it, otherwise the order kept a contact that no longer matches
-		#//// what the buyer typed (48e2708353, 2025-03-13; 74403819fc, 2025-11-27).
+		# //// Neoffice — the contact written from the checkout also carries the billing
+		# //// address and is saved with ignore_mandatory, because a shop's Contact often
+		# //// has mandatory custom fields the buyer is never shown; the quotation is then
+		# //// re-pointed at it, otherwise the order kept a contact that no longer matches
+		# //// what the buyer typed (48e2708353, 2025-03-13; 74403819fc, 2025-11-27).
 		# Set billing address
 		if quotation.customer_address:
 			contact.address = quotation.customer_address
 
-		#//// Neoffice — ignore_mandatory: a shop's Contact often carries mandatory custom
-		#//// fields the buyer is never shown, and the save then failed silently.
+		# //// Neoffice — ignore_mandatory: a shop's Contact often carries mandatory custom
+		# //// fields the buyer is never shown, and the save then failed silently.
 		contact.flags.ignore_mandatory = True
 		contact.save(ignore_permissions=True)
 
-		#//// Neoffice — the quotation is re-pointed at the contact just written, otherwise
-		#//// the order kept a contact that no longer matches what the buyer typed.
+		# //// Neoffice — the quotation is re-pointed at the contact just written, otherwise
+		# //// the order kept a contact that no longer matches what the buyer typed.
 		# Update quotation's contact_person
 		quotation.contact_person = contact.name
 		quotation.save(ignore_permissions=True)
 
-		#//// Neoffice — the checkout reads this shape (success/message) rather than a
-		#//// document; see update_customer_info above. The message is translated because the
-		#//// checkout prints it.
+		# //// Neoffice — the checkout reads this shape (success/message) rather than a
+		# //// document; see update_customer_info above. The message is translated because the
+		# //// checkout prints it.
 		return {
 			"success": True,
 			"message": _("Contact information updated successfully")
 		}
 
-	#//// Neoffice — the checkout must not break on a contact it could not save: the
-	#//// failure is reported in the same success/message shape and the buyer keeps
-	#//// going (48e2708353, 2025-03-13). ▼▼▼
-	#//// It used to return str(e) and log nothing: the shop's visitors were shown a raw
-	#//// exception message (a mandatory field name, a doctype, a SQL fragment) while the
-	#//// only trace of the failure — the traceback — was thrown away, so nobody could tell
-	#//// afterwards WHY a checkout had failed. The traceback now goes to Error Log with the
-	#//// two-argument form (title ≤ 140 chars, message), and the buyer gets one translated
-	#//// sentence. The JSON shape the checkout reads is unchanged. ▲▲▲
+	# //// Neoffice — the checkout must not break on a contact it could not save: the
+	# //// failure is reported in the same success/message shape and the buyer keeps
+	# //// going (48e2708353, 2025-03-13). ▼▼▼
+	# //// It used to return str(e) and log nothing: the shop's visitors were shown a raw
+	# //// exception message (a mandatory field name, a doctype, a SQL fragment) while the
+	# //// only trace of the failure — the traceback — was thrown away, so nobody could tell
+	# //// afterwards WHY a checkout had failed. The traceback now goes to Error Log with the
+	# //// two-argument form (title ≤ 140 chars, message), and the buyer gets one translated
+	# //// sentence. The JSON shape the checkout reads is unchanged. ▲▲▲
 	except Exception:
 		frappe.log_error("Cart: contact update failed", frappe.get_traceback())
-		#//// Neoffice — one generic translated sentence for the browser, never str(e).
+		# //// Neoffice — one generic translated sentence for the browser, never str(e).
 		return {
 			"success": False,
 			"message": _("Could not update the contact details")
@@ -3223,9 +3223,9 @@ def apply_coupon_code(applied_code, applied_referral_sales_partner):
         frappe.throw(_("Please enter a coupon code"))
 
     coupon_list = frappe.get_all("Coupon Code", filters={"coupon_code": applied_code})
-    #//// Neoffice — the checkout re-applies a coupon it had to remove for a
-    #//// moment (shipping rule, quantity change), and what the quotation holds
-    #//// is the document name, not the code a customer types. Fall back to it.
+    # //// Neoffice — the checkout re-applies a coupon it had to remove for a
+    # //// moment (shipping rule, quantity change), and what the quotation holds
+    # //// is the document name, not the code a customer types. Fall back to it.
     if not coupon_list and frappe.db.exists("Coupon Code", applied_code):
         coupon_list = [frappe._dict(name=applied_code)]
     if not coupon_list:
@@ -3342,17 +3342,17 @@ def apply_coupon_code(applied_code, applied_referral_sales_partner):
 
     return quotation
 
-#//// Neoffice — upstream: @frappe.whitelist(). Opened to guests with the guest cart;
-#//// the quotation is resolved from the session, never from an argument. The body
-#//// below also clears the gift-card state (see the marker inside).
+# //// Neoffice — upstream: @frappe.whitelist(). Opened to guests with the guest cart;
+# //// the quotation is resolved from the session, never from an argument. The body
+# //// below also clears the gift-card state (see the marker inside).
 @frappe.whitelist(allow_guest=True)
 def remove_coupon_code():
 	quotation = _get_cart_quotation()
-	#//// Neoffice — upstream's remove_coupon_code clears coupon_code and
-	#//// referral_sales_partner. Ours must also drop the gift-card state (the coupon, its
-	#//// original amount and the discount it applied), otherwise removing a gift card
-	#//// left the discount on the cart and the buyer paid nothing (618eedfdb8,
-	#//// 2025-03-24; 1fe57465ee, 2026-09-03).
+	# //// Neoffice — upstream's remove_coupon_code clears coupon_code and
+	# //// referral_sales_partner. Ours must also drop the gift-card state (the coupon, its
+	# //// original amount and the discount it applied), otherwise removing a gift card
+	# //// left the discount on the cart and the buyer paid nothing (618eedfdb8,
+	# //// 2025-03-24; 1fe57465ee, 2026-09-03).
 	# Clear our temporary coupon code
 	quotation.temp_coupon_code = ""
 	# Clear coupon code
@@ -3368,17 +3368,17 @@ def remove_coupon_code():
 		quotation.base_discount_amount = 0
 	quotation.flags.ignore_permissions = True
 	quotation.save()
-	#//// Neoffice — upstream returns None. The checkout renders the summary from the
-	#//// returned document, so returning nothing left the coupon row on screen after it
-	#//// was removed (b370403e2d, 2026-05-20 "loyalty and coupon endpoints return the
-	#//// updated quotation").
+	# //// Neoffice — upstream returns None. The checkout renders the summary from the
+	# //// returned document, so returning nothing left the coupon row on screen after it
+	# //// was removed (b370403e2d, 2026-05-20 "loyalty and coupon endpoints return the
+	# //// updated quotation").
 	# Return the updated quotation doc so the checkout JS can refresh the
 	# order summary (drop the coupon row).
 	return quotation
 
-#//// Neoffice — added endpoint: re-renders the coupon block after a change, so the
-#//// cart does not reload. allow_guest because the cart page is public; it reads only
-#//// the caller's own quotation.
+# //// Neoffice — added endpoint: re-renders the coupon block after a change, so the
+# //// cart does not reload. allow_guest because the cart page is public; it reads only
+# //// the caller's own quotation.
 @frappe.whitelist(allow_guest=True)
 def get_coupon_html():
 	quotation = _get_cart_quotation()
@@ -3390,11 +3390,11 @@ def get_coupon_html():
 	}
 	return frappe.render_template("templates/includes/coupon_form.html", context)
 
-#//// Neoffice — added endpoint: the loyalty block, with the balance rounded DOWN to a
-#//// multiple of ten because a programme redeems in tens and the buyer was offered a
-#//// number they could not spend (3bc2d836f1, 2025-02-11).
-#//// Re-indented with tabs: it came in with four-space indentation while cart.py —
-#//// upstream included — is tab-indented. Whitespace only, no behaviour change.
+# //// Neoffice — added endpoint: the loyalty block, with the balance rounded DOWN to a
+# //// multiple of ten because a programme redeems in tens and the buyer was offered a
+# //// number they could not spend (3bc2d836f1, 2025-02-11).
+# //// Re-indented with tabs: it came in with four-space indentation while cart.py —
+# //// upstream included — is tab-indented. Whitespace only, no behaviour change.
 @frappe.whitelist(allow_guest=True)
 def get_loyalty_points_html():
 	quotation = _get_cart_quotation()
@@ -3423,7 +3423,7 @@ def get_loyalty_points_html():
 	else:
 		loyalty_points_details = frappe._dict({"loyalty_points": 0})
 
-	#//// Neoffice — see the block marker above; re-indented with tabs, nothing else.
+	# //// Neoffice — see the block marker above; re-indented with tabs, nothing else.
 	# Round loyalty points to nearest 10
 	import math
 	raw_loyalty_points = float(loyalty_points_details.get("loyalty_points", 0))
@@ -3446,12 +3446,12 @@ def get_loyalty_points_html():
 	
 	return frappe.render_template("templates/includes/loyalty_points_form.html", context)
 
-#//// Neoffice — added endpoint (replaces upstream's remove_coupon_code at this
-#//// position). Spends points on the cart: checks the balance, caps the value at the
-#//// cart total, books the negative charge line and writes the Loyalty Point Entry so
-#//// the balance is really held while the order is being paid (3bc2d836f1,
-#//// 2025-02-11). It returns the updated quotation for the same reason as
-#//// remove_coupon_code above (b370403e2d, 2026-05-20).
+# //// Neoffice — added endpoint (replaces upstream's remove_coupon_code at this
+# //// position). Spends points on the cart: checks the balance, caps the value at the
+# //// cart total, books the negative charge line and writes the Loyalty Point Entry so
+# //// the balance is really held while the order is being paid (3bc2d836f1,
+# //// 2025-02-11). It returns the updated quotation for the same reason as
+# //// remove_coupon_code above (b370403e2d, 2026-05-20).
 @frappe.whitelist(allow_guest=True)
 def apply_loyalty_points(points):
 	quotation = _get_cart_quotation()
@@ -3534,22 +3534,22 @@ def apply_loyalty_points(points):
 	quotation.flags.ignore_permissions = True
 	quotation.save()
 
-	#//// Neoffice — see apply_loyalty_points above (b370403e2d, 2026-05-20).
+	# //// Neoffice — see apply_loyalty_points above (b370403e2d, 2026-05-20).
 	# Return the updated quotation doc — the checkout JS feeds it to
 	# updateOrderSummaryFromDoc() to render the loyalty discount row.
 	return quotation
 
-#//// Neoffice — added endpoint: gives the points back, drops the charge line and
-#//// forces a full recalculation — symmetric with apply_loyalty_points, which is the
-#//// part that was missing when the totals kept the discount after the points were
-#//// removed (b370403e2d, 2026-05-20).
+# //// Neoffice — added endpoint: gives the points back, drops the charge line and
+# //// forces a full recalculation — symmetric with apply_loyalty_points, which is the
+# //// part that was missing when the totals kept the discount after the points were
+# //// removed (b370403e2d, 2026-05-20).
 @frappe.whitelist(allow_guest=True)
 def remove_loyalty_points():
 	quotation = _get_cart_quotation()
 	
-	#//// Neoffice — the Loyalty Point Entry written when the points were spent has to be
-	#//// deleted, not just zeroed: it holds the customer's balance down (3bc2d836f1,
-	#//// 2025-02-11).
+	# //// Neoffice — the Loyalty Point Entry written when the points were spent has to be
+	# //// deleted, not just zeroed: it holds the customer's balance down (3bc2d836f1,
+	# //// 2025-02-11).
 	# Delete loyalty point entry if it exists
 	if quotation.loyalty_point_entry:
 		frappe.db.sql("""DELETE FROM `tabLoyalty Point Entry` WHERE name = %s""", quotation.loyalty_point_entry)
@@ -3572,13 +3572,13 @@ def remove_loyalty_points():
 	# loyalty discount — symmetric with apply_loyalty_points above.
 	quotation.calculate_taxes_and_totals()
 
-	#//// Neoffice — saved with ignore_permissions because a guest checkout writes its own
-	#//// cart, and the updated document is returned so the checkout can redraw the
-	#//// summary without a reload (b370403e2d, 2026-05-20).
+	# //// Neoffice — saved with ignore_permissions because a guest checkout writes its own
+	# //// cart, and the updated document is returned so the checkout can redraw the
+	# //// summary without a reload (b370403e2d, 2026-05-20).
 	quotation.flags.ignore_permissions = True
 	quotation.save()
 
-	#//// Neoffice — upstream returns None here too (b370403e2d, 2026-05-20).
+	# //// Neoffice — upstream returns None here too (b370403e2d, 2026-05-20).
 	# Return the updated quotation doc so the checkout JS can refresh the
 	# order summary (drop the loyalty row).
 	return quotation
@@ -3594,10 +3594,10 @@ def is_gift_card_item(item_code):
 		return False
 
 
-#//// Neoffice — added endpoint. The checkout asked "is this a gift card?" one
-#//// item at a time, awaiting each round trip before starting the next: a cart
-#//// of six items meant six chained requests just to decide which step comes
-#//// after the address. One query answers for the whole cart.
+# //// Neoffice — added endpoint. The checkout asked "is this a gift card?" one
+# //// item at a time, awaiting each round trip before starting the next: a cart
+# //// of six items meant six chained requests just to decide which step comes
+# //// after the address. One query answers for the whole cart.
 @frappe.whitelist(allow_guest=True)
 def are_gift_card_items(item_codes):
 	"""Map of item_code -> is_gift_card for several items at once."""
@@ -4033,16 +4033,16 @@ def process_gift_card_split(sales_order, coupon_data):
 		return {"status": "error", "message": f"Error: {str(e)}"}
 
 
-#//// Neoffice — added helper (a9615e2771, 2026-08-03 "retirer un morceau d'un sejour
-#//// emporte le reste, au bon moment"). ▼▼▼
-#//// neoffice_theme's booking module sells a service as one block: the stay, its
-#//// tourist tax, its options. Removing one piece has to take the rest with it — and
-#//// that has to be decided HERE, in the same gesture, because it is right after this
-#//// that webshop chooses whether to delete its draft quotation. Done later, the tax
-#//// is left alone in the cart and the empty quotation survives.
-#//// The import is optional: a shop without the booking module sees no difference.
-#//// (The rationale used to live in the function's docstring, in French; RULE #00 —
-#//// it is fork-divergence prose, so it belongs in the marker.) ▲▲▲
+# //// Neoffice — added helper (a9615e2771, 2026-08-03 "retirer un morceau d'un sejour
+# //// emporte le reste, au bon moment"). ▼▼▼
+# //// neoffice_theme's booking module sells a service as one block: the stay, its
+# //// tourist tax, its options. Removing one piece has to take the rest with it — and
+# //// that has to be decided HERE, in the same gesture, because it is right after this
+# //// that webshop chooses whether to delete its draft quotation. Done later, the tax
+# //// is left alone in the cart and the empty quotation survives.
+# //// The import is optional: a shop without the booking module sees no difference.
+# //// (The rationale used to live in the function's docstring, in French; RULE #00 —
+# //// it is fork-divergence prose, so it belongs in the marker.) ▲▲▲
 def _drop_booking_companions(quotation, removed_item, remaining):
 	"""Return the cart lines that do not survive the removal of a stay."""
 	try:

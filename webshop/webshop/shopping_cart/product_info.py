@@ -2,9 +2,9 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
-#//// Neoffice — added imports: _ for the "from" price prefix and fmt_money/flt for
-#//// the variant price range built below (94a06a2173, 2025-12-05 "display prices for
-#//// template items based on variant prices").
+# //// Neoffice — added imports: _ for the "from" price prefix and fmt_money/flt for
+# //// the variant price range built below (94a06a2173, 2025-12-05 "display prices for
+# //// template items based on variant prices").
 from frappe import _
 from frappe.utils import flt, fmt_money
 
@@ -36,11 +36,11 @@ def get_product_info_for_website(item_code, skip_quotation_creation=False):
 	selling_price_list = (
 		cart_quotation.get("selling_price_list")
 		if cart_quotation
-		#//// Neoffice — upstream falls back to the shop's price list when there is no cart.
-		#//// With the guest cart on, an anonymous visitor must be priced with the list
-		#//// _set_price_list() resolves for the site being browsed, or a multi-site shop
-		#//// showed the standard tariff to guests (b9f319c437, 2025-02-24; 422e3c3c71,
-		#//// 2026-08-28).
+		# //// Neoffice — upstream falls back to the shop's price list when there is no cart.
+		# //// With the guest cart on, an anonymous visitor must be priced with the list
+		# //// _set_price_list() resolves for the site being browsed, or a multi-site shop
+		# //// showed the standard tariff to guests (b9f319c437, 2025-02-24; 422e3c3c71,
+		# //// 2026-08-28).
 		else cart_settings.price_list if not cart_settings.enable_guest_cart
 		else _set_price_list(cart_settings, None)
 	)
@@ -53,11 +53,11 @@ def get_product_info_for_website(item_code, skip_quotation_creation=False):
 		# Show Price if logged in.
 		# If not logged in, check if price is hidden for guest.
 		if not is_guest or not cart_settings.hide_price_for_guest:
-			#//// Neoffice — upstream calls get_price(item_code, ...) flat. Two changes
-			#//// (94a06a2173 / 170cc9d0bb / d23d979933, 2025-12-05): a TEMPLATE has no price of
-			#//// its own, so its card showed nothing — it is now priced from its variants (see
-			#//// get_template_price_from_variants below); and the website_warehouse is passed to
-			#//// get_price so a Pricing Rule scoped to a warehouse actually matches.
+			# //// Neoffice — upstream calls get_price(item_code, ...) flat. Two changes
+			# //// (94a06a2173 / 170cc9d0bb / d23d979933, 2025-12-05): a TEMPLATE has no price of
+			# //// its own, so its card showed nothing — it is now priced from its variants (see
+			# //// get_template_price_from_variants below); and the website_warehouse is passed to
+			# //// get_price so a Pricing Rule scoped to a warehouse actually matches.
 			# Check if item is a template with variants
 			has_variants = frappe.db.get_value("Item", item_code, "has_variants")
 
@@ -66,7 +66,7 @@ def get_product_info_for_website(item_code, skip_quotation_creation=False):
 				"Website Item", {"item_code": item_code}, "website_warehouse"
 			)
 
-			#//// Neoffice — see the marker above (template priced from its variants).
+			# //// Neoffice — see the marker above (template priced from its variants).
 			if has_variants:
 				# Get price from variants for template items
 				price = get_template_price_from_variants(
@@ -117,12 +117,12 @@ def get_product_info_for_website(item_code, skip_quotation_creation=False):
 			)
 			product_info["show_stock_qty"] = show_quantity_in_website()
 
-			#//// Neoffice — multi-warehouse: expose the per-source breakdown
-			#//// (label, qty, lead time) so the product page can render a
-			#//// source selector. Empty when the feature is off or does not
-			#//// apply to this item, and the page falls back to the single
-			#//// badge above. in_stock/stock_qty become the aggregate so the
-			#//// add-to-cart guards keep working across sources.
+			# //// Neoffice — multi-warehouse: expose the per-source breakdown
+			# //// (label, qty, lead time) so the product page can render a
+			# //// source selector. Empty when the feature is off or does not
+			# //// apply to this item, and the page falls back to the single
+			# //// badge above. in_stock/stock_qty become the aggregate so the
+			# //// add-to-cart guards keep working across sources.
 			from webshop.webshop.multi_warehouse.sources import (
 				get_item_warehouse_sources,
 			)
@@ -164,14 +164,14 @@ def set_product_info_for_website(item):
 			item["price_stock_uom"] = ""
 			item["price_sales_uom"] = ""
 
-#//// Neoffice — added, down to the end of the file. ▼▼▼
-#////   · get_website_item_name: the shop's Notification templates print the product
-#////     name; the Item's name is the internal code (c463d159ef, 2025-03-24).
-#////   · get_template_price_from_variants: prices a template from its variants, with
-#////     Pricing Rules applied per variant, and returns a "from X" range when they
-#////     differ. Upstream shows nothing at all on a template's card, which on a shop
-#////     that sells only variants means a catalogue with no prices (94a06a2173 /
-#////     170cc9d0bb, 2025-12-05). ▲▲▲
+# //// Neoffice — added, down to the end of the file. ▼▼▼
+# ////   · get_website_item_name: the shop's Notification templates print the product
+# ////     name; the Item's name is the internal code (c463d159ef, 2025-03-24).
+# ////   · get_template_price_from_variants: prices a template from its variants, with
+# ////     Pricing Rules applied per variant, and returns a "from X" range when they
+# ////     differ. Upstream shows nothing at all on a template's card, which on a shop
+# ////     that sells only variants means a catalogue with no prices (94a06a2173 /
+# ////     170cc9d0bb, 2025-12-05). ▲▲▲
 @frappe.whitelist(allow_guest=True)
 def get_website_item_name(item_code):
 	return frappe.db.get_value("Website Item", {"item_code": item_code}, "item_name")

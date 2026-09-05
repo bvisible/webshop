@@ -456,7 +456,7 @@ def customer_dashboard(data):
 	data.setdefault("transactions", []).append(
 		{"label": _("Webshop emails"), "items": ["Purchase Follow-up Entry", "Abandoned Cart Reminder"]}
 	)
-	#//// Neoffice — a customer's shop-assistant conversations now show under their connections too (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
+	# //// Neoffice — a customer's shop-assistant conversations now show under their connections too (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
 	data["transactions"].append({"label": _("Shop assistant"), "items": ["Shop Assistant Conversation"]})
 	return data
 

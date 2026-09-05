@@ -237,8 +237,8 @@ def format_cart_response(cart_data):
         }
 
 @frappe.whitelist(allow_guest=True)
-#//// Neoffice — multi-warehouse: `warehouse` (stock source of the line) rides
-#//// through this wrapper down to cart.update_cart.
+# //// Neoffice — multi-warehouse: `warehouse` (stock source of the line) rides
+# //// through this wrapper down to cart.update_cart.
 def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty=False, price_list_rate=None, gift_card_data=None, warehouse=None):
     """
     Improved version of the update_cart function that handles errors better and normalizes responses.
@@ -621,9 +621,9 @@ def cart_info_for_template():
         }
 
 @frappe.whitelist(allow_guest=True)
-#//// Neoffice — cross-sell: the checkout summary updates existing rows in
-#//// place; a line that appears or disappears (an offer ticked or unticked at
-#//// the payment step) needs the rows drawn again, server side, like the page.
+# //// Neoffice — cross-sell: the checkout summary updates existing rows in
+# //// place; a line that appears or disappears (an offer ticked or unticked at
+# //// the payment step) needs the rows drawn again, server side, like the page.
 def get_order_summary_items():
     """The checkout summary's item rows, rendered for the session's cart."""
     from webshop.webshop.shopping_cart.cart import _get_cart_quotation, decorate_quotation_doc

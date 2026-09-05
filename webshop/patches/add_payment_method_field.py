@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// Quotation.payment_method: one gateway can carry several methods (a Wallee tile
-#//// per card scheme, TWINT, invoice), so the gateway alone does not say what the
-#//// buyer chose (e4603de9cf, 2025-02-19 "Improved management of payment methods").
+# //// Neoffice — added file (no upstream equivalent).
+# //// Quotation.payment_method: one gateway can carry several methods (a Wallee tile
+# //// per card scheme, TWINT, invoice), so the gateway alone does not say what the
+# //// buyer chose (e4603de9cf, 2025-02-19 "Improved management of payment methods").
 import frappe
 
 def execute():

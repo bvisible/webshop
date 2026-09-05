@@ -110,7 +110,7 @@ def get_discounted_items_query(price_list=None, company=None, customer_group=Non
 	
 	# Build WHERE conditions for Website Item filters
 	where_conditions = ["wi.published = 1"]
-	#//// Neoffice multi-site: scope to the current site
+	# //// Neoffice multi-site: scope to the current site
 	from webshop.webshop.multi_site import site_sql_predicate
 	_site_pred = site_sql_predicate("wi")
 	if _site_pred:
@@ -230,7 +230,7 @@ def get_discounted_items_count(price_list=None, company=None, customer_group=Non
 	
 	# Build WHERE conditions
 	where_conditions = ["wi.published = 1"]
-	#//// Neoffice multi-site: scope to the current site
+	# //// Neoffice multi-site: scope to the current site
 	from webshop.webshop.multi_site import site_sql_predicate
 	_site_pred = site_sql_predicate("wi")
 	if _site_pred:
@@ -325,7 +325,7 @@ def get_items_with_pricing_rule_discount(price_list=None, company=None, customer
 	
 	current_date = nowdate()
 	
-	#//// Neoffice multi-site: scope to the current site
+	# //// Neoffice multi-site: scope to the current site
 	from webshop.webshop.multi_site import site_sql_condition
 	_site_cond = site_sql_condition("wi")
 

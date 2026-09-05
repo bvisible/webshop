@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent). Server side of the PayPal tile:
-#//// creates the Payment Request, guarded by the idempotency token so a double click
-#//// cannot raise two charges (f3f669f6f3, 2025-02-11 "move PayPal payment handling
-#//// to dedicated module"; token 0033eef43d).
+# //// Neoffice — added file (no upstream equivalent). Server side of the PayPal tile:
+# //// creates the Payment Request, guarded by the idempotency token so a double click
+# //// cannot raise two charges (f3f669f6f3, 2025-02-11 "move PayPal payment handling
+# //// to dedicated module"; token 0033eef43d).
 import frappe
 from frappe import _
 

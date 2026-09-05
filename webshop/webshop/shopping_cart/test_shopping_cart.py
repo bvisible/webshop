@@ -181,14 +181,14 @@ class TestShoppingCart(unittest.TestCase):
 			"default_customer_group": "_Test Customer Group",
 			"price_list": "_Test Price List India",
 			"show_price": 1,
-			#//// Neoffice — upstream only checks stock when the order is PLACED
-			#//// (_place_order), so it can add a stockless variant to the cart with
-			#//// the default settings. We check at ADD time too, which is what the
-			#//// setting's own label promises ("Allow items not in stock to be added
-			#//// to cart"): a customer must not fill a basket the shop cannot ship.
-			#//// This test is about publishing a template and ordering a variant that
-			#//// has no Website Item of its own — nothing to do with stock — so it
-			#//// opts out of the guard. The guard itself is pinned by the test below.
+			# //// Neoffice — upstream only checks stock when the order is PLACED
+			# //// (_place_order), so it can add a stockless variant to the cart with
+			# //// the default settings. We check at ADD time too, which is what the
+			# //// setting's own label promises ("Allow items not in stock to be added
+			# //// to cart"): a customer must not fill a basket the shop cannot ship.
+			# //// This test is about publishing a template and ordering a variant that
+			# //// has no Website Item of its own — nothing to do with stock — so it
+			# //// opts out of the guard. The guard itself is pinned by the test below.
 			"allow_items_not_in_stock": 1,
 		},
 	)
@@ -197,7 +197,7 @@ class TestShoppingCart(unittest.TestCase):
 		from erpnext.controllers.item_variant import create_variant
 		from erpnext.stock.doctype.item.test_item import make_item
 
-		#//// Neoffice — reset the per-request settings cache before exercising the opt-out (3b14c6b8c "test(webshop): align the upstream suite with the behaviour this fork wants"): the @change_settings decorator above only writes the Webshop Settings doc, not this cache.
+		# //// Neoffice — reset the per-request settings cache before exercising the opt-out (3b14c6b8c "test(webshop): align the upstream suite with the behaviour this fork wants"): the @change_settings decorator above only writes the Webshop Settings doc, not this cache.
 		# the settings doc is cached per request; the decorator above only wrote it
 		frappe.local.shopping_cart_settings = None
 
@@ -233,12 +233,12 @@ class TestShoppingCart(unittest.TestCase):
 			"allow_items_not_in_stock": 0,
 		},
 	)
-	#//// Neoffice — added test, the counterpart of the opt-out in
-	#//// test_add_item_variant_without_web_item_to_cart above. Upstream checks stock
-	#//// only when the order is PLACED, so nothing upstream covers this guard.
-	#//// Both directions are asserted: refused while the shop forbids it, accepted
-	#//// as soon as the shop allows it — otherwise a cart that refused EVERYTHING
-	#//// would pass the first half just as well.
+	# //// Neoffice — added test, the counterpart of the opt-out in
+	# //// test_add_item_variant_without_web_item_to_cart above. Upstream checks stock
+	# //// only when the order is PLACED, so nothing upstream covers this guard.
+	# //// Both directions are asserted: refused while the shop forbids it, accepted
+	# //// as soon as the shop allows it — otherwise a cart that refused EVERYTHING
+	# //// would pass the first half just as well.
 	def test_out_of_stock_item_is_refused_by_the_cart(self):
 		"""A stock item with nothing on the shelf cannot be put in the cart."""
 		from erpnext.stock.doctype.item.test_item import make_item
@@ -283,10 +283,10 @@ class TestShoppingCart(unittest.TestCase):
 
 		self.assertEqual(quote_doctstatus, 1)
 
-	#//// Neoffice — added test (44178504a1, 2025-11-25). Locks the fix of 0ef0381e9c: a
-	#//// Customer created from the shop must come out with customer_primary_contact set
-	#//// and the Contact flagged primary/billing — without it the portal showed the
-	#//// buyer no contact and ERPNext could not invoice the order.
+	# //// Neoffice — added test (44178504a1, 2025-11-25). Locks the fix of 0ef0381e9c: a
+	# //// Customer created from the shop must come out with customer_primary_contact set
+	# //// and the Contact flagged primary/billing — without it the portal showed the
+	# //// buyer no contact and ERPNext could not invoice the order.
 	def test_new_customer_has_primary_contact(self):
 		"""Test that a new customer created from webshop has primary contact set correctly."""
 		# Create a new user that doesn't have a customer yet

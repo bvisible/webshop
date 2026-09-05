@@ -1,12 +1,12 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// Covers the two endpoints the checkout gained during the 2026-08 reliability
-#//// pass: the address book behind the address picker, and the batched gift-card
-#//// lookup that replaced an N+1 chain of calls.
-#////
-#//// These tests call the endpoints through a real portal session (User ->
-#//// Portal User -> Customer, the chain get_party resolves), never a local copy
-#//// of their logic: a test that re-implements what it checks passes even when
-#//// the endpoint is broken.
+# //// Neoffice — added file (no upstream equivalent).
+# //// Covers the two endpoints the checkout gained during the 2026-08 reliability
+# //// pass: the address book behind the address picker, and the batched gift-card
+# //// lookup that replaced an N+1 chain of calls.
+# ////
+# //// These tests call the endpoints through a real portal session (User ->
+# //// Portal User -> Customer, the chain get_party resolves), never a local copy
+# //// of their logic: a test that re-implements what it checks passes even when
+# //// the endpoint is broken.
 
 import frappe
 from frappe.tests.utils import FrappeTestCase

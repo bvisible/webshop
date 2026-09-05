@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent). Clears the website-item cache of
-#//// a bundle and of its components when the bundle changes, since the product page
-#//// now renders the bundle's contents (4a5c209e89, 2025-06-19).
+# //// Neoffice — added file (no upstream equivalent). Clears the website-item cache of
+# //// a bundle and of its components when the bundle changes, since the product page
+# //// now renders the bundle's contents (4a5c209e89, 2025-06-19).
 import frappe
 from frappe.utils import cint
 from webshop.webshop.doctype.website_item.website_item import invalidate_cache_for_web_item

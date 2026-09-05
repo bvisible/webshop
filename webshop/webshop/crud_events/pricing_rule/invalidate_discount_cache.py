@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent). Same as the Item Price hook, for
-#//// the discount caches our "on sale" filter and badges read (e7a63e7680, 2025-12-02).
+# //// Neoffice — added file (no upstream equivalent). Same as the Item Price hook, for
+# //// the discount caches our "on sale" filter and badges read (e7a63e7680, 2025-12-02).
 """
 Invalidate webshop cache when Pricing Rules are created, modified, or deleted.
 This ensures that discount information is always up-to-date on the webshop.

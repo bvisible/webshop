@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// Webshop Settings.default_view_type (Grid / List): our listing offers both views
-#//// and remembers a shop-wide default (3bc2d836f1, 2025-02-11). Existing sites are
-#//// set to "Grid", which is what upstream renders unconditionally.
+# //// Neoffice — added file (no upstream equivalent).
+# //// Webshop Settings.default_view_type (Grid / List): our listing offers both views
+# //// and remembers a shop-wide default (3bc2d836f1, 2025-02-11). Existing sites are
+# //// set to "Grid", which is what upstream renders unconditionally.
 import frappe
 
 def execute():

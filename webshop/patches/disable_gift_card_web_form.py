@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// Unpublishes the legacy `gift-card` Web Form and frees the `gift-cards` route for
-#//// our own page (d579b1c02a, 2025-12-14). Deleting the Web Form record would take
-#//// the submitted records with it, so it is unpublished and renamed instead.
-#//// The form's app folder (webshop/webshop/web_form/gift_card) was deleted on
-#//// 2026-09-04: a standard Web Form only exists because that folder is imported at
-#//// migrate, so a fresh site never gets the record and this patch no-ops there. It
-#//// stays for the sites that already carry it.
+# //// Neoffice — added file (no upstream equivalent).
+# //// Unpublishes the legacy `gift-card` Web Form and frees the `gift-cards` route for
+# //// our own page (d579b1c02a, 2025-12-14). Deleting the Web Form record would take
+# //// the submitted records with it, so it is unpublished and renamed instead.
+# //// The form's app folder (webshop/webshop/web_form/gift_card) was deleted on
+# //// 2026-09-04: a standard Web Form only exists because that folder is imported at
+# //// migrate, so a fresh site never gets the record and this patch no-ops there. It
+# //// stays for the sites that already carry it.
 import frappe
 
 

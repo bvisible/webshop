@@ -4,11 +4,11 @@
 
 webshop.patches.add_homepage_field #09-05-2024
 webshop.patches.enable_allow_to_guest_view_for_item_group
-#//// Neoffice — every entry below is ours: the custom fields the shop needs (gift
-#//// cards, loyalty, guest session, payment method and gateway, idempotency token),
-#//// the portal menu, the webshopsi fusion and the multi-warehouse / second-hand /
-#//// follow-up fields. Each one has its module in webshop/patches/ — an entry without
-#//// its file breaks `bench migrate` on every site that pulls the app.
+# //// Neoffice — every entry below is ours: the custom fields the shop needs (gift
+# //// cards, loyalty, guest session, payment method and gateway, idempotency token),
+# //// the portal menu, the webshopsi fusion and the multi-warehouse / second-hand /
+# //// follow-up fields. Each one has its module in webshop/patches/ — an entry without
+# //// its file breaks `bench migrate` on every site that pulls the app.
 webshop.patches.add_guest_session_to_quotation
 webshop.patches.add_shipping_rule_description
 webshop.patches.add_default_view_type
@@ -40,7 +40,7 @@ webshop.patches.add_item_condition_fields
 webshop.patches.add_condition_shop_filter
 webshop.patches.add_item_replenishment_field
 webshop.patches.seed_follow_up_email_templates
-#//// Neoffice — moves the Condition section on sites that already ran
-#//// add_item_condition_fields, to match its new insert_after (0227bfd0
-#//// "feat(occasion): une section État qui n'avale rien, expliquée, et un chemin depuis le catalogue").
+# //// Neoffice — moves the Condition section on sites that already ran
+# //// add_item_condition_fields, to match its new insert_after (0227bfd0
+# //// "feat(occasion): une section État qui n'avale rien, expliquée, et un chemin depuis le catalogue").
 webshop.patches.move_item_condition_section

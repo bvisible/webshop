@@ -17,10 +17,10 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	cannot untick it. This is how /occasions is /all-products restricted to
 	second-hand units.
 	"""
-	#//// Themes print context.title as the visible page heading and as the
-	#//// last breadcrumb, and Frappe defaults it to the route name —
-	#//// untranslated. A French shop read "all-products" on screen while its
-	#//// browser tab said the translated title.
+	# //// Themes print context.title as the visible page heading and as the
+	# //// last breadcrumb, and Frappe defaults it to the route name —
+	# //// untranslated. A French shop read "all-products" on screen while its
+	# //// browser tab said the translated title.
 	context.title = title
 	context.body_class = "product-page"
 	context.parents = [{"name": _("Home"), "route": "/"}]
@@ -51,9 +51,9 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	context.stock_filter_default_checked = bool(
 		frappe.db.get_single_value("Webshop Settings", "stock_filter_default_checked")
 	)
-	#//// A way into the second-hand page from the catalogue: the theme's menu
-	#//// is the shop's own, so the listing itself says when there is
-	#//// something used to see.
+	# //// A way into the second-hand page from the catalogue: the theme's menu
+	# //// is the shop's own, so the listing itself says when there is
+	# //// something used to see.
 	context.second_hand_count = count_second_hand() if listing_route == "/all-products" else 0
 	context.no_cache = 1
 
@@ -63,10 +63,10 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	return context
 
 
-#//// Neoffice — powers the catalogue's "See second-hand items (n)" link:
-#//// /occasions has no menu entry of its own (the menu is the theme's), so
-#//// the listing itself says when there is something used to see
-#//// (0227bfd0 "feat(occasion): une section État qui n'avale rien, expliquée, et un chemin depuis le catalogue").
+# //// Neoffice — powers the catalogue's "See second-hand items (n)" link:
+# //// /occasions has no menu entry of its own (the menu is the theme's), so
+# //// the listing itself says when there is something used to see
+# //// (0227bfd0 "feat(occasion): une section État qui n'avale rien, expliquée, et un chemin depuis le catalogue").
 def count_second_hand():
 	"""Published second-hand units this site lists (sold ones included, as on /occasions)."""
 	from webshop.webshop.multi_site import excluded_item_names

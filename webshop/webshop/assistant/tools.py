@@ -68,7 +68,7 @@ def _product_card(item, ctx, with_details=False):
 		"item_code": item.item_code,
 		"name": item.web_item_name,
 		"url": "/" + item.route if item.route else None,
-		#//// Neoffice — get_product_info_for_website prices with warehouse=, a keyword only
+		# //// Neoffice — get_product_info_for_website prices with warehouse=, a keyword only
 		# our ERPNext fork knows; on stock ERPNext it raises and this said "prix sur demande"
 		# for everything. Fall back to the shop's list price (45778bc99 "fix(assistant): un
 		# prix de liste en repli quand la fiche prix ne répond pas").
@@ -104,7 +104,7 @@ def _product_card(item, ctx, with_details=False):
 	return card
 
 
-#//// Neoffice — new helper (45778bc99 "fix(assistant): un prix de liste en repli quand la
+# //// Neoffice — new helper (45778bc99 "fix(assistant): un prix de liste en repli quand la
 # fiche prix ne répond pas"): reads a plain selling Item Price on the shop's price list,
 # used only as a fallback when get_price (fork-only warehouse= kwarg) fails on standard ERPNext.
 def _list_price(item_code):

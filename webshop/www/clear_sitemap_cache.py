@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-#//// Neoffice — added file (no upstream equivalent). bench helper that drops every
-#//// sitemap cache so the next request rebuilds them, for when a catalogue change must
-#//// show up in the sitemap immediately (84530bf61b, 2025-06-26 "add sitemap
-#//// generation for webshop pages").
+# //// Neoffice — added file (no upstream equivalent). bench helper that drops every
+# //// sitemap cache so the next request rebuilds them, for when a catalogue change must
+# //// show up in the sitemap immediately (84530bf61b, 2025-06-26 "add sitemap
+# //// generation for webshop pages").
 """
 Script to clear sitemap cache and force regeneration
 Usage: bench --site site1.local execute webshop.www.clear_sitemap_cache.clear_cache

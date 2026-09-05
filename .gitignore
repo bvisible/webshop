@@ -15,14 +15,14 @@ conf.py
 dist/
 webshop/docs/current
 webshop/public/dist
-#//// Neoffice — `locale` removed from the ignore list: upstream ships no catalogue and
-#//// ignored the folder; ours carries the French of the whole shop and MUST be
-#//// committed (9ec1affe61, 2025-12-15). PO only — never translations/*.csv.
+# //// Neoffice — `locale` removed from the ignore list: upstream ships no catalogue and
+# //// ignored the folder; ours carries the French of the whole shop and MUST be
+# //// committed (9ec1affe61, 2025-12-15). PO only — never translations/*.csv.
 latest_updates.json
 node_modules/
 tags
-#//// Neoffice — CLAUDE.md is developer notes, not part of the app (6aebd1a82e,
-#//// 2026-02-07).
-#//// TO REVIEW: the file IS committed at the repository root — the ignore entry only
-#//// keeps a local one out.
+# //// Neoffice — CLAUDE.md is developer notes, not part of the app (6aebd1a82e,
+# //// 2026-02-07).
+# //// TO REVIEW: the file IS committed at the repository root — the ignore entry only
+# //// keeps a local one out.
 CLAUDE.md

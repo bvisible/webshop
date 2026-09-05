@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent). Real tests for the brand
-#//// carousel. The file used to hold two whitelisted debug endpoints named `test_*`:
-#//// no assertions, no caller, reachable over the API on any site — and the runner
-#//// reported "Ran 0 tests" as if the carousel were covered (0971ecdb0a, 2026-08-29).
+# //// Neoffice — added file (no upstream equivalent). Real tests for the brand
+# //// carousel. The file used to hold two whitelisted debug endpoints named `test_*`:
+# //// no assertions, no caller, reachable over the API on any site — and the runner
+# //// reported "Ran 0 tests" as if the carousel were covered (0971ecdb0a, 2026-08-29).
 # Copyright (c) 2026, bVisible and contributors
 # License: GNU General Public License v3. See license.txt
 

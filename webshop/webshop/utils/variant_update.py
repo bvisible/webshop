@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent). Back-fills Website Item.variant_of
-#//// from the Item, so the listing can hide variants behind their template. Upstream
-#//// never copies the field, and a shop that enables "Hide Variants" after publishing
-#//// would show every variant (3c1e847e26, 2025-06-24).
+# //// Neoffice — added file (no upstream equivalent). Back-fills Website Item.variant_of
+# //// from the Item, so the listing can hide variants behind their template. Upstream
+# //// never copies the field, and a shop that enables "Hide Variants" after publishing
+# //// would show every variant (3c1e847e26, 2025-06-24).
 import frappe
 from frappe import _
 

@@ -22,9 +22,9 @@ WEBSITE_ITEM_NAME_AUTOCOMPLETE = "website_items_name_dict"
 WEBSITE_ITEM_CATEGORY_AUTOCOMPLETE = "website_items_category_dict"
 
 
-#//// Neoffice — added: `bench clear-cache` drops the RediSearch index without saying
-#//// so, and the shop search then returned nothing until someone rebuilt it by hand.
-#//// Wired on the after_clear_cache hook (ce5220b7e7 / 2c14d7c948, 2025-12-14).
+# //// Neoffice — added: `bench clear-cache` drops the RediSearch index without saying
+# //// so, and the shop search then returned nothing until someone rebuilt it by hand.
+# //// Wired on the after_clear_cache hook (ce5220b7e7 / 2c14d7c948, 2025-12-14).
 def rebuild_index_after_clear_cache():
 	"""
 	Wrapper function called by after_clear_cache hook.
@@ -84,11 +84,11 @@ def get_indexable_web_fields():
 
 
 def is_redisearch_enabled():
-	#//// Neoffice — RediSearch is disabled: the search runs on SQL (c54680b459 /
-	#//// e580d79023, 2025-12-15). Its autocomplete indexed product names only, which is
-	#//// narrower than what the dropdown must find, and the index needed rebuilding after
-	#//// every clear-cache. The module is kept so an existing index can still be dropped.
-	#//// TO REVIEW: remove the module once no fleet site carries an index.
+	# //// Neoffice — RediSearch is disabled: the search runs on SQL (c54680b459 /
+	# //// e580d79023, 2025-12-15). Its autocomplete indexed product names only, which is
+	# //// narrower than what the dropdown must find, and the index needed rebuilding after
+	# //// every clear-cache. The module is kept so an existing index can still be dropped.
+	# //// TO REVIEW: remove the module once no fleet site carries an index.
 	"Return True only if redisearch is loaded and enabled. Currently disabled - search uses SQL."
 	return False
 
@@ -97,9 +97,9 @@ def is_search_module_loaded():
 	try:
 		cache = frappe.cache()
 		for module in cache.module_list():
-			#//// Neoffice — the RediSearch module answers to "search" on older Redis builds and to
-			#//// "ft" on newer ones; testing one name reported the module absent on half the
-			#//// fleet (7fcf9a623a, 2025-11-24).
+			# //// Neoffice — the RediSearch module answers to "search" on older Redis builds and to
+			# //// "ft" on newer ones; testing one name reported the module absent on half the
+			# //// fleet (7fcf9a623a, 2025-11-24).
 			# RediSearch module can be named "search" (older versions) or "ft" (newer versions)
 			module_name = module.get(b"name")
 			if module_name in (b"search", b"ft"):
@@ -222,8 +222,8 @@ def delete_item_from_index(website_item_doc):
 def delete_from_ac_dict(website_item_doc):
 	"""Removes this items's name from autocomplete dictionary"""
 	ac = frappe.cache().ft()
-	#//// Neoffice — sugdel needs the key as well as the string; upstream calls it with one
-	#//// argument and it raised on every product deletion (a7658338f8, 2025-12-05).
+	# //// Neoffice — sugdel needs the key as well as the string; upstream calls it with one
+	# //// argument and it raised on every product deletion (a7658338f8, 2025-12-05).
 	ac.sugdel(WEBSITE_ITEM_NAME_AUTOCOMPLETE, website_item_doc.web_item_name)
 
 
@@ -295,9 +295,9 @@ def reindex_all_web_items():
 		for field, value in web_item.items():
 			super(RedisWrapper, cache).hset(key, field, value)
 
-		#//// Neoffice — RediSearch 1.x has no auto-indexing on HSET: the document is added
-		#//// explicitly, or nothing was ever indexed on an older Redis (fac7d11901,
-		#//// 2025-11-24).
+		# //// Neoffice — RediSearch 1.x has no auto-indexing on HSET: the document is added
+		# //// explicitly, or nothing was ever indexed on an older Redis (fac7d11901,
+		# //// 2025-11-24).
 		# For RediSearch 1.x compatibility, explicitly add document to index
 		# RediSearch 2.0+ auto-indexes with ON HASH PREFIX, but 1.x requires FT.ADD
 		try:
@@ -336,8 +336,8 @@ def get_fields_indexed():
 	fields_to_index = frappe.db.get_single_value("Webshop Settings", "search_index_fields")
 	fields_to_index = fields_to_index.split(",") if fields_to_index else []
 
-	#//// Neoffice — item_code is indexed as well: the search results need it to look the
-	#//// price up (542e68de20, 2025-11-24).
+	# //// Neoffice — item_code is indexed as well: the search results need it to look the
+	# //// price up (542e68de20, 2025-11-24).
 	# item_code is required for price lookup in search results
 	mandatory_fields = ["name", "web_item_name", "item_code", "route", "thumbnail", "ranking"]
 	fields_to_index = fields_to_index + mandatory_fields
@@ -353,9 +353,9 @@ def raise_redisearch_error():
 	frappe.throw(
 		msg=_("Something went wrong. Check {0}").format(log_link), title=_("Redisearch Error")
 	)
-#//// Neoffice — a result without the ranking field no longer breaks the sort
-#//// (f130a9aaaa, 2025-11-24), and FT.DROP is used on RediSearch 1.x where
-#//// FT.DROPINDEX does not exist (de734327c5, 2025-12-14).
+# //// Neoffice — a result without the ranking field no longer breaks the sort
+# //// (f130a9aaaa, 2025-11-24), and FT.DROP is used on RediSearch 1.x where
+# //// FT.DROPINDEX does not exist (de734327c5, 2025-12-14).
 
 
 def _reindex_all_web_items_internal():

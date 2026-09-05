@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// Coupon Code.sales_invoice: a gift card SOLD by the shop is created from an
-#//// invoice, and this link is how the shop finds which sale issued which card
-#//// (3bc2d836f1, 2025-02-11).
+# //// Neoffice — added file (no upstream equivalent).
+# //// Coupon Code.sales_invoice: a gift card SOLD by the shop is created from an
+# //// invoice, and this link is how the shop finds which sale issued which card
+# //// (3bc2d836f1, 2025-02-11).
 import frappe
 
 def execute():

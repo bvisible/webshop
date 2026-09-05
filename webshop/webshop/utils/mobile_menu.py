@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent). Extracts the navigation out of
-#//// the Builder navbar component so the mobile drawer can reuse it, with a cache
-#//// because it is read on every page (48e2708353, 2025-03-13; reworked c3eb613a2d,
-#//// 2025-10-23).
+# //// Neoffice — added file (no upstream equivalent). Extracts the navigation out of
+# //// the Builder navbar component so the mobile drawer can reuse it, with a cache
+# //// because it is read on every page (48e2708353, 2025-03-13; reworked c3eb613a2d,
+# //// 2025-10-23).
 import frappe
 import json
 from frappe import _

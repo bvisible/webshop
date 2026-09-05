@@ -19,8 +19,8 @@ def get_context(context):
 	
 	context.no_cache = 1
 
-	#//// Neoffice — a visitor who signs in here keeps the cart they filled as a guest: the
-	#//// two carts are merged (e0435e0dd6, 2025-06-26).
+	# //// Neoffice — a visitor who signs in here keeps the cart they filled as a guest: the
+	# //// two carts are merged (e0435e0dd6, 2025-06-26).
 	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
 	check_and_merge_guest_cart()
 
@@ -41,8 +41,8 @@ def get_slideshow(slideshow):
 
 def get_tabs(categories):
 	tab_values = {
-		#//// Neoffice — the tab title matches the page title: categories AND brands
-		#//// (48e2708353, 2025-03-13).
+		# //// Neoffice — the tab title matches the page title: categories AND brands
+		# //// (48e2708353, 2025-03-13).
 		"title": _("Category and Brands"),
 	}
 

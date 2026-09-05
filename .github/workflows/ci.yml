@@ -1,10 +1,10 @@
 name: CI
 
 on:
-  #//// Neoffice — push added. We work straight on version-15 and open no pull
-  #//// requests, so the upstream triggers meant this workflow had never run once
-  #//// on this fork: GitHub does not run `schedule` on a fork either. The suite
-  #//// was green on the server and unverified everywhere else.
+  # //// Neoffice — push added. We work straight on version-15 and open no pull
+  # //// requests, so the upstream triggers meant this workflow had never run once
+  # //// on this fork: GitHub does not run `schedule` on a fork either. The suite
+  # //// was green on the server and unverified everywhere else.
   push:
     branches:
       - version-15
@@ -21,14 +21,14 @@ on:
       - "**.md"
       - "**.html"
       - "**.csv"
-  #//// Neoffice — so a run can be started by hand after a server-side fix.
+  # //// Neoffice — so a run can be started by hand after a server-side fix.
   workflow_dispatch:
-  #//// Neoffice — weekly, not daily. Upstream watches a moving `develop` and
-  #//// wants to know overnight; we track a stable `version-15`, where a run on
-  #//// unchanged code only ever reports drift in ERPNext upstream. Daily, that
-  #//// is a failure mail every morning for something nobody pushed — and a CI
-  #//// people mute is a CI that no longer protects anything. Every push is
-  #//// still tested.
+  # //// Neoffice — weekly, not daily. Upstream watches a moving `develop` and
+  # //// wants to know overnight; we track a stable `version-15`, where a run on
+  # //// unchanged code only ever reports drift in ERPNext upstream. Daily, that
+  # //// is a failure mail every morning for something nobody pushed — and a CI
+  # //// people mute is a CI that no longer protects anything. Every push is
+  # //// still tested.
   schedule:
     # Mondays, 04:00 UTC
     - cron: "0 4 * * 1"
@@ -37,8 +37,8 @@ env:
   WEBSHOP_BRANCH: ${{ github.base_ref || github.ref_name }}
 
 concurrency:
-  #//// Neoffice — keyed on the ref: `github.event.number` is empty on a push,
-  #//// so every push shared one group and cancelled the previous run.
+  # //// Neoffice — keyed on the ref: `github.event.number` is empty on a push,
+  # //// so every push shared one group and cancelled the previous run.
   group: webshop-${{ github.event.number || github.ref }}
   cancel-in-progress: true
 
@@ -112,10 +112,10 @@ jobs:
       
       - name: Setup
         run: |
-          #//// Neoffice — setuptools pinned in: the payments app still imports
-          #//// pkg_resources (Razorpay Settings), which setuptools 81 dropped.
-          #//// Without it the install dies on "No module named 'pkg_resources'"
-          #//// while pointing at a doctype, which reads like a deleted doctype.
+          # //// Neoffice — setuptools pinned in: the payments app still imports
+          # //// pkg_resources (Razorpay Settings), which setuptools 81 dropped.
+          # //// Without it the install dies on "No module named 'pkg_resources'"
+          # //// while pointing at a doctype, which reads like a deleted doctype.
           pip install 'setuptools<81'
           pip install frappe-bench
           bench init --frappe-branch $WEBSHOP_BRANCH --skip-redis-config-generation --skip-assets --python "$(which python)" ~/frappe-bench
@@ -126,22 +126,22 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: |
           bench setup requirements --dev
-          #//// Into the bench's OWN virtualenv, not the runner's python: that
-          #//// is where the apps import from.
+          # //// Into the bench's OWN virtualenv, not the runner's python: that
+          # //// is where the apps import from.
           ./env/bin/pip install 'setuptools<81'
-          #//// Neoffice — upstream ERPNext, deliberately, and it is not the
-          #//// combination we ship. Running the CI against bvisible/erpnext was
-          #//// tried and does not work: that fork reads Item.buying_standard_rate
-          #//// and makes Customer.default_currency mandatory through a Custom
-          #//// Field and a Property Setter that live in NO app — they were made
-          #//// by hand on the server. A fresh install of our own fork therefore
-          #//// raises "'WebshopItem' object has no attribute
-          #//// 'buying_standard_rate'" on the first Item insert.
-          #////
-          #//// So this CI answers "does webshop hold up on a standard ERPNext",
-          #//// which is worth knowing on its own. The one thing it cannot check
-          #//// is variant pricing by warehouse: webshop calls
-          #//// get_price(..., warehouse=...), an argument only our fork has.
+          # //// Neoffice — upstream ERPNext, deliberately, and it is not the
+          # //// combination we ship. Running the CI against bvisible/erpnext was
+          # //// tried and does not work: that fork reads Item.buying_standard_rate
+          # //// and makes Customer.default_currency mandatory through a Custom
+          # //// Field and a Property Setter that live in NO app — they were made
+          # //// by hand on the server. A fresh install of our own fork therefore
+          # //// raises "'WebshopItem' object has no attribute
+          # //// 'buying_standard_rate'" on the first Item insert.
+          # ////
+          # //// So this CI answers "does webshop hold up on a standard ERPNext",
+          # //// which is worth knowing on its own. The one thing it cannot check
+          # //// is variant pricing by warehouse: webshop calls
+          # //// get_price(..., warehouse=...), an argument only our fork has.
           bench get-app erpnext --branch $WEBSHOP_BRANCH
           bench get-app payments --branch $WEBSHOP_BRANCH
           bench get-app $GITHUB_WORKSPACE
@@ -152,20 +152,20 @@ jobs:
         env:
           CI: 'Yes'
       
-      #//// Neoffice — ERPNext creates "Warehouse Type: Transit" from its setup
-      #//// wizard, not from install-app, and CI never runs the wizard. Building
-      #//// _Test Company then dies on create_default_warehouses with
-      #//// "Could not find Warehouse Type: Transit" — before a single webshop
-      #//// test starts.
-      #//// Called straight through the bench python rather than `bench execute`:
-      #//// that command falls back to `eval(method + "(...)")` when its own
-      #//// lookup raises, which reports "NameError: name 'erpnext' is not
-      #//// defined" and hides whatever actually failed.
-      #//// Heredoc, not `python -c "..."`: a double quote anywhere in the script
-      #//// — in a comment, even — closes bash's argument, and the rest of the
-      #//// lines run as shell commands. That is how a previous version reported
-      #//// "before_tests: command not found" while claiming the fixtures had
-      #//// been installed. Quoted delimiter, so bash substitutes nothing.
+      # //// Neoffice — ERPNext creates "Warehouse Type: Transit" from its setup
+      # //// wizard, not from install-app, and CI never runs the wizard. Building
+      # //// _Test Company then dies on create_default_warehouses with
+      # //// "Could not find Warehouse Type: Transit" — before a single webshop
+      # //// test starts.
+      # //// Called straight through the bench python rather than `bench execute`:
+      # //// that command falls back to `eval(method + "(...)")` when its own
+      # //// lookup raises, which reports "NameError: name 'erpnext' is not
+      # //// defined" and hides whatever actually failed.
+      # //// Heredoc, not `python -c "..."`: a double quote anywhere in the script
+      # //// — in a comment, even — closes bash's argument, and the rest of the
+      # //// lines run as shell commands. That is how a previous version reported
+      # //// "before_tests: command not found" while claiming the fixtures had
+      # //// been installed. Quoted delimiter, so bash substitutes nothing.
       - name: Install setup-wizard fixtures
         working-directory: /home/runner/frappe-bench/sites
         run: |
@@ -202,15 +202,15 @@ jobs:
           print('Companies:', frappe.get_all('Company', pluck='name'))
           PY
 
-      #//// Neoffice — module by module, and the run fails on the first red one.
-      #////
-      #//// `run-tests --app webshop` is kept below as a separate, informative
-      #//// step: four modules do not pass on a fresh site and pretending
-      #//// otherwise is how this workflow came to be ignored in the first place.
-      #//// Three of them (shopping_cart, website_item, product_data_engine) are
-      #//// built on ERPNext's own test fixtures; multi_warehouse builds masters
-      #//// in setUpClass without committing them, so it only ever passed where a
-      #//// previous run had left them behind.
+      # //// Neoffice — module by module, and the run fails on the first red one.
+      # ////
+      # //// `run-tests --app webshop` is kept below as a separate, informative
+      # //// step: four modules do not pass on a fresh site and pretending
+      # //// otherwise is how this workflow came to be ignored in the first place.
+      # //// Three of them (shopping_cart, website_item, product_data_engine) are
+      # //// built on ERPNext's own test fixtures; multi_warehouse builds masters
+      # //// in setUpClass without committing them, so it only ever passed where a
+      # //// previous run had left them behind.
       - name: Run Tests
         working-directory: /home/runner/frappe-bench
         run: |
@@ -245,8 +245,8 @@ jobs:
         env:
           TYPE: server
 
-      #//// Informative: what the whole suite does on a fresh site, including the
-      #//// modules we know to be red. Do not silence it — read it.
+      # //// Informative: what the whole suite does on a fresh site, including the
+      # //// modules we know to be red. Do not silence it — read it.
       - name: Full suite (informative)
         continue-on-error: true
         working-directory: /home/runner/frappe-bench

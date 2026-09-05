@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// Makes the gift_card_data Custom Fields hidden and read-only on the three item
-#//// tables: they hold machine data (recipient, message, generated codes) that a
-#//// seller was able to edit in the desk (437c6d54d7, 2025-12-04).
+# //// Neoffice — added file (no upstream equivalent).
+# //// Makes the gift_card_data Custom Fields hidden and read-only on the three item
+# //// tables: they hold machine data (recipient, message, generated codes) that a
+# //// seller was able to edit in the desk (437c6d54d7, 2025-12-04).
 import frappe
 
 def execute():

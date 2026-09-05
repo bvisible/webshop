@@ -1,8 +1,8 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// Payment Request.custom_idempotency_token (unique): a double click on "Pay" used
-#//// to raise two Payment Requests and two charges. The token is minted by the page
-#//// and the second call returns the first request (0033eef43d, 2025-07-17 "fix bug
-#//// transform quotation and fix bug multi clic button").
+# //// Neoffice — added file (no upstream equivalent).
+# //// Payment Request.custom_idempotency_token (unique): a double click on "Pay" used
+# //// to raise two Payment Requests and two charges. The token is minted by the page
+# //// and the second call returns the first request (0033eef43d, 2025-07-17 "fix bug
+# //// transform quotation and fix bug multi clic button").
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 

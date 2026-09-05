@@ -1,4 +1,4 @@
-#//// Neoffice — added file (no upstream equivalent).
+# //// Neoffice — added file (no upstream equivalent).
 """Webshop Payrexx glue.
 
 Payrexx hosted checkout is a plain redirect, so this module is thinner than its

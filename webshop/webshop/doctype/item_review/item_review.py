@@ -142,15 +142,15 @@ def add_item_review(web_item, title, rating, comment=None):
 			}
 		)
 		doc.published_on = datetime.today().strftime("%d %B %Y")
-		#//// Neoffice — the "verified purchase" badge the template already
-		#//// renders had no field behind it: has this customer bought the item?
+		# //// Neoffice — the "verified purchase" badge the template already
+		# //// renders had no field behind it: has this customer bought the item?
 		doc.verified_purchase = 1 if has_bought(doc.customer, doc.item) else 0
 		doc.save()
 
 
-#//// Neoffice — added helper: whether the customer really bought the item, used to flag
-#//// a review as a verified purchase — the badge the review card shows and the
-#//// purchase follow-up e-mails rely on (5d19e3fed9, 2026-09-03).
+# //// Neoffice — added helper: whether the customer really bought the item, used to flag
+# //// a review as a verified purchase — the badge the review card shows and the
+# //// purchase follow-up e-mails rely on (5d19e3fed9, 2026-09-03).
 def has_bought(customer, item_code):
 	if not customer or not item_code:
 		return False

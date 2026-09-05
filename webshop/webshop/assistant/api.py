@@ -268,7 +268,7 @@ def usage_stats():
 	return get_usage_stats()
 
 
-#//// Neoffice — nightly purge job feeding the usage report and retention policy (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
+# //// Neoffice — nightly purge job feeding the usage report and retention policy (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
 def purge_old_conversations():
 	"""Nightly: forget conversations older than the retention, except the ones
 	that were handed to the team — those are the trace the team may need."""

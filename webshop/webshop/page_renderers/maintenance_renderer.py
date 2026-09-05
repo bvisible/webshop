@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). Serves the maintenance page with
-#//// a 503 in front of every website route while the shop is closed. A page renderer
-#//// is the only hook that beats the website router for ALL routes (deb34ad632,
-#//// 2025-06-19). Its allow-list is deliberate: /login, assets, files, print/PDF
-#//// (228763c16c) and, for a signed-in user, the desk and the API (3bb7ad595d) —
-#//// closing the shop must not lock the staff out of the ERP.
+# //// Neoffice — added file (no upstream equivalent). Serves the maintenance page with
+# //// a 503 in front of every website route while the shop is closed. A page renderer
+# //// is the only hook that beats the website router for ALL routes (deb34ad632,
+# //// 2025-06-19). Its allow-list is deliberate: /login, assets, files, print/PDF
+# //// (228763c16c) and, for a signed-in user, the desk and the API (3bb7ad595d) —
+# //// closing the shop must not lock the staff out of the ERP.
 import frappe
 from frappe.website.page_renderers.base_renderer import BaseRenderer
 from frappe.utils import cint, now_datetime

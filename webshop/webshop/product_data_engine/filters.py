@@ -3,17 +3,17 @@
 import frappe
 from frappe import _
 from frappe.utils import floor
-#//// Neoffice — the currency formatter honours the shop's "hide currency symbol"
-#//// setting (0134ef756e, 2025-07-03).
+# //// Neoffice — the currency formatter honours the shop's "hide currency symbol"
+# //// setting (0134ef756e, 2025-07-03).
 from webshop.webshop.utils.utils import format_currency_value
 
 
 class ProductFiltersBuilder:
 	def __init__(self, item_group=None):
-		#//// Neoffice — upstream reads the filter configuration from the Item Group when there
-		#//// is one, and from Webshop Settings otherwise, so two categories offered different
-		#//// facets on the same shop. The shop's own configuration wins everywhere
-		#//// (8ba1a7ab46, 2025-06-08).
+		# //// Neoffice — upstream reads the filter configuration from the Item Group when there
+		# //// is one, and from Webshop Settings otherwise, so two categories offered different
+		# //// facets on the same shop. The shop's own configuration wins everywhere
+		# //// (8ba1a7ab46, 2025-06-08).
 		# Always use Webshop Settings for filters configuration
 		# This ensures consistent filter display across all pages
 		self.doc = frappe.get_doc("Webshop Settings")
@@ -22,7 +22,7 @@ class ProductFiltersBuilder:
 	def get_field_filters(self):
 		from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
 
-#//// Neoffice — see above.
+# //// Neoffice — see above.
 
 		if not self.doc.enable_field_filters:
 			return
@@ -36,7 +36,7 @@ class ProductFiltersBuilder:
 			web_item_meta.get_field(field) for field in filter_fields if web_item_meta.has_field(field)
 		]
 
-		#//// Neoffice multi-site: hide items restricted to other sites
+		# //// Neoffice multi-site: hide items restricted to other sites
 		from webshop.webshop.multi_site import excluded_item_names
 		_excluded = excluded_item_names()
 
@@ -44,8 +44,8 @@ class ProductFiltersBuilder:
 			item_filters, item_or_filters = {"published": 1}, []
 			if _excluded:
 				item_filters["name"] = ["not in", _excluded]
-			#//// Neoffice — second-hand: a Select field has no linked doctype;
-			#//// its facet is the set of values the published items carry.
+			# //// Neoffice — second-hand: a Select field has no linked doctype;
+			# //// its facet is the set of values the published items carry.
 			link_doctype_values = (
 				self.get_filtered_link_doctype_records(df) if df.fieldtype == "Link" else set()
 			)
@@ -99,9 +99,9 @@ class ProductFiltersBuilder:
 				)
 
 				values = list(set(item_values) & link_doctype_values)  # intersection of both
-				#//// Neoffice — added: the price facet (min/max of the current result set) and the
-				#//// discount facet, neither of which upstream has (6fea19b1fe, 2025-06-17;
-				#//// 8ba1a7ab46, 2025-06-08).
+				# //// Neoffice — added: the price facet (min/max of the current result set) and the
+				# //// discount facet, neither of which upstream has (6fea19b1fe, 2025-06-17;
+				# //// 8ba1a7ab46, 2025-06-08).
 				
 				# Special handling for item_group to include parents
 				if df.fieldname == 'item_group' and values:
@@ -136,9 +136,9 @@ class ProductFiltersBuilder:
 			if None in values:
 				values.remove(None)
 
-			#//// Neoffice — second-hand: every item carries a condition, so a
-			#//// shop that only sells new goods would get a one-value facet
-			#//// reading "New". Show the facet once there is a choice to make.
+			# //// Neoffice — second-hand: every item carries a condition, so a
+			# //// shop that only sells new goods would get a one-value facet
+			# //// reading "New". Show the facet once there is a choice to make.
 			if df.fieldname == "item_condition" and not [v for v in values if v and v != "New"]:
 				continue
 
@@ -152,7 +152,7 @@ class ProductFiltersBuilder:
 					brands_with_counts = self.get_brands_with_counts(values)
 					filter_data.append([df, brands_with_counts])
 				elif df.fieldtype == "Select":
-					#//// Neoffice — a Select keeps the order its options declare
+					# //// Neoffice — a Select keeps the order its options declare
 					options = (df.options or "").split("\n")
 					sorted_values = sorted(values, key=lambda v: options.index(v) if v in options else len(options))
 					filter_data.append([df, sorted_values])
@@ -165,7 +165,7 @@ class ProductFiltersBuilder:
 		
 	def get_hierarchical_item_groups(self, item_group_values):
 		"""Get categories with their hierarchical structure parent-child"""
-		#//// Neoffice multi-site: scope to the current site
+		# //// Neoffice multi-site: scope to the current site
 		from webshop.webshop.multi_site import site_sql_condition
 		site_cond = site_sql_condition("`tabWebsite Item`")
 		# Get all categories with their parent/child information
@@ -257,7 +257,7 @@ class ProductFiltersBuilder:
 		"""Get brands with their product counts"""
 		brands_with_counts = []
 		
-		#//// Neoffice multi-site: hide items restricted to other sites
+		# //// Neoffice multi-site: hide items restricted to other sites
 		from webshop.webshop.multi_site import excluded_item_names
 		_excluded = excluded_item_names()
 
@@ -317,9 +317,9 @@ class ProductFiltersBuilder:
 		return filters
 
 	def get_attribute_filters(self):
-		#//// Neoffice — the attribute facets are gated on Webshop Settings; a shop that hides
-		#//// variants must not offer attribute filters at all, and the two settings are
-		#//// mutually exclusive (b103d68868 / 0c15976673, 2025-11-30).
+		# //// Neoffice — the attribute facets are gated on Webshop Settings; a shop that hides
+		# //// variants must not offer attribute filters at all, and the two settings are
+		# //// mutually exclusive (b103d68868 / 0c15976673, 2025-11-30).
 		if not self.doc.enable_attribute_filters:
 			return
 
@@ -345,8 +345,8 @@ class ProductFiltersBuilder:
 				continue
 
 			values = attribute_value_map[attribute]
-			#//// Neoffice — attribute values are sorted alphabetically; upstream returns them in
-			#//// the order the Item Attribute happens to list them.
+			# //// Neoffice — attribute values are sorted alphabetically; upstream returns them in
+			# //// the order the Item Attribute happens to list them.
 			# Sort attribute values alphabetically
 			sorted_values = sorted(values, key=lambda x: x.lower() if isinstance(x, str) else str(x))
 			out.append(frappe._dict(name=attribute, item_attribute_values=sorted_values))
@@ -470,14 +470,14 @@ class ProductFiltersBuilder:
 			item_groups = [x.name for x in include_groups] if include_groups else [item_group_to_use]
 			
 			# Get default price list from settings
-			#//// Neoffice multi-site — le tarif du site prime (filtres de prix).
+			# //// Neoffice multi-site — le tarif du site prime (filtres de prix).
 			from webshop.webshop.multi_site import effective_price_list
 
 			default_price_list = effective_price_list()
 			
 			# Build the SQL query with all filters
 			sql_conditions = ["wi.published = 1", "wi.item_group IN %(groups)s", "ip.selling = 1"]
-			#//// Neoffice multi-site: scope to the current site
+			# //// Neoffice multi-site: scope to the current site
 			from webshop.webshop.multi_site import site_sql_predicate
 			_site_pred = site_sql_predicate("wi")
 			if _site_pred:
@@ -502,7 +502,7 @@ class ProductFiltersBuilder:
 			# First, get all item codes that match the current filters (without pagination)
 			# This ensures we get prices for ALL filtered products, not just the current page
 			item_sql_conditions = ["wi.published = 1", "wi.item_group IN %(groups)s"]
-			#//// Neoffice multi-site: scope to the current site
+			# //// Neoffice multi-site: scope to the current site
 			from webshop.webshop.multi_site import site_sql_predicate
 			_site_pred = site_sql_predicate("wi")
 			if _site_pred:
@@ -597,14 +597,14 @@ class ProductFiltersBuilder:
 
 		else:
 			# No item group filter, get all prices
-			#//// Neoffice multi-site — le tarif du site prime (filtres de prix).
+			# //// Neoffice multi-site — le tarif du site prime (filtres de prix).
 			from webshop.webshop.multi_site import effective_price_list
 
 			default_price_list = effective_price_list()
 			
 			# Get all item codes that match the current filters (without pagination)
 			item_sql_conditions = ["wi.published = 1"]
-			#//// Neoffice multi-site: scope to the current site
+			# //// Neoffice multi-site: scope to the current site
 			from webshop.webshop.multi_site import site_sql_predicate
 			_site_pred = site_sql_predicate("wi")
 			if _site_pred:
@@ -794,7 +794,7 @@ class ProductFiltersBuilder:
 			return []
 
 		item_filters, item_or_filters = {"published": 1}, []
-		#//// Neoffice multi-site: hide items restricted to other sites
+		# //// Neoffice multi-site: hide items restricted to other sites
 		from webshop.webshop.multi_site import excluded_item_names
 		_excluded = excluded_item_names()
 		if _excluded:

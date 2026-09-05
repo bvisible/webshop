@@ -1,9 +1,9 @@
 import frappe
-#//// Neoffice — _ imported for the messages returned to the buyer.
+# //// Neoffice — _ imported for the messages returned to the buyer.
 from frappe import _
 from frappe.utils import get_url
-#//// Neoffice — place_order is called from on_payment_authorized below (see next
-#//// marker).
+# //// Neoffice — place_order is called from on_payment_authorized below (see next
+# //// marker).
 from webshop.webshop.shopping_cart.cart import place_order
 
 from erpnext.accounts.doctype.payment_request.payment_request import (
@@ -23,35 +23,35 @@ class PaymentRequest(OriginalPaymentRequest):
             return
 
         if frappe.local.session.user == "Guest":
-            #//// Neoffice — a guest CAN pay on our shops, and their payment MUST be
-            #//// recorded. The booking module takes money without ever asking for an
-            #//// account: the customer leaves their details, a personal space is created
-            #//// silently, and they pay straight away — so with no session open.
-            #////
-            #//// This guard used to return before any processing. Measured end to end
-            #//// with the test card on 2026-08-20: the charge was CAPTURED at Stripe, the
-            #//// Payment Request stayed "Requested", the invoice unpaid, no accounting
-            #//// entry — and the customer landed on "Not Authorized". They paid for
-            #//// nothing.
-            #////
-            #//// The guard stays for the CART, which needs a session to create its order
-            #//// (`place_order` reads the visitor's cart). An invoice, on the other hand,
-            #//// already exists: the "Sales Invoice" block below even switches to
-            #//// Administrator to write the payment.
+            # //// Neoffice — a guest CAN pay on our shops, and their payment MUST be
+            # //// recorded. The booking module takes money without ever asking for an
+            # //// account: the customer leaves their details, a personal space is created
+            # //// silently, and they pay straight away — so with no session open.
+            # ////
+            # //// This guard used to return before any processing. Measured end to end
+            # //// with the test card on 2026-08-20: the charge was CAPTURED at Stripe, the
+            # //// Payment Request stayed "Requested", the invoice unpaid, no accounting
+            # //// entry — and the customer landed on "Not Authorized". They paid for
+            # //// nothing.
+            # ////
+            # //// The guard stays for the CART, which needs a session to create its order
+            # //// (`place_order` reads the visitor's cart). An invoice, on the other hand,
+            # //// already exists: the "Sales Invoice" block below even switches to
+            # //// Administrator to write the payment.
             if self.reference_doctype != "Sales Invoice":
                 return
 
-        #//// Neoffice — read without permissions: a guest has no access to the shop's
-        #//// settings, and a guest is exactly who has to be served here.
+        # //// Neoffice — read without permissions: a guest has no access to the shop's
+        # //// settings, and a guest is exactly who has to be served here.
         cart_settings = frappe.get_cached_doc("Webshop Settings")
 
         if not cart_settings.enabled:
             return
 
-        #//// Neoffice — upstream's on_payment_authorized only sets the status. Our checkout
-        #//// raises the Payment Request against the QUOTATION, so the order has to be created
-        #//// here, once the PSP has confirmed — and idempotently, because a PSP retries its
-        #//// callback (392e3c313a / 57f71797e1, 2026-06-02).
+        # //// Neoffice — upstream's on_payment_authorized only sets the status. Our checkout
+        # //// raises the Payment Request against the QUOTATION, so the order has to be created
+        # //// here, once the PSP has confirmed — and idempotently, because a PSP retries its
+        # //// callback (392e3c313a / 57f71797e1, 2026-06-02).
         # If it's a Quotation, create the Sales Order
         if self.reference_doctype == "Quotation":
             payment_request = self
@@ -121,14 +121,14 @@ class PaymentRequest(OriginalPaymentRequest):
                 }
             ).get(success_url, "/me")
 
-        #//// Neoffice — the callback runs without a session (the PSP is the caller), so the
-        #//// user is set explicitly; the finally block that restored it was removed because it
-        #//// corrupted the session user (847f9137c3, 2025-12-12).
-        #//// Indentation: this file is four-space indented in frappe/webshop develop too
-        #//// (`git show frappe/webshop:webshop/webshop/doctype/override_doctype/
-        #//// payment_request.py`), so it stays that way — re-tabbing it would rewrite every
-        #//// line of a file we barely touch and turn the next upstream merge into a
-        #//// whole-file conflict for nothing.
+        # //// Neoffice — the callback runs without a session (the PSP is the caller), so the
+        # //// user is set explicitly; the finally block that restored it was removed because it
+        # //// corrupted the session user (847f9137c3, 2025-12-12).
+        # //// Indentation: this file is four-space indented in frappe/webshop develop too
+        # //// (`git show frappe/webshop:webshop/webshop/doctype/override_doctype/
+        # //// payment_request.py`), so it stays that way — re-tabbing it would rewrite every
+        # //// line of a file we barely touch and turn the next upstream merge into a
+        # //// whole-file conflict for nothing.
         # Set the user to Administrator to avoid permission errors
         frappe.set_user("Administrator")
         # Call the set_as_paid method

@@ -43,11 +43,11 @@ class TestWebsiteItem(unittest.TestCase):
 		frappe.db.rollback()
 
 	def tearDown(self):
-		#//// Neoffice — added. Several tests here sign in as Guest and only sign
-		#//// back in as Administrator on their LAST line. When one of them failed,
-		#//// every later test kept running as Guest and died on PermissionError:
-		#//// one real failure showed up as six, and the real one was the hardest to
-		#//// spot. Restoring the user here costs nothing and keeps a failure local.
+		# //// Neoffice — added. Several tests here sign in as Guest and only sign
+		# //// back in as Administrator on their LAST line. When one of them failed,
+		# //// every later test kept running as Guest and died on PermissionError:
+		# //// one real failure showed up as six, and the real one was the hardest to
+		# //// spot. Restoring the user here costs nothing and keeps a failure local.
 		frappe.set_user("Administrator")
 
 	def setUp(self):
@@ -397,12 +397,12 @@ class TestWebsiteItem(unittest.TestCase):
 		"Check if added recommended items are fetched correctly."
 		item_code = "Test Mobile Phone"
 		web_item = create_regular_web_item(item_code)
-		#//// Neoffice — start from a known fixture. A Webshop Settings save commits
-		#//// (portal menu upkeep in webshop_settings.py), so a run that fails after
-		#//// that point leaves its Website Item AND its recommended rows behind, and
-		#//// the next run on the same site counted two, then three, then four
-		#//// recommendations — failing on the leftovers instead of on what it tests.
-		#//// Upstream never sees it: its CI builds a throw-away site every time.
+		# //// Neoffice — start from a known fixture. A Webshop Settings save commits
+		# //// (portal menu upkeep in webshop_settings.py), so a run that fails after
+		# //// that point leaves its Website Item AND its recommended rows behind, and
+		# //// the next run on the same site counted two, then three, then four
+		# //// recommendations — failing on the leftovers instead of on what it tests.
+		# //// Upstream never sees it: its CI builds a throw-away site every time.
 		web_item.set("recommended_items", [])
 
 		setup_webshop_settings({"enable_recommendations": 1, "show_price": 1})
@@ -422,12 +422,12 @@ class TestWebsiteItem(unittest.TestCase):
 		# test results if show price is enabled
 		self.assertEqual(len(recommended_items), 1)
 		recomm_item = recommended_items[0]
-		#//// Neoffice — upstream reads the denormalised copy kept on the child
-		#//// table (`Recommended Items.website_item_name` / `.website_item_thumbnail`),
-		#//// which goes stale as soon as the recommended product is renamed or
-		#//// re-illustrated. get_recommended_items() joins the Website Item and
-		#//// returns ITS live fields instead — `web_item_name`, `website_image` and
-		#//// `item_group`, the last one being what the storefront carousel groups on.
+		# //// Neoffice — upstream reads the denormalised copy kept on the child
+		# //// table (`Recommended Items.website_item_name` / `.website_item_thumbnail`),
+		# //// which goes stale as soon as the recommended product is renamed or
+		# //// re-illustrated. get_recommended_items() joins the Website Item and
+		# //// returns ITS live fields instead — `web_item_name`, `website_image` and
+		# //// `item_group`, the last one being what the storefront carousel groups on.
 		self.assertEqual(recomm_item.get("web_item_name"), "Test Mobile Phone 1")
 		self.assertTrue(bool(recomm_item.get("price_info")))  # price fetched
 
@@ -454,12 +454,12 @@ class TestWebsiteItem(unittest.TestCase):
 		"Check if added recommended items are fetched correctly for guest user."
 		item_code = "Test Mobile Phone"
 		web_item = create_regular_web_item(item_code)
-		#//// Neoffice — start from a known fixture. A Webshop Settings save commits
-		#//// (portal menu upkeep in webshop_settings.py), so a run that fails after
-		#//// that point leaves its Website Item AND its recommended rows behind, and
-		#//// the next run on the same site counted two, then three, then four
-		#//// recommendations — failing on the leftovers instead of on what it tests.
-		#//// Upstream never sees it: its CI builds a throw-away site every time.
+		# //// Neoffice — start from a known fixture. A Webshop Settings save commits
+		# //// (portal menu upkeep in webshop_settings.py), so a run that fails after
+		# //// that point leaves its Website Item AND its recommended rows behind, and
+		# //// the next run on the same site counted two, then three, then four
+		# //// recommendations — failing on the leftovers instead of on what it tests.
+		# //// Upstream never sees it: its CI builds a throw-away site every time.
 		web_item.set("recommended_items", [])
 
 		# price visible to guests
@@ -575,14 +575,14 @@ def make_web_pricing_rule(**kwargs):
 def create_user_and_customer_if_not_exists(email, first_name=None):
 	from frappe.contacts.doctype.contact.contact import get_contact_name
 
-	#//// Neoffice — upstream returns here as soon as the User exists, assuming the
-	#//// rest of the fixture came with it. It does not: a Webshop Settings save
-	#//// COMMITS mid-test (portal menu upkeep), so on a site where a previous run
-	#//// failed, the User survives while the Contact created after it was rolled
-	#//// back. The helper then returned with no Contact and no link to
-	#//// _Test Customer, the customer-specific pricing rule stopped applying, and
-	#//// the test failed on 10% instead of 25% — for a reason nothing on screen
-	#//// connected to the missing Contact. Every step below is idempotent instead.
+	# //// Neoffice — upstream returns here as soon as the User exists, assuming the
+	# //// rest of the fixture came with it. It does not: a Webshop Settings save
+	# //// COMMITS mid-test (portal menu upkeep), so on a site where a previous run
+	# //// failed, the User survives while the Contact created after it was rolled
+	# //// back. The helper then returned with no Contact and no link to
+	# //// _Test Customer, the customer-specific pricing rule stopped applying, and
+	# //// the test failed on 10% instead of 25% — for a reason nothing on screen
+	# //// connected to the missing Contact. Every step below is idempotent instead.
 	if not frappe.db.exists("User", email):
 		frappe.get_doc(
 			{
@@ -594,18 +594,18 @@ def create_user_and_customer_if_not_exists(email, first_name=None):
 			}
 		).insert(ignore_permissions=True)
 
-	#//// Neoffice — upstream fishes out the Contact that frappe creates by itself
-	#//// when a User is inserted (User.on_update -> create_contact). Our frappe fork
-	#//// deliberately does NOT create one: the creation branch of create_contact is
-	#//// neutralised — kept as a triple-quoted string — so it only ever UPDATES a
-	#//// Contact that already exists (see the //// marker on that function; the
-	#//// reason for the change is not recorded and it is flagged TO REVIEW before
-	#//// the next upstream merge). get_last_doc() therefore raised DoesNotExistError
-	#//// and took this test and the next one down with it.
-	#//// The fixture is built explicitly instead of relying on that side effect —
-	#//// which is what the test is really about: a Website User that reaches
-	#//// _Test Customer through a Contact, so its customer-specific pricing rule
-	#//// applies. If our frappe ever creates contacts again, this still works.
+	# //// Neoffice — upstream fishes out the Contact that frappe creates by itself
+	# //// when a User is inserted (User.on_update -> create_contact). Our frappe fork
+	# //// deliberately does NOT create one: the creation branch of create_contact is
+	# //// neutralised — kept as a triple-quoted string — so it only ever UPDATES a
+	# //// Contact that already exists (see the //// marker on that function; the
+	# //// reason for the change is not recorded and it is flagged TO REVIEW before
+	# //// the next upstream merge). get_last_doc() therefore raised DoesNotExistError
+	# //// and took this test and the next one down with it.
+	# //// The fixture is built explicitly instead of relying on that side effect —
+	# //// which is what the test is really about: a Website User that reaches
+	# //// _Test Customer through a Contact, so its customer-specific pricing rule
+	# //// applies. If our frappe ever creates contacts again, this still works.
 	contact_name = get_contact_name(email)
 	if contact_name:
 		contact = frappe.get_doc("Contact", contact_name)

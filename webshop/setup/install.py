@@ -13,8 +13,8 @@ def after_install():
 	remove_ecommerce_settings_doctype()
 	add_custom_fields()
 	navbar_add_products_link()
-	#//// Neoffice — the desk workspace is registered at install: Frappe imports a workspace
-	#//// file once and never re-creates a deleted record (fa76f6b515, 2026-09-03).
+	# //// Neoffice — the desk workspace is registered at install: Frappe imports a workspace
+	# //// file once and never re-creates a deleted record (fa76f6b515, 2026-09-03).
 	register_desk()
 	say_thanks()
 
@@ -217,9 +217,9 @@ def say_thanks():
 	click.secho("Thank you for installing Frappe Webshop!", color="green")
 
 
-#//// Neoffice — added: after_migrate re-runs the idempotent setup on every deploy. A
-#//// shop installed before a field or portal-menu change never got it — a fresh
-#//// install created 3 custom fields out of 20 (6112d75f8c, 2026-08-29).
+# //// Neoffice — added: after_migrate re-runs the idempotent setup on every deploy. A
+# //// shop installed before a field or portal-menu change never got it — a fresh
+# //// install created 3 custom fields out of 20 (6112d75f8c, 2026-08-29).
 def after_migrate():
 	"""Ensure Customer role has permission to create addresses in checkout,
 	and that the Webshop workspace is still on the desk."""
@@ -276,30 +276,30 @@ patches = [
 	"convert_to_website_item_in_item_card_group_template",
 	"shopping_cart_to_ecommerce",
 	"copy_custom_field_filters_to_website_item",
-	#//// Neoffice — our patches are listed here so a fresh install marks them as already
-	#//// run rather than replaying them over an empty site.
+	# //// Neoffice — our patches are listed here so a fresh install marks them as already
+	# //// run rather than replaying them over an empty site.
 	"add_homepage_field",
 	"add_guest_session_to_quotation",
 ]
 
-#//// Neoffice — the custom fields a fresh install would otherwise never get.
-#////
-#//// `bench install-app` marks everything in patches.txt as already applied
-#//// instead of running it — correct for a schema patch, wrong for a patch whose
-#//// whole job is to CREATE a field. Only three of the twenty field-creating
-#//// patches were replayed above, so a new shop started life missing seventeen
-#//// custom fields: payment idempotency and gateway, gift cards, loyalty,
-#//// coupons, shipping rule descriptions, the multi-warehouse marker.
-#////
-#//// It is not theoretical. Without `custom_idempotency_token`, the very first
-#//// query in create_payment_request raises "Unknown column
-#//// tabPayment Request.custom_idempotency_token", the blanket except turns it
-#//// into "error creating the payment request", and nobody can pay. CI on a
-#//// fresh site is what surfaced it.
-#////
-#//// Every one of these checks before it writes, so replaying them is free.
-#//// RULE: a patch that creates a field belongs in this list, in patches.txt
-#//// order.
+# //// Neoffice — the custom fields a fresh install would otherwise never get.
+# ////
+# //// `bench install-app` marks everything in patches.txt as already applied
+# //// instead of running it — correct for a schema patch, wrong for a patch whose
+# //// whole job is to CREATE a field. Only three of the twenty field-creating
+# //// patches were replayed above, so a new shop started life missing seventeen
+# //// custom fields: payment idempotency and gateway, gift cards, loyalty,
+# //// coupons, shipping rule descriptions, the multi-warehouse marker.
+# ////
+# //// It is not theoretical. Without `custom_idempotency_token`, the very first
+# //// query in create_payment_request raises "Unknown column
+# //// tabPayment Request.custom_idempotency_token", the blanket except turns it
+# //// into "error creating the payment request", and nobody can pay. CI on a
+# //// fresh site is what surfaced it.
+# ////
+# //// Every one of these checks before it writes, so replaying them is free.
+# //// RULE: a patch that creates a field belongs in this list, in patches.txt
+# //// order.
 CHAMPS_A_CREER_A_L_INSTALLATION = [
 	"add_shipping_rule_description",
 	"add_loyalty_points_reduction_field",
@@ -335,9 +335,9 @@ def run_patches():
 			try:
 				frappe.get_attr(f"webshop.patches.{patch}.execute")()
 			except Exception:
-				#//// One missing field must not abort the whole installation:
-				#//// log it and carry on, so the shop still installs and the
-				#//// gap is visible in the error log.
+				# //// One missing field must not abort the whole installation:
+				# //// log it and carry on, so the shop still installs and the
+				# //// gap is visible in the error log.
 				frappe.log_error(
 					"Webshop install: patch failed",
 					f"patch={patch}\n{frappe.get_traceback()}",

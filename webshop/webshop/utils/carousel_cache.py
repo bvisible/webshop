@@ -32,7 +32,7 @@ class CarouselCacheManager:
         # Include site name for multi-tenant support
         site_name = frappe.local.site
 
-        #//// Neoffice multi-site: key the cache per website profile
+        # //// Neoffice multi-site: key the cache per website profile
         from webshop.webshop.multi_site import get_current_profile_name
         _profile = get_current_profile_name()
         if _profile:

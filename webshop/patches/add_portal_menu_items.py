@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent).
-#//// Portal Menu Items for /loyalty_points and /gift_cards, added only when the
-#//// matching Webshop Setting is on. Upstream's portal knows Orders, Invoices and
-#//// Addresses and nothing else (2f63a51219, 2025-12-12). reference_doctype is left
-#//// empty on purpose: setting it made the portal check a permission the customer
-#//// does not hold and hid the entry (9909429ca3).
+# //// Neoffice — added file (no upstream equivalent).
+# //// Portal Menu Items for /loyalty_points and /gift_cards, added only when the
+# //// matching Webshop Setting is on. Upstream's portal knows Orders, Invoices and
+# //// Addresses and nothing else (2f63a51219, 2025-12-12). reference_doctype is left
+# //// empty on purpose: setting it made the portal check a permission the customer
+# //// does not hold and hid the entry (9909429ca3).
 import frappe
 
 

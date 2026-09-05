@@ -6,18 +6,18 @@ from webshop.webshop.shopping_cart.cart import decorate_quotation_doc
 no_cache = 1
 
 
-#//// Neoffice — cette commande est-elle celle de qui la demande ?
-#////
-#//// La page ne vérifiait RIEN : `frappe.get_doc("Sales Order", …)` ne contrôle
-#//// pas la lecture, et les `frappe.get_all` qui suivent ignorent les
-#//// permissions par construction. Un visiteur anonyme qui connaissait un
-#//// numéro voyait le total, les articles, les quantités, les prix, le moyen et
-#//// la référence de paiement — et l'adresse de livraison du client. Les
-#//// numéros étant séquentiels (BC-2026-00347), tout l'historique de la
-#//// boutique s'énumérait. Constaté le 2026-08-24 sur osiris.
-#////
-#//// Le checkout impose déjà la connexion (`forceLogin` dans checkout.js) :
-#//// l'acheteur qui vient de payer est authentifié et retrouve sa commande.
+# //// Neoffice — cette commande est-elle celle de qui la demande ?
+# ////
+# //// La page ne vérifiait RIEN : `frappe.get_doc("Sales Order", …)` ne contrôle
+# //// pas la lecture, et les `frappe.get_all` qui suivent ignorent les
+# //// permissions par construction. Un visiteur anonyme qui connaissait un
+# //// numéro voyait le total, les articles, les quantités, les prix, le moyen et
+# //// la référence de paiement — et l'adresse de livraison du client. Les
+# //// numéros étant séquentiels (BC-2026-00347), tout l'historique de la
+# //// boutique s'énumérait. Constaté le 2026-08-24 sur osiris.
+# ////
+# //// Le checkout impose déjà la connexion (`forceLogin` dans checkout.js) :
+# //// l'acheteur qui vient de payer est authentifié et retrouve sa commande.
 def _visiteur_a_droit(commande) -> bool:
 	if frappe.session.user == "Guest":
 		return False
@@ -25,12 +25,12 @@ def _visiteur_a_droit(commande) -> bool:
 	roles = frappe.get_roles()
 	if "System Manager" in roles or "Website Manager" in roles:
 		return True
-	#//// On s'appuie sur le mécanisme d'ERPNext, celui que `/order` utilise
-	#//// déjà (`erpnext.controllers.website_list_for_contact.has_website_permission`,
-	#//// déclaré dans ses hooks pour Sales Order, Quotation, Sales Invoice…).
-	#//// Il résout les clients de l'utilisateur par ses CONTACTS : comparer au
-	#//// seul `get_party()` du panier refuserait un contact légitime d'une
-	#//// société qui en a plusieurs.
+	# //// On s'appuie sur le mécanisme d'ERPNext, celui que `/order` utilise
+	# //// déjà (`erpnext.controllers.website_list_for_contact.has_website_permission`,
+	# //// déclaré dans ses hooks pour Sales Order, Quotation, Sales Invoice…).
+	# //// Il résout les clients de l'utilisateur par ses CONTACTS : comparer au
+	# //// seul `get_party()` du panier refuserait un contact légitime d'une
+	# //// société qui en a plusieurs.
 	try:
 		return bool(frappe.has_website_permission(commande))
 	except Exception:
@@ -38,9 +38,9 @@ def _visiteur_a_droit(commande) -> bool:
 		return False
 
 def get_context(context):
-	#//// Neoffice — Frappe derives context.title from the route when
-	#//// nobody sets it, and never translates it; themes print it as
-	#//// the visible page heading, so the page read "thank-you".
+	# //// Neoffice — Frappe derives context.title from the route when
+	# //// nobody sets it, and never translates it; themes print it as
+	# //// the visible page heading, so the page read "thank-you".
 	context.title = _("Thank You")
 	context.json = json
 	try:
@@ -60,9 +60,9 @@ def get_context(context):
 		# Load Sales Order
 		sales_order = frappe.get_doc("Sales Order", sales_order_id)
 
-		#//// Neoffice — même message que pour une commande inexistante : dire
-		#//// « elle existe mais pas pour vous » rendrait l'énumération possible
-		#//// malgré le garde-fou.
+		# //// Neoffice — même message que pour une commande inexistante : dire
+		# //// « elle existe mais pas pour vous » rendrait l'énumération possible
+		# //// malgré le garde-fou.
 		if not _visiteur_a_droit(sales_order):
 			context.error_message = _("The specified order does not exist.")
 			context.show_sidebar = False

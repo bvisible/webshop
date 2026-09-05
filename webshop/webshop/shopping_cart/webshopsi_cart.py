@@ -1,8 +1,8 @@
-#//// Neoffice — added file (no upstream equivalent). Cart side of the "Facture"
-#//// method: applies the chosen instalment plan to the quotation and keeps its fee
-#//// line in step (662c26b650, 2026-05-26; fee read from the Payment Terms Template
-#//// since 4efe747cf0). Every entry point re-checks that the quotation belongs to the
-#//// caller's party before writing.
+# //// Neoffice — added file (no upstream equivalent). Cart side of the "Facture"
+# //// method: applies the chosen instalment plan to the quotation and keeps its fee
+# //// line in step (662c26b650, 2026-05-26; fee read from the Payment Terms Template
+# //// since 4efe747cf0). Every entry point re-checks that the quotation belongs to the
+# //// caller's party before writing.
 import frappe
 from frappe import _
 from webshop.webshop.shopping_cart.cart import apply_cart_settings as webshop_apply_cart_settings

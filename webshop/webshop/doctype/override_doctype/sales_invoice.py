@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent). Silences ERPNext's advance-entry
-#//// message on an invoice built from a Shopping Cart order: the money was taken by
-#//// the PSP before the invoice existed, so the "advance received" prompt has nothing
-#//// to ask (3bc2d836f1, 2025-02-11). Every other invoice keeps the standard check.
+# //// Neoffice — added file (no upstream equivalent). Silences ERPNext's advance-entry
+# //// message on an invoice built from a Shopping Cart order: the money was taken by
+# //// the PSP before the invoice existed, so the "advance received" prompt has nothing
+# //// to ask (3bc2d836f1, 2025-02-11). Every other invoice keeps the standard check.
 import frappe
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import SalesInvoice as OriginalSalesInvoice
 
