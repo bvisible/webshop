@@ -236,9 +236,13 @@ def format_cart_response(cart_data):
             "error": str(e)
         }
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 # //// Neoffice — multi-warehouse: `warehouse` (stock source of the line) rides
 # //// through this wrapper down to cart.update_cart.
+# //// POST only: every caller is a frappe.call (cart_component.js), and a bare
+# //// GET — bots probing the API by IP with no arguments (kmhome, 2026-09) — used
+# //// to die in a TypeError logged as a 500 on every hit. Now a plain 403, and a
+# //// cart mutation can no longer be triggered by a cross-site GET.
 def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty=False, price_list_rate=None, gift_card_data=None, warehouse=None):
     """
     Improved version of the update_cart function that handles errors better and normalizes responses.
