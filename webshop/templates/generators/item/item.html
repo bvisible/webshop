@@ -40,6 +40,7 @@
 				</div>
 			</div>
 
+			{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
 			{#
 				The one number that decides: beyond it, the description is cut
 				in the purchase column and the full-width block carries the
@@ -47,10 +48,12 @@
 				and the bottom does not display — repeating the same text in two
 				places helps nobody.
 
+				//// Neoffice — see the block marker above: comment translated to English
 				Defined HERE because both blocks must read the SAME threshold:
 				if one cuts and the other does not complete it, the « Lire la
 				suite » link leads nowhere.
 			#}
+			{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
 			{#
 				900 let almost all of the full descriptions through into
 				the purchase column: it became twice as tall as the
@@ -59,12 +62,14 @@
 				blocks can do, provided it is given a budget that fits
 				within the column.
 
+				//// Neoffice — see the block marker above: comment translated to English
 				450, not 320: the cut takes WHOLE blocks, so the
 				budget must be able to hold two of them. A description that opens
 				with a hook line followed by a paragraph (the common case)
 				only showed the hook — one line, then « Lire la suite ».
 			#}
 			{% set NB_EXCERPT = 450 %}
+			{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
 			{#
 				ONE description, chosen once for the whole page: the site's
 				if someone wrote it, otherwise the item's. That has been
@@ -74,12 +79,14 @@
 				a site description.
 			#}
 			{% set _desc_html = doc.web_long_description if frappe.utils.strip_html(doc.web_long_description or '') else doc.description %}
+			{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
 			{#
 				The excerpt cuts BETWEEN BLOCKS, not at the character: slicing
 				HTML by length forces stripping the tags, and the
 				description arrives in the purchase column as a grey slab —
 				no more lists, no more bold, no more paragraphs.
 
+				//// Neoffice — see the block marker above: comment translated to English
 				`cut` says whether there is still something to read: it is what decides
 				the « Lire la suite » link AND the full-width block, so the two cannot
 				contradict each other.
@@ -163,6 +170,7 @@
 		color: #4b5563;
 	}
 	.buybox-excerpt a { white-space: nowrap; font-weight: 500; }
+	/* //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") */
 	/* The link to the rest: detached from the text, so it is distinguished from the
 	   description itself. */
 	.buybox-more { margin: 10px 0 0; }
@@ -275,6 +283,7 @@
 	.product-info-wrapper .recommended-card,
 	.product-info-wrapper .frequently-bought-section .recommendation-container { height: 100%; }
 </style>
+			{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
 			{# The entire description, full width — ONLY when the purchase
 			   column had to cut it. Otherwise it is already there, and repeating it here
 			   would make the same thing read twice. #}

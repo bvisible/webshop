@@ -115,9 +115,11 @@
 	</div>
 	{% endif %}
 
+	{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
 	{#
 		The description, next to the price — in full when it fits.
 
+		//// Neoffice — see the block marker above: comment translated to English
 		🔴 It was cut at 210 characters, ALWAYS, with « … Lire la suite »
 		even when there was nothing more to read. Measured at Blowback on 2026-08-03:
 		out of 6,419 published item pages, **1,778 descriptions fit under 210
@@ -126,14 +128,17 @@
 		Lire la suite ↓ » : four words, and an invitation to read more that
 		does not exist.
 
+		//// Neoffice — see the block marker above: comment translated to English
 		So: below the threshold, the text reads HERE, **with its formatting** —
 		lists, bold, everything. Above it, an excerpt cut at the nearest word links to the
 		full-width block, which carries the complete version.
 
+		//// Neoffice — see the block marker above: comment translated to English
 		`NB_EXCERPT` is defined by item.html, which renders the bottom block on the
 		same criterion: a single number for both, otherwise one cuts and the other
 		does not complete it.
 	#}
+	{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
 	{# `_desc_html`, `_long_full` and `_long_cut` come from item.html, which renders the
 	   bottom block on EXACTLY the same criterion. The fallback values only
 	   apply if this file is included from elsewhere. #}

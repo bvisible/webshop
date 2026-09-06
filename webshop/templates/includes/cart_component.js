@@ -1286,6 +1286,7 @@ function handleAddToCart(e) {
         setTimeout(() => {          
           // Get final quantity and image from server response
           let serverQty = qty; // Default value
+          //// Neoffice — comment translated from French to English, no behavior change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind")
           let serverImage = itemImage; // Default image
           
           if (r.message.items && Array.isArray(r.message.items)) {

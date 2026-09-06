@@ -169,6 +169,7 @@ def webshop_fmt_money(value, currency=None, precision=None):
 
 
 def description_excerpt(html: str, budget: int = 900) -> dict:
+	# //// Neoffice — docstring translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind")
 	"""An excerpt that keeps its formatting, because it cuts between blocks.
 
 	Cutting HTML at an exact character count means slicing through the middle

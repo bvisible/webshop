@@ -212,6 +212,7 @@
                 zone.style.display = 'block';
                 zone.textContent = message || "{{ _('The payment could not be completed. Please try again.') }}";
             }
+            //// Neoffice — comment translated from French to English, no behavior change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind")
             try { checkout_manager.unfreeze('payment-method-item'); } catch (e) { /* already thawed */ }
             resetButtonState();
         }

@@ -1303,6 +1303,7 @@ def get_cart_recommendations(item_codes=None, limit=4):
 	return out
 
 def prefix_from_when_several_offers(item: dict) -> None:
+	# //// Neoffice — docstring translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind")
 	"""Prefixes "from" onto the price ("from CHF 90.–") when the item sells at several prices.
 
 	🔴 A course sold at 90 or 140 depending on access duration showed "CHF 90.00"

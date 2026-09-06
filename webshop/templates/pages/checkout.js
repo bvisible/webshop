@@ -3052,6 +3052,7 @@ frappe.ready(function() {
             this.stopIntentWatch();
 
             const canal = 'payment.intent.' + intent + '.updated';
+            //// Neoffice — comment translated from French to English, no behavior change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind")
             const DUREE_MAX = 5 * 60 * 1000;          // give up after 5 min
             const debut = Date.now();
             let fini = false;
@@ -3063,6 +3064,7 @@ frappe.ready(function() {
                 if (timer) { clearTimeout(timer); timer = null; }
                 if (this._intentStop === arreter) this._intentStop = null;
                 window.removeEventListener('pagehide', arreter);
+                //// Neoffice — comment translated from French to English, no behavior change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind")
                 try { if (frappe.realtime && frappe.realtime.off) frappe.realtime.off(canal, demander); }
                 catch (e) { /* the socket may have gone away before us */ }
             };
@@ -3078,6 +3080,7 @@ frappe.ready(function() {
                         if (m.redirect_to) { window.location.href = m.redirect_to; return; }
                         window.location.reload();
                     },
+                    //// Neoffice — comment translated from French to English, no behavior change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind")
                     error: function () { /* the safety net will retry next round */ },
                 });
             };

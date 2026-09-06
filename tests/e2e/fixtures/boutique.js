@@ -215,6 +215,7 @@ async function confirmerDialogue(page) {
 	try {
 		await modale.waitFor({state: 'visible', timeout: 8000});
 	} catch (err) {
+		//// Neoffice — comment translated from French to English, no behavior change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind")
 		return false;   // no dialog: nothing to confirm
 	}
 
