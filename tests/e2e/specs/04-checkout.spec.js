@@ -41,8 +41,8 @@ test.describe('Tunnel de commande', () => {
 	});
 
 	test('le titre de page ne reprend pas le nom d’une étape', async ({page}) => {
-		//// _("Checkout") est partagé avec le bouton du panier, où le français rend
-		//// « Paiement » — ce qui donnait un titre homonyme de l'étape 4.
+		//// _("Checkout") is shared with the cart button, where French renders it
+		//// as « Paiement » — which produced a title matching step 4's name.
 		const titre = (await page.locator('h1').first().textContent()).trim();
 		expect(titre.toLowerCase()).not.toBe('paiement');
 	});
@@ -58,14 +58,14 @@ test.describe('Tunnel de commande', () => {
 			const cartes = page.locator('#billing-address-picker .address-card-choice');
 			const n = await cartes.count();
 			test.skip(n === 0, 'ce compte n’a aucune adresse enregistrée');
-			//// n-1 adresses + la carte « Nouvelle adresse »
+			//// n-1 addresses + the « Nouvelle adresse » card
 			expect(n).toBeGreaterThan(1);
 		});
 
-		//// La liste des cartes et le devis arrivent de deux appels indépendants.
-		//// Quand les cartes arrivaient les premières — le cas courant — « Nouvelle
-		//// adresse » était surlignée alors que le formulaire affichait déjà
-		//// l'adresse par défaut.
+		//// The card list and the quotation come from two independent calls. When
+		//// the cards arrived first — the common case — « Nouvelle
+		//// adresse » was highlighted while the form already showed the default
+		//// address.
 		test('la carte surlignée correspond au devis, dès le chargement', async ({page}) => {
 			const champ = await page.locator('#billing_address_name').inputValue();
 			test.skip(!champ, 'le devis n’a pas encore d’adresse');
@@ -79,11 +79,11 @@ test.describe('Tunnel de commande', () => {
 			).not.toHaveClass(/address-card-choice--new/);
 		});
 
-		//// Le bug que ce test verrouille: remplir le formulaire en déclenchant
-		//// « change » aurait rempli pendingChanges, et l'étape suivante aurait
-		//// appelé update_address_info, qui réécrit l'adresse choisie avec
-		//// is_primary_address = 1. Choisir son adresse de bureau aurait transformé
-		//// son domicile en bureau.
+		//// The bug this test locks in: filling in the form while triggering a
+		//// « change » event would have populated pendingChanges, and the next
+		//// step would have called update_address_info, which overwrites the
+		//// chosen address with is_primary_address = 1. Choosing your office
+		//// address would have turned your home into an office.
 		test('choisir une adresse ne la modifie pas', async ({page}) => {
 			const cartes = page.locator('#billing-address-picker .address-card-choice:not(.address-card-choice--new)');
 			test.skip((await cartes.count()) < 2, 'moins de deux adresses: rien à choisir');
@@ -114,11 +114,11 @@ test.describe('Tunnel de commande', () => {
 		test('on avance jusqu’au paiement et on revient sans rien perdre', async ({page}) => {
 			const adresseDepart = await page.locator('#billing_address_name').inputValue();
 
-			// Adresse -> livraison
+			// Address -> shipping
 			await page.locator('#step-address .next-step').click();
 			await expect(page.locator('#step-shipping')).toHaveClass(/active/, {timeout: 40_000});
 
-			// Choisir une livraison si aucune ne l'est
+			// Choose a shipping method if none is selected
 			const nbOptions = await page.locator('#step-shipping input[type=radio]').count();
 			test.skip(nbOptions === 0, 'aucune méthode de livraison pour cette adresse');
 			await choisirLivraison(page);
@@ -126,16 +126,16 @@ test.describe('Tunnel de commande', () => {
 				.locator('#step-shipping input[type=radio]:checked')
 				.getAttribute('value');
 
-			// Livraison -> paiement
+			// Shipping -> payment
 			await page.locator('#step-shipping .next-step').click();
 			await expect(page.locator('#step-payment')).toHaveClass(/active/, {timeout: 45_000});
 
-			// Retour paiement -> livraison
+			// Back payment -> shipping
 			await page.locator('#step-payment .prev-step').click();
 			await expect(page.locator('#step-shipping')).toHaveClass(/active/, {timeout: 30_000});
 			await expect(page.locator('#step-shipping input[type=radio]:checked')).toHaveValue(livraisonChoisie);
 
-			// Retour livraison -> adresse
+			// Back shipping -> address
 			await page.locator('#step-shipping .prev-step').click();
 			await expect(page.locator('#step-address')).toHaveClass(/active/, {timeout: 30_000});
 			if (adresseDepart) {
@@ -143,8 +143,8 @@ test.describe('Tunnel de commande', () => {
 			}
 		});
 
-		//// Passer une étape sans avoir rien modifié partait en 4 à 7 appels et
-		//// ouvrait un dialogue de confirmation parasite.
+		//// Passing a step without changing anything used to fire off 4 to 7 calls
+		//// and open a spurious confirmation dialog.
 		test('avancer sans rien modifier ne redemande rien', async ({page}) => {
 			const n = await compterRequetes(page, async () => {
 				await page.locator('#step-address .next-step').click();
@@ -163,8 +163,8 @@ test.describe('Tunnel de commande', () => {
 			test.skip(nbOptions === 0, 'aucune méthode de livraison');
 			await choisirLivraison(page);
 
-			//// Le conteneur ne doit jamais repasser par un état vide: c'est ce qui
-			//// produisait le scintillement.
+			//// The container must never pass back through an empty state: that is
+			//// what caused the flicker.
 			await page.evaluate(() => {
 				window.__vides = 0;
 				const cible = document.querySelector('#payment-methods-container');
@@ -189,14 +189,14 @@ test.describe('Tunnel de commande', () => {
 	});
 
 	test.describe('Surveillance du paiement', () => {
-		//// Le sondage était un setInterval fixe à 5 s pendant 5 minutes: 60 appels
-		//// par paiement, alors que le temps réel prévient déjà. Il est devenu un
-		//// setTimeout récursif dont le délai s'allonge passé 30 s, et davantage
-		//// encore quand la socket est vivante.
+		//// The polling used to be a fixed 5 s setInterval for 5 minutes: 60 calls
+		//// per payment, even though the realtime socket already gives notice. It
+		//// has become a recursive setTimeout whose delay stretches out past 30 s,
+		//// and even more once the socket is alive.
 		////
-		//// Mesuré ici plutôt qu'à la main: Chrome bride les timers d'un onglet en
-		//// arrière-plan, ce qui rend toute mesure manuelle inexploitable — deux
-		//// tours en 38 s au lieu de sept. Playwright garde la page active.
+		//// Measured here rather than by hand: Chrome throttles a background tab's
+		//// timers, which makes any manual measurement useless — two rounds in
+		//// 38 s instead of seven. Playwright keeps the page active.
 		test('le sondage s’espace au lieu de marteler toutes les 5 s', async ({page}) => {
 			test.setTimeout(120_000);
 
@@ -212,8 +212,8 @@ test.describe('Tunnel de commande', () => {
 					if (d >= 4000) delais.push(d);
 					return stOrig.apply(this, arguments);
 				};
-				//// Le serveur répond toujours « pas encore payé »: on observe la
-				//// cadence, on ne veut surtout pas déclencher de vraie redirection.
+				//// The server always answers "not yet paid": we're observing the
+				//// cadence, and specifically do not want to trigger a real redirect.
 				frappe.call = function (o) {
 					if (o && /cart_intent_state/.test(o.method || '')) {
 						if (o.callback) o.callback({message: {done: false}});
@@ -235,7 +235,7 @@ test.describe('Tunnel de commande', () => {
 			test.skip(!mesure, 'checkout_manager indisponible');
 
 			expect(mesure.fuite, 'la surveillance ne s’est pas arrêtée').toBe(false);
-			//// Avant: 8 délais, tous à 5000. Après: la fin de la fenêtre s'espace.
+			//// Before: 8 delays, all at 5000. After: the tail of the window spaces out.
 			expect(mesure.delais.length, 'aucun tour observé').toBeGreaterThan(0);
 			expect(
 				mesure.delais.some((d) => d > 5000),
@@ -245,8 +245,8 @@ test.describe('Tunnel de commande', () => {
 	});
 
 	test.describe('Stabilité', () => {
-		//// Une boucle de rafraîchissement figeait l'onglet: le récapitulatif se
-		//// redemandait lui-même sans fin.
+		//// A refresh loop used to freeze the tab: the summary kept re-requesting
+		//// itself endlessly.
 		test('la page ne boucle pas au repos', async ({page}) => {
 			const n = await compterRequetes(page, () => page.waitForTimeout(6000));
 			expect(n, 'la page continue d’appeler le serveur sans rien faire').toBeLessThanOrEqual(3);

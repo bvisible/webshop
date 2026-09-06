@@ -7,7 +7,7 @@ import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
 def execute():
-    # Créer le champ personnalisé
+    # Create the custom field
     custom_field = {
         "Sales Taxes and Charges": [
             {

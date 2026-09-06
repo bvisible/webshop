@@ -65,7 +65,7 @@ def is_webshopsi_payment_method(quotation):
     # Get the Payment Gateway Account
     try:
         payment_gateway = frappe.get_doc("Payment Gateway Account", quotation.payment_method)
-        # Accepte "WebshopSI" ou "Facture" comme passerelles de paiement valides
+        # Accepts "WebshopSI" or "Facture" as valid payment gateways
         result = payment_gateway.payment_gateway in ["WebshopSI", "Facture"]
         return result
     except Exception as e:

@@ -20,7 +20,7 @@ const {
 } = require('../fixtures/boutique');
 const {CARTES, tuileStripe, remplirCarte, validerPaiement} = require('../fixtures/stripe');
 
-//// Un paiement traverse Stripe puis deux appels serveur: large, mais borné.
+//// A payment goes through Stripe then two server calls: generous, but bounded.
 const DELAI_PAIEMENT = 90_000;
 
 //// Record what the payment actually did, so a failure says WHY.
@@ -43,9 +43,9 @@ function surveillerPaiement(page) {
 		echanges.push(`${r.status()} ${r.url().split('?')[0].slice(-45)} → ${corps}`);
 	});
 	page.on('pageerror', (e) => echanges.push(`ERREUR JS: ${String(e).slice(0, 200)}`));
-	//// Le formulaire Stripe refuse parfois le clic en le disant UNIQUEMENT dans
-	//// la console ("Payment already in progress, ignoring click"): sans cela, un
-	//// refus silencieux ressemble à un serveur muet.
+	//// The Stripe form sometimes refuses the click and only says so in the
+	//// console ("Payment already in progress, ignoring click"): without this, a
+	//// silent refusal looks just like a mute server.
 	page.on('console', (m) => {
 		const texte = m.text();
 		if (/payment|paiement|stripe|token|declin|refus/i.test(texte)) {
@@ -82,8 +82,8 @@ test.describe('Paiement par carte (Stripe, clés de test)', () => {
 		const tuile = await remplirCarte(page, CARTES.acceptee);
 		await validerPaiement(page, tuile);
 
-		//// Le succès se lit sur le serveur, jamais sur un message d'écran: c'est
-		//// la seule preuve qu'une commande existe vraiment.
+		//// Success is read from the server, never from an on-screen message: that
+		//// is the only proof an order genuinely exists.
 		await expect
 			.poll(async () => etatDuDevis(page, nomDevis), {
 				timeout: DELAI_PAIEMENT,
@@ -93,28 +93,28 @@ test.describe('Paiement par carte (Stripe, clés de test)', () => {
 			})
 			.not.toBe('brouillon');
 
-		//// Et le client doit être emmené ailleurs que sur le formulaire de carte.
+		//// And the customer must be taken somewhere other than the card form.
 		await expect
 			.poll(() => page.url(), {timeout: 30_000, message: 'le client reste sur le checkout'})
 			.not.toContain('/checkout');
 	});
 
-	//// Ce test a mis au jour trois défauts, tous corrigés depuis:
+	//// This test uncovered three defects, all fixed since:
 	////
-	//// 1. `window.stripe = true` servait de garde « déjà initialisé », alors
-	////    qu'il ne dit rien du chargement de Stripe.js. Au second rendu du
-	////    gabarit, initStripe() partait avant que `window.Stripe` existe et
-	////    laissait un formulaire de carte inerte.
-	//// 2. Les six frappe.call du gabarit n'avaient AUCUN handler `error`: sur un
-	////    404 ou un délai dépassé, ni la branche succès ni la branche erreur ne
-	////    s'exécutaient — écran figé, aucun message.
-	//// 3. showMessagePayment() écrivait dans le PREMIER `.error.payment-message`
-	////    du document, qui appartient à la première méthode de la liste et non à
-	////    celle qu'on paie: le message existait dans le DOM, replié dans une
-	////    tuile non sélectionnée, et le client ne voyait rien.
+	//// 1. `window.stripe = true` acted as an "already initialized" guard, yet
+	////    it said nothing about whether Stripe.js had actually loaded. On the
+	////    template's second render, initStripe() would run before
+	////    `window.Stripe` existed, leaving the card form inert.
+	//// 2. The template's six frappe.call calls had NO `error` handler at all: on
+	////    a 404 or a timeout, neither the success nor the error branch would
+	////    run — a frozen screen, no message.
+	//// 3. showMessagePayment() wrote into the FIRST `.error.payment-message` in
+	////    the document, which belongs to the first method in the list rather
+	////    than the one being paid: the message existed in the DOM, folded away
+	////    in a tile that wasn't selected, and the customer saw nothing.
 	////
-	//// Toute la chaîne s'exécute désormais (create_payment_request →
-	//// make_payment → handle_payment_failure) et le refus s'affiche.
+	//// The whole chain now runs (create_payment_request →
+	//// make_payment → handle_payment_failure) and the decline is displayed.
 	test('une carte refusée affiche un message et ne crée pas de commande', async ({page}) => {
 		test.setTimeout(240_000);
 		const echanges = surveillerPaiement(page);
@@ -129,12 +129,12 @@ test.describe('Paiement par carte (Stripe, clés de test)', () => {
 		const tuile = await remplirCarte(page, CARTES.refusee);
 		await validerPaiement(page, tuile);
 
-		//// Un refus doit se VOIR. Le pire échec de paiement est celui qui laisse
-		//// le client devant un écran inerte, sans savoir s'il a payé.
+		//// A decline must be SEEN. The worst payment failure is one that leaves
+		//// the customer in front of an inert screen, with no idea whether they paid.
 		////
-		//// Le message peut venir de la tuile (erreur de tokenisation Stripe) ou
-		//// d'un msgprint Frappe (refus au moment du débit, côté serveur): les
-		//// deux comptent, seul le silence est un défaut.
+		//// The message can come from the tile (a Stripe tokenisation error) or
+		//// from a Frappe msgprint (declined at the time of the charge, server
+		//// side): both count, only silence is a defect.
 		const lireMessages = () =>
 			page.evaluate(() =>
 				[
@@ -156,8 +156,8 @@ test.describe('Paiement par carte (Stripe, clés de test)', () => {
 			await page.waitForTimeout(2000);
 		}
 
-		//// Playwright n'évalue pas une fonction message dans .poll: le diagnostic
-		//// est construit ici, sinon l'échec ne dit que « attendu true, reçu false ».
+		//// Playwright does not evaluate a message function inside .poll: the
+		//// diagnosis is built here, otherwise the failure just says "expected true, got false".
 		await test.info().attach('echanges-paiement', {
 			body: echanges.join('\n') || '(aucun appel observé)',
 			contentType: 'text/plain',
@@ -167,7 +167,7 @@ test.describe('Paiement par carte (Stripe, clés de test)', () => {
 			`refus de carte sans message visible. Échanges :\n${echanges.join('\n') || '(aucun)'}`
 		).toBeGreaterThan(0);
 
-		//// Et surtout: rien ne doit avoir été commandé.
+		//// And above all: nothing must have been ordered.
 		expect(await etatDuDevis(page, nomDevis), 'une commande a été créée malgré le refus').toBe(
 			'brouillon'
 		);
@@ -184,14 +184,14 @@ test.describe('Paiement par carte (Stripe, clés de test)', () => {
 
 		const tuile = await remplirCarte(page, CARTES.acceptee);
 		const bouton = tuile.locator('.btn-submit-payment:visible').first();
-		//// Passe par validerPaiement, qui re-sélectionne la tuile si le
-		//// rafraîchissement des méthodes la lui a fait perdre — sans quoi le
-		//// clic échoue sur un bouton verrouillé, pour une raison qui n'a rien à
-		//// voir avec le double-clic qu'on veut éprouver.
+		//// Goes through validerPaiement, which re-selects the tile if the
+		//// methods refresh made it lose that state — without which the click
+		//// fails on a locked button, for a reason that has nothing to do with
+		//// the double-click being tested.
 		await validerPaiement(page, tuile);
 
-		//// Double paiement = double débit. Le bouton doit se verrouiller dès le
-		//// premier clic, avant même que Stripe ait répondu.
+		//// Double payment = double charge. The button must lock on the very
+		//// first click, even before Stripe has responded.
 		await expect
 			.poll(async () => bouton.isDisabled().catch(() => true), {
 				timeout: 20_000,
@@ -215,9 +215,9 @@ test.describe('Conditions générales', () => {
 		const conditions = tuile.locator('.terms-acceptance').first();
 		test.skip((await conditions.count()) === 0, 'pas de case de conditions sur ce site');
 
-		//// La tuile doit être sélectionnée pour que le gestionnaire des
-		//// conditions s'applique: sans cela, décocher ne verrouille rien et le
-		//// test échoue en accusant l'application d'accepter un paiement sans CGV.
+		//// The tile must be selected for the terms handler to apply: without
+		//// that, unchecking locks nothing and the test fails, wrongly blaming the
+		//// app for accepting a payment without accepting the terms.
 		if (!(await tuile.evaluate((e) => e.classList.contains('selected')))) {
 			await tuile.click();
 			await page.waitForTimeout(2000);
@@ -225,9 +225,9 @@ test.describe('Conditions générales', () => {
 		await conditions.uncheck();
 		await expect(conditions).not.toBeChecked();
 
-		//// Le refus se manifeste par un bouton VERROUILLÉ, pas par un clic qui
-		//// échoue. Tenter de cliquer ici échouait sur « element is disabled » —
-		//// ce qui est précisément la preuve attendue, mais lue comme un échec.
+		//// The refusal shows up as a LOCKED button, not as a click that fails.
+		//// Trying to click here used to fail on « element is disabled » —
+		//// which is precisely the expected proof, yet read as a failure.
 		const bouton = tuile.locator('.btn-submit-payment:visible').first();
 		await expect(bouton, 'payer reste possible sans accepter les conditions').toBeDisabled();
 
@@ -240,7 +240,7 @@ test.describe('Conditions générales', () => {
 
 //// Read the quotation's real state from the server.
 ////
-//// docstatus 0 = brouillon (panier), 1 = validé (commandé), 2 = annulé.
+//// docstatus 0 = brouillon (cart), 1 = validé (ordered), 2 = annulé.
 //// A cart that is still a draft after a payment means no order was created.
 async function etatDuDevis(page, nom) {
 	const r = await page.request.post(
@@ -248,9 +248,9 @@ async function etatDuDevis(page, nom) {
 	);
 	if (!r.ok()) return 'illisible';
 	const devis = (await r.json()).message;
-	//// Après une commande, get_cart_quotation ouvre un NOUVEAU panier vide:
-	//// que le devis d'origine ne soit plus le panier courant est déjà la preuve
-	//// qu'il a été consommé.
+	//// After an order, get_cart_quotation opens a NEW empty cart: the fact that
+	//// the original quotation is no longer the current cart is already the
+	//// proof that it was consumed.
 	const courant = devis && devis.doc ? devis.doc.name : null;
 	if (courant && courant !== nom) return 'commande';
 	const lignes = devis && devis.doc ? devis.doc.items || [] : [];

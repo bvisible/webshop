@@ -8,7 +8,7 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 def execute():
     """Add gift_card_amount field to Coupon Code doctype"""
     
-    # Vérifier si le champ existe déjà
+    # Check if the field already exists
     if frappe.db.exists('Custom Field', {'dt': 'Coupon Code', 'fieldname': 'gift_card_amount'}):
         return
     

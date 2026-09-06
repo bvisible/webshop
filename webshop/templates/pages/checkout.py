@@ -951,10 +951,10 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 					if mins and len(mins) == len(installments) and cart_amount < min(mins):
 						continue
 				
-				# Utilisation sécurisée de mode_of_payment (sans logging d'erreur)
+				# Safe access to mode_of_payment (without error logging)
 				mode_of_payment = getattr(webshop_method, 'mode_of_payment', None)
 				
-				# Utilisation sécurisée de client_configuration (sans logging d'erreur)
+				# Safe access to client_configuration (without error logging)
 				client_configuration = getattr(webshop_method, 'client_configuration', None)
 					
 				# Check if mode_of_payment attribute exists before trying to access it
@@ -1106,7 +1106,7 @@ def start_cart_intent(payment_gateway_account: str) -> dict:
 	intention = create_intent(
 		provider=couple[0],
 		channel=couple[1],
-		# Les intentions comptent en centimes.
+		# Intents count in cents.
 		# //// Neoffice — RULE #00 pass: locals renamed from French to English
 		# //// ("amount", "quotation") (e646274dd3 "chore: RULE #00 pass on
 		# //// identifiers — multi_site functions and the local variables")

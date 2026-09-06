@@ -76,33 +76,33 @@
         cardholderEmailInput.val($('#contact_email').val());
     }
 
-    {# //// Neoffice — cette garde disait « déjà passé ici, initialise tout de
-       //// suite ». Mais `window.stripe = true` ne dit PAS que Stripe.js est
-       //// chargé — seulement que ce gabarit a déjà été rendu une fois. Au
-       //// second rendu (chaque sélection de méthode en produit un), initStripe()
-       //// partait donc avant que `window.Stripe` existe, sortait sur
-       //// « Stripe.js is not loaded », et laissait un formulaire de carte
-       //// inerte. C'est la racine du symptôme, la ré-injection du script n'en
-       //// était que la conséquence.
+    {# //// Neoffice — this guard used to say « already been here, initialize right
+       //// away ». But `window.stripe = true` does NOT say that Stripe.js is
+       //// loaded — only that this template has already been rendered once. On the
+       //// second render (each method selection produces one), initStripe()
+       //// would therefore run before `window.Stripe` existed, bail out on
+       //// « Stripe.js is not loaded », and leave a card form
+       //// inert. That is the root of the symptom, the script's re-injection was only
+       //// its consequence.
        ////
-       //// Le vrai test est `window.Stripe` (majuscule, posé par Stripe.js).
-       //// Le bloc de chargement ci-dessous s'en charge et gère les trois cas:
-       //// déjà chargé, en cours de chargement, pas encore demandé. #}
+       //// The real test is `window.Stripe` (capitalized, set by Stripe.js).
+       //// The loading block below takes care of that and handles the three cases:
+       //// already loaded, currently loading, not yet requested. #}
     if (window.Stripe) {
         initStripe();
         return;
     }
 
-    {# //// Neoffice — chargement de Stripe.js: réutiliser, et ne jamais échouer
-       //// en silence.
+    {# //// Neoffice — loading Stripe.js: reuse, and never fail
+       //// silently.
        ////
-       //// Cette page était rendue à chaque sélection de méthode de paiement et
-       //// réinjectait un <script src="js.stripe.com/v3/"> à chaque fois. Quand
-       //// le second exemplaire déclenchait onload avant que window.Stripe soit
-       //// posé, initStripe() sortait sur un console.error — et RIEN d'autre: le
-       //// formulaire de carte restait affiché, le bouton « Payer » actif, et le
-       //// client cliquait dans le vide, sans un mot d'explication. Constaté en
-       //// test: « Stripe.js is not loaded », aucun appel réseau, aucun message.
+       //// This page used to be rendered on every payment method selection and
+       //// would re-inject a <script src="js.stripe.com/v3/"> every time. When
+       //// the second copy fired onload before window.Stripe was
+       //// set, initStripe() would bail out on a console.error — and NOTHING else: the
+       //// card form stayed displayed, the « Payer » button active, and the
+       //// customer clicked into the void, with no explanation. Found in
+       //// testing: « Stripe.js is not loaded », no network call, no message.
        //// #}
     (function() {
         var DEJA = document.querySelector('script[data-stripe-js]');
@@ -121,8 +121,8 @@
         document.head.appendChild(stripeScript);
     })();
 
-    {# //// Neoffice — dire au client que la carte ne marchera pas, au lieu de le
-       //// laisser cliquer sur un bouton inerte. #}
+    {# //// Neoffice — tell the customer the card will not work, instead of letting
+       //// them click an inert button. #}
     function signalerStripeIndisponible(message) {
         console.error("Stripe indisponible:", message);
         var $zone = $('.stripe-error-{{ submit_id }}');
@@ -192,17 +192,17 @@
             }
         };
         
-        {# //// Neoffice — un appel serveur qui échoue doit se VOIR.
+        {# //// Neoffice — a failing server call must be VISIBLE.
            ////
-           //// Les six frappe.call de ce gabarit n'avaient AUCUN handler `error`.
-           //// Or frappe.call n'appelle `callback` que sur une réponse valide :
-           //// sur un 404, un 500 ou un délai dépassé, ni la branche succès ni la
-           //// branche erreur ne s'exécutent. Le client restait devant un
-           //// formulaire figé, sans message, sans savoir s'il avait payé.
+           //// The six frappe.call calls in this template had NO `error` handler at all.
+           //// But frappe.call only calls `callback` on a valid response:
+           //// on a 404, a 500 or a timeout, neither the success branch nor the
+           //// error branch runs. The customer was left in front of a
+           //// frozen form, with no message, with no way to know if they had paid.
            ////
-           //// Constaté en test : le token Stripe est créé (200), l'appel à
-           //// create_payment_request part, le serveur répond 404 — et il ne se
-           //// passe plus rien. Le pire état possible pour un tunnel de paiement.
+           //// Found in testing: the Stripe token is created (200), the call to
+           //// create_payment_request goes out, the server responds 404 — and
+           //// nothing else happens. The worst possible state for a payment tunnel.
            //// #}
         function echecPaiement(message) {
             const succes = document.querySelector('.stripe-success-{{ submit_id }}');
@@ -212,7 +212,7 @@
                 zone.style.display = 'block';
                 zone.textContent = message || "{{ _('The payment could not be completed. Please try again.') }}";
             }
-            try { checkout_manager.unfreeze('payment-method-item'); } catch (e) { /* déjà dégelé */ }
+            try { checkout_manager.unfreeze('payment-method-item'); } catch (e) { /* already thawed */ }
             resetButtonState();
         }
 
@@ -408,9 +408,9 @@
                                         });
                                     }
                                 },
-                                {# //// Neoffice — le débit a pu partir: on ne dit
-                                   //// PAS que rien n'a été prélevé, on invite à
-                                   //// vérifier avant de réessayer. #}
+                                {# //// Neoffice — the charge may have gone through: we do not say
+                                   //// that NOTHING was charged, we invite the customer to
+                                   //// check before trying again. #}
                                 error: function() {
                                     echecPaiement("{{ _('We lost contact with the payment server. Please check your orders before trying again.') }}");
                                 }
@@ -426,8 +426,8 @@
                             errorDiv.textContent = r.message.message || "{{ _('Error creating payment request') }}";
                         }
                     },
-                    {# //// Neoffice — sans ceci, un 404/500/timeout sur cet appel
-                       //// laissait le client devant un formulaire figé, muet. #}
+                    {# //// Neoffice — without this, a 404/500/timeout on this call
+                       //// left the customer in front of a frozen, silent form. #}
                     error: function() {
                         echecPaiement("{{ _('The payment could not be started. Your card has not been charged. Please try again.') }}");
                     }

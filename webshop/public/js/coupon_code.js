@@ -7,10 +7,10 @@ frappe.ui.form.on('Coupon Code', {
         // Show or hide the gift card amount field
         frm.toggle_display('gift_card_amount', frm.doc.coupon_type === 'Gift Card');
         
-        // Rendre le champ read-only
+        // Make the field read-only
         frm.set_df_property('gift_card_amount', 'read_only', 1);
         
-        // Mettre à jour le montant si c'est une gift card avec pricing rule
+        // Update the amount if it's a gift card with a pricing rule
         if (frm.doc.coupon_type === 'Gift Card' && frm.doc.pricing_rule) {
             frappe.db.get_value('Pricing Rule', frm.doc.pricing_rule, 'discount_amount')
                 .then(r => {
@@ -18,7 +18,7 @@ frappe.ui.form.on('Coupon Code', {
                         let new_amount = r.message.discount_amount;
                         if (frm.doc.gift_card_amount !== new_amount) {
                             frm.set_value('gift_card_amount', new_amount);
-                            // Sauvegarder si la valeur a changé
+                            // Save if the value has changed
                             frm.save();
                         }
                     }

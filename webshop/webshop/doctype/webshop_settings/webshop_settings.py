@@ -37,7 +37,7 @@ class WebshopSettings(Document):
 		# //// self-contained instead of relying on a fleet-wide patch.
 		self.validate_multi_warehouse()
 
-		# Désactiver les options en cascade
+		# Cascade-disable the options
 		if not self.enabled:
 			self.enable_checkout = 0
 			self.enable_checkout_page = 0
@@ -475,17 +475,17 @@ def get_shopping_cart_settings():
             if profile.get(field):
                 settings_dict[field] = profile[field]
 
-        # //// Neoffice multi-site — un site réservé aux professionnels n'a pas de
-        # //// panier invité, quoi que dise le réglage global.
+        # //// Neoffice multi-site — a site reserved for professionals has no
+        # //// guest cart, whatever the global setting says.
         # ////
-        # //// Passer par ce drapeau plutôt que par les gabarits: ils testent déjà
-        # //// `enable_guest_cart == 0 and user == "Guest"` pour remplacer
-        # //// « Ajouter au panier » par « Pour ajouter au panier, veuillez vous
-        # //// connecter ». Le poser ici suffit donc à changer le bouton partout —
-        # //// fiche produit, listes, vignettes — sans toucher une seule vue, et
-        # //// sans risquer d'en oublier une.
+        # //// Going through this flag rather than the templates: they already test
+        # //// `enable_guest_cart == 0 and user == "Guest"` to swap
+        # //// « Ajouter au panier » for « Pour ajouter au panier, veuillez vous
+        # //// connecter ». Setting it here is therefore enough to change the button
+        # //// everywhere — item page, listings, tiles — without touching a single
+        # //// view, and without risking missing one.
         # ////
-        # //// L'affichage n'est pas la permission: update_cart refuse de son côté
+        # //// Display is not permission: update_cart refuses on its own side
         # //// (multi_site.require_login_to_buy).
         if profile.get("b2b_only"):
             settings_dict["enable_guest_cart"] = 0

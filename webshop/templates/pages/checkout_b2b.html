@@ -79,7 +79,7 @@
 		function initializeAddressHandling() {
 			// Listen for address changes
 			$(document).on('click', '.address-card', function() {
-				// Vérifier si c'est une adresse de livraison
+				// Check if this is a shipping address
 				if ($(this).closest('[data-address-type="shipping"]').length) {
 					loadShippingMethods();
 				}
@@ -248,7 +248,7 @@
 					shipping_rule: shipping_method
 				},
 				callback: function(r) {
-					// Restaurer le texte du bouton
+					// Restore the button text
 					$('.btn-place-order').html(__('Place Order'));
 					
 					if (r.message && r.message.doc) {

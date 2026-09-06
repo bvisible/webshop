@@ -77,7 +77,7 @@ def get_builder_component_by_route(route, use_cache=True):
             "block": json.loads(component.block) if isinstance(component.block, str) else component.block
         }
         
-        # Mettre en cache le résultat
+        # Cache the result
         if use_cache and cache_key:
             frappe.cache().set_value(cache_key, result, expires_in_sec=300)  # 5 minutes
             
@@ -296,11 +296,11 @@ def get_builder_page_content(route=None, page_name=None, content_only=False, ski
         # Get the page document
         page = frappe.get_cached_doc("Builder Page", page_name)
 
-        # //// Neoffice — une page NON PUBLIÉE ne se rend pas à un visiteur.
-        # //// La branche par `route` juste au-dessus filtre déjà `published: 1`
-        # //// (« Only get published pages ») ; celle-ci, appelée avec un nom,
-        # //// ne filtrait rien : un brouillon se servait à qui connaissait son
-        # //// nom. L'entrée est `allow_guest`. Le personnel garde l'aperçu.
+        # //// Neoffice — an UNPUBLISHED page is not rendered to a visitor.
+        # //// The `route`-based branch just above already filters `published: 1`
+        # //// ("Only get published pages"); this one, called with a name,
+        # //// filtered nothing: a draft was served to anyone who knew its
+        # //// name. The endpoint is `allow_guest`. Staff keep the preview.
         if not page.get("published"):
             roles = frappe.get_roles()
             if not ("System Manager" in roles or "Website Manager" in roles):

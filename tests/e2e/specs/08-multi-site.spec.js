@@ -37,8 +37,8 @@ test.describe('Deux sites, deux domaines', () => {
 				const reponse = await page.goto('/');
 				expect(reponse.status(), `${url} ne répond pas`).toBeLessThan(400);
 
-				//// Le canonique doit désigner CE domaine: sinon le référencement
-				//// des deux boutiques se replie sur une seule.
+				//// The canonical must point to THIS domain: otherwise SEO for
+				//// both shops collapses onto a single one.
 				const canonique = await page.evaluate(
 					() => document.querySelector('link[rel="canonical"]')?.href || null
 				);
@@ -53,9 +53,9 @@ test.describe('Deux sites, deux domaines', () => {
 		}
 	});
 
-	//// Le desk n'a rien à faire sur la boutique professionnelle: un client
-	//// portail n'y a pas accès, et l'exposer sur un second domaine élargit la
-	//// surface pour rien.
+	//// The desk has no business being on the professional shop: a portal
+	//// customer has no access to it, and exposing it on a second domain widens
+	//// the attack surface for nothing.
 	test('le desk n’est pas servi sur le domaine secondaire', async ({browser}) => {
 		const {contexte, page} = await ouvrirSite(browser, URL_B2B);
 		try {
@@ -73,9 +73,9 @@ test.describe('Deux sites, deux domaines', () => {
 test.describe('Catalogue propre à chaque site', () => {
 	test.skip(!multiSiteDisponible(), 'un seul domaine configuré');
 
-	//// Un article restreint à un site ne doit pas fuir sur l'autre. C'est le
-	//// cas d'usage le plus attendu du multi-boutique: des références
-	//// professionnelles absentes de la vitrine grand public.
+	//// An item restricted to one site must not leak onto the other. This is
+	//// the most expected use case for multi-shop: professional references
+	//// absent from the consumer storefront.
 	test('un article restreint reste caché sur l’autre domaine', async ({browser}) => {
 		const b2c = await ouvrirSite(browser, URL_B2C);
 		const b2b = await ouvrirSite(browser, URL_B2B);
@@ -92,9 +92,9 @@ test.describe('Catalogue propre à chaque site', () => {
 			const seulementB2C = [...codesB2C].filter((c) => !codesB2B.has(c));
 			const seulementB2B = [...codesB2B].filter((c) => !codesB2C.has(c));
 
-			//// Si aucune restriction n'est configurée, les deux catalogues sont
-			//// identiques — c'est licite, mais alors la fonctionnalité n'est pas
-			//// éprouvée: on le dit plutôt que de passer au vert pour rien.
+			//// If no restriction is configured, both catalogues are identical —
+			//// that's legitimate, but then the feature isn't actually being
+			//// tested: say so rather than turning green for nothing.
 			test.skip(
 				seulementB2C.length === 0 && seulementB2B.length === 0,
 				'aucun article restreint à un site sur cette instance'
@@ -114,13 +114,13 @@ test.describe('Catalogue propre à chaque site', () => {
 test.describe('Le prix affiché est le prix facturé', () => {
 	test.skip(!multiSiteDisponible(), 'un seul domaine configuré');
 
-	//// LE défaut que ce bloc verrouille.
+	//// THE defect this block locks in.
 	////
-	//// Le catalogue lisait la liste de prix du profil de site, mais la
-	//// recherche, les carrousels et le PANIER lisaient Webshop Settings. Sur le
-	//// domaine B2B, un article s'affichait à 199.00 dans la liste et sur sa
-	//// fiche, et le panier facturait 549.00 — le tarif grand public. Une
-	//// boutique qui montre un prix et en facture un autre n'a pas d'excuse.
+	//// The catalogue read the site profile's price list, but search, the
+	//// carousels and the CART read Webshop Settings instead. On the B2B
+	//// domain, an item would show 199.00 in the list and on its page, while
+	//// the cart charged 549.00 — the consumer rate. A shop that shows one
+	//// price and bills another has no excuse.
 	test('catalogue, recherche et panier annoncent le même prix', async ({browser}) => {
 		for (const url of [URL_B2C, URL_B2B]) {
 			const {contexte, page} = await ouvrirSite(browser, url);
@@ -131,8 +131,8 @@ test.describe('Le prix affiché est le prix facturé', () => {
 
 				const recherche = await prixRecherche(page, article.item_code);
 
-				//// Connexion avant de toucher au panier: un site réservé n'en a
-				//// pas pour un anonyme (403), et c'est voulu.
+				//// Sign in before touching the cart: a reserved site doesn't allow
+				//// one for an anonymous visitor (403), and that is intentional.
 				test.skip(!(await connecterSurSite(page, url)), `connexion impossible sur ${url}`);
 				const panier = await prixPanier(page, article.item_code);
 
@@ -172,8 +172,8 @@ test.describe('Le prix affiché est le prix facturé', () => {
 				'les deux sites partagent la même liste de prix (rien à distinguer)'
 			);
 
-			//// Deux listes distinctes doivent produire deux factures distinctes,
-			//// sinon la liste du profil est décorative.
+			//// Two distinct price lists must produce two distinct invoiced amounts,
+			//// otherwise the profile's price list is purely decorative.
 			expect(
 				pB2B.prix,
 				`même prix (${pB2B.prix}) malgré des listes différentes ` +
@@ -189,8 +189,8 @@ test.describe('Le prix affiché est le prix facturé', () => {
 test.describe('Boutique réservée aux professionnels', () => {
 	test.skip(!multiSiteDisponible(), 'un seul domaine configuré');
 
-	//// Le contrôle de connexion vit dans neoffice_theme (on_session_creation);
-	//// ce test vérifie qu'il agit vraiment, vu du client.
+	//// The sign-in gate lives in neoffice_theme (on_session_creation); this
+	//// test verifies it actually acts, as seen from the customer's side.
 	test('un compte grand public ne peut pas se connecter', async ({browser}) => {
 		const {contexte, page} = await ouvrirSite(browser, URL_B2B);
 		try {
@@ -218,17 +218,17 @@ test.describe('Boutique réservée aux professionnels', () => {
 					pwd: process.env.WEBSHOP_E2E_PASSWORD,
 				},
 			});
-			//// Le pendant du test précédent: le cloisonnement doit refuser d'un
-			//// côté SANS casser l'autre.
+			//// The counterpart of the previous test: the partitioning must refuse
+			//// on one side WITHOUT breaking the other.
 			expect(r.status(), 'le compte ne peut plus se connecter nulle part').toBe(200);
 		} finally {
 			await contexte.close();
 		}
 	});
 
-	//// Le gating de connexion exempte Guest: un visiteur anonyme pouvait donc
-	//// remplir un panier sur le domaine professionnel, atteindre le tunnel et le
-	//// dérouler — aux tarifs revendeur. Commander demande désormais un compte.
+	//// The sign-in gating exempts Guest: an anonymous visitor could therefore
+	//// fill a cart on the professional domain, reach the tunnel and go
+	//// through it — at reseller rates. Placing an order now requires an account.
 	test('un visiteur anonyme ne peut pas commander', async ({browser}) => {
 		const {contexte, page} = await ouvrirSite(browser, URL_B2B);
 		try {
@@ -245,17 +245,17 @@ test.describe('Boutique réservée aux professionnels', () => {
 		}
 	});
 
-	//// Le panier lui-même est fermé, pas seulement le tunnel: sur un site
-	//// réservé, un anonyme ne constitue pas de commande — même à titre
-	//// d'intention.
+	//// The cart itself is closed, not just the tunnel: on a reserved site, an
+	//// anonymous visitor cannot build up an order — not even as an
+	//// intention.
 	test('un visiteur anonyme ne peut pas remplir de panier', async ({browser}) => {
 		const {contexte, page} = await ouvrirSite(browser, URL_B2B);
 		try {
 			const code = await premierCode(page);
 			test.skip(!code, 'aucun article listé sur ce domaine');
 
-			//// La garde est côté SERVEUR: cet endpoint est appelable directement,
-			//// et masquer un bouton n'est pas une permission.
+			//// The guard is SERVER-side: this endpoint is directly callable,
+			//// and hiding a button is not a permission.
 			const r = await page.request.post(
 				'/api/method/webshop.webshop.shopping_cart.cart.update_cart',
 				{form: {item_code: code, qty: 1}}
@@ -278,15 +278,15 @@ test.describe('Boutique réservée aux professionnels', () => {
 		}
 	});
 
-	//// Ce que voit le client: à la place d'« Ajouter au panier », une invitation
-	//// à se connecter. Un bouton qui échouerait au clic serait pire que pas de
-	//// bouton du tout.
+	//// What the customer sees: instead of « Ajouter au panier », an invitation
+	//// to sign in. A button that failed on click would be worse than no
+	//// button at all.
 	test('le bouton d’ajout devient un appel à se connecter', async ({browser}) => {
 		const b2b = await ouvrirSite(browser, URL_B2B);
 		const b2c = await ouvrirSite(browser, URL_B2C);
 		try {
-			//// Un article TARIFÉ sur les deux sites: sans prix, la fiche n'affiche
-			//// aucun bouton du tout et le test ne compare rien.
+			//// An item PRICED on both sites: without a price, the page shows
+			//// no button at all and the test compares nothing.
 			const route = await routeArticleTarifeSurLesDeux(b2c.page, b2b.page);
 			test.skip(!route, 'aucun article tarifé sur les deux domaines');
 
@@ -304,7 +304,7 @@ test.describe('Boutique réservée aux professionnels', () => {
 			expect(surB2B.length, 'aucun bouton sur la fiche du site réservé').toBeGreaterThan(0);
 			expect(surB2B[0].href, 'le bouton ne mène pas à la connexion').toContain('/login');
 
-			//// Et le pendant: la boutique grand public garde son vrai bouton.
+			//// And the counterpart: the consumer shop keeps its real button.
 			const surB2C = await lire(b2c.page);
 			expect(surB2C.length, 'aucun bouton sur la fiche grand public').toBeGreaterThan(0);
 			expect(surB2C[0].href, 'le bouton grand public mène à la connexion').not.toContain(
@@ -327,7 +327,7 @@ test.describe('Boutique réservée aux professionnels', () => {
 			});
 			await page.goto('/checkout', {waitUntil: 'domcontentloaded'});
 			await page.waitForTimeout(3000);
-			//// Le pendant: la restriction ne doit pas déborder sur le B2C.
+			//// The counterpart: the restriction must not spill over onto B2C.
 			await expect(
 				page.locator('#step-address'),
 				'le tunnel grand public est devenu inaccessible aux invités'

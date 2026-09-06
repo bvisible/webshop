@@ -745,7 +745,7 @@ function updateItemPrice(cartItem, cartData, itemCode, newQty, oldQty) {
             const priceMatch = priceText.match(/([0-9.,]+)/g);
             if (priceMatch && priceMatch.length > 0) {
               const totalAmount = parseFloat(priceMatch[0].replace(/,/g, '.'));
-              // Si on trouve une quantité dans la DOM, utiliser cette valeur, sinon utiliser newQty
+              // If a quantity is found in the DOM, use that value, otherwise use newQty
               const qtyElement = itemElement.querySelector('.cart-qty, .qty-value');
               const itemQty = qtyElement ? 
                               parseInt(qtyElement.value || qtyElement.textContent) || newQty : 
@@ -814,7 +814,7 @@ function updateCartTotals(cartData) {
   let extractedItemCount = 0;
   let extractedSubtotal = 0;
   
-  // --- EXTRACTION DU TOTAL ---
+  // --- TOTAL EXTRACTION ---
   
   // Method 1: Direct properties in the object
   if (typeof cartData.grand_total === 'number') {
@@ -1286,7 +1286,7 @@ function handleAddToCart(e) {
         setTimeout(() => {          
           // Get final quantity and image from server response
           let serverQty = qty; // Default value
-          let serverImage = itemImage; // Image par défaut
+          let serverImage = itemImage; // Default image
           
           if (r.message.items && Array.isArray(r.message.items)) {
             const item = r.message.items.find(i => i.item_code === itemCode);
@@ -1585,7 +1585,7 @@ function updateCartWithNewItem(response, itemCode, itemName, itemImage, qtyToAdd
         // Ensure the element is still valid after the first method
         const refreshedQtyElement = existingItem.querySelector('.qty-value');
         if (refreshedQtyElement) {
-          // Forcer la valeur avec innerHTML, innerText et textContent
+          // Force the value with innerHTML, innerText and textContent
           refreshedQtyElement.innerHTML = currentQty.toString();
           refreshedQtyElement.innerText = currentQty.toString();
           refreshedQtyElement.textContent = currentQty.toString();

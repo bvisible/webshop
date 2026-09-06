@@ -42,8 +42,8 @@ test.describe('Demande de compte professionnel', () => {
 		try {
 			const reponse = await page.goto('/compte-professionnel');
 			expect(reponse.status()).toBe(200);
-			//// Sans formulaire atteignable, un site réservé est une impasse: un
-			//// prospect ne peut ni entrer ni demander à entrer.
+			//// Without a reachable form, a reserved site is a dead end: a
+			//// prospect can neither get in nor ask to get in.
 			await expect(page.locator('#company_name')).toBeVisible();
 			await expect(page.locator('#email')).toBeVisible();
 		} finally {
@@ -80,8 +80,8 @@ test.describe('Demande de compte professionnel', () => {
 		}
 	});
 
-	//// Sécurité: une vitrine publique ne doit jamais servir à réclamer un
-	//// compte du desk. Même garde que la création de compte grand public.
+	//// Security: a public storefront must never allow claiming a desk
+	//// account. Same guard as the consumer account creation.
 	test('un compte du desk ne peut pas être réclamé', async ({browser}) => {
 		const {contexte, page} = await ouvrirSite(browser, URL_B2B);
 		try {
@@ -107,8 +107,8 @@ test.describe('Demande de compte professionnel', () => {
 		try {
 			await deposerDemande(page, email, 'Depot E2E SA');
 
-			//// Le formulaire disparaît au profit d'un message: on ne redépose pas
-			//// la même demande par inadvertance.
+			//// The form disappears in favor of a message: this prevents
+			//// accidentally resubmitting the same application.
 			await expect(page.locator('#demande-resultat')).toBeVisible({timeout: 30_000});
 			await expect(page.locator('#demande-compte-pro')).toBeHidden();
 
@@ -117,8 +117,8 @@ test.describe('Demande de compte professionnel', () => {
 				`d = frappe.get_all("B2B Account Request", filters={"email": ${JSON.stringify(email)}},` +
 					` fields=["status", "website_profile", "customer_group"])\nprint(d[0] if d else "")`
 			);
-			//// Le site d'origine ET le groupe cible doivent être posés: c'est le
-			//// site qui décide du groupe, jamais le demandeur.
+			//// Both the originating site AND the target group must be set: it is
+			//// the site that decides the group, never the applicant.
 			expect(ligne, 'la demande n’a pas été enregistrée').toContain('Nouvelle');
 			expect(ligne, 'le site d’origine n’a pas été retenu').toMatch(/website_profile.+\w/);
 		} finally {
@@ -190,12 +190,12 @@ test.describe('Ce que produit une approbation', () => {
 				`print("TYPE=" + (frappe.db.get_value("User", res["user"], "user_type") or ""))`
 		);
 
-		//// Le groupe conditionne l'accès au site ET le tarif: s'il est faux, le
-		//// client est créé mais ne pourra pas entrer, ou paiera le mauvais prix.
+		//// The group drives both site access AND pricing: if it's wrong, the
+		//// customer gets created but won't be able to sign in, or will pay the wrong price.
 		expect(sortie, 'le client n’est pas dans un groupe professionnel').toMatch(/GROUPE=\S/);
 		expect(sortie, 'le compte n’est pas un compte client').toContain('TYPE=Website User');
-		//// Un portal user en double n'est pas fatal mais se multiplie à chaque
-		//// enregistrement et pollue la fiche.
+		//// A duplicate portal user isn't fatal but multiplies with every
+		//// submission and clutters the record.
 		expect(sortie, 'portal user en double').toContain('PORTAL=1');
 	});
 
@@ -203,9 +203,9 @@ test.describe('Ce que produit une approbation', () => {
 		test.setTimeout(180_000);
 		test.skip(!email, 'aucune demande approuvée');
 
-		//// Le lien d'activation est forgé côté serveur, exactement comme celui
-		//// que Frappe met dans son e-mail (la clé en clair n'existe nulle part
-		//// ailleurs — la base n'en garde que le hash).
+		//// The activation link is forged server-side, exactly like the one
+		//// Frappe puts in its e-mail (the clear-text key exists nowhere
+		//// else — the database only keeps its hash).
 		const lien = surLeServeur(
 			`from neoffice_theme.neoffice_theme.doctype.b2b_account_request.b2b_account_request import activation_link\n` +
 				`lien = activation_link(${JSON.stringify(email)}, ` +
@@ -215,8 +215,8 @@ test.describe('Ce que produit une approbation', () => {
 		const cle = (lien.split('key=')[1] || '').trim();
 		expect(cle, 'aucun lien d’activation').toBeTruthy();
 
-		//// Le lien doit mener sur LE domaine professionnel: envoyer un futur
-		//// revendeur sur la boutique grand public est une impasse.
+		//// The link must lead to THE professional domain: sending a future
+		//// reseller to the consumer shop is a dead end.
 		expect(lien, 'le lien d’activation pointe le mauvais domaine').toContain(
 			new URL(URL_B2B).host
 		);
@@ -229,8 +229,8 @@ test.describe('Ce que produit une approbation', () => {
 			);
 			expect(activation.ok(), `activation refusée (${activation.status()})`).toBeTruthy();
 
-			//// LE test qui compte: le compte issu de la demande entre vraiment sur
-			//// le site réservé, là où un compte grand public est refusé.
+			//// THE test that matters: the account from the application genuinely
+			//// gets into the reserved site, where a consumer account is refused.
 			const connexion = await page.request.post('/api/method/login', {
 				form: {usr: email, pwd: MOT_DE_PASSE},
 			});
@@ -239,7 +239,7 @@ test.describe('Ce que produit une approbation', () => {
 				'le compte approuvé ne peut pas entrer sur le site professionnel'
 			).toBe(200);
 
-			//// Et il achète au tarif de ce site, pas au tarif grand public.
+			//// And they buy at this site's rate, not the consumer rate.
 			const {catalogueDuSite} = require('../fixtures/sites');
 			const catalogue = await catalogueDuSite(page);
 			const article = catalogue.find((i) => i.prix);

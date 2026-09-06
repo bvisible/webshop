@@ -730,7 +730,7 @@ frappe.showLoginDialog = function(opts) {
                         `;
                         document.body.appendChild(successOverlay);
 
-                        // Ajouter le style pour le message de succès
+                        // Add the style for the success message
                         const successStyles = document.createElement('style');
                         successStyles.textContent = `
                             .success-message-overlay {
@@ -787,7 +787,7 @@ frappe.showLoginDialog = function(opts) {
                         `;
                         document.head.appendChild(successStyles);
 
-                        // Animer l'apparition du message
+                        // Animate the message's appearance
                         requestAnimationFrame(() => {
                             successOverlay.classList.add('show');
                         });

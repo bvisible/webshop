@@ -26,8 +26,8 @@ class PaymentHandler:
                 existing_pr = frappe.db.get_value(
                     "Payment Request",
                     {"custom_idempotency_token": idempotency_token},
-                    # //// Neoffice — `reference_doctype` en plus : la demande peut
-                    # //// déjà pointer la commande créée, pas le devis.
+                    # //// Neoffice — `reference_doctype` added: the request may
+                    # //// already point to the created order, not the quotation.
                     ["name", "status", "reference_name", "reference_doctype"],
                     as_dict=True
                 )
@@ -37,14 +37,14 @@ class PaymentHandler:
                     if existing_pr.status != "Failed":
                         frappe.log_error(f"Duplicate payment request prevented. Token: {idempotency_token}", "Payment Idempotency")
                         
-                        # //// Neoffice — le lien commande→devis vit sur la LIGNE
-                        # //// (`Sales Order Item.prevdoc_docname`) : `Sales Order`
-                        # //// n'a pas de colonne `quotation`. La requête d'origine
-                        # //// levait donc « Unknown column 'quotation' » à CHAQUE
-                        # //// reprise de paiement, l'exception remontait au except
-                        # //// général, et le client recevait « Erreur lors de la
-                        # //// création de la demande de paiement » au lieu de
-                        # //// retrouver sa demande. Ne se voyait qu'au second essai.
+                        # //// Neoffice — the order→quotation link lives on the LINE
+                        # //// (`Sales Order Item.prevdoc_docname`): `Sales Order`
+                        # //// has no `quotation` column. The original query therefore
+                        # //// raised « Unknown column 'quotation' » on EVERY
+                        # //// payment retry, the exception bubbled up to the general
+                        # //// except, and the customer received « Erreur lors de la
+                        # //// création de la demande de paiement » instead of
+                        # //// finding their request again. Only visible on the second attempt.
                         sales_order = None
                         if existing_pr.reference_doctype == "Sales Order":
                             sales_order = existing_pr.reference_name
@@ -221,19 +221,19 @@ class PaymentHandler:
     
     def handle_payment_success(self, **kwargs):
         try:
-            # //// Neoffice — QUI a le droit de faire aboutir ce paiement.
+            # //// Neoffice — WHO is allowed to complete this payment.
             # ////
-            # //// L'entrée est `allow_guest` et le corps passe en Administrator
-            # //// « parce que la passerelle a confirmé » — mais RIEN ne le
-            # //// vérifiait. Un visiteur jamais connecté qui postait un numéro
-            # //// de demande obtenait une Sales Order soumise, `advance_paid`
-            # //// à 0. Les numéros étant séquentiels (ACC-PRQ-2026-00060), tout
-            # //// panier en attente se confirmait sans payer. Démontré sur
-            # //// osiris le 2026-08-24 : commande BC-2026-00326, CHF 15, créée
-            # //// depuis une session anonyme.
+            # //// The endpoint is `allow_guest` and the body switches to Administrator
+            # //// "because the gateway confirmed it" — but NOTHING actually
+            # //// checked that. A visitor who was never signed in and posted a request
+            # //// number would get a submitted Sales Order, `advance_paid`
+            # //// at 0. Since the numbers are sequential (ACC-PRQ-2026-00060), every
+            # //// pending cart would confirm without paying. Demonstrated on
+            # //// osiris on 2026-08-24: order BC-2026-00326, CHF 15, created
+            # //// from an anonymous session.
             # ////
-            # //// La garde est posée AVANT `set_user`, sinon elle se juge
-            # //// elle-même en Administrator.
+            # //// The guard is placed BEFORE `set_user`, otherwise it would judge
+            # //// itself as Administrator.
             payment_request_id = kwargs.get('payment_request_id')
             if not payment_request_id:
                 return self.handle_error("Missing payment request ID")
@@ -479,14 +479,14 @@ class PaymentHandler:
     def handle_payment_failure(self, payment_request_id, error_message=None):
         """Handle payment failure"""
         try:
-            # //// Neoffice — même famille que `handle_payment_success` : l'entrée
-            # //// est `allow_guest` et ne vérifiait pas à QUI est la demande. Un
-            # //// visiteur anonyme la passait en `Failed` avec un message de son
-            # //// choix — de quoi tuer, en énumérant les numéros séquentiels,
-            # //// tous les paiements en cours d'une boutique. Démontré sur osiris
-            # //// le 2026-08-24 sur ACC-PRQ-2026-00189.
-            # //// Pas de cas « intention aboutie » ici : un échec ne se constate
-            # //// pas côté PSP par une intention `succeeded`.
+            # //// Neoffice — same family as `handle_payment_success`: the endpoint
+            # //// is `allow_guest` and did not check WHO the request belongs to. An
+            # //// anonymous visitor could set it to `Failed` with a message of their
+            # //// choosing — enough to kill, by enumerating the sequential numbers,
+            # //// every payment in progress for a shop. Demonstrated on osiris
+            # //// on 2026-08-24 on ACC-PRQ-2026-00189.
+            # //// No "intent succeeded" case here: a failure is never confirmed
+            # //// on the PSP side by a `succeeded` intent.
             if not payment_request_id or not frappe.db.exists("Payment Request", payment_request_id):
                 return self.handle_error("Missing payment request ID")
             if not _peut_conclure(payment_request_id, argent_constate=False):
@@ -610,37 +610,37 @@ def create_payment_request(quotation_id=None, gateway_settings=None, idempotency
             "message": str(e)
         }
 
-# //// Neoffice — les quatre seuls cas où faire aboutir un paiement est légitime.
+# //// Neoffice — the only four cases where completing a payment is legitimate.
 # ////
-# //// Appelants réels, relevés dans les dépôts :
-# ////   · `webshop/templates/payments/stripe.html` — le navigateur de l'ACHETEUR
-# ////     après que Stripe a encaissé (il est authentifié : le checkout impose
-# ////     la connexion) ;
-# ////   · `payments/drivers/wallee/terminal_driver.py` — tâche de fond (serveur) ;
-# ////   · `payments/www/wallee/success.py` et `payments/api/twint.py` — retour de
-# ////     passerelle, où l'intention porte déjà le verdict du PSP.
+# //// Real callers, found across the repos:
+# ////   · `webshop/templates/payments/stripe.html` — the BUYER's browser
+# ////     after Stripe has captured payment (they are authenticated: checkout
+# ////     requires being signed in);
+# ////   · `payments/drivers/wallee/terminal_driver.py` — background task (server);
+# ////   · `payments/www/wallee/success.py` and `payments/api/twint.py` — gateway
+# ////     return, where the intent already carries the PSP's verdict.
 # ////
-# //// Un visiteur anonyme qui poste un numéro de demande n'en fait partie
-# //// d'aucun. Le cas 4 est la VRAIE invariante : l'argent est constaté, peu
-# //// importe qui le signale.
+# //// An anonymous visitor who posts a request number belongs to none of
+# //// these. Case 4 is the TRUE invariant: the money is confirmed, no matter
+# //// who reports it.
 def _peut_conclure(payment_request_id: str, argent_constate: bool = True) -> bool:
 	user = frappe.session.user
 
-	# 1. le serveur lui-même (tâche de fond, page de retour côté serveur)
+	# 1. the server itself (background task, server-side return page)
 	# //// Neoffice — RULE #00 pass: local variable renamed from French to
 	# //// English "user" (e646274dd3 "chore: RULE #00 pass on identifiers —
 	# //// multi_site functions and the local variables")
 	if user == "Administrator":
 		return True
 
-	# 2. le personnel
+	# 2. staff
 	# //// Neoffice — "user" renamed from French, see the marker above (e646274dd3)
 	if user != "Guest" and "System Manager" in frappe.get_roles():
 		return True
 
-	# 4. l'argent est CONSTATÉ : une intention aboutie porte sur cette demande.
-	#    Vérifié avant le cas 3 pour couvrir un retour de passerelle où la
-	#    session n'a pas encore été rétablie.
+	# 4. the money is CONFIRMED: a succeeded intent covers this request.
+	#    Checked before case 3 to cover a gateway return where the
+	#    session has not been restored yet.
 	try:
 		if argent_constate and frappe.db.exists("DocType", "Payment Intent") and frappe.db.exists(
 			"Payment Intent",
@@ -655,7 +655,7 @@ def _peut_conclure(payment_request_id: str, argent_constate: bool = True) -> boo
 	if user == "Guest":
 		return False
 
-	# 3. l'ACHETEUR, de retour de sa passerelle : c'est sa demande.
+	# 3. the BUYER, back from their gateway: this is their request.
 	# //// Neoffice — RULE #00 pass: local variables renamed from French to
 	# //// English "beneficiary", "customers"/"suppliers", and the log_error title
 	# //// (e646274dd3 "chore: RULE #00 pass on identifiers — multi_site functions

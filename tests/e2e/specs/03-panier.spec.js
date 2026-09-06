@@ -28,10 +28,10 @@ let _multiSource;
 async function articleMultiSource(page) {
 	if (_multiSource !== undefined) return _multiSource;
 
-	//// Une route peut être désignée dans ~/.config/webshop-e2e.env
-	//// (WEBSHOP_E2E_MULTISOURCE_ROUTE). La détection automatique ci-dessous ne
-	//// voit que la première page du catalogue: sur un site où l'article
-	//// multi-sources est plus loin, tous ces tests se taisaient.
+	//// A route can be designated in ~/.config/webshop-e2e.env
+	//// (WEBSHOP_E2E_MULTISOURCE_ROUTE). The automatic detection below only
+	//// sees the first page of the catalogue: on a site where the
+	//// multi-source item sits further down, all these tests went silent.
 	const designee = process.env.WEBSHOP_E2E_MULTISOURCE_ROUTE;
 	if (designee) {
 		const trouve = await sourcesDeLaFiche(page, designee.replace(/^\//, ''));
@@ -101,8 +101,8 @@ test.describe('Panier', () => {
 		expect(await viderPanier(page), 'le panier n’a pas pu être vidé').toBe(true);
 		await page.goto('/cart');
 		await page.waitForLoadState('networkidle');
-		//// Soit un message d'état vide, soit aucune ligne: jamais un écran muet
-		//// avec des lignes fantômes.
+		//// Either an empty-state message, or no line at all: never a silent screen
+		//// with ghost lines.
 		const lignes = await page.locator('.cart-table [data-item-code]').count();
 		expect(lignes).toBe(0);
 	});
@@ -116,10 +116,10 @@ test.describe('Panier', () => {
 		await page.goto('/cart');
 		await page.waitForLoadState('networkidle');
 
-		//// Le thème rend le panier DEUX fois: le tableau de la page, et un tiroir
-		//// latéral (#builder-cart-drawer) qui porte les mêmes data-item-code.
-		//// Cibler sans distinguer attrape le tiroir, hors écran, et le test
-		//// échoue sur « element is not visible » en accusant la page.
+		//// The theme renders the cart TWICE: the page's table, and a side drawer
+		//// (#builder-cart-drawer) carrying the same data-item-code values.
+		//// Targeting without distinguishing grabs the drawer, off-screen, and the
+		//// test fails on « element is not visible », blaming the page.
 		await expect(page.locator(`.cart-table [data-item-code="${article.item_code}"]`).first()).toBeVisible();
 	});
 
@@ -132,7 +132,7 @@ test.describe('Panier', () => {
 		await page.goto('/cart');
 		await page.waitForLoadState('networkidle');
 
-		//// Sur la page, la quantité est un champ (le tiroir, lui, a des boutons).
+		//// On the page, the quantity is a field (the drawer, on the other hand, has buttons).
 		const champ = page.locator('.cart-table input.cart-qty').first();
 		test.skip((await champ.count()) === 0, 'pas de contrôle de quantité sur ce thème');
 
@@ -144,12 +144,12 @@ test.describe('Panier', () => {
 			.toBe(2);
 	});
 
-	//// Le défaut que ce test verrouille: vider le panier SUPPRIME le devis, et
-	//// cette suppression est refusée dès qu'une demande de paiement y est liée
-	//// (LinkExistsError). Après une carte refusée — cas banal — le client ne
-	//// pouvait plus retirer son dernier article: erreur technique, panier bloqué
-	//// pour de bon. Les demandes jamais honorées sont désormais annulées, celles
-	//// qui ont abouti restent intactes.
+	//// The defect this test locks in: emptying the cart DELETES the quotation,
+	//// and that deletion is refused as soon as a payment request is linked to
+	//// it (LinkExistsError). After a declined card — a mundane case — the
+	//// customer could no longer remove their last item: a technical error,
+	//// cart stuck for good. Payment requests that were never honored are now
+	//// cancelled, while ones that succeeded remain intact.
 	test('un panier se vide même après un paiement refusé', async ({page}) => {
 		test.setTimeout(120_000);
 		expect(await viderPanier(page), 'le panier n’a pas pu être vidé').toBe(true);
@@ -158,10 +158,10 @@ test.describe('Panier', () => {
 		test.skip(!article, 'aucun article publié');
 		await ajouterAuPanier(page, article.item_code, 1);
 
-		//// On ne simule pas le refus ici (il faudrait une vraie tentative
-		//// Stripe): 05-paiement-stripe en laisse derrière lui, et ce test
-		//// s'exécute après. Ce qui compte est que le vidage aboutisse quel que
-		//// soit ce que le devis traîne.
+		//// The decline isn't simulated here (that would need a real Stripe
+		//// attempt): 05-paiement-stripe leaves one behind, and this test
+		//// runs after it. What matters is that emptying succeeds no matter
+		//// what the quotation is carrying.
 		expect(await viderPanier(page), 'le panier reste bloqué').toBe(true);
 		const devis = await lireDevis(page);
 		expect((devis && devis.doc && devis.doc.items) || []).toHaveLength(0);
@@ -185,9 +185,9 @@ test.describe('Panier multi-entrepôts', () => {
 		await connecter(page);
 	});
 
-	//// Le cœur de la fonctionnalité: le même article pris chez deux sources
-	//// différentes n'est PAS le même article du point de vue du client (délais
-	//// distincts), donc il doit rester deux lignes et ne jamais fusionner.
+	//// The heart of the feature: the same item taken from two different
+	//// sources is NOT the same item from the customer's point of view
+	//// (different lead times), so it must stay two lines and never merge.
 	test('le même article depuis deux sources fait deux lignes', async ({page}) => {
 		const article = await articleMultiSource(page);
 		test.skip(!article, 'aucun article multi-sources sur ce site');
@@ -218,9 +218,9 @@ test.describe('Panier multi-entrepôts', () => {
 			await ajouterAuPanier(page, article.item_code, i + 1, entrepot);
 		}
 
-		//// Filtré sur l'ENTREPÔT autant que sur l'article: sans cela, une ligne
-		//// laissée par l'autre source (test précédent, vidage incomplet) compte
-		//// comme un doublon et le test accuse la fusion de ne pas se faire.
+		//// Filtered on the WAREHOUSE as much as on the item: without this, a line
+		//// left behind by the other source (previous test, incomplete emptying)
+		//// counts as a duplicate and the test wrongly blames the merge for not happening.
 		const devis = await lireDevis(page);
 		const lignes = ((devis && devis.doc && devis.doc.items) || []).filter(
 			(l) => l.item_code === article.item_code && l.warehouse === entrepot
@@ -229,8 +229,8 @@ test.describe('Panier multi-entrepôts', () => {
 		expect(lignes[0].qty).toBe(2);
 	});
 
-	//// Le client doit pouvoir choisir sa source AVANT d'ajouter au panier, avec
-	//// le stock de chacune sous les yeux.
+	//// The customer must be able to choose their source BEFORE adding to cart,
+	//// with each one's stock in plain sight.
 	test('la fiche produit propose les sources avec leur stock', async ({page}) => {
 		const article = await articleMultiSource(page);
 		test.skip(!article, 'aucun article multi-sources sur ce site');
@@ -241,8 +241,8 @@ test.describe('Panier multi-entrepôts', () => {
 		const options = page.locator('.webshop-source-option');
 		expect(await options.count(), 'le sélecteur de source a disparu').toBeGreaterThanOrEqual(2);
 		await expect(options.first()).toBeVisible();
-		//// Une source sans son stock ne permet pas de choisir en connaissance de
-		//// cause: c'est tout l'intérêt d'afficher les sources.
+		//// A source without its stock does not allow an informed choice: that is
+		//// the whole point of displaying the sources.
 		await expect(options.first()).toContainText(/\d/);
 	});
 
@@ -267,8 +267,8 @@ test.describe('Panier multi-entrepôts', () => {
 
 		await page.goto('/cart');
 		await page.waitForLoadState('networkidle');
-		//// Le client doit voir d'où part sa marchandise, sinon deux lignes
-		//// identiques au même prix sont incompréhensibles.
+		//// The customer must see where their goods ship from, otherwise two
+		//// identical lines at the same price make no sense.
 		const ligne = page.locator(`.cart-table [data-item-code="${article.item_code}"]`).first();
 		await expect(ligne).toBeVisible();
 		expect(

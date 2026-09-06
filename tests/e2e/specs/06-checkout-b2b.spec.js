@@ -50,11 +50,11 @@ test.describe('Reconnaissance du client B2B', () => {
 		expect(await estClientB2B(page), `${utilisateur} n’est pas reconnu comme client B2B`).toBe(true);
 	});
 
-	//// Le bug que ce test verrouille: la reconnaissance B2B interrogeait
-	//// Customer par son LIBELLÉ (customer_name) au lieu de son identifiant.
-	//// Les deux coïncident tant qu'un client est nommé d'après lui-même; dès
-	//// qu'un homonyme force une série ("Acme Corp - 2"), la recherche ne
-	//// trouvait plus rien et le client était renvoyé au tunnel B2C sans un mot.
+	//// The bug this test locks in: B2B recognition looked up Customer by its
+	//// LABEL (customer_name) instead of its identifier. The two coincide as
+	//// long as a customer is named after themselves; as soon as a homonym
+	//// forces a series ("Acme Corp - 2"), the lookup found nothing and the
+	//// customer was sent back to the B2C tunnel without a word.
 	test('un client dont le nom diffère du libellé reste reconnu', async ({page}) => {
 		await page.goto('/');
 		test.skip((await utilisateurCourant(page)) === 'Guest', 'aucune session B2B');
@@ -68,7 +68,7 @@ test.describe('Reconnaissance du client B2B', () => {
 
 		const devis = panier && panier.doc;
 		if (devis && devis.party_name && devis.customer_name && devis.party_name !== devis.customer_name) {
-			//// C'est précisément le cas fautif: on vérifie qu'il passe.
+			//// This is precisely the faulty case: verify that it passes.
 			expect(info.name, 'le client résolu n’est pas celui du devis').toBe(devis.party_name);
 		}
 		expect(panier.is_b2b_customer).toBe(true);
@@ -89,13 +89,13 @@ test.describe('Accès au tunnel B2B', () => {
 		expect(titre.toLowerCase()).not.toBe('paiement');
 	});
 
-	//// Ce test vérifie que c'est LA BONNE société, pas qu'il y en a une.
+	//// This test verifies it is the RIGHT company, not merely that there is one.
 	////
-	//// La version faible — « la page n'est pas vide » — passait au vert pendant
-	//// que la page affichait « Société : E2E Nouveau » sur le devis de
-	//// Test B2B Webshop: le nom d'une entreprise montré à une autre, sur l'écran
-	//// où elle valide une commande facturée à son compte. Un test qui n'affirme
-	//// rien ne protège rien.
+	//// The weak version — "the page isn't empty" — passed green while the
+	//// page displayed « Société : E2E Nouveau » on Test B2B Webshop's
+	//// quotation: one company's name shown to another, on the screen where
+	//// they confirm an order billed to their own account. A test that asserts
+	//// nothing protects nothing.
 	test('la société affichée est bien celle du client', async ({page}) => {
 		test.skip(!(await panierGarni(page)), 'impossible de garnir le panier');
 
@@ -117,7 +117,7 @@ test.describe('Accès au tunnel B2B', () => {
 	test('un panier vide ne mène pas au tunnel B2B', async ({page}) => {
 		await viderPanier(page);
 		await page.goto(ROUTE_B2B);
-		//// Commander un panier vide n'a pas de sens: la page doit rediriger.
+		//// Placing an order with an empty cart makes no sense: the page must redirect.
 		await expect
 			.poll(() => page.url(), {timeout: 30_000, message: 'reste sur le tunnel B2B avec un panier vide'})
 			.not.toContain('checkout_b2b');
@@ -134,8 +134,8 @@ test.describe('Commande B2B', () => {
 
 		const bouton = page.locator('.btn-place-order');
 		await expect(bouton).toHaveCount(1);
-		//// Commander sans mode de livraison produit une commande incomplète que
-		//// quelqu'un devra rattraper à la main.
+		//// Placing an order without a shipping method produces an incomplete
+		//// order that someone will have to fix by hand.
 		await expect(bouton, 'commande possible sans mode de livraison').toBeDisabled();
 	});
 
@@ -173,8 +173,8 @@ test.describe('Commande B2B', () => {
 		await expect(bouton).toBeEnabled({timeout: 30_000});
 		await bouton.click();
 
-		//// La preuve est côté serveur: le devis d'origine ne doit plus être le
-		//// panier courant. Un message à l'écran ne prouve rien.
+		//// The proof is server-side: the original quotation must no longer be
+		//// the current cart. An on-screen message proves nothing.
 		await expect
 			.poll(
 				async () => {
@@ -206,14 +206,14 @@ async function choisirLivraisonB2B(page) {
 }
 
 test.describe('Cloisonnement du tunnel B2B', () => {
-	//// Un client ordinaire ne doit pas pouvoir commander aux conditions B2B
-	//// (paiement différé, tarifs revendeur). Ce test tourne sous la session
-	//// B2C, pas la B2B.
+	//// An ordinary customer must not be able to order under B2B terms
+	//// (deferred payment, reseller pricing). This test runs under the B2C
+	//// session, not the B2B one.
 	test('un client non-B2B est refusé', async ({browser}) => {
-		//// Chemin en dur, PAS require('../global-setup'): la config importe déjà
-		//// ce module, et Playwright refuse alors de charger le spec
+		//// Hard-coded path, NOT require('../global-setup'): the config already
+		//// imports that module, and Playwright then refuses to load the spec
 		//// (« test.describe() called in a file imported by the configuration »),
-		//// ce qui fait échouer le chargement de TOUTE la suite.
+		//// which makes the ENTIRE suite fail to load.
 		const contexte = await browser.newContext({
 			storageState: require('path').join(__dirname, '..', '.auth', 'session.json'),
 		});
@@ -239,16 +239,16 @@ test.describe('Cloisonnement du tunnel B2B', () => {
 			await page.goto(ROUTE_B2B);
 			await page.waitForLoadState('domcontentloaded');
 
-			//// Ce qui compte est ce que l'invité VOIT, pas l'URL affichée.
-			//// L'URL peut rester celle demandée selon la façon dont la
-			//// redirection est servie; le tunnel, lui, ne doit jamais s'afficher.
+			//// What matters is what the guest SEES, not the displayed URL.
+			//// The URL may remain the one requested depending on how the
+			//// redirect is served; the tunnel itself must never be shown.
 			await expect(
 				page.locator('#b2b-checkout'),
 				'un invité voit le tunnel B2B'
 			).toHaveCount(0);
 
-			//// Jamais vers /app: un client portail n'a pas le desk, l'y envoyer
-			//// est un cul-de-sac.
+			//// Never to /app: a portal customer has no desk access, sending them
+			//// there is a dead end.
 			expect(page.url(), 'un invité est envoyé vers le desk').not.toContain('/app');
 		} finally {
 			await contexte.close();

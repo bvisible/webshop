@@ -282,7 +282,7 @@ webshop.ProductGrid = class {
 		} else {
 			stockClass = 'in-stock';
 			stockText = window.product_translations && window.product_translations["In stock"] || "In stock";
-			// Toujours afficher la quantité si elle existe et est > 0
+			// Always show the quantity if it exists and is > 0
 			if (item.stock_qty !== undefined && item.stock_qty !== null && parseFloat(item.stock_qty) > 0) {
 				stockQty = `(${Math.floor(item.stock_qty)})`;
 				tooltipText = (window.product_translations && window.product_translations["In stock"] || "In stock") + `: ${Math.floor(item.stock_qty)} ${window.product_translations && window.product_translations["available"] || "available"}`;

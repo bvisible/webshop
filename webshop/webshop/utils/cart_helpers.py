@@ -100,11 +100,11 @@ def get_cart_data():
                             item_dict['website_image'] = web_item.website_image
                         if web_item.thumbnail:
                             item_dict['thumbnail'] = web_item.thumbnail
-                        # Utiliser le champ image si disponible et si les autres images ne sont pas présentes
+                        # Use the image field if available and the other images are not present
                         elif web_item.image and not item_dict.get('website_image'):
                             item_dict['website_image'] = web_item.image
                     else:
-                        # Si aucun Website Item n'est trouvé, essayer de récupérer l'image depuis Item
+                        # If no Website Item is found, try to fetch the image from Item
                         item_img = frappe.db.get_value('Item', 
                                                     item.item_code, 
                                                     ['image'], as_dict=1)

@@ -40,9 +40,9 @@
   {
    "fieldname": "use_payment_intent",
    "fieldtype": "Check",
-   "label": "Encaisser par le moteur d'intentions",
+   "label": "Use Payment Intent",
    "default": "0",
-   "description": "//// Neoffice — laisser DÉCOCHÉ tant que la méthode n'a pas été éprouvée sur ce site : décoché, elle emprunte exactement le chemin qu'elle a toujours pris."
+   "description": "Leave unchecked until this method has been proven on this site. Unchecked, it takes exactly the path it has always taken."
   },
   {
    "depends_on": "use_payment_intent",

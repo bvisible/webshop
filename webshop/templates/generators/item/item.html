@@ -41,48 +41,48 @@
 			</div>
 
 			{#
-				Le seul nombre qui décide : au-delà, la description est coupée
-				dans la colonne d'achat et le bloc pleine largeur porte la
-				version entière. En dessous, elle se lit en haut avec sa mise en
-				forme et le bas ne s'affiche pas — répéter le même texte à deux
-				endroits n'aide personne.
+				The one number that decides: beyond it, the description is cut
+				in the purchase column and the full-width block carries the
+				entire version. Below it, it reads at the top with its formatting
+				and the bottom does not display — repeating the same text in two
+				places helps nobody.
 
-				Défini ICI parce que les deux blocs doivent lire le MÊME seuil :
-				si l'un coupe et que l'autre ne complète pas, le « Lire la
-				suite » ne mène nulle part.
+				Defined HERE because both blocks must read the SAME threshold:
+				if one cuts and the other does not complete it, the « Lire la
+				suite » link leads nowhere.
 			#}
 			{#
-				900 laissait passer presque toutes les descriptions entières dans
-				la colonne d'achat : elle devenait deux fois plus haute que la
-				photo, et le bloc du bas ne servait jamais. Quelques lignes en
-				haut, la suite en pleine largeur — c'est ce que la coupure entre
-				blocs sait faire, encore faut-il lui donner un budget qui tient
-				dans la colonne.
+				900 let almost all of the full descriptions through into
+				the purchase column: it became twice as tall as the
+				photo, and the bottom block was never used. A few lines at
+				the top, the rest full-width — that is what the cut between
+				blocks can do, provided it is given a budget that fits
+				within the column.
 
-				450, et pas 320 : la coupure prend des blocs ENTIERS, donc le
-				budget doit pouvoir en contenir deux. Une description qui ouvre
-				sur une ligne d'accroche suivie d'un paragraphe (le cas courant)
-				n'affichait que l'accroche — une ligne, puis « Lire la suite ».
+				450, not 320: the cut takes WHOLE blocks, so the
+				budget must be able to hold two of them. A description that opens
+				with a hook line followed by a paragraph (the common case)
+				only showed the hook — one line, then « Lire la suite ».
 			#}
 			{% set NB_EXCERPT = 450 %}
 			{#
-				UNE description, choisie une fois pour toute la page : celle du
-				site si quelqu'un l'a écrite, sinon celle de l'article. C'est la
-				règle de Frappe depuis 2022, et elle vaut aussi pour le seuil —
-				sans quoi une fiche technique de 1 100 caractères noyait la
-				colonne d'achat sans jamais proposer « Lire la suite », faute de
-				description du site.
+				ONE description, chosen once for the whole page: the site's
+				if someone wrote it, otherwise the item's. That has been
+				Frappe's rule since 2022, and it also applies to the threshold —
+				without it, a 1,100-character spec sheet would flood the
+				purchase column without ever offering « Lire la suite », for lack of
+				a site description.
 			#}
 			{% set _desc_html = doc.web_long_description if frappe.utils.strip_html(doc.web_long_description or '') else doc.description %}
 			{#
-				L'extrait coupe ENTRE LES BLOCS, pas au caractère : trancher du
-				HTML à la longueur oblige à retirer les balises, et la
-				description arrive dans la colonne d'achat en un pavé gris —
-				plus de listes, plus de gras, plus de paragraphes.
+				The excerpt cuts BETWEEN BLOCKS, not at the character: slicing
+				HTML by length forces stripping the tags, and the
+				description arrives in the purchase column as a grey slab —
+				no more lists, no more bold, no more paragraphs.
 
-				`cut` dit s'il reste quelque chose à lire : c'est lui qui décide
-				du « Lire la suite » ET du bloc pleine largeur, donc les deux ne
-				peuvent pas se contredire.
+				`cut` says whether there is still something to read: it is what decides
+				the « Lire la suite » link AND the full-width block, so the two cannot
+				contradict each other.
 			#}
 			{% set _extrait = description_excerpt(_desc_html, NB_EXCERPT) %}
 
@@ -163,8 +163,8 @@
 		color: #4b5563;
 	}
 	.buybox-excerpt a { white-space: nowrap; font-weight: 500; }
-	/* Le lien vers la suite : détaché du texte, pour qu'on le distingue de la
-	   description elle-même. */
+	/* The link to the rest: detached from the text, so it is distinguished from the
+	   description itself. */
 	.buybox-more { margin: 10px 0 0; }
 	.buybox-more a { white-space: nowrap; font-weight: 500; }
 	/* the item's own description, when no Website Description overrides it */
@@ -275,9 +275,9 @@
 	.product-info-wrapper .recommended-card,
 	.product-info-wrapper .frequently-bought-section .recommendation-container { height: 100%; }
 </style>
-			{# La description entière, pleine largeur — UNIQUEMENT quand la colonne
-			   d'achat a dû la couper. Sinon elle y est déjà, et la répéter ici
-			   ferait lire deux fois la même chose. #}
+			{# The entire description, full width — ONLY when the purchase
+			   column had to cut it. Otherwise it is already there, and repeating it here
+			   would make the same thing read twice. #}
 			{% if _extrait.cut %}
 			<div class="row">
 				<div class="col-12 product-long-description-section" id="product-long-desc" style="scroll-margin-top: 20px;">

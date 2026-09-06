@@ -76,8 +76,8 @@ async function activerCompte(page, email, motDePasse) {
 	const cle = cleActivation(email);
 	if (!cle) return false;
 
-	//// Le lien doit mener à une VRAIE page de définition de mot de passe: c'est
-	//// ce que le client reçoit, et un lien mort se verrait ici.
+	//// The link must lead to a REAL password-setup page: that is what the
+	//// customer receives, and a dead link would show up here.
 	await page.goto(`/update-password?key=${cle}`);
 	await page.waitForLoadState('domcontentloaded');
 	const nouveau = page.locator('#new_password');
@@ -86,15 +86,15 @@ async function activerCompte(page, email, motDePasse) {
 		return false;
 	}
 
-	//// Le mot de passe est ensuite posé par l'endpoint que le formulaire appelle
-	//// lui-même, plutôt qu'en pilotant le formulaire.
+	//// The password is then set by the endpoint the form itself calls, rather
+	//// than by driving the form.
 	////
-	//// Piloter le formulaire marche, mais dépend de trois détails fragiles à la
-	//// fois: ne remplir QUE #new_password et #confirm_password (un #old_password
-	//// caché traîne dans la page), frapper les touches une à une (la jauge de
-	//// force écoute la saisie, fill() ne déclenche rien et le bouton reste
-	//// verrouillé), et attendre que « Confirmer » se libère. Trois façons
-	//// d'échouer pour une étape qui n'est pas le sujet du test.
+	//// Driving the form works, but depends on three fragile details at once:
+	//// filling ONLY #new_password and #confirm_password (a hidden #old_password
+	//// lurks in the page), typing the keys one by one (the strength gauge
+	//// listens to keystrokes, fill() doesn't trigger anything and the button
+	//// stays locked), and waiting for « Confirmer » to become enabled. Three
+	//// ways to fail for a step that is not the subject of the test.
 	const r = await page.request.post(
 		'/api/method/frappe.core.doctype.user.user.update_password',
 		{form: {key: cle, new_password: motDePasse}}
@@ -110,9 +110,9 @@ async function activerCompte(page, email, motDePasse) {
 		return false;
 	}
 
-	//// La preuve n'est pas l'écran mais la session: on tente une connexion.
-	//// Plusieurs essais: sous charge, ce login répond 404 ou lève, exactement
-	//// comme ailleurs sur ce site.
+	//// The proof isn't the screen but the session: attempt a sign-in.
+	//// Several tries: under load, this login returns 404 or throws, exactly
+	//// like everywhere else on this site.
 	for (let essai = 1; essai <= 3; essai += 1) {
 		try {
 			const r = await page.request.post('/api/method/login', {
@@ -126,8 +126,8 @@ async function activerCompte(page, email, motDePasse) {
 		await page.waitForTimeout(3000 * essai);
 	}
 
-	//// Ce que la page dit de l'échec: un lien déjà consommé, un mot de passe
-	//// jugé trop faible… c'est là que se trouve la raison, pas dans le booléen.
+	//// What the page says about the failure: a link already consumed, a
+	//// password deemed too weak… that's where the reason lives, not in the boolean.
 	const messages = await page.evaluate(() =>
 		[...document.querySelectorAll('.alert, .msgprint, .page-card-head, .text-danger')]
 			.map((e) => e.textContent.trim().slice(0, 90))
@@ -166,7 +166,7 @@ function supprimerCompte(email) {
 				`print("ok")`
 		);
 	} catch (err) {
-		//// Le nettoyage ne doit jamais faire échouer un test qui a réussi.
+		//// Cleanup must never make a test that succeeded fail.
 		console.warn(`[e2e] désactivation de ${email} impossible: ${err.message.split('\n')[0]}`);
 	}
 }

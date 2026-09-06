@@ -1342,7 +1342,7 @@ webshop.ProductView =  class {
 			//// Neoffice — bind_discount_filter_action: checking the box re-queries and stores
 			//// the preference; upstream has no such filter.
 			
-			// Récupérer la valeur du filtre à partir de l'attribut data-filter-value
+			// Get the filter value from the data-filter-value attribute
 			const filter_value = $checkbox.attr('data-filter-value');
 			
 			// Special handling for "Show only products with discount" checkbox

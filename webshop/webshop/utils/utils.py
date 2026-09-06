@@ -169,21 +169,21 @@ def webshop_fmt_money(value, currency=None, precision=None):
 
 
 def description_excerpt(html: str, budget: int = 900) -> dict:
-	"""Un extrait qui garde sa mise en forme, parce qu'il coupe entre les blocs.
+	"""An excerpt that keeps its formatting, because it cuts between blocks.
 
-	Couper du HTML au caractère près, c'est trancher au milieu d'une balise :
-	on s'en sort en retirant toutes les balises, et l'extrait perd ses listes,
-	son gras, ses paragraphes. Vu à l'écran — une description soignée arrivait
-	dans la colonne d'achat en un bloc de texte gris.
+	Cutting HTML at an exact character count means slicing through the middle
+	of a tag: the workaround is to strip every tag, and the excerpt loses its
+	lists, its bold text, its paragraphs. Seen on screen — a carefully written
+	description ended up in the purchase column as a block of grey text.
 
-	Alors on ne coupe pas dans le texte : on prend les blocs de premier niveau
-	— paragraphes, listes, titres — **entiers**, tant qu'on tient dans le
-	budget, et on s'arrête au premier qui le dépasse. Le résultat est du HTML
-	valide, avec sa mise en forme, et il ne finit jamais au milieu d'une phrase.
+	So we never cut inside the text: we take top-level blocks — paragraphs,
+	lists, headings — **whole**, for as long as they fit the budget, and stop
+	at the first one that exceeds it. The result is valid HTML, with its
+	formatting intact, and it never ends in the middle of a sentence.
 
-	Rend `{"html": ..., "cut": True/False}` : `cut` dit s'il reste quelque
-	chose à lire plus bas — c'est lui qui décide d'afficher « Lire la suite »
-	ET le bloc pleine largeur, pour que les deux ne se contredisent jamais.
+	Returns `{"html": ..., "cut": True/False}`: `cut` says whether there is
+	more to read further down — it is what decides whether to show « Lire la
+	suite » AND the full-width block, so the two never contradict each other.
 	"""
 	texte = (html or "").strip()
 	if not texte:
@@ -196,9 +196,9 @@ def description_excerpt(html: str, budget: int = 900) -> dict:
 	from bs4 import BeautifulSoup
 
 	soup = BeautifulSoup(texte, "html.parser")
-	# Un éditeur enveloppe souvent tout dans un div : c'est ce div qu'il faut
-	# ouvrir, sinon le premier « bloc » est le document entier et on ne coupe
-	# jamais rien.
+	# An editor often wraps everything in a div: that div has to be
+	# opened, otherwise the first "block" is the entire document and nothing
+	# ever gets cut.
 	racine = soup
 	while True:
 		enfants = [e for e in racine.children if getattr(e, "name", None) or str(e).strip()]
@@ -221,8 +221,8 @@ def description_excerpt(html: str, budget: int = 900) -> dict:
 			break
 
 	if not gardes:
-		# Un seul bloc, plus long que le budget : là, on coupe au mot près et
-		# on assume la perte de mise en forme — il n'y a pas de couture ailleurs.
+		# A single block, longer than the budget: here, we cut at the nearest
+		# word boundary and accept the loss of formatting — there is no seam elsewhere.
 		return {"html": frappe.utils.strip_html(texte)[:budget].rsplit(" ", 1)[0] + "…", "cut": True}
 
 	reste = len(entier) - compte

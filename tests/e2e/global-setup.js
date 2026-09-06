@@ -18,9 +18,9 @@ module.exports = async () => {
 	const base = process.env.WEBSHOP_E2E_URL;
 	await ouvrirSession(base, process.env.WEBSHOP_E2E_USER, FICHIER_SESSION, true);
 
-	//// Le B2B a son propre tunnel et donc son propre client: un compte dont le
-	//// groupe figure dans les « B2B Customer Group » des réglages. Optionnel —
-	//// sans lui, les specs B2B s'ignorent en le disant.
+	//// B2B has its own tunnel and therefore its own customer: an account whose
+	//// group appears in the settings' « B2B Customer Group ». Optional —
+	//// without it, the B2B specs skip themselves and say so.
 	if (process.env.WEBSHOP_E2E_B2B_USER) {
 		await ouvrirSession(base, process.env.WEBSHOP_E2E_B2B_USER, FICHIER_SESSION_B2B, false);
 	}
@@ -29,15 +29,15 @@ module.exports = async () => {
 async function ouvrirSession(base, utilisateur, fichier, obligatoire) {
 	const contexte = await request.newContext({baseURL: base, timeout: 60_000});
 
-	//// Le site partagé connaît des pics à 6-7 s par requête. Un échec ici fait
-	//// tomber TOUTE la suite avant le premier test, pour une lenteur passagère:
-	//// trois essais espacés valent mieux qu'un abandon.
-	//// Cinq essais espacés. Le site partagé répond par intermittence 404 (oui,
-	//// 404) sur /api/method/login quand il est chargé — mesuré à load 6-8 avec
-	//// 230 Mo de RAM libre, un autre service saturant la machine. Le même appel
-	//// en curl répond 200 la seconde d'après. Sans ces reprises, TOUTE la suite
-	//// tombe avant le premier test, sur une lenteur passagère qui n'a rien à
-	//// voir avec la boutique.
+	//// The shared site sees spikes of 6-7 s per request. A failure here brings
+	//// down the ENTIRE suite before the first test, for a passing slowdown:
+	//// three spaced-out tries beat giving up.
+	//// Five spaced-out tries. The shared site intermittently answers 404 (yes,
+	//// 404) on /api/method/login when it is under load — measured at load 6-8
+	//// with 230 MB of free RAM, another service saturating the machine. The
+	//// same call in curl answers 200 a second later. Without these retries, the
+	//// ENTIRE suite falls before the first test, over a passing slowdown that
+	//// has nothing to do with the shop.
 	let reponse = null;
 	let derniereErreur = null;
 	for (let essai = 1; essai <= 5; essai += 1) {
@@ -55,8 +55,8 @@ async function ouvrirSession(base, utilisateur, fichier, obligatoire) {
 	if (!reponse || !reponse.ok()) {
 		await contexte.dispose();
 		if (!obligatoire) {
-			//// Une session facultative absente ne doit pas faire tomber la suite:
-			//// les specs qui en dépendent verront le fichier manquant.
+			//// A missing optional session must not bring down the suite: the specs
+			//// that depend on it will see the missing file.
 			console.warn(`[e2e] session ${utilisateur} indisponible — specs associées ignorées`);
 			return;
 		}

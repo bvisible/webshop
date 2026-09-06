@@ -58,7 +58,7 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
     if not settings.enabled:
         return []
     
-    # //// Neoffice multi-site — le tarif du site prime (carrousels).
+    # //// Neoffice multi-site — the site's price list wins (carousels).
     from webshop.webshop.multi_site import effective_price_list
 
     price_list = (

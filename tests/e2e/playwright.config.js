@@ -70,23 +70,23 @@ module.exports = defineConfig({
 			//// Everything else reuses the session opened once by global-setup,
 			//// so Frappe's sign-in rate limit never fails an unrelated test.
 			name: 'client',
-			//// Ni l'authentification (qui tourne déconnectée), ni le B2B (qui a
-			//// son propre client): les y laisser faisait échouer onze specs pour
-			//// la seule raison que la session n'était pas la bonne.
+			//// Neither authentication (which runs signed out) nor B2B (which has
+			//// its own customer): leaving them here made eleven specs fail for the
+			//// sole reason that the session wasn't the right one.
 			testIgnore: /(01-authentification|06-checkout-b2b|07-nouveau-client|08-multi-site|09-demande-compte-pro)\.spec\.js/,
 			use: {...devices['Desktop Chrome'], storageState: SESSION},
 		},
 		{
-			//// Le B2B a son propre tunnel, son propre client, et donc sa propre
-			//// session: un compte dont le groupe figure dans les « B2B Customer
-			//// Group » des réglages.
+			//// B2B has its own tunnel, its own customer, and therefore its own
+			//// session: an account whose group appears in the settings' « B2B
+			//// Customer Group ».
 			name: 'b2b',
 			testMatch: /06-checkout-b2b\.spec\.js/,
 			use: {...devices['Desktop Chrome'], storageState: SESSION_B2B},
 		},
 		{
-			//// Pilote les DEUX domaines depuis le même run, déconnecté: c'est la
-			//// frontière entre les boutiques qui est éprouvée, pas leur contenu.
+			//// Drives BOTH domains from the same run, signed out: it's the
+			//// boundary between the shops that is being tested, not their content.
 			name: 'multi-site',
 			testMatch: /(08-multi-site|09-demande-compte-pro)\.spec\.js/,
 			use: {...devices['Desktop Chrome']},

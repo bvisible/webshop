@@ -28,7 +28,7 @@ const {
 } = require('../fixtures/activation');
 const {CARTES, remplirCarte, validerPaiement} = require('../fixtures/stripe');
 
-//// Adresse jetable: @yopmail.com, jamais une vraie boîte.
+//// Throwaway address: @yopmail.com, never a real inbox.
 const nouvelEmail = () => `e2e.nouveau.${Date.now()}@yopmail.com`;
 const MOT_DE_PASSE = 'E2e-Nouveau-Client-2026!';
 
@@ -42,7 +42,7 @@ async function creerCompteParLeDialogue(page, email) {
 	await page.fill('#login_email', email);
 	await page.click('.btn-verify-email');
 
-	//// Adresse inconnue: le dialogue demande le nom, pas un mot de passe.
+	//// Unknown address: the dialog asks for the name, not a password.
 	await expect(page.locator('.fullname-section')).toBeVisible({timeout: 20_000});
 	await page.fill('#first_name', 'E2E');
 	await page.fill('#last_name', 'Nouveau');
@@ -64,10 +64,10 @@ test.describe('Un nouveau client, de son inscription à sa commande', () => {
 		email = nouvelEmail();
 		await creerCompteParLeDialogue(page, email);
 
-		//// La confirmation à l'écran ne prouve rien: on demande au serveur.
-		//// Via lireJson, qui survit à une réponse HTML — ce que le site renvoie
-		//// quand il est chargé, et qui ferait mourir un r.json() sur une erreur
-		//// de parsing sans rapport avec ce qu'on teste.
+		//// The on-screen confirmation proves nothing: ask the server instead.
+		//// Via lireJson, which survives an HTML response — what the site returns
+		//// when it's under load, and which would kill an r.json() call with a
+		//// parsing error unrelated to what is being tested.
 		await expect
 			.poll(
 				async () => {
@@ -80,9 +80,9 @@ test.describe('Un nouveau client, de son inscription à sa commande', () => {
 			)
 			.toBe(true);
 
-		//// Et il ne doit pas être connecté pour autant: le compte est créé sans
-		//// mot de passe, l'activation passe par le lien reçu. Un « compte créé »
-		//// qui ouvrirait une session sans mot de passe serait un trou.
+		//// And yet they must not be signed in: the account is created without a
+		//// password, activation goes through the link received. An "account
+		//// created" that opened a session without a password would be a hole.
 		expect(await utilisateurCourant(page), 'session ouverte sans activation').toBe('Guest');
 	});
 
@@ -94,8 +94,8 @@ test.describe('Un nouveau client, de son inscription à sa commande', () => {
 			'activation indisponible (WEBSHOP_E2E_SSH_HOST / WEBSHOP_E2E_SITE absents)'
 		);
 
-		//// Le compte est créé SANS mot de passe: sans cette étape, il ne peut
-		//// pas se connecter, et c'est bien ce que vit un vrai client.
+		//// The account is created WITHOUT a password: without this step, it
+		//// cannot sign in, and that is exactly what a real customer experiences.
 		const active = await activerCompte(page, email, MOT_DE_PASSE);
 		expect(active, `activation impossible : ${raisonEchecActivation()}`).toBe(true);
 		expect(await utilisateurCourant(page)).toBe(email);
@@ -120,9 +120,9 @@ test.describe('Un nouveau client, de son inscription à sa commande', () => {
 		expect(devis && devis.doc, 'aucun devis pour ce nouveau client').toBeTruthy();
 		const nomDevis = devis.doc.name;
 
-		//// Un client tout neuf n'a AUCUNE adresse: le tunnel doit lui permettre
-		//// d'en saisir une, pas le bloquer. C'est le point que ce scénario
-		//// éprouve et qu'aucun autre ne couvre.
+		//// A brand-new customer has NO address at all: the tunnel must let them
+		//// enter one, not block them. That is the point this scenario tests,
+		//// and no other one covers it.
 		await page.goto('/checkout');
 		await page.waitForLoadState('networkidle');
 		await expect(page.locator('#step-address')).toHaveClass(/active/, {timeout: 40_000});
@@ -195,8 +195,8 @@ async function remplirAdresse(page) {
 		await champ.fill(valeurs[cle]);
 	}
 
-	//// Le pays conditionne les règles de livraison: sans lui, aucune méthode
-	//// n'est proposée et l'étape suivante est un cul-de-sac.
+	//// The country drives the shipping rules: without it, no method is
+	//// offered and the next step becomes a dead end.
 	const pays = page.locator('[name="billing_country"], #billing_country').first();
 	if ((await pays.count()) && !(await pays.inputValue())) {
 		await pays.fill(valeurs.country);

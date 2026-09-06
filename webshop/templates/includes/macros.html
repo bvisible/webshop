@@ -578,14 +578,14 @@
 					</label>
 				</div>
 				
-				<!-- Bouton +/- à droite pour déployer/replier les enfants -->
+				<!-- +/- button on the right to expand/collapse children -->
 				{% if group.children and group.children|length > 0 %}
 					<span class="toggle-children" data-expanded="false">+</span>
 				{% endif %}
 			</div>
 			
 			{% if group.children and group.children|length > 0 %}
-				<!-- Container pour les enfants (caché par défaut) -->
+				<!-- Container for the children (hidden by default) -->
 				<div class="children-container ml-4" style="display: none;">
 					{{ render_hierarchical_item_groups(group.children, fieldname, level + 1) }}
 				</div>
@@ -690,9 +690,9 @@
 					{# //// everywhere else (0134ef756e, 2025-07-03); the upstream markup it replaces is #}
 					{# //// kept in a Jinja comment just below. #}
 					{#
-						Un cours vendu en plusieurs durées n'a pas UN prix : la
-						vignette montrait le plus bas comme s'il l'était, et le
-						client découvrait le reste sur la fiche. « dès » le dit.
+						A course sold in several durations does not have ONE price: the
+						thumbnail showed the lowest one as if it were, and the
+						customer discovered the rest on the item page. « dès » says so.
 					#}
 					{% if course_offer_count(item.get('item_code')) > 1 %}<small class="text-muted">{{ _("from") }}</small> {% endif %}
 					{% if price.get('price_list_rate') is not none and price.get('currency') %}

@@ -270,18 +270,18 @@
 				{% endif %}
 			</div>
 		{% else %}
-			<!-- //// Neoffice — include retiré. Il servait le sélecteur de créneau
-			     du module booking, qui bloquait « Ajouter au panier » tant qu'un
-			     horaire n'était pas tenu. Ce sélecteur n'existe plus : un article
-			     réservable ne passe plus par cette page du tout — `WebsiteItem
-			     .get_context` la remplace par la page de prestation et son
-			     assistant (voir website_item.py, bloc marqué). L'include était
-			     donc mort, et `ignore missing` le cachait. -->
+			<!-- //// Neoffice — include removed. It served the slot selector
+			     of the booking module, which blocked « Ajouter au panier » as long as a
+			     time slot was not held. This selector no longer exists: a
+			     bookable item no longer goes through this page at all — `WebsiteItem
+			     .get_context` replaces it with the service page and its
+			     wizard (see website_item.py, marked block). The include was
+			     therefore dead, and `ignore missing` was hiding it. -->
 
-			<!-- Cours en ligne : le choix de la durée, quand l'article en vend
-			     plusieurs. Ne rend rien sinon — une fiche ordinaire garde son
-			     bouton habituel. Le pendant du calendrier d'une location : la page
-			     vend UN article, et ce qu'on choisit dessus décide du prix. -->
+			<!-- Online course: the choice of duration, when the item sells
+			     several. Renders nothing otherwise — an ordinary item page keeps its
+			     usual button. The counterpart of a rental's calendar: the page
+			     sells ONE item, and what is chosen on it decides the price. -->
 			{% include "lms/templates/includes/course_offers.html" ignore missing %}
 
 			<!-- Add to Cart / View in Cart, Contact Us -->

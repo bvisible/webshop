@@ -9,10 +9,10 @@
     <div class="row">
         <div class="col-md-10 offset-md-1">
             <div class="frappe-card p-5">
-                {# //// Neoffice — le contrôleur pose `error_message` (commande
-                   inexistante, ou qui n'est pas la vôtre) mais rien ne
-                   l'affichait : le visiteur tombait sur une carte VIDE, sans
-                   savoir s'il s'était trompé de lien ou si le site était cassé. #}
+                {# //// Neoffice — the controller sets `error_message` (order
+                   nonexistent, or not yours) but nothing
+                   displayed it: the visitor landed on an EMPTY card, with no
+                   way to know if they had the wrong link or if the site was broken. #}
                 {% if error_message %}
                     <div class="text-center py-4">
                         <h2 class="mb-3">{{ _("Order not available") }}</h2>

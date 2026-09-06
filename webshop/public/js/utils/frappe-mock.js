@@ -232,12 +232,12 @@ if (!window.frappeMockLoaded && typeof frappe === 'undefined') {
                 xhr.setRequestHeader("X-Frappe-CMD", opts.args.cmd);
             }
             
-            //// Neoffice — un seul message d'indisponibilité à la fois.
+            //// Neoffice — only one "unavailable" message at a time.
             ////
-            //// Une page de tunnel enchaîne plusieurs appels ; quand le serveur
-            //// est momentanément absent, ils échouent tous. Sans ce garde-fou le
-            //// client reçoit une modale par appel, ce qui donne l'impression que
-            //// tout est cassé alors qu'il s'agit d'un seul incident.
+            //// A checkout-tunnel page chains several calls; when the server is
+            //// briefly unreachable, they all fail. Without this guard the
+            //// customer gets one modal per call, giving the impression that
+            //// everything is broken when it's really a single incident.
             if (typeof window.webshop_signaler_indisponible !== "function") {
                 let _derniere = 0;
                 window.webshop_signaler_indisponible = function () {
@@ -271,15 +271,15 @@ if (!window.frappeMockLoaded && typeof frappe === 'undefined') {
                     if (opts.statusCode && opts.statusCode[404]) {
                         opts.statusCode[404]();
                     } else {
-                        //// Neoffice — « Not found » ne dit rien à un client.
+                        //// Neoffice — "Not found" means nothing to a customer.
                         ////
-                        //// Un 404 sur un appel de la boutique veut dire que le
-                        //// serveur n'a pas répondu — typiquement pendant un
-                        //// redémarrage : la méthode n'existe pas le temps que les
-                        //// workers rechargent. Le client, lui, voyait « Not found »
-                        //// sans savoir quoi en faire, et autant de fois qu'il avait
-                        //// cliqué : quatre modales empilées pour un incident d'une
-                        //// seconde. On dit ce qui se passe et quoi faire, une fois.
+                        //// A 404 on a shop call means the server did not
+                        //// respond — typically during a restart: the method
+                        //// doesn't exist yet while the workers are still
+                        //// reloading. The customer, meanwhile, saw "Not found"
+                        //// with no idea what to do about it, as many times as
+                        //// they had clicked: four modals stacked up for one
+                        //// one-second incident. State what's happening and what to do, once.
                         webshop_signaler_indisponible();
                     }
                 } else if (xhr.status === 403) {

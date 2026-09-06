@@ -433,12 +433,12 @@
 
 {% block script %}
 <script>
-	{#- //// Neoffice — semer le dictionnaire AVANT le script.
-	    Sur une page publique, `__()` ne traduit que ce qu'un appel a déjà
-	    apporté : la fusion de `__messages` vit dans le `request.js` du DESK,
-	    pas dans le `frappe.call` du site. Les libellés des dialogues de Frappe
-	    (« Yes », « No »…) restaient donc en anglais au milieu d'un tunnel
-	    francophone — vu le 2026-08-25 sur la confirmation d'adresse. -#}
+	{#- //// Neoffice — seed the dictionary BEFORE the script.
+	    On a public page, `__()` only translates what a call has already
+	    brought in: the merging of `__messages` lives in the DESK's `request.js`,
+	    not in the site's `frappe.call`. Frappe's dialog labels
+	    (« Yes », « No »…) therefore stayed in English in the middle of a
+	    French-speaking checkout tunnel — seen on 2026-08-25 on the address confirmation. -#}
 	frappe._messages = Object.assign({}, frappe._messages || {}, {{ js_messages }});
 	{#- //// Neoffice — this global deliberately has a single leading
 	    underscore. Frappe renders THIS file as a string with safe_render on,
@@ -496,9 +496,9 @@
 @media (max-width: 767.98px) {
 	.address-card-choice { flex: 1 1 100%; max-width: none; }
 }
-/* //// Neoffice — les boutons d'étape refusent le clic pendant un chargement
-   //// (deux changements d'étape simultanés corrompent le devis). Ils le disaient
-   //// en silence : le client cliquait, rien ne bougeait, rien ne l'expliquait. */
+/* //// Neoffice — the step buttons refuse clicks during a loading
+   //// (two simultaneous step changes corrupt the quotation). They used to do this
+   //// silently: the customer would click, nothing moved, nothing explained it. */
 .next-step.is-busy, .prev-step.is-busy {
 	opacity: .6;
 	cursor: progress;

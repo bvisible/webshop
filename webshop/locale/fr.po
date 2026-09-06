@@ -2127,6 +2127,10 @@ msgstr "Le coupon a été supprimé pour mettre à jour la quantité"
 msgid "Le coupon a été supprimé pour retirer le produit"
 msgstr "Le coupon a été supprimé pour retirer le produit"
 
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "Leave unchecked until this method has been proven on this site. Unchecked, it takes exactly the path it has always taken."
+msgstr "Laissez décoché tant que la méthode n'a pas été éprouvée sur ce site. Décoché, elle emprunte exactement le chemin qu'elle a toujours pris."
+
 #. Option for the 'Image Focus' (Select) field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
 msgid "Left"
@@ -4247,6 +4251,10 @@ msgstr "Mettre à jour"
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:82
 msgid "Upload an Excel file with gift card data."
 msgstr "Télécharger un fichier Excel avec les données des cartes cadeaux."
+
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "Use Payment Intent"
+msgstr "Encaisser par le moteur d'intentions"
 
 #: webshop/templates/pages/loyalty_points.html:74
 msgid "Use your points at checkout for discounts"

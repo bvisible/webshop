@@ -20,9 +20,9 @@ async function connecter(page, identifiants = IDENTIFIANTS) {
 	if (!identifiants.utilisateur || !identifiants.motDePasse) {
 		throw new Error('WEBSHOP_E2E_USER / WEBSHOP_E2E_PASSWORD manquants');
 	}
-	//// Trois essais espacés: le site refuse par intermittence (404, 417, délai
-	//// dépassé) quand il est chargé ou quand les tentatives s'enchaînent. Un
-	//// échec ici fait tomber un test qui n'a rien à voir avec la connexion.
+	//// Three spaced-out tries: the site intermittently refuses (404, 417,
+	//// timeout) when under load or when attempts follow each other closely. A
+	//// failure here brings down a test that has nothing to do with signing in.
 	let reponse = null;
 	for (let essai = 1; essai <= 3; essai += 1) {
 		try {
@@ -67,18 +67,18 @@ async function appeler(page, methode, args = {}) {
 //// endpoints, without a page load or a round trip through the DOM for each
 //// line. Emptying a cart of a dozen lines used to blow the 90 s test budget.
 async function viderPanier(page) {
-	//// Plusieurs passes: une seule ne suffit pas toujours. Le panier peut porter
-	//// deux lignes du même article (deux entrepôts), et un update_cart qui
-	//// échoue — le site refuse par intermittence sous charge — laissait des
-	//// lignes derrière lui. Le spec suivant trouvait alors un panier « vide »
-	//// contenant trois articles et accusait la page.
+	//// Several passes: one is not always enough. The cart can carry two lines
+	//// of the same item (two warehouses), and an update_cart call that fails —
+	//// the site intermittently refuses under load — used to leave lines
+	//// behind. The next spec would then find a supposedly "empty" cart holding
+	//// three items and blame the page.
 	for (let passe = 1; passe <= 3; passe += 1) {
 		const devis = await lireDevis(page);
 		const lignes = (devis && devis.doc && devis.doc.items) || [];
 		if (lignes.length === 0) return true;
 
-		//// En série volontairement: deux update_cart concurrents écrivent le même
-		//// devis et le dernier écrase le premier.
+		//// Deliberately sequential: two concurrent update_cart calls write to the
+		//// same quotation and the last one overwrites the first.
 		for (const ligne of lignes) {
 			await page.request.post('/api/method/webshop.webshop.shopping_cart.cart.update_cart', {
 				form: {
@@ -166,7 +166,7 @@ async function choisirLivraison(page, index = 0) {
 	if (etiquette && (await etiquette.count()) && (await etiquette.first().isVisible())) {
 		await etiquette.first().click();
 	} else {
-		//// Repli: le design n'expose pas de label cliquable.
+		//// Fallback: the design does not expose a clickable label.
 		await radio.check({force: true});
 		await radio.dispatchEvent('change');
 	}
@@ -177,10 +177,10 @@ async function choisirLivraison(page, index = 0) {
 //// Walk a filled cart from /checkout to the payment step.
 //// Shared by every payment scenario so the journey is written once.
 async function allerJusquAuPaiement(page) {
-	//// Ne recharge PAS si l'on est déjà sur le tunnel: un goto efface un
-	//// formulaire d'adresse qui vient d'être saisi, et l'étape suivante reste
-	//// alors inaccessible — un échec qui accuse le checkout alors qu'il vient
-	//// du helper.
+	//// Do NOT reload if already on the tunnel: a goto wipes out an address
+	//// form that was just filled in, and the next step then stays
+	//// unreachable — a failure that blames checkout when it actually comes
+	//// from the helper.
 	if (!page.url().includes('/checkout')) {
 		await page.goto('/checkout');
 		await page.waitForLoadState('networkidle');
@@ -188,9 +188,9 @@ async function allerJusquAuPaiement(page) {
 	await expect(page.locator('#step-address')).toHaveClass(/active/, {timeout: 40_000});
 
 	await page.locator('#step-address .next-step').click();
-	//// Saisir une adresse ouvre un dialogue de confirmation (« enregistrer ces
-	//// informations ? »). Il faut le valider, comme le client: sans cela l'étape
-	//// ne bascule jamais et le test conclut à un tunnel bloqué.
+	//// Filling in an address opens a confirmation dialog (« enregistrer ces
+	//// informations ? »). It must be accepted, like a customer would: without
+	//// that, the step never advances and the test concludes the tunnel is blocked.
 	await confirmerDialogue(page);
 	await expect(page.locator('#step-shipping')).toHaveClass(/active/, {timeout: 45_000});
 
@@ -215,7 +215,7 @@ async function confirmerDialogue(page) {
 	try {
 		await modale.waitFor({state: 'visible', timeout: 8000});
 	} catch (err) {
-		return false;   // pas de dialogue: rien à confirmer
+		return false;   // no dialog: nothing to confirm
 	}
 
 	const bouton = modale

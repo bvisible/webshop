@@ -252,7 +252,7 @@ webshop.ProductList = class {
 		} else {
 			stockClass = 'in-stock';
 			stockText = window.product_translations && window.product_translations["In stock"] || "In stock";
-			// Toujours afficher la quantité si elle existe et est > 0
+			// Always show the quantity if it exists and is > 0
 			if (item.stock_qty !== undefined && item.stock_qty !== null && parseFloat(item.stock_qty) > 0) {
 				stockQty = `(${Math.floor(item.stock_qty)})`;
 				tooltipText = (window.product_translations && window.product_translations["In stock"] || "In stock") + `: ${Math.floor(item.stock_qty)} ${window.product_translations && window.product_translations["available"] || "available"}`;
@@ -298,10 +298,10 @@ webshop.ProductList = class {
 	}
 
 	get_primary_button(item, settings) {
-		//// Neoffice — Une prestation réservable ne s'ajoute pas au panier d'ici :
-		// le panier recevrait une heure de cours SANS heure. Aucun créneau retenu,
-		// rien au planning, et le même créneau revendu le soir même. La vignette
-		// renvoie donc à la fiche, où l'on choisit son moment.
+		//// Neoffice — A bookable service isn't added to the cart from here:
+		// the cart would receive an hour of class with NO time slot. No slot held,
+		// nothing on the schedule, and the same slot resold that same evening. The
+		// tile links back to the item page instead, where the time slot is chosen.
 		if (item.bookable) {
 			return `
 				<a href="/${ item.route || '#' }">

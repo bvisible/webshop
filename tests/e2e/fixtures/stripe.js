@@ -9,11 +9,11 @@
 const {expect} = require('@playwright/test');
 
 const CARTES = {
-	//// Paiement accepté immédiatement, sans 3-D Secure.
+	//// Payment accepted immediately, without 3-D Secure.
 	acceptee: '4242424242424242',
-	//// Refus générique de l'émetteur — le client doit voir un message, pas un écran figé.
+	//// Generic issuer decline — the customer must see a message, not a frozen screen.
 	refusee: '4000000000000002',
-	//// Fonds insuffisants.
+	//// Insufficient funds.
 	fondsInsuffisants: '4000000000009995',
 };
 
@@ -32,8 +32,8 @@ async function remplirCarte(page, numero, {nom = 'Test E2E', email = 'test.e2e@e
 	await expect(tuile, 'aucune méthode Stripe proposée').toHaveCount(1);
 	await tuile.click();
 
-	//// Le formulaire n'est monté qu'après sélection, et Stripe.js se charge
-	//// depuis son CDN: attendre le champ, pas un délai.
+	//// The form is mounted only after selection, and Stripe.js loads from its
+	//// CDN: wait for the field, not a fixed delay.
 	const porteur = tuile.locator('#cardholder-name');
 	await expect(porteur).toBeVisible({timeout: 30_000});
 	await porteur.fill(nom);
@@ -43,7 +43,7 @@ async function remplirCarte(page, numero, {nom = 'Test E2E', email = 'test.e2e@e
 	await cadre.locator('input[name="cardnumber"]').fill(numero);
 	await cadre.locator('input[name="exp-date"]').fill(dateFuture());
 	await cadre.locator('input[name="cvc"]').fill('123');
-	//// Certaines configurations demandent aussi le code postal.
+	//// Some configurations also require the postal code.
 	const postal = cadre.locator('input[name="postal"]');
 	if (await postal.count()) await postal.fill('1003');
 
@@ -87,8 +87,8 @@ async function accepterConditions(tuile) {
 async function validerPaiement(page, tuile) {
 	const bouton = tuile.locator('.btn-submit-payment:visible').first();
 
-	//// Jusqu'à trois tentatives: le rafraîchissement peut retomber pendant la
-	//// re-sélection elle-même. Un client, lui, recliquerait aussi.
+	//// Up to three attempts: the refresh can kick in again mid re-selection.
+	//// A real customer would also click again.
 	for (let essai = 1; essai <= 3; essai += 1) {
 		if (await bouton.isEnabled().catch(() => false)) break;
 		if (!(await tuile.evaluate((e) => e.classList.contains('selected')))) {

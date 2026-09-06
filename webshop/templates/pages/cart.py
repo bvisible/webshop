@@ -53,9 +53,9 @@ def handle_email_links():
 def get_context(context):
     # //// Neoffice — links from the follow-up emails land here
     handle_email_links()
-    # //// Neoffice multi-site — un site réservé aux professionnels ne montre pas
-    # //// son panier à un visiteur anonyme. Le catalogue reste ouvert (vitrine),
-    # //// le panier et la commande demandent un compte.
+    # //// Neoffice multi-site — a site reserved for professionals does not show
+    # //// its cart to an anonymous visitor. The catalog stays open (showcase),
+    # //// but the cart and the order require an account.
     from webshop.webshop.multi_site import site_is_business_only
 
     if frappe.session.user == "Guest" and site_is_business_only():

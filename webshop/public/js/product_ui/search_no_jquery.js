@@ -87,7 +87,7 @@ webshop.ProductSearchNoJQuery = class {
 					// Populate product results
 					product_results = data.message ? data.message.product_results : null;
 
-					// Si nous avons des résultats de produits, récupérer les informations de prix
+					// If we have product results, fetch the price information
 					if (product_results && product_results.length > 0) {
 						me.fetchProductPrices(product_results, () => {
 							me.populateResults(product_results);

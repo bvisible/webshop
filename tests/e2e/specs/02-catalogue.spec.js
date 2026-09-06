@@ -9,8 +9,8 @@ test.describe('Catalogue', () => {
 	test('la boutique liste des produits', async ({page}) => {
 		await page.goto('/all-products');
 		await page.waitForLoadState('networkidle');
-		//// Le thème rend les vignettes en .card génériques: le seul repère stable
-		//// est le lien vers la fiche produit.
+		//// The theme renders thumbnails as generic .card elements: the only stable
+		//// landmark is the link to the product page.
 		const cartes = page.locator('a[href*="/products/"]');
 		expect(await cartes.count(), 'la boutique doit afficher des produits').toBeGreaterThan(0);
 	});
@@ -30,9 +30,9 @@ test.describe('Fiche produit', () => {
 		await page.waitForLoadState('networkidle');
 	});
 
-	//// Le thème rend déjà le titre dans son en-tête ; le gabarit du produit en
-	//// posait un second. Les deux existent toujours dans le DOM — l'un est
-	//// masqué — donc le test compte ce qui est VISIBLE, pas ce qui existe.
+	//// The theme already renders the title in its header; the product template
+	//// used to add a second one. Both still exist in the DOM — one is
+	//// hidden — so the test counts what is VISIBLE, not what exists.
 	test('un seul titre visible', async ({page}) => {
 		expect(await compterTitresVisibles(page), 'le double titre est revenu').toBe(1);
 	});
@@ -49,11 +49,11 @@ test.describe('Fiche produit', () => {
 		await expect(bouton).toBeEnabled();
 	});
 
-	//// Le bloc d'avis vide ne doit pas occuper l'écran pour dire « 0 avis ».
+	//// The empty reviews block must not take up screen space just to say « 0 avis ».
 	test('le bloc d’avis vide n’affiche pas un zéro inutile', async ({page}) => {
 		const bloc = page.locator('.reviews-section, #reviews');
-		if ((await bloc.count()) === 0) return;              // pas de bloc: conforme
-		if (!(await bloc.first().isVisible())) return;        // masqué: conforme
+		if ((await bloc.count()) === 0) return;              // no block: as expected
+		if (!(await bloc.first().isVisible())) return;        // hidden: as expected
 		await expect(bloc.first()).not.toHaveText(/^\s*0\s*avis\s*$/i);
 	});
 
@@ -61,7 +61,7 @@ test.describe('Fiche produit', () => {
 		const image = page.locator('.product-image img, .website-image img, img.product-image').first();
 		if ((await image.count()) === 0) test.skip(true, 'produit sans image');
 		await expect(image).toBeVisible();
-		//// naturalWidth = 0 : la balise est là mais le fichier n'a pas chargé.
+		//// naturalWidth = 0: the tag is there but the file failed to load.
 		expect(await image.evaluate((i) => i.naturalWidth), 'image cassée').toBeGreaterThan(0);
 	});
 });
@@ -77,7 +77,7 @@ test.describe('Ajout au panier', () => {
 
 		const avant = await quantiteAuPanier(page);
 		await page.locator('.btn-add-to-cart').first().click();
-		//// L'ajout est asynchrone : on attend le total, pas un délai arbitraire.
+		//// Adding is asynchronous: wait for the total, not an arbitrary delay.
 		await expect
 			.poll(async () => quantiteAuPanier(page), {timeout: 20_000, message: 'le panier n’a pas bougé'})
 			.toBeGreaterThan(avant);

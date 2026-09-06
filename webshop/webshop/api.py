@@ -502,7 +502,7 @@ def get_product_price_info(items):
 		return {}
 	
 	# Get price list from settings
-	# //// Neoffice multi-site — le tarif du site prime (recherche produit).
+	# //// Neoffice multi-site — the site's price list wins (product search).
 	from webshop.webshop.multi_site import effective_price_list
 
 	price_list = effective_price_list()
@@ -1303,18 +1303,18 @@ def get_cart_recommendations(item_codes=None, limit=4):
 	return out
 
 def prefix_from_when_several_offers(item: dict) -> None:
-	"""« dès CHF 90.– » quand l'article se vend à plusieurs prix.
+	"""Prefixes "from" onto the price ("from CHF 90.–") when the item sells at several prices.
 
-	🔴 Un cours vendu 90 ou 140 selon la durée d'accès affichait « CHF 90.00 »
-	sur sa vignette : le prix le plus bas présenté comme LE prix, et le client
-	découvrait le reste sur la fiche.
+	🔴 A course sold at 90 or 140 depending on access duration showed "CHF 90.00"
+	on its tile: the lowest price presented as THE price, and the customer
+	found out the rest on the item page.
 
-	Posé ICI, sur `formatted_price`, et non dans les gabarits : la grille, la
-	liste et la recherche ont chacune leur rendu en JavaScript, et le serveur
-	est le seul endroit qu'ils partagent tous les trois.
+	Placed HERE, on `formatted_price`, and not in the templates: the grid, the
+	list and the search each have their own JavaScript rendering, and the server
+	is the only place all three share.
 
-	Silencieux si l'app de formation n'est pas là : une boutique sans cours ne
-	doit pas dépendre d'elle.
+	Silent if the training app isn't there: a shop with no courses must not
+	depend on it.
 	"""
 	if not item.get("formatted_price"):
 		return

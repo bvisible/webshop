@@ -66,13 +66,13 @@ frappe.ready(function() {
             this.isUpdatingShipping = false;  
             this.isUpdatingPayment = false;  
             this.paymentMethods = [];
-            //// Neoffice — lu par templates/payments/webshopsi.html via
-            //// checkout_manager.quotationName : ce n'est pas une variable morte.
+            //// Neoffice — read by templates/payments/webshopsi.html via
+            //// checkout_manager.quotationName: it is not a dead variable.
             this.quotationName = null;
             this.currentMethod = null;
             this.isGiftCardOnly = false;
             this.paymentMethodsInitialized = false;
-            // Initialisation du cache pour les templates de paiement
+            // Initialize the cache for payment templates
             this.loadedPaymentTemplates = {};
 
             this.setupListeners();
@@ -834,20 +834,20 @@ frappe.ready(function() {
             //// the label from ticking the box — so the box can simply behave
             //// like a checkbox.
 
-            //// Neoffice — ne plus exiger `.selected` sur la tuile.
+            //// Neoffice — no longer require `.selected` on the tile.
             ////
-            //// Le gestionnaire ne s'appliquait qu'à `.payment-method-item.selected
-            //// #terms-acceptance`, et updatePaymentButtonState() ne parcourait que
-            //// les tuiles sélectionnées. Il suffisait donc que la tuile n'ait pas
-            //// (encore, ou plus) cette classe au moment où le client coche pour
-            //// que le bouton reste verrouillé sur « Veuillez accepter les
-            //// conditions générales » — case cochée, formulaire complet, et rien
-            //// à faire. Re-sélectionner la tuile n'aidait pas: cela re-rend le
-            //// formulaire et décoche la case.
+            //// The handler only applied to `.payment-method-item.selected
+            //// #terms-acceptance`, and updatePaymentButtonState() only iterated over
+            //// selected tiles. So it was enough for the tile to not have
+            //// (yet, or no longer) that class at the moment the customer checks it, so
+            //// that the button stays locked on « Veuillez accepter les
+            //// conditions générales » — box checked, form complete, and nothing
+            //// left to do. Re-selecting the tile did not help: that re-renders the
+            //// form and unchecks the box.
             ////
-            //// Mettre à jour le bouton DE LA TUILE où l'on coche est à la fois
-            //// plus simple et sans risque: le formulaire d'une tuile non
-            //// sélectionnée est masqué, son bouton n'est pas atteignable.
+            //// Updating the button OF THE TILE being checked is both
+            //// simpler and risk-free: the form of an unselected
+            //// tile is hidden, its button is unreachable.
             $(document).on('change', '.payment-method-item .terms-acceptance', function() {
                 const $container = $(this).closest('.payment-method-item');
                 if (!$container.length) return;
@@ -877,10 +877,10 @@ frappe.ready(function() {
                 }
             });
             
-            //// Neoffice — parcourt TOUTES les tuiles, pas seulement la
-            //// sélectionnée (même raison que le gestionnaire ci-dessus: une tuile
-            //// pas encore marquée `selected` gardait un bouton verrouillé pour
-            //// toujours). Le formulaire d'une tuile non sélectionnée est masqué.
+            //// Neoffice — iterates over ALL tiles, not just the
+            //// selected one (same reason as the handler above: a tile
+            //// not yet marked `selected` kept a button locked
+            //// forever). The form of an unselected tile is hidden.
             this.updatePaymentButtonState = function() {
                 $('.payment-method-item').each(function() {
                     const $item = $(this);
@@ -2181,23 +2181,23 @@ frappe.ready(function() {
             if (!this.isUpdatingShipping && !notReload) {
                 this.refreshShippingMethods();
             }
-            //// Neoffice — ne re-rendre les méthodes de paiement que si le
-            //// MONTANT a changé.
+            //// Neoffice — only re-render the payment methods if the
+            //// AMOUNT has changed.
             ////
-            //// refreshPaymentMethods() reconstruit toute la liste. Quand cela
-            //// tombait pendant que le client saisissait sa carte, sa tuile
-            //// perdait la classe `selected` ; or le gestionnaire des conditions
-            //// est lié à `.payment-method-item.selected #terms-acceptance`, si
-            //// bien qu'il cessait de s'appliquer et que « Payer » n'était jamais
-            //// réactivé — devant un formulaire pourtant complet. Le client
-            //// clique, rien ne se passe, rien ne l'explique.
+            //// refreshPaymentMethods() rebuilds the whole list. When this
+            //// happened while the customer was entering their card, their tile
+            //// lost the `selected` class; but the terms handler
+            //// is bound to `.payment-method-item.selected #terms-acceptance`, so
+            //// it stopped applying and « Payer » was never
+            //// re-enabled — in front of an otherwise complete form. The customer
+            //// clicks, nothing happens, nothing explains it.
             ////
-            //// Le seul motif légitime de reconstruire est un montant différent
-            //// (l'étiquette « Payer CHF X » deviendrait fausse) — et dans ce cas
-            //// il est normal de faire reconfirmer. Un rafraîchissement qui
-            //// n'apprend rien ne doit plus détruire une saisie en cours.
-            //// Le montant réellement débité vient de toute façon du serveur
-            //// (rounded_total), jamais du navigateur.
+            //// The only legitimate reason to rebuild is a different amount
+            //// (the « Payer CHF X » label would become wrong) — and in that case
+            //// it is normal to ask for reconfirmation. A refresh that
+            //// learns nothing must no longer destroy an in-progress entry.
+            //// The amount actually charged comes from the server anyway
+            //// (rounded_total), never from the browser.
             if (!this.isUpdatingPayment && $('.step-section.active').attr('id') === 'step-payment' && !notReload) {
                 const montant = doc ? (doc.rounded_total || doc.grand_total || null) : null;
                 if (montant === null || montant !== this._dernierMontantPaiement) {
@@ -2709,17 +2709,17 @@ frappe.ready(function() {
                                 frappe.call({
                                     method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
                                     callback: (result) => {
-                                        //// Neoffice — ne rien imposer si le client a déjà
-                                        //// choisi. Ce callback arrive une à cinq secondes
-                                        //// après l'affichage des cartes, et il rappelait
-                                        //// handlePaymentMethodChange sans condition : un
-                                        //// client qui cliquait plus vite que le réseau
-                                        //// voyait son mode remplacé, sans un mot, par
-                                        //// celui de la facture. Il payait alors avec un
-                                        //// autre moyen que celui qu'il avait désigné.
-                                        //// `currentMethod` est posé par
-                                        //// handlePaymentMethodChange, donc sa présence
-                                        //// signifie exactement « quelqu'un a déjà choisi ».
+                                        //// Neoffice — do not impose anything if the customer has already
+                                        //// chosen. This callback arrives one to five seconds
+                                        //// after the cards are displayed, and it used to call
+                                        //// handlePaymentMethodChange unconditionally: a
+                                        //// customer who clicked faster than the network
+                                        //// would see their method replaced, without a word, by
+                                        //// the invoice method. They would then pay with an
+                                        //// other method than the one they had chosen.
+                                        //// `currentMethod` is set by
+                                        //// handlePaymentMethodChange, so its presence
+                                        //// means exactly that "someone has already chosen".
                                         if (this.currentMethod) {
                                             return;
                                         }
@@ -2767,11 +2767,11 @@ frappe.ready(function() {
             });
         }
 
-        //// Neoffice — NE PAS SUPPRIMER : sans appel dans ce fichier, mais
-        //// invoquée sur checkout_manager par templates/payments/paypal.html et
-        //// wallee.html. Les gabarits de passerelle appellent des méthodes de
-        //// cette classe : chercher un usage sans inclure templates/payments/
-        //// fait conclure à tort qu'une méthode est morte.
+        //// Neoffice — DO NOT REMOVE: no call in this file, but
+        //// invoked on checkout_manager by templates/payments/paypal.html and
+        //// wallee.html. The gateway templates call methods of
+        //// this class: searching for a usage without including templates/payments/
+        //// wrongly concludes that a method is dead.
         isValidEmail(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || '');
         }
@@ -2829,23 +2829,23 @@ frappe.ready(function() {
             // Any existing content in the form will be removed
             $form.empty().off();
 
-            //// Neoffice — une méthode BASCULÉE sur le moteur d'intentions se
-            //// dessine ici plutôt que par son gabarit. Toutes les autres
-            //// passent tout droit : `start_cart_intent` répond `legacy` tant
-            //// que la case `use_payment_intent` n'est pas cochée, et le code
-            //// ci-dessous est alors rigoureusement celui d'avant.
-            //// Au moindre doute — appel en échec, action inattendue — on
-            //// retombe sur le gabarit : mieux vaut le chemin connu qu'un écran
-            //// vide sur un paiement.
+            //// Neoffice — a method SWITCHED to the intent engine is
+            //// drawn here instead of by its template. All the others
+            //// pass straight through: `start_cart_intent` responds `legacy` as
+            //// long as the `use_payment_intent` box is not checked, and the code
+            //// below is then exactly the same as before.
+            //// At the slightest doubt — failed call, unexpected action — we
+            //// fall back to the template: better a known path than an empty
+            //// screen during a payment.
             const self_ = this;
             frappe.call({
                 method: 'webshop.templates.pages.checkout.start_cart_intent',
                 args: { payment_gateway_account: method.payment_gateway_account },
                 callback: function (r) {
-                    //// Neoffice — `send_translations` marche sur le desk, pas ici :
-                    //// le `frappe.call` du site ne fusionne pas `__messages`, il se
-                    //// contente de passer la réponse. Sans cette ligne, un tunnel
-                    //// francophone lit « Or type 12345 in the app. » sous le QR.
+                    //// Neoffice — `send_translations` works on the desk, not here:
+                    //// the site's `frappe.call` does not merge `__messages`, it just
+                    //// passes the response through. Without this line, a French-speaking
+                    //// checkout reads « Or type 12345 in the app. » under the QR code.
                     if (r && r.__messages) $.extend(frappe._messages || (frappe._messages = {}), r.__messages);
                     const a = (r && r.message) || {};
                     if (a.action && a.action !== 'legacy' && self_.showIntentScreen(a, $form, cleanId)) return;
@@ -2941,17 +2941,17 @@ frappe.ready(function() {
                 '</div>' + inner + '</div>' + conditions;
         }
 
-        //// Neoffice — l'action se voit, mais ne s'utilise pas tant que les
-        //// conditions ne sont pas acceptées.
+        //// Neoffice — the action is visible, but unusable until the
+        //// terms are accepted.
         ////
-        //// Elle était simplement cachée : on cliquait une tuile et on ne voyait
-        //// qu'une case, sans savoir ce qui allait apparaître. Les autres tuiles
-        //// font l'inverse — le formulaire est là, seul le bouton est grisé — et
-        //// c'est ce qu'un client comprend.
+        //// It used to simply be hidden: clicking a tile showed only
+        //// a checkbox, with no idea what would appear. The other tiles
+        //// do the opposite — the form is there, only the button is greyed out — and
+        //// that is what a customer understands.
         ////
-        //// Un cadre de paiement ne peut pas être seulement grisé : il resterait
-        //// utilisable. On le laisse donc voilé et inerte sous un message, ce qui
-        //// montre ce qui vient sans permettre de payer.
+        //// A payment frame cannot just be greyed out: it would remain
+        //// usable. So it is left veiled and inert under a message, which
+        //// shows what is coming without allowing payment.
         bindIntentTerms($form) {
             const $terms = $form.find('.terms-acceptance');
             const $action = $form.find('.intent-action');
@@ -2986,33 +2986,33 @@ frappe.ready(function() {
             sync();
         }
 
-        //// Neoffice — le contenu de l'action, sans les conditions.
+        //// Neoffice — the content of the action, without the terms.
         renderIntentAction(a, cleanId) {
             if (a.action === 'redirect' && a.url) {
-                //// Neoffice — la saisie de carte reste sur la boutique.
+                //// Neoffice — card entry stays on the shop.
                 ////
-                //// Un formulaire de carte n'a aucune raison d'exiger de quitter le
-                //// site : le client perd le fil, revient sur une page de retour, et
-                //// se demande si sa commande existe encore. La page hébergée de
-                //// Payrexx s'encadre sans rien refuser (ni `X-Frame-Options` ni
-                //// `frame-ancestors`, vérifié le 2026-08-31), et ses champs carte
-                //// s'affichent depuis notre domaine.
+                //// A card form has no reason to require leaving the
+                //// site: the customer loses track, comes back to a return page, and
+                //// wonders whether their order still exists. Payrexx's hosted
+                //// page can be framed without refusing anything (neither `X-Frame-Options` nor
+                //// `frame-ancestors`, verified on 2026-08-31), and its card fields
+                //// display from our own domain.
                 ////
-                //// Réservé aux méthodes qui sont des formulaires. TWINT bascule vers
-                //// le téléphone et ne peut pas le faire depuis un cadre — sa tuile
-                //// garde donc le lien, et c'est le commerçant qui tranche, tuile par
-                //// tuile, avec `render_inline`.
+                //// Reserved for methods that are forms. TWINT switches to
+                //// the phone and cannot do that from within a frame — its tile
+                //// therefore keeps the link, and it is the merchant who decides, tile by
+                //// tile, with `render_inline`.
                 if (a.inline) {
                     return '<div class="intent-frame py-2">' +
                         '<iframe src="' + frappe.utils.escape_html(a.url) + '" ' +
-                        //// Neoffice — la hauteur suit l'écran, pas le contenu : un
-                        //// cadre d'une autre origine ne se mesure pas, et Payrexx
-                        //// n'annonce pas la sienne (ses seuls postMessage sont une
-                        //// poignée de main post-robot, aucune dimension — vérifié le
-                        //// 2026-09-01). Une valeur fixe est donc soit trop courte
-                        //// pour le formulaire carte, soit un grand vide sur l'écran
-                        //// de choix. Au-delà des bornes, le cadre défile : contenu
-                        //// atteignable plutôt que coupé.
+                        //// Neoffice — the height follows the screen, not the content: a
+                        //// frame from another origin cannot be measured, and Payrexx
+                        //// does not announce its own (its only postMessages are a
+                        //// post-robot handshake, no dimension — verified on
+                        //// 2026-09-01). A fixed value is therefore either too short
+                        //// for the card form, or a big empty space on the
+                        //// selection screen. Beyond the bounds, the frame scrolls: content
+                        //// stays reachable rather than being cut off.
                         'style="width:100%; height:clamp(560px, 78vh, 900px); border:0" ' +
                         'allow="payment" title="' + __('Payment') + '"></iframe>' +
                         '<p class="text-muted small mt-2 mb-0 text-center">' +
@@ -3029,42 +3029,42 @@ frappe.ready(function() {
                 const html = '<div class="text-center py-4"><div class="d-inline-block p-3 bg-white border rounded">' +
                     a.payload.qr_svg + '</div>' + code +
                     '<p class="text-muted mt-3 intent-waiting">' + __('Waiting for your payment…') + '</p></div>';
-                //// Neoffice — un QR ne redirige pas : sans surveillance, le client
-                //// paie sur son téléphone et la page reste figée pour toujours.
-                //// Le signal principal est l'évènement `payment.intent.<nom>.updated`
-                //// que publie chaque pilote de `payments` — le même que son propre
-                //// dialogue TWINT écoute — et le sondage n'est qu'un filet si la
-                //// socket tombe. C'est la Payment Request qui tranche, pas
-                //// l'intention : elle seule dit que la commande est passée.
+                //// Neoffice — a QR code does not redirect: without monitoring, the customer
+                //// pays on their phone and the page stays frozen forever.
+                //// The main signal is the `payment.intent.<name>.updated` event
+                //// published by each `payments` driver — the same one its own
+                //// TWINT dialog listens to — and polling is only a safety net if the
+                //// socket drops. It is the Payment Request that decides, not
+                //// the intent: only it says that the order has gone through.
                 return html;
             }
             return null;
         }
 
-        //// Neoffice — la surveillance d'une intention, jusqu'à la commande.
+        //// Neoffice — monitoring of an intent, through to the order.
         watchIntent(intent, $form) {
             if (!intent) return;
-            //// Changer de méthode de paiement rappelle watchIntent. L'ancienne
-            //// surveillance doit mourir ici : sinon son setInterval continue de
-            //// sonder le serveur toutes les 5 s, et — pire — son arreter() lisait
-            //// this._intentTimer, qui pointe désormais sur le NOUVEAU timer : en
-            //// expirant, l'ancienne surveillance tuait la nouvelle.
+            //// Changing payment method calls watchIntent again. The previous
+            //// monitor must die here: otherwise its setInterval keeps
+            //// polling the server every 5 s, and — worse — its arreter() used to read
+            //// this._intentTimer, which now points to the NEW timer: on
+            //// expiring, the old monitor would kill the new one.
             this.stopIntentWatch();
 
             const canal = 'payment.intent.' + intent + '.updated';
-            const DUREE_MAX = 5 * 60 * 1000;          // on abandonne au bout de 5 min
+            const DUREE_MAX = 5 * 60 * 1000;          // give up after 5 min
             const debut = Date.now();
             let fini = false;
             let timer = null;
-            //// arreter() ne ferme que SUR SES PROPRES ressources (timer local,
-            //// pas un champ d'instance partagé), donc deux surveillances qui se
-            //// chevauchent ne peuvent plus s'annuler mutuellement.
+            //// arreter() only closes over ITS OWN resources (local timer,
+            //// not a shared instance field), so two monitors that
+            //// overlap can no longer cancel each other out.
             const arreter = () => {
                 if (timer) { clearTimeout(timer); timer = null; }
                 if (this._intentStop === arreter) this._intentStop = null;
                 window.removeEventListener('pagehide', arreter);
                 try { if (frappe.realtime && frappe.realtime.off) frappe.realtime.off(canal, demander); }
-                catch (e) { /* la socket a pu partir avant nous */ }
+                catch (e) { /* the socket may have gone away before us */ }
             };
             const demander = () => {
                 if (fini) return;
@@ -3078,33 +3078,33 @@ frappe.ready(function() {
                         if (m.redirect_to) { window.location.href = m.redirect_to; return; }
                         window.location.reload();
                     },
-                    error: function () { /* le filet reprendra au tour suivant */ },
+                    error: function () { /* the safety net will retry next round */ },
                 });
             };
             try {
-                //// S'abonner CONNECTE la socket : sur une page publique elle
-                //// reste inerte tant que personne n'écoute.
+                //// Subscribing CONNECTS the socket: on a public page it
+                //// stays inert as long as nobody is listening.
                 if (frappe.realtime && frappe.realtime.on) frappe.realtime.on(canal, demander);
-            } catch (e) { /* pas de temps réel ici : le filet suffit */ }
-            //// Le filet derrière le temps réel, espacé selon ce dont on dispose.
+            } catch (e) { /* no realtime here: the safety net is enough */ }
+            //// The safety net behind realtime, spaced out based on what is available.
             ////
-            //// frappe.realtime.on() connecte la socket, et c'est elle qui prévient
-            //// dès que la passerelle a répondu — le sondage n'est là que pour le
-            //// cas où elle tombe (ou n'existe pas: sur une page publique, rien ne
-            //// garantit qu'un proxy laisse passer /socket.io). Sonder toutes les
-            //// 5 s pendant 5 minutes coûtait 60 requêtes par paiement pour, la
-            //// plupart du temps, ne rien apprendre que la socket n'ait déjà dit.
+            //// frappe.realtime.on() connects the socket, and it is the one that notifies
+            //// as soon as the gateway has responded — polling is only there for the
+            //// case where it drops (or does not exist: on a public page, nothing
+            //// guarantees a proxy lets /socket.io through). Polling every
+            //// 5 s for 5 minutes cost 60 requests per payment for, most of
+            //// the time, learning nothing the socket had not already said.
             ////
-            //// setTimeout récursif plutôt que setInterval: l'intervalle peut
-            //// alors varier, et deux tours ne peuvent pas se chevaucher si le
-            //// serveur répond lentement.
+            //// Recursive setTimeout rather than setInterval: the interval can
+            //// then vary, and two rounds cannot overlap if the
+            //// server responds slowly.
             const prochainDelai = () => {
                 const socketVivante = !!(frappe.realtime && frappe.realtime.socket
                     && frappe.realtime.socket.connected);
                 const ecoule = Date.now() - debut;
-                //// Les 30 premières secondes restent serrées: c'est là que le
-                //// client attend devant son écran, et là que la socket peut
-                //// n'être pas encore établie.
+                //// The first 30 seconds stay tight: that is when the
+                //// customer is waiting in front of their screen, and when the socket may
+                //// not yet be established.
                 if (ecoule < 30000) return 5000;
                 return socketVivante ? 30000 : 10000;
             };
@@ -3121,18 +3121,18 @@ frappe.ready(function() {
             timer = setTimeout(tour, prochainDelai());
             this._intentStop = arreter;
             demander();
-            //// Retiré par arreter() : sans cela chaque changement de méthode
-            //// laissait un écouteur de plus accroché à window.
+            //// Removed by arreter(): without this every method change
+            //// would leave one more listener hanging off window.
             window.addEventListener('pagehide', arreter);
         }
 
-        //// Neoffice — arrête la surveillance en cours, s'il y en a une.
+        //// Neoffice — stops the ongoing monitor, if there is one.
         stopIntentWatch() {
             if (this._intentStop) this._intentStop();
         }
 
-        //// Neoffice — le chargement historique, extrait tel quel pour être
-        //// appelé depuis les deux branches. Rien n'y a changé.
+        //// Neoffice — the legacy loading path, extracted as-is to be
+        //// called from both branches. Nothing about it has changed.
         loadLegacyPaymentTemplate(method, $form, cleanId, formId) {
             frappe.call({
                 method: 'webshop.templates.pages.checkout.get_payment_template',

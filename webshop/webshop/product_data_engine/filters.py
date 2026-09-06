@@ -470,7 +470,7 @@ class ProductFiltersBuilder:
 			item_groups = [x.name for x in include_groups] if include_groups else [item_group_to_use]
 			
 			# Get default price list from settings
-			# //// Neoffice multi-site — le tarif du site prime (filtres de prix).
+			# //// Neoffice multi-site — the site's price list wins (price filters).
 			from webshop.webshop.multi_site import effective_price_list
 
 			default_price_list = effective_price_list()
@@ -597,7 +597,7 @@ class ProductFiltersBuilder:
 
 		else:
 			# No item group filter, get all prices
-			# //// Neoffice multi-site — le tarif du site prime (filtres de prix).
+			# //// Neoffice multi-site — the site's price list wins (price filters).
 			from webshop.webshop.multi_site import effective_price_list
 
 			default_price_list = effective_price_list()

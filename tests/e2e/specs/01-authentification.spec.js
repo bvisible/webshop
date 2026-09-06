@@ -58,9 +58,9 @@ test.describe('Création de compte — refus attendus', () => {
 		expect(corps.message.reason_code).toBe('account_exists_website');
 	});
 
-	//// Sécurité: la boutique ne doit jamais pouvoir toucher à un compte du desk.
-	//// Sans ce garde, créer un compte avec l'e-mail d'un administrateur ouvrirait
-	//// une confusion de privilèges.
+	//// Security: the shop must never be able to touch a desk account. Without
+	//// this guard, creating an account with an administrator's e-mail would
+	//// open a privilege confusion.
 	test('un compte du desk ne peut pas être repris par la boutique', async ({page}) => {
 		const {corps} = await appelInvite(page, 'webshop.webshop.auth.api.create_account', {
 			email: 'Administrator', first_name: 'A', last_name: 'B',
@@ -81,7 +81,7 @@ test.describe('Création de compte — parcours réel', () => {
 		});
 		expect(corps.message.message, `création refusée : ${corps.message.reason || ''}`).not.toBe('error');
 
-		//// Le compte doit exister ET rester un compte client : jamais de rôle desk.
+		//// The account must exist AND remain a customer account: never a desk role.
 		const {corps: verif} = await appelInvite(page, 'webshop.webshop.auth.api.check_email', {email});
 		expect(verif.message.exists, 'le compte doit exister juste après sa création').toBe(true);
 	});
@@ -115,8 +115,8 @@ test.describe('Connexion', () => {
 		await page.fill('#login_email', IDENTIFIANTS.utilisateur);
 		await page.click('.btn-verify-email');
 
-		//// Le mot de passe n'apparaît qu'une fois l'adresse reconnue : c'est ce
-		//// qui distingue « je me connecte » de « je crée un compte ».
+		//// The password field only appears once the address is recognized: that's
+		//// what distinguishes "I'm signing in" from "I'm creating an account".
 		await expect(page.locator('.password-section')).toBeVisible();
 		await expect(page.locator('.fullname-section')).toBeHidden();
 	});
@@ -135,8 +135,8 @@ test.describe('Connexion', () => {
 });
 
 test.describe('Cloisonnement d’un visiteur anonyme', () => {
-	//// RULE #1sexies: ce que l'invité ne doit pas atteindre se sonde par l'API,
-	//// depuis SA session. Masquer un bouton n'est pas une permission.
+	//// RULE #1sexies: what the guest must not reach is probed through the API,
+	//// from THEIR OWN session. Hiding a button is not a permission.
 	test('les réglages de la boutique ne sont pas lisibles', async ({page}) => {
 		const r = await page.request.get(
 			'/api/method/frappe.client.get_list?doctype=Webshop%20Settings&fields=["name"]'
