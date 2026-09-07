@@ -378,6 +378,27 @@ class TestFollowUps(FrappeTestCase):
 		order.submit()
 		self.assertTrue(self.reminders(cart)[0].converted)
 
+	def test_an_emptied_cart_can_still_be_deleted_once_reminded(self):
+		"""The reminder links the cart; the cart must still be able to go.
+
+		update_cart deletes the quotation when its last line is removed, and
+		Frappe refuses to delete a linked document: a customer who had received
+		a reminder got a 417 on the cross of their last line (osiris, 2026-09-07).
+		"""
+		from webshop.webshop.shopping_cart.cart import _release_abandoned_cart_reminders
+
+		self.enable_reminders()
+		cart = self.stale_cart(hours=2)
+		abandoned_carts.send_abandoned_cart_reminders()
+		self.assertEqual(len(self.reminders(cart)), 1)
+		with self.assertRaises(frappe.LinkExistsError):
+			frappe.get_doc("Quotation", cart.name).delete()
+		frappe.clear_messages()
+		_release_abandoned_cart_reminders(cart.name)
+		frappe.get_doc("Quotation", cart.name).delete()
+		self.assertFalse(frappe.db.exists("Quotation", cart.name))
+		self.assertEqual(self.reminders(cart), [])
+
 	def test_the_customer_who_unsubscribed_is_not_reminded(self):
 		self.enable_reminders()
 		frappe.get_doc({"doctype": "Email Unsubscribe", "email": USER, "global_unsubscribe": 1}).insert(ignore_permissions=True)

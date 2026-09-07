@@ -48,7 +48,9 @@ test.describe('Commande rapide — le revendeur', () => {
 		await page.goto('/');
 		test.skip((await utilisateurCourant(page)) === 'Guest', 'aucune session B2B (WEBSHOP_E2E_B2B_USER absent ?)');
 		test.skip(!(await estRevendeur(page)), 'la session B2B n’est pas reconnue comme revendeur');
-		await viderPanier(page);
+		//// The cart must start empty, and say so when it cannot: a leftover line would
+		//// add up with the quantities typed below and blame the page.
+		test.skip(!(await viderPanier(page)), 'le panier du compte B2B ne se vide pas');
 		//// A draft from a previous run must not leak into this one.
 		await page.goto(ROUTE);
 		await page.evaluate(() => {

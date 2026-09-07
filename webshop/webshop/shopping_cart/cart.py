@@ -1123,6 +1123,14 @@ def _set_delivery_dates_from_sources(sales_order, cart_settings=None):
 # ////
 # //// Exists because a customer whose card was declined could no longer empty
 # //// their cart — see the LinkExistsError branch in update_cart.
+def _release_abandoned_cart_reminders(quotation_name):
+	"""Drop the reminders sent about this cart, so the emptied cart can be deleted."""
+	if not frappe.db.exists("DocType", "Abandoned Cart Reminder"):
+		return
+	for name in frappe.get_all("Abandoned Cart Reminder", filters={"quotation": quotation_name}, pluck="name"):
+		frappe.delete_doc("Abandoned Cart Reminder", name, ignore_permissions=True, force=True)
+
+
 def _release_unsuccessful_payment_requests(quotation_name):
 	requests = frappe.get_all(
 		"Payment Request",
@@ -1627,6 +1635,12 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			# //// Neoffice — added helper, renamed under RULE #00 (was
 			# //// _liberer_demandes_de_paiement_infructueuses).
 			_release_unsuccessful_payment_requests(quotation.name)
+			# //// Neoffice — the abandoned-cart reminders (b8160bb709, 2026-09-03) link the
+			# //// quotation too, and Frappe refuses to delete a linked document: a customer
+			# //// who had received a reminder could no longer empty their cart — 417 on the
+			# //// last line, seen on osiris. A reminder about a cart being emptied has
+			# //// nothing left to remind; it goes with the cart.
+			_release_abandoned_cart_reminders(quotation.name)
 			quotation.delete()
 			quotation = None
 

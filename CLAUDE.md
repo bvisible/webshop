@@ -395,6 +395,13 @@ land on `/cart?add=ITEM&qty=1` and `/cart?coupon=CODE`
 > `seed_follow_up_email_templates` ships the templates and two flows switched
 > **off**: a client instance must never start mailing because it migrated.
 
+> **A reminder links the cart, and Frappe refuses to delete a linked document.**
+> `update_cart` deletes the quotation when its last line goes; a customer who
+> had received a reminder therefore got a 417 on the cross of their last line
+> and could never empty the cart (osiris, 2026-09-07). The `LinkExistsError`
+> branch now releases the reminders too (`_release_abandoned_cart_reminders`),
+> next to the unsuccessful payment requests it already released.
+
 > `frappe.db.has_column("Webshop Settings", ...)` raises TableMissingError: a
 > Single has no table — ask `frappe.get_meta(...).has_field()`.
 
