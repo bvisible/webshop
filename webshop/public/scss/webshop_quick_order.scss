@@ -131,6 +131,8 @@
 	&:focus { outline: none; border-color: var(--primary, #1f2937) !important; box-shadow: 0 0 0 3px rgba(31, 41, 55, .12); }
 	&.is-flash { animation: wsh-qo-flash .6s ease; }
 }
+.wsh-qo-off { display: block; color: #9a6700; font-size: .8rem; font-weight: 500; padding: 8px 2px; }
+.wsh-qo-cell--off { background: #fafafa; }
 .wsh-qo-stock { color: #6b7280; &.has-stock { color: #1a7f37; font-weight: 600; } &.is-out { color: #b91c1c; } }
 //// Neoffice — struck-through list price next to the customer's price (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 .wsh-qo-price { color: #374151; s { color: #9ca3af; margin-right: 3px; } }

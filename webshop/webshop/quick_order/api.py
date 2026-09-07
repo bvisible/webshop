@@ -599,7 +599,7 @@ def _parse_lines(lines):
 
 
 # //// Neoffice — _check_lines() no longer gates or parses (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): it used to open with require_reseller(), require_login_to_buy() and _parse_lines(lines), and load the customer's own quotation itself; the caller add_lines() now does the gate/parsing/loading (guest or signed-in) and hands this function plain wanted/rows to validate.
-def _check_lines(wanted, rows, settings, multi_enabled):
+def _check_lines(wanted, rows, settings, multi_enabled, party, price_list):
 	"""Every wanted line against the rule of "add to cart", with the cart's rows in hand.
 
 	Returns (accepted, capped, refused): accepted = [(item_code, warehouse, qty)]
@@ -626,6 +626,12 @@ def _check_lines(wanted, rows, settings, multi_enabled):
 			continue
 		if is_gift_card_item(item_code):
 			refused.append({"item_code": item_code, "qty": qty, "reason": _("Les cartes cadeaux ne passent pas par la commande rapide.")})
+			continue
+		# //// Neoffice — an item with no price on the customer's list is "Prix sur demande":
+		# //// it must not enter the cart at 0.00. The grid disables its cell too; this is the
+		# //// server guard, so a forged call cannot slip a priceless line in (2026-09-07).
+		if _price_of(item_code, price_list, party, settings) is None:
+			refused.append({"item_code": item_code, "qty": qty, "reason": _("Pas de tarif pour cet article sur votre liste de prix (prix sur demande).")})
 			continue
 
 		if multi_enabled:
@@ -720,7 +726,7 @@ def add_lines(lines):
 			frappe.throw(_("Impossible d'ouvrir un panier pour ce compte."))
 		rows = quotation.get("items") or []
 
-	accepted, capped, refused = _check_lines(wanted, rows, settings, multi_enabled)
+	accepted, capped, refused = _check_lines(wanted, rows, settings, multi_enabled, party, customer_price_list(settings, party))
 
 	if accepted:
 		if is_guest:
@@ -794,6 +800,7 @@ def labels():
 		"price_on_request": _("Prix sur demande"),
 		"none": _("Pas de variante"),
 		"over_stock": _("Au-delà du stock disponible"),
+		"capped_to_stock": _("Limité au stock disponible : {0}"),
 		"pieces": _("pièces"),
 		"lines": _("lignes"),
 		"total": _("Total indicatif"),

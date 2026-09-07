@@ -225,12 +225,26 @@
 		const price = variant.formatted_price
 			? (variant.formatted_list_price ? `<s>${escape(variant.formatted_list_price)}</s> ${escape(variant.formatted_price)}` : escape(variant.formatted_price))
 			: escape(L.price_on_request);
+		//// Neoffice — a cell is not orderable when the item has no price on the
+		//// customer's list ("Prix sur demande") or when a stock item is out of stock
+		//// (stock === 0; null = non-stock = unlimited). No input then, so nothing can be
+		//// typed or sent; the server refuses these too. (2026-09-07)
+		const noPrice = variant.price == null;
+		const outOfStock = variant.stock === 0;
+		if (noPrice || outOfStock) {
+			return `<td class="wsh-qo-cell wsh-qo-cell--off" title="${escape(variant.item_code)}">
+				<span class="wsh-qo-off">${escape(noPrice ? L.price_on_request : L.out_of_stock)}</span>
+				${noPrice ? "" : `<span class="wsh-qo-cell__meta"><span class="wsh-qo-price">${price}</span></span>`}
+			</td>`;
+		}
+		// available cap: a stock item is limited to its available qty; null = unlimited
+		const maxAttr = variant.stock == null ? "" : ` max="${variant.stock}"`;
 		const over = variant.stock != null && qty > variant.stock ? " is-over" : "";
 		// //// Neoffice — the returned markup below now carries a wsh-qo-price span, using the `price` computed above (6696be727a "feat(quick-order): le prix du client, et la commande en Excel"); not marked inline since it sits inside this template literal
 		return `<td class="wsh-qo-cell${over}" data-item="${escape(variant.item_code)}" data-stock="${variant.stock == null ? "" : variant.stock}">
 			<span class="wsh-qo-cell-controls">
 				<button type="button" class="wsh-qo-step wsh-qo-minus" tabindex="-1" aria-label="-">\u2212</button>
-				<input type="number" class="wsh-qo-qty" min="0" step="1" inputmode="numeric" placeholder="0" value="${qty}"
+				<input type="number" class="wsh-qo-qty" min="0" step="1"${maxAttr} inputmode="numeric" placeholder="0" value="${qty}"
 					data-item="${escape(variant.item_code)}" aria-label="${escape(variant.item_name)}" title="${escape(variant.item_code)}">
 				<button type="button" class="wsh-qo-step wsh-qo-plus" tabindex="-1" aria-label="+">+</button>
 			</span>
@@ -313,15 +327,23 @@
 		node.querySelectorAll(".wsh-qo-qty").forEach((input) => {
 			input.addEventListener("input", () => {
 				const variant = model.data.variants.find((v) => v.item_code === input.dataset.item);
+				const cell = input.closest(".wsh-qo-cell");
+				const stock = cell.dataset.stock === "" ? null : Number(cell.dataset.stock);
+				// can't order more than what's available; null stock = unlimited
+				if (stock != null && (parseFloat(input.value) || 0) > stock) {
+					input.value = stock > 0 ? stock : "";
+					if (window.frappe && frappe.show_alert) {
+						frappe.show_alert({ message: fmt(L.capped_to_stock, stock), indicator: "orange" });
+					}
+				}
+				if ((parseFloat(input.value) || 0) < 0) input.value = "";
 				setQty(input.dataset.item, input.value, {
 					template: model.template,
 					price: variant ? variant.price : null,
 					name: variant ? variant.item_name : input.dataset.item,
 					attrs: variant ? variant.attrs : {},
 				});
-				const cell = input.closest(".wsh-qo-cell");
-				const stock = cell.dataset.stock === "" ? null : Number(cell.dataset.stock);
-				cell.classList.toggle("is-over", stock != null && Number(input.value) > stock);
+				cell.classList.remove("is-over");
 			});
 			input.addEventListener("focus", () => input.select());
 			input.addEventListener("keydown", (e) => {
@@ -340,7 +362,10 @@
 				const input = step.parentElement.querySelector(".wsh-qo-qty");
 				if (!input) return;
 				const delta = step.classList.contains("wsh-qo-plus") ? 1 : -1;
-				const next = Math.max(0, (parseFloat(input.value) || 0) + delta);
+				const cell = input.closest(".wsh-qo-cell");
+				const stock = cell.dataset.stock === "" ? null : Number(cell.dataset.stock);
+				let next = Math.max(0, (parseFloat(input.value) || 0) + delta);
+				if (stock != null && next > stock) next = stock;
 				input.value = next > 0 ? next : "";
 				input.dispatchEvent(new Event("input", { bubbles: true }));
 			});
