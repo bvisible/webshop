@@ -381,6 +381,7 @@ def _prices(item_codes, price_list, party, settings, warehouse=None):
 	return prices
 
 
+# //// Neoffice — extended _stock's docstring and added the get_web_item_qty_in_stock fallback below for an item with no own website warehouse (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran")
 def _stock(item_codes, website_item, settings):
 	"""{item_code: available qty or None} by the shop's rule.
 
@@ -391,6 +392,7 @@ def _stock(item_codes, website_item, settings):
 	that is what left its stock unknown. None = not a stock item (unlimited).
 	"""
 	from webshop.webshop.multi_warehouse import sources as mw_sources
+	# //// Neoffice — added get_web_item_qty_in_stock import, used by the per-item fallback below (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran")
 	from webshop.webshop.utils.product import get_web_item_qty_in_stock
 
 	stock = {}
@@ -406,6 +408,7 @@ def _stock(item_codes, website_item, settings):
 	stock_items = set(frappe.get_all("Item", filters={"name": ["in", remaining], "is_stock_item": 1}, pluck="name"))
 	warehouse = website_item.website_warehouse or settings.get("default_warehouse")
 	bulk = get_web_items_qty_in_stock([c for c in remaining if c in stock_items], warehouse) if warehouse else {}
+	# //// Neoffice — added the per-item fallback below: a simple item without its own website warehouse used to be left out of `bulk` and reported no stock (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran")
 	for code in remaining:
 		if code not in stock_items:
 			stock[code] = None
@@ -425,6 +428,7 @@ def _currency(price_list):
 	) or frappe.defaults.get_global_default("currency")
 
 
+# //// Neoffice — added _simple_matrix: a simple item (no variants) used to stay stuck on "price on request" / "on order" because it never went through this pricing/stock path (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran")
 def _simple_matrix(item_code, website_item, party):
 	"""One published item with no variants, as a single-cell grid — priced and
 	stocked by the same rules as a template's cells."""
@@ -785,6 +789,7 @@ def labels():
 		"stock": _("Stock"),
 		"available": _("{0} disponibles"),
 		"out_of_stock": _("Épuisé"),
+		# //// Neoffice — "Disponible" replaces "Sur commande" for an item not tracked in stock (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran")
 		"unlimited": _("Disponible"),
 		"price_on_request": _("Prix sur demande"),
 		"none": _("Pas de variante"),

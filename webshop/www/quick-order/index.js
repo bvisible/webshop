@@ -30,6 +30,7 @@
 		resumeText: root.querySelector(".wsh-qo__resume-text"),
 		resumeYes: root.querySelector(".wsh-qo__resume-yes"),
 		resumeNo: root.querySelector(".wsh-qo__resume-no"),
+		//// Neoffice — added fullscreen and fullscreenLabel node refs, for the new fullscreen toggle (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran")
 		fullscreen: root.querySelector(".wsh-qo__fullscreen"),
 		fullscreenLabel: root.querySelector(".wsh-qo__fullscreen-label"),
 	};
@@ -254,6 +255,7 @@
 		}
 
 		let table;
+		//// Neoffice — added the data.simple branch: a simple item now renders as one clean line instead of the old double "Qté / Qté" header (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran")
 		if (data.simple || attrs.length === 0) {
 			// a simple item: name + one qty cell, no attribute table (which showed a
 			// confusing "Qté / Qté" double header)
@@ -280,6 +282,7 @@
 
 		const image = data.template.image ? `<img src="${escape(data.template.image)}" alt="">` : "";
 		//// Neoffice — the markup below adds a wsh-qo-model__add button: each grid now has its own "add to cart" (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
+		//// Neoffice — see also below: the variant-count span hides its count for a simple item (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran")
 		const html = `
 			<header class="wsh-qo-model__head">
 				${image}
@@ -483,6 +486,7 @@
 			}
 			return;
 		}
+		//// Neoffice — added the simple-item branch below: it now opens through get_matrix like any model, instead of a client-side path that never fetched a price (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran")
 		// a simple item: the server prices it too (get_matrix returns a one-cell grid),
 		// so it goes through the same path as a model — no client-side price guessing
 		const model = await openModel(result.item_code);
@@ -705,6 +709,7 @@
 		});
 	}
 
+	//// Neoffice ▼▼▼ — added the fullscreen toggle block below: variant grids are wide, so a fullscreen button (native, with a CSS-only fallback) gives the grid the whole window (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran")
 	// ------------------------------------------------------------------
 	// fullscreen: variant grids are wide; the whole window gives room to see them
 	// ------------------------------------------------------------------
@@ -736,6 +741,7 @@
 		});
 		document.addEventListener("fullscreenchange", reflectFullscreen);
 	}
+	//// Neoffice ▲▲▲
 
 	renderTotals();
 	el.input.focus();

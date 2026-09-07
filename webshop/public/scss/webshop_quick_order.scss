@@ -102,6 +102,7 @@
 }
 .wsh-qo-cell {
 	&--none { color: #d1d5db; }
+	/* //// Neoffice — added &-controls to wrap the qty input with - / + steppers (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran") */
 	/* - / + steppers flanking the qty input, for clarity (2026-09-07) */
 	&-controls { display: inline-flex; align-items: center; gap: 4px; }
 	&__meta { display: flex; justify-content: center; gap: 6px; font-size: .72rem; line-height: 1.2; margin-top: 3px; white-space: nowrap; }
@@ -109,6 +110,7 @@
 	&.is-over .wsh-qo-qty { border-color: #f59e0b !important; background: #fffbeb !important; }
 	&.is-over .wsh-qo-stock { color: #b45309; font-weight: 700; }
 }
+/* //// Neoffice — added .wsh-qo-step, the - / + stepper buttons around each qty cell (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran") */
 .wsh-qo-step {
 	width: 26px; height: 34px; flex: 0 0 auto; padding: 0;
 	display: inline-flex; align-items: center; justify-content: center;
