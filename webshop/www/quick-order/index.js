@@ -755,6 +755,7 @@
 		return document.fullscreenElement === fsTarget;
 	}
 	function isFullscreen() {
+		//// Neoffice — see the block marker above: fallback flag, not the class
 		return nativeOn() || fallbackOn;
 	}
 	function reflectFullscreen() {
@@ -766,6 +767,7 @@
 	if (el.fullscreen) {
 		el.fullscreen.addEventListener("click", async () => {
 			try {
+				//// Neoffice — see the block marker above: tests native state, not the class
 				if (nativeOn()) {
 					await document.exitFullscreen();
 				} else if (fallbackOn) {
@@ -778,9 +780,11 @@
 					await fsTarget.requestFullscreen();
 				} else {
 					// no native fullscreen: a CSS-only full-window fallback
+					//// Neoffice — see the block marker above: fallback flag, not the class
 					fallbackOn = true;
 				}
 			} catch (e) {
+				//// Neoffice — see the block marker above: fallback flag, not the class
 				fallbackOn = !fallbackOn;
 			}
 			reflectFullscreen();
