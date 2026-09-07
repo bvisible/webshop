@@ -4,7 +4,7 @@
 {# //// server so the page speaks the shop's language. #}
 {% extends "templates/web.html" %}
 
-{% block title %}{{ _("Commande rapide") }}{% endblock %}
+{% block title %}{{ _("Quick order") }}{% endblock %}
 {% block header %}{% endblock %}
 
 {% block page_content %}
@@ -13,7 +13,7 @@
 	<div class="frappe-card p-5 wsh-qo-refusal" role="alert">
 		{# the theme already prints the page title above: only the reason here #}
 		<p class="mb-4">{{ reason }}</p>
-		<a class="btn btn-primary" href="/all-products">{{ _("Retour à la boutique") }}</a>
+		<a class="btn btn-primary" href="/all-products">{{ _("Back to the shop") }}</a>
 	</div>
 {% else %}
 	<script type="application/json" id="wsh-qo-config">{{ config | json }}</script>

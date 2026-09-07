@@ -74,14 +74,14 @@ def require_shopper():
 	# //// Neoffice — added the guest branch (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): an anonymous visitor is admitted here where the shop allows a guest cart, instead of always being refused.
 	if frappe.session.user == "Guest":
 		if not guest_allowed():
-			frappe.throw(_("Connectez-vous pour utiliser la commande rapide."), frappe.PermissionError)
+			frappe.throw(_("Sign in to use the quick order."), frappe.PermissionError)
 		party = get_party()
 		if not party:
-			frappe.throw(_("Connectez-vous pour utiliser la commande rapide."), frappe.PermissionError)
+			frappe.throw(_("Sign in to use the quick order."), frappe.PermissionError)
 		return party
 	party = get_party()
 	if not party:
-		frappe.throw(_("Aucun compte client n'est rattaché à votre utilisateur."), frappe.PermissionError)
+		frappe.throw(_("No customer account is linked to your user."), frappe.PermissionError)
 	# //// Neoffice — removed the reseller-only check (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): any signed-in customer is now admitted, not resellers only
 	return party
 
@@ -495,7 +495,7 @@ def get_matrix(template):
 	party = require_shopper()
 	website_item = sellable_website_item(template)
 	if not website_item:
-		frappe.throw(_("Ce modèle n'est pas disponible sur cette boutique."), frappe.DoesNotExistError)
+		frappe.throw(_("This model is not available in this shop."), frappe.DoesNotExistError)
 
 	# //// Neoffice — a simple item is priced by the server too: it comes back as a
 	# //// one-cell grid, not a client-side placeholder that never fetched its price
@@ -605,9 +605,9 @@ def _parse_lines(lines):
 	if isinstance(lines, str):
 		lines = json.loads(lines or "[]")
 	if not isinstance(lines, list):
-		frappe.throw(_("Les lignes sont invalides."))
+		frappe.throw(_("The lines are invalid."))
 	if len(lines) > MAX_LINES:
-		frappe.throw(_("Au plus {0} lignes par envoi.").format(MAX_LINES))
+		frappe.throw(_("At most {0} lines per submission.").format(MAX_LINES))
 	wanted = {}
 	for line in lines:
 		if not isinstance(line, dict):
@@ -646,22 +646,22 @@ def _check_lines(wanted, rows, settings, multi_enabled, party, price_list):
 	accepted, capped, refused = [], [], []
 	for (item_code, warehouse), qty in wanted.items():
 		if not resolve(item_code):
-			refused.append({"item_code": item_code, "qty": qty, "reason": _("Cet article n'est pas disponible sur cette boutique.")})
+			refused.append({"item_code": item_code, "qty": qty, "reason": _("This item is not available in this shop.")})
 			continue
 		if is_gift_card_item(item_code):
-			refused.append({"item_code": item_code, "qty": qty, "reason": _("Les cartes cadeaux ne passent pas par la commande rapide.")})
+			refused.append({"item_code": item_code, "qty": qty, "reason": _("Gift cards do not go through the quick order.")})
 			continue
 		# //// Neoffice — an item with no price on the customer's list is "Prix sur demande":
 		# //// it must not enter the cart at 0.00. The grid disables its cell too; this is the
 		# //// server guard, so a forged call cannot slip a priceless line in (2026-09-07).
 		if _price_of(item_code, price_list, party, settings) is None:
-			refused.append({"item_code": item_code, "qty": qty, "reason": _("Pas de tarif pour cet article sur votre liste de prix (prix sur demande).")})
+			refused.append({"item_code": item_code, "qty": qty, "reason": _("No price for this item on your price list (price on request).")})
 			continue
 
 		if multi_enabled:
 			allowed = mw_sources.get_allowed_warehouses(item_code, settings)
 			if warehouse and allowed and warehouse not in allowed:
-				refused.append({"item_code": item_code, "qty": qty, "reason": _("Source de stock invalide pour {0}").format(item_code)})
+				refused.append({"item_code": item_code, "qty": qty, "reason": _("Invalid stock source for {0}").format(item_code)})
 				continue
 			# //// Neoffice — multi-warehouse: a quick-order line may draw from several
 			# //// sources at once. The grid shows the AGGREGATE stock, so an order of the
@@ -687,7 +687,7 @@ def _check_lines(wanted, rows, settings, multi_enabled, party, price_list):
 					filled += take
 					remaining -= take
 			if filled == 0:
-				refused.append({"item_code": item_code, "qty": qty, "reason": _("Épuisé : rien de disponible pour {0}.").format(item_code)})
+				refused.append({"item_code": item_code, "qty": qty, "reason": _("Out of stock: nothing available for {0}.").format(item_code)})
 			elif remaining > 0:
 				capped.append({"item_code": item_code, "asked": qty, "kept": filled, "available": filled})
 			continue
@@ -701,7 +701,7 @@ def _check_lines(wanted, rows, settings, multi_enabled, party, price_list):
 		if limit.available is not None:
 			room = flt(limit.available) - existing_qty
 			if room <= 0:
-				refused.append({"item_code": item_code, "qty": qty, "reason": _("Épuisé : {0} déjà au panier, rien de plus disponible.").format(int(existing_qty))})
+				refused.append({"item_code": item_code, "qty": qty, "reason": _("Out of stock: {0} already in the cart, nothing more available.").format(int(existing_qty))})
 				continue
 			if qty > room:
 				capped.append({"item_code": item_code, "asked": qty, "kept": int(room), "available": int(limit.available)})
@@ -744,7 +744,7 @@ def _write_guest_cart(rows, accepted, multi_enabled):
 			rows.append(frappe._dict(item_code=item_code, qty=qty, warehouse=warehouse))
 	result = create_guest_quotation([dict(row) for row in rows])
 	if not result or not result.get("success"):
-		frappe.throw(_("Impossible d'ouvrir un panier pour cette session."))
+		frappe.throw(_("Could not open a cart for this session."))
 	return frappe.get_doc("Quotation", result["quotation_id"])
 
 
@@ -771,7 +771,7 @@ def add_lines(lines):
 	else:
 		quotation = _get_cart_quotation(party)
 		if not quotation:
-			frappe.throw(_("Impossible d'ouvrir un panier pour ce compte."))
+			frappe.throw(_("Could not open a cart for this account."))
 		rows = quotation.get("items") or []
 
 	# //// Neoffice — _check_lines() now takes the price list, to refuse an unpriced line before it reaches the cart (eb91b0ba75 "fix(quick-order): un article sans prix ou épuisé n'est pas commandable, quantité plafonnée au stock")
@@ -828,52 +828,52 @@ def add_lines(lines):
 def labels():
 	return {
 		# //// Neoffice — removed "title" (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): the page title is set directly in index.py's get_context(), this label was unused
-		"lead": _("Tapez une référence, un nom ou un code-barres : la grille du modèle s'ouvre et vous saisissez les quantités au clavier."),
-		"fullscreen": _("Plein écran"),
-		"exit_fullscreen": _("Quitter le plein écran"),
-		"placeholder": _("Référence, nom ou code-barres…"),
-		"no_results": _("Aucun article publié ne correspond."),
-		"unknown_code": _("Code inconnu sur cette boutique : {0}"),
-		"searching": _("Recherche…"),
-		"variants": _("{0} variantes"),
-		"empty": _("Aucun modèle ouvert. Cherchez une référence pour commencer."),
-		"close": _("Fermer"),
-		"reset_model": _("Tout à zéro"),
+		"lead": _("Type a reference, a name or a barcode: the model's grid opens and you enter the quantities at the keyboard."),
+		"fullscreen": _("Full screen"),
+		"exit_fullscreen": _("Exit full screen"),
+		"placeholder": _("Reference, name or barcode…"),
+		"no_results": _("No published item matches."),
+		"unknown_code": _("Unknown code in this shop: {0}"),
+		"searching": _("Searching…"),
+		"variants": _("{0} variants"),
+		"empty": _("No model open. Search for a reference to start."),
+		"close": _("Close"),
+		"reset_model": _("All to zero"),
 		# //// Neoffice — added (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): label of each grid's own "add to cart" button
-		"add_model": _("Ajouter"),
+		"add_model": _("Add"),
 		"stock": _("Stock"),
-		"available": _("{0} disponibles"),
-		"out_of_stock": _("Épuisé"),
+		"available": _("{0} available"),
+		"out_of_stock": _("Out of stock"),
 		# //// Neoffice — "Disponible" replaces "Sur commande" for an item not tracked in stock (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran")
-		"unlimited": _("Disponible"),
-		"price_on_request": _("Prix sur demande"),
-		"none": _("Pas de variante"),
-		"over_stock": _("Au-delà du stock disponible"),
+		"unlimited": _("Available"),
+		"price_on_request": _("Price on request"),
+		"none": _("No variant"),
+		"over_stock": _("Beyond the available stock"),
 		# //// Neoffice — added (eb91b0ba75 "fix(quick-order): un article sans prix ou épuisé n'est pas commandable, quantité plafonnée au stock"): shown when the input/stepper caps a quantity to the available stock
-		"capped_to_stock": _("Limité au stock disponible : {0}"),
-		"pieces": _("pièces"),
-		"lines": _("lignes"),
-		"total": _("Total indicatif"),
-		"total_note": _("Prix du tarif. Remises et TVA sont calculées au panier."),
+		"capped_to_stock": _("Capped to the available stock: {0}"),
+		"pieces": _("pieces"),
+		"lines": _("lines"),
+		"total": _("Indicative total"),
+		"total_note": _("List price. Discounts and VAT are computed in the cart."),
 		# //// Neoffice — reworded from "Envoyer au panier" (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): now that each grid has its own "add to cart", this button sends the whole draft
-		"send": _("Tout envoyer au panier"),
-		"sending": _("Envoi en cours…"),
-		"clear": _("Tout effacer"),
-		"clear_confirm": _("Effacer toute la saisie ?"),
-		"see_cart": _("Voir le panier"),
-		"resume": _("Reprendre la saisie du {0} ({1} lignes, {2} pièces) ?"),
-		"resume_yes": _("Reprendre"),
-		"resume_no": _("Effacer"),
-		"report_added": _("{0} pièces ajoutées au panier."),
-		"report_capped": _("Plafonné au stock :"),
-		"report_capped_line": _("{0} : {1} demandées, {2} gardées ({3} disponibles)"),
-		"report_refused": _("Non ajoutées :"),
-		"nothing_to_send": _("Aucune quantité saisie."),
-		"error": _("La requête a échoué. Réessayez."),
+		"send": _("Send everything to the cart"),
+		"sending": _("Sending…"),
+		"clear": _("Clear all"),
+		"clear_confirm": _("Clear the whole entry?"),
+		"see_cart": _("View the cart"),
+		"resume": _("Resume the entry from {0} ({1} lines, {2} pieces)?"),
+		"resume_yes": _("Resume"),
+		"resume_no": _("Clear"),
+		"report_added": _("{0} pieces added to the cart."),
+		"report_capped": _("Capped to stock:"),
+		"report_capped_line": _("{0}: {1} asked, {2} kept ({3} available)"),
+		"report_refused": _("Not added:"),
+		"nothing_to_send": _("No quantity entered."),
+		"error": _("The request failed. Try again."),
 		# //// Neoffice — reworded to match the renamed "send everything" shortcut (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
-		"shortcuts": _("Entrée : case suivante · Échap : retour à la recherche · Ctrl+Entrée : tout envoyer"),
-		"qty": _("Qté"),
-		"add": _("Ajouter"),
+		"shortcuts": _("Enter: next cell · Esc: back to search · Ctrl+Enter: send everything"),
+		"qty": _("Qty"),
+		"add": _("Add"),
 	}
 
 
@@ -886,7 +886,7 @@ def page_context(context):
 		party = require_shopper()
 	except frappe.PermissionError:
 		frappe.clear_last_message()
-		context.reason = _("Aucun compte client n'est rattaché à votre utilisateur.")
+		context.reason = _("No customer account is linked to your user.")
 		return context
 	# //// Neoffice — party now passed in, instead of customer_price_list() resolving the session itself (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client")
 	price_list = customer_price_list(cart_settings(), party)

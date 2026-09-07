@@ -14,7 +14,7 @@ no_cache = 1
 def get_context(context):
 	context.no_cache = 1
 	context.show_sidebar = 0
-	context.title = _("Commande rapide")
+	context.title = _("Quick order")
 	# //// Neoffice — added "and not guest_allowed()" (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): a visitor is let through where the shop allows a guest cart, instead of being redirected unconditionally.
 	if frappe.session.user == "Guest" and not guest_allowed():
 		frappe.local.flags.redirect_location = f"/login?redirect-to={PAGE_ROUTE}"
