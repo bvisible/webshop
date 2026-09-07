@@ -205,7 +205,8 @@ class TestQuickOrder(FrappeTestCase):
 		"""Browse anonymously; the shop's guest customer stands in when it sells to visitors."""
 		frappe.set_user("Guest")
 		self.settings.enable_guest_cart = 1 if with_cart else 0
-		self.real_party = api.get_party
+		# setUp holds the real get_party; saving it again here would capture the
+		# previous impersonation and hand every later test a customer-less session
 		api.get_party = lambda *args, **kwargs: (
 			frappe._dict(name=PLAIN_CUSTOMER, customer_name="Visiteur", customer_group="") if with_cart else None
 		)
