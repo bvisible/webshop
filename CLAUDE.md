@@ -590,6 +590,7 @@ the cart is the state afterwards. A guest's batch goes through
 > `default_price_list = Vente B2B` sees 79.80 → 71.82, and both carts bill
 > exactly that.
 
+<!-- //// Neoffice — documents the two upstream ERPNext pitfalls found while reading the CI (7fbb9e4181 "docs(quick-order): les deux pièges ERPNext standard trouvés en lisant la CI"): the mrp-read-before-assignment crash in get_price, and modules run twice on the same CI site inheriting each other's leftover fixtures -->
 > **Upstream's `get_price` crashes on a priced item with no pricing rule.** It
 > sets `mrp` only inside `if pricing_rule:`, then reads it two lines later — so
 > on a *stock* ERPNext, any item that has a price and matches no rule (the common
