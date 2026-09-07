@@ -334,6 +334,19 @@ def _list_rates(item_codes, price_list):
 	return rates
 
 
+# //// Neoffice — added file-local helper (the fallback for stock ERPNext's get_price mrp bug, see _price_of): the plain Item Price rate for one item, shaped like get_price's return, used when there is a price but no pricing rule so upstream get_price cannot return one.
+def _raw_price(item_code, price_list):
+	"""One item's Item Price rate on `price_list`, formatted — no pricing rule applied.
+
+	The safe answer when stock ERPNext's get_price crashes on a priced item with no
+	rule: no rule means no discount, so the list rate is exactly what the cart carries.
+	"""
+	rate = _list_rates([item_code], price_list).get(item_code)
+	if rate is None:
+		return None
+	return {"price_list_rate": rate, "formatted_price": fmt_money(rate, currency=_currency(price_list))}
+
+
 # //// Neoffice — reworded (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): the list_price/mrp handling this docstring used to describe moved out to _list_rates()/_prices()
 def _price_of(item_code, price_list, party, settings, warehouse=None):
 	"""What the product page shows for one item: the list rate with the shop's
@@ -346,7 +359,18 @@ def _price_of(item_code, price_list, party, settings, warehouse=None):
 		price = get_price(item_code, price_list, customer_group, settings.company, warehouse=warehouse, **kwargs)
 	except TypeError:
 		# stock ERPNext: get_price knows no warehouse keyword
-		price = get_price(item_code, price_list, customer_group, settings.company, **kwargs)
+		try:
+			price = get_price(item_code, price_list, customer_group, settings.company, **kwargs)
+		except UnboundLocalError:
+			# //// Neoffice — stock ERPNext version-15 get_price references `mrp` before it is
+			# //// assigned whenever an item HAS a price but NO pricing rule matches: `mrp` is set
+			# //// only inside `if pricing_rule:`, then read two lines later in `if mrp != …`. Our
+			# //// erpnext fork captures `mrp` before that block; upstream does not, so quick-order
+			# //// crashed on a stock ERPNext for every priced item without a rule — the common case
+			# //// (measured on the CI's fresh site). No rule means no discount, so the correct
+			# //// figure is the plain Item Price rate: fall back to it rather than lose the price.
+			# //// Remove this shim once the CI's ERPNext carries the fork's get_price.
+			price = _raw_price(item_code, price_list)
 	if not price or price.get("price_list_rate") is None:
 		return None
 	# //// Neoffice — no longer reads price.get("mrp") here (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): upstream get_price() only returns a formatted mrp string, never the raw value, so the struck list price is now read from Item Price by _list_rates()

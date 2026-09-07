@@ -118,6 +118,16 @@ class TestQuickOrder(FrappeTestCase):
 
 		portal_customer(USER, CUSTOMER)
 		portal_customer(PLAIN_USER, PLAIN_CUSTOMER)
+		# //// Neoffice — reset both customers' default price list at the top of every run
+		# (27e93f3c-follow-up "fix(quick-order): la CI sur ERPNext standard"): these customers
+		# are never deleted (portal_customer keeps them, since a customer with orders cannot be
+		# dropped), so a default_price_list left behind by an interrupted or prior run would
+		# silently reprice the whole suite. The site's/shop's list is the baseline; only the
+		# customer-list test sets a default, and it restores it. The CI runs quick_order twice on
+		# one site (blocking, then the informative full suite): without this, the first run's leak
+		# repriced the second at the reseller tariff (80 instead of 100).
+		for customer in (CUSTOMER, PLAIN_CUSTOMER):
+			frappe.db.set_value("Customer", customer, "default_price_list", "")
 		# //// Neoffice — added (27e93f3c "fix(quick-order): la CI sur ERPNext standard —
 		# tarification au nom du client et deux tests mal posés"): the reseller previously shared
 		# the site's default customer group with the plain customer, so "listed group" and "any
@@ -346,19 +356,31 @@ class TestQuickOrder(FrappeTestCase):
 	# //// Neoffice ▼▼▼ — new tests for the customer's own price-list resolution and the order xlsx export (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 	def test_the_matrix_prices_at_the_customer_s_own_list_when_the_site_has_none(self):
 		"""No site tariff: the cart takes the customer's default list, so does the grid."""
+		# //// Neoffice — wrapped in try/finally and the default_price_list restored+committed
+		# (27e93f3c-follow-up "fix(quick-order): la CI sur ERPNext standard"): left set, the
+		# customer's default list leaked into every later matrix/add_lines test in the full suite —
+		# they then priced this customer on the reseller list (80) instead of the shop default
+		# (100). Only visible in `bench run-tests --app webshop`, where the modules share one
+		# process; a targeted module run cleaned it up by chance. Committed because a downstream
+		# add_lines commit would otherwise persist the change past the test rollback.
 		frappe.db.set_value("Customer", CUSTOMER, "default_price_list", RESELLER_LIST)
-		frappe.set_user(USER)
-		# //// Neoffice — customer_price_list() now takes the party (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): it no longer resolves the session itself
-		self.assertEqual(api.customer_price_list(self.settings, api.get_party()), RESELLER_LIST)
-		matrix = api.get_matrix(TEMPLATE)
-		by_code = {v["item_code"]: v for v in matrix["variants"]}
-		self.assertEqual(by_code[self.variants[("Noir", "S")]]["price"], 80)
-		self.assertIsNone(by_code[self.variants[("Blanc", "L")]]["price"])
-		# the plain customer, on the same shop, keeps the shop's list
-		frappe.set_user(PLAIN_USER)
-		# //// Neoffice — customer_price_list() now takes the party (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): it no longer resolves the session itself
-		self.assertEqual(api.customer_price_list(self.settings, api.get_party()), selling_price_list())
-		self.assertEqual({v["price"] for v in api.get_matrix(TEMPLATE)["variants"]}, {100})
+		try:
+			frappe.set_user(USER)
+			# //// Neoffice — customer_price_list() now takes the party (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): it no longer resolves the session itself
+			self.assertEqual(api.customer_price_list(self.settings, api.get_party()), RESELLER_LIST)
+			matrix = api.get_matrix(TEMPLATE)
+			by_code = {v["item_code"]: v for v in matrix["variants"]}
+			self.assertEqual(by_code[self.variants[("Noir", "S")]]["price"], 80)
+			self.assertIsNone(by_code[self.variants[("Blanc", "L")]]["price"])
+			# the plain customer, on the same shop, keeps the shop's list
+			frappe.set_user(PLAIN_USER)
+			# //// Neoffice — customer_price_list() now takes the party (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): it no longer resolves the session itself
+			self.assertEqual(api.customer_price_list(self.settings, api.get_party()), selling_price_list())
+			self.assertEqual({v["price"] for v in api.get_matrix(TEMPLATE)["variants"]}, {100})
+		finally:
+			frappe.set_user("Administrator")
+			frappe.db.set_value("Customer", CUSTOMER, "default_price_list", "")
+			frappe.db.commit()
 
 	def test_the_matrix_applies_the_shop_s_pricing_rules_like_the_product_page(self):
 		noir_s = self.variants[("Noir", "S")]
