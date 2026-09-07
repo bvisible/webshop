@@ -209,6 +209,7 @@ class TestQuickOrder(FrappeTestCase):
 		"""Browse anonymously; the shop's guest customer stands in when it sells to visitors."""
 		frappe.set_user("Guest")
 		self.settings.enable_guest_cart = 1 if with_cart else 0
+		# //// Neoffice — fix (b2d4db3527 "test(quick-order): l'impersonation du visiteur ne recapture plus get_party"): as_guest() used to resave api.get_party on every call; called twice in one test, it kept the first impersonation as the "real" function, which tearDown then restored — eight later tests saw a customer-less account.
 		# setUp holds the real get_party; saving it again here would capture the
 		# previous impersonation and hand every later test a customer-less session
 		api.get_party = lambda *args, **kwargs: (
