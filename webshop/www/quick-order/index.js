@@ -743,8 +743,19 @@
 	// fullscreen: variant grids are wide; the whole window gives room to see them
 	// ------------------------------------------------------------------
 	const fsTarget = root; // the app container goes fullscreen, header and recap included
+	//// Neoffice — the CSS fallback is tracked in its own flag, and `is-fullscreen` is derived
+	//// from the state instead of being part of it. isFullscreen() used to OR the native state
+	//// with the presence of that very class; since entering natively adds the class, leaving
+	//// natively could never remove it — the class kept isFullscreen() true and re-applied
+	//// itself. The button was one-way on every browser with native fullscreen (measured
+	//// headless: after exitFullscreen() document.fullscreenElement was null and the grid stayed
+	//// full-window).
+	let fallbackOn = false;
+	function nativeOn() {
+		return document.fullscreenElement === fsTarget;
+	}
 	function isFullscreen() {
-		return document.fullscreenElement === fsTarget || root.classList.contains("is-fullscreen");
+		return nativeOn() || fallbackOn;
 	}
 	function reflectFullscreen() {
 		const on = isFullscreen();
@@ -755,16 +766,22 @@
 	if (el.fullscreen) {
 		el.fullscreen.addEventListener("click", async () => {
 			try {
-				if (document.fullscreenElement) {
+				if (nativeOn()) {
 					await document.exitFullscreen();
+				} else if (fallbackOn) {
+					//// Neoffice — leave the CSS fallback the way we entered it: without this
+					//// branch, a browser that refuses native fullscreen (an iframe with no
+					//// allowfullscreen, a denied permission) took you in through the fallback
+					//// and then only ever retried requestFullscreen, with no way back out.
+					fallbackOn = false;
 				} else if (fsTarget.requestFullscreen) {
 					await fsTarget.requestFullscreen();
 				} else {
 					// no native fullscreen: a CSS-only full-window fallback
-					root.classList.toggle("is-fullscreen");
+					fallbackOn = true;
 				}
 			} catch (e) {
-				root.classList.toggle("is-fullscreen");
+				fallbackOn = !fallbackOn;
 			}
 			reflectFullscreen();
 		});

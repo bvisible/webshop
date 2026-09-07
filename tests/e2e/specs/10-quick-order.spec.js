@@ -225,6 +225,38 @@ test.describe('Commande rapide — stock et prix', () => {
 		//// And the + stepper stops there too.
 		await grille.locator(`.wsh-qo-cell[data-item="${cible.item_code}"] .wsh-qo-plus`).click();
 		await expect(saisie).toHaveValue(String(cible.stock));
+
+		//// The − stepper walks back down, and never below zero.
+		await grille.locator(`.wsh-qo-cell[data-item="${cible.item_code}"] .wsh-qo-minus`).click();
+		await expect(saisie).toHaveValue(String(cible.stock - 1));
+		await saisie.fill('0');
+		await saisie.dispatchEvent('input');
+		await grille.locator(`.wsh-qo-cell[data-item="${cible.item_code}"] .wsh-qo-minus`).click();
+		await expect(saisie).not.toHaveValue('-1');
+	});
+
+	//// Neoffice — added (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur,
+	//// steppers, plein écran"): a wide grid is unreadable in the page's column, so the page can
+	//// take the whole screen. The button must both go in and come back out.
+	test('la grille passe en plein écran et en revient', async ({page}) => {
+		test.setTimeout(120_000);
+		const modele = await premierModele(page);
+		test.skip(!modele, 'aucun modèle à variantes publié sur cette boutique');
+
+		await page.goto(ROUTE);
+		const champ = page.locator('.wsh-qo__input');
+		await champ.fill(modele.item_code);
+		await champ.press('Enter');
+		await expect(page.locator(`.wsh-qo-model[data-template="${modele.item_code}"]`)).toBeVisible({timeout: 15_000});
+
+		const bouton = page.locator('.wsh-qo__fullscreen');
+		await expect(bouton).toBeVisible();
+		await bouton.click();
+		//// Native fullscreen is refused without a user gesture in some headless runs; the
+		//// CSS fallback class is what the page always sets, so that is what we assert.
+		await expect(page.locator('#wsh-qo')).toHaveClass(/is-fullscreen/, {timeout: 10_000});
+		await bouton.click();
+		await expect(page.locator('#wsh-qo')).not.toHaveClass(/is-fullscreen/, {timeout: 10_000});
 	});
 
 	test('le serveur refuse aussi ce que la grille ne laisse pas saisir', async ({page}) => {
