@@ -123,6 +123,12 @@
 							</a>
 						{% else %}
 							{# //// Neoffice — the signed-in branch keeps upstream's behaviour (see above). #}
+							{# //// Neoffice — a reseller gets the quick order next to the past orders. #}
+							{% if show_quick_order %}
+								<a class="btn btn-primary-light font-md mr-2" href="/quick-order">
+									{{ _('Commande rapide') }}
+								</a>
+							{% endif %}
 							{% if cart_settings.enable_checkout %}
 								<a class="btn btn-primary-light font-md" href="/orders">
 									{{ _('Past Orders') }}
@@ -199,6 +205,12 @@
 	</div>
 	{# //// Neoffice — closing tag fixed: upstream closes a <div> with </p>. #}
 	<div class="cart-empty-message mt-4">{{ _('Your cart is Empty') }}</div>
+	{# //// Neoffice — an empty cart sends a reseller to the quick order first. #}
+	{% if show_quick_order %}
+		<a class="btn btn-primary mr-2" href="/quick-order" style="font-size: 16px;">
+			{{ _('Commande rapide') }}
+		</a>
+	{% endif %}
 	{% if cart_settings.enable_checkout %}
 		<a class="btn btn-outline-primary" href="/orders" style="font-size: 16px;">
 			{{ _('See past orders') }}

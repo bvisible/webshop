@@ -33,6 +33,7 @@ from webshop.webshop.tests.utils import (
 	# //// réglages en mémoire, pas d'écriture dans tabSingles"): settings are no longer snapshotted
 	# //// and restored via Webshop Settings, so this helper is unused here.
 	selling_price_list,
+	ensure_shop_settings,
 	# //// Neoffice — removed snapshot_webshop_settings import (807c98474e, same commit): same
 	# //// reason as above.
 )
@@ -92,30 +93,8 @@ def test_settings(**overrides):
 	return doc
 
 
-# //// Neoffice — added (c81fe963b2 "test(assistant): un site neuf reçoit une liste de
-# //// prix et l'affichage des prix"): CI runs on an empty shop, so without a price
-# //// list the search rendered "price on request"; write only what is missing.
-def ensure_shop_settings():
-	"""A fresh site (CI) has no price list and hides prices; osiris has both.
-
-	Only what is missing is written — a Single survives the rollback, and on a
-	shared site a write to `tabSingles` waits on other suites' locks. What was
-	written is returned so tearDownClass can put it back.
-	"""
-	# //// Neoffice — added "company" (8165e65994 "test(assistant): la boutique neuve a aussi
-	# //// besoin de sa société pour un prix"): a fresh shop's price list also needs its company set.
-	wanted = {"enabled": 1, "show_price": 1, "price_list": selling_price_list(), "company": default_company()}
-	written = {}
-	for field, value in wanted.items():
-		current = frappe.db.get_single_value("Webshop Settings", field)
-		if not current:
-			written[field] = current
-			frappe.db.set_single_value("Webshop Settings", field, value)
-	if written:
-		frappe.db.commit()
-		frappe.local.shopping_cart_settings = None
-		frappe.clear_cache()
-	return written
+# //// Neoffice — ensure_shop_settings() moved to webshop.webshop.tests.utils: the quick
+# //// order's tests need the same fresh-site setup (price list, company, prices shown).
 
 
 class TestAssistant(FrappeTestCase):

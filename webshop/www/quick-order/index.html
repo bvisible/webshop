@@ -1,0 +1,64 @@
+{# //// Neoffice — added file (the reseller's quick order, no upstream equivalent). #}
+{# //// One page, no framework: the search bar, the open models with their grids, a #}
+{# //// sticky recap. index.js next to this file drives it; every label comes from the #}
+{# //// server so the page speaks the shop's language. #}
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Commande rapide") }}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block page_content %}
+<div class="container my-4 wsh-qo-page">
+{% if not allowed %}
+	<div class="frappe-card p-5 wsh-qo-refusal" role="alert">
+		{# the theme already prints the page title above: only the reason here #}
+		<p class="mb-4">{{ reason }}</p>
+		<a class="btn btn-primary" href="/all-products">{{ _("Retour à la boutique") }}</a>
+	</div>
+{% else %}
+	<script type="application/json" id="wsh-qo-config">{{ config | json }}</script>
+	<div id="wsh-qo" class="wsh-qo" data-customer="{{ config.customer }}">
+		<div class="wsh-qo__main">
+			{# the theme prints context.title as the page heading: no second title here #}
+			<header class="wsh-qo__head">
+				<p class="text-muted m-0">{{ config.labels.lead }}</p>
+			</header>
+
+			<div class="wsh-qo__resume" hidden>
+				<span class="wsh-qo__resume-text"></span>
+				<button type="button" class="btn btn-sm btn-primary wsh-qo__resume-yes">{{ config.labels.resume_yes }}</button>
+				<button type="button" class="btn btn-sm btn-light wsh-qo__resume-no">{{ config.labels.resume_no }}</button>
+			</div>
+
+			<div class="wsh-qo__search">
+				<input type="search" class="wsh-qo__input" autocomplete="off" autocapitalize="off" spellcheck="false"
+					placeholder="{{ config.labels.placeholder }}" aria-label="{{ config.labels.placeholder }}"
+					role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="wsh-qo-suggestions">
+				<ul class="wsh-qo__suggestions" id="wsh-qo-suggestions" role="listbox" hidden></ul>
+				<div class="wsh-qo__notice" hidden></div>
+			</div>
+			<p class="wsh-qo__shortcuts text-muted">{{ config.labels.shortcuts }}</p>
+
+			<div class="wsh-qo__models">
+				<div class="wsh-qo__empty">{{ config.labels.empty }}</div>
+			</div>
+		</div>
+
+		<aside class="wsh-qo__recap" aria-live="polite">
+			<div class="wsh-qo__recap-figures">
+				<div><b class="wsh-qo__pieces">0</b> <span>{{ config.labels.pieces }}</span></div>
+				<div><b class="wsh-qo__lines">0</b> <span>{{ config.labels.lines }}</span></div>
+			</div>
+			<div class="wsh-qo__recap-total">
+				<span>{{ config.labels.total }}</span>
+				<b class="wsh-qo__amount">—</b>
+			</div>
+			<p class="wsh-qo__recap-note text-muted">{{ config.labels.total_note }}</p>
+			<button type="button" class="btn btn-primary btn-block wsh-qo__send" disabled>{{ config.labels.send }}</button>
+			<button type="button" class="btn btn-link btn-block wsh-qo__clear">{{ config.labels.clear }}</button>
+			<div class="wsh-qo__report" hidden></div>
+		</aside>
+	</div>
+{% endif %}
+</div>
+{% endblock %}

@@ -523,6 +523,48 @@ carries the notice from the first screen. The "Talk to the team" link opens
 that form directly. A signed-in visitor is written to at the session's address
 whatever the form says; a guest must give a valid one.
 
+### The reseller's quick order
+
+`/quick-order` (`www/quick-order/`, `webshop/webshop/quick_order/api.py`) is
+the page a professional customer restocks from: type a reference, a name or a
+barcode, the model's colour × size grid opens, quantities go in at the keyboard,
+one "send to cart" writes the whole batch. Who may be there is decided on the
+server only — `is_reseller()`: every admitted account on a site whose Website
+Profile is `b2b_only`, or a customer whose group is one of the shop's B2B
+groups (`is_b2b_customer_group()` in `cart.py`, the rule the B2B checkout uses).
+Everything else in the module is scoped the same way as the catalogue: a
+published Website Item, visible on this site (`excluded_item_names()`), priced
+at the site's tariff (`effective_price_list()`), stocked by the shop's own
+rule. The draft lives in the browser (`localStorage`, per user and site, seven
+days) until it is sent; the cart is the state afterwards.
+
+> **`get_variant_matrix` of `neoffice_theme` answers 403 to a Website User** —
+> it needs the desk's read permission on Item, correctly. `get_matrix()` is its
+> portal counterpart: same shape, built from the Website Item and the variants
+> cache, sizes sorted by the theme's `_smart_sort_values` when the app is
+> installed and by the attribute master otherwise. Every dict names its fields;
+> no buying price, no valuation, no supplier field can leave.
+
+> **The batch goes through the rule of "add to cart", not a copy of it.**
+> `validate_cart_line()` and `available_cart_qty()` were split out of
+> `update_cart` for this — `update_cart` calls them and behaves as before
+> (same messages). `add_lines()` validates every line, loads the customer's
+> quotation once, merges, saves once. What the shop cannot serve is capped and
+> named (`capped`), what it cannot sell here is refused and named (`refused`);
+> a valid line is never held back by a refused one.
+
+> **`get_web_items_qty_in_stock()`** (`utils/product.py`) is the bulk version
+> of the shop's stock rule — same SQL, one query per warehouse for thirty
+> variants instead of thirty calls. With multi-warehouse on, the grid shows
+> `get_aggregate_stock()` per variant, the figure the cart will honour.
+
+Tests: `quick_order/test_quick_order.py` (gate both ways, search by code, name
+and barcode, site scoping, tariff of the site, the batch and its capping — all
+with an in-memory Webshop Settings and a fake Website Profile on
+`frappe.local`, nothing written to the Single) and
+`tests/e2e/specs/10-quick-order.spec.js` (the `b2b` project types, reloads and
+sends; `client` is refused, `invite` is sent to sign in).
+
 ## Integration Points
 
 ### ERPNext Dependencies

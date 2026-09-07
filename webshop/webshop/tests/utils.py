@@ -165,3 +165,26 @@ def portal_customer(email, customer_name):
 		customer.flags.ignore_mandatory = True
 		customer.save()
 	return customer_name
+
+
+# //// Neoffice — moved here from assistant/test_assistant.py: the quick order's tests
+# //// (quick_order/test_quick_order.py) need the same fresh-site setup.
+def ensure_shop_settings():
+	"""A fresh site (CI) has no price list and hides prices; osiris has both.
+
+	Only what is missing is written — a Single survives the rollback, and on a
+	shared site a write to `tabSingles` waits on other suites' locks. What was
+	written is returned so tearDownClass can put it back.
+	"""
+	wanted = {"enabled": 1, "show_price": 1, "price_list": selling_price_list(), "company": default_company()}
+	written = {}
+	for field, value in wanted.items():
+		current = frappe.db.get_single_value("Webshop Settings", field)
+		if not current:
+			written[field] = current
+			frappe.db.set_single_value("Webshop Settings", field, value)
+	if written:
+		frappe.db.commit()
+		frappe.local.shopping_cart_settings = None
+		frappe.clear_cache()
+	return written

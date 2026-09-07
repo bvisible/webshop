@@ -80,6 +80,17 @@ def set_cart_count(quotation=None):
 # //// The function itself never trusts the caller: every path resolves the party
 # //// from the session, or from the guest_session_id cookie, never from an argument
 # //// (3bc2d836f1, 2025-02-11).
+# //// Neoffice — the B2B rule on its own, so the reseller's quick order
+# //// (quick_order/api.py) asks "is this customer B2B?" without building the whole
+# //// cart context. get_cart_quotation() below uses it too; same answer, one place.
+def is_b2b_customer_group(customer_group, cart_settings=None):
+	"""True when the shop runs the B2B tunnel and customer_group is one of its groups."""
+	cart_settings = cart_settings or frappe.get_cached_doc("Webshop Settings")
+	if not cart_settings.activate_b2b_checkout or not customer_group:
+		return False
+	return any(row.customer_group == customer_group for row in (cart_settings.get("b2b_customer_group") or []))
+
+
 @frappe.whitelist(allow_guest=True)
 def get_cart_quotation(doc=None):
 	party = get_party()
@@ -240,12 +251,9 @@ def get_cart_quotation(doc=None):
 		customer_info = frappe.db.get_value("Customer", party_id, ["name", "customer_group"], as_dict=1)
 		
 		# Check if the customer belongs to a B2B group
-		cart_settings = frappe.get_cached_doc("Webshop Settings")
-		if cart_settings.activate_b2b_checkout and customer_info and cart_settings.b2b_customer_group:
-			for group in cart_settings.b2b_customer_group:
-				if group.customer_group == customer_info.customer_group:
-					is_b2b_customer = True
-					break
+		# //// Neoffice — the rule moved to is_b2b_customer_group(), shared with the quick order.
+		if customer_info:
+			is_b2b_customer = is_b2b_customer_group(customer_info.customer_group)
 
 	# Get loyalty points to earn information
 	loyalty_info = {}
@@ -1147,6 +1155,104 @@ def _release_unsuccessful_payment_requests(quotation_name):
 			frappe.clear_messages()
 
 
+# //// Neoffice — the stock rule of one cart line, split out of update_cart so the
+# //// reseller's quick order (quick_order/api.py) validates forty lines by the very same
+# //// rule instead of a copy. update_cart's behaviour and messages are unchanged.
+def _existing_cart_qty(item_code, warehouse=None):
+	"""Quantity of item_code already in the visitor's cart — on that source when given."""
+	line_filters = {"item_code": item_code}
+	if warehouse:
+		line_filters["warehouse"] = warehouse
+	quotation_name = None
+	if frappe.session.user == "Guest":
+		guest_session_id = frappe.request.cookies.get("guest_session_id") if frappe.request else None
+		if guest_session_id:
+			quotation_name = frappe.db.get_value(
+				"Quotation",
+				{"guest_session_id": guest_session_id, "docstatus": 0, "status": "Draft"},
+				"name",
+			)
+	else:
+		party = get_party()
+		if party:
+			quotation_name = frappe.db.get_value(
+				"Quotation",
+				{
+					"party_name": party.name,
+					"contact_email": frappe.session.user,
+					"order_type": "Shopping Cart",
+					"docstatus": 0,
+				},
+				"name",
+			)
+	if not quotation_name:
+		return 0
+	return flt(frappe.db.get_value("Quotation Item", dict(line_filters, parent=quotation_name), "qty") or 0)
+
+
+def available_cart_qty(item_code, warehouse=None, cart_settings=None, multi_enabled=None):
+	"""What the shop can promise for one line of item_code, by its own rule.
+
+	`available` is None when nothing limits the line: the shop sells items not
+	in stock, or the item is not a stock item. Otherwise it is what the targeted
+	source (multi-warehouse) or the website warehouse can serve, and
+	`source_label` names the source for the messages.
+	"""
+	from webshop.webshop.multi_warehouse import sources as mw_sources
+
+	cart_settings = cart_settings or frappe.get_cached_doc("Webshop Settings")
+	unlimited = frappe._dict(available=None, in_stock=1, source_label=None)
+	if cint(cart_settings.allow_items_not_in_stock):
+		return unlimited
+	if not frappe.db.get_value("Item", item_code, "is_stock_item"):
+		return unlimited
+	if multi_enabled is None:
+		multi_enabled = mw_sources.is_enabled(cart_settings)
+	if multi_enabled and warehouse:
+		source_row = mw_sources.get_source_for_warehouse(warehouse, cart_settings)
+		if source_row:
+			source_qty = mw_sources.get_source_qty(item_code, source_row)
+		else:
+			source_qty = get_web_item_qty_in_stock(item_code, "website_warehouse", warehouse=warehouse).stock_qty
+		return frappe._dict(
+			available=flt(source_qty),
+			in_stock=1 if flt(source_qty) > 0 else 0,
+			source_label=mw_sources.get_source_label(warehouse, cart_settings),
+		)
+	item_stock = get_web_item_qty_in_stock(item_code, "website_warehouse")
+	return frappe._dict(available=flt(item_stock.stock_qty), in_stock=cint(item_stock.in_stock), source_label=None)
+
+
+def validate_cart_line(
+	item_code, qty, warehouse=None, cart_settings=None, existing_qty=0, add_qty=True, multi_enabled=None
+):
+	"""Refuse a line the shop cannot serve, with the messages update_cart always gave.
+
+	Returns what available_cart_qty() found, for callers that want the figure.
+	"""
+	limit = available_cart_qty(item_code, warehouse, cart_settings, multi_enabled)
+	if limit.available is None:
+		return limit
+	if not cint(limit.in_stock):
+		if limit.source_label:
+			frappe.throw(_("{0} is not in stock at {1}").format(item_code, limit.source_label))
+		frappe.throw(_("{0} is not in stock").format(item_code))
+	total_qty = (flt(existing_qty) + flt(qty)) if add_qty else flt(qty)
+	if total_qty > limit.available:
+		if limit.source_label:
+			frappe.throw(
+				_("Only {0} units available at {1} for {2}. You cannot add {3} units from this source.").format(
+					int(limit.available), limit.source_label, item_code, int(total_qty)
+				)
+			)
+		frappe.throw(
+			_("Only {0} units available in stock for {1}. You cannot add {2} units to your cart.").format(
+				int(limit.available), item_code, int(total_qty)
+			)
+		)
+	return limit
+
+
 # //// Neoffice — multi-warehouse: `warehouse` selects the stock source of the
 # //// line. None keeps the historical behaviour (single website_warehouse, or
 # //// the auto-picked source when the feature is on). Cart lines merge on
@@ -1217,94 +1323,19 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			)
 
 	# Validate stock availability before adding to cart
+	# //// Neoffice — the rule itself lives in validate_cart_line(), shared with the
+	# //// reseller's quick order; only the lookup of what the cart already holds stays here.
 	if qty > 0 and not is_gift_card:
-		if not cint(cart_settings.allow_items_not_in_stock):
-			# Check if item is a stock item
-			is_stock_item = frappe.db.get_value("Item", item_code, "is_stock_item")
-			if is_stock_item:
-				# //// Neoffice — multi-warehouse: validate against the targeted
-				# //// source (its own basis: Bin or Item field), not the global
-				# //// website_warehouse.
-				if multi_enabled and warehouse:
-					source_row = mw_sources.get_source_for_warehouse(warehouse, cart_settings)
-					if source_row:
-						source_qty = mw_sources.get_source_qty(item_code, source_row)
-					else:
-						source_qty = get_web_item_qty_in_stock(
-							item_code, "website_warehouse", warehouse=warehouse
-						).stock_qty
-					item_stock = frappe._dict(
-						{"in_stock": 1 if source_qty > 0 else 0, "stock_qty": source_qty}
-					)
-					source_label = mw_sources.get_source_label(warehouse, cart_settings)
-				else:
-					item_stock = get_web_item_qty_in_stock(item_code, "website_warehouse")
-					source_label = None
-
-				if not cint(item_stock.in_stock):
-					if source_label:
-						frappe.throw(
-							_("{0} is not in stock at {1}").format(item_code, source_label)
-						)
-					frappe.throw(_("{0} is not in stock").format(item_code))
-
-				# Calculate the total quantity (existing + new)
-				# //// Neoffice — multi-warehouse: the existing quantity is the
-				# //// one already targeting the same source, not the whole item.
-				line_filters = {'item_code': item_code}
-				if multi_enabled and warehouse:
-					line_filters['warehouse'] = warehouse
-
-				existing_qty = 0
-				if frappe.session.user == "Guest":
-					guest_session_id = frappe.request.cookies.get('guest_session_id') if frappe.request else None
-					if guest_session_id:
-						existing_quotation = frappe.db.get_value(
-							'Quotation',
-							{'guest_session_id': guest_session_id, 'docstatus': 0, 'status': 'Draft'},
-							'name'
-						)
-						if existing_quotation:
-							existing_qty = frappe.db.get_value(
-								'Quotation Item',
-								dict(line_filters, parent=existing_quotation),
-								'qty'
-							) or 0
-				else:
-					party = get_party()
-					if party:
-						existing_quotation = frappe.db.get_value(
-							'Quotation',
-							{'party_name': party.name, 'contact_email': frappe.session.user, 'order_type': 'Shopping Cart', 'docstatus': 0},
-							'name'
-						)
-						if existing_quotation:
-							existing_qty = frappe.db.get_value(
-								'Quotation Item',
-								dict(line_filters, parent=existing_quotation),
-								'qty'
-							) or 0
-
-				# Calculate total quantity based on add_qty flag
-				if isinstance(add_qty, str):
-					add_qty_bool = add_qty.lower() == 'true'
-				else:
-					add_qty_bool = add_qty
-
-				total_qty = (existing_qty + qty) if add_qty_bool else qty
-
-				if total_qty > item_stock.stock_qty:
-					if source_label:
-						frappe.throw(
-							_("Only {0} units available at {1} for {2}. You cannot add {3} units from this source.").format(
-								int(item_stock.stock_qty), source_label, item_code, int(total_qty)
-							)
-						)
-					frappe.throw(
-						_("Only {0} units available in stock for {1}. You cannot add {2} units to your cart.").format(
-							int(item_stock.stock_qty), item_code, int(total_qty)
-						)
-					)
+		existing_qty = _existing_cart_qty(item_code, warehouse if multi_enabled else None)
+		validate_cart_line(
+			item_code,
+			qty,
+			warehouse=warehouse,
+			cart_settings=cart_settings,
+			existing_qty=existing_qty,
+			add_qty=add_qty,
+			multi_enabled=multi_enabled,
+		)
 
 	# Check if user is a guest and if guest cart is enabled
 	if frappe.session.user == "Guest":

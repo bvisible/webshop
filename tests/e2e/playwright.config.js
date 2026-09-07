@@ -63,7 +63,7 @@ module.exports = defineConfig({
 			//// Neoffice — 08-assistant added: its signed-out tests (no first name in the
 			//// greeting, the guest's email field on the team form) skipped forever, since
 			//// this project never matched the file and a conditional skip reads as a pass.
-			testMatch: /(01-authentification|07-nouveau-client|08-assistant)\.spec\.js/,
+			testMatch: /(01-authentification|07-nouveau-client|08-assistant|10-quick-order)\.spec\.js/,
 			use: {...devices['Desktop Chrome']},
 		},
 		{
@@ -81,7 +81,8 @@ module.exports = defineConfig({
 			//// session: an account whose group appears in the settings' « B2B
 			//// Customer Group ».
 			name: 'b2b',
-			testMatch: /06-checkout-b2b\.spec\.js/,
+			//// Neoffice — 10-quick-order added: the reseller's quick order needs the B2B session.
+			testMatch: /(06-checkout-b2b|10-quick-order)\.spec\.js/,
 			use: {...devices['Desktop Chrome'], storageState: SESSION_B2B},
 		},
 		{

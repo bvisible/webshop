@@ -232,7 +232,8 @@ jobs:
             webshop.webshop.utils.test_follow_ups \
             webshop.webshop.tests.test_desk \
             webshop.webshop.utils.test_store_hours \
-            webshop.webshop.assistant.test_assistant
+            webshop.webshop.assistant.test_assistant \
+            webshop.webshop.quick_order.test_quick_order
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || echec="$echec $m"

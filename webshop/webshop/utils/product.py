@@ -77,6 +77,43 @@ def get_web_item_qty_in_stock(item_code, item_warehouse_field, warehouse=None):
 	)
 
 
+# //// Neoffice — added: the rule of get_web_item_qty_in_stock for a whole set of items
+# //// at once. The reseller's quick order draws a matrix of thirty variants; asking thirty
+# //// times, three queries each, is what this avoids. The Bin part is one query per
+# //// warehouse; the expiry and POS adjustments stay per item, exactly as above.
+def get_web_items_qty_in_stock(item_codes, warehouse):
+	"""{item_code: available qty} for the stock items among item_codes at warehouse.
+
+	A group warehouse is expanded to its children. Items that are not stock items
+	are left out: the caller shows them as unlimited, as the single version does.
+	"""
+	if not item_codes or not warehouse:
+		return {}
+	if frappe.get_cached_value("Warehouse", warehouse, "is_group") == 1:
+		warehouses = get_child_warehouses(warehouse)
+	else:
+		warehouses = [warehouse]
+	stock_items = frappe.get_all("Item", filters={"name": ["in", list(item_codes)], "is_stock_item": 1}, pluck="name")
+	totals = {code: 0.0 for code in stock_items}
+	if not stock_items:
+		return totals
+	for wh in warehouses:
+		rows = frappe.db.sql(
+			"""
+			select S.item_code, (S.actual_qty - S.reserved_qty) / IFNULL(C.conversion_factor, 1)
+			from tabBin S
+			inner join `tabItem` I on S.item_code = I.item_code
+			left join `tabUOM Conversion Detail` C on I.sales_uom = C.uom and C.parent = I.item_code
+			where S.item_code in %s and S.warehouse = %s""",
+			(stock_items, wh),
+		)
+		for item_code, qty in rows:
+			qty = adjust_qty_for_expired_items(item_code, [[qty]], wh)
+			qty = max(0, flt(qty) - get_pos_reserved_qty(item_code, wh))
+			totals[item_code] += qty
+	return totals
+
+
 # //// Neoffice — added helper: the quantity held by POS invoices that are not
 # //// consolidated yet. It exists nowhere in ERPNext, and projected_qty does not know
 # //// about it (17128042fc, 2025-12-05).
