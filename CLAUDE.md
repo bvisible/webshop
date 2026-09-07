@@ -719,6 +719,7 @@ endpoint whose id travels in a redirect URL.
 > Same rule for `frappe.db.commit()` inside a whitelisted endpoint: it escapes
 > the test rollback entirely.
 
+<!-- //// Neoffice — documents a test-suite pitfall found while auditing the suite (90baa6a45 "docs(tests): un Single pollué fait rater silencieusement une Pricing Rule"): get_pricing_rule_for_item filters on company, and a test creating its rule in default_company() while the code prices with Webshop Settings.company can silently miss the rule when the two diverge, which happens in the full `run-tests --app webshop` run because ERPNext-fixture modules leave stale values on the Single that survive rollback. -->
 > **And a polluted Single makes a Pricing Rule silently miss.**
 > `get_pricing_rule_for_item` filters on the **company**. A test that creates its
 > rule in `default_company()` while the code under test prices with
