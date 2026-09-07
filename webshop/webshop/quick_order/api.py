@@ -397,6 +397,12 @@ def get_matrix(template):
 # ---------------------------------------------------------------------------
 
 
+# //// Neoffice — added (27e93f3c "fix(quick-order): la CI sur ERPNext standard — tarification au
+# nom du client et deux tests mal posés"): upstream ERPNext version-15 now checks read
+# permission on Item inside get_item_details, which raised PermissionError for a portal
+# customer pricing their own cart on the CI's fresh standard-ERPNext site (our fleet fork
+# has no such check yet). Drop this once the fleet fork gains an equivalent allowance, or
+# once the shop's own pricing path stops going through get_item_details.
 def _let_pricing_read_items(quotation):
 	"""The shop prices its own published items on the customer's behalf.
 
@@ -500,6 +506,9 @@ def add_lines(lines):
 	if added:
 		quotation.flags.ignore_permissions = True
 		quotation.flags.ignore_mandatory = True
+		# //// Neoffice — added (27e93f3c "fix(quick-order): la CI sur ERPNext standard — tarification
+		# au nom du client et deux tests mal posés"): let get_item_details read the Item rows in
+		# this batch before pricing runs.
 		_let_pricing_read_items(quotation)
 		apply_cart_settings(party, quotation)
 		quotation.payment_schedule = []

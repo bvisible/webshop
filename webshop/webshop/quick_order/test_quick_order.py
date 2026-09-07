@@ -32,6 +32,9 @@ USER = "wstest-quick-order@example.com"
 CUSTOMER = f"{PREFIX} Quick Order Shop"
 PLAIN_USER = "wstest-quick-order-plain@example.com"
 PLAIN_CUSTOMER = f"{PREFIX} Quick Order Plain"
+# //// Neoffice — added (27e93f3c "fix(quick-order): la CI sur ERPNext standard — tarification au
+# nom du client et deux tests mal posés"): the reseller now gets its own Customer Group and
+# LOOSE_ITEM is created once in setUpClass instead of from the customer's own session.
 RESELLER_GROUP = f"{PREFIX} QO Resellers"
 LOOSE_ITEM = f"{PREFIX} QO Loose"
 
@@ -111,6 +114,10 @@ class TestQuickOrder(FrappeTestCase):
 
 		portal_customer(USER, CUSTOMER)
 		portal_customer(PLAIN_USER, PLAIN_CUSTOMER)
+		# //// Neoffice — added (27e93f3c "fix(quick-order): la CI sur ERPNext standard —
+		# tarification au nom du client et deux tests mal posés"): the reseller previously shared
+		# the site's default customer group with the plain customer, so "listed group" and "any
+		# group" could not be told apart.
 		# the reseller sits in a group of its own: the plain customer keeps the site's
 		# default leaf group, so "listed group" and "any group" cannot be confused
 		if not frappe.db.exists("Customer Group", RESELLER_GROUP):
@@ -123,6 +130,10 @@ class TestQuickOrder(FrappeTestCase):
 				}
 			).insert(ignore_permissions=True)
 		frappe.db.set_value("Customer", CUSTOMER, "customer_group", RESELLER_GROUP)
+		# //// Neoffice — added (27e93f3c "fix(quick-order): la CI sur ERPNext standard —
+		# tarification au nom du client et deux tests mal posés"): created here, not from the
+		# customer's own session further down, since a portal customer has no permission to
+		# create an Item.
 		# an item the shop never published, for the "unknown here" cases
 		make_test_item(LOOSE_ITEM, is_stock_item=0)
 		frappe.db.commit()
@@ -145,6 +156,9 @@ class TestQuickOrder(FrappeTestCase):
 		for customer in (CUSTOMER, PLAIN_CUSTOMER):
 			for name in frappe.get_all("Quotation", filters={"party_name": customer, "docstatus": 0}, pluck="name"):
 				frappe.delete_doc("Quotation", name, force=True, ignore_permissions=True)
+		# //// Neoffice — added LOOSE_ITEM (27e93f3c "fix(quick-order): la CI sur ERPNext standard —
+		# tarification au nom du client et deux tests mal posés"): LOOSE_ITEM is now a class fixture,
+		# so it must be purged here too.
 		codes = frappe.get_all("Item", filters={"variant_of": TEMPLATE}, pluck="name") + [TEMPLATE, LOOSE_ITEM]
 		frappe.db.delete("Item Price", {"item_code": ["in", codes]})
 		for name in frappe.get_all("Website Item", filters={"item_code": ["in", codes]}, pluck="name"):
@@ -262,6 +276,10 @@ class TestQuickOrder(FrappeTestCase):
 	def test_an_unpublished_item_is_unknown(self):
 		self.business_site()
 		frappe.set_user(USER)
+		# //// Neoffice — modified (27e93f3c "fix(quick-order): la CI sur ERPNext standard —
+		# tarification au nom du client et deux tests mal posés"): no longer creates the Item from
+		# the customer's own session (no permission to do so); uses the LOOSE_ITEM fixture from
+		# setUpClass instead, and also exercises add_lines() on it.
 		self.assertTrue(api.resolve_code(LOOSE_ITEM)["unknown"])
 		out = api.add_lines([{"item_code": LOOSE_ITEM, "qty": 1}])
 		self.assertEqual(out["added"], [])
