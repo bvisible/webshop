@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-07 18:57+0000\n"
-"PO-Revision-Date: 2026-09-07 18:57+0000\n"
+"POT-Creation-Date: 2026-09-07 19:05+0000\n"
+"PO-Revision-Date: 2026-09-07 19:05+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -192,8 +192,8 @@ msgstr ""
 msgid "Active"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:843
-#: webshop/webshop/quick_order/api.py:878
+#: webshop/webshop/quick_order/api.py:855
+#: webshop/webshop/quick_order/api.py:890
 #: webshop/webshop/utils/cross_sell.py:228
 msgid "Add"
 msgstr ""
@@ -219,6 +219,10 @@ msgstr ""
 
 #: webshop/templates/pages/gift_cards.html:126
 msgid "Add items to your cart"
+msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:21
+msgid "Add items with the quick order"
 msgstr ""
 
 #: webshop/templates/includes/cart/cart_items.html:92
@@ -355,10 +359,6 @@ msgstr ""
 msgid "Age control"
 msgstr ""
 
-#: webshop/templates/pages/checkout_b2b.html:21
-msgid "Ajouter des articles en commande rapide"
-msgstr ""
-
 #. Name of a role
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "All"
@@ -401,7 +401,7 @@ msgstr ""
 msgid "All sites"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:841
+#: webshop/webshop/quick_order/api.py:853
 msgid "All to zero"
 msgstr ""
 
@@ -613,7 +613,7 @@ msgstr ""
 msgid "At 80% of the item's replenishment cycle"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:610
+#: webshop/webshop/quick_order/api.py:615
 msgid "At most {0} lines per submission."
 msgstr ""
 
@@ -667,7 +667,7 @@ msgstr ""
 msgid "Availability"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:850
+#: webshop/webshop/quick_order/api.py:862
 msgid "Available"
 msgstr ""
 
@@ -733,7 +733,7 @@ msgstr ""
 msgid "Back to shipping"
 msgstr ""
 
-#: webshop/www/quick-order/index.html:16
+#: webshop/www/quick-order/index.html:17
 msgid "Back to the shop"
 msgstr ""
 
@@ -754,7 +754,7 @@ msgstr ""
 msgid "Behind the scenes"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:853
+#: webshop/webshop/quick_order/api.py:865
 msgid "Beyond the available stock"
 msgstr ""
 
@@ -897,11 +897,11 @@ msgstr ""
 msgid "Cannot find a matching Item. Please select some other value for {0}."
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:870
+#: webshop/webshop/quick_order/api.py:882
 msgid "Capped to stock:"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:855
+#: webshop/webshop/quick_order/api.py:867
 msgid "Capped to the available stock: {0}"
 msgstr ""
 
@@ -1082,7 +1082,7 @@ msgid "City/Town"
 msgstr ""
 
 #: webshop/templates/generators/item/item_configure.js:41
-#: webshop/webshop/quick_order/api.py:868
+#: webshop/webshop/quick_order/api.py:880
 msgid "Clear"
 msgstr ""
 
@@ -1095,11 +1095,11 @@ msgstr ""
 msgid "Clear Values"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:863
+#: webshop/webshop/quick_order/api.py:875
 msgid "Clear all"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:864
+#: webshop/webshop/quick_order/api.py:876
 msgid "Clear the whole entry?"
 msgstr ""
 
@@ -1120,7 +1120,7 @@ msgstr ""
 msgid "Clock"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:840
+#: webshop/webshop/quick_order/api.py:852
 msgid "Close"
 msgstr ""
 
@@ -1166,10 +1166,6 @@ msgstr ""
 #. 'Webshop Payment Method'
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
 msgid "Comma-separated provider codes, e.g. <code>twint</code> or <code>visa,mastercard</code>. Leave empty to offer everything the account allows. Lets one gateway serve several tiles: name a second Payment Gateway Account after the same provider and restrict it here, and the shopper gets a TWINT tile and a card tile that both settle through it. Ignored by gateways that cannot filter."
-msgstr ""
-
-#: webshop/templates/pages/cart.html:126 webshop/templates/pages/cart.html:204
-msgid "Commande rapide"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Item Review'
@@ -1352,11 +1348,11 @@ msgstr ""
 msgid "Cost"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:774
+#: webshop/webshop/quick_order/api.py:786
 msgid "Could not open a cart for this account."
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:747
+#: webshop/webshop/quick_order/api.py:758
 msgid "Could not open a cart for this session."
 msgstr ""
 
@@ -2074,7 +2070,7 @@ msgstr ""
 msgid "Enter your gift card code at checkout"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:876
+#: webshop/webshop/quick_order/api.py:888
 msgid "Enter: next cell · Esc: back to search · Ctrl+Enter: send everything"
 msgstr ""
 
@@ -2248,7 +2244,7 @@ msgstr ""
 msgid "Exceptional Closures"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:833
+#: webshop/webshop/quick_order/api.py:845
 msgid "Exit full screen"
 msgstr ""
 
@@ -2450,7 +2446,7 @@ msgstr ""
 msgid "Full Name"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:832
+#: webshop/webshop/quick_order/api.py:844
 msgid "Full screen"
 msgstr ""
 
@@ -2568,7 +2564,7 @@ msgstr ""
 msgid "Gift card {0} split: {1} used and transferred to the new gift card {2}. {3} left on the original card."
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:652
+#: webshop/webshop/quick_order/api.py:659
 msgid "Gift cards do not go through the quick order."
 msgstr ""
 
@@ -2900,7 +2896,7 @@ msgstr ""
 msgid "Indicate that Item is available on backorder and not usually pre-stocked"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:858
+#: webshop/webshop/quick_order/api.py:870
 msgid "Indicative total"
 msgstr ""
 
@@ -2934,7 +2930,7 @@ msgstr ""
 msgid "Invalid payment option"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:664
+#: webshop/webshop/quick_order/api.py:672
 #: webshop/webshop/shopping_cart/cart.py:1325
 msgid "Invalid stock source for {0}"
 msgstr ""
@@ -3262,7 +3258,7 @@ msgstr ""
 msgid "List"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:859
+#: webshop/webshop/quick_order/api.py:871
 msgid "List price. Discounts and VAT are computed in the cart."
 msgstr ""
 
@@ -3698,7 +3694,8 @@ msgstr ""
 msgid "No customer account found"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:84 webshop/webshop/quick_order/api.py:891
+#: webshop/webshop/quick_order/api.py:86 webshop/webshop/quick_order/api.py:904
+#: webshop/webshop/quick_order/test_quick_order.py:284
 msgid "No customer account is linked to your user."
 msgstr ""
 
@@ -3706,7 +3703,7 @@ msgstr ""
 msgid "No gift cards yet"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:839
+#: webshop/webshop/quick_order/api.py:851
 msgid "No model open. Search for a reference to start."
 msgstr ""
 
@@ -3723,7 +3720,8 @@ msgstr ""
 msgid "No points history yet. Start shopping to earn points!"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:658
+#: webshop/webshop/quick_order/api.py:665
+#: webshop/webshop/quick_order/test_quick_order.py:572
 msgid "No price for this item on your price list (price on request)."
 msgstr ""
 
@@ -3745,11 +3743,11 @@ msgstr ""
 msgid "No products on sale at the moment"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:835
+#: webshop/webshop/quick_order/api.py:847
 msgid "No published item matches."
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:873
+#: webshop/webshop/quick_order/api.py:885
 msgid "No quantity entered."
 msgstr ""
 
@@ -3774,7 +3772,7 @@ msgstr ""
 msgid "No values"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:852
+#: webshop/webshop/quick_order/api.py:864
 msgid "No variant"
 msgstr ""
 
@@ -3808,7 +3806,7 @@ msgstr ""
 msgid "Not Published"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:872
+#: webshop/webshop/quick_order/api.py:884
 msgid "Not added:"
 msgstr ""
 
@@ -4147,11 +4145,12 @@ msgstr ""
 msgid "Out of stock"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:690
+#: webshop/webshop/quick_order/api.py:699
 msgid "Out of stock: nothing available for {0}."
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:704
+#: webshop/webshop/quick_order/api.py:714
+#: webshop/webshop/quick_order/test_quick_order.py:551
 msgid "Out of stock: {0} already in the cart, nothing more available."
 msgstr ""
 
@@ -4637,7 +4636,7 @@ msgstr ""
 msgid "Price can only be modified for gift cards"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:851
+#: webshop/webshop/quick_order/api.py:863
 msgid "Price on request"
 msgstr ""
 
@@ -4889,7 +4888,7 @@ msgstr ""
 msgid "Purchase Orders are grouped under this supplier. Falls back to the item's default supplier when empty."
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:877
+#: webshop/webshop/quick_order/api.py:889
 msgid "Qty"
 msgstr ""
 
@@ -4913,7 +4912,8 @@ msgstr ""
 msgid "Quantity must be a valid number"
 msgstr ""
 
-#: webshop/www/quick-order/index.html:7 webshop/www/quick-order/index.py:17
+#: webshop/templates/pages/cart.html:126 webshop/templates/pages/cart.html:204
+#: webshop/www/quick-order/index.html:7 webshop/www/quick-order/index.py:18
 msgid "Quick order"
 msgstr ""
 
@@ -5046,7 +5046,7 @@ msgstr ""
 msgid "Reference document is required"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:834
+#: webshop/webshop/quick_order/api.py:846
 msgid "Reference, name or barcode…"
 msgstr ""
 
@@ -5157,11 +5157,11 @@ msgstr ""
 msgid "Restriction"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:867
+#: webshop/webshop/quick_order/api.py:879
 msgid "Resume"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:866
+#: webshop/webshop/quick_order/api.py:878
 msgid "Resume the entry from {0} ({1} lines, {2} pieces)?"
 msgstr ""
 
@@ -5317,7 +5317,7 @@ msgstr ""
 msgid "Search results for"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:837
+#: webshop/webshop/quick_order/api.py:849
 msgid "Searching…"
 msgstr ""
 
@@ -5423,7 +5423,7 @@ msgstr ""
 msgid "Send"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:861
+#: webshop/webshop/quick_order/api.py:873
 msgid "Send everything to the cart"
 msgstr ""
 
@@ -5436,7 +5436,7 @@ msgstr ""
 msgid "Send login link"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:862
+#: webshop/webshop/quick_order/api.py:874
 msgid "Sending…"
 msgstr ""
 
@@ -5746,7 +5746,7 @@ msgstr ""
 msgid "Sign in"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:77 webshop/webshop/quick_order/api.py:80
+#: webshop/webshop/quick_order/api.py:77 webshop/webshop/quick_order/api.py:81
 msgid "Sign in to use the quick order."
 msgstr ""
 
@@ -5807,7 +5807,7 @@ msgctxt "second-hand unit"
 msgid "Sold"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:848
+#: webshop/webshop/quick_order/api.py:860
 msgid "Sold out"
 msgstr ""
 
@@ -5906,7 +5906,7 @@ msgid "Steps"
 msgstr ""
 
 #: webshop/webshop/doctype/website_item/website_item.js:15
-#: webshop/webshop/quick_order/api.py:844
+#: webshop/webshop/quick_order/api.py:856
 msgid "Stock"
 msgstr ""
 
@@ -6222,7 +6222,7 @@ msgstr ""
 msgid "The last page the visitor wrote from"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:608
+#: webshop/webshop/quick_order/api.py:612
 msgid "The lines are invalid."
 msgstr ""
 
@@ -6272,7 +6272,7 @@ msgstr ""
 msgid "The quantity could not be updated. Please try again."
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:874
+#: webshop/webshop/quick_order/api.py:886
 msgid "The request failed. Try again."
 msgstr ""
 
@@ -6329,11 +6329,11 @@ msgstr ""
 msgid "This gift card has already been used and cannot be applied again"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:649
+#: webshop/webshop/quick_order/api.py:655
 msgid "This item is not available in this shop."
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:498
+#: webshop/webshop/quick_order/api.py:501
 msgid "This model is not available in this shop."
 msgstr ""
 
@@ -6503,7 +6503,7 @@ msgstr ""
 msgid "Tuesday"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:831
+#: webshop/webshop/quick_order/api.py:843
 msgid "Type a reference, a name or a barcode: the model's grid opens and you enter the quantities at the keyboard."
 msgstr ""
 
@@ -6540,7 +6540,7 @@ msgstr ""
 msgid "Under Maintenance"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:836
+#: webshop/webshop/quick_order/api.py:848
 msgid "Unknown code in this shop: {0}"
 msgstr ""
 
@@ -6768,7 +6768,7 @@ msgstr ""
 msgid "View in Quote"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:865
+#: webshop/webshop/quick_order/api.py:877
 msgid "View the cart"
 msgstr ""
 
@@ -7451,7 +7451,7 @@ msgstr ""
 msgid "john@doe.com"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:857
+#: webshop/webshop/quick_order/api.py:869
 msgid "lines"
 msgstr ""
 
@@ -7482,7 +7482,7 @@ msgstr ""
 msgid "payments of"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:856
+#: webshop/webshop/quick_order/api.py:868
 msgid "pieces"
 msgstr ""
 
@@ -7610,7 +7610,7 @@ msgstr ""
 msgid "{0} already carries pricing rule {1} (priority {2}); on that line, the higher priority wins."
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:845
+#: webshop/webshop/quick_order/api.py:857
 msgid "{0} available"
 msgstr ""
 
@@ -7660,7 +7660,7 @@ msgstr ""
 msgid "{0} months warranty"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:869
+#: webshop/webshop/quick_order/api.py:881
 msgid "{0} pieces added to the cart."
 msgstr ""
 
@@ -7672,7 +7672,7 @@ msgstr ""
 msgid "{0} used units"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:838
+#: webshop/webshop/quick_order/api.py:850
 msgid "{0} variants"
 msgstr ""
 
@@ -7686,7 +7686,7 @@ msgstr ""
 msgid "{0}% and below"
 msgstr ""
 
-#: webshop/webshop/quick_order/api.py:871
+#: webshop/webshop/quick_order/api.py:883
 msgid "{0}: {1} asked, {2} kept ({3} available)"
 msgstr ""
 
