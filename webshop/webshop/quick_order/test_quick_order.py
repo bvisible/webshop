@@ -12,6 +12,7 @@ and reports what it kept.
 """
 
 import frappe
+# //// Neoffice — added _ import (4bdbb5b67a "i18n(quick-order): les liens vers la page, et des tests qui ne dépendent plus de la langue"): assertions now compare against _()'s output instead of hard-coded French fragments, so they hold whether the CI runs in English or the fleet in French.
 from frappe import _
 from frappe.tests.utils import FrappeTestCase
 # //// Neoffice — added flt import, used by the new price-list and order-export tests (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")

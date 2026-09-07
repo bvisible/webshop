@@ -123,6 +123,7 @@
 					</a>
 					<div class="cart-actions__links">
 						{% if show_quick_order %}
+							{# //// Neoffice — see the block marker above: quiet link, not a button #}
 							<a href="/quick-order">{{ _('Quick order') }}</a>
 						{% endif %}
 						{% if frappe.session.user != "Guest" %}
@@ -201,6 +202,7 @@
 	</div>
 	<div class="cart-empty-links mt-3">
 		{% if show_quick_order %}
+			{# //// Neoffice — see the block marker above: quiet link, not a button #}
 			<a href="/quick-order">{{ _('Quick order') }}</a>
 		{% endif %}
 		{% if frappe.session.user != "Guest" %}
