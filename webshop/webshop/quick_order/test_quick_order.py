@@ -326,7 +326,8 @@ class TestQuickOrder(FrappeTestCase):
 		self.assertIn("100", noir_s["formatted_price"])
 		self.assertIsNone(noir_s["stock"])  # not a stock item: nothing limits it
 		self.assertEqual(
-			set(noir_s), {"item_code", "item_name", "attrs", "price", "formatted_price", "stock", "uom"}
+			set(noir_s),
+			{"item_code", "item_name", "attrs", "price", "formatted_price", "list_price", "formatted_list_price", "stock", "uom"},
 		)
 		self.assertEqual(matrix["template"]["item_code"], TEMPLATE)
 
