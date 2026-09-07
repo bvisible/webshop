@@ -303,6 +303,7 @@ def _ordered_values(attribute, used):
 	return _sort_values(ordered)
 
 
+# //// Neoffice — customer_price_list() now takes party, and _list_rates() reads the struck price straight from Item Price (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): _set_price_list() used to resolve the session a second time to find the customer, which crashed for a guest with no cart, and upstream get_price() only formats `mrp`, it never returns the raw figure
 def customer_price_list(settings, party):
 	"""The list the cart will price this party at: the site's, else the customer's
 	own (or their group's), else the shop's default — `_set_price_list`, the cart's
@@ -333,6 +334,7 @@ def _list_rates(item_codes, price_list):
 	return rates
 
 
+# //// Neoffice — reworded (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): the list_price/mrp handling this docstring used to describe moved out to _list_rates()/_prices()
 def _price_of(item_code, price_list, party, settings, warehouse=None):
 	"""What the product page shows for one item: the list rate with the shop's
 	pricing rules applied — the figure the cart will carry. None without a price."""
@@ -347,9 +349,11 @@ def _price_of(item_code, price_list, party, settings, warehouse=None):
 		price = get_price(item_code, price_list, customer_group, settings.company, **kwargs)
 	if not price or price.get("price_list_rate") is None:
 		return None
+	# //// Neoffice — no longer reads price.get("mrp") here (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): upstream get_price() only returns a formatted mrp string, never the raw value, so the struck list price is now read from Item Price by _list_rates()
 	return {"price": flt(price.get("price_list_rate")), "formatted_price": price.get("formatted_price") or ""}
 
 
+# //// Neoffice — docstring now explains the split with _list_rates() (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client")
 def _prices(item_codes, price_list, party, settings, warehouse=None):
 	"""{item_code: price dict} for every variant priced on price_list.
 
@@ -358,11 +362,13 @@ def _prices(item_codes, price_list, party, settings, warehouse=None):
 	"""
 	if not price_list or not item_codes:
 		return {}
+	# //// Neoffice — fetches the struck price separately (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): _price_of()/get_price() no longer carries it, since upstream's mrp is only a formatted string
 	currency = _currency(price_list)
 	list_rates = _list_rates(item_codes, price_list)
 	prices = {}
 	for code in item_codes:
 		priced = _price_of(code, price_list, party, settings, warehouse)
+		# //// Neoffice — list_price now set here from _list_rates(), not from _price_of()'s former mrp field (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client")
 		if not priced:
 			continue
 		priced["list_price"] = None
@@ -422,6 +428,7 @@ def get_matrix(template):
 	codes = list(attrs_by_variant)
 
 	settings = cart_settings()
+	# //// Neoffice — party now passed in, instead of customer_price_list() resolving the session itself (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client")
 	price_list = customer_price_list(settings, party)
 	currency = _currency(price_list)
 
@@ -761,6 +768,7 @@ def page_context(context):
 		frappe.clear_last_message()
 		context.reason = _("Aucun compte client n'est rattaché à votre utilisateur.")
 		return context
+	# //// Neoffice — party now passed in, instead of customer_price_list() resolving the session itself (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client")
 	price_list = customer_price_list(cart_settings(), party)
 	context.allowed = True
 	context.config = {

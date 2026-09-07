@@ -185,6 +185,7 @@ class TestQuickOrder(FrappeTestCase):
 		for customer in (CUSTOMER, PLAIN_CUSTOMER):
 			for name in frappe.get_all("Quotation", filters={"party_name": customer, "docstatus": 0}, pluck="name"):
 				frappe.delete_doc("Quotation", name, force=True, ignore_permissions=True)
+		# //// Neoffice — added (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client")
 		# this commit persists whatever the previous test left: a pricing rule made
 		# there would discount every later test, so it goes first
 		for rule in frappe.get_all("Pricing Rule", filters={"title": ["like", f"{PREFIX} QO%"]}, pluck="name"):
@@ -344,6 +345,7 @@ class TestQuickOrder(FrappeTestCase):
 		"""No site tariff: the cart takes the customer's default list, so does the grid."""
 		frappe.db.set_value("Customer", CUSTOMER, "default_price_list", RESELLER_LIST)
 		frappe.set_user(USER)
+		# //// Neoffice — customer_price_list() now takes the party (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): it no longer resolves the session itself
 		self.assertEqual(api.customer_price_list(self.settings, api.get_party()), RESELLER_LIST)
 		matrix = api.get_matrix(TEMPLATE)
 		by_code = {v["item_code"]: v for v in matrix["variants"]}
@@ -351,6 +353,7 @@ class TestQuickOrder(FrappeTestCase):
 		self.assertIsNone(by_code[self.variants[("Blanc", "L")]]["price"])
 		# the plain customer, on the same shop, keeps the shop's list
 		frappe.set_user(PLAIN_USER)
+		# //// Neoffice — customer_price_list() now takes the party (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): it no longer resolves the session itself
 		self.assertEqual(api.customer_price_list(self.settings, api.get_party()), selling_price_list())
 		self.assertEqual({v["price"] for v in api.get_matrix(TEMPLATE)["variants"]}, {100})
 
@@ -371,6 +374,7 @@ class TestQuickOrder(FrappeTestCase):
 			}
 		)
 		rule.insert(ignore_permissions=True)
+		# //// Neoffice — wrapped in try/finally to remove the rule after the test (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): left in place, it discounted every test that ran after this one
 		try:
 			frappe.set_user(USER)
 			by_code = {v["item_code"]: v for v in api.get_matrix(TEMPLATE)["variants"]}
@@ -417,6 +421,7 @@ class TestQuickOrder(FrappeTestCase):
 		self.assertIn(["Grand Total", flt(order.grand_total)] + [""] * (len(rows[0]) - 2), rows)
 		frappe.set_user(USER)
 		download_order_xlsx("Sales Order", order.name)
+		# //// Neoffice — accepts "binary" too (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client")
 		# "download" on the fleet's Frappe, "binary" on a newer one: both are a file
 		self.assertIn(frappe.response.get("type"), ("download", "binary"))
 		self.assertEqual(frappe.response.get("filename"), f"{order.name}.xlsx")
