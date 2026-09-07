@@ -339,5 +339,31 @@ body:has(.for-login-with-email-link) .page-breadcrumbs {
 //// Neoffice — new store opening-hours styles, single source of truth for /store-hours and the public block (afaa23b6d8 "feat(magasin): les horaires d'ouverture, saisis dans les réglages et affichés partout")
 @import "./webshop_opening_hours";
 @import "./webshop_assistant";
+
+/* //// Neoffice — cart actions & empty state redesign (2026-09-07): a single primary
+   button, secondary destinations as quiet links, centred empty state. */
+.cart-actions {
+	display: flex; align-items: center; justify-content: space-between;
+	flex-wrap: wrap; gap: 14px;
+}
+.cart-actions__links, .cart-empty-links {
+	display: flex; flex-wrap: wrap; gap: 20px; align-items: center;
+}
+.cart-actions__links a, .cart-empty-links a {
+	color: var(--gray-600, #6b7280); font-size: 0.9rem; text-decoration: none;
+}
+.cart-actions__links a:hover, .cart-empty-links a:hover {
+	color: var(--primary, #1f2937); text-decoration: underline;
+}
+.cart-empty { text-align: center; padding: 2.5rem 1rem 3rem; }
+.cart-empty-links { justify-content: center; margin-top: 1rem; }
+/* "Continue shopping" reads as a modest outline button, distinct from the quiet links */
+.cart-actions > .btn-outline-primary {
+	border: 1px solid var(--gray-300, #d1d5db); color: var(--gray-800, #1f2937);
+	background: #fff; border-radius: 8px; padding: 8px 18px; font-weight: 500;
+}
+.cart-actions > .btn-outline-primary:hover {
+	border-color: var(--primary, #1f2937); color: var(--primary, #1f2937); background: #fff;
+}
 //// Neoffice — the quick order page (quick_order/, www/quick-order/)
 @import "./webshop_quick_order";

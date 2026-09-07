@@ -113,40 +113,24 @@
 					{% endif %}
 				</table>
 
-				<div class="row mt-2">
-					<div class="col-3">
-						{# //// Neoffice — a guest is offered the sign-in rather than a link to "Past Orders", #}
-						{# //// which they cannot open (3bc2d836f1, 2025-02-11). #}
-						{% if frappe.session.user == "Guest" %}
-							<a class="btn btn-primary-light font-md" href="/login">
-								{{ _('Login') }}
-							</a>
-						{% else %}
-							{# //// Neoffice — the signed-in branch keeps upstream's behaviour (see above). #}
-							{# //// Neoffice — the quick order sits next to the past orders. #}
-							{% if show_quick_order %}
-								<a class="btn btn-primary-light font-md mr-2" href="/quick-order">
-									{{ _('Commande rapide') }}
-								</a>
-							{% endif %}
-							{% if cart_settings.enable_checkout %}
-								<a class="btn btn-primary-light font-md" href="/orders">
-									{{ _('Past Orders') }}
-								</a>
-							{% else %}
-								<a class="btn btn-primary-light font-md" href="/quotations">
-									{{ _('Past Quotes') }}
-								</a>
-							{% endif %}
+				{# //// Neoffice — cart actions redesigned (2026-09-07): one primary "keep #}
+				{# //// shopping" button, everything else as quiet links. Quick order and past #}
+				{# //// orders were oversized btn-primary-light buttons that read as louder than #}
+				{# //// the checkout; they are secondary here. #}
+				<div class="cart-actions mt-3">
+					<a class="btn btn-outline-primary font-md" href="/all-products">
+						{{ _('Continue Shopping') }}
+					</a>
+					<div class="cart-actions__links">
+						{% if show_quick_order %}
+							<a href="/quick-order">{{ _('Commande rapide') }}</a>
 						{% endif %}
-					</div>
-					<div class="col-9">
-						{% if doc.items %}
-						<div class="place-order-container">
-							<a class="btn btn-primary-light mr-2 font-md" href="/all-products">
-								{{ _('Continue Shopping') }}
-							</a>
-						</div>
+						{% if frappe.session.user != "Guest" %}
+							{% if cart_settings.enable_checkout %}
+								<a href="/orders">{{ _('Past Orders') }}</a>
+							{% else %}
+								<a href="/quotations">{{ _('Past Quotes') }}</a>
+							{% endif %}
 						{% endif %}
 					</div>
 				</div>
@@ -205,21 +189,24 @@
 	</div>
 	{# //// Neoffice — closing tag fixed: upstream closes a <div> with </p>. #}
 	<div class="cart-empty-message mt-4">{{ _('Your cart is Empty') }}</div>
-	{# //// Neoffice — an empty cart offers the quick order first. #}
-	{% if show_quick_order %}
-		<a class="btn btn-primary mr-2" href="/quick-order" style="font-size: 16px;">
-			{{ _('Commande rapide') }}
-		</a>
-	{% endif %}
-	{% if cart_settings.enable_checkout %}
-		<a class="btn btn-outline-primary" href="/orders" style="font-size: 16px;">
-			{{ _('See past orders') }}
-		</a>
-		{% else %}
-		<a class="btn btn-outline-primary" href="/quotations" style="font-size: 16px;">
-			{{ _('See past quotations') }}
-		</a>
-	{% endif %}
+	{# //// Neoffice — redesigned (2026-09-07): the primary action of an empty cart is #}
+	{# //// to go and see the products, not the quick order; the quick order and past #}
+	{# //// orders are quiet links under it. #}
+	<div class="cart-empty-actions mt-3">
+		<a class="btn btn-primary font-md" href="/all-products">{{ _('Voir les produits') }}</a>
+	</div>
+	<div class="cart-empty-links mt-3">
+		{% if show_quick_order %}
+			<a href="/quick-order">{{ _('Commande rapide') }}</a>
+		{% endif %}
+		{% if frappe.session.user != "Guest" %}
+			{% if cart_settings.enable_checkout %}
+				<a href="/orders">{{ _('See past orders') }}</a>
+			{% else %}
+				<a href="/quotations">{{ _('See past quotations') }}</a>
+			{% endif %}
+		{% endif %}
+	</div>
 </div>
 {% endif %}
 
