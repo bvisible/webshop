@@ -523,6 +523,7 @@ carries the notice from the first screen. The "Talk to the team" link opens
 that form directly. A signed-in visitor is written to at the session's address
 whatever the form says; a guest must give a valid one.
 
+<!-- //// Neoffice — added: documents the reseller quick-order page, the server-side is_reseller() gate, and the shared add-to-cart validation path it reuses (939e007ad8 "feat(quick-order): la commande rapide des revendeurs — lot 1") -->
 ### The reseller's quick order
 
 `/quick-order` (`www/quick-order/`, `webshop/webshop/quick_order/api.py`) is
