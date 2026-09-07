@@ -719,6 +719,22 @@ endpoint whose id travels in a redirect URL.
 > Same rule for `frappe.db.commit()` inside a whitelisted endpoint: it escapes
 > the test rollback entirely.
 
+> **And a polluted Single makes a Pricing Rule silently miss.**
+> `get_pricing_rule_for_item` filters on the **company**. A test that creates its
+> rule in `default_company()` while the code under test prices with
+> `Webshop Settings.company` never sees the rule apply once the two diverge — no
+> error, just an undiscounted price. They *do* diverge in
+> `run-tests --app webshop`: the ERPNext-fixture modules leave
+> `company = "_Test Company"` and `price_list = "_Test Price List India"` on the
+> Single, which survives the rollback, while `default_company()` still answers the
+> real company. A targeted-module run starts from a clean Single, so the defect
+> shows **only** in the informative suite. Create the rule in the company the code
+> prices in. Note too that `ensure_shop_settings()` copies `selling_price_list()`,
+> which *honours* a list already set on the Single — it normalises less than it
+> looks. When a failure exists only in the full-app run, push a temporary `print`
+> into the test and read the CI log: the ERPNext-fixture modules die on a French
+> site (no "Item Group: Products"), so no local run can reproduce it.
+
 > **Fixtures built in `setUpClass` need a commit.** `FrappeTestCase` rolls back
 > between tests, and that rollback takes uncommitted class fixtures with it —
 > the tests then report their own data as missing. Commit at the end of
