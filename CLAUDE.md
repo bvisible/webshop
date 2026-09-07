@@ -590,6 +590,26 @@ the cart is the state afterwards. A guest's batch goes through
 > `default_price_list = Vente B2B` sees 79.80 → 71.82, and both carts bill
 > exactly that.
 
+> **Upstream's `get_price` crashes on a priced item with no pricing rule.** It
+> sets `mrp` only inside `if pricing_rule:`, then reads it two lines later — so
+> on a *stock* ERPNext, any item that has a price and matches no rule (the common
+> case) raises `UnboundLocalError`. Our erpnext fork captures `mrp` before that
+> block, so nothing shows on the fleet; it only bites the CI. This is a *second*
+> upstream gap, separate from the missing `warehouse` keyword (which raises
+> `TypeError`) — code that must hold on stock ERPNext has to catch **both**.
+> `_price_of` falls back to the plain Item Price rate (`_raw_price`): no rule
+> means no discount, so the list rate is exactly what the cart carries. Drop the
+> shim once the CI's ERPNext carries the fork's `get_price`.
+
+> **The CI runs some modules twice on the same site, and what one run leaves, the
+> next inherits.** The blocking step runs each module on its own, then the
+> informative step runs `run-tests --app webshop` on that *same* `test_site`. A
+> test that writes to a fixture nobody deletes must restore it in `try/finally`
+> (and commit the restore — a downstream commit escapes the rollback), and
+> `setUpClass` should reset defensively. Real case: `test_quick_order` set
+> `Customer.default_price_list` to the reseller list and never put it back, so
+> the informative run repriced three tests at 80 instead of 100.
+
 **The order as a spreadsheet.** `utils/order_export.py` → `download_order_xlsx`
 (GET, `doctype` + `name`): a bold header row, one line per item with code,
 name, the variants' attribute columns, barcode, quantity, unit, rate and
