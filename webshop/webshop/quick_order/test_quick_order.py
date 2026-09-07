@@ -325,6 +325,8 @@ class TestQuickOrder(FrappeTestCase):
 		self.assertEqual(noir_s["price"], 100)
 		self.assertIn("100", noir_s["formatted_price"])
 		self.assertIsNone(noir_s["stock"])  # not a stock item: nothing limits it
+		# //// Neoffice — modified (6ca1bc606a "test(quick-order): la variante nomme aussi son
+		# prix de liste barré"): the matrix now also names the variant's own struck-through list price
 		self.assertEqual(
 			set(noir_s),
 			{"item_code", "item_name", "attrs", "price", "formatted_price", "list_price", "formatted_list_price", "stock", "uom"},
