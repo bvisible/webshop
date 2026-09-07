@@ -32,6 +32,8 @@ USER = "wstest-quick-order@example.com"
 CUSTOMER = f"{PREFIX} Quick Order Shop"
 PLAIN_USER = "wstest-quick-order-plain@example.com"
 PLAIN_CUSTOMER = f"{PREFIX} Quick Order Plain"
+RESELLER_GROUP = f"{PREFIX} QO Resellers"
+LOOSE_ITEM = f"{PREFIX} QO Loose"
 
 
 def _attribute(name, values):
@@ -109,6 +111,20 @@ class TestQuickOrder(FrappeTestCase):
 
 		portal_customer(USER, CUSTOMER)
 		portal_customer(PLAIN_USER, PLAIN_CUSTOMER)
+		# the reseller sits in a group of its own: the plain customer keeps the site's
+		# default leaf group, so "listed group" and "any group" cannot be confused
+		if not frappe.db.exists("Customer Group", RESELLER_GROUP):
+			frappe.get_doc(
+				{
+					"doctype": "Customer Group",
+					"customer_group_name": RESELLER_GROUP,
+					"parent_customer_group": frappe.db.get_value("Customer Group", {"lft": 1}, "name"),
+					"is_group": 0,
+				}
+			).insert(ignore_permissions=True)
+		frappe.db.set_value("Customer", CUSTOMER, "customer_group", RESELLER_GROUP)
+		# an item the shop never published, for the "unknown here" cases
+		make_test_item(LOOSE_ITEM, is_stock_item=0)
 		frappe.db.commit()
 
 	@classmethod
@@ -129,7 +145,7 @@ class TestQuickOrder(FrappeTestCase):
 		for customer in (CUSTOMER, PLAIN_CUSTOMER):
 			for name in frappe.get_all("Quotation", filters={"party_name": customer, "docstatus": 0}, pluck="name"):
 				frappe.delete_doc("Quotation", name, force=True, ignore_permissions=True)
-		codes = frappe.get_all("Item", filters={"variant_of": TEMPLATE}, pluck="name") + [TEMPLATE]
+		codes = frappe.get_all("Item", filters={"variant_of": TEMPLATE}, pluck="name") + [TEMPLATE, LOOSE_ITEM]
 		frappe.db.delete("Item Price", {"item_code": ["in", codes]})
 		for name in frappe.get_all("Website Item", filters={"item_code": ["in", codes]}, pluck="name"):
 			frappe.delete_doc("Website Item", name, force=True, ignore_permissions=True)
@@ -246,8 +262,10 @@ class TestQuickOrder(FrappeTestCase):
 	def test_an_unpublished_item_is_unknown(self):
 		self.business_site()
 		frappe.set_user(USER)
-		loose = make_test_item(f"{PREFIX} QO Loose", is_stock_item=0)
-		self.assertTrue(api.resolve_code(loose.name)["unknown"])
+		self.assertTrue(api.resolve_code(LOOSE_ITEM)["unknown"])
+		out = api.add_lines([{"item_code": LOOSE_ITEM, "qty": 1}])
+		self.assertEqual(out["added"], [])
+		self.assertEqual(out["refused"][0]["item_code"], LOOSE_ITEM)
 
 	# --- the matrix -----------------------------------------------------------------
 

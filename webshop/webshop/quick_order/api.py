@@ -397,6 +397,19 @@ def get_matrix(template):
 # ---------------------------------------------------------------------------
 
 
+def _let_pricing_read_items(quotation):
+	"""The shop prices its own published items on the customer's behalf.
+
+	Upstream ERPNext version-15 checks the read permission on Item inside
+	`get_item_details` (measured on the CI's stock site: PermissionError for a
+	portal customer, who holds no role on Item; the fleet's fork has no such
+	check yet). `get_cached_doc` hands back the same object for the rest of the
+	request, so the flag set here is the one that check reads.
+	"""
+	for row in quotation.get("items") or []:
+		frappe.get_cached_doc("Item", row.item_code).flags.ignore_permissions = True
+
+
 def _parse_lines(lines):
 	if isinstance(lines, str):
 		lines = json.loads(lines or "[]")
@@ -487,6 +500,7 @@ def add_lines(lines):
 	if added:
 		quotation.flags.ignore_permissions = True
 		quotation.flags.ignore_mandatory = True
+		_let_pricing_read_items(quotation)
 		apply_cart_settings(party, quotation)
 		quotation.payment_schedule = []
 		quotation.save(ignore_version=True)
