@@ -1,1 +1,1 @@
-# //// Neoffice — added module (the reseller's quick order, no upstream equivalent).
+# //// Neoffice — added module (the quick order, no upstream equivalent).

@@ -532,20 +532,22 @@ that form directly. A signed-in visitor is written to at the session's address
 whatever the form says; a guest must give a valid one.
 
 <!-- //// Neoffice — added: documents the reseller quick-order page, the server-side is_reseller() gate, and the shared add-to-cart validation path it reuses (939e007ad8 "feat(quick-order): la commande rapide des revendeurs — lot 1") -->
-### The reseller's quick order
+### The quick order
 
 `/quick-order` (`www/quick-order/`, `webshop/webshop/quick_order/api.py`) is
-the page a professional customer restocks from: type a reference, a name or a
-barcode, the model's colour × size grid opens, quantities go in at the keyboard,
-one "send to cart" writes the whole batch. Who may be there is decided on the
-server only — `is_reseller()`: every admitted account on a site whose Website
-Profile is `b2b_only`, or a customer whose group is one of the shop's B2B
-groups (`is_b2b_customer_group()` in `cart.py`, the rule the B2B checkout uses).
-Everything else in the module is scoped the same way as the catalogue: a
-published Website Item, visible on this site (`excluded_item_names()`), priced
-at the site's tariff (`effective_price_list()`), stocked by the shop's own
-rule. The draft lives in the browser (`localStorage`, per user and site, seven
-days) until it is sent; the cart is the state afterwards.
+the page a customer restocks from: type a reference, a name or a barcode, the
+model's colour × size grid opens, quantities go in at the keyboard, each grid
+has its own "add to cart" and one "send everything" writes the whole draft.
+It is open to whoever may fill a cart on this site — `require_shopper()`: any
+signed-in customer, and an anonymous visitor where the shop allows a guest
+cart and the site is not reserved for business accounts — because nothing in
+it is professional but the pace. Everything in the module is scoped the same
+way as the catalogue: a published Website Item, visible on this site
+(`excluded_item_names()`), priced at the site's tariff
+(`effective_price_list()`), stocked by the shop's own rule. The draft lives in
+the browser (`localStorage`, per user and site, seven days) until it is sent;
+the cart is the state afterwards. A guest's batch goes through
+`create_guest_quotation`, the cart's own rebuild-from-list path.
 
 > **`get_variant_matrix` of `neoffice_theme` answers 403 to a Website User** —
 > it needs the desk's read permission on Item, correctly. `get_matrix()` is its
@@ -576,12 +578,13 @@ days) until it is sent; the cart is the state afterwards.
 > variants instead of thirty calls. With multi-warehouse on, the grid shows
 > `get_aggregate_stock()` per variant, the figure the cart will honour.
 
-Tests: `quick_order/test_quick_order.py` (gate both ways, search by code, name
-and barcode, site scoping, tariff of the site, the batch and its capping — all
-with an in-memory Webshop Settings and a fake Website Profile on
-`frappe.local`, nothing written to the Single) and
-`tests/e2e/specs/10-quick-order.spec.js` (the `b2b` project types, reloads and
-sends; `client` is refused, `invite` is sent to sign in).
+Tests: `quick_order/test_quick_order.py` (the gate for a customer, a visitor
+and an account without customer, search by code, name and barcode, site
+scoping, tariff of the site, the batch and its capping — all with an in-memory
+Webshop Settings and a fake Website Profile on `frappe.local`, nothing written
+to the Single) and `tests/e2e/specs/10-quick-order.spec.js` (`b2b` types,
+reloads and sends; `client` is served; `invite` fills a guest cart where the
+shop sells to visitors, and is sent to sign in elsewhere).
 
 ## Integration Points
 

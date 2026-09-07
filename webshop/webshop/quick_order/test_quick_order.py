@@ -1,12 +1,13 @@
-# //// Neoffice — added file (the reseller's quick order, no upstream equivalent).
+# //// Neoffice — added file (the quick order, no upstream equivalent).
 """The quick order, from the gate to the cart.
 
 A model with two attributes and six variants is built once, published, priced
-on the shop's list and on a reseller list. Who is a reseller is decided two
-ways here — a business-only site, or the shop's B2B groups — through an
-in-memory copy of Webshop Settings and a fake Website Profile on frappe.local,
-so nothing is written to the Single. The cart is exercised for real: the batch
-endpoint saves the customer's quotation once and reports what it kept.
+on the shop's list and on a reseller list. Who may be here follows the cart's
+own rule — any signed-in customer, and a visitor where the shop sells to
+visitors — checked through an in-memory copy of Webshop Settings and a fake
+Website Profile on frappe.local, so nothing is written to the Single. The cart
+is exercised for real: the batch endpoint saves the customer's quotation once
+and reports what it kept.
 """
 
 import frappe
@@ -181,12 +182,14 @@ class TestQuickOrder(FrappeTestCase):
 		api.cart_settings = lambda: self.settings
 		self.real_excluded = api.excluded_item_names
 		self.real_available = api.available_cart_qty
+		self.real_party = api.get_party
 		frappe.local.website_profile_doc = None
 
 	def tearDown(self):
 		api.cart_settings = self.real_settings
 		api.excluded_item_names = self.real_excluded
 		api.available_cart_qty = self.real_available
+		api.get_party = self.real_party
 		frappe.local.website_profile_doc = None
 		frappe.set_user("Administrator")
 
@@ -198,51 +201,49 @@ class TestQuickOrder(FrappeTestCase):
 			{"b2b_only": 1, "price_list": price_list, "primary_domain": "wstest-b2b.example.com"}
 		)
 
-	def b2b_group_of(self, customer):
-		group = frappe.db.get_value("Customer", customer, "customer_group")
-		self.settings.activate_b2b_checkout = 1
-		self.settings.set("b2b_customer_group", [])
-		self.settings.append("b2b_customer_group", {"customer_group": group})
-
-	# --- the gate -------------------------------------------------------------------
-
-	def test_a_guest_and_a_plain_customer_are_refused(self):
+	def as_guest(self, with_cart=True):
+		"""Browse anonymously; the shop's guest customer stands in when it sells to visitors."""
 		frappe.set_user("Guest")
-		with self.assertRaises(frappe.PermissionError):
-			api.search_references("chemise")
-		frappe.set_user(PLAIN_USER)
-		with self.assertRaises(frappe.PermissionError):
-			api.search_references("chemise")
-		with self.assertRaises(frappe.PermissionError):
-			api.get_matrix(TEMPLATE)
-		with self.assertRaises(frappe.PermissionError):
-			api.add_lines([{"item_code": self.variants[("Noir", "S")], "qty": 1}])
+		self.settings.enable_guest_cart = 1 if with_cart else 0
+		self.real_party = api.get_party
+		api.get_party = lambda *args, **kwargs: (
+			frappe._dict(name=PLAIN_CUSTOMER, customer_name="Visiteur", customer_group="") if with_cart else None
+		)
 
-	def test_a_customer_of_a_b2b_group_is_a_reseller(self):
-		self.b2b_group_of(CUSTOMER)
-		frappe.set_user(USER)
-		self.assertTrue(api.is_reseller(api.get_party(), self.settings))
+	# --- the gate: whoever may fill a cart here -----------------------------------
+
+	def test_a_signed_in_customer_of_any_group_is_served(self):
+		frappe.set_user(PLAIN_USER)
 		self.assertTrue(api.search_references("chemise"))
-		# the plain customer's group is not listed: still refused
-		frappe.set_user(PLAIN_USER)
-		self.assertFalse(api.is_reseller(api.get_party(), self.settings))
-
-	def test_on_a_business_only_site_every_admitted_account_is_a_reseller(self):
-		self.business_site()
-		frappe.set_user(PLAIN_USER)
-		self.assertTrue(api.is_reseller(api.get_party(), self.settings))
-
-	def test_the_page_context_refuses_and_admits(self):
-		frappe.set_user(PLAIN_USER)
-		context = api.page_context(frappe._dict())
-		self.assertFalse(context.allowed)
-		self.assertIn("professionnels", context.reason)
-		self.business_site()
 		context = api.page_context(frappe._dict())
 		self.assertTrue(context.allowed)
 		self.assertEqual(context.config["user"], PLAIN_USER)
 		self.assertIn("labels", context.config)
-		self.assertIn("send", context.config["labels"])
+		self.assertIn("add_model", context.config["labels"])
+		self.assertTrue(api.may_use_quick_order())
+
+	def test_a_visitor_is_served_only_where_the_shop_sells_to_visitors(self):
+		self.as_guest(with_cart=False)
+		with self.assertRaises(frappe.PermissionError):
+			api.search_references("chemise")
+		self.assertFalse(api.may_use_quick_order())
+		self.as_guest(with_cart=True)
+		self.assertTrue(api.search_references("chemise"))
+		self.assertTrue(api.page_context(frappe._dict()).allowed)
+		# a site reserved for professionals never serves a visitor, cart or not
+		self.business_site()
+		with self.assertRaises(frappe.PermissionError):
+			api.get_matrix(TEMPLATE)
+		self.assertFalse(api.guest_allowed(self.settings))
+
+	def test_a_signed_in_user_without_a_customer_is_refused_with_a_reason(self):
+		frappe.set_user(USER)
+		api.get_party = lambda *args, **kwargs: None
+		with self.assertRaises(frappe.PermissionError):
+			api.add_lines([{"item_code": self.variants[("Noir", "S")], "qty": 1}])
+		context = api.page_context(frappe._dict())
+		self.assertFalse(context.allowed)
+		self.assertIn("compte client", context.reason)
 
 	# --- search and resolution ------------------------------------------------------
 

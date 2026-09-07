@@ -75,11 +75,10 @@ def get_context(context):
     context.body_class = "product-page"
     cart_data = get_cart_quotation()
     context.update(cart_data)
-    # //// Neoffice — a reseller is offered the quick order from the cart (quick_order/api.py)
-    from webshop.webshop.quick_order.api import is_reseller
-    from webshop.webshop.shopping_cart.cart import get_party
+    # //// Neoffice — whoever may fill a cart here is offered the quick order (quick_order/api.py)
+    from webshop.webshop.quick_order.api import may_use_quick_order
 
-    context.show_quick_order = frappe.session.user != "Guest" and is_reseller(get_party())
+    context.show_quick_order = may_use_quick_order()
     
     # Add loyalty points information
     if cart_data.get("doc"):

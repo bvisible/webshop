@@ -1,16 +1,12 @@
-//// Neoffice — added file (the reseller's quick order, no upstream equivalent).
-//// The page as three people see it: a visitor is sent to sign in, a plain customer
-//// is refused with words, a reseller types a reference, fills a grid at the
-//// keyboard, loses the page, finds the draft again and sends it to the cart.
+//// Neoffice — added file (the quick order, no upstream equivalent).
+//// The page as three people see it: a visitor is served where the shop sells to
+//// visitors and sent to sign in elsewhere, a plain customer is served, a B2B
+//// customer types a reference, fills a grid at the keyboard, loses the page,
+//// finds the draft again and sends it to the cart.
 const {test, expect} = require('@playwright/test');
 const {viderPanier, lireDevis, lireJson, utilisateurCourant} = require('../fixtures/boutique');
 
 const ROUTE = '/quick-order';
-
-async function estRevendeur(page) {
-	const panier = await lireJson(page, '/api/method/webshop.webshop.shopping_cart.cart.get_cart_quotation');
-	return !!(panier && panier.is_b2b_customer);
-}
 
 /** A published model with variants, found through the page's own search endpoint. */
 async function premierModele(page, motsCles = ['chemise', 't-shirt', 'top', 'a']) {
@@ -23,31 +19,55 @@ async function premierModele(page, motsCles = ['chemise', 't-shirt', 'top', 'a']
 }
 
 test.describe('Commande rapide — accès', () => {
-	test('un visiteur est envoyé se connecter', async ({page}, testInfo) => {
+	test('un visiteur est servi là où la boutique vend aux visiteurs, envoyé se connecter ailleurs', async ({page}, testInfo) => {
 		test.skip(testInfo.project.name !== 'invite', 'projet visiteur seulement');
+		test.setTimeout(120_000);
 		await page.goto(ROUTE);
-		await expect(page).toHaveURL(/\/login/);
+		if (/\/login/.test(page.url())) {
+			//// A shop with no guest cart, or a professional site: the visitor signs in first.
+			await expect(page).toHaveURL(/\/login/);
+			return;
+		}
+		await expect(page.locator('#wsh-qo')).toBeVisible();
+		//// A visitor's cart is real too: a model, one cell, sent, found in the guest cart.
+		const modele = await premierModele(page);
+		test.skip(!modele, 'aucun modèle à variantes publié sur cette boutique');
+		const champ = page.locator('.wsh-qo__input');
+		await champ.fill(modele.name.slice(0, 12));
+		await expect(page.locator('.wsh-qo-sugg', {hasText: modele.item_code}).first()).toBeVisible({timeout: 15_000});
+		await champ.press('Enter');
+		const grille = page.locator(`.wsh-qo-model[data-template="${modele.item_code}"]`);
+		await expect(grille).toBeVisible({timeout: 15_000});
+		const cases = grille.locator('.wsh-qo-cell:not(.wsh-qo-cell--none)').filter({has: page.locator('.wsh-qo-stock.has-stock, .wsh-qo-stock.is-unlimited')});
+		test.skip((await cases.count()) === 0, 'aucune case servable dans la grille');
+		const cellule = cases.nth(0).locator('.wsh-qo-qty');
+		await cellule.focus();
+		await page.keyboard.type('2');
+		const code = await cellule.getAttribute('data-item');
+		//// The grid's own button: this model goes to the cart on its own.
+		await grille.locator('.wsh-qo-model__add').click();
+		await expect(page.locator('.wsh-qo__report-ok')).toBeVisible({timeout: 30_000});
+		const devis = await lireDevis(page);
+		const lignes = ((devis && devis.doc && devis.doc.items) || []).reduce((acc, l) => ({...acc, [l.item_code]: l.qty}), {});
+		expect(lignes[code]).toBe(2);
+		await viderPanier(page);
 	});
 
-	test('un client qui n’est pas revendeur est refusé, avec des mots', async ({page}, testInfo) => {
+	test('un client ordinaire est servi, quel que soit son groupe', async ({page}, testInfo) => {
 		test.skip(testInfo.project.name !== 'client', 'projet client seulement');
-		await page.goto('/');
-		test.skip(await estRevendeur(page), 'ce compte est revendeur : le refus ne se teste pas avec lui');
 		await page.goto(ROUTE);
-		await expect(page.locator('.wsh-qo-refusal')).toBeVisible();
-		await expect(page.locator('#wsh-qo')).toHaveCount(0);
-		//// Hiding the page is not a permission: the endpoints refuse too.
+		await expect(page.locator('#wsh-qo')).toBeVisible();
+		await expect(page.locator('.wsh-qo-refusal')).toHaveCount(0);
 		const r = await page.request.post('/api/method/webshop.webshop.quick_order.api.search_references', {form: {query: 'chemise'}});
-		expect(r.status(), 'search_references a répondu à un client hors B2B').toBe(403);
+		expect(r.status(), 'search_references a refusé un client connecté').toBe(200);
 	});
 });
 
-test.describe('Commande rapide — le revendeur', () => {
+test.describe('Commande rapide — le client B2B', () => {
 	test.beforeEach(async ({page}, testInfo) => {
 		test.skip(testInfo.project.name !== 'b2b', 'projet revendeur seulement');
 		await page.goto('/');
 		test.skip((await utilisateurCourant(page)) === 'Guest', 'aucune session B2B (WEBSHOP_E2E_B2B_USER absent ?)');
-		test.skip(!(await estRevendeur(page)), 'la session B2B n’est pas reconnue comme revendeur');
 		//// The cart must start empty, and say so when it cannot: a leftover line would
 		//// add up with the quantities typed below and blame the page.
 		test.skip(!(await viderPanier(page)), 'le panier du compte B2B ne se vide pas');

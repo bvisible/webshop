@@ -1,4 +1,4 @@
-//// Neoffice — added file (the reseller's quick order, no upstream equivalent).
+//// Neoffice — added file (the quick order, no upstream equivalent).
 //// Plain JS, loaded with the page only. Everything it says comes from the server's
 //// labels; everything it knows about the customer comes from the session behind
 //// the requests. The draft lives here, in localStorage, until "send to cart".
@@ -128,7 +128,25 @@
 			state.lines.delete(item_code);
 		}
 		renderTotals();
+		const template = (meta && meta.template) || (state.lines.get(item_code) || {}).template;
+		if (template) {
+			const node = el.models.querySelector(`[data-template="${CSS.escape(template)}"]`);
+			const model = state.models.find((m) => m.template === template);
+			if (node && model) refreshModelButton(node, model);
+		}
 		save();
+	}
+
+	function modelLines(model) {
+		return [...state.lines.entries()].filter(([, line]) => line.template === model.template).map(([item_code, line]) => ({ item_code, qty: line.qty }));
+	}
+
+	function refreshModelButton(node, model) {
+		const button = node.querySelector(".wsh-qo-model__add");
+		if (!button) return;
+		const pieces = modelLines(model).reduce((sum, l) => sum + l.qty, 0);
+		button.disabled = !pieces;
+		button.textContent = pieces ? `${L.add_model} (${pieces})` : L.add_model;
 	}
 
 	// ------------------------------------------------------------------
@@ -255,6 +273,7 @@
 				</div>
 				${dim3Html}
 				<button type="button" class="btn btn-sm btn-light wsh-qo-model__reset">${escape(L.reset_model)}</button>
+				<button type="button" class="btn btn-sm btn-primary wsh-qo-model__add" disabled>${escape(L.add_model)}</button>
 				<button type="button" class="btn btn-sm btn-light wsh-qo-model__close" aria-label="${escape(L.close)}">×</button>
 			</header>
 			<div class="wsh-qo-model__scroll">${table}</div>`;
@@ -305,6 +324,9 @@
 			});
 		}
 		node.querySelector(".wsh-qo-model__close").addEventListener("click", () => closeModel(model.template));
+		// this grid alone goes to the cart: the customer who works model by model does not wait for the end
+		node.querySelector(".wsh-qo-model__add").addEventListener("click", () => sendModel(model));
+		refreshModelButton(node, model);
 		node.querySelector(".wsh-qo-model__reset").addEventListener("click", () => {
 			model.data.variants.forEach((v) => state.lines.delete(v.item_code));
 			renderModel(model, false);
@@ -522,6 +544,51 @@
 		el.report.hidden = !html;
 	}
 
+	// One model's lines go to the cart now; the rest of the draft stays.
+	async function sendModel(model) {
+		const lines = modelLines(model);
+		if (!lines.length) return;
+		const node = el.models.querySelector(`[data-template="${CSS.escape(model.template)}"]`);
+		const button = node && node.querySelector(".wsh-qo-model__add");
+		if (button) {
+			button.disabled = true;
+			button.textContent = L.sending;
+		}
+		let out;
+		try {
+			out = await call("webshop.webshop.quick_order.api.add_lines", { lines: JSON.stringify(lines) });
+		} catch (e) {
+			if (button) refreshModelButton(node, model);
+			report(`<p class="text-danger">${escape(L.error)}</p>`);
+			return;
+		}
+		const refused = new Set((out.refused || []).map((r) => r.item_code));
+		lines.forEach((l) => {
+			if (!refused.has(l.item_code)) state.lines.delete(l.item_code);
+		});
+		renderModel(model, false);
+		renderTotals();
+		save();
+		report(reportHtml(out));
+	}
+
+	function reportHtml(out) {
+		const added = (out.added || []).reduce((sum, l) => sum + l.qty, 0);
+		let html = `<p class="wsh-qo__report-ok">${escape(fmt(L.report_added, added))}</p>`;
+		if ((out.capped || []).length) {
+			html += `<p>${escape(L.report_capped)}</p><ul>${out.capped
+				.map((c) => `<li>${escape(fmt(L.report_capped_line, c.item_code, c.asked, c.kept, c.available))}</li>`)
+				.join("")}</ul>`;
+		}
+		if ((out.refused || []).length) {
+			html += `<p>${escape(L.report_refused)}</p><ul>${out.refused
+				.map((r) => `<li><b>${escape(r.item_code)}</b> × ${r.qty} — ${escape(r.reason)}</li>`)
+				.join("")}</ul>`;
+		}
+		html += `<a class="btn btn-primary btn-block mt-3" href="${escape((out.cart && out.cart.url) || config.cart_url)}">${escape(L.see_cart)}</a>`;
+		return html;
+	}
+
 	async function send() {
 		const lines = [...state.lines.entries()].map(([item_code, line]) => ({ item_code, qty: line.qty }));
 		if (!lines.length) {
@@ -541,20 +608,7 @@
 			return;
 		}
 		el.send.textContent = label;
-		const added = (out.added || []).reduce((sum, l) => sum + l.qty, 0);
-		let html = `<p class="wsh-qo__report-ok">${escape(fmt(L.report_added, added))}</p>`;
-		if ((out.capped || []).length) {
-			html += `<p>${escape(L.report_capped)}</p><ul>${out.capped
-				.map((c) => `<li>${escape(fmt(L.report_capped_line, c.item_code, c.asked, c.kept, c.available))}</li>`)
-				.join("")}</ul>`;
-		}
-		if ((out.refused || []).length) {
-			html += `<p>${escape(L.report_refused)}</p><ul>${out.refused
-				.map((r) => `<li><b>${escape(r.item_code)}</b> × ${r.qty} — ${escape(r.reason)}</li>`)
-				.join("")}</ul>`;
-		}
-		html += `<a class="btn btn-primary btn-block mt-3" href="${escape((out.cart && out.cart.url) || config.cart_url)}">${escape(L.see_cart)}</a>`;
-		report(html);
+		report(reportHtml(out));
 		// what went into the cart leaves the draft; what was refused stays for a second try
 		const refused = new Set((out.refused || []).map((r) => r.item_code));
 		state.lines.forEach((line, item_code) => {

@@ -78,7 +78,7 @@ def get_web_item_qty_in_stock(item_code, item_warehouse_field, warehouse=None):
 
 
 # //// Neoffice — added: the rule of get_web_item_qty_in_stock for a whole set of items
-# //// at once. The reseller's quick order draws a matrix of thirty variants; asking thirty
+# //// at once. The quick order draws a matrix of thirty variants; asking thirty
 # //// times, three queries each, is what this avoids. The Bin part is one query per
 # //// warehouse; the expiry and POS adjustments stay per item, exactly as above.
 def get_web_items_qty_in_stock(item_codes, warehouse):

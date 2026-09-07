@@ -1,11 +1,13 @@
-# //// Neoffice — added file (the reseller's quick order, no upstream equivalent).
-"""The reseller's quick order: forty lines in a few minutes, at the keyboard.
+# //// Neoffice — added file (the quick order, no upstream equivalent).
+"""The quick order: forty lines in a few minutes, at the keyboard.
 
-Everything here answers a signed-in reseller and nobody else. Identity and
-tariff come from the session and from the site being browsed, never from the
-browser; every dict returned names its fields explicitly, so a purchase price
-or a valuation has no way out. The cart is written through the same rule as
-"add to cart" — `validate_cart_line` — once for the whole batch.
+Open to whoever may fill a cart on this site — a signed-in customer of any
+group, and an anonymous visitor where the shop allows a guest cart — because
+nothing in it is professional but the pace. Identity and tariff come from the
+session and from the site being browsed, never from the browser; every dict
+returned names its fields explicitly, so a purchase price or a valuation has
+no way out. The cart is written through the same rule as "add to cart" —
+`validate_cart_line` — once for the whole batch.
 
 The matrix is the portal counterpart of neoffice_theme's `get_variant_matrix`,
 which a Website User cannot call (it needs the desk's read permission on Item,
@@ -30,7 +32,6 @@ from webshop.webshop.shopping_cart.cart import (
 	apply_cart_settings,
 	available_cart_qty,
 	get_party,
-	is_b2b_customer_group,
 	is_gift_card_item,
 	set_cart_count,
 )
@@ -48,34 +49,44 @@ def cart_settings():
 
 
 # ---------------------------------------------------------------------------
-# who may be here
+# who may be here: whoever may fill a cart on this site
 # ---------------------------------------------------------------------------
 
 
-def is_reseller(party=None, settings=None):
-	"""A professional account.
-
-	On a site reserved for business accounts every admitted account is one; on
-	any other site, a customer whose group is one of the shop's B2B groups.
-	"""
-	if not party:
-		return False
+def guest_allowed(settings=None):
+	"""An anonymous visitor may use the page where the shop lets them fill a cart."""
 	if site_is_business_only():
-		return True
-	group = party.get("customer_group") or frappe.db.get_value("Customer", party.get("name"), "customer_group")
-	return is_b2b_customer_group(group, settings or cart_settings())
+		return False
+	return bool(cint((settings or cart_settings()).get("enable_guest_cart")))
 
 
-def require_reseller():
-	"""The party of the session, or a PermissionError. Never trusts an argument."""
+def require_shopper():
+	"""The party of the session, or a PermissionError. Never trusts an argument.
+
+	Signed in: the customer behind the account. Anonymous: the shop's guest
+	customer, on a site that sells to visitors. The same rule as the cart.
+	"""
 	if frappe.session.user == "Guest":
-		frappe.throw(_("Connectez-vous pour accéder à la commande rapide."), frappe.PermissionError)
+		if not guest_allowed():
+			frappe.throw(_("Connectez-vous pour utiliser la commande rapide."), frappe.PermissionError)
+		party = get_party()
+		if not party:
+			frappe.throw(_("Connectez-vous pour utiliser la commande rapide."), frappe.PermissionError)
+		return party
 	party = get_party()
 	if not party:
 		frappe.throw(_("Aucun compte client n'est rattaché à votre utilisateur."), frappe.PermissionError)
-	if not is_reseller(party):
-		frappe.throw(_("La commande rapide est réservée aux comptes professionnels."), frappe.PermissionError)
 	return party
+
+
+def may_use_quick_order():
+	"""True when require_shopper() would let the session in — for the links."""
+	try:
+		require_shopper()
+		return True
+	except frappe.PermissionError:
+		frappe.clear_last_message()
+		return False
 
 
 # ---------------------------------------------------------------------------
@@ -176,14 +187,14 @@ def _card(website_item):
 	return card
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def search_references(query, limit=SEARCH_LIMIT):
 	"""Suggestions for the search bar: published items of this site, by code, name or barcode.
 
 	An exact match on a barcode or a variant's code comes first, as a `variant`
 	pointing at its model, so Enter on a scanned code opens the right cell.
 	"""
-	require_reseller()
+	require_shopper()
 	query = (query or "").strip()
 	if len(query) < 2:
 		return []
@@ -227,10 +238,10 @@ def search_references(query, limit=SEARCH_LIMIT):
 	return results[:limit]
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def resolve_code(code):
 	"""A scanned code, resolved on this site — `{unknown: true}` when it is not sold here."""
-	require_reseller()
+	require_shopper()
 	found = resolve(code)
 	if not found:
 		return {"unknown": True, "code": (code or "").strip()[:140]}
@@ -321,10 +332,16 @@ def _stock(item_codes, website_item, settings):
 	return stock
 
 
-@frappe.whitelist()
+def _currency(price_list):
+	return (
+		frappe.db.get_value("Price List", price_list, "currency") if price_list else None
+	) or frappe.defaults.get_global_default("currency")
+
+
+@frappe.whitelist(allow_guest=True)
 def get_matrix(template):
-	"""Everything the grid of one model needs, cadré par le site, in one call."""
-	require_reseller()
+	"""Everything the grid of one model needs, scoped to the site, in one call."""
+	require_shopper()
 	website_item = sellable_website_item(template)
 	if not website_item or not cint(frappe.db.get_value("Item", template, "has_variants")):
 		frappe.throw(_("Ce modèle n'est pas disponible sur cette boutique."), frappe.DoesNotExistError)
@@ -339,9 +356,7 @@ def get_matrix(template):
 
 	settings = cart_settings()
 	price_list = effective_price_list()
-	currency = (
-		frappe.db.get_value("Price List", price_list, "currency") if price_list else None
-	) or frappe.defaults.get_global_default("currency")
+	currency = _currency(price_list)
 
 	out = {
 		"template": {
@@ -397,7 +412,6 @@ def get_matrix(template):
 # ---------------------------------------------------------------------------
 
 
-# //// Neoffice — added (c12b9a4d5e "fix(quick-order): tarifer et sauvegarder le panier au nom du client sur ERPNext standard"): upstream version-15 also checks the receivable Account permission on save (get_party_account in set_payment_schedule), on top of Item permission — a portal customer holds neither, so the shop prices and saves with its own rights and restores ownership after
 def _save_on_behalf(quotation, party):
 	"""Price and save the customer's own cart with the shop's rights.
 
@@ -408,7 +422,6 @@ def _save_on_behalf(quotation, party):
 	check yet (neoffice-maintenance#277). The document stays the customer's:
 	owner and modified_by are put back once saved.
 	"""
-	# //// Neoffice — see the block marker above: saves as Administrator, then restores owner/modified_by
 	user = frappe.session.user
 	was_new = quotation.is_new()
 	frappe.set_user("Administrator")
@@ -446,34 +459,24 @@ def _parse_lines(lines):
 	return wanted
 
 
-@frappe.whitelist(methods=["POST"])
-def add_lines(lines):
-	"""The whole entry into the cart at once: one read, one save.
+def _check_lines(wanted, rows, settings, multi_enabled):
+	"""Every wanted line against the rule of "add to cart", with the cart's rows in hand.
 
-	Every line goes through the rule of "add to cart". What the shop cannot
-	serve is capped to what it can, and named; what it cannot sell at all is
-	refused, and named. The valid lines are never held back by a refused one.
+	Returns (accepted, capped, refused): accepted = [(item_code, warehouse, qty)]
+	with the source resolved and the quantity the shop can serve on top of what
+	the cart already holds.
 	"""
 	from webshop.webshop.multi_warehouse import sources as mw_sources
 
-	party = require_reseller()
-	require_login_to_buy()
-	wanted = _parse_lines(lines)
-	settings = cart_settings()
-	multi_enabled = mw_sources.is_enabled(settings)
-	quotation = _get_cart_quotation(party)
-	if not quotation:
-		frappe.throw(_("Impossible d'ouvrir un panier pour ce compte."))
-
 	def existing_row(item_code, warehouse):
-		for row in quotation.get("items") or []:
-			if row.item_code != item_code:
+		for row in rows:
+			if row.get("item_code") != item_code:
 				continue
-			if not multi_enabled or (row.warehouse or None) == (warehouse or None):
+			if not multi_enabled or (row.get("warehouse") or None) == (warehouse or None):
 				return row
 		return None
 
-	added, refused, capped = [], [], []
+	accepted, capped, refused = [], [], []
 	for (item_code, warehouse), qty in wanted.items():
 		if not resolve(item_code):
 			refused.append({"item_code": item_code, "qty": qty, "reason": _("Cet article n'est pas disponible sur cette boutique.")})
@@ -488,13 +491,13 @@ def add_lines(lines):
 				refused.append({"item_code": item_code, "qty": qty, "reason": _("Source de stock invalide pour {0}").format(item_code)})
 				continue
 			if not warehouse:
-				row = existing_row(item_code, None) or next((r for r in quotation.get("items") or [] if r.item_code == item_code), None)
-				warehouse = (row.warehouse if row else None) or mw_sources.resolve_target_warehouse(item_code, qty, settings)
+				row = existing_row(item_code, None) or next((r for r in rows if r.get("item_code") == item_code), None)
+				warehouse = (row.get("warehouse") if row else None) or mw_sources.resolve_target_warehouse(item_code, qty, settings)
 		else:
 			warehouse = frappe.get_cached_value("Website Item", {"item_code": item_code}, "website_warehouse")
 
 		row = existing_row(item_code, warehouse)
-		existing_qty = flt(row.qty) if row else 0
+		existing_qty = flt(row.get("qty")) if row else 0
 		limit = available_cart_qty(item_code, warehouse, settings, multi_enabled)
 		if limit.available is not None:
 			room = flt(limit.available) - existing_qty
@@ -504,30 +507,106 @@ def add_lines(lines):
 			if qty > room:
 				capped.append({"item_code": item_code, "asked": qty, "kept": int(room), "available": int(limit.available)})
 				qty = int(room)
+		accepted.append((item_code, warehouse, qty))
+	return accepted, capped, refused
 
-		if row:
-			row.qty = flt(row.qty) + qty
-			row.warehouse = warehouse
+
+def _guest_cart_rows():
+	"""The guest's cart as plain rows (what create_guest_quotation rebuilds from)."""
+	from webshop.webshop.shopping_cart.guest_cart import create_guest_quotation
+
+	existing = create_guest_quotation()
+	rows = []
+	if existing and existing.get("quotation_id"):
+		for row in frappe.get_doc("Quotation", existing["quotation_id"]).items:
+			line = frappe._dict(item_code=row.item_code, qty=row.qty, warehouse=row.warehouse)
+			if is_gift_card_item(row.item_code):
+				line.update({"rate": row.rate, "price_list_rate": row.price_list_rate})
+				if row.get("gift_card_data"):
+					line["gift_card_data"] = row.gift_card_data
+			rows.append(line)
+	return rows
+
+
+def _write_guest_cart(rows, accepted, multi_enabled):
+	"""The guest cart is rebuilt from its whole list, the way update_cart does it."""
+	from webshop.webshop.shopping_cart.guest_cart import create_guest_quotation
+
+	for item_code, warehouse, qty in accepted:
+		for row in rows:
+			if row.item_code == item_code and (not multi_enabled or (row.warehouse or None) == (warehouse or None)):
+				row.qty = flt(row.qty) + qty
+				row.warehouse = warehouse
+				break
 		else:
-			quotation.append("items", {"doctype": "Quotation Item", "item_code": item_code, "qty": qty, "warehouse": warehouse})
-		added.append({"item_code": item_code, "qty": qty})
+			rows.append(frappe._dict(item_code=item_code, qty=qty, warehouse=warehouse))
+	result = create_guest_quotation([dict(row) for row in rows])
+	if not result or not result.get("success"):
+		frappe.throw(_("Impossible d'ouvrir un panier pour cette session."))
+	return frappe.get_doc("Quotation", result["quotation_id"])
 
-	if added:
-		quotation.flags.ignore_permissions = True
-		quotation.flags.ignore_mandatory = True
-		# //// Neoffice — added (c12b9a4d5e "fix(quick-order): tarifer et sauvegarder le panier au nom du client sur ERPNext standard"): save through _save_on_behalf() rather than quotation.save(), since a portal customer lacks both the Item and Account read permissions upstream's validate requires
-		_save_on_behalf(quotation, party)
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def add_lines(lines):
+	"""The whole entry into the cart at once: one read, one save.
+
+	Every line goes through the rule of "add to cart". What the shop cannot
+	serve is capped to what it can, and named; what it cannot sell at all is
+	refused, and named. The valid lines are never held back by a refused one.
+	"""
+	from webshop.webshop.multi_warehouse import sources as mw_sources
+
+	party = require_shopper()
+	require_login_to_buy()
+	wanted = _parse_lines(lines)
+	settings = cart_settings()
+	multi_enabled = mw_sources.is_enabled(settings)
+	is_guest = frappe.session.user == "Guest"
+
+	if is_guest:
+		quotation, rows = None, _guest_cart_rows()
+	else:
+		quotation = _get_cart_quotation(party)
+		if not quotation:
+			frappe.throw(_("Impossible d'ouvrir un panier pour ce compte."))
+		rows = quotation.get("items") or []
+
+	accepted, capped, refused = _check_lines(wanted, rows, settings, multi_enabled)
+
+	if accepted:
+		if is_guest:
+			quotation = _write_guest_cart(rows, accepted, multi_enabled)
+		else:
+			for item_code, warehouse, qty in accepted:
+				row = next(
+					(
+						r
+						for r in quotation.get("items") or []
+						if r.item_code == item_code and (not multi_enabled or (r.warehouse or None) == (warehouse or None))
+					),
+					None,
+				)
+				if row:
+					row.qty = flt(row.qty) + qty
+					row.warehouse = warehouse
+				else:
+					quotation.append("items", {"doctype": "Quotation Item", "item_code": item_code, "qty": qty, "warehouse": warehouse})
+			quotation.flags.ignore_permissions = True
+			quotation.flags.ignore_mandatory = True
+			_save_on_behalf(quotation, party)
 		set_cart_count(quotation)
 
-	total_qty = sum(flt(row.qty) for row in quotation.get("items") or [])
+	total_qty = sum(flt(row.qty) for row in (quotation.get("items") if quotation else None) or [])
+	grand_total = flt(quotation.grand_total) if quotation else 0
+	currency = quotation.currency if quotation else _currency(effective_price_list())
 	return {
-		"added": added,
+		"added": [{"item_code": code, "qty": qty} for code, _warehouse, qty in accepted],
 		"capped": capped,
 		"refused": refused,
 		"cart": {
 			"qty": total_qty,
-			"total": flt(quotation.grand_total),
-			"formatted_total": fmt_money(flt(quotation.grand_total), currency=quotation.currency),
+			"total": grand_total,
+			"formatted_total": fmt_money(grand_total, currency=currency),
 			"url": "/cart",
 		},
 	}
@@ -540,7 +619,6 @@ def add_lines(lines):
 
 def labels():
 	return {
-		"title": _("Commande rapide"),
 		"lead": _("Tapez une référence, un nom ou un code-barres : la grille du modèle s'ouvre et vous saisissez les quantités au clavier."),
 		"placeholder": _("Référence, nom ou code-barres…"),
 		"no_results": _("Aucun article publié ne correspond."),
@@ -550,6 +628,7 @@ def labels():
 		"empty": _("Aucun modèle ouvert. Cherchez une référence pour commencer."),
 		"close": _("Fermer"),
 		"reset_model": _("Tout à zéro"),
+		"add_model": _("Ajouter au panier"),
 		"stock": _("Stock"),
 		"available": _("{0} disponibles"),
 		"out_of_stock": _("Épuisé"),
@@ -561,7 +640,7 @@ def labels():
 		"lines": _("lignes"),
 		"total": _("Total indicatif"),
 		"total_note": _("Prix du tarif. Remises et TVA sont calculées au panier."),
-		"send": _("Envoyer au panier"),
+		"send": _("Tout envoyer au panier"),
 		"sending": _("Envoi en cours…"),
 		"clear": _("Tout effacer"),
 		"clear_confirm": _("Effacer toute la saisie ?"),
@@ -575,7 +654,7 @@ def labels():
 		"report_refused": _("Non ajoutées :"),
 		"nothing_to_send": _("Aucune quantité saisie."),
 		"error": _("La requête a échoué. Réessayez."),
-		"shortcuts": _("Entrée : case suivante · Échap : retour à la recherche · Ctrl+Entrée : envoyer"),
+		"shortcuts": _("Entrée : case suivante · Échap : retour à la recherche · Ctrl+Entrée : tout envoyer"),
 		"qty": _("Qté"),
 		"add": _("Ajouter"),
 	}
@@ -585,23 +664,19 @@ def page_context(context):
 	"""What /quick-order renders: the refusal, or the app and its configuration."""
 	context.allowed = False
 	context.reason = ""
-	party = get_party()
-	if not party:
+	try:
+		party = require_shopper()
+	except frappe.PermissionError:
+		frappe.clear_last_message()
 		context.reason = _("Aucun compte client n'est rattaché à votre utilisateur.")
 		return context
-	if not is_reseller(party):
-		context.reason = _("Cette page est réservée aux comptes professionnels.")
-		return context
 	price_list = effective_price_list()
-	currency = (
-		frappe.db.get_value("Price List", price_list, "currency") if price_list else None
-	) or frappe.defaults.get_global_default("currency")
 	context.allowed = True
 	context.config = {
 		"user": frappe.session.user,
 		"customer": party.get("customer_name") or party.get("name"),
 		"site": getattr(frappe.local, "website_profile", None) or frappe.local.site,
-		"currency": currency,
+		"currency": _currency(price_list),
 		"lang": frappe.local.lang or "fr",
 		"max_lines": MAX_LINES,
 		"cart_url": "/cart",

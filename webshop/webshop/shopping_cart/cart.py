@@ -80,9 +80,8 @@ def set_cart_count(quotation=None):
 # //// The function itself never trusts the caller: every path resolves the party
 # //// from the session, or from the guest_session_id cookie, never from an argument
 # //// (3bc2d836f1, 2025-02-11).
-# //// Neoffice — the B2B rule on its own, so the reseller's quick order
-# //// (quick_order/api.py) asks "is this customer B2B?" without building the whole
-# //// cart context. get_cart_quotation() below uses it too; same answer, one place.
+# //// Neoffice — the B2B rule on its own, callable without building the whole cart
+# //// context; get_cart_quotation() below uses it, the B2B checkout follows it.
 def is_b2b_customer_group(customer_group, cart_settings=None):
 	"""True when the shop runs the B2B tunnel and customer_group is one of its groups."""
 	cart_settings = cart_settings or frappe.get_cached_doc("Webshop Settings")

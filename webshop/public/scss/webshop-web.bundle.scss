@@ -339,5 +339,5 @@ body:has(.for-login-with-email-link) .page-breadcrumbs {
 //// Neoffice — new store opening-hours styles, single source of truth for /store-hours and the public block (afaa23b6d8 "feat(magasin): les horaires d'ouverture, saisis dans les réglages et affichés partout")
 @import "./webshop_opening_hours";
 @import "./webshop_assistant";
-//// Neoffice — the reseller's quick order page (quick_order/, www/quick-order/)
+//// Neoffice — the quick order page (quick_order/, www/quick-order/)
 @import "./webshop_quick_order";
