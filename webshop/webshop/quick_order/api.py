@@ -397,23 +397,30 @@ def get_matrix(template):
 # ---------------------------------------------------------------------------
 
 
-# //// Neoffice — added (27e93f3c "fix(quick-order): la CI sur ERPNext standard — tarification au
-# nom du client et deux tests mal posés"): upstream ERPNext version-15 now checks read
-# permission on Item inside get_item_details, which raised PermissionError for a portal
-# customer pricing their own cart on the CI's fresh standard-ERPNext site (our fleet fork
-# has no such check yet). Drop this once the fleet fork gains an equivalent allowance, or
-# once the shop's own pricing path stops going through get_item_details.
-def _let_pricing_read_items(quotation):
-	"""The shop prices its own published items on the customer's behalf.
+def _save_on_behalf(quotation, party):
+	"""Price and save the customer's own cart with the shop's rights.
 
-	Upstream ERPNext version-15 checks the read permission on Item inside
-	`get_item_details` (measured on the CI's stock site: PermissionError for a
-	portal customer, who holds no role on Item; the fleet's fork has no such
-	check yet). `get_cached_doc` hands back the same object for the rest of the
-	request, so the flag set here is the one that check reads.
+	Upstream ERPNext version-15 checks, inside the quotation's validate, the read
+	permission on Item (`get_item_details`) and on the receivable Account
+	(`get_party_account`) — permissions a portal customer never holds. Measured
+	on the CI's stock site: PermissionError twice; the fleet's fork has neither
+	check yet (neoffice-maintenance#277). The document stays the customer's:
+	owner and modified_by are put back once saved.
 	"""
-	for row in quotation.get("items") or []:
-		frappe.get_cached_doc("Item", row.item_code).flags.ignore_permissions = True
+	user = frappe.session.user
+	was_new = quotation.is_new()
+	frappe.set_user("Administrator")
+	try:
+		apply_cart_settings(party, quotation)
+		quotation.payment_schedule = []
+		quotation.save(ignore_version=True)
+	finally:
+		frappe.set_user(user)
+	stamp = {"modified_by": user}
+	if was_new:
+		stamp["owner"] = user
+	frappe.db.set_value("Quotation", quotation.name, stamp, update_modified=False)
+	quotation.update(stamp)
 
 
 def _parse_lines(lines):
@@ -506,13 +513,7 @@ def add_lines(lines):
 	if added:
 		quotation.flags.ignore_permissions = True
 		quotation.flags.ignore_mandatory = True
-		# //// Neoffice — added (27e93f3c "fix(quick-order): la CI sur ERPNext standard — tarification
-		# au nom du client et deux tests mal posés"): let get_item_details read the Item rows in
-		# this batch before pricing runs.
-		_let_pricing_read_items(quotation)
-		apply_cart_settings(party, quotation)
-		quotation.payment_schedule = []
-		quotation.save(ignore_version=True)
+		_save_on_behalf(quotation, party)
 		set_cart_count(quotation)
 
 	total_qty = sum(flt(row.qty) for row in quotation.get("items") or [])
