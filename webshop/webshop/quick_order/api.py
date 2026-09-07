@@ -397,6 +397,7 @@ def get_matrix(template):
 # ---------------------------------------------------------------------------
 
 
+# //// Neoffice — added (c12b9a4d5e "fix(quick-order): tarifer et sauvegarder le panier au nom du client sur ERPNext standard"): upstream version-15 also checks the receivable Account permission on save (get_party_account in set_payment_schedule), on top of Item permission — a portal customer holds neither, so the shop prices and saves with its own rights and restores ownership after
 def _save_on_behalf(quotation, party):
 	"""Price and save the customer's own cart with the shop's rights.
 
@@ -407,6 +408,7 @@ def _save_on_behalf(quotation, party):
 	check yet (neoffice-maintenance#277). The document stays the customer's:
 	owner and modified_by are put back once saved.
 	"""
+	# //// Neoffice — see the block marker above: saves as Administrator, then restores owner/modified_by
 	user = frappe.session.user
 	was_new = quotation.is_new()
 	frappe.set_user("Administrator")
@@ -513,6 +515,7 @@ def add_lines(lines):
 	if added:
 		quotation.flags.ignore_permissions = True
 		quotation.flags.ignore_mandatory = True
+		# //// Neoffice — added (c12b9a4d5e "fix(quick-order): tarifer et sauvegarder le panier au nom du client sur ERPNext standard"): save through _save_on_behalf() rather than quotation.save(), since a portal customer lacks both the Item and Account read permissions upstream's validate requires
 		_save_on_behalf(quotation, party)
 		set_cart_count(quotation)
 

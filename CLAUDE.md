@@ -554,6 +554,7 @@ days) until it is sent; the cart is the state afterwards.
 > named (`capped`), what it cannot sell here is refused and named (`refused`);
 > a valid line is never held back by a refused one.
 
+<!-- //// Neoffice — documents the second upstream check found by CI (c12b9a4d5e "fix(quick-order): tarifer et sauvegarder le panier au nom du client sur ERPNext standard"): get_party_account, alongside get_item_details, blocks a portal customer's own quotation save -->
 > **Upstream ERPNext version-15 checks Item and Account permissions inside the
 > quotation's validate** (`get_item_details`, `get_party_account`) — a portal
 > customer holds neither, so their own cart cannot be priced or saved on a stock
