@@ -399,14 +399,6 @@ class TestQuickOrder(FrappeTestCase):
 			}
 		)
 		rule.insert(ignore_permissions=True)
-		# //// Neoffice — clear the cache so the freshly-inserted rule is matched
-		# (27e93f3c-follow-up "fix(quick-order): la CI sur ERPNext standard"): in the CI's full-app
-		# run (one process, ~250 tests before this one) an earlier module leaves the pricing engine's
-		# cache in a state where get_pricing_rule_for_item misses a rule created afterwards — the grid
-		# showed the list price (100) instead of the ruled price (90). A targeted-module run has a
-		# clean cache, so the miss only ever showed in the informative suite. Clearing here forces a
-		# fresh rule lookup, independent of whatever ran before.
-		frappe.clear_cache()
 		# //// Neoffice — wrapped in try/finally to remove the rule after the test (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client"): left in place, it discounted every test that ran after this one
 		try:
 			frappe.set_user(USER)
