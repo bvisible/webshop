@@ -13,6 +13,7 @@ and reports what it kept.
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import flt
 
 from webshop.webshop.doctype.website_item.website_item import make_website_item
 from webshop.webshop.quick_order import api
@@ -161,6 +162,14 @@ class TestQuickOrder(FrappeTestCase):
 		# //// Neoffice — added LOOSE_ITEM (27e93f3c "fix(quick-order): la CI sur ERPNext standard —
 		# tarification au nom du client et deux tests mal posés"): LOOSE_ITEM is now a class fixture,
 		# so it must be purged here too.
+		for so in frappe.get_all("Sales Order", filters={"customer": CUSTOMER}, pluck="name"):
+			doc = frappe.get_doc("Sales Order", so)
+			if doc.docstatus == 1:
+				doc.flags.ignore_permissions = True
+				doc.cancel()
+			frappe.delete_doc("Sales Order", so, force=True, ignore_permissions=True)
+		for rule in frappe.get_all("Pricing Rule", filters={"title": ["like", f"{PREFIX} QO%"]}, pluck="name"):
+			frappe.delete_doc("Pricing Rule", rule, force=True, ignore_permissions=True)
 		codes = frappe.get_all("Item", filters={"variant_of": TEMPLATE}, pluck="name") + [TEMPLATE, LOOSE_ITEM]
 		frappe.db.delete("Item Price", {"item_code": ["in", codes]})
 		for name in frappe.get_all("Website Item", filters={"item_code": ["in", codes]}, pluck="name"):
@@ -324,6 +333,87 @@ class TestQuickOrder(FrappeTestCase):
 		# no reseller price for this one: the grid says so instead of borrowing the public one
 		self.assertIsNone(by_code[self.variants[("Blanc", "L")]]["price"])
 		self.assertIsNone(by_code[self.variants[("Blanc", "L")]]["formatted_price"])
+
+	def test_the_matrix_prices_at_the_customer_s_own_list_when_the_site_has_none(self):
+		"""No site tariff: the cart takes the customer's default list, so does the grid."""
+		frappe.db.set_value("Customer", CUSTOMER, "default_price_list", RESELLER_LIST)
+		frappe.set_user(USER)
+		self.assertEqual(api.customer_price_list(self.settings), RESELLER_LIST)
+		matrix = api.get_matrix(TEMPLATE)
+		by_code = {v["item_code"]: v for v in matrix["variants"]}
+		self.assertEqual(by_code[self.variants[("Noir", "S")]]["price"], 80)
+		self.assertIsNone(by_code[self.variants[("Blanc", "L")]]["price"])
+		# the plain customer, on the same shop, keeps the shop's list
+		frappe.set_user(PLAIN_USER)
+		self.assertEqual(api.customer_price_list(self.settings), selling_price_list())
+		self.assertEqual({v["price"] for v in api.get_matrix(TEMPLATE)["variants"]}, {100})
+
+	def test_the_matrix_applies_the_shop_s_pricing_rules_like_the_product_page(self):
+		noir_s = self.variants[("Noir", "S")]
+		rule = frappe.get_doc(
+			{
+				"doctype": "Pricing Rule",
+				"title": f"{PREFIX} QO ten percent",
+				"apply_on": "Item Code",
+				"items": [{"item_code": noir_s}],
+				"selling": 1,
+				"price_or_product_discount": "Price",
+				"rate_or_discount": "Discount Percentage",
+				"discount_percentage": 10,
+				"company": default_company(),
+				"currency": frappe.db.get_value("Price List", selling_price_list(), "currency"),
+			}
+		)
+		rule.insert(ignore_permissions=True)
+		frappe.set_user(USER)
+		by_code = {v["item_code"]: v for v in api.get_matrix(TEMPLATE)["variants"]}
+		self.assertEqual(by_code[noir_s]["price"], 90)
+		self.assertEqual(by_code[noir_s]["list_price"], 100)
+		self.assertIn("90", by_code[noir_s]["formatted_price"])
+		self.assertEqual(by_code[self.variants[("Noir", "M")]]["price"], 100)
+		self.assertIsNone(by_code[self.variants[("Noir", "M")]]["list_price"])
+
+	# --- the order as a spreadsheet ---------------------------------------------------
+
+	def test_the_order_downloads_as_a_spreadsheet_for_its_customer_only(self):
+		from webshop.webshop.utils.order_export import download_order_xlsx, order_rows
+
+		frappe.set_user("Administrator")
+		order = frappe.get_doc(
+			{
+				"doctype": "Sales Order",
+				"customer": CUSTOMER,
+				"company": default_company(),
+				"transaction_date": frappe.utils.nowdate(),
+				"delivery_date": frappe.utils.add_days(frappe.utils.nowdate(), 5),
+				"selling_price_list": selling_price_list(),
+				"items": [
+					{"item_code": self.variants[("Noir", "M")], "qty": 3, "rate": 100, "delivery_date": frappe.utils.add_days(frappe.utils.nowdate(), 5)}
+				],
+			}
+		)
+		order.flags.ignore_permissions = True
+		order.insert()
+		order.submit()
+		rows = order_rows(order)
+		self.assertEqual(rows[0][0], "Item Code")
+		self.assertIn(SIZE, rows[0])
+		line = rows[1]
+		self.assertEqual(line[0], self.variants[("Noir", "M")])
+		self.assertIn("M", line)
+		self.assertIn(BARCODE, line)
+		self.assertEqual(line[-4:-1], [3.0, line[-3], 100.0])
+		self.assertEqual(line[-1], 300.0)
+		self.assertIn(["Grand Total", flt(order.grand_total)] + [""] * (len(rows[0]) - 2), rows)
+		frappe.set_user(USER)
+		download_order_xlsx("Sales Order", order.name)
+		self.assertEqual(frappe.response.get("type"), "download")
+		self.assertEqual(frappe.response.get("filename"), f"{order.name}.xlsx")
+		self.assertTrue(frappe.response.get("filecontent", b"").startswith(b"PK"))
+		# somebody else's order is nobody's business
+		frappe.set_user(PLAIN_USER)
+		with self.assertRaises(frappe.PermissionError):
+			download_order_xlsx("Sales Order", order.name)
 
 	# --- the batch into the cart ----------------------------------------------------
 

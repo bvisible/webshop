@@ -218,12 +218,14 @@
 			stockText = L.out_of_stock;
 			stockClass = "is-out";
 		}
-		const price = variant.formatted_price || L.price_on_request;
+		const price = variant.formatted_price
+			? (variant.formatted_list_price ? `<s>${escape(variant.formatted_list_price)}</s> ${escape(variant.formatted_price)}` : escape(variant.formatted_price))
+			: escape(L.price_on_request);
 		const over = variant.stock != null && qty > variant.stock ? " is-over" : "";
 		return `<td class="wsh-qo-cell${over}" data-item="${escape(variant.item_code)}" data-stock="${variant.stock == null ? "" : variant.stock}">
 			<input type="number" class="wsh-qo-qty" min="0" step="1" inputmode="numeric" placeholder="0" value="${qty}"
 				data-item="${escape(variant.item_code)}" aria-label="${escape(variant.item_name)}" title="${escape(variant.item_code)}">
-			<span class="wsh-qo-cell__meta"><span class="wsh-qo-stock ${stockClass}">${escape(stockText)}</span><span class="wsh-qo-price">${escape(price)}</span></span>
+			<span class="wsh-qo-cell__meta"><span class="wsh-qo-stock ${stockClass}">${escape(stockText)}</span><span class="wsh-qo-price">${price}</span></span>
 		</td>`;
 	}
 

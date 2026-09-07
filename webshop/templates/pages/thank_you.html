@@ -45,6 +45,11 @@
                                           <strong>{{ _("Date :") }}</strong> {{ frappe.utils.format_date(sales_order.transaction_date) }}<br>
                                           <strong>{{ _("Status :") }}</strong> {{ _(sales_order.status) }}<br>
                                           <strong>{{ _("Total :") }}</strong> {{ webshop_fmt_money(sales_order.grand_total, currency=sales_order.currency) }}
+							{# //// Neoffice — the order as a spreadsheet (utils/order_export.py) #}
+							<a class="btn btn-outline-primary btn-sm mt-3" id="download-order-xlsx"
+								href="/api/method/webshop.webshop.utils.order_export.download_order_xlsx?doctype=Sales%20Order&name={{ sales_order.name | urlencode }}">
+								{{ _("Télécharger la commande en Excel") }}
+							</a>
                                           {% if payment_info %}
                                                 <br><br>
                                                 <strong>{{ _("Payment Method :") }}</strong> {{ payment_info.mode_of_payment_label }}<br>

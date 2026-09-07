@@ -32,6 +32,12 @@
 					rel="noopener noreferrer">
 					{{ _("Print") }}
 				</a>
+				{# //// Neoffice — the order as a spreadsheet, for the customer's own systems #}
+				{# //// (utils/order_export.py). Same permission as this page. #}
+				<a class="dropdown-item" id="download-order-xlsx"
+					href="/api/method/webshop.webshop.utils.order_export.download_order_xlsx?doctype={{ doc.doctype | urlencode }}&name={{ doc.name | urlencode }}">
+					{{ _("Télécharger en Excel") }}
+				</a>
 			</ul>
 		</div>
 		<div class="form-column col-sm-6">

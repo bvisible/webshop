@@ -29,6 +29,7 @@ from webshop.webshop.multi_site import (
 )
 from webshop.webshop.shopping_cart.cart import (
 	_get_cart_quotation,
+	_set_price_list,
 	apply_cart_settings,
 	available_cart_qty,
 	get_party,
@@ -211,18 +212,22 @@ def search_references(query, limit=SEARCH_LIMIT):
 	results, seen = [], set()
 	exact = resolve(query)
 	if exact:
-		results.append(
-			{
-				"kind": "variant" if exact.attrs else _card(exact.website_item)["kind"],
-				"item_code": exact.item_code,
-				"name": exact.item_name,
-				"template": exact.template,
-				"attrs": exact.attrs,
-				"image": exact.website_item.website_image,
-				"route": exact.website_item.route,
-				"variant_count": 0,
-			}
-		)
+		if exact.attrs:
+			results.append(
+				{
+					"kind": "variant",
+					"item_code": exact.item_code,
+					"name": exact.item_name,
+					"template": exact.template,
+					"attrs": exact.attrs,
+					"image": exact.website_item.website_image,
+					"route": exact.website_item.route,
+					"variant_count": 0,
+				}
+			)
+		else:
+			# the model itself, or a simple item: its card, variant count included
+			results.append(_card(exact.website_item))
 		seen.add(exact.website_item.item_code)
 
 	like = "%" + query.replace(" ", "%") + "%"
@@ -296,27 +301,47 @@ def _ordered_values(attribute, used):
 	return _sort_values(ordered)
 
 
-def _prices(item_codes, price_list):
-	"""{item_code: rate} on price_list, valid today; the stock UOM's row when several."""
+def customer_price_list(settings):
+	"""The list the cart will price this session at: the site's, else the customer's
+	own (or their group's), else the shop's default — `_set_price_list`, the cart's rule."""
+	return _set_price_list(settings) or effective_price_list()
+
+
+def _price_of(item_code, price_list, party, settings, warehouse=None):
+	"""What the product page shows for one item: the list rate, the shop's pricing
+	rules applied — the figure the cart will carry. None when the list has no price."""
+	from erpnext.utilities.product import get_price
+
+	customer_group = (party.get("customer_group") if party else None) or settings.default_customer_group
+	kwargs = {"party": party if party and party.get("doctype") == "Customer" else None}
+	try:
+		price = get_price(item_code, price_list, customer_group, settings.company, warehouse=warehouse, **kwargs)
+	except TypeError:
+		# stock ERPNext: get_price knows no warehouse keyword
+		price = get_price(item_code, price_list, customer_group, settings.company, **kwargs)
+	if not price or price.get("price_list_rate") is None:
+		return None
+	out = {
+		"price": flt(price.get("price_list_rate")),
+		"formatted_price": price.get("formatted_price") or "",
+		"list_price": None,
+		"formatted_list_price": None,
+	}
+	if price.get("mrp") and flt(price.get("mrp")) != out["price"]:
+		out["list_price"] = flt(price.get("mrp"))
+		out["formatted_list_price"] = price.get("formatted_mrp") or ""
+	return out
+
+
+def _prices(item_codes, price_list, party, settings, warehouse=None):
+	"""{item_code: price dict} for every variant priced on price_list."""
 	if not price_list or not item_codes:
 		return {}
-	today = getdate(nowdate())
-	rows = frappe.get_all(
-		"Item Price",
-		filters={"item_code": ["in", item_codes], "price_list": price_list, "selling": 1},
-		fields=["item_code", "price_list_rate", "uom", "valid_from", "valid_upto"],
-		order_by="valid_from desc",
-	)
-	stock_uoms = dict(frappe.get_all("Item", filters={"name": ["in", item_codes]}, fields=["name", "stock_uom"], as_list=True))
 	prices = {}
-	for row in rows:
-		if row.valid_from and getdate(row.valid_from) > today:
-			continue
-		if row.valid_upto and getdate(row.valid_upto) < today:
-			continue
-		if row.uom and row.uom != stock_uoms.get(row.item_code):
-			continue
-		prices.setdefault(row.item_code, flt(row.price_list_rate))
+	for code in item_codes:
+		priced = _price_of(code, price_list, party, settings, warehouse)
+		if priced:
+			prices[code] = priced
 	return prices
 
 
@@ -352,8 +377,7 @@ def _currency(price_list):
 @frappe.whitelist(allow_guest=True)
 def get_matrix(template):
 	"""Everything the grid of one model needs, scoped to the site, in one call."""
-	# //// Neoffice — require_shopper() replaces require_reseller() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
-	require_shopper()
+	party = require_shopper()
 	website_item = sellable_website_item(template)
 	if not website_item or not cint(frappe.db.get_value("Item", template, "has_variants")):
 		frappe.throw(_("Ce modèle n'est pas disponible sur cette boutique."), frappe.DoesNotExistError)
@@ -367,8 +391,7 @@ def get_matrix(template):
 	codes = list(attrs_by_variant)
 
 	settings = cart_settings()
-	price_list = effective_price_list()
-	# //// Neoffice — reuses _currency() instead of repeating the lookup (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
+	price_list = customer_price_list(settings)
 	currency = _currency(price_list)
 
 	out = {
@@ -391,7 +414,7 @@ def get_matrix(template):
 			"Item", filters={"name": ["in", codes]}, fields=["name", "item_name", "image", "stock_uom"]
 		)
 	}
-	prices = _prices(codes, price_list)
+	prices = _prices(codes, price_list, party, settings, website_item.website_warehouse)
 	stock = _stock(codes, website_item, settings)
 
 	used = {attribute: set() for attribute in attributes}
@@ -405,14 +428,16 @@ def get_matrix(template):
 		item = items.get(code)
 		if not item:
 			continue
-		price = prices.get(code)
+		priced = prices.get(code) or {}
 		out["variants"].append(
 			{
 				"item_code": code,
 				"item_name": item.item_name,
 				"attrs": attrs_by_variant[code],
-				"price": price,
-				"formatted_price": fmt_money(price, currency=currency) if price is not None else None,
+				"price": priced.get("price"),
+				"formatted_price": priced.get("formatted_price") or None,
+				"list_price": priced.get("list_price"),
+				"formatted_list_price": priced.get("formatted_list_price") or None,
 				"stock": stock.get(code),
 				"uom": item.stock_uom,
 			}
@@ -623,7 +648,7 @@ def add_lines(lines):
 	# //// Neoffice — quotation may be None (a guest with nothing accepted) (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): each figure falls back instead of assuming a quotation always exists
 	total_qty = sum(flt(row.qty) for row in (quotation.get("items") if quotation else None) or [])
 	grand_total = flt(quotation.grand_total) if quotation else 0
-	currency = quotation.currency if quotation else _currency(effective_price_list())
+	currency = quotation.currency if quotation else _currency(customer_price_list(settings))
 	return {
 		# //// Neoffice — built from the accepted tuples (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): add_lines() no longer keeps its own added list
 		"added": [{"item_code": code, "qty": qty} for code, _warehouse, qty in accepted],
@@ -702,8 +727,7 @@ def page_context(context):
 		frappe.clear_last_message()
 		context.reason = _("Aucun compte client n'est rattaché à votre utilisateur.")
 		return context
-	price_list = effective_price_list()
-	# //// Neoffice — removed the is_reseller() refusal and the inline currency lookup (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): any signed-in customer/allowed visitor reaches here now, and currency is looked up via _currency() below
+	price_list = customer_price_list(cart_settings())
 	context.allowed = True
 	context.config = {
 		"user": frappe.session.user,

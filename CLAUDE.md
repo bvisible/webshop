@@ -579,7 +579,24 @@ the cart is the state afterwards. A guest's batch goes through
 > variants instead of thirty calls. With multi-warehouse on, the grid shows
 > `get_aggregate_stock()` per variant, the figure the cart will honour.
 
-<!-- //// Neoffice — updated: test coverage now names the visitor gate and the guest-cart path, and the e2e description matches the new roles (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille") -->
+> **The grid prices what the cart will charge.** `customer_price_list()` is
+> `_set_price_list()`, the cart's own resolution — the site's tariff, else the
+> customer's default list (or their group's), else the shop's — and every
+> variant goes through ERPNext's `get_price()` with the customer's group and
+> party, so the shop's pricing rules apply as on the product page. A rule shows
+> as the list price struck through next to the price. Measured on osiris: a
+> plain customer sees 99.80 → 89.82, a reseller whose Customer carries
+> `default_price_list = Vente B2B` sees 79.80 → 71.82, and both carts bill
+> exactly that.
+
+**The order as a spreadsheet.** `utils/order_export.py` → `download_order_xlsx`
+(GET, `doctype` + `name`): a bold header row, one line per item with code,
+name, the variants' attribute columns, barcode, quantity, unit, rate and
+amount, then a summary block (order, date, customer, status, currency, totals).
+Same permission as the order page (`frappe.has_website_permission`); anybody
+else gets 403. Linked from the order page's Actions menu and from the thank-you
+page, for every customer.
+
 Tests: `quick_order/test_quick_order.py` (the gate for a customer, a visitor
 and an account without customer, search by code, name and barcode, site
 scoping, tariff of the site, the batch and its capping — all with an in-memory
