@@ -6,6 +6,20 @@
 
 .wsh-qo-refusal { max-width: 560px; }
 
+/* //// Neoffice — fullscreen mode: the app fills the window so wide variant grids
+   are readable (2026-09-07). Works with native :fullscreen and the CSS fallback. */
+.wsh-qo__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.wsh-qo__fullscreen { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.wsh-qo.is-fullscreen,
+#wsh-qo:fullscreen {
+	position: fixed; inset: 0; z-index: 1090;
+	background: #fff; padding: 24px; overflow: auto; max-width: none;
+}
+.wsh-qo.is-fullscreen .wsh-qo-model__scroll,
+#wsh-qo:fullscreen .wsh-qo-model__scroll { max-height: 72vh; }
+.wsh-qo.is-fullscreen .wsh-qo__recap,
+#wsh-qo:fullscreen .wsh-qo__recap { top: 24px; }
+
 .wsh-qo {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) 280px;
@@ -88,10 +102,24 @@
 }
 .wsh-qo-cell {
 	&--none { color: #d1d5db; }
+	/* - / + steppers flanking the qty input, for clarity (2026-09-07) */
+	&-controls { display: inline-flex; align-items: center; gap: 4px; }
 	&__meta { display: flex; justify-content: center; gap: 6px; font-size: .72rem; line-height: 1.2; margin-top: 3px; white-space: nowrap; }
 	/* the base input rules carry !important (the theme forces them on every input), so these must too */
 	&.is-over .wsh-qo-qty { border-color: #f59e0b !important; background: #fffbeb !important; }
 	&.is-over .wsh-qo-stock { color: #b45309; font-weight: 700; }
+}
+.wsh-qo-step {
+	width: 26px; height: 34px; flex: 0 0 auto; padding: 0;
+	display: inline-flex; align-items: center; justify-content: center;
+	border: 1px solid #d1d5db; border-radius: 8px; background: #fff;
+	color: #6b7280; font-size: 15px; font-weight: 700; line-height: 1; cursor: pointer; user-select: none;
+	&:hover { border-color: var(--primary, #1f2937); color: var(--primary, #1f2937); }
+	&:active { transform: scale(.94); }
+}
+.wsh-qo-table--single {
+	tbody th { border-right: 1px solid #e5e7eb; }
+	td { text-align: center; }
 }
 .wsh-qo-qty {
 	width: 64px; height: 34px; text-align: center; padding: 2px 4px; font-size: 1rem;

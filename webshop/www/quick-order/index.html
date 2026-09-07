@@ -22,6 +22,11 @@
 			{# the theme prints context.title as the page heading: no second title here #}
 			<header class="wsh-qo__head">
 				<p class="text-muted m-0">{{ config.labels.lead }}</p>
+				{# //// Neoffice — fullscreen toggle: variant grids are wide, the full window helps (2026-09-07) #}
+				<button type="button" class="btn btn-sm btn-light wsh-qo__fullscreen" aria-pressed="false">
+					<span class="wsh-qo__fullscreen-icon" aria-hidden="true">⛶</span>
+					<span class="wsh-qo__fullscreen-label">{{ config.labels.fullscreen }}</span>
+				</button>
 			</header>
 
 			<div class="wsh-qo__resume" hidden>

@@ -30,6 +30,8 @@
 		resumeText: root.querySelector(".wsh-qo__resume-text"),
 		resumeYes: root.querySelector(".wsh-qo__resume-yes"),
 		resumeNo: root.querySelector(".wsh-qo__resume-no"),
+		fullscreen: root.querySelector(".wsh-qo__fullscreen"),
+		fullscreenLabel: root.querySelector(".wsh-qo__fullscreen-label"),
 	};
 
 	// ------------------------------------------------------------------
@@ -225,8 +227,12 @@
 		const over = variant.stock != null && qty > variant.stock ? " is-over" : "";
 		// //// Neoffice — the returned markup below now carries a wsh-qo-price span, using the `price` computed above (6696be727a "feat(quick-order): le prix du client, et la commande en Excel"); not marked inline since it sits inside this template literal
 		return `<td class="wsh-qo-cell${over}" data-item="${escape(variant.item_code)}" data-stock="${variant.stock == null ? "" : variant.stock}">
-			<input type="number" class="wsh-qo-qty" min="0" step="1" inputmode="numeric" placeholder="0" value="${qty}"
-				data-item="${escape(variant.item_code)}" aria-label="${escape(variant.item_name)}" title="${escape(variant.item_code)}">
+			<span class="wsh-qo-cell-controls">
+				<button type="button" class="wsh-qo-step wsh-qo-minus" tabindex="-1" aria-label="-">\u2212</button>
+				<input type="number" class="wsh-qo-qty" min="0" step="1" inputmode="numeric" placeholder="0" value="${qty}"
+					data-item="${escape(variant.item_code)}" aria-label="${escape(variant.item_name)}" title="${escape(variant.item_code)}">
+				<button type="button" class="wsh-qo-step wsh-qo-plus" tabindex="-1" aria-label="+">+</button>
+			</span>
 			<span class="wsh-qo-cell__meta"><span class="wsh-qo-stock ${stockClass}">${escape(stockText)}</span><span class="wsh-qo-price">${price}</span></span>
 		</td>`;
 	}
@@ -248,8 +254,11 @@
 		}
 
 		let table;
-		if (attrs.length === 0) {
-			table = "";
+		if (data.simple || attrs.length === 0) {
+			// a simple item: name + one qty cell, no attribute table (which showed a
+			// confusing "Qté / Qté" double header)
+			const v = data.variants[0];
+			table = `<table class="wsh-qo-table wsh-qo-table--single"><tbody><tr><th scope="row">${escape(v ? v.item_name : "")}</th>${cellHtml(v)}</tr></tbody></table>`;
 		} else if (attrs.length === 1) {
 			const rows = attrs[0].values
 				.map((v1) => `<tr><th scope="row">${escape(v1)}</th>${cellHtml(byCombo[variantKey([v1])])}</tr>`)
@@ -276,7 +285,7 @@
 				${image}
 				<div class="wsh-qo-model__title">
 					<a href="${escape("/" + (data.template.route || ""))}" target="_blank" rel="noopener">${escape(data.template.name)}</a>
-					<span class="text-muted">${escape(data.template.item_code)} · ${escape(fmt(L.variants, data.variants.length))}</span>
+					<span class="text-muted">${escape(data.template.item_code)}${data.simple ? "" : " · " + escape(fmt(L.variants, data.variants.length))}</span>
 				</div>
 				${dim3Html}
 				<button type="button" class="btn btn-sm btn-light wsh-qo-model__reset">${escape(L.reset_model)}</button>
@@ -320,6 +329,17 @@
 					e.preventDefault();
 					el.input.focus();
 				}
+			});
+		});
+		//// - / + steppers around each qty input; a step triggers the same input handler
+		node.querySelectorAll(".wsh-qo-step").forEach((step) => {
+			step.addEventListener("click", () => {
+				const input = step.parentElement.querySelector(".wsh-qo-qty");
+				if (!input) return;
+				const delta = step.classList.contains("wsh-qo-plus") ? 1 : -1;
+				const next = Math.max(0, (parseFloat(input.value) || 0) + delta);
+				input.value = next > 0 ? next : "";
+				input.dispatchEvent(new Event("input", { bubbles: true }));
 			});
 		});
 		const dim3 = node.querySelector(".wsh-qo-dim3-select");
@@ -463,32 +483,10 @@
 			}
 			return;
 		}
-		// a simple item: one line, quantity typed in its own small grid
-		let simple = state.models.find((m) => m.template === result.item_code);
-		if (!simple) {
-			simple = {
-				template: result.item_code,
-				dim3: null,
-				data: {
-					template: { item_code: result.item_code, name: result.name, image: result.image, route: result.route },
-					attributes: [{ attribute: L.qty, values: [result.name] }],
-					variants: [{ item_code: result.item_code, item_name: result.name, attrs: { [L.qty]: result.name }, price: null, formatted_price: null, stock: null, uom: "" }],
-					currency: config.currency,
-				},
-			};
-			// the real price and stock come from the matrix endpoint's sibling: ask for the item's card
-			try {
-				const found = await call("webshop.webshop.quick_order.api.resolve_code", { code: result.item_code });
-				if (found && found.item_code) simple.data.variants[0].item_name = found.item_name || result.name;
-			} catch (e) {
-				// the name we have is fine
-			}
-			state.models.unshift(simple);
-			renderModel(simple, true);
-		}
-		focusCell(result.item_code, true);
-		renderTotals();
-		save();
+		// a simple item: the server prices it too (get_matrix returns a one-cell grid),
+		// so it goes through the same path as a model — no client-side price guessing
+		const model = await openModel(result.item_code);
+		if (model) focusCell(result.item_code, true);
 	}
 
 	async function submitQuery() {
@@ -705,6 +703,38 @@
 			forgetDraft();
 			el.input.focus();
 		});
+	}
+
+	// ------------------------------------------------------------------
+	// fullscreen: variant grids are wide; the whole window gives room to see them
+	// ------------------------------------------------------------------
+	const fsTarget = root; // the app container goes fullscreen, header and recap included
+	function isFullscreen() {
+		return document.fullscreenElement === fsTarget || root.classList.contains("is-fullscreen");
+	}
+	function reflectFullscreen() {
+		const on = isFullscreen();
+		root.classList.toggle("is-fullscreen", on);
+		if (el.fullscreen) el.fullscreen.setAttribute("aria-pressed", on ? "true" : "false");
+		if (el.fullscreenLabel) el.fullscreenLabel.textContent = on ? (L.exit_fullscreen || "") : (L.fullscreen || "");
+	}
+	if (el.fullscreen) {
+		el.fullscreen.addEventListener("click", async () => {
+			try {
+				if (document.fullscreenElement) {
+					await document.exitFullscreen();
+				} else if (fsTarget.requestFullscreen) {
+					await fsTarget.requestFullscreen();
+				} else {
+					// no native fullscreen: a CSS-only full-window fallback
+					root.classList.toggle("is-fullscreen");
+				}
+			} catch (e) {
+				root.classList.toggle("is-fullscreen");
+			}
+			reflectFullscreen();
+		});
+		document.addEventListener("fullscreenchange", reflectFullscreen);
 	}
 
 	renderTotals();

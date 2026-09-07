@@ -382,9 +382,16 @@ def _prices(item_codes, price_list, party, settings, warehouse=None):
 
 
 def _stock(item_codes, website_item, settings):
-	"""{item_code: available qty or None} by the shop's rule — sources when the
-	multi-warehouse feature is on, the model's website warehouse otherwise."""
+	"""{item_code: available qty or None} by the shop's rule.
+
+	Multi-warehouse sources when the feature is on; otherwise the template's
+	website warehouse in one bulk query for the variants that share it, and the
+	canonical per-item resolver (Website Item, then its template) for anything
+	without one — a simple item rarely carries its own website warehouse, and
+	that is what left its stock unknown. None = not a stock item (unlimited).
+	"""
 	from webshop.webshop.multi_warehouse import sources as mw_sources
+	from webshop.webshop.utils.product import get_web_item_qty_in_stock
 
 	stock = {}
 	remaining = list(item_codes)
@@ -394,12 +401,20 @@ def _stock(item_codes, website_item, settings):
 			if aggregate is not None:
 				stock[code] = flt(aggregate.stock_qty)
 				remaining.remove(code)
-	if remaining:
-		warehouse = website_item.website_warehouse or settings.get("default_warehouse")
-		bulk = get_web_items_qty_in_stock(remaining, warehouse) if warehouse else {}
-		stock_items = set(frappe.get_all("Item", filters={"name": ["in", remaining], "is_stock_item": 1}, pluck="name"))
-		for code in remaining:
-			stock[code] = flt(bulk.get(code, 0)) if code in stock_items else None
+	if not remaining:
+		return stock
+	stock_items = set(frappe.get_all("Item", filters={"name": ["in", remaining], "is_stock_item": 1}, pluck="name"))
+	warehouse = website_item.website_warehouse or settings.get("default_warehouse")
+	bulk = get_web_items_qty_in_stock([c for c in remaining if c in stock_items], warehouse) if warehouse else {}
+	for code in remaining:
+		if code not in stock_items:
+			stock[code] = None
+		elif code in bulk:
+			stock[code] = flt(bulk[code])
+		else:
+			# no site warehouse on this item: the canonical rule resolves one from
+			# the Website Item (or its template) exactly as the card and the page do
+			stock[code] = flt(get_web_item_qty_in_stock(code, "website_warehouse").stock_qty)
 	return stock
 
 
@@ -410,14 +425,55 @@ def _currency(price_list):
 	) or frappe.defaults.get_global_default("currency")
 
 
+def _simple_matrix(item_code, website_item, party):
+	"""One published item with no variants, as a single-cell grid — priced and
+	stocked by the same rules as a template's cells."""
+	settings = cart_settings()
+	price_list = customer_price_list(settings, party)
+	currency = _currency(price_list)
+	item = frappe.db.get_value("Item", item_code, ["item_name", "stock_uom"], as_dict=True) or frappe._dict()
+	priced = _prices([item_code], price_list, party, settings, website_item.website_warehouse).get(item_code, {})
+	stock = _stock([item_code], website_item, settings).get(item_code)
+	return {
+		"template": {
+			"item_code": website_item.item_code,
+			"name": website_item.web_item_name,
+			"image": website_item.website_image,
+			"route": website_item.route,
+		},
+		"attributes": [],
+		"variants": [
+			{
+				"item_code": item_code,
+				"item_name": item.get("item_name") or website_item.web_item_name,
+				"attrs": {},
+				"price": priced.get("price"),
+				"formatted_price": priced.get("formatted_price") or None,
+				"list_price": priced.get("list_price"),
+				"formatted_list_price": priced.get("formatted_list_price") or None,
+				"stock": stock,
+				"uom": item.get("stock_uom"),
+			}
+		],
+		"currency": currency,
+		"simple": True,
+	}
+
+
 @frappe.whitelist(allow_guest=True)
 def get_matrix(template):
 	"""Everything the grid of one model needs, scoped to the site, in one call."""
 	# //// Neoffice — party is now kept, to price each variant for this customer's group/party (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 	party = require_shopper()
 	website_item = sellable_website_item(template)
-	if not website_item or not cint(frappe.db.get_value("Item", template, "has_variants")):
+	if not website_item:
 		frappe.throw(_("Ce modèle n'est pas disponible sur cette boutique."), frappe.DoesNotExistError)
+
+	# //// Neoffice — a simple item is priced by the server too: it comes back as a
+	# //// one-cell grid, not a client-side placeholder that never fetched its price
+	# //// (which showed "Prix sur demande" / "Sur commande" for a priced item).
+	if not cint(frappe.db.get_value("Item", template, "has_variants")):
+		return _simple_matrix(template, website_item, party)
 
 	attributes = frappe.get_all(
 		"Item Variant Attribute", filters={"parent": template}, fields=["attribute"], order_by="idx asc", pluck="attribute"
@@ -714,6 +770,8 @@ def labels():
 	return {
 		# //// Neoffice — removed "title" (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): the page title is set directly in index.py's get_context(), this label was unused
 		"lead": _("Tapez une référence, un nom ou un code-barres : la grille du modèle s'ouvre et vous saisissez les quantités au clavier."),
+		"fullscreen": _("Plein écran"),
+		"exit_fullscreen": _("Quitter le plein écran"),
 		"placeholder": _("Référence, nom ou code-barres…"),
 		"no_results": _("Aucun article publié ne correspond."),
 		"unknown_code": _("Code inconnu sur cette boutique : {0}"),
@@ -723,11 +781,11 @@ def labels():
 		"close": _("Fermer"),
 		"reset_model": _("Tout à zéro"),
 		# //// Neoffice — added (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): label of each grid's own "add to cart" button
-		"add_model": _("Ajouter au panier"),
+		"add_model": _("Ajouter"),
 		"stock": _("Stock"),
 		"available": _("{0} disponibles"),
 		"out_of_stock": _("Épuisé"),
-		"unlimited": _("Sur commande"),
+		"unlimited": _("Disponible"),
 		"price_on_request": _("Prix sur demande"),
 		"none": _("Pas de variante"),
 		"over_stock": _("Au-delà du stock disponible"),
