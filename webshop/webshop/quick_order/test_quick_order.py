@@ -403,6 +403,46 @@ class TestQuickOrder(FrappeTestCase):
 		try:
 			frappe.set_user(USER)
 			by_code = {v["item_code"]: v for v in api.get_matrix(TEMPLATE)["variants"]}
+			# //// Neoffice — TEMPORARY diagnostic, to be removed: this assertion fails only in the
+			# CI's full-app run and never in a targeted-module run, and no local reproduction has
+			# caught it. Print the whole pricing context from the environment that actually fails.
+			if by_code[noir_s]["price"] != 90:
+				from erpnext.accounts.doctype.pricing_rule.pricing_rule import get_pricing_rule_for_item
+
+				party = api.get_party()
+				settings = api.cart_settings()
+				price_list = api.customer_price_list(settings, party)
+				args = frappe._dict(
+					{
+						"item_code": noir_s,
+						"qty": 1,
+						"stock_qty": 1,
+						"transaction_type": "selling",
+						"price_list": price_list,
+						"customer_group": party.get("customer_group"),
+						"company": settings.company,
+						"conversion_rate": 1,
+						"for_shopping_cart": True,
+						"currency": frappe.db.get_value("Price List", price_list, "currency"),
+						"doctype": "Quotation",
+						"customer": party.get("name"),
+					}
+				)
+				print("QO_DIAG price=%r list_price=%r" % (by_code[noir_s]["price"], by_code[noir_s]["list_price"]))
+				print("QO_DIAG price_list=%r currency=%r" % (price_list, args["currency"]))
+				print("QO_DIAG settings.company=%r default_company()=%r rule.company=%r" % (settings.company, default_company(), rule.company))
+				print("QO_DIAG rule=%r disable=%r selling=%r currency=%r valid=%r..%r priority=%r applicable_for=%r" % (
+					rule.name, rule.disable, rule.selling, rule.currency, rule.valid_from, rule.valid_upto, rule.priority, rule.applicable_for))
+				print("QO_DIAG customer=%r group=%r" % (party.get("name"), party.get("customer_group")))
+				print("QO_DIAG item_price_rows=%r" % (frappe.get_all("Item Price", filters={"item_code": noir_s}, fields=["price_list", "price_list_rate", "selling", "uom", "valid_from", "valid_upto"]),))
+				print("QO_DIAG rules_in_db=%r" % (frappe.get_all("Pricing Rule", fields=["name", "title", "apply_on", "disable", "selling", "company", "currency", "priority"], limit=20),))
+				try:
+					found = get_pricing_rule_for_item(args)
+					print("QO_DIAG get_pricing_rule_for_item=%r" % (found,))
+				except Exception as exc:
+					print("QO_DIAG get_pricing_rule_for_item RAISED %s: %s" % (type(exc).__name__, exc))
+				print("QO_DIAG tree_conditions=%r" % (list((frappe.flags.get("tree_conditions") or {}).keys()),))
+				print("QO_DIAG item_group=%r stock_uom=%r" % frappe.db.get_value("Item", noir_s, ["item_group", "stock_uom"]))
 			self.assertEqual(by_code[noir_s]["price"], 90)
 			self.assertEqual(by_code[noir_s]["list_price"], 100)
 			self.assertIn("90", by_code[noir_s]["formatted_price"])
