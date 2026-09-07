@@ -77,10 +77,12 @@ def require_shopper():
 			frappe.throw(_("Sign in to use the quick order."), frappe.PermissionError)
 		party = get_party()
 		if not party:
+			# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 			frappe.throw(_("Sign in to use the quick order."), frappe.PermissionError)
 		return party
 	party = get_party()
 	if not party:
+		# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 		frappe.throw(_("No customer account is linked to your user."), frappe.PermissionError)
 	# //// Neoffice — removed the reseller-only check (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): any signed-in customer is now admitted, not resellers only
 	return party
@@ -495,6 +497,7 @@ def get_matrix(template):
 	party = require_shopper()
 	website_item = sellable_website_item(template)
 	if not website_item:
+		# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 		frappe.throw(_("This model is not available in this shop."), frappe.DoesNotExistError)
 
 	# //// Neoffice — a simple item is priced by the server too: it comes back as a
@@ -605,8 +608,10 @@ def _parse_lines(lines):
 	if isinstance(lines, str):
 		lines = json.loads(lines or "[]")
 	if not isinstance(lines, list):
+		# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 		frappe.throw(_("The lines are invalid."))
 	if len(lines) > MAX_LINES:
+		# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 		frappe.throw(_("At most {0} lines per submission.").format(MAX_LINES))
 	wanted = {}
 	for line in lines:
@@ -646,9 +651,11 @@ def _check_lines(wanted, rows, settings, multi_enabled, party, price_list):
 	accepted, capped, refused = [], [], []
 	for (item_code, warehouse), qty in wanted.items():
 		if not resolve(item_code):
+			# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 			refused.append({"item_code": item_code, "qty": qty, "reason": _("This item is not available in this shop.")})
 			continue
 		if is_gift_card_item(item_code):
+			# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 			refused.append({"item_code": item_code, "qty": qty, "reason": _("Gift cards do not go through the quick order.")})
 			continue
 		# //// Neoffice — an item with no price on the customer's list is "Prix sur demande":
@@ -661,6 +668,7 @@ def _check_lines(wanted, rows, settings, multi_enabled, party, price_list):
 		if multi_enabled:
 			allowed = mw_sources.get_allowed_warehouses(item_code, settings)
 			if warehouse and allowed and warehouse not in allowed:
+				# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 				refused.append({"item_code": item_code, "qty": qty, "reason": _("Invalid stock source for {0}").format(item_code)})
 				continue
 			# //// Neoffice — multi-warehouse: a quick-order line may draw from several
@@ -687,6 +695,7 @@ def _check_lines(wanted, rows, settings, multi_enabled, party, price_list):
 					filled += take
 					remaining -= take
 			if filled == 0:
+				# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 				refused.append({"item_code": item_code, "qty": qty, "reason": _("Out of stock: nothing available for {0}.").format(item_code)})
 			elif remaining > 0:
 				capped.append({"item_code": item_code, "asked": qty, "kept": filled, "available": filled})
@@ -701,6 +710,7 @@ def _check_lines(wanted, rows, settings, multi_enabled, party, price_list):
 		if limit.available is not None:
 			room = flt(limit.available) - existing_qty
 			if room <= 0:
+				# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 				refused.append({"item_code": item_code, "qty": qty, "reason": _("Out of stock: {0} already in the cart, nothing more available.").format(int(existing_qty))})
 				continue
 			if qty > room:
@@ -744,6 +754,7 @@ def _write_guest_cart(rows, accepted, multi_enabled):
 			rows.append(frappe._dict(item_code=item_code, qty=qty, warehouse=warehouse))
 	result = create_guest_quotation([dict(row) for row in rows])
 	if not result or not result.get("success"):
+		# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 		frappe.throw(_("Could not open a cart for this session."))
 	return frappe.get_doc("Quotation", result["quotation_id"])
 
@@ -771,6 +782,7 @@ def add_lines(lines):
 	else:
 		quotation = _get_cart_quotation(party)
 		if not quotation:
+			# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 			frappe.throw(_("Could not open a cart for this account."))
 		rows = quotation.get("items") or []
 
@@ -888,6 +900,7 @@ def page_context(context):
 		party = require_shopper()
 	except frappe.PermissionError:
 		frappe.clear_last_message()
+		# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 		context.reason = _("No customer account is linked to your user.")
 		return context
 	# //// Neoffice — party now passed in, instead of customer_price_list() resolving the session itself (cf339c1c40 "fix(quick-order): le prix barré vient d'Item Price, la liste du client reçoit le client")

@@ -14,6 +14,7 @@ no_cache = 1
 def get_context(context):
 	context.no_cache = 1
 	context.show_sidebar = 0
+	# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po
 	context.title = _("Quick order")
 	# //// Neoffice — added "and not guest_allowed()" (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): a visitor is let through where the shop allows a guest cart, instead of being redirected unconditionally.
 	if frappe.session.user == "Guest" and not guest_allowed():

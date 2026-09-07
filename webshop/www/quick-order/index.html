@@ -13,6 +13,7 @@
 	<div class="frappe-card p-5 wsh-qo-refusal" role="alert">
 		{# the theme already prints the page title above: only the reason here #}
 		<p class="mb-4">{{ reason }}</p>
+		{# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po #}
 		<a class="btn btn-primary" href="/all-products">{{ _("Back to the shop") }}</a>
 	</div>
 {% else %}
