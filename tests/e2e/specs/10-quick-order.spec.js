@@ -150,3 +150,100 @@ test.describe('Commande rapide — le client B2B', () => {
 		await expect(page.locator('.wsh-qo-model')).toHaveCount(0);
 	});
 });
+
+//// Neoffice — added describe block (eb91b0ba75 "fix(quick-order): un article sans prix ou épuisé
+//// n'est pas commandable, quantité plafonnée au stock"): what the grid must refuse to let anyone
+//// type. A cell with no price on the customer's list, or nothing left in stock, carries no input
+//// at all; a cell with a finite stock caps the quantity at what the shop can actually serve.
+test.describe('Commande rapide — stock et prix', () => {
+	/** A published model whose grid holds both a non-orderable cell and a capped one. */
+	async function modeleAvecCasNonCommandables(page) {
+		const vus = new Set();
+		for (const mot of ['chemise', 't-shirt', 'top', 'a', 'e']) {
+			const resultats = await lireJson(page, '/api/method/webshop.webshop.quick_order.api.search_references', {query: mot});
+			for (const r of resultats || []) {
+				const code = r.kind === 'template' ? r.item_code : r.template;
+				if (!code || vus.has(code)) continue;
+				vus.add(code);
+				const grille = await lireJson(page, '/api/method/webshop.webshop.quick_order.api.get_matrix', {template: code});
+				const variantes = (grille && grille.variants) || [];
+				const off = variantes.filter((v) => v.price === null || v.stock === 0);
+				const plafonnee = variantes.filter((v) => v.price !== null && v.stock !== null && v.stock > 0);
+				if (off.length && plafonnee.length) return {code, off, plafonnee};
+			}
+		}
+		return null;
+	}
+
+	test.beforeEach(async ({page}, testInfo) => {
+		test.skip(!['client', 'b2b'].includes(testInfo.project.name), 'projets client et revendeur seulement');
+		await page.goto(ROUTE);
+		test.skip((await utilisateurCourant(page)) === 'Guest', 'aucune session');
+	});
+
+	test('une case sans prix ou épuisée ne se saisit pas', async ({page}) => {
+		test.setTimeout(120_000);
+		const modele = await modeleAvecCasNonCommandables(page);
+		test.skip(!modele, 'aucun modèle avec case non commandable sur cette boutique');
+
+		await page.goto(ROUTE);
+		const champ = page.locator('.wsh-qo__input');
+		await champ.fill(modele.code);
+		await champ.press('Enter');
+		const grille = page.locator(`.wsh-qo-model[data-template="${modele.code}"]`);
+		await expect(grille).toBeVisible({timeout: 15_000});
+
+		//// Every non-orderable cell says why, and carries no quantity field.
+		const nonCommandables = grille.locator('.wsh-qo-cell--off');
+		expect(await nonCommandables.count(), 'aucune case non commandable rendue').toBeGreaterThan(0);
+		expect(await nonCommandables.locator('.wsh-qo-qty').count(), 'une case non commandable porte une saisie').toBe(0);
+		const motifs = await nonCommandables.locator('.wsh-qo-off').allTextContents();
+		expect(motifs.every((m) => /Prix sur demande|Épuisé/.test(m)), `motifs inattendus : ${motifs}`).toBe(true);
+	});
+
+	test('la quantité ne dépasse pas le stock disponible', async ({page}) => {
+		test.setTimeout(120_000);
+		const modele = await modeleAvecCasNonCommandables(page);
+		test.skip(!modele, 'aucun modèle exploitable sur cette boutique');
+		const cible = modele.plafonnee[0];
+
+		await page.goto(ROUTE);
+		const champ = page.locator('.wsh-qo__input');
+		await champ.fill(modele.code);
+		await champ.press('Enter');
+		const grille = page.locator(`.wsh-qo-model[data-template="${modele.code}"]`);
+		await expect(grille).toBeVisible({timeout: 15_000});
+
+		const saisie = grille.locator(`.wsh-qo-qty[data-item="${cible.item_code}"]`);
+		await expect(saisie).toHaveAttribute('max', String(cible.stock));
+
+		//// Typing far more than the shop can serve is brought back to the stock.
+		await saisie.fill(String(cible.stock + 50));
+		await saisie.dispatchEvent('input');
+		await expect(saisie).toHaveValue(String(cible.stock), {timeout: 10_000});
+
+		//// And the + stepper stops there too.
+		await grille.locator(`.wsh-qo-cell[data-item="${cible.item_code}"] .wsh-qo-plus`).click();
+		await expect(saisie).toHaveValue(String(cible.stock));
+	});
+
+	test('le serveur refuse aussi ce que la grille ne laisse pas saisir', async ({page}) => {
+		test.setTimeout(120_000);
+		const modele = await modeleAvecCasNonCommandables(page);
+		test.skip(!modele, 'aucun modèle exploitable sur cette boutique');
+		const interdite = modele.off[0];
+
+		//// The browser is not the guard: posting the line straight to the endpoint
+		//// must be refused, and the cart must stay as it was.
+		const avant = await lireDevis(page);
+		const lignesAvant = ((avant && avant.doc && avant.doc.items) || []).length;
+		const out = await lireJson(page, '/api/method/webshop.webshop.quick_order.api.add_lines', {
+			lines: JSON.stringify([{item_code: interdite.item_code, qty: 1}]),
+		});
+		expect(out, 'add_lines n’a rien renvoyé').toBeTruthy();
+		expect(out.added, `${interdite.item_code} a été ajouté alors qu’il ne devait pas`).toEqual([]);
+		expect((out.refused || []).length, 'aucun refus rapporté').toBeGreaterThan(0);
+		const apres = await lireDevis(page);
+		expect(((apres && apres.doc && apres.doc.items) || []).length).toBe(lignesAvant);
+	});
+});
