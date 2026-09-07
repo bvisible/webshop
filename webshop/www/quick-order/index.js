@@ -241,6 +241,7 @@
 		const maxAttr = variant.stock == null ? "" : ` max="${variant.stock}"`;
 		const over = variant.stock != null && qty > variant.stock ? " is-over" : "";
 		// //// Neoffice — the returned markup below now carries a wsh-qo-price span, using the `price` computed above (6696be727a "feat(quick-order): le prix du client, et la commande en Excel"); not marked inline since it sits inside this template literal
+		// //// Neoffice — the qty input below now carries the max attribute so the browser itself refuses more than the available stock (eb91b0ba75 "fix(quick-order): un article sans prix ou épuisé n'est pas commandable, quantité plafonnée au stock"); not marked inline since it sits inside this template literal
 		return `<td class="wsh-qo-cell${over}" data-item="${escape(variant.item_code)}" data-stock="${variant.stock == null ? "" : variant.stock}">
 			<span class="wsh-qo-cell-controls">
 				<button type="button" class="wsh-qo-step wsh-qo-minus" tabindex="-1" aria-label="-">\u2212</button>
@@ -327,6 +328,7 @@
 		node.querySelectorAll(".wsh-qo-qty").forEach((input) => {
 			input.addEventListener("input", () => {
 				const variant = model.data.variants.find((v) => v.item_code === input.dataset.item);
+				// //// Neoffice — capping the typed quantity to the available stock, with an alert (eb91b0ba75 "fix(quick-order): un article sans prix ou épuisé n'est pas commandable, quantité plafonnée au stock")
 				const cell = input.closest(".wsh-qo-cell");
 				const stock = cell.dataset.stock === "" ? null : Number(cell.dataset.stock);
 				// can't order more than what's available; null stock = unlimited
@@ -343,6 +345,7 @@
 					name: variant ? variant.item_name : input.dataset.item,
 					attrs: variant ? variant.attrs : {},
 				});
+				// //// Neoffice — clears the over-stock highlight now that typing past it is capped rather than just flagged (eb91b0ba75 "fix(quick-order): un article sans prix ou épuisé n'est pas commandable, quantité plafonnée au stock")
 				cell.classList.remove("is-over");
 			});
 			input.addEventListener("focus", () => input.select());
@@ -362,6 +365,7 @@
 				const input = step.parentElement.querySelector(".wsh-qo-qty");
 				if (!input) return;
 				const delta = step.classList.contains("wsh-qo-plus") ? 1 : -1;
+				// //// Neoffice — the stepper caps to the available stock too, same rule as typing directly (eb91b0ba75 "fix(quick-order): un article sans prix ou épuisé n'est pas commandable, quantité plafonnée au stock")
 				const cell = input.closest(".wsh-qo-cell");
 				const stock = cell.dataset.stock === "" ? null : Number(cell.dataset.stock);
 				let next = Math.max(0, (parseFloat(input.value) || 0) + delta);

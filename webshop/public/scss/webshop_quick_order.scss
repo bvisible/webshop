@@ -131,6 +131,7 @@
 	&:focus { outline: none; border-color: var(--primary, #1f2937) !important; box-shadow: 0 0 0 3px rgba(31, 41, 55, .12); }
 	&.is-flash { animation: wsh-qo-flash .6s ease; }
 }
+//// Neoffice — a cell with no price or no stock is now disabled instead of orderable at 0.00 (eb91b0ba75 "fix(quick-order): un article sans prix ou épuisé n'est pas commandable, quantité plafonnée au stock")
 .wsh-qo-off { display: block; color: #9a6700; font-size: .8rem; font-weight: 500; padding: 8px 2px; }
 .wsh-qo-cell--off { background: #fafafa; }
 .wsh-qo-stock { color: #6b7280; &.has-stock { color: #1a7f37; font-weight: 600; } &.is-out { color: #b91c1c; } }

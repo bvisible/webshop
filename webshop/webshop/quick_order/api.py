@@ -726,6 +726,7 @@ def add_lines(lines):
 			frappe.throw(_("Impossible d'ouvrir un panier pour ce compte."))
 		rows = quotation.get("items") or []
 
+	# //// Neoffice — _check_lines() now takes the price list, to refuse an unpriced line before it reaches the cart (eb91b0ba75 "fix(quick-order): un article sans prix ou épuisé n'est pas commandable, quantité plafonnée au stock")
 	accepted, capped, refused = _check_lines(wanted, rows, settings, multi_enabled, party, customer_price_list(settings, party))
 
 	if accepted:
@@ -800,6 +801,7 @@ def labels():
 		"price_on_request": _("Prix sur demande"),
 		"none": _("Pas de variante"),
 		"over_stock": _("Au-delà du stock disponible"),
+		# //// Neoffice — added (eb91b0ba75 "fix(quick-order): un article sans prix ou épuisé n'est pas commandable, quantité plafonnée au stock"): shown when the input/stepper caps a quantity to the available stock
 		"capped_to_stock": _("Limité au stock disponible : {0}"),
 		"pieces": _("pièces"),
 		"lines": _("lignes"),
