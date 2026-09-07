@@ -80,7 +80,7 @@ def order_rows(doc):
 		[_("Order"), doc.name, *pad],
 		[_("Date"), formatdate(date) if date else "", *pad],
 		[_("Customer"), doc.get("customer_name") or doc.get("party_name") or "", *pad],
-		[_("Status"), _(doc.get("status") or ""), *pad],
+		[_("Status"), _(doc.get("status")) if doc.get("status") else "", *pad],
 		[_("Currency"), doc.get("currency") or "", *pad],
 		[_("Net Total"), flt(doc.get("net_total")), *pad],
 		[_("Total Taxes and Charges"), flt(doc.get("total_taxes_and_charges")), *pad],

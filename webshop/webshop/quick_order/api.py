@@ -843,7 +843,9 @@ def labels():
 		"add_model": _("Add"),
 		"stock": _("Stock"),
 		"available": _("{0} available"),
-		"out_of_stock": _("Out of stock"),
+		# //// Neoffice — its own msgid, not the shop-wide "Out of stock" (already translated
+		# "Rupture de stock"): this is a badge inside a grid cell, where the short word fits
+		"out_of_stock": _("Sold out"),
 		# //// Neoffice — "Disponible" replaces "Sur commande" for an item not tracked in stock (42c10358d1 "fix(quick-order): produits simples tarifés par le serveur, steppers, plein écran")
 		"unlimited": _("Available"),
 		"price_on_request": _("Price on request"),
