@@ -110,6 +110,7 @@ def get_context(context):
     
     context.body_class = "product-page"
     cart_data = get_cart_quotation()
+    # //// Neoffice — see _reprice_if_stale above: a stale zero-priced line is re-priced on view
     cart_data = _reprice_if_stale(cart_data)
     context.update(cart_data)
     # //// Neoffice — whoever may fill a cart here is offered the quick order (quick_order/api.py)

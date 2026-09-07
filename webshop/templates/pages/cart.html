@@ -127,12 +127,16 @@
 						{% endif %}
 						{% if frappe.session.user != "Guest" %}
 							{% if cart_settings.enable_checkout %}
+								{# //// Neoffice — see the block marker above: quiet link, not a button #}
 								<a href="/orders">{{ _('Past Orders') }}</a>
 							{% else %}
+								{# //// Neoffice — see the block marker above: quiet link, not a button #}
 								<a href="/quotations">{{ _('Past Quotes') }}</a>
 							{% endif %}
 						{% endif %}
 					</div>
+					{# //// Neoffice — see the block marker above: "Continue Shopping" moved out of #}
+					{# //// the removed col-9/place-order-container into the primary button up top #}
 				</div>
 			</div>
 
