@@ -668,6 +668,7 @@ def _check_lines(wanted, rows, settings, multi_enabled, party, price_list):
 				capped.append({"item_code": item_code, "asked": qty, "kept": filled, "available": filled})
 			continue
 
+		# //// Neoffice — dedented from the old `else:` (652ee009bf "feat(quick-order): une ligne se répartit sur plusieurs sources jusqu'au stock agrégé"): the multi-warehouse branch above now `continue`s on its own, so this single-source lookup still only runs when multi-warehouse is off or a specific warehouse was given
 		warehouse = frappe.get_cached_value("Website Item", {"item_code": item_code}, "website_warehouse")
 		row = existing_row(item_code, warehouse)
 		# //// Neoffice — row.get("qty") instead of row.qty (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): rows is a list of plain dicts now, not quotation items

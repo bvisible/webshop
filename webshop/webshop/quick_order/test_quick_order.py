@@ -484,6 +484,7 @@ class TestQuickOrder(FrappeTestCase):
 		self.assertIn("Épuisé", out["refused"][0]["reason"])
 		self.assertEqual(self.cart_lines(), {noir_s: 3})
 
+	# //// Neoffice — added test (652ee009bf "feat(quick-order): une ligne se répartit sur plusieurs sources jusqu'au stock agrégé"): a line without a price on the customer's list must be refused, never added to the cart at 0.00
 	def test_a_line_without_a_price_is_refused_not_added_at_zero(self):
 		"""No price on the customer's list = not orderable; never enters the cart at 0."""
 		self.business_site()
