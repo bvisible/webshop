@@ -639,13 +639,36 @@ def _check_lines(wanted, rows, settings, multi_enabled, party, price_list):
 			if warehouse and allowed and warehouse not in allowed:
 				refused.append({"item_code": item_code, "qty": qty, "reason": _("Source de stock invalide pour {0}").format(item_code)})
 				continue
-			# //// Neoffice — reads plain rows (row.get(...)) instead of quotation items (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
-			if not warehouse:
-				row = existing_row(item_code, None) or next((r for r in rows if r.get("item_code") == item_code), None)
-				warehouse = (row.get("warehouse") if row else None) or mw_sources.resolve_target_warehouse(item_code, qty, settings)
-		else:
-			warehouse = frappe.get_cached_value("Website Item", {"item_code": item_code}, "website_warehouse")
+			# //// Neoffice — multi-warehouse: a quick-order line may draw from several
+			# //// sources at once. The grid shows the AGGREGATE stock, so an order of the
+			# //// aggregate must be fillable — greedily across the item's sources (one cart
+			# //// line per source), instead of capping to a single source's stock while the
+			# //// grid promised the sum (2026-09-07). A specific warehouse pins to just it.
+			source_whs = [warehouse] if warehouse else [s.warehouse for s in mw_sources.get_item_warehouse_sources(item_code, settings)]
+			if not source_whs:
+				source_whs = [mw_sources.resolve_target_warehouse(item_code, qty, settings)]
+			remaining, filled = qty, 0
+			for wh in source_whs:
+				if remaining <= 0:
+					break
+				existing = flt((existing_row(item_code, wh) or {}).get("qty"))
+				limit = available_cart_qty(item_code, wh, settings, True)
+				if limit.available is None:
+					take = remaining  # not a stock item on this source: unlimited
+				else:
+					room = int(flt(limit.available) - existing)
+					take = min(remaining, room) if room > 0 else 0
+				if take > 0:
+					accepted.append((item_code, wh, take))
+					filled += take
+					remaining -= take
+			if filled == 0:
+				refused.append({"item_code": item_code, "qty": qty, "reason": _("Épuisé : rien de disponible pour {0}.").format(item_code)})
+			elif remaining > 0:
+				capped.append({"item_code": item_code, "asked": qty, "kept": filled, "available": filled})
+			continue
 
+		warehouse = frappe.get_cached_value("Website Item", {"item_code": item_code}, "website_warehouse")
 		row = existing_row(item_code, warehouse)
 		# //// Neoffice — row.get("qty") instead of row.qty (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): rows is a list of plain dicts now, not quotation items
 		existing_qty = flt(row.get("qty")) if row else 0

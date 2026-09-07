@@ -484,6 +484,22 @@ class TestQuickOrder(FrappeTestCase):
 		self.assertIn("Épuisé", out["refused"][0]["reason"])
 		self.assertEqual(self.cart_lines(), {noir_s: 3})
 
+	def test_a_line_without_a_price_is_refused_not_added_at_zero(self):
+		"""No price on the customer's list = not orderable; never enters the cart at 0."""
+		self.business_site()
+		frappe.set_user(USER)
+		noir_s = self.variants[("Noir", "S")]
+		real = api._price_of
+		api._price_of = lambda code, *a, **k: None if code == noir_s else real(code, *a, **k)
+		try:
+			out = api.add_lines([{"item_code": noir_s, "qty": 2}])
+		finally:
+			api._price_of = real
+		self.assertEqual(out["added"], [])
+		self.assertEqual(out["refused"][0]["item_code"], noir_s)
+		self.assertIn("tarif", out["refused"][0]["reason"].lower())
+		self.assertEqual(self.cart_lines(), {})
+
 	def test_too_many_lines_are_refused_before_anything_is_written(self):
 		self.business_site()
 		frappe.set_user(USER)
