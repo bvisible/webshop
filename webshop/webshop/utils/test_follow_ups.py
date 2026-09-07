@@ -378,6 +378,8 @@ class TestFollowUps(FrappeTestCase):
 		order.submit()
 		self.assertTrue(self.reminders(cart)[0].converted)
 
+	# //// Neoffice — added (077ee1cc03 "fix(cart): un panier rappelé par email pouvait ne plus jamais se vider"):
+	# covers _release_abandoned_cart_reminders, which frees a reminder-linked quotation before delete.
 	def test_an_emptied_cart_can_still_be_deleted_once_reminded(self):
 		"""The reminder links the cart; the cart must still be able to go.
 

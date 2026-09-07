@@ -395,6 +395,7 @@ land on `/cart?add=ITEM&qty=1` and `/cart?coupon=CODE`
 > `seed_follow_up_email_templates` ships the templates and two flows switched
 > **off**: a client instance must never start mailing because it migrated.
 
+<!-- //// Neoffice — documents 077ee1cc03 "fix(cart): un panier rappelé par email pouvait ne plus jamais se vider": an abandoned-cart reminder links the quotation, so update_cart's delete of the last-line cart raised LinkExistsError; _release_abandoned_cart_reminders now frees the reminders before the delete. -->
 > **A reminder links the cart, and Frappe refuses to delete a linked document.**
 > `update_cart` deletes the quotation when its last line goes; a customer who
 > had received a reminder therefore got a 417 on the cross of their last line
