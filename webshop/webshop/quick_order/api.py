@@ -303,16 +303,39 @@ def _ordered_values(attribute, used):
 	return _sort_values(ordered)
 
 
-# //// Neoffice ▼▼▼ — customer_price_list() and _price_of() (6696be727a "feat(quick-order): le prix du client, et la commande en Excel"): the grid used to price at the site's tariff only; it now follows the cart's own resolution and prices each variant through ERPNext's get_price(), so the shop's pricing rules apply as on the product page
-def customer_price_list(settings):
-	"""The list the cart will price this session at: the site's, else the customer's
-	own (or their group's), else the shop's default — `_set_price_list`, the cart's rule."""
-	return _set_price_list(settings) or effective_price_list()
+def customer_price_list(settings, party):
+	"""The list the cart will price this party at: the site's, else the customer's
+	own (or their group's), else the shop's default — `_set_price_list`, the cart's
+	rule, handed the party so it never resolves the session a second time."""
+	stand_in = frappe._dict(party_name=party.get("name")) if party else None
+	return _set_price_list(settings, stand_in) or effective_price_list()
+
+
+def _list_rates(item_codes, price_list):
+	"""{item_code: rate} straight from Item Price, before any rule — the struck figure."""
+	today = getdate(nowdate())
+	rows = frappe.get_all(
+		"Item Price",
+		filters={"item_code": ["in", item_codes], "price_list": price_list, "selling": 1},
+		fields=["item_code", "price_list_rate", "uom", "valid_from", "valid_upto"],
+		order_by="valid_from desc",
+	)
+	stock_uoms = dict(frappe.get_all("Item", filters={"name": ["in", item_codes]}, fields=["name", "stock_uom"], as_list=True))
+	rates = {}
+	for row in rows:
+		if row.valid_from and getdate(row.valid_from) > today:
+			continue
+		if row.valid_upto and getdate(row.valid_upto) < today:
+			continue
+		if row.uom and row.uom != stock_uoms.get(row.item_code):
+			continue
+		rates.setdefault(row.item_code, flt(row.price_list_rate))
+	return rates
 
 
 def _price_of(item_code, price_list, party, settings, warehouse=None):
-	"""What the product page shows for one item: the list rate, the shop's pricing
-	rules applied — the figure the cart will carry. None when the list has no price."""
+	"""What the product page shows for one item: the list rate with the shop's
+	pricing rules applied — the figure the cart will carry. None without a price."""
 	from erpnext.utilities.product import get_price
 
 	customer_group = (party.get("customer_group") if party else None) or settings.default_customer_group
@@ -324,29 +347,31 @@ def _price_of(item_code, price_list, party, settings, warehouse=None):
 		price = get_price(item_code, price_list, customer_group, settings.company, **kwargs)
 	if not price or price.get("price_list_rate") is None:
 		return None
-	out = {
-		"price": flt(price.get("price_list_rate")),
-		"formatted_price": price.get("formatted_price") or "",
-		"list_price": None,
-		"formatted_list_price": None,
-	}
-	if price.get("mrp") and flt(price.get("mrp")) != out["price"]:
-		out["list_price"] = flt(price.get("mrp"))
-		out["formatted_list_price"] = price.get("formatted_mrp") or ""
-	return out
-# //// Neoffice ▲▲▲
+	return {"price": flt(price.get("price_list_rate")), "formatted_price": price.get("formatted_price") or ""}
 
 
 def _prices(item_codes, price_list, party, settings, warehouse=None):
-	"""{item_code: price dict} for every variant priced on price_list."""
+	"""{item_code: price dict} for every variant priced on price_list.
+
+	The struck list price comes from Item Price itself: the fork's get_price
+	names it `mrp`, upstream's only formats it, so neither is relied upon.
+	"""
 	if not price_list or not item_codes:
 		return {}
-	# //// Neoffice — _prices() now delegates to _price_of()/get_price() per item instead of querying Item Price directly (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
+	currency = _currency(price_list)
+	list_rates = _list_rates(item_codes, price_list)
 	prices = {}
 	for code in item_codes:
 		priced = _price_of(code, price_list, party, settings, warehouse)
-		if priced:
-			prices[code] = priced
+		if not priced:
+			continue
+		priced["list_price"] = None
+		priced["formatted_list_price"] = None
+		list_rate = list_rates.get(code)
+		if list_rate is not None and flt(list_rate) != priced["price"]:
+			priced["list_price"] = flt(list_rate)
+			priced["formatted_list_price"] = fmt_money(list_rate, currency=currency)
+		prices[code] = priced
 	return prices
 
 
@@ -397,8 +422,7 @@ def get_matrix(template):
 	codes = list(attrs_by_variant)
 
 	settings = cart_settings()
-	# //// Neoffice — was effective_price_list() directly, now the customer's own resolution (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
-	price_list = customer_price_list(settings)
+	price_list = customer_price_list(settings, party)
 	currency = _currency(price_list)
 
 	out = {
@@ -658,7 +682,7 @@ def add_lines(lines):
 	# //// Neoffice — quotation may be None (a guest with nothing accepted) (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): each figure falls back instead of assuming a quotation always exists
 	total_qty = sum(flt(row.qty) for row in (quotation.get("items") if quotation else None) or [])
 	grand_total = flt(quotation.grand_total) if quotation else 0
-	currency = quotation.currency if quotation else _currency(customer_price_list(settings))
+	currency = quotation.currency if quotation else _currency(customer_price_list(settings, party))
 	return {
 		# //// Neoffice — built from the accepted tuples (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): add_lines() no longer keeps its own added list
 		"added": [{"item_code": code, "qty": qty} for code, _warehouse, qty in accepted],
@@ -737,8 +761,7 @@ def page_context(context):
 		frappe.clear_last_message()
 		context.reason = _("Aucun compte client n'est rattaché à votre utilisateur.")
 		return context
-	# //// Neoffice — was effective_price_list() directly, now the customer's own resolution (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
-	price_list = customer_price_list(cart_settings())
+	price_list = customer_price_list(cart_settings(), party)
 	context.allowed = True
 	context.config = {
 		"user": frappe.session.user,

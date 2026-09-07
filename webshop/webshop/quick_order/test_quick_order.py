@@ -185,6 +185,10 @@ class TestQuickOrder(FrappeTestCase):
 		for customer in (CUSTOMER, PLAIN_CUSTOMER):
 			for name in frappe.get_all("Quotation", filters={"party_name": customer, "docstatus": 0}, pluck="name"):
 				frappe.delete_doc("Quotation", name, force=True, ignore_permissions=True)
+		# this commit persists whatever the previous test left: a pricing rule made
+		# there would discount every later test, so it goes first
+		for rule in frappe.get_all("Pricing Rule", filters={"title": ["like", f"{PREFIX} QO%"]}, pluck="name"):
+			frappe.delete_doc("Pricing Rule", rule, force=True, ignore_permissions=True)
 		frappe.db.commit()
 		self.real_settings = api.cart_settings
 		self.settings = frappe.get_doc("Webshop Settings")
@@ -340,14 +344,14 @@ class TestQuickOrder(FrappeTestCase):
 		"""No site tariff: the cart takes the customer's default list, so does the grid."""
 		frappe.db.set_value("Customer", CUSTOMER, "default_price_list", RESELLER_LIST)
 		frappe.set_user(USER)
-		self.assertEqual(api.customer_price_list(self.settings), RESELLER_LIST)
+		self.assertEqual(api.customer_price_list(self.settings, api.get_party()), RESELLER_LIST)
 		matrix = api.get_matrix(TEMPLATE)
 		by_code = {v["item_code"]: v for v in matrix["variants"]}
 		self.assertEqual(by_code[self.variants[("Noir", "S")]]["price"], 80)
 		self.assertIsNone(by_code[self.variants[("Blanc", "L")]]["price"])
 		# the plain customer, on the same shop, keeps the shop's list
 		frappe.set_user(PLAIN_USER)
-		self.assertEqual(api.customer_price_list(self.settings), selling_price_list())
+		self.assertEqual(api.customer_price_list(self.settings, api.get_party()), selling_price_list())
 		self.assertEqual({v["price"] for v in api.get_matrix(TEMPLATE)["variants"]}, {100})
 
 	def test_the_matrix_applies_the_shop_s_pricing_rules_like_the_product_page(self):
@@ -367,13 +371,17 @@ class TestQuickOrder(FrappeTestCase):
 			}
 		)
 		rule.insert(ignore_permissions=True)
-		frappe.set_user(USER)
-		by_code = {v["item_code"]: v for v in api.get_matrix(TEMPLATE)["variants"]}
-		self.assertEqual(by_code[noir_s]["price"], 90)
-		self.assertEqual(by_code[noir_s]["list_price"], 100)
-		self.assertIn("90", by_code[noir_s]["formatted_price"])
-		self.assertEqual(by_code[self.variants[("Noir", "M")]]["price"], 100)
-		self.assertIsNone(by_code[self.variants[("Noir", "M")]]["list_price"])
+		try:
+			frappe.set_user(USER)
+			by_code = {v["item_code"]: v for v in api.get_matrix(TEMPLATE)["variants"]}
+			self.assertEqual(by_code[noir_s]["price"], 90)
+			self.assertEqual(by_code[noir_s]["list_price"], 100)
+			self.assertIn("90", by_code[noir_s]["formatted_price"])
+			self.assertEqual(by_code[self.variants[("Noir", "M")]]["price"], 100)
+			self.assertIsNone(by_code[self.variants[("Noir", "M")]]["list_price"])
+		finally:
+			frappe.set_user("Administrator")
+			frappe.delete_doc("Pricing Rule", rule.name, force=True, ignore_permissions=True)
 
 	# --- the order as a spreadsheet ---------------------------------------------------
 
@@ -409,7 +417,8 @@ class TestQuickOrder(FrappeTestCase):
 		self.assertIn(["Grand Total", flt(order.grand_total)] + [""] * (len(rows[0]) - 2), rows)
 		frappe.set_user(USER)
 		download_order_xlsx("Sales Order", order.name)
-		self.assertEqual(frappe.response.get("type"), "download")
+		# "download" on the fleet's Frappe, "binary" on a newer one: both are a file
+		self.assertIn(frappe.response.get("type"), ("download", "binary"))
 		self.assertEqual(frappe.response.get("filename"), f"{order.name}.xlsx")
 		self.assertTrue(frappe.response.get("filecontent", b"").startswith(b"PK"))
 		# somebody else's order is nobody's business
