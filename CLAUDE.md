@@ -579,6 +579,7 @@ the cart is the state afterwards. A guest's batch goes through
 > variants instead of thirty calls. With multi-warehouse on, the grid shows
 > `get_aggregate_stock()` per variant, the figure the cart will honour.
 
+<!-- //// Neoffice — documents the price-list resolution added in 6696be727a "feat(quick-order): le prix du client, et la commande en Excel": the grid used to price at the site tariff only -->
 > **The grid prices what the cart will charge.** `customer_price_list()` is
 > `_set_price_list()`, the cart's own resolution — the site's tariff, else the
 > customer's default list (or their group's), else the shop's — and every

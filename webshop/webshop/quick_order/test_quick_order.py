@@ -13,6 +13,7 @@ and reports what it kept.
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
+# //// Neoffice — added flt import, used by the new price-list and order-export tests (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 from frappe.utils import flt
 
 from webshop.webshop.doctype.website_item.website_item import make_website_item
@@ -334,6 +335,7 @@ class TestQuickOrder(FrappeTestCase):
 		self.assertIsNone(by_code[self.variants[("Blanc", "L")]]["price"])
 		self.assertIsNone(by_code[self.variants[("Blanc", "L")]]["formatted_price"])
 
+	# //// Neoffice ▼▼▼ — new tests for the customer's own price-list resolution and the order xlsx export (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 	def test_the_matrix_prices_at_the_customer_s_own_list_when_the_site_has_none(self):
 		"""No site tariff: the cart takes the customer's default list, so does the grid."""
 		frappe.db.set_value("Customer", CUSTOMER, "default_price_list", RESELLER_LIST)
@@ -414,6 +416,7 @@ class TestQuickOrder(FrappeTestCase):
 		frappe.set_user(PLAIN_USER)
 		with self.assertRaises(frappe.PermissionError):
 			download_order_xlsx("Sales Order", order.name)
+	# //// Neoffice ▲▲▲
 
 	# --- the batch into the cart ----------------------------------------------------
 

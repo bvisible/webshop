@@ -29,6 +29,7 @@ from webshop.webshop.multi_site import (
 )
 from webshop.webshop.shopping_cart.cart import (
 	_get_cart_quotation,
+	# //// Neoffice — added _set_price_list import (6696be727a "feat(quick-order): le prix du client, et la commande en Excel"): the grid now follows the cart's own price-list resolution
 	_set_price_list,
 	apply_cart_settings,
 	available_cart_qty,
@@ -212,6 +213,7 @@ def search_references(query, limit=SEARCH_LIMIT):
 	results, seen = [], set()
 	exact = resolve(query)
 	if exact:
+		# //// Neoffice — the suggestion for a model typed by its exact code now carries variant_count again (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 		if exact.attrs:
 			results.append(
 				{
@@ -301,6 +303,7 @@ def _ordered_values(attribute, used):
 	return _sort_values(ordered)
 
 
+# //// Neoffice ▼▼▼ — customer_price_list() and _price_of() (6696be727a "feat(quick-order): le prix du client, et la commande en Excel"): the grid used to price at the site's tariff only; it now follows the cart's own resolution and prices each variant through ERPNext's get_price(), so the shop's pricing rules apply as on the product page
 def customer_price_list(settings):
 	"""The list the cart will price this session at: the site's, else the customer's
 	own (or their group's), else the shop's default — `_set_price_list`, the cart's rule."""
@@ -331,12 +334,14 @@ def _price_of(item_code, price_list, party, settings, warehouse=None):
 		out["list_price"] = flt(price.get("mrp"))
 		out["formatted_list_price"] = price.get("formatted_mrp") or ""
 	return out
+# //// Neoffice ▲▲▲
 
 
 def _prices(item_codes, price_list, party, settings, warehouse=None):
 	"""{item_code: price dict} for every variant priced on price_list."""
 	if not price_list or not item_codes:
 		return {}
+	# //// Neoffice — _prices() now delegates to _price_of()/get_price() per item instead of querying Item Price directly (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 	prices = {}
 	for code in item_codes:
 		priced = _price_of(code, price_list, party, settings, warehouse)
@@ -377,6 +382,7 @@ def _currency(price_list):
 @frappe.whitelist(allow_guest=True)
 def get_matrix(template):
 	"""Everything the grid of one model needs, scoped to the site, in one call."""
+	# //// Neoffice — party is now kept, to price each variant for this customer's group/party (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 	party = require_shopper()
 	website_item = sellable_website_item(template)
 	if not website_item or not cint(frappe.db.get_value("Item", template, "has_variants")):
@@ -391,6 +397,7 @@ def get_matrix(template):
 	codes = list(attrs_by_variant)
 
 	settings = cart_settings()
+	# //// Neoffice — was effective_price_list() directly, now the customer's own resolution (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 	price_list = customer_price_list(settings)
 	currency = _currency(price_list)
 
@@ -414,6 +421,7 @@ def get_matrix(template):
 			"Item", filters={"name": ["in", codes]}, fields=["name", "item_name", "image", "stock_uom"]
 		)
 	}
+	# //// Neoffice — prices computed per party/customer-group instead of a flat site price (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 	prices = _prices(codes, price_list, party, settings, website_item.website_warehouse)
 	stock = _stock(codes, website_item, settings)
 
@@ -428,12 +436,14 @@ def get_matrix(template):
 		item = items.get(code)
 		if not item:
 			continue
+		# //// Neoffice — priced per customer instead of read off a flat site price map (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 		priced = prices.get(code) or {}
 		out["variants"].append(
 			{
 				"item_code": code,
 				"item_name": item.item_name,
 				"attrs": attrs_by_variant[code],
+				# //// Neoffice — list_price/formatted_list_price added, so the grid can show the rule's struck-through price like the product page (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 				"price": priced.get("price"),
 				"formatted_price": priced.get("formatted_price") or None,
 				"list_price": priced.get("list_price"),
@@ -727,6 +737,7 @@ def page_context(context):
 		frappe.clear_last_message()
 		context.reason = _("Aucun compte client n'est rattaché à votre utilisateur.")
 		return context
+	# //// Neoffice — was effective_price_list() directly, now the customer's own resolution (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 	price_list = customer_price_list(cart_settings())
 	context.allowed = True
 	context.config = {

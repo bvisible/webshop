@@ -102,6 +102,7 @@
 	&.is-flash { animation: wsh-qo-flash .6s ease; }
 }
 .wsh-qo-stock { color: #6b7280; &.has-stock { color: #1a7f37; font-weight: 600; } &.is-out { color: #b91c1c; } }
+//// Neoffice — struck-through list price next to the customer's price (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 .wsh-qo-price { color: #374151; s { color: #9ca3af; margin-right: 3px; } }
 
 @keyframes wsh-qo-flash { 0% { background: #dcfce7 !important; } 100% { background: #fff; } }

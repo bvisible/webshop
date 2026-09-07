@@ -218,10 +218,12 @@
 			stockText = L.out_of_stock;
 			stockClass = "is-out";
 		}
+		//// Neoffice — struck-through list price alongside the customer's price (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 		const price = variant.formatted_price
 			? (variant.formatted_list_price ? `<s>${escape(variant.formatted_list_price)}</s> ${escape(variant.formatted_price)}` : escape(variant.formatted_price))
 			: escape(L.price_on_request);
 		const over = variant.stock != null && qty > variant.stock ? " is-over" : "";
+		// //// Neoffice — the returned markup below now carries a wsh-qo-price span, using the `price` computed above (6696be727a "feat(quick-order): le prix du client, et la commande en Excel"); not marked inline since it sits inside this template literal
 		return `<td class="wsh-qo-cell${over}" data-item="${escape(variant.item_code)}" data-stock="${variant.stock == null ? "" : variant.stock}">
 			<input type="number" class="wsh-qo-qty" min="0" step="1" inputmode="numeric" placeholder="0" value="${qty}"
 				data-item="${escape(variant.item_code)}" aria-label="${escape(variant.item_name)}" title="${escape(variant.item_code)}">
