@@ -5,6 +5,7 @@
 import frappe
 from frappe import _
 
+# //// Neoffice — imports guest_allowed (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): the guest redirect below now depends on the shop's own guest-cart rule, not a blanket sign-in requirement.
 from webshop.webshop.quick_order.api import PAGE_ROUTE, guest_allowed, page_context
 
 no_cache = 1
@@ -14,6 +15,7 @@ def get_context(context):
 	context.no_cache = 1
 	context.show_sidebar = 0
 	context.title = _("Commande rapide")
+	# //// Neoffice — added "and not guest_allowed()" (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): a visitor is let through where the shop allows a guest cart, instead of being redirected unconditionally.
 	if frappe.session.user == "Guest" and not guest_allowed():
 		frappe.local.flags.redirect_location = f"/login?redirect-to={PAGE_ROUTE}"
 		raise frappe.Redirect

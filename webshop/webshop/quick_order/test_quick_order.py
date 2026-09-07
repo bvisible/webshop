@@ -1,4 +1,5 @@
 # //// Neoffice — added file (the quick order, no upstream equivalent).
+# //// Neoffice — reworded (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): who may be here now follows the cart's own rule (any signed-in customer, plus a visitor where the shop sells to visitors), not the reseller-only gate the module's docstring used to describe.
 """The quick order, from the gate to the cart.
 
 A model with two attributes and six variants is built once, published, priced
@@ -182,6 +183,7 @@ class TestQuickOrder(FrappeTestCase):
 		api.cart_settings = lambda: self.settings
 		self.real_excluded = api.excluded_item_names
 		self.real_available = api.available_cart_qty
+		# //// Neoffice — added (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): as_guest() below stubs api.get_party too, so it needs restoring in tearDown()
 		self.real_party = api.get_party
 		frappe.local.website_profile_doc = None
 
@@ -189,6 +191,7 @@ class TestQuickOrder(FrappeTestCase):
 		api.cart_settings = self.real_settings
 		api.excluded_item_names = self.real_excluded
 		api.available_cart_qty = self.real_available
+		# //// Neoffice — restores api.get_party (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): see self.real_party in setUp()
 		api.get_party = self.real_party
 		frappe.local.website_profile_doc = None
 		frappe.set_user("Administrator")
@@ -201,6 +204,7 @@ class TestQuickOrder(FrappeTestCase):
 			{"b2b_only": 1, "price_list": price_list, "primary_domain": "wstest-b2b.example.com"}
 		)
 
+	# //// Neoffice — as_guest() replaces b2b_group_of() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): the gate is no longer about reseller groups, it is about who may fill a cart on this site, including an anonymous visitor.
 	def as_guest(self, with_cart=True):
 		"""Browse anonymously; the shop's guest customer stands in when it sells to visitors."""
 		frappe.set_user("Guest")
@@ -213,6 +217,7 @@ class TestQuickOrder(FrappeTestCase):
 
 	# --- the gate: whoever may fill a cart here -----------------------------------
 
+	# //// Neoffice — replaces test_a_guest_and_a_plain_customer_are_refused() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): a plain customer is now served regardless of group, so this asserts access instead of a PermissionError.
 	def test_a_signed_in_customer_of_any_group_is_served(self):
 		frappe.set_user(PLAIN_USER)
 		self.assertTrue(api.search_references("chemise"))
@@ -227,6 +232,7 @@ class TestQuickOrder(FrappeTestCase):
 		self.as_guest(with_cart=False)
 		with self.assertRaises(frappe.PermissionError):
 			api.search_references("chemise")
+		# //// Neoffice — added (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): a visitor with no guest cart is refused, one with a guest cart is served, both through the same guest_allowed() rule as the cart.
 		self.assertFalse(api.may_use_quick_order())
 		self.as_guest(with_cart=True)
 		self.assertTrue(api.search_references("chemise"))
@@ -235,8 +241,10 @@ class TestQuickOrder(FrappeTestCase):
 		self.business_site()
 		with self.assertRaises(frappe.PermissionError):
 			api.get_matrix(TEMPLATE)
+		# //// Neoffice — added (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): guest_allowed() itself must say no on a business-only site too.
 		self.assertFalse(api.guest_allowed(self.settings))
 
+	# //// Neoffice — replaces the removed reseller/business-site tests and folds test_the_page_context_refuses_and_admits() into this one (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): there is no more reseller group to test, only "no customer at all".
 	def test_a_signed_in_user_without_a_customer_is_refused_with_a_reason(self):
 		frappe.set_user(USER)
 		api.get_party = lambda *args, **kwargs: None
@@ -244,6 +252,7 @@ class TestQuickOrder(FrappeTestCase):
 			api.add_lines([{"item_code": self.variants[("Noir", "S")], "qty": 1}])
 		context = api.page_context(frappe._dict())
 		self.assertFalse(context.allowed)
+		# //// Neoffice — reworded (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): the refusal reason is now "no customer account", not "reserved for professional accounts".
 		self.assertIn("compte client", context.reason)
 
 	# --- search and resolution ------------------------------------------------------

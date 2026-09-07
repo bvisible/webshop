@@ -128,6 +128,7 @@
 			state.lines.delete(item_code);
 		}
 		renderTotals();
+		//// Neoffice — keeps the grid's own "add to cart" button in sync with its quantities (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
 		const template = (meta && meta.template) || (state.lines.get(item_code) || {}).template;
 		if (template) {
 			const node = el.models.querySelector(`[data-template="${CSS.escape(template)}"]`);
@@ -137,6 +138,7 @@
 		save();
 	}
 
+	//// Neoffice — added modelLines()/refreshModelButton() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): each grid now has its own "add to cart (N)" button, so it needs its own subset of the draft and its own label.
 	function modelLines(model) {
 		return [...state.lines.entries()].filter(([, line]) => line.template === model.template).map(([item_code, line]) => ({ item_code, qty: line.qty }));
 	}
@@ -264,6 +266,7 @@
 		}
 
 		const image = data.template.image ? `<img src="${escape(data.template.image)}" alt="">` : "";
+		//// Neoffice — the markup below adds a wsh-qo-model__add button: each grid now has its own "add to cart" (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
 		const html = `
 			<header class="wsh-qo-model__head">
 				${image}
@@ -324,6 +327,7 @@
 			});
 		}
 		node.querySelector(".wsh-qo-model__close").addEventListener("click", () => closeModel(model.template));
+		//// Neoffice — added the grid's own send button (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
 		// this grid alone goes to the cart: the customer who works model by model does not wait for the end
 		node.querySelector(".wsh-qo-model__add").addEventListener("click", () => sendModel(model));
 		refreshModelButton(node, model);
@@ -544,6 +548,7 @@
 		el.report.hidden = !html;
 	}
 
+	//// Neoffice — added sendModel() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): the customer working model by model sends this grid's lines without waiting for the whole draft; it disables/restores its own grid button rather than the global "send" one.
 	// One model's lines go to the cart now; the rest of the draft stays.
 	async function sendModel(model) {
 		const lines = modelLines(model);
@@ -554,14 +559,17 @@
 			button.disabled = true;
 			button.textContent = L.sending;
 		}
+		//// Neoffice — removed the el.send disable/label lines here (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): this function only touches the grid's own button, above, not the page's global "send" button
 		let out;
 		try {
 			out = await call("webshop.webshop.quick_order.api.add_lines", { lines: JSON.stringify(lines) });
 		} catch (e) {
+			//// Neoffice — restores the grid's own button, not a shared "send" one (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
 			if (button) refreshModelButton(node, model);
 			report(`<p class="text-danger">${escape(L.error)}</p>`);
 			return;
 		}
+		//// Neoffice — see the block marker above: clears sent lines, keeps refused ones
 		const refused = new Set((out.refused || []).map((r) => r.item_code));
 		lines.forEach((l) => {
 			if (!refused.has(l.item_code)) state.lines.delete(l.item_code);
@@ -586,6 +594,7 @@
 				.join("")}</ul>`;
 		}
 		html += `<a class="btn btn-primary btn-block mt-3" href="${escape((out.cart && out.cart.url) || config.cart_url)}">${escape(L.see_cart)}</a>`;
+		//// Neoffice — reportHtml() is now shared by sendModel() and send() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"); send() below still owns the global "send" button, sendModel() above owns its grid's own button
 		return html;
 	}
 

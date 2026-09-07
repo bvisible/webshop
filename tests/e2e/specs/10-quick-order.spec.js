@@ -8,6 +8,8 @@ const {viderPanier, lireDevis, lireJson, utilisateurCourant} = require('../fixtu
 
 const ROUTE = '/quick-order';
 
+//// Neoffice — removed estRevendeur() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): the page no longer gates on reseller status, so the helper that read is_b2b_customer off the cart is gone.
+
 /** A published model with variants, found through the page's own search endpoint. */
 async function premierModele(page, motsCles = ['chemise', 't-shirt', 'top', 'a']) {
 	for (const mot of motsCles) {
@@ -19,6 +21,7 @@ async function premierModele(page, motsCles = ['chemise', 't-shirt', 'top', 'a']
 }
 
 test.describe('Commande rapide — accès', () => {
+	//// Neoffice — renamed and extended (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): a visitor is now served where the shop sells to visitors, not just sent to sign in — hence the longer timeout below for the search-to-cart round trip.
 	test('un visiteur est servi là où la boutique vend aux visiteurs, envoyé se connecter ailleurs', async ({page}, testInfo) => {
 		test.skip(testInfo.project.name !== 'invite', 'projet visiteur seulement');
 		test.setTimeout(120_000);
@@ -53,16 +56,20 @@ test.describe('Commande rapide — accès', () => {
 		await viderPanier(page);
 	});
 
+	//// Neoffice — renamed, and dropped the reseller check and its redirect to '/' (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): any signed-in customer is served directly now, not just resellers.
 	test('un client ordinaire est servi, quel que soit son groupe', async ({page}, testInfo) => {
 		test.skip(testInfo.project.name !== 'client', 'projet client seulement');
 		await page.goto(ROUTE);
+		//// Neoffice — asserts the page and access are open (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"), not that a refusal is shown.
 		await expect(page.locator('#wsh-qo')).toBeVisible();
 		await expect(page.locator('.wsh-qo-refusal')).toHaveCount(0);
 		const r = await page.request.post('/api/method/webshop.webshop.quick_order.api.search_references', {form: {query: 'chemise'}});
+		//// Neoffice — expects 200, not 403 (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): the endpoint now admits any signed-in customer.
 		expect(r.status(), 'search_references a refusé un client connecté').toBe(200);
 	});
 });
 
+//// Neoffice — describe block renamed from "le revendeur" (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): these tests now cover the B2B-specific path only, general access having moved to the "accès" describe above.
 test.describe('Commande rapide — le client B2B', () => {
 	test.beforeEach(async ({page}, testInfo) => {
 		test.skip(testInfo.project.name !== 'b2b', 'projet revendeur seulement');

@@ -535,6 +535,7 @@ whatever the form says; a guest must give a valid one.
 ### The quick order
 
 `/quick-order` (`www/quick-order/`, `webshop/webshop/quick_order/api.py`) is
+<!-- //// Neoffice — reworded: open to any signed-in customer and an anonymous visitor where the shop allows a guest cart, not resellers only, and each grid now has its own "add to cart" button (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille") -->
 the page a customer restocks from: type a reference, a name or a barcode, the
 model's colour × size grid opens, quantities go in at the keyboard, each grid
 has its own "add to cart" and one "send everything" writes the whole draft.
@@ -578,6 +579,7 @@ the cart is the state afterwards. A guest's batch goes through
 > variants instead of thirty calls. With multi-warehouse on, the grid shows
 > `get_aggregate_stock()` per variant, the figure the cart will honour.
 
+<!-- //// Neoffice — updated: test coverage now names the visitor gate and the guest-cart path, and the e2e description matches the new roles (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille") -->
 Tests: `quick_order/test_quick_order.py` (the gate for a customer, a visitor
 and an account without customer, search by code, name and barcode, site
 scoping, tariff of the site, the batch and its capping — all with an in-memory

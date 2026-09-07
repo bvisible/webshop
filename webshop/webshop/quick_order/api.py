@@ -32,6 +32,7 @@ from webshop.webshop.shopping_cart.cart import (
 	apply_cart_settings,
 	available_cart_qty,
 	get_party,
+	# //// Neoffice — removed is_b2b_customer_group import (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): the reseller-only gate is gone, so this import is unused
 	is_gift_card_item,
 	set_cart_count,
 )
@@ -53,6 +54,7 @@ def cart_settings():
 # ---------------------------------------------------------------------------
 
 
+# //// Neoffice — guest_allowed()/require_shopper()/may_use_quick_order() replace is_reseller()/require_reseller() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): the page and its endpoints now serve any signed-in customer plus an anonymous visitor where the shop allows a guest cart, not resellers only.
 def guest_allowed(settings=None):
 	"""An anonymous visitor may use the page where the shop lets them fill a cart."""
 	if site_is_business_only():
@@ -60,12 +62,14 @@ def guest_allowed(settings=None):
 	return bool(cint((settings or cart_settings()).get("enable_guest_cart")))
 
 
+# //// Neoffice — require_shopper() replaces require_reseller() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): admits any signed-in customer, and a guest where the shop allows it
 def require_shopper():
 	"""The party of the session, or a PermissionError. Never trusts an argument.
 
 	Signed in: the customer behind the account. Anonymous: the shop's guest
 	customer, on a site that sells to visitors. The same rule as the cart.
 	"""
+	# //// Neoffice — added the guest branch (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): an anonymous visitor is admitted here where the shop allows a guest cart, instead of always being refused.
 	if frappe.session.user == "Guest":
 		if not guest_allowed():
 			frappe.throw(_("Connectez-vous pour utiliser la commande rapide."), frappe.PermissionError)
@@ -76,9 +80,11 @@ def require_shopper():
 	party = get_party()
 	if not party:
 		frappe.throw(_("Aucun compte client n'est rattaché à votre utilisateur."), frappe.PermissionError)
+	# //// Neoffice — removed the reseller-only check (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): any signed-in customer is now admitted, not resellers only
 	return party
 
 
+# //// Neoffice — added may_use_quick_order() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): lets templates/links check the new gate without raising
 def may_use_quick_order():
 	"""True when require_shopper() would let the session in — for the links."""
 	try:
@@ -187,6 +193,7 @@ def _card(website_item):
 	return card
 
 
+# //// Neoffice — allow_guest=True (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): an anonymous visitor may call this now; require_shopper() below still enforces the site's own rule
 @frappe.whitelist(allow_guest=True)
 def search_references(query, limit=SEARCH_LIMIT):
 	"""Suggestions for the search bar: published items of this site, by code, name or barcode.
@@ -194,6 +201,7 @@ def search_references(query, limit=SEARCH_LIMIT):
 	An exact match on a barcode or a variant's code comes first, as a `variant`
 	pointing at its model, so Enter on a scanned code opens the right cell.
 	"""
+	# //// Neoffice — require_shopper() replaces require_reseller() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
 	require_shopper()
 	query = (query or "").strip()
 	if len(query) < 2:
@@ -238,9 +246,11 @@ def search_references(query, limit=SEARCH_LIMIT):
 	return results[:limit]
 
 
+# //// Neoffice — allow_guest=True (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): same gate change as search_references
 @frappe.whitelist(allow_guest=True)
 def resolve_code(code):
 	"""A scanned code, resolved on this site — `{unknown: true}` when it is not sold here."""
+	# //// Neoffice — require_shopper() replaces require_reseller() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
 	require_shopper()
 	found = resolve(code)
 	if not found:
@@ -332,6 +342,7 @@ def _stock(item_codes, website_item, settings):
 	return stock
 
 
+# //// Neoffice — added _currency() and switched get_matrix to allow_guest=True (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): a shared currency lookup (also used by add_lines and page_context below), and the matrix endpoint now admits an anonymous visitor via require_shopper()'s guest branch
 def _currency(price_list):
 	return (
 		frappe.db.get_value("Price List", price_list, "currency") if price_list else None
@@ -341,6 +352,7 @@ def _currency(price_list):
 @frappe.whitelist(allow_guest=True)
 def get_matrix(template):
 	"""Everything the grid of one model needs, scoped to the site, in one call."""
+	# //// Neoffice — require_shopper() replaces require_reseller() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
 	require_shopper()
 	website_item = sellable_website_item(template)
 	if not website_item or not cint(frappe.db.get_value("Item", template, "has_variants")):
@@ -356,6 +368,7 @@ def get_matrix(template):
 
 	settings = cart_settings()
 	price_list = effective_price_list()
+	# //// Neoffice — reuses _currency() instead of repeating the lookup (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
 	currency = _currency(price_list)
 
 	out = {
@@ -459,6 +472,7 @@ def _parse_lines(lines):
 	return wanted
 
 
+# //// Neoffice — _check_lines() no longer gates or parses (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): it used to open with require_reseller(), require_login_to_buy() and _parse_lines(lines), and load the customer's own quotation itself; the caller add_lines() now does the gate/parsing/loading (guest or signed-in) and hands this function plain wanted/rows to validate.
 def _check_lines(wanted, rows, settings, multi_enabled):
 	"""Every wanted line against the rule of "add to cart", with the cart's rows in hand.
 
@@ -468,6 +482,8 @@ def _check_lines(wanted, rows, settings, multi_enabled):
 	"""
 	from webshop.webshop.multi_warehouse import sources as mw_sources
 
+	# //// Neoffice — removed the gate/parse/quotation-load lines here (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): require_reseller(), require_login_to_buy() and _parse_lines(lines) used to open this function and load the quotation directly; add_lines() now does all of that and passes plain wanted/rows in.
+	# //// Neoffice — reads plain dict rows instead of quotation.get("items") (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): a guest has no quotation yet, only the plain rows add_lines() builds from the guest cart
 	def existing_row(item_code, warehouse):
 		for row in rows:
 			if row.get("item_code") != item_code:
@@ -476,6 +492,7 @@ def _check_lines(wanted, rows, settings, multi_enabled):
 				return row
 		return None
 
+	# //// Neoffice — renamed from added/refused/capped to accepted/capped/refused (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): this function now only returns what to write, it no longer writes to a quotation itself
 	accepted, capped, refused = [], [], []
 	for (item_code, warehouse), qty in wanted.items():
 		if not resolve(item_code):
@@ -490,6 +507,7 @@ def _check_lines(wanted, rows, settings, multi_enabled):
 			if warehouse and allowed and warehouse not in allowed:
 				refused.append({"item_code": item_code, "qty": qty, "reason": _("Source de stock invalide pour {0}").format(item_code)})
 				continue
+			# //// Neoffice — reads plain rows (row.get(...)) instead of quotation items (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
 			if not warehouse:
 				row = existing_row(item_code, None) or next((r for r in rows if r.get("item_code") == item_code), None)
 				warehouse = (row.get("warehouse") if row else None) or mw_sources.resolve_target_warehouse(item_code, qty, settings)
@@ -497,6 +515,7 @@ def _check_lines(wanted, rows, settings, multi_enabled):
 			warehouse = frappe.get_cached_value("Website Item", {"item_code": item_code}, "website_warehouse")
 
 		row = existing_row(item_code, warehouse)
+		# //// Neoffice — row.get("qty") instead of row.qty (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): rows is a list of plain dicts now, not quotation items
 		existing_qty = flt(row.get("qty")) if row else 0
 		limit = available_cart_qty(item_code, warehouse, settings, multi_enabled)
 		if limit.available is not None:
@@ -507,10 +526,12 @@ def _check_lines(wanted, rows, settings, multi_enabled):
 			if qty > room:
 				capped.append({"item_code": item_code, "asked": qty, "kept": int(room), "available": int(limit.available)})
 				qty = int(room)
+		# //// Neoffice — appends the tuple instead of writing the quotation row here (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): add_lines() now applies accepted lines to a guest's plain rows or a customer's quotation, whichever the caller has
 		accepted.append((item_code, warehouse, qty))
 	return accepted, capped, refused
 
 
+# //// Neoffice — added _guest_cart_rows()/_write_guest_cart() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): a visitor's batch has no quotation of its own; it goes through create_guest_quotation, the guest cart's own rebuild-from-list path
 def _guest_cart_rows():
 	"""The guest's cart as plain rows (what create_guest_quotation rebuilds from)."""
 	from webshop.webshop.shopping_cart.guest_cart import create_guest_quotation
@@ -528,6 +549,7 @@ def _guest_cart_rows():
 	return rows
 
 
+# //// Neoffice — see the block marker above: rebuilds the guest cart from its whole list
 def _write_guest_cart(rows, accepted, multi_enabled):
 	"""The guest cart is rebuilt from its whole list, the way update_cart does it."""
 	from webshop.webshop.shopping_cart.guest_cart import create_guest_quotation
@@ -548,6 +570,7 @@ def _write_guest_cart(rows, accepted, multi_enabled):
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def add_lines(lines):
+	# //// Neoffice — add_lines() is now allow_guest=True and branches on is_guest, writing through _guest_cart_rows()/_write_guest_cart() for a visitor or the customer's own quotation otherwise (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
 	"""The whole entry into the cart at once: one read, one save.
 
 	Every line goes through the rule of "add to cart". What the shop cannot
@@ -577,6 +600,7 @@ def add_lines(lines):
 		if is_guest:
 			quotation = _write_guest_cart(rows, accepted, multi_enabled)
 		else:
+			# //// Neoffice — writes the customer's own quotation from the accepted tuples (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): this used to run directly inside _check_lines' loop
 			for item_code, warehouse, qty in accepted:
 				row = next(
 					(
@@ -596,15 +620,18 @@ def add_lines(lines):
 			_save_on_behalf(quotation, party)
 		set_cart_count(quotation)
 
+	# //// Neoffice — quotation may be None (a guest with nothing accepted) (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): each figure falls back instead of assuming a quotation always exists
 	total_qty = sum(flt(row.qty) for row in (quotation.get("items") if quotation else None) or [])
 	grand_total = flt(quotation.grand_total) if quotation else 0
 	currency = quotation.currency if quotation else _currency(effective_price_list())
 	return {
+		# //// Neoffice — built from the accepted tuples (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): add_lines() no longer keeps its own added list
 		"added": [{"item_code": code, "qty": qty} for code, _warehouse, qty in accepted],
 		"capped": capped,
 		"refused": refused,
 		"cart": {
 			"qty": total_qty,
+			# //// Neoffice — see the block marker above: falls back when there is no quotation
 			"total": grand_total,
 			"formatted_total": fmt_money(grand_total, currency=currency),
 			"url": "/cart",
@@ -619,6 +646,7 @@ def add_lines(lines):
 
 def labels():
 	return {
+		# //// Neoffice — removed "title" (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): the page title is set directly in index.py's get_context(), this label was unused
 		"lead": _("Tapez une référence, un nom ou un code-barres : la grille du modèle s'ouvre et vous saisissez les quantités au clavier."),
 		"placeholder": _("Référence, nom ou code-barres…"),
 		"no_results": _("Aucun article publié ne correspond."),
@@ -628,6 +656,7 @@ def labels():
 		"empty": _("Aucun modèle ouvert. Cherchez une référence pour commencer."),
 		"close": _("Fermer"),
 		"reset_model": _("Tout à zéro"),
+		# //// Neoffice — added (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): label of each grid's own "add to cart" button
 		"add_model": _("Ajouter au panier"),
 		"stock": _("Stock"),
 		"available": _("{0} disponibles"),
@@ -640,6 +669,7 @@ def labels():
 		"lines": _("lignes"),
 		"total": _("Total indicatif"),
 		"total_note": _("Prix du tarif. Remises et TVA sont calculées au panier."),
+		# //// Neoffice — reworded from "Envoyer au panier" (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): now that each grid has its own "add to cart", this button sends the whole draft
 		"send": _("Tout envoyer au panier"),
 		"sending": _("Envoi en cours…"),
 		"clear": _("Tout effacer"),
@@ -654,6 +684,7 @@ def labels():
 		"report_refused": _("Non ajoutées :"),
 		"nothing_to_send": _("Aucune quantité saisie."),
 		"error": _("La requête a échoué. Réessayez."),
+		# //// Neoffice — reworded to match the renamed "send everything" shortcut (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
 		"shortcuts": _("Entrée : case suivante · Échap : retour à la recherche · Ctrl+Entrée : tout envoyer"),
 		"qty": _("Qté"),
 		"add": _("Ajouter"),
@@ -664,6 +695,7 @@ def page_context(context):
 	"""What /quick-order renders: the refusal, or the app and its configuration."""
 	context.allowed = False
 	context.reason = ""
+	# //// Neoffice — reads the gate through require_shopper()/try-except (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): used to call get_party() directly and refuse with is_reseller()
 	try:
 		party = require_shopper()
 	except frappe.PermissionError:
@@ -671,11 +703,13 @@ def page_context(context):
 		context.reason = _("Aucun compte client n'est rattaché à votre utilisateur.")
 		return context
 	price_list = effective_price_list()
+	# //// Neoffice — removed the is_reseller() refusal and the inline currency lookup (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): any signed-in customer/allowed visitor reaches here now, and currency is looked up via _currency() below
 	context.allowed = True
 	context.config = {
 		"user": frappe.session.user,
 		"customer": party.get("customer_name") or party.get("name"),
 		"site": getattr(frappe.local, "website_profile", None) or frappe.local.site,
+		# //// Neoffice — reuses _currency() instead of repeating the lookup (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille")
 		"currency": _currency(price_list),
 		"lang": frappe.local.lang or "fr",
 		"max_lines": MAX_LINES,
