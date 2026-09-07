@@ -93,6 +93,17 @@ $.extend(shopping_cart, {
 			callback: function(r) {
 				shopping_cart.unfreeze();
 				shopping_cart.set_cart_count(true);
+				//// Neoffice — the Builder shop's cart is a header drawer with its own badge,
+				//// outside this bundle; it never heard about an add made from a product card,
+				//// so neither the drawer nor its badge moved. Tell it a cart change happened:
+				//// its badge follows, and on a real add (open_drawer) it opens with its
+				//// animation. A plain webshop navbar has no listener and ignores this.
+				//// (2026-09-07)
+				try {
+					document.dispatchEvent(new CustomEvent("webshop:cart-changed", {
+						detail: { open: !!opts.open_drawer, item_code: opts.item_code, qty: opts.qty }
+					}));
+				} catch (e) { /* no CustomEvent support: nothing to notify */ }
 				if(opts.callback)
 					opts.callback(r);
 			}
@@ -285,6 +296,8 @@ $.extend(shopping_cart, {
 						webshop.webshop.shopping_cart.update_cart({
 							item_code,
 							qty: 1,
+							//// Neoffice — adding from a shop card opens the Builder drawer (2026-09-07)
+							open_drawer: true,
 							callback: function(r) {
 								if (r.message && r.message.error) {
 									frappe.msgprint({
@@ -317,7 +330,9 @@ $.extend(shopping_cart, {
 			const item_code = $btn.data('item-code');
 			webshop.webshop.shopping_cart.update_cart({
 				item_code,
-				qty: 1
+				qty: 1,
+				//// Neoffice — adding from a shop card opens the Builder drawer (2026-09-07)
+				open_drawer: true
 			});
 
 		});
