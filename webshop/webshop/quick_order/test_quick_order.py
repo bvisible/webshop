@@ -12,6 +12,7 @@ and reports what it kept.
 """
 
 import frappe
+from frappe import _
 from frappe.tests.utils import FrappeTestCase
 # //// Neoffice — added flt import, used by the new price-list and order-export tests (6696be727a "feat(quick-order): le prix du client, et la commande en Excel")
 from frappe.utils import flt
@@ -279,7 +280,8 @@ class TestQuickOrder(FrappeTestCase):
 		context = api.page_context(frappe._dict())
 		self.assertFalse(context.allowed)
 		# //// Neoffice — reworded (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): the refusal reason is now "no customer account", not "reserved for professional accounts".
-		self.assertIn("compte client", context.reason)
+		# //// Neoffice — compared through _() rather than to a French fragment (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais"): the msgids are English now, and the CI runs in English while the fleet runs in French — a hard-coded fragment of either would fail on the other.
+		self.assertEqual(context.reason, _("No customer account is linked to your user."))
 
 	# --- search and resolution ------------------------------------------------------
 
@@ -543,7 +545,11 @@ class TestQuickOrder(FrappeTestCase):
 		# nothing left: refused, and the cart untouched
 		out = api.add_lines([{"item_code": noir_s, "qty": 1}])
 		self.assertEqual(out["added"], [])
-		self.assertIn("Épuisé", out["refused"][0]["reason"])
+		# //// Neoffice — the reason is built through _() instead of matching a French word (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais")
+		self.assertEqual(
+			out["refused"][0]["reason"],
+			_("Out of stock: {0} already in the cart, nothing more available.").format(3),
+		)
 		self.assertEqual(self.cart_lines(), {noir_s: 3})
 
 	# //// Neoffice — added test (652ee009bf "feat(quick-order): une ligne se répartit sur plusieurs sources jusqu'au stock agrégé"): a line without a price on the customer's list must be refused, never added to the cart at 0.00
@@ -560,7 +566,11 @@ class TestQuickOrder(FrappeTestCase):
 			api._price_of = real
 		self.assertEqual(out["added"], [])
 		self.assertEqual(out["refused"][0]["item_code"], noir_s)
-		self.assertIn("tarif", out["refused"][0]["reason"].lower())
+		# //// Neoffice — same reason as above: compare through _() , not a French fragment (86e3cd5c5a)
+		self.assertEqual(
+			out["refused"][0]["reason"],
+			_("No price for this item on your price list (price on request)."),
+		)
 		self.assertEqual(self.cart_lines(), {})
 
 	def test_too_many_lines_are_refused_before_anything_is_written(self):

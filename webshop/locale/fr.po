@@ -8249,3 +8249,7 @@ msgstr ""
 #: webshop/webshop/assistant/api.py:207
 msgid "écrit…"
 msgstr ""
+
+#: webshop/templates/pages/checkout_b2b.html:21
+msgid "Add items with the quick order"
+msgstr "Ajouter des articles en commande rapide"

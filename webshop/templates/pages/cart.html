@@ -123,7 +123,7 @@
 					</a>
 					<div class="cart-actions__links">
 						{% if show_quick_order %}
-							<a href="/quick-order">{{ _('Commande rapide') }}</a>
+							<a href="/quick-order">{{ _('Quick order') }}</a>
 						{% endif %}
 						{% if frappe.session.user != "Guest" %}
 							{% if cart_settings.enable_checkout %}
@@ -201,7 +201,7 @@
 	</div>
 	<div class="cart-empty-links mt-3">
 		{% if show_quick_order %}
-			<a href="/quick-order">{{ _('Commande rapide') }}</a>
+			<a href="/quick-order">{{ _('Quick order') }}</a>
 		{% endif %}
 		{% if frappe.session.user != "Guest" %}
 			{% if cart_settings.enable_checkout %}
