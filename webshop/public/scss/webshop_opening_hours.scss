@@ -237,6 +237,7 @@
 	.wsh-hours__date, .wsh-hours__note, .wsh-hours__closures li { opacity: .75; }
 }
 
+//// Neoffice — added: cap the compact block and follow the footer's alignment, so a Builder full-width footer row doesn't stretch it edge to edge (2f9566de16 "fix(store-hours): le bloc emporte sa feuille de style, sinon il sort nu")
 /* The compact form was drawn for a footer COLUMN. Dropped into a full-width row it
    stretched edge to edge and threw the hours against the far right, a stride away
    from the day they belong to. Cap it, and follow the footer's own alignment: the
