@@ -16,33 +16,41 @@
 {%- set compact = display == "compact" -%}
 <div class="webshop-opening-hours{% if hours and hours.configured %} has-hours{% endif %}" data-autoload{% if compact %} data-display="compact"{% endif %}>
 	{% if hours and hours.configured %}
+	{# //// Neoffice — added the compact wrapper class for the footer-column form (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus") #}
 	<div class="wsh-hours{% if compact %} wsh-hours--compact{% endif %}">
 		<div class="wsh-hours__head">
+			{# //// Neoffice — the icon, now an inline SVG clock replacing the emoji, is hidden in compact mode (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus") #}
 			{%- if not compact %}
 			<div class="wsh-hours__icon">
 				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
 			</div>
 			{%- endif %}
 			<h3 class="wsh-hours__title">{{ hours.title }}</h3>
+			{# //// Neoffice — the date line is hidden in compact mode too (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus") #}
 			{%- if not compact %}<div class="wsh-hours__date">{{ hours.today_text }}</div>{% endif %}
 		</div>
 		<div class="wsh-hours__status {{ 'is-open' if hours.is_open else 'is-closed' }}">
+			{# //// Neoffice — replaced the 🔒 emoji with a themed status dot (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus") #}
 			<strong><span class="wsh-hours__dot"></span>{{ hours.headline }}</strong>
 			{% if hours.detail %}<span>{{ hours.detail }}</span>{% endif %}
 		</div>
 		<ul class="wsh-hours__list">
+			{# //// Neoffice — compact mode lists today only, and no longer marks it with the "is-today" highlight (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus") #}
 			{% for day in hours.week %}{% if not compact or day.is_today %}
 			<li class="wsh-hours__day{{ ' is-today' if day.is_today and not compact else '' }}{{ ' is-closed' if day.closed else '' }}">
 				<span class="wsh-hours__day-name">{{ day.label }}</span>
 				<span class="wsh-hours__day-hours">{{ day.text }}</span>
 			</li>
+			{# //// Neoffice — closes the compact-mode day filter opened above (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus") #}
 			{% endif %}{% endfor %}
 		</ul>
+		{# //// Neoffice — closures are hidden in compact mode; a footer column has no room for them (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus") #}
 		{% if hours.closures and not compact %}
 		<ul class="wsh-hours__closures">
 			{% for closure in hours.closures %}<li>{{ closure.text }}</li>{% endfor %}
 		</ul>
 		{% endif %}
+		{# //// Neoffice — the note is hidden and the "more" link shown only in compact mode (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus") #}
 		{% if hours.note and not compact %}<p class="wsh-hours__note">{{ hours.note }}</p>{% endif %}
 		{% if compact and hours.more_url %}<a class="wsh-hours__more" href="{{ hours.more_url }}">{{ hours.more_label }}</a>{% endif %}
 	</div>

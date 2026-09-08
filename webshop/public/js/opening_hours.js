@@ -51,6 +51,7 @@ webshop.opening_hours = {
 		const days = rows
 			.map(
 				(d) =>
+					//// Neoffice — see the block marker above: today's row keeps its "is-today" accent only outside compact mode (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 					`<li class="wsh-hours__day${d.is_today && !compact ? " is-today" : ""}${d.closed ? " is-closed" : ""}">` +
 					`<span class="wsh-hours__day-name">${e(d.label)}</span>` +
 					`<span class="wsh-hours__day-hours">${e(d.text)}</span></li>`
@@ -78,14 +79,17 @@ webshop.opening_hours = {
 			  `<div class="wsh-hours__date">${e(data.today_text)}</div></div>`;
 
 		container.innerHTML =
+			//// Neoffice — see the block marker above: added the "wsh-hours--compact" wrapper class for the footer-column form (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 			`<div class="wsh-hours${compact ? " wsh-hours--compact" : ""}">` +
 			head +
 			`<div class="wsh-hours__status ${data.is_open ? "is-open" : "is-closed"}">` +
+			//// Neoffice — see the block marker above: replaced the 🔒 emoji with a themed dot span (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 			`<strong><span class="wsh-hours__dot"></span>${e(data.headline)}</strong>` +
 			(data.detail ? `<span>${e(data.detail)}</span>` : "") +
 			`</div>` +
 			`<ul class="wsh-hours__list">${days}</ul>` +
 			closures +
+			//// Neoffice — see the block marker above: note hidden and the "more" link shown only in compact mode (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 			(data.note && !compact ? `<p class="wsh-hours__note">${e(data.note)}</p>` : "") +
 			more +
 			`</div>`;

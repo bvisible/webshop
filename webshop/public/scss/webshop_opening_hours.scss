@@ -18,6 +18,7 @@
 .webshop-opening-hours:not(.has-hours) { display: none !important; }
 
 .wsh-hours {
+	//// Neoffice — the colours are now design tokens (theme-driven) instead of hard-coded light values (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 	/* One accent, one surface, one hairline: everything else is derived. The theme's
 	   --primary wins when there is one, so the block never fights the site around it. */
 	--wsh-accent: var(--primary, #b5683f);
@@ -33,10 +34,13 @@
 
 	max-width: 34rem;
 	margin: 0 auto;
+	//// Neoffice — color now follows the --wsh-text token instead of a hard-coded value (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 	color: var(--wsh-text);
 	font-size: 1rem;
+	//// Neoffice — added line-height for legibility in the modernized block (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 	line-height: 1.5;
 
+	//// Neoffice — head/icon/title/date restructured: the icon is now the inline SVG clock, not the 🕒 emoji (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 	&__head {
 		display: flex;
 		flex-direction: column;
@@ -56,6 +60,7 @@
 
 	/* The status line is a pill, not a slab: it states one fact and gets out of the way. */
 	&__status {
+		//// Neoffice — status line reworked into a pill layout (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 		display: flex;
 		flex-wrap: wrap;
 		align-items: baseline;
@@ -74,16 +79,20 @@
 		&.is-closed { background: var(--wsh-closed-soft); color: var(--wsh-closed); }
 	}
 	/* The dot replaces the padlock emoji. Open, it breathes; closed, it simply sits. */
+	//// Neoffice — the 🔒 emoji is replaced by a themed currentColor dot (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 	&__dot {
 		flex: none;
 		width: .5rem; height: .5rem;
 		border-radius: 50%;
 		background: currentColor;
 	}
+	//// Neoffice — added the open-state pulse on the status dot (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 	&__status.is-open &__dot { animation: wsh-hours-pulse 2s ease-in-out infinite; }
 
+	//// Neoffice — the day list is now a flex column of rows instead of the old layout (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 	&__list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .3rem; }
 	&__day {
+		//// Neoffice — day row rebuilt as a flex row with its own background instead of the old bordered-list style (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 		position: relative;
 		display: flex;
 		justify-content: space-between;
@@ -98,6 +107,7 @@
 		/* Today: an accent bar and a tint. No transform, so the row keeps its box and
 		   cannot spill past the card the way the scaled version did. */
 		&.is-today {
+			//// Neoffice — today's row is now set apart with an accent tint and bar, not `transform: scale(1.02)` which overflowed the card (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 			background: color-mix(in srgb, var(--wsh-accent) 10%, transparent);
 			font-weight: 600;
 			padding-left: 1.35rem;
@@ -114,9 +124,11 @@
 		}
 	}
 	&__day-name { font-weight: 500; }
+	//// Neoffice — right-aligned, tabular figures for the day's hours (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 	&__day-hours { text-align: right; font-variant-numeric: tabular-nums; }
 
 	/* A closure is information, not an alarm: a neutral chip with a soft accent dot. */
+	//// Neoffice ▼▼▼ — closures were red alert boxes; now the public holidays feed them (1c6ed28607) they would have been a wall of red for every canton's closures, so they are neutral chips capped at four, and the compact footer form + the "more" link are new too (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 	&__closures {
 		list-style: none;
 		padding: 0;
@@ -180,8 +192,11 @@
 		opacity: .85;
 		&:hover { opacity: 1; }
 	}
+	//// Neoffice — removed a duplicate old &__note rule keyed to the since-renamed --wsh-hours-muted variable, superseded by the &__note rule above using --wsh-muted (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
+	//// Neoffice ▲▲▲
 }
 
+//// Neoffice ▼▼▼ — new: the open-state dot pulse (with its reduced-motion guard), the dark-mode tokens, and the site-footer inherit fix so the block never forces a white card on a dark page (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 @keyframes wsh-hours-pulse {
 	0%, 100% { opacity: 1; }
 	50% { opacity: .35; }
@@ -221,8 +236,10 @@
 	.wsh-hours__title, .wsh-hours__day-name, .wsh-hours__day-hours { color: inherit; }
 	.wsh-hours__date, .wsh-hours__note, .wsh-hours__closures li { opacity: .75; }
 }
+//// Neoffice ▲▲▲
 
 @media (max-width: 480px) {
+	//// Neoffice — the day row's mobile layout follows the new flex-row structure above (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 	.wsh-hours__day { flex-direction: column; align-items: flex-start; gap: .15rem; }
 	.wsh-hours__day-hours { text-align: left; }
 }

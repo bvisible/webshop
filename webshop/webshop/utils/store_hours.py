@@ -216,6 +216,7 @@ def upcoming_closures(now, sched, horizon_days=CLOSURES_HORIZON_DAYS, limit=CLOS
 	horizon = getdate(add_days(today, horizon_days))
 	out = []
 	for closure in sorted(sched.closures, key=lambda c: c.from_date):
+		# //// Neoffice — see the block marker above: uses the renamed `horizon` bound (1c6ed28607 "feat(store-hours): les jours fériés sont récupérés automatiquement, par canton")
 		if closure.to_date < today or closure.from_date > horizon:
 			continue
 		if closure.from_date == closure.to_date:
@@ -232,6 +233,9 @@ def upcoming_closures(now, sched, horizon_days=CLOSURES_HORIZON_DAYS, limit=CLOS
 				text=f"{when} · {closure.label}" if closure.label else when,
 			)
 		)
+		# //// Neoffice — enforces the `limit` cap from the docstring above: public holidays can
+		# //// fill the horizon with half a dozen closures, and the block names what's coming,
+		# //// it doesn't print a calendar (1c6ed28607 "feat(store-hours): les jours fériés sont récupérés automatiquement, par canton")
 		if len(out) >= limit:
 			break
 	return out
