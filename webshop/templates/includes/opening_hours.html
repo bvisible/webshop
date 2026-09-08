@@ -12,6 +12,13 @@
    //// status dot — an emoji renders differently on every platform and read as
    //// clip-art next to a typeset page. Kept byte-for-byte in step with the same
    //// markup in opening_hours.js, since either may draw this block. #}
+{#- //// Neoffice — the block fills itself when no controller passed `hours`. A page
+    rendered by Builder does not load webshop's script, so relying on data-autoload
+    left the block empty there for ever; asking the server here makes the include work
+    from anywhere — the footer, a Builder block, a page Nora generates — with no caller
+    having to know. data-autoload stays in the markup, so where the script IS present it
+    still refreshes every minute. -#}
+{%- if not hours -%}{%- set hours = webshop_opening_hours() -%}{%- endif -%}
 {%- set display = display or "full" -%}
 {%- set compact = display == "compact" -%}
 <div class="webshop-opening-hours{% if hours and hours.configured %} has-hours{% endif %}" data-autoload{% if compact %} data-display="compact"{% endif %}>

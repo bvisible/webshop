@@ -275,6 +275,26 @@ def get_opening_hours():
 	return opening_hours()
 
 
+# //// Neoffice — exposed to Jinja (hooks.py jinja.methods) so the include can fill
+# //// itself. A page rendered by Builder does not load an app's web_include_js, so
+# //// `window.webshop` is absent there and the block's data-autoload never fires —
+# //// measured on osiris: 19 webshop bundles on /store-hours, none on a Builder page.
+# //// Making the include self-sufficient means no caller — the footer, a Builder
+# //// block, a page Nora generates — has to know that, or pass anything.
+def webshop_opening_hours():
+	"""The opening-hours payload for a template, or None. Never raises.
+
+	A shop with no hours typed, or a settings row that cannot be read, must leave
+	the block empty rather than break the page that embeds it.
+	"""
+	try:
+		data = opening_hours()
+		return data if data and data.get("configured") else None
+	except Exception:
+		frappe.log_error("Opening hours unavailable for a template", frappe.get_traceback())
+		return None
+
+
 def hours_summary(now=None, settings=None):
 	"""One paragraph for the assistant's answer and for the summary emails."""
 	data = opening_hours(now, settings)
