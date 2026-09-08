@@ -234,6 +234,7 @@ jobs:
             webshop.webshop.utils.test_store_hours \
             webshop.webshop.utils.test_holidays \
             webshop.webshop.assistant.test_assistant \
+            webshop.webshop.shopping_cart.test_shop_rights \
             webshop.webshop.quick_order.test_quick_order
           do
             echo "::group::$m"
