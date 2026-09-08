@@ -20,6 +20,12 @@
     still refreshes every minute. -#}
 {%- if not hours -%}{%- set hours = webshop_opening_hours() -%}{%- endif -%}
 {%- set display = display or "full" -%}
+{#- //// Neoffice — the block carries its own stylesheet: a Builder page loads neither
+    webshop's script nor its CSS, and the footer block came out as unstyled HTML there.
+    opening_hours_css() answers once per request, so two blocks on a page do not repeat
+    it. `safe` is our own compiled asset, not user input. -#}
+{%- set _css = opening_hours_css() -%}
+{%- if _css %}<style>{{ _css | safe }}</style>{% endif -%}
 {%- set compact = display == "compact" -%}
 <div class="webshop-opening-hours{% if hours and hours.configured %} has-hours{% endif %}" data-autoload{% if compact %} data-display="compact"{% endif %}>
 	{% if hours and hours.configured %}

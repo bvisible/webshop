@@ -1,0 +1,12 @@
+/* //// Neoffice — added file: the opening-hours block on its own, so it can be served
+   //// where webshop's web bundle is not.
+   ////
+   //// A page rendered by Builder does not load an app's `web_include_css` any more than
+   //// its `web_include_js` — measured on osiris: zero `wsh-hours` rules on a Builder
+   //// page, and the block came out as unstyled HTML in the footer. The chrome has the
+   //// same constraint (its CSS is inlined for exactly this reason).
+   ////
+   //// So the same partial is compiled twice: inside `webshop-web.bundle.scss` for the
+   //// shop's own pages, and here on its own, which `store_hours.opening_hours_css()`
+   //// reads and the include inlines once per request. One source, two deliveries. */
+@import "./webshop_opening_hours";

@@ -236,6 +236,14 @@
 	.wsh-hours__title, .wsh-hours__day-name, .wsh-hours__day-hours { color: inherit; }
 	.wsh-hours__date, .wsh-hours__note, .wsh-hours__closures li { opacity: .75; }
 }
+
+/* The compact form was drawn for a footer COLUMN. Dropped into a full-width row it
+   stretched edge to edge and threw the hours against the far right, a stride away
+   from the day they belong to. Cap it, and follow the footer's own alignment: the
+   centred templates centre it, the extended one keeps it in its column. */
+.site-footer .wsh-hours--compact { max-width: 22rem; }
+.site-footer--standard .wsh-hours--compact,
+.site-footer--centered .wsh-hours--compact { margin-inline: auto; }
 //// Neoffice ▲▲▲
 
 @media (max-width: 480px) {

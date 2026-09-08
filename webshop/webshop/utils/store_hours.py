@@ -281,6 +281,42 @@ def get_opening_hours():
 # //// measured on osiris: 19 webshop bundles on /store-hours, none on a Builder page.
 # //// Making the include self-sufficient means no caller — the footer, a Builder
 # //// block, a page Nora generates — has to know that, or pass anything.
+# //// Neoffice — the block's stylesheet, for the templates that must carry it.
+# //// A Builder page loads neither an app's web_include_js nor its web_include_css:
+# //// measured on osiris, zero `wsh-hours` rules there, and the footer block came out
+# //// as unstyled HTML. The include therefore inlines this once per request. On a shop
+# //// page the web bundle already carries the same rules; the duplicate is identical
+# //// and costs ~5 KB, which is cheaper than a block that only looks right on half the
+# //// site. Remove this the day Builder pages carry app assets.
+_CSS_BUNDLE = "webshop_opening_hours.bundle.css"
+
+
+def opening_hours_css():
+	"""The block's compiled CSS, once per request. "" on later calls, and on failure.
+
+	Returning "" the second time is what keeps a page with two blocks from carrying
+	the stylesheet twice.
+	"""
+	if getattr(frappe.local, "webshop_hours_css_done", False):
+		return ""
+	frappe.local.webshop_hours_css_done = True
+	try:
+		import os
+
+		from frappe.utils import get_assets_json
+
+		path = (get_assets_json() or {}).get(_CSS_BUNDLE)
+		if not path:
+			return ""
+		# "/assets/webshop/dist/css/x.css" -> <bench>/sites/assets/webshop/dist/css/x.css
+		full = os.path.join(frappe.local.sites_path, path.lstrip("/"))
+		with open(full, encoding="utf-8") as fh:
+			return fh.read()
+	except Exception:
+		frappe.log_error("Opening hours stylesheet unavailable", frappe.get_traceback())
+		return ""
+
+
 def webshop_opening_hours():
 	"""The opening-hours payload for a template, or None. Never raises.
 
