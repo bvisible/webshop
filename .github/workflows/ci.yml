@@ -232,6 +232,7 @@ jobs:
             webshop.webshop.utils.test_follow_ups \
             webshop.webshop.tests.test_desk \
             webshop.webshop.utils.test_store_hours \
+            webshop.webshop.utils.test_holidays \
             webshop.webshop.assistant.test_assistant \
             webshop.webshop.quick_order.test_quick_order
           do
