@@ -2,34 +2,49 @@
    The store's opening hours. Drawn by opening_hours.js from the public endpoint
    and refreshed every minute; when the controller passes `hours`, the week is
    also written here so the page reads without JavaScript and for search engines.
-   In a Builder page, the same block is one HTML element:
-   <div class="webshop-opening-hours" data-autoload></div> #}
-<div class="webshop-opening-hours{% if hours and hours.configured %} has-hours{% endif %}" data-autoload>
+
+   Anywhere in a Builder page, the same block is one HTML element:
+   <div class="webshop-opening-hours" data-autoload></div>
+   Add data-display="compact" for a footer column: the state, today's hours and a
+   link through to the full week.
+
+   //// Reworked 2026-09-08: the 🕒 emoji became an inline SVG and the padlock a
+   //// status dot — an emoji renders differently on every platform and read as
+   //// clip-art next to a typeset page. Kept byte-for-byte in step with the same
+   //// markup in opening_hours.js, since either may draw this block. #}
+{%- set display = display or "full" -%}
+{%- set compact = display == "compact" -%}
+<div class="webshop-opening-hours{% if hours and hours.configured %} has-hours{% endif %}" data-autoload{% if compact %} data-display="compact"{% endif %}>
 	{% if hours and hours.configured %}
-	<div class="wsh-hours">
+	<div class="wsh-hours{% if compact %} wsh-hours--compact{% endif %}">
 		<div class="wsh-hours__head">
-			<div class="wsh-hours__icon" aria-hidden="true">🕒</div>
+			{%- if not compact %}
+			<div class="wsh-hours__icon">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+			</div>
+			{%- endif %}
 			<h3 class="wsh-hours__title">{{ hours.title }}</h3>
-			<div class="wsh-hours__date">{{ hours.today_text }}</div>
+			{%- if not compact %}<div class="wsh-hours__date">{{ hours.today_text }}</div>{% endif %}
 		</div>
 		<div class="wsh-hours__status {{ 'is-open' if hours.is_open else 'is-closed' }}">
-			<strong>{{ hours.headline }}</strong>
+			<strong><span class="wsh-hours__dot"></span>{{ hours.headline }}</strong>
 			{% if hours.detail %}<span>{{ hours.detail }}</span>{% endif %}
 		</div>
 		<ul class="wsh-hours__list">
-			{% for day in hours.week %}
-			<li class="wsh-hours__day{{ ' is-today' if day.is_today else '' }}{{ ' is-closed' if day.closed else '' }}">
+			{% for day in hours.week %}{% if not compact or day.is_today %}
+			<li class="wsh-hours__day{{ ' is-today' if day.is_today and not compact else '' }}{{ ' is-closed' if day.closed else '' }}">
 				<span class="wsh-hours__day-name">{{ day.label }}</span>
 				<span class="wsh-hours__day-hours">{{ day.text }}</span>
 			</li>
-			{% endfor %}
+			{% endif %}{% endfor %}
 		</ul>
-		{% if hours.closures %}
+		{% if hours.closures and not compact %}
 		<ul class="wsh-hours__closures">
 			{% for closure in hours.closures %}<li>{{ closure.text }}</li>{% endfor %}
 		</ul>
 		{% endif %}
-		{% if hours.note %}<p class="wsh-hours__note">{{ hours.note }}</p>{% endif %}
+		{% if hours.note and not compact %}<p class="wsh-hours__note">{{ hours.note }}</p>{% endif %}
+		{% if compact and hours.more_url %}<a class="wsh-hours__more" href="{{ hours.more_url }}">{{ hours.more_label }}</a>{% endif %}
 	</div>
 	{% endif %}
 </div>

@@ -1,70 +1,228 @@
 /* //// Neoffice — added file (store hours, no upstream equivalent).
-   The opening-hours block, after the one blowbackshop.ch shows in its footer:
-   a centred header, an open/closed banner, one rounded row per day with today
-   set apart. Colours are variables so a theme can retune them without
-   touching the markup. */
+   The opening-hours block: a quiet card, an open/closed line, one row per day
+   with today set apart, and the closures that are coming.
+
+   //// Reworked 2026-09-08. What the first pass got wrong:
+   ////  - two emojis (🕒 and 🔒) carried meaning; they render differently on every
+   ////    platform and read as clip-art next to a typeset page. Now inline SVG and
+   ////    a status dot, both in currentColor.
+   ////  - `transform: scale(1.02)` on today's row made it wider than its own
+   ////    container, so the highlighted line visibly overflowed the card. An
+   ////    accent bar and a tint set the day apart without changing its box.
+   ////  - closures were drawn as red alert boxes. Since the public holidays now
+   ////    feed them, that was about to become a wall of red for Christmas and
+   ////    Assumption alike. They are neutral chips: a closure is information.
+   ////  - the colours were hard-coded light. They are tokens, and the block
+   ////    follows the reader's theme. */
 
 .webshop-opening-hours:not(.has-hours) { display: none !important; }
 
 .wsh-hours {
-	--wsh-hours-row: #f6f7f9;
-	--wsh-hours-text: #1f2937;
-	--wsh-hours-muted: #6b7280;
-	--wsh-hours-today: linear-gradient(90deg, var(--primary, #b5683f) 0%, #1a1a1a 100%);
-	--wsh-hours-open-bg: #d9f5e3;
-	--wsh-hours-open-text: #14532d;
-	--wsh-hours-closed-bg: #f8d7da;
-	--wsh-hours-closed-text: #7f1d1d;
-	max-width: 560px;
+	/* One accent, one surface, one hairline: everything else is derived. The theme's
+	   --primary wins when there is one, so the block never fights the site around it. */
+	--wsh-accent: var(--primary, #b5683f);
+	--wsh-surface: #fff;
+	--wsh-row: #f7f8fa;
+	--wsh-line: rgba(17, 24, 39, .09);
+	--wsh-text: #111827;
+	--wsh-muted: #6b7280;
+	--wsh-open: #15803d;
+	--wsh-open-soft: rgba(21, 128, 61, .09);
+	--wsh-closed: #b42318;
+	--wsh-closed-soft: rgba(180, 35, 24, .08);
+
+	max-width: 34rem;
 	margin: 0 auto;
-	color: var(--wsh-hours-text);
+	color: var(--wsh-text);
 	font-size: 1rem;
+	line-height: 1.5;
 
-	&__head { text-align: center; margin-bottom: 1.25rem; }
-	&__icon { font-size: 2.75rem; line-height: 1; margin-bottom: .75rem; }
-	&__title { font-size: 1.75rem; font-weight: 500; margin: 0 0 .35rem; }
-	&__date { color: var(--wsh-hours-muted); font-size: .95rem; }
+	&__head {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: .3rem;
+		margin-bottom: 1.25rem;
+		text-align: center;
+	}
+	&__icon {
+		display: inline-flex;
+		color: var(--wsh-accent);
+		margin-bottom: .35rem;
+		svg { display: block; width: 1.75rem; height: 1.75rem; }
+	}
+	&__title { font-size: 1.5rem; font-weight: 600; letter-spacing: -.01em; margin: 0; }
+	&__date { color: var(--wsh-muted); font-size: .9rem; }
 
+	/* The status line is a pill, not a slab: it states one fact and gets out of the way. */
 	&__status {
-		display: flex; flex-direction: column; align-items: center; gap: .25rem;
-		padding: 1rem 1.25rem; border-radius: 14px; margin-bottom: 1rem; text-align: center;
-		strong { font-size: 1.1rem; display: inline-flex; align-items: center; gap: .5rem; }
-		span { font-size: .95rem; }
-		&.is-open { background: var(--wsh-hours-open-bg); color: var(--wsh-hours-open-text); }
-		&.is-closed { background: var(--wsh-hours-closed-bg); color: var(--wsh-hours-closed-text); }
-	}
-	&__pulse {
-		width: 10px; height: 10px; border-radius: 50%; background: currentColor;
-		animation: wsh-hours-pulse 1.6s ease-in-out infinite;
-	}
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: center;
+		gap: .25rem .6rem;
+		padding: .7rem 1.1rem;
+		border-radius: 999px;
+		margin-bottom: 1.25rem;
+		text-align: center;
+		font-size: .95rem;
 
-	&__list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .5rem; }
+		strong { display: inline-flex; align-items: center; gap: .5rem; font-weight: 600; }
+		span { color: inherit; opacity: .85; }
+
+		&.is-open { background: var(--wsh-open-soft); color: var(--wsh-open); }
+		&.is-closed { background: var(--wsh-closed-soft); color: var(--wsh-closed); }
+	}
+	/* The dot replaces the padlock emoji. Open, it breathes; closed, it simply sits. */
+	&__dot {
+		flex: none;
+		width: .5rem; height: .5rem;
+		border-radius: 50%;
+		background: currentColor;
+	}
+	&__status.is-open &__dot { animation: wsh-hours-pulse 2s ease-in-out infinite; }
+
+	&__list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .3rem; }
 	&__day {
-		display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-		padding: .9rem 1.25rem; border-radius: 14px; background: var(--wsh-hours-row);
-		&.is-closed .wsh-hours__day-hours { color: #c0392b; font-style: italic; }
+		position: relative;
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 1rem;
+		padding: .7rem 1rem;
+		border-radius: .65rem;
+		background: var(--wsh-row);
+
+		&.is-closed .wsh-hours__day-hours { color: var(--wsh-muted); }
+
+		/* Today: an accent bar and a tint. No transform, so the row keeps its box and
+		   cannot spill past the card the way the scaled version did. */
 		&.is-today {
-			background: var(--wsh-hours-today); color: #fff; font-weight: 600;
-			transform: scale(1.02); box-shadow: 0 8px 20px rgba(0, 0, 0, .12);
-			.wsh-hours__day-hours { color: #fff; font-style: normal; }
+			background: color-mix(in srgb, var(--wsh-accent) 10%, transparent);
+			font-weight: 600;
+			padding-left: 1.35rem;
+
+			&::before {
+				content: "";
+				position: absolute;
+				left: .55rem; top: .55rem; bottom: .55rem;
+				width: 3px;
+				border-radius: 3px;
+				background: var(--wsh-accent);
+			}
+			.wsh-hours__day-hours { color: inherit; }
 		}
 	}
 	&__day-name { font-weight: 500; }
-	&__day-hours { text-align: right; }
+	&__day-hours { text-align: right; font-variant-numeric: tabular-nums; }
 
+	/* A closure is information, not an alarm: a neutral chip with a soft accent dot. */
 	&__closures {
-		list-style: none; padding: 0; margin: 1rem 0 0; color: var(--wsh-hours-closed-text);
-		li { padding: .5rem .75rem; border-radius: 10px; background: var(--wsh-hours-closed-bg); margin-bottom: .35rem; font-size: .95rem; }
+		list-style: none;
+		padding: 0;
+		margin: 1.25rem 0 0;
+		display: flex;
+		flex-direction: column;
+		gap: .3rem;
+
+		li {
+			display: flex;
+			align-items: baseline;
+			gap: .55rem;
+			padding: .5rem .85rem;
+			border-radius: .55rem;
+			border: 1px solid var(--wsh-line);
+			background: transparent;
+			color: var(--wsh-muted);
+			font-size: .9rem;
+
+			&::before {
+				content: "";
+				flex: none;
+				width: .4rem; height: .4rem;
+				border-radius: 50%;
+				background: var(--wsh-accent);
+				opacity: .55;
+				transform: translateY(-.15em);
+			}
+		}
 	}
-	&__note { margin: 1rem 0 0; color: var(--wsh-hours-muted); font-size: .9rem; text-align: center; }
+	&__note { margin: 1rem 0 0; color: var(--wsh-muted); font-size: .875rem; text-align: center; }
+
+	/* The compact form: a footer column has no room for a week. One status line,
+	   today's hours, and a way through to the full page. */
+	&--compact {
+		max-width: none;
+		margin: 0;
+		font-size: .9rem;
+
+		.wsh-hours__head { align-items: flex-start; text-align: left; margin-bottom: .6rem; gap: .15rem; }
+		.wsh-hours__icon { display: none; }
+		.wsh-hours__title { font-size: 1rem; }
+		.wsh-hours__status {
+			justify-content: flex-start;
+			padding: .35rem .7rem;
+			margin-bottom: .5rem;
+			font-size: .85rem;
+		}
+		.wsh-hours__day { padding: .3rem 0; background: none; border-radius: 0; gap: .75rem; }
+		.wsh-hours__day.is-today { background: none; padding-left: 0; &::before { display: none; } }
+		.wsh-hours__closures { margin-top: .6rem; li { border: 0; padding: .15rem 0; } }
+		.wsh-hours__note { text-align: left; margin-top: .5rem; }
+	}
+	&__more {
+		display: inline-block;
+		margin-top: .6rem;
+		font-size: .875rem;
+		color: inherit;
+		text-decoration: underline;
+		text-underline-offset: .2em;
+		opacity: .85;
+		&:hover { opacity: 1; }
+	}
 }
 
 @keyframes wsh-hours-pulse {
-	0%, 100% { opacity: 1; transform: scale(1); }
-	50% { opacity: .45; transform: scale(.75); }
+	0%, 100% { opacity: 1; }
+	50% { opacity: .35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.wsh-hours__dot { animation: none !important; }
+}
+
+/* The block sits inside whatever the site's theme is, footer included, so it
+   follows the reader's scheme rather than forcing a white card on a dark page. */
+@media (prefers-color-scheme: dark) {
+	.wsh-hours {
+		--wsh-surface: #111318;
+		--wsh-row: rgba(255, 255, 255, .05);
+		--wsh-line: rgba(255, 255, 255, .14);
+		--wsh-text: #e8eaed;
+		--wsh-muted: #9aa1ab;
+		--wsh-open: #6ee7a8;
+		--wsh-open-soft: rgba(110, 231, 168, .12);
+		--wsh-closed: #fca5a5;
+		--wsh-closed-soft: rgba(252, 165, 165, .12);
+	}
+}
+
+/* In a dark footer the surrounding text is already light: inherit it rather than
+   guessing, so the block never prints dark grey on a dark ground. */
+.site-footer .wsh-hours {
+	/* `--wsh-text: inherit` would inherit the PARENT'S --wsh-text, not the footer's
+	   text colour — and where the parent defines none, `color: var(--wsh-text)`
+	   falls back to nothing and the block printed dark grey on a dark ground.
+	   Overriding `color` itself is what actually follows the footer. */
+	color: inherit;
+	--wsh-muted: currentColor;
+	--wsh-row: rgba(127, 127, 127, .12);
+	--wsh-line: rgba(127, 127, 127, .28);
+	.wsh-hours__title, .wsh-hours__day-name, .wsh-hours__day-hours { color: inherit; }
+	.wsh-hours__date, .wsh-hours__note, .wsh-hours__closures li { opacity: .75; }
 }
 
 @media (max-width: 480px) {
-	.wsh-hours__day { flex-direction: column; align-items: flex-start; gap: .25rem; }
+	.wsh-hours__day { flex-direction: column; align-items: flex-start; gap: .15rem; }
 	.wsh-hours__day-hours { text-align: left; }
 }
