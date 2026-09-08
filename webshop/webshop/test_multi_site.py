@@ -429,6 +429,11 @@ class TestAvecProfil(unittest.TestCase):
 			self.assertIn(nom, set(multi_site.excluded_item_names()))
 
 
+# //// Neoffice ▼▼▼ — added (fa9d291eb5 "feat(multi-site): les tarifs revendeurs ne
+# sont plus publics (#273)"): a Website Profile can now hide prices from guests on its
+# own (hide_price_for_guest); this class checks the ON-only override over the Single,
+# and that search, listing and the SQL pricing paths all honour the same gate. The
+# Single is answered by a stand-in throughout, never written.
 class TestGuestPricesPerSite(unittest.TestCase):
 	"""A site hides its prices from visitors on its own (neoffice-maintenance#273).
 
@@ -509,3 +514,6 @@ class TestGuestPricesPerSite(unittest.TestCase):
 					self.skipTest("no priced published item on this site: the control cannot tell")
 		finally:
 			frappe.set_user("Administrator")
+
+
+# //// Neoffice ▲▲▲

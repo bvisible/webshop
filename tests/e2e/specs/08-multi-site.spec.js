@@ -133,6 +133,10 @@ test.describe('Le prix affiché est le prix facturé', () => {
 				const article = catalogue.find((i) => i.prix);
 				test.skip(!article, `aucun article tarifé sur ${url}`);
 
+				//// Neoffice — removed a second call to connecterSurSite that used to run
+				//// again here before comparing prices (fa9d291eb5 "feat(multi-site): les
+				//// tarifs revendeurs ne sont plus publics (#273)"): the session opened
+				//// above already carries through to the comparisons below.
 				const recherche = await prixRecherche(page, article.item_code);
 				const panier = await prixPanier(page, article.item_code);
 
@@ -157,6 +161,10 @@ test.describe('Le prix affiché est le prix facturé', () => {
 		const b2c = await ouvrirSite(browser, URL_B2C);
 		const b2b = await ouvrirSite(browser, URL_B2B);
 		try {
+			//// Neoffice — removed the old check here that only required an item common
+			//// to both catalogues (fa9d291eb5 "feat(multi-site): les tarifs revendeurs
+			//// ne sont plus publics (#273)"): replaced below by an item actually priced
+			//// on both sides, since a professional site now prices nothing for a guest.
 			test.skip(
 				!(await connecterSurSite(b2c.page, URL_B2C)) ||
 					!(await connecterSurSite(b2b.page, URL_B2B)),
@@ -340,6 +348,10 @@ test.describe('Boutique réservée aux professionnels', () => {
 	});
 });
 
+//// Neoffice — added: articleCommun only required an item listed on both domains;
+//// since a professional site now prices nothing for a guest (fa9d291eb5
+//// "feat(multi-site): les tarifs revendeurs ne sont plus publics (#273)"), the
+//// comparison test needs an item actually priced on both sides instead.
 /** An item code PRICED on both domains, as their current sessions see them, or null. */
 async function articleTarifeSurLesDeux(pageA, pageB) {
 	const a = (await catalogueDuSite(pageA)).filter((i) => i.prix);
