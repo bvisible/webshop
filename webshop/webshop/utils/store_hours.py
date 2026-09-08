@@ -19,8 +19,12 @@ from frappe import _
 from frappe.utils import add_days, formatdate, get_time, getdate, now_datetime
 
 WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+# //// Neoffice — where the full week lives, linked from the compact form
+PAGE_ROUTE = "/store-hours"
 LOOKAHEAD_DAYS = 21
 CLOSURES_HORIZON_DAYS = 60
+# //// Neoffice — how many upcoming closures the block prints (see upcoming_closures)
+CLOSURES_SHOWN = 4
 
 
 def get_settings():
@@ -56,6 +60,15 @@ def schedule(settings=None):
 				label=(row.get("label") or "").strip(),
 			)
 		)
+	# //// Neoffice — the configured Holiday List closes the shop too, on top of the rows
+	# //// typed by hand. A public holiday is one day and carries its own name ("Assomption"),
+	# //// so it reads exactly like a manual closure and needs no special case downstream.
+	# //// Kept last so a hand-typed closure covering the same day is found first by
+	# //// closure_for() and keeps its wording.
+	from webshop.webshop.utils.holidays import holiday_closures
+
+	for day, label in holiday_closures(settings):
+		closures.append(frappe._dict(from_date=day, to_date=day, label=label))
 	return frappe._dict(
 		periods=periods,
 		closures=closures,
@@ -189,13 +202,21 @@ def week(now, sched):
 	return out
 
 
-def upcoming_closures(now, sched, horizon_days=CLOSURES_HORIZON_DAYS):
-	"""Closures that end today or later and start within the horizon, oldest first."""
+def upcoming_closures(now, sched, horizon_days=CLOSURES_HORIZON_DAYS, limit=CLOSURES_SHOWN):
+	"""Closures that end today or later and start within the horizon, oldest first.
+
+	//// Neoffice — capped at `limit`. Since the public holidays feed the closures,
+	//// a 60-day window around Easter or December holds half a dozen of them, and
+	//// the block is meant to say what is coming, not to print a calendar.
+	"""
 	today = now.date()
-	limit = add_days(today, horizon_days)
+	# //// Neoffice — named `horizon`, not `limit`: `limit` is the count of closures to
+	# //// print, and reusing the name here overwrote it with a date, so the cap below
+	# //// compared an int to a date and the public endpoint answered 500.
+	horizon = getdate(add_days(today, horizon_days))
 	out = []
 	for closure in sorted(sched.closures, key=lambda c: c.from_date):
-		if closure.to_date < today or closure.from_date > limit:
+		if closure.to_date < today or closure.from_date > horizon:
 			continue
 		if closure.from_date == closure.to_date:
 			when = formatdate(closure.from_date, "EEEE d MMMM")
@@ -211,6 +232,8 @@ def upcoming_closures(now, sched, horizon_days=CLOSURES_HORIZON_DAYS):
 				text=f"{when} · {closure.label}" if closure.label else when,
 			)
 		)
+		if len(out) >= limit:
+			break
 	return out
 
 
@@ -233,6 +256,9 @@ def opening_hours(now=None, settings=None):
 		week=week(now, sched),
 		closures=upcoming_closures(now, sched),
 		note=sched.note,
+		# //// Neoffice — the compact form (a footer column) shows one line and links here
+		more_url=PAGE_ROUTE,
+		more_label=_("All opening hours"),
 		address=(settings.get("store_address") or "").strip(),
 		phone=(settings.get("store_phone") or "").strip(),
 		email=(settings.get("store_email") or "").strip(),

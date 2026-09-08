@@ -114,6 +114,12 @@
   "store_hours",
   "store_closures",
   "store_hours_note",
+  "store_holidays_section",
+  "store_holiday_country",
+  "store_holiday_region",
+  "store_holidays_column",
+  "store_holiday_list",
+  "store_holidays_help",
   "tab_assistant",
   "assistant_section",
   "enable_assistant",
@@ -253,6 +259,41 @@
    "fieldname": "store_hours_note",
    "fieldtype": "Small Text",
    "label": "Note under the hours"
+  },
+  {
+   "fieldname": "store_holidays_section",
+   "fieldtype": "Section Break",
+   "label": "Public Holidays",
+   "description": "Closes the shop automatically on the public holidays where it stands. Fetched from openholidaysapi.org and kept in a Holiday List."
+  },
+  {
+   "fieldname": "store_holiday_country",
+   "fieldtype": "Data",
+   "label": "Country",
+   "default": "CH",
+   "length": 2,
+   "description": "Two-letter country code, CH for Switzerland."
+  },
+  {
+   "fieldname": "store_holiday_region",
+   "fieldtype": "Select",
+   "label": "Canton / Region",
+   "description": "Cantonal holidays differ: Valais closes on Saint Joseph's day, Geneva does not. Leave empty to keep only the nationwide ones."
+  },
+  {
+   "fieldname": "store_holidays_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "store_holiday_list",
+   "fieldtype": "Link",
+   "label": "Holiday List",
+   "options": "Holiday List",
+   "description": "Where the fetched holidays are stored. Edit it on the desk to add or remove a day."
+  },
+  {
+   "fieldname": "store_holidays_help",
+   "fieldtype": "HTML"
   },
   {
    "fieldname": "tab_assistant",

@@ -66,6 +66,10 @@ scheduler_events = {
 	"hourly": ["webshop.webshop.utils.abandoned_carts.send_abandoned_cart_reminders"],
 	# //// Neoffice — purchase follow-ups go out in the morning, not at midnight
 	"cron": {"15 8 * * *": ["webshop.webshop.utils.follow_ups.send_due_follow_ups"]},
+	# //// Neoffice — the store's public holidays: one look a month is enough to
+	# //// have next year's in the list well before December, and a provider that is
+	# //// down simply leaves the list alone until the next run.
+	"monthly": ["webshop.webshop.utils.holidays.top_up_holidays"],
 }
 
 # //// Neoffice — follow-ups and cart reminders show under the customer's

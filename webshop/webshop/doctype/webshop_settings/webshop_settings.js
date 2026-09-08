@@ -759,3 +759,94 @@ function fill_assistant_status(frm) {
 		},
 	});
 }
+
+//// Neoffice — the Store tab: the public holidays where the shop stands.
+//// Typing them by hand means retyping them every year and getting the movable
+//// ones wrong (Easter Monday, Ascension, Corpus Christi), half of which are
+//// cantonal anyway. The canton list and the holidays both come from
+//// openholidaysapi.org, so the picker is filled from the provider rather than
+//// from 26 hard-coded options that would only ever suit Switzerland.
+frappe.ui.form.on("Webshop Settings", {
+	refresh(frm) {
+		fill_store_holiday_help(frm);
+		fill_store_holiday_regions(frm);
+		frm.add_custom_button(__("Fetch public holidays"), () => fetch_store_holidays(frm), __("Store"));
+	},
+
+	store_holiday_country(frm) {
+		//// The canton list belongs to the country: emptying the region avoids
+		//// keeping a Valais code on a shop that just moved to France.
+		frm.set_value("store_holiday_region", "");
+		fill_store_holiday_regions(frm);
+	},
+});
+
+function fill_store_holiday_regions(frm) {
+	const field = frm.get_field("store_holiday_region");
+	if (!field) return;
+	const country = (frm.doc.store_holiday_country || "").trim();
+	if (!country) {
+		field.df.options = [""];
+		field.refresh();
+		return;
+	}
+	frappe.call({
+		method: "webshop.webshop.utils.holidays.get_subdivisions",
+		args: { country: country },
+		callback(r) {
+			const rows = (r && r.message) || [];
+			//// The stored value is kept in the list even when the provider is
+			//// unreachable, so a refresh never silently blanks a saved canton.
+			const current = frm.doc.store_holiday_region;
+			const options = [""].concat(rows.map((row) => row.value));
+			if (current && !options.includes(current)) options.push(current);
+			field.df.options = options;
+			//// Show "Valais" rather than "CH-VS" in the dropdown.
+			const labels = {};
+			rows.forEach((row) => (labels[row.value] = `${row.label} (${row.value})`));
+			field.df.get_label = (value) => labels[value] || value;
+			field.refresh();
+		},
+	});
+}
+
+function fetch_store_holidays(frm) {
+	if (!frm.doc.store_holiday_country) {
+		frappe.msgprint(__("Choose the country of the store first."));
+		return;
+	}
+	frappe.dom.freeze(__("Fetching the public holidays…"));
+	frappe.call({
+		method: "webshop.webshop.utils.holidays.refresh_store_holidays",
+		callback(r) {
+			frappe.dom.unfreeze();
+			const out = (r && r.message) || {};
+			if (!out.ok) return;
+			frm.reload_doc();
+			frappe.msgprint({
+				title: __("Public holidays"),
+				indicator: "green",
+				message: __("{0} days fetched into {1}, for {2}.", [
+					out.fetched,
+					`<a href="/app/holiday-list/${encodeURIComponent(out.name)}">${frappe.utils.escape_html(out.name)}</a>`,
+					(out.years || []).join(", "),
+				]),
+			});
+		},
+		error() {
+			frappe.dom.unfreeze();
+		},
+	});
+}
+
+function fill_store_holiday_help(frm) {
+	const help = frm.get_field("store_holidays_help");
+	if (!help) return;
+	//// An HTML field's options are not translated by the form and are re-rendered
+	//// on every refresh, so the wrapper is not the place to write — replace options.
+	help.df.options =
+		`<p class="text-muted small">${__(
+			"The shop closes automatically on the days of this list, on top of the exceptional closures above."
+		)} ${__("Fetched from openholidaysapi.org; nothing is called while a visitor loads a page.")}</p>`;
+	help.refresh_input();
+}
