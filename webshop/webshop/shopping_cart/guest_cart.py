@@ -5,6 +5,9 @@ import uuid
 from frappe.utils import now_datetime, add_days, cstr, flt
 from webshop.webshop.shopping_cart.cart import guess_territory, set_price_list_and_rate, set_taxes, _apply_shipping_rule, get_party, apply_cart_settings, decorate_quotation_doc, get_cart_quotation, _get_cart_quotation, is_gift_card_item
 from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
+# //// Neoffice — #277: see shop_rights.py. Upstream v15 checks Item and Account read on
+# //// the SESSION user inside the quotation's validate; a visitor (Guest) reads neither.
+from webshop.webshop.shopping_cart.shop_rights import save_as_shop, shop_rights
 
 @frappe.whitelist(allow_guest=True)
 def get_guest_session_id():
@@ -143,12 +146,12 @@ def create_guest_quotation(items=None):
     quotation.flags.ignore_permissions = True
     quotation.flags.ignore_mandatory = True
     
-    # Apply cart settings
-    apply_cart_settings(guest_customer, quotation)
+    # //// Neoffice — #277: priced with the shop's rights, saved and handed back below.
+    with shop_rights():
+        apply_cart_settings(guest_customer, quotation)
+        quotation.run_method("set_missing_values")
+        quotation.run_method("calculate_taxes_and_totals")
     
-    # Ensure totals are calculated before saving
-    quotation.run_method("set_missing_values")
-    quotation.run_method("calculate_taxes_and_totals")
     
     # Ensure totals are not None
     if quotation.grand_total is None:
@@ -159,7 +162,7 @@ def create_guest_quotation(items=None):
     # Save the quotation
     quotation.flags.ignore_permissions = True
     quotation.flags.ignore_mandatory = True
-    quotation.save(ignore_permissions=True)
+    save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — #277
 
     # Set the cookie guest_session_id
     if hasattr(frappe.local, 'cookie_manager'):
@@ -330,8 +333,10 @@ def check_and_merge_guest_cart():
                 user_doc.contact_email = frappe.session.user
                 
                 user_doc.flags.ignore_permissions = True
-                user_doc.run_method("set_missing_values")
-                apply_cart_settings(customer, user_doc)
+                # //// Neoffice — #277: the customer who just signed in reads no Item.
+                with shop_rights():
+                    user_doc.run_method("set_missing_values")
+                    apply_cart_settings(customer, user_doc)
                             
             # Merge items
             # //// Neoffice — multi-warehouse: merge guest lines into the user
@@ -356,7 +361,7 @@ def check_and_merge_guest_cart():
                         })
             
             user_doc.flags.ignore_permissions = True
-            user_doc.save(ignore_permissions=True)
+            save_as_shop(user_doc, ignore_permissions=True)  # //// Neoffice — #277
             frappe.db.commit()
             
             # Delete the guest quotation

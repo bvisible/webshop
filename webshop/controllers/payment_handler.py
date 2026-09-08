@@ -2,6 +2,8 @@ import frappe
 from frappe import _
 import json
 from webshop.webshop.shopping_cart.cart import place_order, _get_cart_quotation, is_gift_card_item
+# //// Neoffice — #277: the customer's session reads neither Item nor Account (shop_rights.py).
+from webshop.webshop.shopping_cart.shop_rights import save_as_shop, shop_rights
 from erpnext.accounts.doctype.payment_request.payment_request import make_payment_entry
 
 class PaymentHandler:
@@ -139,18 +141,19 @@ class PaymentHandler:
             
             # Ensure amounts are defined
             if not quotation.rounded_total:
-                quotation.run_method("set_missing_values")
-                quotation.run_method("calculate_taxes_and_totals")
+                with shop_rights():  # //// Neoffice — #277
+                    quotation.run_method("set_missing_values")
+                    quotation.run_method("calculate_taxes_and_totals")
                 
             # Clear and recalculate payment schedule
             quotation.payment_schedule = []
             quotation.set_payment_schedule()
-            quotation.save(ignore_permissions=True)
+            save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — #277
             
             # Update payment_terms_template 
             if payment_terms_template:
                 quotation.payment_terms_template = payment_terms_template
-                quotation.save(ignore_permissions=True)
+                save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — #277
                 
                 # Get and update payment schedule
                 from erpnext.controllers.accounts_controller import get_payment_terms
@@ -162,7 +165,7 @@ class PaymentHandler:
                 )
                 if payment_schedule:
                     quotation.set("payment_schedule", payment_schedule)
-                    quotation.save(ignore_permissions=True)
+                    save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — #277
 
             # Create context for payment request
             context = {

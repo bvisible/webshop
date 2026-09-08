@@ -7,6 +7,8 @@ import frappe
 from frappe import _
 from webshop.webshop.shopping_cart.cart import apply_cart_settings as webshop_apply_cart_settings
 from webshop.webshop.shopping_cart.cart import get_party
+# //// Neoffice — #277: the customer's session reads neither Item nor Account (shop_rights.py).
+from webshop.webshop.shopping_cart.shop_rights import save_as_shop, shop_rights
 
 @frappe.whitelist()
 def update_payment_terms(quotation_name, payment_terms_template):
@@ -44,7 +46,7 @@ def update_payment_terms(quotation_name, payment_terms_template):
 
     # Save before applying fees to get the correct total
     quotation.flags.ignore_permissions = True
-    quotation.save(ignore_permissions=True)
+    save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — #277
 
     # Apply fees and return the quotation
     result = apply_webshopsi_payment_fees(quotation)
@@ -98,7 +100,7 @@ def apply_webshopsi_payment_fees(quotation):
     apply_payment_fee(quotation, force=True)
 
     quotation.flags.ignore_permissions = True
-    quotation.save(ignore_permissions=True)
+    save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — #277
     return {"success": True, "had_changes": True, "doc": quotation.as_dict()}
 
 @frappe.whitelist()
@@ -150,7 +152,7 @@ def remove_webshopsi_fees(quotation):
         quotation.flags.ignore_validate = True
         quotation.flags.ignore_mandatory = True
         quotation.flags.ignore_version = True
-        quotation.save(ignore_permissions=True)
+        save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — #277
         
         # Reload to get the latest version with recalculated totals
         quotation = frappe.get_doc("Quotation", quotation_name)
@@ -182,7 +184,7 @@ def handle_payment_method_change(quotation_name, payment_method):
     # Update the payment method on the quotation
     quotation.payment_method = payment_method
     quotation.flags.ignore_permissions = True
-    quotation.save(ignore_permissions=True)
+    save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — #277
     
     # Check if it's a WebshopSI payment method
     if is_webshopsi_payment_method(quotation):
@@ -196,7 +198,8 @@ def handle_payment_method_change(quotation_name, payment_method):
 def apply_cart_settings(party=None, quotation=None):
     """Extend the apply_cart_settings function from Webshop to include WebshopSI fees"""
     # Call the original function first
-    webshop_apply_cart_settings(party, quotation)
+    with shop_rights():  # //// Neoffice — #277
+        webshop_apply_cart_settings(party, quotation)
     
     # Get the quotation if not provided
     if not quotation:
@@ -211,6 +214,6 @@ def apply_cart_settings(party=None, quotation=None):
     
     # Save with the new fees
     quotation.flags.ignore_permissions = True
-    quotation.save(ignore_permissions=True)
+    save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — #277
     
     return quotation

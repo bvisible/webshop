@@ -19,6 +19,10 @@ from frappe.utils import cint, cstr, flt, get_fullname
 from frappe.utils.nestedset import get_root_of
 
 from erpnext.accounts.utils import get_account_name
+
+# //// Neoffice — see webshop/shopping_cart/shop_rights.py (#277): upstream v15 checks
+# //// Item and Account read on the SESSION user inside the quotation's validate.
+from webshop.webshop.shopping_cart.shop_rights import save_as_shop, shop_rights
 # //// Neoffice — added imports, and the block below is re-indented from four spaces
 # //// to tabs by our editor config (no behaviour change; take OUR side on the
 # //// whitespace at the merge). get_price applies Pricing Rules to a cart line — our
@@ -468,14 +472,14 @@ def place_order():
 				quotation.discount_amount = order_total
 				quotation.gift_card_to_split = 1  # Mark for split
 				quotation.flags.ignore_permissions = True
-				quotation.save()
+				save_as_shop(quotation)  # //// Neoffice — #277
 			else:
 				# Apply full gift card amount
 				quotation.apply_discount_on = "Grand Total"
 				quotation.discount_amount = gift_card_amount
 				quotation.gift_card_to_split = 0
 				quotation.flags.ignore_permissions = True
-				quotation.save()
+				save_as_shop(quotation)  # //// Neoffice — #277
 		
 		# Get latest values after possible updates
 		gift_card_amount = flt(quotation.gift_card_original_amount)
@@ -499,7 +503,7 @@ def place_order():
 		})
 
 	quotation.flags.ignore_permissions = True
-	quotation.submit()
+	save_as_shop(quotation, submit=True)  # //// Neoffice — #277
 
 	if quotation.quotation_to == "Lead" and quotation.party_name:
 		# company used to create customer accounts
@@ -516,7 +520,7 @@ def place_order():
 	# Submit quotation if it's still in draft state
 	if quotation.docstatus == 0:
 		quotation.flags.ignore_permissions = True
-		quotation.submit()
+		save_as_shop(quotation, submit=True)  # //// Neoffice — #277
 
 	sales_order = frappe.get_doc(
 		_make_sales_order(
@@ -1043,10 +1047,11 @@ def request_for_quotation():
 	quotation = _get_cart_quotation()
 	quotation.flags.ignore_permissions = True
 
+	# //// Neoffice — #277: the customer's session reads neither Item nor Account.
 	if get_shopping_cart_settings().save_quotations_as_draft:
-		quotation.save()
+		save_as_shop(quotation)
 	else:
-		quotation.submit()
+		save_as_shop(quotation, submit=True)
 
 	return quotation.name
 
@@ -1599,14 +1604,16 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 	quotation.flags.ignore_permissions = True
 	quotation.flags.ignore_mandatory = True
 	
-	apply_cart_settings(quotation=quotation)
+	# //// Neoffice — #277: pricing asks the session user for Item read; the shop does it.
+	with shop_rights():
+		apply_cart_settings(quotation=quotation)
 
 	quotation.payment_schedule = []
 	if not empty_card:
 		# //// Neoffice — ignore_version: the cart is saved on every quantity keystroke and
 		# //// each save was writing a Version row, which made a busy shop's Version table the
 		# //// largest in the database for no readable history.
-		quotation.save(ignore_version=True)
+		save_as_shop(quotation, ignore_version=True)  # //// Neoffice — #277
 	else:
 		# //// Neoffice — emptying the cart deletes the quotation, and that delete
 		# //// can be REFUSED: once a payment has been attempted, a Payment Request
@@ -1879,11 +1886,11 @@ def update_cart_address(address_type, address_name):
 					quotation.party_name = guest_customer
 					quotation.quotation_to = "Customer"
 			
-		apply_cart_settings(quotation=quotation)
-
-		# Calculate taxes and totals before saving
-		quotation.run_method("set_missing_values")
-		quotation.run_method("calculate_taxes_and_totals")
+		# //// Neoffice — #277: priced with the shop's rights, saved and handed back below.
+		with shop_rights():
+			apply_cart_settings(quotation=quotation)
+			quotation.run_method("set_missing_values")
+			quotation.run_method("calculate_taxes_and_totals")
 		
 		# Ensure totals are set after calculation
 		if quotation.grand_total is None:
@@ -1891,7 +1898,7 @@ def update_cart_address(address_type, address_name):
 		if quotation.base_grand_total is None:
 			quotation.base_grand_total = quotation.grand_total * (quotation.conversion_rate or 1)
 		
-		quotation.save(ignore_permissions=True)
+		save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — #277
 		
 		context = get_cart_quotation(quotation)
 		context["address"] = address_doc
@@ -2120,8 +2127,11 @@ def _get_cart_quotation(party=None):
 		qdoc.contact_email = frappe.session.user
 
 		qdoc.flags.ignore_permissions = True
-		qdoc.run_method("set_missing_values")
-		apply_cart_settings(party, qdoc)
+		# //// Neoffice — #277: set_missing_values prices every row through get_item_details,
+		# //// which upstream now guards on the session user's Item read. Not saved here.
+		with shop_rights():
+			qdoc.run_method("set_missing_values")
+			apply_cart_settings(party, qdoc)
 
 	return qdoc
 
@@ -2807,10 +2817,12 @@ def apply_shipping_rule(shipping_rule):
 	quotation = _get_cart_quotation()
 	quotation.shipping_rule = shipping_rule
 
-	apply_cart_settings(quotation=quotation)
+	# //// Neoffice — #277
+	with shop_rights():
+		apply_cart_settings(quotation=quotation)
 
 	quotation.flags.ignore_permissions = True
-	quotation.save()
+	save_as_shop(quotation)
 
 	return get_cart_quotation(quotation)
 
