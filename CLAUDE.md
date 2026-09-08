@@ -465,6 +465,46 @@ fixes it.
 > 12:00 and 13:30 it announced "tomorrow at 10:00". Closed for lunch means
 > "today at 13:30"; a closure hides the whole day and names itself.
 
+**Public holidays come from a provider, not from typing.**
+`webshop/webshop/utils/holidays.py` reads **openholidaysapi.org** — free, no key,
+and the only source checked that gives Swiss holidays **per canton and in
+French**, which is what this needs: Valais closes on Saint Joseph's day and the
+Immaculate Conception, Geneva does not, and Easter Monday, Ascension, Whit Monday
+and Corpus Christi move every year. A day is kept when it is nationwide, or when
+its subdivisions name the configured canton (or a district inside it, the API
+going one level below). Measured: 14 days for Valais in 2026, 9 for Geneva, 4
+nationwide-only.
+
+They land in a **Holiday List** — Frappe's own doctype, so it shows on the desk,
+can be edited by hand, and is reusable by the delivery delays that already read
+one. `schedule()` merges its dates into the closures, *after* the hand-typed
+rows, so a closure the shop wrote keeps its own wording. Settings live on the
+Store tab (`store_holiday_country`, `store_holiday_region`, `store_holiday_list`)
+with a "Fetch public holidays" button; a monthly job keeps next year stocked.
+
+> **Nothing calls the provider while a visitor loads a page**, and an outage must
+> never look like "no holidays this year": `fetch_holidays()` returns **None**, not
+> an empty list, so `sync_holiday_list()` leaves the list exactly as it was. A
+> wipe would open the shop on Christmas Day. A date typed by hand inside the
+> covered years survives the next fetch too.
+
+**Where the block can go.** The page `/store-hours`, the include
+`templates/includes/opening_hours.html`, any Builder page as one element, and the
+site footer through builder's `show_opening_hours` / `opening_hours_display`
+(Website Header Footer Config **and** Variant — the per-profile chrome does not
+inherit from the Single). Builder only drops the marker; the block, its styles and
+its data are webshop's. `data-display="compact"` is the footer form: the state,
+today's hours and a link to the full week. Nora knows the include exists
+(`builder/ai/generators/page_generator.py` VALID_INCLUDES and the contact/about
+prompts), so a generated contact page states the real hours instead of inventing
+them.
+
+> **An emoji is not an icon.** The first version carried 🕒 and 🔒 as meaning; they
+> render differently on every platform and read as clip-art next to a typeset
+> page. Inline SVG and a dot, both in `currentColor`. And **never `transform:
+> scale()` on a full-width row**: it made today's line wider than the card that
+> contained it, which is exactly what it looked like.
+
 ### The shop assistant
 
 `webshop/webshop/assistant/` is the chat bubble's whole brain: `api.py` (three
