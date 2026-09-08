@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-07 19:05+0000\n"
+"POT-Creation-Date: 2026-09-08 08:17+0000\n"
 "PO-Revision-Date: 2025-12-15 15:24+0034\n"
 "Last-Translator: contact@frappe.io\n"
-"Language: fr\n"
 "Language-Team: contact@frappe.io\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "Generated-By: Babel 2.13.1\n"
 
 #: webshop/webshop/crud_events/tax_rule/validate_use_for_cart.py:28
@@ -35,12 +35,27 @@ msgid " Items)"
 msgstr " Articles)"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:315
-msgid "'Enable Attribute Filters' has been automatically disabled. These two features are mutually exclusive: Attribute filters allow customers to filter by variant attributes (like Size, Color), which requires variants to be visible."
-msgstr "« Activer les filtres d'attributs » a été automatiquement désactivé. Ces deux fonctionnalités sont mutuellement exclusives : les filtres d'attributs permettent aux clients de filtrer par attributs de variantes (comme Taille, Couleur), ce qui nécessite que les variantes soient visibles."
+msgid ""
+"'Enable Attribute Filters' has been automatically disabled. These two "
+"features are mutually exclusive: Attribute filters allow customers to filter"
+" by variant attributes (like Size, Color), which requires variants to be "
+"visible."
+msgstr ""
+"« Activer les filtres d'attributs » a été automatiquement désactivé. Ces "
+"deux fonctionnalités sont mutuellement exclusives : les filtres d'attributs "
+"permettent aux clients de filtrer par attributs de variantes (comme Taille, "
+"Couleur), ce qui nécessite que les variantes soient visibles."
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:326
-msgid "'Hide Variants' has been automatically disabled. These two features are mutually exclusive: Attribute filters allow customers to filter by variant attributes (like Size, Color), which requires variants to be visible."
-msgstr "« Masquer les variantes » a été automatiquement désactivé. Ces deux fonctionnalités sont mutuellement exclusives : les filtres d'attributs permettent aux clients de filtrer par attributs de variantes (comme Taille, Couleur), ce qui nécessite que les variantes soient visibles."
+msgid ""
+"'Hide Variants' has been automatically disabled. These two features are "
+"mutually exclusive: Attribute filters allow customers to filter by variant "
+"attributes (like Size, Color), which requires variants to be visible."
+msgstr ""
+"« Masquer les variantes » a été automatiquement désactivé. Ces deux "
+"fonctionnalités sont mutuellement exclusives : les filtres d'attributs "
+"permettent aux clients de filtrer par attributs de variantes (comme Taille, "
+"Couleur), ce qui nécessite que les variantes soient visibles."
 
 #: webshop/templates/includes/macros.html:515
 msgid "+ {0} more brands"
@@ -49,13 +64,18 @@ msgstr "+ {0} autres marques"
 #. Description of the 'Multi-Warehouse Stock' (Section Break) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "//// Neoffice — multi-warehouse feature: expose several stock sources per product, with labels, lead times and supplier procurement."
+msgid ""
+"//// Neoffice — multi-warehouse feature: expose several stock sources per "
+"product, with labels, lead times and supplier procurement."
 msgstr ""
 
 #. Description of the 'Warehouse Sources Mode' (Select) field in DocType
 #. 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
-msgid "//// Neoffice — multi-warehouse: Auto follows Webshop Settings (auto-enabled sources with stock), Custom lists sources below, Off keeps this item single-warehouse."
+msgid ""
+"//// Neoffice — multi-warehouse: Auto follows Webshop Settings (auto-enabled"
+" sources with stock), Custom lists sources below, Off keeps this item "
+"single-warehouse."
 msgstr ""
 
 #: webshop/templates/pages/loyalty_points.html:49
@@ -64,8 +84,12 @@ msgstr "1 point = {0}"
 
 #. Description of the 'Priority' (Int) field in DocType 'Cross Sell Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
-msgid "1 to 20. When several offers or pricing rules match the same line, the higher priority wins."
-msgstr "De 1 à 20. Quand plusieurs offres ou règles de prix touchent la même ligne, la priorité la plus haute gagne."
+msgid ""
+"1 to 20. When several offers or pricing rules match the same line, the "
+"higher priority wins."
+msgstr ""
+"De 1 à 20. Quand plusieurs offres ou règles de prix touchent la même ligne, "
+"la priorité la plus haute gagne."
 
 #. Description of the 'Order Day of Month' (Int) field in DocType 'Webshop
 #. Warehouse Source'
@@ -75,12 +99,43 @@ msgstr ""
 
 #. Content of the 'sitemap_info' (HTML) field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "<p>The sitemap is automatically generated and cached for 6 hours. You can access it at:</p><ul><li><a href=\"/sitemap_index.xml\" target=\"_blank\">/sitemap_index.xml</a> - Main sitemap index</li><li><a href=\"/sitemap.xml\" target=\"_blank\">/sitemap.xml</a> - All content</li><li><a href=\"/sitemap_products.xml\" target=\"_blank\">/sitemap_products.xml</a> - Products only</li><li><a href=\"/sitemap_categories.xml\" target=\"_blank\">/sitemap_categories.xml</a> - Categories only</li><li><a href=\"/sitemap_brands.xml\" target=\"_blank\">/sitemap_brands.xml</a> - Brands only</li><li><a href=\"/sitemap_blog.xml\" target=\"_blank\">/sitemap_blog.xml</a> - Blog posts only</li><li><a href=\"/sitemap_pages.xml\" target=\"_blank\">/sitemap_pages.xml</a> - Pages only</li></ul>"
-msgstr "<p>Le sitemap est généré automatiquement et mis en cache pendant 6 heures. Vous pouvez y accéder à :</p><ul><li><a href=\"/sitemap_index.xml\" target=\"_blank\">/sitemap_index.xml</a> - Index principal du sitemap</li><li><a href=\"/sitemap.xml\" target=\"_blank\">/sitemap.xml</a> - Tout le contenu</li><li><a href=\"/sitemap_products.xml\" target=\"_blank\">/sitemap_products.xml</a> - Produits uniquement</li><li><a href=\"/sitemap_categories.xml\" target=\"_blank\">/sitemap_categories.xml</a> - Catégories uniquement</li><li><a href=\"/sitemap_brands.xml\" target=\"_blank\">/sitemap_brands.xml</a> - Marques uniquement</li><li><a href=\"/sitemap_blog.xml\" target=\"_blank\">/sitemap_blog.xml</a> - Articles de blog uniquement</li><li><a href=\"/sitemap_pages.xml\" target=\"_blank\">/sitemap_pages.xml</a> - Pages uniquement</li></ul>"
+msgid ""
+"<p>The sitemap is automatically generated and cached for 6 hours. You can "
+"access it at:</p><ul><li><a href=\"/sitemap_index.xml\" "
+"target=\"_blank\">/sitemap_index.xml</a> - Main sitemap index</li><li><a "
+"href=\"/sitemap.xml\" target=\"_blank\">/sitemap.xml</a> - All "
+"content</li><li><a href=\"/sitemap_products.xml\" "
+"target=\"_blank\">/sitemap_products.xml</a> - Products only</li><li><a "
+"href=\"/sitemap_categories.xml\" "
+"target=\"_blank\">/sitemap_categories.xml</a> - Categories only</li><li><a "
+"href=\"/sitemap_brands.xml\" target=\"_blank\">/sitemap_brands.xml</a> - "
+"Brands only</li><li><a href=\"/sitemap_blog.xml\" "
+"target=\"_blank\">/sitemap_blog.xml</a> - Blog posts only</li><li><a "
+"href=\"/sitemap_pages.xml\" target=\"_blank\">/sitemap_pages.xml</a> - Pages"
+" only</li></ul>"
+msgstr ""
+"<p>Le sitemap est généré automatiquement et mis en cache pendant 6 heures. "
+"Vous pouvez y accéder à :</p><ul><li><a href=\"/sitemap_index.xml\" "
+"target=\"_blank\">/sitemap_index.xml</a> - Index principal du "
+"sitemap</li><li><a href=\"/sitemap.xml\" target=\"_blank\">/sitemap.xml</a> "
+"- Tout le contenu</li><li><a href=\"/sitemap_products.xml\" "
+"target=\"_blank\">/sitemap_products.xml</a> - Produits uniquement</li><li><a"
+" href=\"/sitemap_categories.xml\" "
+"target=\"_blank\">/sitemap_categories.xml</a> - Catégories "
+"uniquement</li><li><a href=\"/sitemap_brands.xml\" "
+"target=\"_blank\">/sitemap_brands.xml</a> - Marques uniquement</li><li><a "
+"href=\"/sitemap_blog.xml\" target=\"_blank\">/sitemap_blog.xml</a> - "
+"Articles de blog uniquement</li><li><a href=\"/sitemap_pages.xml\" "
+"target=\"_blank\">/sitemap_pages.xml</a> - Pages uniquement</li></ul>"
 
 #. Content of the 'follow_up_note' (HTML) field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "<p>Which purchase, how many days later, which template: <a href=\"/app/purchase-follow-up\">Purchase Follow-up</a>. Emails go out every morning at 08:15; what a customer received shows in the customer's timeline and in <a href=\"/app/purchase-follow-up-entry\">Purchase Follow-up Entry</a>.</p>"
+msgid ""
+"<p>Which purchase, how many days later, which template: <a "
+"href=\"/app/purchase-follow-up\">Purchase Follow-up</a>. Emails go out every"
+" morning at 08:15; what a customer received shows in the customer's timeline"
+" and in <a href=\"/app/purchase-follow-up-entry\">Purchase Follow-up "
+"Entry</a>.</p>"
 msgstr ""
 
 #. Header text in the Webshop Workspace
@@ -96,16 +151,25 @@ msgstr ""
 #. Description of the 'Enable the shop assistant' (Check) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "A chat bubble on every page of the shop: products at their selling price, opening hours, and the signed-in customer's orders, invoices and quotations"
-msgstr "Une pastille de chat sur chaque page de la boutique : les produits à leur prix de vente, les horaires, et les commandes, factures et devis du client connecté"
+msgid ""
+"A chat bubble on every page of the shop: products at their selling price, "
+"opening hours, and the signed-in customer's orders, invoices and quotations"
+msgstr ""
+"Une pastille de chat sur chaque page de la boutique : les produits à leur "
+"prix de vente, les horaires, et les commandes, factures et devis du client "
+"connecté"
 
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.py:26
 msgid "A follow-up needs at least one email."
 msgstr "Un suivi a besoin d'au moins un email."
 
 #: webshop/webshop/shopping_cart/cart.py:4059
-msgid "A new gift card has been created with the remaining amount of {0}. Card code: {1}"
-msgstr "Une nouvelle carte cadeau a été créée avec le montant restant de {0}. Code de la carte : {1}"
+msgid ""
+"A new gift card has been created with the remaining amount of {0}. Card "
+"code: {1}"
+msgstr ""
+"Une nouvelle carte cadeau a été créée avec le montant restant de {0}. Code "
+"de la carte : {1}"
 
 #: webshop/templates/generators/item/item_inquiry.html:12
 msgid "A question?"
@@ -121,7 +185,8 @@ msgstr "Un prix de vente est requis."
 
 #: webshop/controllers/payment_handler.py:516
 msgid "A system error occurred while processing payment failure"
-msgstr "Une erreur système s'est produite lors du traitement de l'échec du paiement"
+msgstr ""
+"Une erreur système s'est produite lors du traitement de l'échec du paiement"
 
 #. Label of a Data field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -174,8 +239,12 @@ msgid "Account created successfully"
 msgstr "Compte créé avec succès"
 
 #: webshop/public/js/auth_dialog.js:712 webshop/public/js/auth_dialog.js:718
-msgid "Account created successfully! Please check your email to activate your account."
-msgstr "Compte créé avec succès ! Veuillez vérifier votre e-mail pour activer votre compte."
+msgid ""
+"Account created successfully! Please check your email to activate your "
+"account."
+msgstr ""
+"Compte créé avec succès ! Veuillez vérifier votre e-mail pour activer votre "
+"compte."
 
 #: webshop/templates/pages/loyalty_points.html:69
 msgid "Accumulate"
@@ -390,12 +459,20 @@ msgstr "Tous les clients"
 #. Description of the 'Who receives them' (Select) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "All customers: orders and invoices from the counter or the desk enrol too, when the follow-up itself allows it"
-msgstr "Tous les clients : les commandes et factures du comptoir ou du bureau enrôlent aussi, quand le suivi lui-même l'admet"
+msgid ""
+"All customers: orders and invoices from the counter or the desk enrol too, "
+"when the follow-up itself allows it"
+msgstr ""
+"Tous les clients : les commandes et factures du comptoir ou du bureau "
+"enrôlent aussi, quand le suivi lui-même l'admet"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:235
 msgid "All data is valid. You can proceed with the actual import."
 msgstr "Toutes les données sont valides. Vous pouvez procéder à l'import."
+
+#: webshop/webshop/utils/store_hours.py:261
+msgid "All opening hours"
+msgstr "Tous les horaires"
 
 #: webshop/www/all-products/index.html:178
 msgid "All products loaded"
@@ -429,7 +506,10 @@ msgstr "Autoriser les utilisateurs système pendant la maintenance"
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Allow customers to enter a custom amount for gift cards"
-msgstr "Permettre aux clients de saisir un montant personnalisé pour les cartes cadeauxPermettre aux clients de saisir un montant personnalisé pour les cartes cadeaux"
+msgstr ""
+"Permettre aux clients de saisir un montant personnalisé pour les cartes "
+"cadeauxPermettre aux clients de saisir un montant personnalisé pour les "
+"cartes cadeaux"
 
 #. Description of the 'Enable Gift Cards' (Check) field in DocType 'Webshop
 #. Settings'
@@ -451,8 +531,12 @@ msgstr "Permettre aux utilisateurs non connectés de créer un panier"
 #. Description of the 'Allow System Users During Maintenance' (Check) field in
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Allow users with System Manager or Website Manager roles to access the site during maintenance"
-msgstr "Permettre aux utilisateurs avec les rôles Administrateur système ou Gestionnaire de site d'accéder au site pendant la maintenance"
+msgid ""
+"Allow users with System Manager or Website Manager roles to access the site "
+"during maintenance"
+msgstr ""
+"Permettre aux utilisateurs avec les rôles Administrateur système ou "
+"Gestionnaire de site d'accéder au site pendant la maintenance"
 
 #: webshop/webshop/doctype/website_item/website_item.py:97
 #: webshop/webshop/doctype/website_item/website_item.py:909
@@ -504,8 +588,12 @@ msgid "An account already exists with this email. Please sign in instead."
 msgstr "Un compte existe déjà avec cet e-mail. Veuillez vous connecter."
 
 #: webshop/public/js/auth_dialog.js:961
-msgid "An email containing the connection link has been sent to you. Please check your inbox."
-msgstr "Un e-mail contenant le lien de connexion vous a été envoyé. Veuillez vérifier votre boîte de réception."
+msgid ""
+"An email containing the connection link has been sent to you. Please check "
+"your inbox."
+msgstr ""
+"Un e-mail contenant le lien de connexion vous a été envoyé. Veuillez "
+"vérifier votre boîte de réception."
 
 #: webshop/public/js/auth_dialog.js:809 webshop/public/js/auth_dialog.js:852
 #: webshop/templates/payments/stripe.html:387
@@ -530,7 +618,9 @@ msgstr "Une erreur est survenue pendant le traitement du paiement."
 
 #: webshop/webshop/auth/api.py:126
 msgid "An error occurred while creating your account. Please try again."
-msgstr "Une erreur s'est produite lors de la création de votre compte. Veuillez réessayer."
+msgstr ""
+"Une erreur s'est produite lors de la création de votre compte. Veuillez "
+"réessayer."
 
 #: webshop/templates/pages/checkout.js:2555
 msgid "An error occurred while loading payment methods"
@@ -545,8 +635,11 @@ msgid "An error occurred while sending the login link"
 msgstr "Une erreur s'est produite lors de l'envoi du lien de connexion"
 
 #: webshop/templates/pages/checkout.py:812
-msgid "An error occurred while updating the shipping method. Please try again."
-msgstr "Une erreur s'est produite lors de la mise à jour de la méthode de livraison. Veuillez réessayer."
+msgid ""
+"An error occurred while updating the shipping method. Please try again."
+msgstr ""
+"Une erreur s'est produite lors de la mise à jour de la méthode de livraison."
+" Veuillez réessayer."
 
 #: webshop/controllers/payment_handler.py:582
 #: webshop/controllers/payment_handler.py:715
@@ -584,8 +677,11 @@ msgstr "Êtes-vous sûr de vouloir supprimer cette adresse ?"
 #. Description of the 'Address' (Small Text) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "As it should read on the opening-hours page and in the assistant's answers"
-msgstr "Telle qu'elle doit se lire sur la page des horaires et dans les réponses de l'assistant"
+msgid ""
+"As it should read on the opening-hours page and in the assistant's answers"
+msgstr ""
+"Telle qu'elle doit se lire sur la page des horaires et dans les réponses de "
+"l'assistant"
 
 #: webshop/templates/generators/item/item_inquiry.html:9
 #: webshop/templates/generators/item/item_inquiry.html:10
@@ -595,8 +691,13 @@ msgstr "Poser une question sur ce produit"
 #. Description of the 'Product Card Aspect Ratio' (Data) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Aspect ratio (width/height) of product cards. Only applied when fit is Cover. Examples: 1/1 (square), 3/4 (portrait), 4/3 (landscape)."
-msgstr "Ratio d'aspect (largeur/hauteur) des cartes produit. Appliqué uniquement quand l'ajustement est « Remplir ». Exemples : 1/1 (carré), 3/4 (portrait), 4/3 (paysage)."
+msgid ""
+"Aspect ratio (width/height) of product cards. Only applied when fit is "
+"Cover. Examples: 1/1 (square), 3/4 (portrait), 4/3 (landscape)."
+msgstr ""
+"Ratio d'aspect (largeur/hauteur) des cartes produit. Appliqué uniquement "
+"quand l'ajustement est « Remplir ». Exemples : 1/1 (carré), 3/4 (portrait), "
+"4/3 (paysage)."
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
 #: webshop/webshop/assistant/api.py:204
@@ -666,8 +767,12 @@ msgstr "Activer automatiquement si en stock"
 
 #. Description of the 'Is Gift Card' (Check) field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
-msgid "Automatically set when this item is selected as gift card template in Webshop Settings"
-msgstr "Défini automatiquement lorsque cet article est sélectionné comme modèle de carte cadeau dans les paramètres de la boutique"
+msgid ""
+"Automatically set when this item is selected as gift card template in "
+"Webshop Settings"
+msgstr ""
+"Défini automatiquement lorsque cet article est sélectionné comme modèle de "
+"carte cadeau dans les paramètres de la boutique"
 
 #: webshop/templates/includes/macros.html:48
 msgid "Availability"
@@ -777,7 +882,9 @@ msgid "Bonjour !"
 msgstr ""
 
 #: webshop/webshop/assistant/api.py:199
-msgid "Bonjour ! Je suis {0}, l'assistant·e de la boutique. Un produit, nos horaires, une commande ? Je suis là."
+msgid ""
+"Bonjour ! Je suis {0}, l'assistant·e de la boutique. Un produit, nos "
+"horaires, une commande ? Je suis là."
 msgstr ""
 
 #: webshop/webshop/assistant/api.py:197
@@ -785,11 +892,15 @@ msgid "Bonjour {0} !"
 msgstr ""
 
 #: webshop/webshop/assistant/escalation.py:142
-msgid "Bonjour,<br><br>Votre demande a été transmise à notre équipe : « {0} ». Quelqu'un vous recontacte rapidement à cette adresse.<br><br>{1}"
+msgid ""
+"Bonjour,<br><br>Votre demande a été transmise à notre équipe : « {0} ». "
+"Quelqu'un vous recontacte rapidement à cette adresse.<br><br>{1}"
 msgstr ""
 
 #: webshop/webshop/assistant/escalation.py:195
-msgid "Bonjour,<br><br>Votre demande « {0} » est enregistrée sous le numéro {1}. Notre équipe la traite et vous répond à cette adresse."
+msgid ""
+"Bonjour,<br><br>Votre demande « {0} » est enregistrée sous le numéro {1}. "
+"Notre équipe la traite et vous répond à cette adresse."
 msgstr ""
 
 #: webshop/templates/generators/item_group.html:156
@@ -799,8 +910,12 @@ msgstr "Réserver"
 
 #. Description of the 'Nature' (Select) field in DocType 'Purchase Follow-up'
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json
-msgid "Both stop for a customer who unsubscribed; marketing is what the law calls advertising"
-msgstr "Les deux s'arrêtent pour un client désinscrit ; le marketing est ce que la loi appelle de la publicité"
+msgid ""
+"Both stop for a customer who unsubscribed; marketing is what the law calls "
+"advertising"
+msgstr ""
+"Les deux s'arrêtent pour un client désinscrit ; le marketing est ce que la "
+"loi appelle de la publicité"
 
 #. Option for the 'Image Focus' (Select) field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
@@ -848,7 +963,8 @@ msgstr "Couleur de la pastille"
 #. Description of the 'Receipt Lead (business days)' (Int) field in DocType
 #. 'Webshop Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
-msgid "Business days between the supplier order departure and the goods arriving."
+msgid ""
+"Business days between the supplier order departure and the goods arriving."
 msgstr ""
 
 #. Description of the 'Handling (business days)' (Int) field in DocType
@@ -896,12 +1012,43 @@ msgid "Cannot Merge"
 msgstr "Impossible de fusionner"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:291
-msgid "Cannot enable 'Hide Variants' when 'Attribute Filters' are enabled with filter attributes configured. These features are mutually exclusive: Attribute filters allow customers to filter by variant attributes (like Size, Color), which requires variants to be visible. Please disable 'Enable Attribute Filters' or remove all Filter Attributes first."
-msgstr "Impossible d'activer « Masquer les variantes » quand « Filtres d'attributs » est activé avec des attributs de filtre configurés. Ces fonctionnalités sont mutuellement exclusives : les filtres d'attributs permettent aux clients de filtrer par attributs de variantes (comme Taille, Couleur), ce qui nécessite que les variantes soient visibles. Veuillez désactiver « Activer les filtres d'attributs » ou supprimer d'abord tous les attributs de filtre."
+msgid ""
+"Cannot enable 'Hide Variants' when 'Attribute Filters' are enabled with "
+"filter attributes configured. These features are mutually exclusive: "
+"Attribute filters allow customers to filter by variant attributes (like "
+"Size, Color), which requires variants to be visible. Please disable 'Enable "
+"Attribute Filters' or remove all Filter Attributes first."
+msgstr ""
+"Impossible d'activer « Masquer les variantes » quand « Filtres d'attributs »"
+" est activé avec des attributs de filtre configurés. Ces fonctionnalités "
+"sont mutuellement exclusives : les filtres d'attributs permettent aux "
+"clients de filtrer par attributs de variantes (comme Taille, Couleur), ce "
+"qui nécessite que les variantes soient visibles. Veuillez désactiver « "
+"Activer les filtres d'attributs » ou supprimer d'abord tous les attributs de"
+" filtre."
 
 #: webshop/templates/includes/product_page.js:130
 msgid "Cannot find a matching Item. Please select some other value for {0}."
-msgstr "Impossible de trouver un article correspondant. Veuillez sélectionner une autre valeur pour {0}.Impossible de trouver un article correspondant. Veuillez sélectionner une autre valeur pour {0}."
+msgstr ""
+"Impossible de trouver un article correspondant. Veuillez sélectionner une "
+"autre valeur pour {0}.Impossible de trouver un article correspondant. "
+"Veuillez sélectionner une autre valeur pour {0}."
+
+#. Label of a Select field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Canton / Region"
+msgstr "Canton / Région"
+
+#. Description of the 'Canton / Region' (Select) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid ""
+"Cantonal holidays differ: Valais closes on Saint Joseph's day, Geneva does "
+"not. Leave empty to keep only the nationwide ones."
+msgstr ""
+"Les jours fériés changent d'un canton à l'autre : le Valais ferme à la "
+"Saint-Joseph, Genève non. Laisser vide pour ne garder que les fériés "
+"fédéraux."
 
 #: webshop/webshop/quick_order/api.py:882
 msgid "Capped to stock:"
@@ -917,12 +1064,17 @@ msgstr "Détails de la carte"
 
 #: webshop/templates/payments/stripe.html:143
 msgid "Card payment is not configured. Please choose another payment method."
-msgstr "Le paiement par carte n'est pas configuré. Choisissez un autre moyen de paiement."
+msgstr ""
+"Le paiement par carte n'est pas configuré. Choisissez un autre moyen de "
+"paiement."
 
 #: webshop/templates/payments/stripe.html:119
 #: webshop/templates/payments/stripe.html:137
-msgid "Card payment is unavailable right now. Please choose another payment method."
-msgstr "Le paiement par carte est momentanément indisponible. Choisissez un autre moyen de paiement."
+msgid ""
+"Card payment is unavailable right now. Please choose another payment method."
+msgstr ""
+"Le paiement par carte est momentanément indisponible. Choisissez un autre "
+"moyen de paiement."
 
 #: webshop/templates/payments/paypal.html:12
 #: webshop/templates/payments/stripe.html:8
@@ -1018,8 +1170,11 @@ msgstr "Changer d'entrepôt"
 #. Description of the 'Raven channel' (Data) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Channel name or id that receives the requests; empty when Raven is not used"
-msgstr "Nom ou identifiant du canal qui reçoit les demandes ; vide si Raven n'est pas utilisé"
+msgid ""
+"Channel name or id that receives the requests; empty when Raven is not used"
+msgstr ""
+"Nom ou identifiant du canal qui reçoit les demandes ; vide si Raven n'est "
+"pas utilisé"
 
 #: webshop/templates/pages/checkout_b2b.html:121
 msgid "Chargement des méthodes de livraison..."
@@ -1046,7 +1201,10 @@ msgstr "Paramètres de paiement"
 
 #: webshop/templates/pages/checkout.py:225
 msgid "Checkout is disabled. Please enable it in Webshop Settings."
-msgstr "Le paiement est désactivé. Veuillez l'activer dans les paramètres de la boutique.Le paiement est désactivé. Veuillez l'activer dans les paramètres de la boutique."
+msgstr ""
+"Le paiement est désactivé. Veuillez l'activer dans les paramètres de la "
+"boutique.Le paiement est désactivé. Veuillez l'activer dans les paramètres "
+"de la boutique."
 
 #: webshop/templates/pages/checkout.html:347
 msgid "Choose Shipping Method"
@@ -1060,6 +1218,11 @@ msgstr "Choisir une adresse enregistrée"
 #: webshop/templates/generators/item/item_add_to_cart.html:93
 msgid "Choose a stock source"
 msgstr "Choisir une source de stock"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:815
+#: webshop/webshop/utils/holidays.py:230
+msgid "Choose the country of the store first."
+msgstr "Choisissez d'abord le pays de la boutique."
 
 #. Description of the 'Default View Type' (Select) field in DocType 'Webshop
 #. Settings'
@@ -1133,15 +1296,15 @@ msgstr "Fermer"
 #. Option for the 'Status' (Select) field in DocType 'Shop Assistant
 #. Conversation'
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json
-#: webshop/webshop/utils/store_hours.py:137
+#: webshop/webshop/utils/store_hours.py:150
 msgid "Closed"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:255
+#: webshop/webshop/utils/store_hours.py:281
 msgid "Closed {0}"
 msgstr "Fermé {0}"
 
-#: webshop/webshop/utils/store_hours.py:151
+#: webshop/webshop/utils/store_hours.py:164
 msgid "Closed: {0}"
 msgstr "Fermé : {0}"
 
@@ -1150,9 +1313,20 @@ msgstr "Fermé : {0}"
 msgid "Closes"
 msgstr "Ferme"
 
-#: webshop/webshop/utils/store_hours.py:150
+#: webshop/webshop/utils/store_hours.py:163
 msgid "Closes in {0}"
 msgstr "Fermeture dans {0}"
+
+#. Description of the 'Public Holidays' (Section Break) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid ""
+"Closes the shop automatically on the public holidays where it stands. "
+"Fetched from openholidaysapi.org and kept in a Holiday List."
+msgstr ""
+"Ferme automatiquement la boutique les jours fériés du lieu où elle se "
+"trouve. Récupérés depuis openholidaysapi.org et conservés dans une liste de "
+"jours fériés."
 
 #: webshop/templates/pages/gift_cards.html:78
 #: webshop/templates/pages/thank_you.html:194
@@ -1171,7 +1345,13 @@ msgstr "Tout réduire"
 #. Description of the 'Restrict Payment Methods' (Data) field in DocType
 #. 'Webshop Payment Method'
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
-msgid "Comma-separated provider codes, e.g. <code>twint</code> or <code>visa,mastercard</code>. Leave empty to offer everything the account allows. Lets one gateway serve several tiles: name a second Payment Gateway Account after the same provider and restrict it here, and the shopper gets a TWINT tile and a card tile that both settle through it. Ignored by gateways that cannot filter."
+msgid ""
+"Comma-separated provider codes, e.g. <code>twint</code> or "
+"<code>visa,mastercard</code>. Leave empty to offer everything the account "
+"allows. Lets one gateway serve several tiles: name a second Payment Gateway "
+"Account after the same provider and restrict it here, and the shopper gets a"
+" TWINT tile and a card tile that both settle through it. Ignored by gateways"
+" that cannot filter."
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Item Review'
@@ -1207,7 +1387,8 @@ msgstr ""
 msgid "Complete your order"
 msgstr "Complétez votre commande"
 
-#. Option for the 'Status' (Select) field in DocType 'Purchase Follow-up Entry'
+#. Option for the 'Status' (Select) field in DocType 'Purchase Follow-up
+#. Entry'
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json
 msgid "Completed"
 msgstr ""
@@ -1323,8 +1504,12 @@ msgstr "Continuer mes achats"
 #. Description of the 'Hide Currency Symbol in Shop' (Select) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Control currency symbol display in the webshop. If empty, uses the global ERPNext setting. 'Yes' hides the symbol, 'No' shows it."
-msgstr "Contrôle l'affichage du symbole de devise dans la boutique. Si vide, utilise le paramètre global ERPNext. 'Oui' masque le symbole, 'Non' l'affiche."
+msgid ""
+"Control currency symbol display in the webshop. If empty, uses the global "
+"ERPNext setting. 'Yes' hides the symbol, 'No' shows it."
+msgstr ""
+"Contrôle l'affichage du symbole de devise dans la boutique. Si vide, utilise"
+" le paramètre global ERPNext. 'Oui' masque le symbole, 'Non' l'affiche."
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:752
 #: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:46
@@ -1378,11 +1563,13 @@ msgstr "Impossible de mettre à jour les coordonnées"
 msgid "Could not update the customer details"
 msgstr "Impossible de mettre à jour les informations du client"
 
+#. Label of a Data field in DocType 'Webshop Settings'
 #. Label of a Link field in DocType 'WebshopSI Country'
 #: webshop/templates/includes/cart/cart_address.html:112
 #: webshop/templates/pages/checkout.html:181
 #: webshop/templates/pages/checkout.html:298
 #: webshop/templates/pages/checkout.js:705
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 #: webshop/webshop/doctype/webshopsi_country/webshopsi_country.json
 #: webshop/www/my_addresses.html:62
 msgid "Country"
@@ -1458,11 +1645,19 @@ msgstr ""
 
 #: webshop/webshop/shopping_cart/cart.py:4008
 msgid "Created from gift card: {0} (remaining amount after order {1})"
-msgstr "Créé à partir de la carte cadeau : {0} (montant restant après la commande {1})Créé à partir de la carte cadeau : {0} (montant restant après la commande {1})"
+msgstr ""
+"Créé à partir de la carte cadeau : {0} (montant restant après la commande "
+"{1})Créé à partir de la carte cadeau : {0} (montant restant après la "
+"commande {1})"
 
 #: webshop/webshop/shopping_cart/cart.py:959
-msgid "Created from split of {0} in webshop. Used in order {1}. Original amount: {2}, Used: {3}, Remaining on original card: {4}"
-msgstr "Créé à partir de la division de {0} dans la boutique. Utilisé dans la commande {1}. Montant original : {2}, Utilisé : {3}, Reste sur la carte originale : {4}"
+msgid ""
+"Created from split of {0} in webshop. Used in order {1}. Original amount: "
+"{2}, Used: {3}, Remaining on original card: {4}"
+msgstr ""
+"Créé à partir de la division de {0} dans la boutique. Utilisé dans la "
+"commande {1}. Montant original : {2}, Utilisé : {3}, Reste sur la carte "
+"originale : {4}"
 
 #: webshop/webshop/utils/import_gift_cards.py:252
 msgid "Created successfully"
@@ -1507,11 +1702,11 @@ msgstr "Offres croisées"
 msgid "Currency"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:151
+#: webshop/webshop/utils/store_hours.py:164
 msgid "Currently closed"
 msgstr "Actuellement fermé"
 
-#: webshop/webshop/utils/store_hours.py:150
+#: webshop/webshop/utils/store_hours.py:163
 msgid "Currently open"
 msgstr "Actuellement ouvert"
 
@@ -1637,8 +1832,11 @@ msgstr "Ordre de tri des produits par défaut"
 #. Description of the 'Terms and Conditions for Quotations' (Link) field in
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Default Terms and Conditions for all quotations generated from the webshop"
-msgstr "Conditions générales par défaut pour tous les devis générés depuis la boutique"
+msgid ""
+"Default Terms and Conditions for all quotations generated from the webshop"
+msgstr ""
+"Conditions générales par défaut pour tous les devis générés depuis la "
+"boutique"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:153
 msgid "Default Validity Date"
@@ -1695,15 +1893,21 @@ msgstr "Livraison sous ~{0} jours"
 
 #. Description of the 'Knowledge' (Text) field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Delivery, returns, payment, warranty, anything the assistant must be able to answer. Plain text; it is read by the model, not shown as is."
-msgstr "Livraison, retours, paiement, garantie, tout ce que l'assistant doit savoir répondre. Texte simple ; il est lu par le modèle, pas affiché tel quel."
+msgid ""
+"Delivery, returns, payment, warranty, anything the assistant must be able to"
+" answer. Plain text; it is read by the model, not shown as is."
+msgstr ""
+"Livraison, retours, paiement, garantie, tout ce que l'assistant doit savoir "
+"répondre. Texte simple ; il est lu par le modèle, pas affiché tel quel."
 
 #: webshop/webshop/assistant/tools.py:443
 msgid "Demande au visiteur son adresse email avant d'ouvrir le ticket."
 msgstr ""
 
 #: webshop/webshop/assistant/tools.py:434
-msgid "Demande au visiteur son adresse email pour que l'équipe puisse le recontacter."
+msgid ""
+"Demande au visiteur son adresse email pour que l'équipe puisse le "
+"recontacter."
 msgstr ""
 
 #: webshop/webshop/assistant/escalation.py:165
@@ -1779,8 +1983,11 @@ msgstr "Afficher les conditions spécifiques"
 #. Description of the 'Display specific conditions' (Check) field in DocType
 #. 'WebshopSI Settings'
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
-msgid "Display text and button to display specific conditions for sales invoices"
-msgstr "Affiche un texte et un bouton pour consulter les conditions spécifiques aux factures de vente"
+msgid ""
+"Display text and button to display specific conditions for sales invoices"
+msgstr ""
+"Affiche un texte et un bouton pour consulter les conditions spécifiques aux "
+"factures de vente"
 
 #: webshop/www/shop-by-category/index.py:102
 msgid "DocType {} not found"
@@ -1791,13 +1998,18 @@ msgid "Download Template"
 msgstr "Télécharger le modèle"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:339
-msgid "Drag and drop categories to reorder. Higher weightage = displayed first."
-msgstr "Glissez-déposez les catégories pour réorganiser. Poids plus élevé = affiché en premier."
+msgid ""
+"Drag and drop categories to reorder. Higher weightage = displayed first."
+msgstr ""
+"Glissez-déposez les catégories pour réorganiser. Poids plus élevé = affiché "
+"en premier."
 
 #. Description of the 'Relation' (Select) field in DocType 'Cross Sell Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
 msgid "Drives the wording the customer reads when no headline is given"
-msgstr "Détermine la formulation lue par le client quand aucune accroche n'est donnée"
+msgstr ""
+"Détermine la formulation lue par le client quand aucune accroche n'est "
+"donnée"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:139
 msgid "Dry Run (Validate Only)"
@@ -1887,8 +2099,12 @@ msgid "Emails"
 msgstr "Emails"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:707
-msgid "Emails go out every morning at 08:15; what a customer received shows in the customer's timeline and in {0}."
-msgstr "Les emails partent chaque matin à 08:15 ; ce qu'un client a reçu apparaît dans sa chronologie et dans {0}."
+msgid ""
+"Emails go out every morning at 08:15; what a customer received shows in the "
+"customer's timeline and in {0}."
+msgstr ""
+"Les emails partent chaque matin à 08:15 ; ce qu'un client a reçu apparaît "
+"dans sa chronologie et dans {0}."
 
 #. Label of a Int field in DocType 'Purchase Follow-up'
 #. Label of a Section Break field in DocType 'Purchase Follow-up Entry'
@@ -1900,19 +2116,27 @@ msgstr "Emails envoyés"
 #. Description of the 'Welcome message' (Small Text) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Empty: a default greeting, with the customer's first name when signed in"
-msgstr "Vide : un accueil par défaut, avec le prénom du client quand il est connecté"
+msgid ""
+"Empty: a default greeting, with the customer's first name when signed in"
+msgstr ""
+"Vide : un accueil par défaut, avec le prénom du client quand il est connecté"
 
 #. Description of the 'Monthly token cap' (Int) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Empty: no cap. Beyond it the assistant asks the visitor to write to the team."
-msgstr "Vide : pas de plafond. Au-delà, l'assistant invite le visiteur à écrire à l'équipe."
+msgid ""
+"Empty: no cap. Beyond it the assistant asks the visitor to write to the "
+"team."
+msgstr ""
+"Vide : pas de plafond. Au-delà, l'assistant invite le visiteur à écrire à "
+"l'équipe."
 
 #. Description of the 'Offer a coupon from email number' (Select) field in
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Empty: no coupon, ever. The literature says not before the second email; your call."
+msgid ""
+"Empty: no coupon, ever. The literature says not before the second email; "
+"your call."
 msgstr ""
 
 #. Description of the 'Model' (Data) field in DocType 'Webshop Settings'
@@ -2035,8 +2259,12 @@ msgstr "Activer le mode maintenance pour tout le site"
 #. Description of the 'Maintenance Mode - Webshop' (Check) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Enable maintenance mode for webshop features only (requires Website maintenance to be enabled)"
-msgstr "Activer le mode maintenance pour les fonctionnalités boutique uniquement (nécessite l'activation de la maintenance du site)"
+msgid ""
+"Enable maintenance mode for webshop features only (requires Website "
+"maintenance to be enabled)"
+msgstr ""
+"Activer le mode maintenance pour les fonctionnalités boutique uniquement "
+"(nécessite l'activation de la maintenance du site)"
 
 #. Label of a Check field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -2078,7 +2306,9 @@ msgstr "Entrez votre code de carte cadeau au moment du paiement"
 
 #: webshop/webshop/quick_order/api.py:888
 msgid "Enter: next cell · Esc: back to search · Ctrl+Enter: send everything"
-msgstr "Entrée : case suivante · Échap : retour à la recherche · Ctrl+Entrée : tout envoyer"
+msgstr ""
+"Entrée : case suivante · Échap : retour à la recherche · Ctrl+Entrée : tout "
+"envoyer"
 
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.js:9
 msgid "Entries"
@@ -2097,8 +2327,10 @@ msgid "Equivalent Value:"
 msgstr "Valeur équivalente :"
 
 #: webshop/templates/pages/checkout_b2b.html:206
-msgid "Erreur lors du chargement des méthodes de livraison. Veuillez réessayer."
-msgstr "Erreur lors du chargement des méthodes de livraison. Veuillez réessayer."
+msgid ""
+"Erreur lors du chargement des méthodes de livraison. Veuillez réessayer."
+msgstr ""
+"Erreur lors du chargement des méthodes de livraison. Veuillez réessayer."
 
 #: webshop/public/js/shopping_cart.js:304
 #: webshop/templates/includes/cart_component.js:1342
@@ -2117,7 +2349,8 @@ msgstr "Erreur"
 #: webshop/templates/pages/checkout_b2b.html:271
 #: webshop/templates/pages/checkout_b2b.html:279
 msgid "Error applying shipping method. Please try again."
-msgstr "Erreur lors de l'application de la méthode de livraison. Veuillez réessayer."
+msgstr ""
+"Erreur lors de l'application de la méthode de livraison. Veuillez réessayer."
 
 #: webshop/webshop/utils/frequently_bought_together.py:79
 msgid "Error calculating frequently bought together: {0}"
@@ -2154,7 +2387,10 @@ msgstr "Erreur lors de la création de la demande de paiement"
 
 #: webshop/controllers/payment_handler.py:74
 msgid "Error during quotation retrieval: Cart is empty or quotation not found"
-msgstr "Erreur lors de la récupération du devis : Le panier est vide ou le devis n'a pas été trouvéErreur lors de la récupération du devis : Le panier est vide ou le devis n'a pas été trouvé"
+msgstr ""
+"Erreur lors de la récupération du devis : Le panier est vide ou le devis n'a"
+" pas été trouvéErreur lors de la récupération du devis : Le panier est vide "
+"ou le devis n'a pas été trouvé"
 
 #: webshop/templates/generators/item/item_add_to_cart.html:662
 msgid "Error generating gift card code"
@@ -2200,11 +2436,17 @@ msgstr "Erreur lors de la lecture du fichier : {0}"
 
 #: webshop/webshop/shopping_cart/cart.py:1912
 msgid "Error updating address. Please try again or contact support."
-msgstr "Erreur lors de la mise à jour de l'adresse. Veuillez réessayer ou contacter le support.Erreur lors de la mise à jour de l'adresse. Veuillez réessayer ou contacter le support."
+msgstr ""
+"Erreur lors de la mise à jour de l'adresse. Veuillez réessayer ou contacter "
+"le support.Erreur lors de la mise à jour de l'adresse. Veuillez réessayer ou"
+" contacter le support."
 
 #: webshop/webshop/shopping_cart/cart.py:1035
-msgid "Error while creating new gift card during split. Original: {0}, Amount: {1}"
-msgstr "Erreur lors de la création d'une nouvelle carte cadeau lors de la division. Originale : {0}, Montant : {1}"
+msgid ""
+"Error while creating new gift card during split. Original: {0}, Amount: {1}"
+msgstr ""
+"Erreur lors de la création d'une nouvelle carte cadeau lors de la division. "
+"Originale : {0}, Montant : {1}"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:226
 msgid "Errors"
@@ -2238,7 +2480,10 @@ msgstr "Livraison estimée"
 #. Description of the 'Auto-enable when in stock' (Check) field in DocType
 #. 'Webshop Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
-msgid "Every published Website Item with stock in this source displays it automatically (no per-item setup). Uncheck to only show it on items that list this source explicitly."
+msgid ""
+"Every published Website Item with stock in this source displays it "
+"automatically (no per-item setup). Uncheck to only show it on items that "
+"list this source explicitly."
 msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:128
@@ -2331,6 +2576,22 @@ msgstr "Les frais ont été mis à jour"
 msgid "Fermer"
 msgstr ""
 
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:773
+msgid "Fetch public holidays"
+msgstr "Récupérer les jours fériés"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:850
+msgid ""
+"Fetched from openholidaysapi.org; nothing is called while a visitor loads a "
+"page."
+msgstr ""
+"Récupérés depuis openholidaysapi.org ; rien n'est appelé pendant qu'un "
+"visiteur charge une page."
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:818
+msgid "Fetching the public holidays…"
+msgstr "Récupération des jours fériés…"
+
 #. Description of the 'Item Stock Field' (Data) field in DocType 'Webshop
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
@@ -2338,7 +2599,9 @@ msgid "Fieldname on Item holding the quantity, e.g. neo_supplier_stock."
 msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:273
-msgid "Filter Fields Row #{0}: Fieldname {1} must be of type 'Link', 'Select' or 'Table MultiSelect'"
+msgid ""
+"Filter Fields Row #{0}: Fieldname {1} must be of type 'Link', 'Select' or "
+"'Table MultiSelect'"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
@@ -2364,7 +2627,8 @@ msgstr "Filtres et catégories"
 msgid "First Name"
 msgstr "Prénom"
 
-#. Option for the 'Lead Time Mode' (Select) field in DocType 'Webshop Warehouse
+#. Option for the 'Lead Time Mode' (Select) field in DocType 'Webshop
+#. Warehouse
 #. Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Fixed"
@@ -2373,7 +2637,10 @@ msgstr ""
 #. Description of the 'Lead Time Mode' (Select) field in DocType 'Webshop
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
-msgid "Fixed: constant number of business days. Periodic: supplier orders leave on a schedule (e.g. end of month), the estimate accounts for the next departure."
+msgid ""
+"Fixed: constant number of business days. Periodic: supplier orders leave on "
+"a schedule (e.g. end of month), the estimate accounts for the next "
+"departure."
 msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:27
@@ -2407,8 +2674,10 @@ msgstr "Par exemple : fermé les jours fériés"
 #. Description of the 'Price per 1,000 tokens' (Currency) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "For the estimated cost on the usage report; what the service is billed at"
-msgstr "Pour le coût estimé du rapport d'usage ; le tarif facturé pour le service"
+msgid ""
+"For the estimated cost on the usage report; what the service is billed at"
+msgstr ""
+"Pour le coût estimé du rapport d'usage ; le tarif facturé pour le service"
 
 #: webshop/public/js/auth_dialog.js:121
 msgid "Forgot Password?"
@@ -2469,13 +2738,20 @@ msgstr "Paramètres généraux"
 #. Description of the 'Terms and conditions for Checkout' (Link) field in
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "General Terms and Conditions (GTC) to be displayed on the checkout page"
-msgstr "Conditions générales de vente (CGV) à afficher sur la page de paiement"
+msgid ""
+"General Terms and Conditions (GTC) to be displayed on the checkout page"
+msgstr ""
+"Conditions générales de vente (CGV) à afficher sur la page de paiement"
 
-#. Description of the 'Pricing Rule' (Link) field in DocType 'Cross Sell Offer'
+#. Description of the 'Pricing Rule' (Link) field in DocType 'Cross Sell
+#. Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
-msgid "Generated from this offer. The discount is applied by ERPNext itself, in the cart, the order and the invoice."
-msgstr "Générée depuis cette offre. La remise est appliquée par ERPNext lui-même, dans le panier, la commande et la facture."
+msgid ""
+"Generated from this offer. The discount is applied by ERPNext itself, in the"
+" cart, the order and the invoice."
+msgstr ""
+"Générée depuis cette offre. La remise est appliquée par ERPNext lui-même, "
+"dans le panier, la commande et la facture."
 
 #. Option for the 'Icon' (Select) field in DocType 'Webshop Trust Item'
 #: webshop/webshop/doctype/webshop_trust_item/webshop_trust_item.json
@@ -2526,12 +2802,20 @@ msgid "Gift Cards"
 msgstr "Cartes cadeaux"
 
 #: webshop/webshop/shopping_cart/cart.py:3353
-msgid "Gift card amount ({0}) exceeds order total ({1}). The excess amount ({2}) will be converted to a new gift card upon order submission."
-msgstr "Le montant de la carte cadeau ({0}) dépasse le total de la commande ({1}). Le montant excédentaire ({2}) sera converti en une nouvelle carte cadeau lors de la validation."
+msgid ""
+"Gift card amount ({0}) exceeds order total ({1}). The excess amount ({2}) "
+"will be converted to a new gift card upon order submission."
+msgstr ""
+"Le montant de la carte cadeau ({0}) dépasse le total de la commande ({1}). "
+"Le montant excédentaire ({2}) sera converti en une nouvelle carte cadeau "
+"lors de la validation."
 
 #: webshop/webshop/shopping_cart/cart.py:704
 msgid "Gift card amount ({0}) is less than required discount amount ({1})"
-msgstr "Le montant de la carte cadeau ({0}) est inférieur au montant de réduction requis ({1})Le montant de la carte cadeau ({0}) est inférieur au montant de réduction requis ({1})"
+msgstr ""
+"Le montant de la carte cadeau ({0}) est inférieur au montant de réduction "
+"requis ({1})Le montant de la carte cadeau ({0}) est inférieur au montant de "
+"réduction requis ({1})"
 
 #: webshop/webshop/utils/import_gift_cards.py:57
 msgid "Gift card code cannot be empty"
@@ -2563,12 +2847,22 @@ msgid "Gift card {0} - {1} - {2} ({3}/{4})"
 msgstr "Carte cadeau {0} - {1} - {2} ({3}/{4})"
 
 #: webshop/webshop/shopping_cart/cart.py:1023
-msgid "Gift card {0} is worth {1}, more than the order total ({2}). A new gift card ({3}) was created for the amount used; the remaining {4} stays on the original card."
-msgstr "La carte cadeau {0} vaut {1}, plus que le total de la commande ({2}). Une nouvelle carte cadeau ({3}) a été créée pour le montant utilisé ; le solde de {4} reste sur la carte d'origine."
+msgid ""
+"Gift card {0} is worth {1}, more than the order total ({2}). A new gift card"
+" ({3}) was created for the amount used; the remaining {4} stays on the "
+"original card."
+msgstr ""
+"La carte cadeau {0} vaut {1}, plus que le total de la commande ({2}). Une "
+"nouvelle carte cadeau ({3}) a été créée pour le montant utilisé ; le solde "
+"de {4} reste sur la carte d'origine."
 
 #: webshop/webshop/shopping_cart/cart.py:1011
-msgid "Gift card {0} split: {1} used and transferred to the new gift card {2}. {3} left on the original card."
-msgstr "Carte cadeau {0} divisée : {1} utilisés et transférés sur la nouvelle carte cadeau {2}. Solde de {3} sur la carte d'origine."
+msgid ""
+"Gift card {0} split: {1} used and transferred to the new gift card {2}. {3} "
+"left on the original card."
+msgstr ""
+"Carte cadeau {0} divisée : {1} utilisés et transférés sur la nouvelle carte "
+"cadeau {2}. Solde de {3} sur la carte d'origine."
 
 #: webshop/webshop/quick_order/api.py:659
 msgid "Gift cards do not go through the quick order."
@@ -2728,11 +3022,20 @@ msgstr "Masquer si acheté dans les derniers (jours)"
 msgid "Hide when already in the cart"
 msgstr "Masquer si déjà dans le panier"
 
+#. Label of a Link field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Holiday List"
+msgstr ""
+
 #. Description of the 'Exceptional Closures' (Table) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Holidays, inventory, a move: the day counts as closed whatever the weekly hours say"
-msgstr "Vacances, inventaire, déménagement : le jour compte comme fermé, quoi que disent les horaires de la semaine"
+msgid ""
+"Holidays, inventory, a move: the day counts as closed whatever the weekly "
+"hours say"
+msgstr ""
+"Vacances, inventaire, déménagement : le jour compte comme fermé, quoi que "
+"disent les horaires de la semaine"
 
 #: webshop/templates/includes/breadcrumbs.html:13
 #: webshop/webshop/doctype/override_doctype/item_group.py:157
@@ -2759,8 +3062,12 @@ msgstr "N°"
 #. Description of the 'Product Image Fit' (Select) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "How the image fills the product card. 'Cover' crops to fill without distortion; 'Contain' keeps the whole image visible with padding."
-msgstr "Définit comment l'image remplit la carte produit. « Remplir » recadre sans déformation ; « Contenir » affiche l'image entière avec des marges."
+msgid ""
+"How the image fills the product card. 'Cover' crops to fill without "
+"distortion; 'Contain' keeps the whole image visible with padding."
+msgstr ""
+"Définit comment l'image remplit la carte produit. « Remplir » recadre sans "
+"déformation ; « Contenir » affiche l'image entière avec des marges."
 
 #: webshop/templates/pages/loyalty_points.html:57
 msgid "How to earn points"
@@ -2799,8 +3106,12 @@ msgstr "Si 0, pas de date d'expiration"
 #. Description of the 'Enable Checkout Page' (Check) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "If enabled, customers will be redirected to a dedicated checkout page instead of showing address and terms in cart"
-msgstr "Si activé, les clients seront redirigés vers une page de paiement dédiée au lieu d'afficher l'adresse et les conditions dans le panier"
+msgid ""
+"If enabled, customers will be redirected to a dedicated checkout page "
+"instead of showing address and terms in cart"
+msgstr ""
+"Si activé, les clients seront redirigés vers une page de paiement dédiée au "
+"lieu d'afficher l'adresse et les conditions dans le panier"
 
 #: webshop/webshop/assistant/tools.py:189
 msgid "Il faut au moins deux caractères pour chercher."
@@ -2899,15 +3210,19 @@ msgstr "Mot de passe incorrect. Veuillez réessayer."
 
 #. Description of the 'On Backorder' (Check) field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
-msgid "Indicate that Item is available on backorder and not usually pre-stocked"
-msgstr "Indique que l'article est disponible sur commande et n'est pas habituellement en stock"
+msgid ""
+"Indicate that Item is available on backorder and not usually pre-stocked"
+msgstr ""
+"Indique que l'article est disponible sur commande et n'est pas "
+"habituellement en stock"
 
 #: webshop/webshop/quick_order/api.py:870
 msgid "Indicative total"
 msgstr "Total indicatif"
 
 #: webshop/webshop/assistant/api.py:363
-msgid "Indiquez une adresse email valide pour que l'équipe puisse vous répondre."
+msgid ""
+"Indiquez une adresse email valide pour que l'équipe puisse vous répondre."
 msgstr ""
 
 #: webshop/templates/pages/checkout.html:24
@@ -3081,7 +3396,9 @@ msgid "Je cherche un produit"
 msgstr ""
 
 #: webshop/webshop/assistant/api.py:198
-msgid "Je suis {0}, l'assistant·e de la boutique. Une commande à suivre, un produit à trouver ?"
+msgid ""
+"Je suis {0}, l'assistant·e de la boutique. Une commande à suivre, un produit"
+" à trouver ?"
 msgstr ""
 
 #: webshop/templates/payments/paypal.html:9
@@ -3109,7 +3426,9 @@ msgid "L'outil n'a pas pu répondre. Propose au client de contacter l'équipe."
 msgstr ""
 
 #: webshop/webshop/assistant/escalation.py:150
-msgid "La demande est transmise à l'équipe ; elle recontactera le client à {0}. Dis-le lui, sans promettre de délai précis."
+msgid ""
+"La demande est transmise à l'équipe ; elle recontactera le client à {0}. "
+"Dis-le lui, sans promettre de délai précis."
 msgstr ""
 
 #. Label of a Data field in DocType 'Purchase Follow-up Log'
@@ -3126,7 +3445,8 @@ msgid "Laisser un message à l'équipe"
 msgstr ""
 
 #: webshop/webshop/assistant/api.py:98
-msgid "Laissez-nous votre message ci-dessous : l'équipe vous répond par email."
+msgid ""
+"Laissez-nous votre message ci-dessous : l'équipe vous répond par email."
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
@@ -3185,15 +3505,21 @@ msgid "Le panier est vide."
 msgstr ""
 
 #: webshop/webshop/assistant/escalation.py:181
-msgid "Le ticket n'a pas pu être créé ; la demande est partie à l'équipe par message."
+msgid ""
+"Le ticket n'a pas pu être créé ; la demande est partie à l'équipe par "
+"message."
 msgstr ""
 
 #: webshop/webshop/assistant/escalation.py:203
-msgid "Le ticket {0} est ouvert au nom du client ; l'équipe lui répondra par email. Donne-lui le numéro."
+msgid ""
+"Le ticket {0} est ouvert au nom du client ; l'équipe lui répondra par email."
+" Donne-lui le numéro."
 msgstr ""
 
 #: webshop/webshop/assistant/tools.py:39
-msgid "Le visiteur n'est pas connecté : propose-lui de se connecter à son compte pour voir ses documents."
+msgid ""
+"Le visiteur n'est pas connecté : propose-lui de se connecter à son compte "
+"pour voir ses documents."
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Warehouse Source'
@@ -3218,8 +3544,12 @@ msgstr "Vide : pour tout le monde"
 #. Description of the 'Use Payment Intent' (Check) field in DocType 'Webshop
 #. Payment Method'
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
-msgid "Leave unchecked until this method has been proven on this site. Unchecked, it takes exactly the path it has always taken."
-msgstr "Laissez décoché tant que la méthode n'a pas été éprouvée sur ce site. Décoché, elle emprunte exactement le chemin qu'elle a toujours pris."
+msgid ""
+"Leave unchecked until this method has been proven on this site. Unchecked, "
+"it takes exactly the path it has always taken."
+msgstr ""
+"Laissez décoché tant que la méthode n'a pas été éprouvée sur ce site. "
+"Décoché, elle emprunte exactement le chemin qu'elle a toujours pris."
 
 #. Option for the 'Image Focus' (Select) field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
@@ -3235,8 +3565,10 @@ msgid "Les conditions générales de vente ne sont pas encore configurées."
 msgstr "Les conditions générales de vente ne sont pas encore configurées."
 
 #: webshop/templates/includes/cart_component.js:321
-msgid "Les points de fidélité ont été supprimés pour mettre à jour la quantité"
-msgstr "Les points de fidélité ont été supprimés pour mettre à jour la quantité"
+msgid ""
+"Les points de fidélité ont été supprimés pour mettre à jour la quantité"
+msgstr ""
+"Les points de fidélité ont été supprimés pour mettre à jour la quantité"
 
 #: webshop/templates/includes/cart_component.js:499
 msgid "Les points de fidélité ont été supprimés pour retirer le produit"
@@ -3255,8 +3587,12 @@ msgstr "Limites et consommation"
 #. Description of the 'Redirect on Action' (Data) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Link to redirect Guest on actions that need login such as add to cart, wishlist, etc. <b>E.g.: /login</b>"
-msgstr "Lien de redirection des visiteurs pour les actions nécessitant une connexion comme ajouter au panier, liste de souhaits, etc. <b>Ex : /login</b>"
+msgid ""
+"Link to redirect Guest on actions that need login such as add to cart, "
+"wishlist, etc. <b>E.g.: /login</b>"
+msgstr ""
+"Lien de redirection des visiteurs pour les actions nécessitant une connexion"
+" comme ajouter au panier, liste de souhaits, etc. <b>Ex : /login</b>"
 
 #. Option for the 'Default View Type' (Select) field in DocType 'Webshop
 #. Settings'
@@ -3376,7 +3712,8 @@ msgstr "Points de fidélité supprimés"
 
 #: webshop/webshop/shopping_cart/cart.py:3534
 msgid "Loyalty points value cannot exceed total amount"
-msgstr "La valeur des points de fidélité ne peut pas dépasser le montant total"
+msgstr ""
+"La valeur des points de fidélité ne peut pas dépasser le montant total"
 
 #: webshop/webshop/shopping_cart/cart.py:2411
 msgid "Loyalty program"
@@ -3559,15 +3896,22 @@ msgstr "Déplacer vers le panier"
 msgid "Multi-Warehouse Stock"
 msgstr "Stock multi-entrepôts"
 
-#. Description of the 'Visible On' (Select) field in DocType 'Webshop Warehouse
+#. Description of the 'Visible On' (Select) field in DocType 'Webshop
+#. Warehouse
 #. Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
-msgid "Multi-site: restrict this source to B2B (reseller) sites or to public sites. Single-site instances always show it."
+msgid ""
+"Multi-site: restrict this source to B2B (reseller) sites or to public sites."
+" Single-site instances always show it."
 msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:116
-msgid "Multi-warehouse: enabled \"Allow Item to Be Added Multiple Times in a Transaction\" in {0}"
-msgstr "Multi-entrepôt : « Autoriser un article plusieurs fois dans une transaction » activé dans {0}"
+msgid ""
+"Multi-warehouse: enabled \"Allow Item to Be Added Multiple Times in a "
+"Transaction\" in {0}"
+msgstr ""
+"Multi-entrepôt : « Autoriser un article plusieurs fois dans une transaction "
+"» activé dans {0}"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:140
 msgid "Multi-warehouse: enabled {0} in Stock Settings"
@@ -3688,8 +4032,11 @@ msgid "No cart found"
 msgstr "Aucun panier trouvé"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:492
-msgid "No categories found. Make sure Item Groups have \"Show in Website\" enabled."
-msgstr "Aucune catégorie trouvée. Assurez-vous que les groupes d'articles ont \"Afficher sur le site\" activé."
+msgid ""
+"No categories found. Make sure Item Groups have \"Show in Website\" enabled."
+msgstr ""
+"Aucune catégorie trouvée. Assurez-vous que les groupes d'articles ont "
+"\"Afficher sur le site\" activé."
 
 #: webshop/templates/pages/checkout.py:772
 msgid "No conversion factor found between {0} and {1}"
@@ -3700,8 +4047,9 @@ msgstr "Aucun facteur de conversion trouvé entre {0} et {1}"
 msgid "No customer account found"
 msgstr "Aucun compte client trouvé"
 
-#: webshop/webshop/quick_order/api.py:86 webshop/webshop/quick_order/api.py:904
-#: webshop/webshop/quick_order/test_quick_order.py:284
+#: webshop/webshop/quick_order/api.py:86
+#: webshop/webshop/quick_order/api.py:904
+#: webshop/webshop/quick_order/test_quick_order.py:285
 msgid "No customer account is linked to your user."
 msgstr "Aucun compte client n'est rattaché à votre utilisateur."
 
@@ -3724,12 +4072,14 @@ msgstr "Aucune méthode de paiement configurée"
 
 #: webshop/templates/pages/loyalty_points.html:146
 msgid "No points history yet. Start shopping to earn points!"
-msgstr "Aucun historique de points. Commencez vos achats pour gagner des points !"
+msgstr ""
+"Aucun historique de points. Commencez vos achats pour gagner des points !"
 
 #: webshop/webshop/quick_order/api.py:665
-#: webshop/webshop/quick_order/test_quick_order.py:572
+#: webshop/webshop/quick_order/test_quick_order.py:542
 msgid "No price for this item on your price list (price on request)."
-msgstr "Pas de tarif pour cet article sur votre liste de prix (prix sur demande)."
+msgstr ""
+"Pas de tarif pour cet article sur votre liste de prix (prix sur demande)."
 
 #: webshop/templates/includes/product_carousel.html:830
 msgid "No products available"
@@ -3788,11 +4138,16 @@ msgstr "Aucune variante disponible pour ce produit"
 
 #: webshop/webshop/doctype/website_item/website_item_list.js:37
 msgid "No warehouse source is configured in Webshop Settings"
-msgstr "Aucune source d'entrepôt n'est configurée dans les paramètres de la boutique"
+msgstr ""
+"Aucune source d'entrepôt n'est configurée dans les paramètres de la boutique"
 
 #: webshop/webshop/utils/used_items.py:226
 msgid "No warehouse to receive the unit into. Pick one."
 msgstr "Aucun entrepôt pour réceptionner l'unité. Choisissez-en un."
+
+#: webshop/webshop/utils/holidays.py:155
+msgid "No year to fetch."
+msgstr "Aucune année à récupérer."
 
 #. Option for the 'Advantage' (Select) field in DocType 'Cross Sell Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
@@ -3803,7 +4158,8 @@ msgstr ""
 msgid "Not Available"
 msgstr "Indisponible"
 
-#: webshop/templates/pages/order.py:39 webshop/webshop/utils/order_export.py:23
+#: webshop/templates/pages/order.py:39
+#: webshop/webshop/utils/order_export.py:23
 #: webshop/webshop/utils/order_export.py:26
 msgid "Not Permitted"
 msgstr "Non autorisé"
@@ -3835,7 +4191,8 @@ msgstr "Note"
 msgid "Note under the hours"
 msgstr "Note sous les horaires"
 
-#. Description of the 'Send follow-up emails after a purchase' (Check) field in
+#. Description of the 'Send follow-up emails after a purchase' (Check) field
+#. in
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Nothing is enrolled and nothing goes out while this is off"
@@ -3904,7 +4261,8 @@ msgstr "Offres à afficher"
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Older closed conversations are deleted by the nightly job"
-msgstr "Les conversations fermées plus anciennes sont supprimées par le job de nuit"
+msgstr ""
+"Les conversations fermées plus anciennes sont supprimées par le job de nuit"
 
 #. Label of a Check field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
@@ -3920,17 +4278,23 @@ msgstr "En réapprovisionnement"
 msgid "On reprend où on en était ?"
 msgstr ""
 
-#. Description of the 'Reminders (hours after the last change)' (Data) field in
+#. Description of the 'Reminders (hours after the last change)' (Data) field
+#. in
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "One email per delay, comma separated"
 msgstr "Un email par délai, séparés par des virgules"
 
-#. Description of the 'Opening Hours' (Section Break) field in DocType 'Webshop
+#. Description of the 'Opening Hours' (Section Break) field in DocType
+#. 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "One row per opening period: a day with a lunch break has two rows. Shown on /store-hours, in the opening-hours block, and told by the assistant."
-msgstr "Une ligne par plage d'ouverture : un jour avec pause de midi a deux lignes. Affiché sur /store-hours, dans le bloc des horaires, et dit par l'assistant."
+msgid ""
+"One row per opening period: a day with a lunch break has two rows. Shown on "
+"/store-hours, in the opening-hours block, and told by the assistant."
+msgstr ""
+"Une ligne par plage d'ouverture : un jour avec pause de midi a deux lignes. "
+"Affiché sur /store-hours, dans le bloc des horaires, et dit par l'assistant."
 
 #: webshop/webshop/api.py:1069
 msgid "Only System Manager can clear webshop cache"
@@ -3957,12 +4321,20 @@ msgid "Only {0} left"
 msgstr "Plus que {0} en stock"
 
 #: webshop/webshop/shopping_cart/cart.py:1251
-msgid "Only {0} units available at {1} for {2}. You cannot add {3} units from this source."
-msgstr "Seulement {0} unité(s) disponible(s) ({1}) pour {2}. Vous ne pouvez pas en ajouter {3} depuis cette source."
+msgid ""
+"Only {0} units available at {1} for {2}. You cannot add {3} units from this "
+"source."
+msgstr ""
+"Seulement {0} unité(s) disponible(s) ({1}) pour {2}. Vous ne pouvez pas en "
+"ajouter {3} depuis cette source."
 
 #: webshop/webshop/shopping_cart/cart.py:1256
-msgid "Only {0} units available in stock for {1}. You cannot add {2} units to your cart."
-msgstr "Seulement {0} unités disponibles en stock pour {1}. Vous ne pouvez pas ajouter {2} unités à votre panier."
+msgid ""
+"Only {0} units available in stock for {1}. You cannot add {2} units to your "
+"cart."
+msgstr ""
+"Seulement {0} unités disponibles en stock pour {1}. Vous ne pouvez pas "
+"ajouter {2} unités à votre panier."
 
 #. Option for the 'Status' (Select) field in DocType 'Shop Assistant
 #. Conversation'
@@ -3975,10 +4347,15 @@ msgstr ""
 msgid "Open the payment page in a new tab"
 msgstr "Ouvrir la page de paiement dans un nouvel onglet"
 
-#. Description of the 'API base URL' (Data) field in DocType 'Webshop Settings'
+#. Description of the 'API base URL' (Data) field in DocType 'Webshop
+#. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "OpenAI-compatible endpoint, e.g. https://host/v1. Empty: Nora's model of this instance."
-msgstr "Endpoint compatible OpenAI, par exemple https://hote/v1. Vide : le modèle Nora de cette instance."
+msgid ""
+"OpenAI-compatible endpoint, e.g. https://host/v1. Empty: Nora's model of "
+"this instance."
+msgstr ""
+"Endpoint compatible OpenAI, par exemple https://hote/v1. Vide : le modèle "
+"Nora de cette instance."
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
 #. Label of a Table field in DocType 'Webshop Settings'
@@ -3990,11 +4367,12 @@ msgstr "Horaires d'ouverture"
 msgid "Opening TWINT…"
 msgstr "Ouverture de TWINT…"
 
-#: webshop/webshop/utils/store_hours.py:226 webshop/www/store-hours/index.py:14
+#: webshop/webshop/utils/store_hours.py:249
+#: webshop/www/store-hours/index.py:14
 msgid "Opening hours"
 msgstr "Horaires d'ouverture"
 
-#: webshop/webshop/utils/store_hours.py:252
+#: webshop/webshop/utils/store_hours.py:278
 #: webshop/www/store-hours/index.html:18
 msgid "Opening hours are not published."
 msgstr "Les horaires d'ouverture ne sont pas publiés."
@@ -4008,19 +4386,19 @@ msgstr "Ouverture du formulaire de paiement..."
 msgid "Opens"
 msgstr "Ouvre"
 
-#: webshop/webshop/utils/store_hours.py:164
+#: webshop/webshop/utils/store_hours.py:177
 msgid "Opens on {0} at {1}"
 msgstr "Ouverture le {0} à {1}"
 
-#: webshop/webshop/utils/store_hours.py:158
+#: webshop/webshop/utils/store_hours.py:171
 msgid "Opens today at {0}"
 msgstr "Ouverture aujourd'hui à {0}"
 
-#: webshop/webshop/utils/store_hours.py:160
+#: webshop/webshop/utils/store_hours.py:173
 msgid "Opens tomorrow at {0}"
 msgstr "Ouverture demain à {0}"
 
-#: webshop/webshop/utils/store_hours.py:162
+#: webshop/webshop/utils/store_hours.py:175
 msgid "Opens {0} at {1}"
 msgstr "Ouverture {0} à {1}"
 
@@ -4030,12 +4408,15 @@ msgstr "Optionnel"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:91
 msgid "Optional columns: name, owner, client_email, valid_until"
-msgstr "Colonnes optionnelles : nom, propriétaire, email_client, valide_jusqu'à"
+msgstr ""
+"Colonnes optionnelles : nom, propriétaire, email_client, valide_jusqu'à"
 
 #. Description of the 'Compare-at Price List' (Link) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Optional. The list a struck-through \"was\" price is compared against, e.g. an MRP. Leave empty to show discounts from Pricing Rules only."
+msgid ""
+"Optional. The list a struck-through \"was\" price is compared against, e.g. "
+"an MRP. Leave empty to show discounts from Pricing Rules only."
 msgstr ""
 
 #. Description of the 'Expected End Time' (Datetime) field in DocType 'Webshop
@@ -4089,13 +4470,17 @@ msgstr "Commande confirmée avec succès"
 #. Description of the 'Prepare Supplier Orders' (Check) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Order lines sourced from a supplier warehouse prepare a draft Purchase Order (stacked per supplier) or a Material Request on order submission."
+msgid ""
+"Order lines sourced from a supplier warehouse prepare a draft Purchase Order"
+" (stacked per supplier) or a Material Request on order submission."
 msgstr ""
 
 #. Description of the 'Warehouse Sources' (Table) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Order matters: first source that covers the requested quantity is preselected. The item's own Website Warehouse is always shown first."
+msgid ""
+"Order matters: first source that covers the requested quantity is "
+"preselected. The item's own Website Warehouse is always shown first."
 msgstr ""
 
 #: webshop/templates/pages/thank_you.html:18
@@ -4113,7 +4498,9 @@ msgstr "A recommandé"
 #. Description of the 'Supplier Source' (Check) field in DocType 'Webshop
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
-msgid "Ordered quantities from this source feed the supplier procurement flow (draft Purchase Order or Material Request)."
+msgid ""
+"Ordered quantities from this source feed the supplier procurement flow "
+"(draft Purchase Order or Material Request)."
 msgstr ""
 
 #. Option for the 'Payment Success Url' (Select) field in DocType 'Webshop
@@ -4128,7 +4515,9 @@ msgstr "Commandes"
 #: webshop/templates/payments/webshopsi.html:471
 #: webshop/templates/payments/webshopsi.html:474
 msgid "Orders from your country cannot be processed through invoice payment"
-msgstr "Les commandes depuis votre pays ne peuvent pas être traitées par paiement sur facture"
+msgstr ""
+"Les commandes depuis votre pays ne peuvent pas être traitées par paiement "
+"sur facture"
 
 #: webshop/templates/generators/item/item_inquiry.js:13
 msgid "Organization Name"
@@ -4156,7 +4545,7 @@ msgid "Out of stock: nothing available for {0}."
 msgstr "Épuisé : rien de disponible pour {0}."
 
 #: webshop/webshop/quick_order/api.py:714
-#: webshop/webshop/quick_order/test_quick_order.py:551
+#: webshop/webshop/quick_order/test_quick_order.py:521
 msgid "Out of stock: {0} already in the cart, nothing more available."
 msgstr "Épuisé : {0} déjà au panier, rien de plus disponible."
 
@@ -4197,26 +4586,36 @@ msgid "Parler à quelqu'un"
 msgstr ""
 
 #: webshop/webshop/assistant/escalation.py:159
-msgid "Pas de helpdesk sur cette boutique : la demande est partie à l'équipe par message."
+msgid ""
+"Pas de helpdesk sur cette boutique : la demande est partie à l'équipe par "
+"message."
 msgstr ""
 
 #: webshop/public/js/auth_dialog.js:121
 msgid "Password"
 msgstr "Mot de passe"
 
-#: webshop/templates/pages/cart.html:131
+#: webshop/templates/pages/cart.html:132
 msgid "Past Orders"
 msgstr "Commandes passées"
 
-#: webshop/templates/pages/cart.html:134
+#: webshop/templates/pages/cart.html:135
 msgid "Past Quotes"
 msgstr "Devis passés"
 
 #. Description of the 'Payment Methods' (Table) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Path to the payment template. If left empty, the default template in webshop/templates/payments will be used. To use a template from another app, specify the path starting with 'apps/myapp/...' (e.g., apps/myapp/templates/payments/custom.html)"
-msgstr "Chemin vers le modèle de paiement. Si vide, le modèle par défaut dans webshop/templates/payments sera utilisé. Pour utiliser un modèle d'une autre application, spécifiez le chemin commençant par 'apps/monapp/...' (ex : apps/monapp/templates/payments/custom.html)"
+msgid ""
+"Path to the payment template. If left empty, the default template in "
+"webshop/templates/payments will be used. To use a template from another app,"
+" specify the path starting with 'apps/myapp/...' (e.g., "
+"apps/myapp/templates/payments/custom.html)"
+msgstr ""
+"Chemin vers le modèle de paiement. Si vide, le modèle par défaut dans "
+"webshop/templates/payments sera utilisé. Pour utiliser un modèle d'une autre"
+" application, spécifiez le chemin commençant par 'apps/monapp/...' (ex : "
+"apps/monapp/templates/payments/custom.html)"
 
 #: webshop/templates/pages/order.html:54 webshop/templates/pages/order.html:56
 #: webshop/templates/payments/stripe.html:36
@@ -4339,7 +4738,8 @@ msgstr "Formulaire de paiement non disponible"
 #: webshop/templates/pages/checkout.js:2754
 #: webshop/templates/pages/checkout.js:2764
 msgid "Payment methods could not be loaded. Please try again."
-msgstr "Les méthodes de paiement n'ont pas pu être chargées. Veuillez réessayer."
+msgstr ""
+"Les méthodes de paiement n'ont pas pu être chargées. Veuillez réessayer."
 
 #: webshop/templates/pages/checkout.js:3118
 #: webshop/templates/pages/checkout.py:1138
@@ -4362,7 +4762,8 @@ msgstr "Paiement réussi !"
 
 #: webshop/templates/payments/stripe.html:280
 msgid "Payment was declined. Please check your card or use a different one."
-msgstr "Le paiement a été refusé. Vérifiez votre carte ou utilisez-en une autre."
+msgstr ""
+"Le paiement a été refusé. Vérifiez votre carte ou utilisez-en une autre."
 
 #: webshop/templates/pages/order.html:82
 msgid "Pending"
@@ -4373,7 +4774,8 @@ msgstr "En attente"
 msgid "Percentage"
 msgstr ""
 
-#. Option for the 'Lead Time Mode' (Select) field in DocType 'Webshop Warehouse
+#. Option for the 'Lead Time Mode' (Select) field in DocType 'Webshop
+#. Warehouse
 #. Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Periodic"
@@ -4402,7 +4804,9 @@ msgstr "Choisissez ce qui déclenche le suivi."
 
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.py:45
 msgid "Pick what triggers the offer: an item, an item group or a brand."
-msgstr "Choisissez ce qui déclenche l'offre : un article, un groupe d'articles ou une marque."
+msgstr ""
+"Choisissez ce qui déclenche l'offre : un article, un groupe d'articles ou "
+"une marque."
 
 #: webshop/templates/includes/cart/place_order.html:22
 #: webshop/templates/pages/checkout_b2b.html:53
@@ -4552,11 +4956,13 @@ msgstr "Veuillez sélectionner une méthode de livraison"
 
 #: webshop/templates/pages/checkout_b2b.html:309
 msgid "Please select a shipping method before placing the order"
-msgstr "Veuillez sélectionner une méthode de livraison avant de passer la commande"
+msgstr ""
+"Veuillez sélectionner une méthode de livraison avant de passer la commande"
 
 #: webshop/templates/pages/checkout.js:769
 msgid "Please select a shipping method before proceeding to payment"
-msgstr "Veuillez sélectionner une méthode de livraison avant de procéder au paiement"
+msgstr ""
+"Veuillez sélectionner une méthode de livraison avant de procéder au paiement"
 
 #: webshop/templates/pages/checkout.js:1709
 msgid "Please select a shipping method to continue"
@@ -4760,7 +5166,9 @@ msgstr "Produits"
 #. Description of the 'Enable Multi-Warehouse Stock' (Check) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Products can display and sell from several stock sources (below). Off: historical single-warehouse behaviour."
+msgid ""
+"Products can display and sell from several stock sources (below). Off: "
+"historical single-warehouse behaviour."
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
@@ -4797,10 +5205,25 @@ msgstr "Protection ou service"
 msgid "Précise le code ou le nom de l'article."
 msgstr ""
 
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Public Holidays"
+msgstr "Jours fériés"
+
+#: webshop/webshop/utils/holidays.py:113
+msgid "Public holiday"
+msgstr "Jour férié"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:827
+msgid "Public holidays"
+msgstr "Jours fériés"
+
 #. Description of the 'Delivery Holiday List' (Link) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Public holidays skipped when counting business days for delivery estimates. Empty: Saturdays and Sundays only."
+msgid ""
+"Public holidays skipped when counting business days for delivery estimates. "
+"Empty: Saturdays and Sundays only."
 msgstr ""
 
 #. Option for the 'Visible On' (Select) field in DocType 'Webshop Warehouse
@@ -4885,13 +5308,18 @@ msgstr ""
 #. Description of the 'Procurement Mode' (Select) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Purchase Order: one draft per supplier, new webshop orders stack into it. Material Request: submitted requests, consolidate them into Purchase Orders with the native \"Get Items From\" button."
+msgid ""
+"Purchase Order: one draft per supplier, new webshop orders stack into it. "
+"Material Request: submitted requests, consolidate them into Purchase Orders "
+"with the native \"Get Items From\" button."
 msgstr ""
 
 #. Description of the 'Supplier' (Link) field in DocType 'Webshop Warehouse
 #. Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
-msgid "Purchase Orders are grouped under this supplier. Falls back to the item's default supplier when empty."
+msgid ""
+"Purchase Orders are grouped under this supplier. Falls back to the item's "
+"default supplier when empty."
 msgstr ""
 
 #: webshop/webshop/quick_order/api.py:889
@@ -4918,7 +5346,7 @@ msgstr "Quantité"
 msgid "Quantity must be a valid number"
 msgstr "La quantité doit être un nombre valide"
 
-#: webshop/templates/pages/cart.html:126 webshop/templates/pages/cart.html:204
+#: webshop/templates/pages/cart.html:127 webshop/templates/pages/cart.html:206
 #: webshop/www/quick-order/index.html:7 webshop/www/quick-order/index.py:18
 msgid "Quick order"
 msgstr "Commande rapide"
@@ -5015,7 +5443,10 @@ msgstr "Utilisés"
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Redirect directly to login page instead of showing maintenance page"
-msgstr "Rediriger directement vers la page de connexion au lieu d'afficher la page de maintenanceRediriger directement vers la page de connexion au lieu d'afficher la page de maintenance"
+msgstr ""
+"Rediriger directement vers la page de connexion au lieu d'afficher la page "
+"de maintenanceRediriger directement vers la page de connexion au lieu "
+"d'afficher la page de maintenance"
 
 #. Label of a Data field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -5126,14 +5557,22 @@ msgstr ""
 #. Description of the 'Enable Infinite Scroll' (Check) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Replace pagination with infinite scroll - automatically load more products when scrolling"
-msgstr "Remplacer la pagination par le défilement infini - charger automatiquement plus de produits lors du défilement"
+msgid ""
+"Replace pagination with infinite scroll - automatically load more products "
+"when scrolling"
+msgstr ""
+"Remplacer la pagination par le défilement infini - charger automatiquement "
+"plus de produits lors du défilement"
 
 #. Description of the 'At 80% of the item's replenishment cycle' (Check) field
 #. in DocType 'Purchase Follow-up Step'
 #: webshop/webshop/doctype/purchase_follow_up_step/purchase_follow_up_step.json
-msgid "Replaces the days: the item must carry a replenishment cycle, or the step is skipped"
-msgstr "Remplace les jours : l'article doit porter un cycle de réassort, sinon l'étape est sautée"
+msgid ""
+"Replaces the days: the item must carry a replenishment cycle, or the step is"
+" skipped"
+msgstr ""
+"Remplace les jours : l'article doit porter un cycle de réassort, sinon "
+"l'étape est sautée"
 
 #: webshop/templates/includes/cart/place_order.html:27
 msgid "Request for Quote"
@@ -5205,8 +5644,12 @@ msgstr "Avis"
 #. Description of the 'Summary' (Small Text) field in DocType 'Shop Assistant
 #. Conversation'
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json
-msgid "Rewritten by the model every ten messages: what the customer is after, what was promised"
-msgstr "Réécrit par le modèle tous les dix messages : ce que cherche le client, ce qui a été promis"
+msgid ""
+"Rewritten by the model every ten messages: what the customer is after, what "
+"was promised"
+msgstr ""
+"Réécrit par le modèle tous les dix messages : ce que cherche le client, ce "
+"qui a été promis"
 
 #. Option for the 'Image Focus' (Select) field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
@@ -5235,8 +5678,11 @@ msgid "Row"
 msgstr "Ligne"
 
 #: webshop/webshop/crud_events/quotation/validate_shopping_cart_items.py:20
-msgid "Row #{0}: Item {1} must have a Website Item for Shopping Cart Quotations"
-msgstr "Ligne #{0} : L'article {1} doit avoir un article de site web pour les devis du panier"
+msgid ""
+"Row #{0}: Item {1} must have a Website Item for Shopping Cart Quotations"
+msgstr ""
+"Ligne #{0} : L'article {1} doit avoir un article de site web pour les devis "
+"du panier"
 
 #: webshop/webshop/assistant/engine.py:122
 msgid "Résumé mis à jour."
@@ -5263,7 +5709,8 @@ msgid "Saturday"
 msgstr ""
 
 #: webshop/templates/includes/cart/cart_address.html:153
-#: webshop/templates/pages/gift_cards.html:143 webshop/www/my_addresses.html:94
+#: webshop/templates/pages/gift_cards.html:143
+#: webshop/www/my_addresses.html:94
 msgid "Save"
 msgstr "Enregistrer"
 
@@ -5289,7 +5736,8 @@ msgstr "Enregistrement en cours..."
 msgid "Savings"
 msgstr "Économies"
 
-#. Option for the 'Status' (Select) field in DocType 'Purchase Follow-up Entry'
+#. Option for the 'Status' (Select) field in DocType 'Purchase Follow-up
+#. Entry'
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json
 msgid "Scheduled"
 msgstr "Planifié"
@@ -5374,11 +5822,11 @@ msgstr "Voir la page complète"
 msgid "See it in the shop"
 msgstr "Voir dans la boutique"
 
-#: webshop/templates/pages/cart.html:208
+#: webshop/templates/pages/cart.html:210
 msgid "See past orders"
 msgstr "Voir les commandes passées"
 
-#: webshop/templates/pages/cart.html:210
+#: webshop/templates/pages/cart.html:212
 msgid "See past quotations"
 msgstr "Voir les devis passés"
 
@@ -5481,8 +5929,12 @@ msgid "Set as shipping address"
 msgstr "Définir comme adresse de livraison"
 
 #: webshop/webshop/doctype/website_item/website_item_list.js:65
-msgid "Sets the items to \"Custom\" mode: they display exactly the sources listed on them, ignoring the auto-enable switch."
-msgstr "Bascule les articles en mode « Personnalisé » : ils affichent exactement les sources qui y sont listées, sans tenir compte de l'activation automatique."
+msgid ""
+"Sets the items to \"Custom\" mode: they display exactly the sources listed "
+"on them, ignoring the auto-enable switch."
+msgstr ""
+"Bascule les articles en mode « Personnalisé » : ils affichent exactement les"
+" sources qui y sont listées, sans tenir compte de l'activation automatique."
 
 #. Label of a Section Break field in DocType 'WebshopSI Settings'
 #. Label of a Card Break in the Webshop Workspace
@@ -5599,7 +6051,8 @@ msgstr "Acheter par catégorie"
 msgid "Shopping Cart"
 msgstr "Panier"
 
-#. Description of the 'Short Website Description' (Small Text) field in DocType
+#. Description of the 'Short Website Description' (Small Text) field in
+#. DocType
 #. 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
 msgid "Short Description for List View"
@@ -5719,34 +6172,56 @@ msgstr "Afficher les importations réussies"
 #. Description of the 'Render Payment Page Inline' (Check) field in DocType
 #. 'Webshop Payment Method'
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
-msgid "Show the payment page inside the checkout instead of sending the shopper away. Suits card entry, which is a form. Leave off for methods that hand over to an app — TWINT switches to the phone, and it cannot do that from inside a frame."
+msgid ""
+"Show the payment page inside the checkout instead of sending the shopper "
+"away. Suits card entry, which is a form. Leave off for methods that hand "
+"over to an app — TWINT switches to the phone, and it cannot do that from "
+"inside a frame."
 msgstr ""
 
 #: webshop/webshop/doctype/website_item/website_item_list.js:58
 msgid "Show this source on the selected items"
 msgstr "Afficher cette source sur les articles sélectionnés"
 
-#. Description of the 'Trust Items' (Table) field in DocType 'Webshop Settings'
+#. Description of the 'Trust Items' (Table) field in DocType 'Webshop
+#. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Shown in the product page buy box, under the Add to Cart button. Icon defaults to a check mark."
-msgstr "Affiché dans l'encart d'achat de la page produit, sous le bouton Ajouter au panier. L'icône par défaut est une coche."
+msgid ""
+"Shown in the product page buy box, under the Add to Cart button. Icon "
+"defaults to a check mark."
+msgstr ""
+"Affiché dans l'encart d'achat de la page produit, sous le bouton Ajouter au "
+"panier. L'icône par défaut est une coche."
 
 #. Description of the 'Display Label' (Data) field in DocType 'Webshop
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
-msgid "Shown to shoppers instead of the warehouse name (e.g. \"Store\", \"Supplier stock\"). Translatable through the Translation doctype."
+msgid ""
+"Shown to shoppers instead of the warehouse name (e.g. \"Store\", \"Supplier "
+"stock\"). Translatable through the Translation doctype."
 msgstr ""
 
 #. Description of the 'Headline' (Data) field in DocType 'Cross Sell Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
-msgid "Shown to the customer. Empty: wording from the relation, e.g. \"The consumable for your ...\""
-msgstr "Lu par le client. Vide : formulation issue de la relation, p. ex. « Le consommable de votre... »"
+msgid ""
+"Shown to the customer. Empty: wording from the relation, e.g. \"The "
+"consumable for your ...\""
+msgstr ""
+"Lu par le client. Vide : formulation issue de la relation, p. ex. « Le "
+"consommable de votre... »"
 
 #. Description of the 'Unavailable message' (Small Text) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Shown when the assistant cannot answer: model unreachable, daily limit or monthly cap reached. The store's opening status and a form to leave a message to the team follow it. Empty: a default sentence."
-msgstr "Affiché quand l'assistant ne peut pas répondre : modèle injoignable, limite journalière ou plafond mensuel atteint. Le statut d'ouverture du magasin et un formulaire pour laisser un message à l'équipe suivent. Vide : une phrase par défaut."
+msgid ""
+"Shown when the assistant cannot answer: model unreachable, daily limit or "
+"monthly cap reached. The store's opening status and a form to leave a "
+"message to the team follow it. Empty: a default sentence."
+msgstr ""
+"Affiché quand l'assistant ne peut pas répondre : modèle injoignable, limite "
+"journalière ou plafond mensuel atteint. Le statut d'ouverture du magasin et "
+"un formulaire pour laisser un message à l'équipe suivent. Vide : une phrase "
+"par défaut."
 
 #: webshop/public/js/auth_dialog.js:623 webshop/public/js/auth_dialog.js:806
 msgid "Sign in"
@@ -5760,11 +6235,15 @@ msgstr "Connectez-vous pour utiliser la commande rapide."
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Signed-in customers only: a guest cart has no address to write to"
-msgstr "Clients connectés seulement : un panier invité n'a pas d'adresse où écrire"
+msgstr ""
+"Clients connectés seulement : un panier invité n'a pas d'adresse où écrire"
 
 #: webshop/public/js/override/item.js:271
-msgid "Signs of use, missing accessories, replaced parts. Shown to the customer."
-msgstr "Traces d'usage, accessoires manquants, pièces remplacées. Visible par le client."
+msgid ""
+"Signs of use, missing accessories, replaced parts. Shown to the customer."
+msgstr ""
+"Traces d'usage, accessoires manquants, pièces remplacées. Visible par le "
+"client."
 
 #: webshop/templates/payments/webshopsi.html:50
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:47
@@ -5781,8 +6260,12 @@ msgid "Sitemap Settings"
 msgstr "Paramètres du sitemap"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:431
-msgid "Sitemap cache has been cleared successfully. The sitemaps will be regenerated on next access."
-msgstr "Le cache du sitemap a été vidé avec succès. Les sitemaps seront regénérés au prochain accès."
+msgid ""
+"Sitemap cache has been cleared successfully. The sitemaps will be "
+"regenerated on next access."
+msgstr ""
+"Le cache du sitemap a été vidé avec succès. Les sitemaps seront regénérés au"
+" prochain accès."
 
 #: webshop/public/js/override/item.js:22
 msgid "Sites"
@@ -5825,7 +6308,8 @@ msgstr "Une erreur s'est produite !"
 #: webshop/templates/generators/item_group.html:168
 #: webshop/www/all-products/index.html:160
 msgid "Something went wrong. Please refresh or contact us."
-msgstr "Une erreur s'est produite. Veuillez rafraîchir la page ou nous contacter."
+msgstr ""
+"Une erreur s'est produite. Veuillez rafraîchir la page ou nous contacter."
 
 #: webshop/templates/pages/checkout.js:1653
 msgid "Something went wrong. Please try again."
@@ -5952,8 +6436,12 @@ msgid "Stock User"
 msgstr "Utilisateur stock"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:131
-msgid "Stock reservation is not available in this ERPNext version; received goods will not be reserved."
-msgstr "La réservation de stock n'existe pas dans cette version d'ERPNext ; la marchandise reçue ne sera pas réservée."
+msgid ""
+"Stock reservation is not available in this ERPNext version; received goods "
+"will not be reserved."
+msgstr ""
+"La réservation de stock n'existe pas dans cette version d'ERPNext ; la "
+"marchandise reçue ne sera pas réservée."
 
 #. Label of a Data field in DocType 'Purchase Follow-up Entry'
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json
@@ -5973,13 +6461,15 @@ msgstr "Ne plus l'afficher sur les articles sélectionnés"
 msgid "Stop when the purchase is returned"
 msgstr "Arrêter si l'achat est retourné"
 
-#. Option for the 'Status' (Select) field in DocType 'Purchase Follow-up Entry'
+#. Option for the 'Status' (Select) field in DocType 'Purchase Follow-up
+#. Entry'
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json
 msgid "Stopped"
 msgstr "Arrêté"
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
 #. Option for the 'Icon' (Select) field in DocType 'Webshop Trust Item'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:773
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 #: webshop/webshop/doctype/webshop_trust_item/webshop_trust_item.json
 msgid "Store"
@@ -5993,7 +6483,7 @@ msgstr ""
 #. Name of a DocType
 #: webshop/webshop/doctype/store_opening_hours/store_opening_hours.json
 msgid "Store Opening Hours"
-msgstr ""
+msgstr "Horaires d'ouverture"
 
 #: webshop/templates/generators/item/item_inquiry.js:32
 msgid "Subject"
@@ -6133,7 +6623,7 @@ msgid "Template Path"
 msgstr "Chemin du modèle"
 
 #. Label of a Link field in DocType 'WebshopSI Settings'
-#: webshop/templates/pages/cart.html:153
+#: webshop/templates/pages/cart.html:154
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
 msgid "Terms and Conditions"
 msgstr "Conditions générales"
@@ -6168,11 +6658,13 @@ msgstr "Merci pour votre commande"
 msgid "Thank you for your order!"
 msgstr "Merci pour votre commande !"
 
-#. Description of the 'Helpdesk Ticket' (Data) field in DocType 'Shop Assistant
+#. Description of the 'Helpdesk Ticket' (Data) field in DocType 'Shop
+#. Assistant
 #. Conversation'
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json
 msgid "The HD Ticket opened for this conversation, when Helpdesk is installed"
-msgstr "Le ticket HD ouvert pour cette conversation, quand Helpdesk est installé"
+msgstr ""
+"Le ticket HD ouvert pour cette conversation, quand Helpdesk est installé"
 
 #: webshop/templates/pages/gift_cards.html:144
 msgid "The amount will be deducted from your total"
@@ -6215,8 +6707,12 @@ msgstr "Le pourcentage de remise doit être compris entre 1 et 100."
 #. Description of the 'Enable Field Filters (Categories)' (Check) field in
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "The field filters will also work as categories in the <b>Shop by Category</b> page."
-msgstr "Les filtres de champs fonctionneront également comme catégories dans la page <b>Acheter par catégorie</b>."
+msgid ""
+"The field filters will also work as categories in the <b>Shop by "
+"Category</b> page."
+msgstr ""
+"Les filtres de champs fonctionneront également comme catégories dans la page"
+" <b>Acheter par catégorie</b>."
 
 #: webshop/templates/pages/checkout.js:1537
 msgid "The following changes will be applied:"
@@ -6234,7 +6730,8 @@ msgstr "Les lignes sont invalides."
 
 #: webshop/templates/pages/checkout.js:1826
 msgid "The loyalty points have been removed to apply shipping rule"
-msgstr "Les points de fidélité ont été retirés pour appliquer la règle de livraison"
+msgstr ""
+"Les points de fidélité ont été retirés pour appliquer la règle de livraison"
 
 #: webshop/templates/pages/checkout.js:2290
 msgid "The loyalty points have been removed to update item quantity"
@@ -6249,8 +6746,11 @@ msgid "The offered item must be published on the website."
 msgstr "L'article proposé doit être publié sur le site."
 
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:171
-msgid "The order amount does not match the criteria of the selected payment option"
-msgstr "Le montant de la commande ne correspond pas aux critères de l'option de paiement sélectionnée"
+msgid ""
+"The order amount does not match the criteria of the selected payment option"
+msgstr ""
+"Le montant de la commande ne correspond pas aux critères de l'option de "
+"paiement sélectionnée"
 
 #. Description of the 'Show at checkout' (Check) field in DocType 'Cross Sell
 #. Offer'
@@ -6263,8 +6763,12 @@ msgid "The payment could not be completed. Please try again."
 msgstr "Le paiement n'a pas pu aboutir. Veuillez réessayer."
 
 #: webshop/templates/payments/stripe.html:433
-msgid "The payment could not be started. Your card has not been charged. Please try again."
-msgstr "Le paiement n'a pas pu démarrer. Votre carte n'a pas été débitée. Veuillez réessayer."
+msgid ""
+"The payment could not be started. Your card has not been charged. Please try"
+" again."
+msgstr ""
+"Le paiement n'a pas pu démarrer. Votre carte n'a pas été débitée. Veuillez "
+"réessayer."
 
 #: webshop/public/js/override/item.js:92
 msgid "The product {0} has been published on the website."
@@ -6273,6 +6777,14 @@ msgstr "Le produit {0} a été publié sur le site."
 #: webshop/public/js/override/item.js:98
 msgid "The product's warehouse is"
 msgstr "L'entrepôt du produit est"
+
+#: webshop/webshop/utils/holidays.py:170
+msgid "The public holidays could not be read from the provider."
+msgstr "Les jours fériés n'ont pas pu être lus chez le fournisseur."
+
+#: webshop/webshop/utils/holidays.py:243
+msgid "The public holidays could not be read."
+msgstr "Les jours fériés n'ont pas pu être lus."
 
 #: webshop/templates/pages/checkout.js:2355
 msgid "The quantity could not be updated. Please try again."
@@ -6283,12 +6795,28 @@ msgid "The request failed. Try again."
 msgstr "La requête a échoué. Réessayez."
 
 #: webshop/templates/pages/checkout.js:1616
-msgid "The server is taking too long to answer. Please check your connection and try again."
-msgstr "Le serveur met trop de temps à répondre. Vérifiez votre connexion et réessayez."
+msgid ""
+"The server is taking too long to answer. Please check your connection and "
+"try again."
+msgstr ""
+"Le serveur met trop de temps à répondre. Vérifiez votre connexion et "
+"réessayez."
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:848
+msgid ""
+"The shop closes automatically on the days of this list, on top of the "
+"exceptional closures above."
+msgstr ""
+"La boutique ferme automatiquement les jours de cette liste, en plus des "
+"fermetures exceptionnelles ci-dessus."
 
 #: webshop/public/js/utils/frappe-mock.js:249
-msgid "The shop did not answer. This is usually brief — wait a moment and try again."
-msgstr "La boutique n'a pas répondu. C'est généralement bref — patientez un instant et réessayez."
+msgid ""
+"The shop did not answer. This is usually brief — wait a moment and try "
+"again."
+msgstr ""
+"La boutique n'a pas répondu. C'est généralement bref — patientez un instant "
+"et réessayez."
 
 #: webshop/templates/pages/thank_you.py:56
 #: webshop/templates/pages/thank_you.py:67
@@ -6328,12 +6856,19 @@ msgid "This coupon code is not yet valid"
 msgstr "Ce code promo n'est pas encore valide"
 
 #: webshop/webshop/auth/api.py:64
-msgid "This email is already linked to an administrator account. Please contact your administrator or use a different email."
-msgstr "Cet e-mail est déjà associé à un compte administrateur. Veuillez contacter votre administrateur ou utiliser une autre adresse e-mail."
+msgid ""
+"This email is already linked to an administrator account. Please contact "
+"your administrator or use a different email."
+msgstr ""
+"Cet e-mail est déjà associé à un compte administrateur. Veuillez contacter "
+"votre administrateur ou utiliser une autre adresse e-mail."
 
 #: webshop/webshop/shopping_cart/cart.py:3292
 msgid "This gift card has already been used and cannot be applied again"
-msgstr "Cette carte cadeau a déjà été utilisée et ne peut pas être appliquée à nouveauCette carte cadeau a déjà été utilisée et ne peut pas être appliquée à nouveau"
+msgstr ""
+"Cette carte cadeau a déjà été utilisée et ne peut pas être appliquée à "
+"nouveauCette carte cadeau a déjà été utilisée et ne peut pas être appliquée "
+"à nouveau"
 
 #: webshop/webshop/quick_order/api.py:655
 msgid "This item is not available in this shop."
@@ -6364,7 +6899,8 @@ msgstr "Cette commande a déjà été traitée. N° de commande : {0}"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:294
 msgid "This will clear the sitemap cache and force regeneration. Continue?"
-msgstr "Ceci va vider le cache du sitemap et forcer la regénération. Continuer ?"
+msgstr ""
+"Ceci va vider le cache du sitemap et forcer la regénération. Continuer ?"
 
 #. Label of a Attach Image field in DocType 'Homepage Featured Product'
 #. Label of a Data field in DocType 'Website Item'
@@ -6509,9 +7045,18 @@ msgstr "Essayez un autre terme de recherche"
 msgid "Tuesday"
 msgstr ""
 
+#. Description of the 'Country' (Data) field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Two-letter country code, CH for Switzerland."
+msgstr "Code pays à deux lettres, CH pour la Suisse."
+
 #: webshop/webshop/quick_order/api.py:843
-msgid "Type a reference, a name or a barcode: the model's grid opens and you enter the quantities at the keyboard."
-msgstr "Tapez une référence, un nom ou un code-barres : la grille du modèle s'ouvre et vous saisissez les quantités au clavier."
+msgid ""
+"Type a reference, a name or a barcode: the model's grid opens and you enter "
+"the quantities at the keyboard."
+msgstr ""
+"Tapez une référence, un nom ou un code-barres : la grille du modèle s'ouvre "
+"et vous saisissez les quantités au clavier."
 
 #: webshop/templates/pages/order.html:39
 msgid "Télécharger en Excel"
@@ -6597,7 +7142,10 @@ msgstr "Utilisez vos points au paiement pour des réductions"
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Use {points} for points count and {value} for monetary value"
-msgstr "Utilisez {points} pour le nombre de points et {value} pour la valeur monétaireUtilisez {points} pour le nombre de points et {value} pour la valeur monétaire"
+msgstr ""
+"Utilisez {points} pour le nombre de points et {value} pour la valeur "
+"monétaireUtilisez {points} pour le nombre de points et {value} pour la "
+"valeur monétaire"
 
 #: webshop/templates/pages/gift_cards.py:136
 msgid "Used"
@@ -6633,7 +7181,12 @@ msgstr "Utilisateur non connecté"
 #. Description of the 'Reserve Received Goods for the Customer Order' (Check)
 #. field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Uses ERPNext stock reservation: when the Purchase Receipt is submitted, the goods are reserved for the customer order that triggered the purchase. Enabling this sets the two matching Stock Settings. Note: a Sales Order holding reserved stock cannot be picked through a Pick List — deliver it with a Delivery Note (or release the reservation)."
+msgid ""
+"Uses ERPNext stock reservation: when the Purchase Receipt is submitted, the "
+"goods are reserved for the customer order that triggered the purchase. "
+"Enabling this sets the two matching Stock Settings. Note: a Sales Order "
+"holding reserved stock cannot be picked through a Pick List — deliver it "
+"with a Delivery Note (or release the reservation)."
 msgstr ""
 
 #: webshop/controllers/payment_handler.py:68
@@ -6783,7 +7336,7 @@ msgstr "Voir le panier"
 msgid "Visible On"
 msgstr "Visible sur"
 
-#: webshop/templates/pages/cart.html:200
+#: webshop/templates/pages/cart.html:201
 msgid "Voir les produits"
 msgstr "Voir les produits"
 
@@ -6841,7 +7394,10 @@ msgstr ""
 #. Description of the 'Stock Basis' (Select) field in DocType 'Webshop
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
-msgid "Warehouse Bin reads real ERPNext stock. Item Field reads a numeric custom field on Item (e.g. a synced supplier stock) without creating any valued stock."
+msgid ""
+"Warehouse Bin reads real ERPNext stock. Item Field reads a numeric custom "
+"field on Item (e.g. a synced supplier stock) without creating any valued "
+"stock."
 msgstr ""
 
 #: webshop/webshop/doctype/website_item/website_item_list.js:47
@@ -6850,15 +7406,20 @@ msgstr "Source d'entrepôt"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:105
 msgid "Warehouse Source row #{0}: Order Day of Month must be between 1 and 28"
-msgstr "Source d'entrepôt ligne {0} : le jour de commande mensuel doit être entre 1 et 28"
+msgstr ""
+"Source d'entrepôt ligne {0} : le jour de commande mensuel doit être entre 1 "
+"et 28"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:91
 msgid "Warehouse Source row #{0}: field {1} does not exist on Item"
 msgstr "Source d'entrepôt ligne {0} : le champ {1} n'existe pas sur l'article"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:98
-msgid "Warehouse Source row #{0}: field {1} must be numeric (Int or Float), not {2}"
-msgstr "Source d'entrepôt ligne {0} : le champ {1} doit être numérique (Int ou Float), pas {2}"
+msgid ""
+"Warehouse Source row #{0}: field {1} must be numeric (Int or Float), not {2}"
+msgstr ""
+"Source d'entrepôt ligne {0} : le champ {1} doit être numérique (Int ou "
+"Float), pas {2}"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:82
 msgid "Warehouse Source row #{0}: warehouse {1} is listed twice"
@@ -6907,16 +7468,27 @@ msgid "We are currently performing scheduled maintenance."
 msgstr "Nous effectuons actuellement une maintenance programmée."
 
 #: webshop/webshop/maintenance.py:27
-msgid "We are currently performing scheduled maintenance. We'll be back shortly!"
-msgstr "Nous effectuons actuellement une maintenance programmée. Nous serons de retour très bientôt !"
+msgid ""
+"We are currently performing scheduled maintenance. We'll be back shortly!"
+msgstr ""
+"Nous effectuons actuellement une maintenance programmée. Nous serons de "
+"retour très bientôt !"
 
 #: webshop/www/maintenance.html:337
-msgid "We hope to be back online very soon. Thank you for your patience and we apologize for any inconvenience caused."
-msgstr "Nous espérons être de retour en ligne très bientôt. Merci pour votre patience et nous nous excusons pour tout désagrément causé."
+msgid ""
+"We hope to be back online very soon. Thank you for your patience and we "
+"apologize for any inconvenience caused."
+msgstr ""
+"Nous espérons être de retour en ligne très bientôt. Merci pour votre "
+"patience et nous nous excusons pour tout désagrément causé."
 
 #: webshop/templates/payments/stripe.html:416
-msgid "We lost contact with the payment server. Please check your orders before trying again."
-msgstr "Le contact avec le serveur de paiement a été perdu. Vérifiez vos commandes avant de réessayer."
+msgid ""
+"We lost contact with the payment server. Please check your orders before "
+"trying again."
+msgstr ""
+"Le contact avec le serveur de paiement a été perdu. Vérifiez vos commandes "
+"avant de réessayer."
 
 #. Name of a Workspace
 #: webshop/public/js/override/cross_sell_trigger.js:17
@@ -6967,8 +7539,11 @@ msgid "Webshop emails"
 msgstr "Emails de la boutique"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:283
-msgid "Webshop maintenance mode cannot be enabled without website maintenance mode"
-msgstr "Le mode maintenance de la boutique ne peut pas être activé sans le mode maintenance du site"
+msgid ""
+"Webshop maintenance mode cannot be enabled without website maintenance mode"
+msgstr ""
+"Le mode maintenance de la boutique ne peut pas être activé sans le mode "
+"maintenance du site"
 
 #. Name of a DocType
 #: webshop/webshop/doctype/webshopsi_country/webshopsi_country.json
@@ -7170,16 +7745,33 @@ msgstr "Quand le panier contient"
 msgid "Where"
 msgstr "Où"
 
+#. Description of the 'Holiday List' (Link) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid ""
+"Where the fetched holidays are stored. Edit it on the desk to add or remove "
+"a day."
+msgstr ""
+"Où sont rangés les jours récupérés. Modifiable depuis le bureau pour ajouter"
+" ou retirer un jour."
+
 #. Description of the 'Receiving Warehouse' (Link) field in DocType 'Webshop
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
-msgid "Where the goods physically arrive (target warehouse of the Purchase Order). Defaults to the item's website warehouse."
+msgid ""
+"Where the goods physically arrive (target warehouse of the Purchase Order). "
+"Defaults to the item's website warehouse."
 msgstr ""
 
 #. Description of the 'Image Focus' (Select) field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
-msgid "Where the image anchors when 'Product Image Fit' is set to Cover in Webshop Settings. Pick the area that must stay visible when the image is cropped."
-msgstr "Zone d'ancrage de l'image quand l'ajustement est « Remplir » dans les paramètres de la boutique. Choisissez la zone qui doit rester visible lors du recadrage."
+msgid ""
+"Where the image anchors when 'Product Image Fit' is set to Cover in Webshop "
+"Settings. Pick the area that must stay visible when the image is cropped."
+msgstr ""
+"Zone d'ancrage de l'image quand l'ajustement est « Remplir » dans les "
+"paramètres de la boutique. Choisissez la zone qui doit rester visible lors "
+"du recadrage."
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -7253,35 +7845,53 @@ msgstr "Vous êtes déjà connecté."
 
 #: webshop/webshop/doctype/item_review/item_review.py:189
 msgid "You are not a verified customer yet. Please contact us to proceed."
-msgstr "Vous n'êtes pas encore un client vérifié. Veuillez nous contacter pour continuer.Vous n'êtes pas encore un client vérifié. Veuillez nous contacter pour continuer."
+msgstr ""
+"Vous n'êtes pas encore un client vérifié. Veuillez nous contacter pour "
+"continuer.Vous n'êtes pas encore un client vérifié. Veuillez nous contacter "
+"pour continuer."
 
 #: webshop/public/js/utils/frappe-mock.js:290
 msgid "You are not allowed to do this. Try signing in again."
 msgstr "Vous n'avez pas le droit de faire cela. Essayez de vous reconnecter."
 
 #: webshop/templates/pages/loyalty_points.html:22
-msgid "You are not enrolled in a loyalty program yet. Make a purchase to start earning points!"
-msgstr "Vous n'êtes pas encore inscrit à un programme de fidélité. Effectuez un achat pour commencer à gagner des points !"
+msgid ""
+"You are not enrolled in a loyalty program yet. Make a purchase to start "
+"earning points!"
+msgstr ""
+"Vous n'êtes pas encore inscrit à un programme de fidélité. Effectuez un "
+"achat pour commencer à gagner des points !"
 
 #: webshop/webshop/doctype/item_review/item_review.py:129
 msgid "You are not verified to write a review yet."
 msgstr "Vous n'êtes pas encore vérifié pour écrire un avis."
 
-#. Description of the 'Website Content' (HTML Editor) field in DocType 'Website
+#. Description of the 'Website Content' (HTML Editor) field in DocType
+#. 'Website
 #. Item'
 #: webshop/webshop/doctype/website_item/website_item.json
-msgid "You can use any valid Bootstrap 4 markup in this field. It will be shown on your Item Page."
-msgstr "Vous pouvez utiliser n'importe quel balisage Bootstrap 4 valide dans ce champ. Il sera affiché sur la page de l'article."
+msgid ""
+"You can use any valid Bootstrap 4 markup in this field. It will be shown on "
+"your Item Page."
+msgstr ""
+"Vous pouvez utiliser n'importe quel balisage Bootstrap 4 valide dans ce "
+"champ. Il sera affiché sur la page de l'article."
 
 #: webshop/templates/includes/coupon_form.html:21
 #: webshop/templates/includes/coupon_form.html:31
 msgid "You cannot use a promo code when loyalty points are applied"
-msgstr "Vous ne pouvez pas utiliser un code promo lorsque des points de fidélité sont appliquésVous ne pouvez pas utiliser un code promo lorsque des points de fidélité sont appliqués"
+msgstr ""
+"Vous ne pouvez pas utiliser un code promo lorsque des points de fidélité "
+"sont appliquésVous ne pouvez pas utiliser un code promo lorsque des points "
+"de fidélité sont appliqués"
 
 #: webshop/templates/includes/loyalty_points_form.html:19
 #: webshop/templates/includes/loyalty_points_form.html:28
 msgid "You cannot use loyalty points when a promo code is applied"
-msgstr "Vous ne pouvez pas utiliser les points de fidélité lorsqu'un code promo est appliquéVous ne pouvez pas utiliser les points de fidélité lorsqu'un code promo est appliqué"
+msgstr ""
+"Vous ne pouvez pas utiliser les points de fidélité lorsqu'un code promo est "
+"appliquéVous ne pouvez pas utiliser les points de fidélité lorsqu'un code "
+"promo est appliqué"
 
 #: webshop/webshop/shopping_cart/cart.py:3513
 msgid "You do not have an active loyalty program"
@@ -7346,21 +7956,29 @@ msgstr "Votre avis"
 msgid "Your basket is empty"
 msgstr "Votre panier est vide"
 
-#: webshop/templates/pages/cart.html:195
+#: webshop/templates/pages/cart.html:196
 msgid "Your cart is Empty"
 msgstr "Votre panier est vide"
 
 #: webshop/templates/pages/thank_you.html:129
-msgid "Your gift card code will be available once the invoice has been paid in full."
-msgstr "Votre code de carte cadeau sera disponible une fois la facture payée intégralement."
+msgid ""
+"Your gift card code will be available once the invoice has been paid in "
+"full."
+msgstr ""
+"Votre code de carte cadeau sera disponible une fois la facture payée "
+"intégralement."
 
 #: webshop/templates/pages/thank_you.html:190
 msgid "Your gift card codes are available :"
 msgstr "Vos codes de carte cadeau sont disponibles :"
 
 #: webshop/templates/pages/thank_you.html:204
-msgid "Your gift card codes will be available once the invoice has been paid in full."
-msgstr "Vos codes de carte cadeau seront disponibles une fois la facture payée intégralement."
+msgid ""
+"Your gift card codes will be available once the invoice has been paid in "
+"full."
+msgstr ""
+"Vos codes de carte cadeau seront disponibles une fois la facture payée "
+"intégralement."
 
 #: webshop/webshop/shopping_cart/guest_cart.py:372
 msgid "Your guest cart has been assigned to your account"
@@ -7439,7 +8057,7 @@ msgstr ""
 msgid "from"
 msgstr "à partir de"
 
-#: webshop/webshop/utils/store_hours.py:203
+#: webshop/webshop/utils/store_hours.py:224
 msgid "from {0} to {1}"
 msgstr "du {0} au {1}"
 
@@ -7471,7 +8089,7 @@ msgstr "maintenance"
 msgid "new_arrivals"
 msgstr "nouveautes"
 
-#: webshop/webshop/utils/store_hours.py:143
+#: webshop/webshop/utils/store_hours.py:156
 msgid "non-stop"
 msgstr "non-stop"
 
@@ -7613,8 +8231,12 @@ msgid "{0} Not in Stock"
 msgstr "{0} non disponible en stock"
 
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.py:91
-msgid "{0} already carries pricing rule {1} (priority {2}); on that line, the higher priority wins."
-msgstr "{0} porte déjà la règle de prix {1} (priorité {2}) ; sur cette ligne, la priorité la plus haute gagne."
+msgid ""
+"{0} already carries pricing rule {1} (priority {2}); on that line, the "
+"higher priority wins."
+msgstr ""
+"{0} porte déjà la règle de prix {1} (priorité {2}) ; sur cette ligne, la "
+"priorité la plus haute gagne."
 
 #: webshop/webshop/quick_order/api.py:857
 msgid "{0} available"
@@ -7623,6 +8245,10 @@ msgstr "{0} disponibles"
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:596
 msgid "{0} categories updated"
 msgstr "{0} catégories mises à jour"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:832
+msgid "{0} days fetched into {1}, for {2}."
+msgstr "{0} jours récupérés dans {1}, pour {2}."
 
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.js:6
 msgid "{0} enrolled · {1} emails sent"
@@ -7658,7 +8284,7 @@ msgstr "{0} articles"
 msgid "{0} items found."
 msgstr "{0} articles trouvés."
 
-#: webshop/webshop/utils/store_hours.py:131
+#: webshop/webshop/utils/store_hours.py:144
 msgid "{0} min"
 msgstr "{0} min"
 
@@ -7696,7 +8322,7 @@ msgstr "{0}% et moins"
 msgid "{0}: {1} asked, {2} kept ({3} available)"
 msgstr "{0} : {1} demandées, {2} gardées ({3} disponibles)"
 
-#: webshop/webshop/utils/store_hours.py:130
+#: webshop/webshop/utils/store_hours.py:143
 msgid "{0}h {1}min"
 msgstr "{0}h {1}min"
 
@@ -7735,4 +8361,3 @@ msgstr ""
 #: webshop/webshop/assistant/api.py:207
 msgid "écrit…"
 msgstr ""
-

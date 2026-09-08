@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-07 19:05+0000\n"
-"PO-Revision-Date: 2026-09-07 19:05+0000\n"
+"POT-Creation-Date: 2026-09-08 08:17+0000\n"
+"PO-Revision-Date: 2026-09-08 08:17+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -389,6 +389,10 @@ msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:235
 msgid "All data is valid. You can proceed with the actual import."
+msgstr ""
+
+#: webshop/webshop/utils/store_hours.py:261
+msgid "All opening hours"
 msgstr ""
 
 #: webshop/www/all-products/index.html:178
@@ -897,6 +901,17 @@ msgstr ""
 msgid "Cannot find a matching Item. Please select some other value for {0}."
 msgstr ""
 
+#. Label of a Select field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Canton / Region"
+msgstr ""
+
+#. Description of the 'Canton / Region' (Select) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Cantonal holidays differ: Valais closes on Saint Joseph's day, Geneva does not. Leave empty to keep only the nationwide ones."
+msgstr ""
+
 #: webshop/webshop/quick_order/api.py:882
 msgid "Capped to stock:"
 msgstr ""
@@ -1055,6 +1070,11 @@ msgstr ""
 msgid "Choose a stock source"
 msgstr ""
 
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:815
+#: webshop/webshop/utils/holidays.py:230
+msgid "Choose the country of the store first."
+msgstr ""
+
 #. Description of the 'Default View Type' (Select) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -1127,15 +1147,15 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Shop Assistant
 #. Conversation'
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json
-#: webshop/webshop/utils/store_hours.py:137
+#: webshop/webshop/utils/store_hours.py:150
 msgid "Closed"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:255
+#: webshop/webshop/utils/store_hours.py:281
 msgid "Closed {0}"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:151
+#: webshop/webshop/utils/store_hours.py:164
 msgid "Closed: {0}"
 msgstr ""
 
@@ -1144,8 +1164,14 @@ msgstr ""
 msgid "Closes"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:150
+#: webshop/webshop/utils/store_hours.py:163
 msgid "Closes in {0}"
+msgstr ""
+
+#. Description of the 'Public Holidays' (Section Break) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Closes the shop automatically on the public holidays where it stands. Fetched from openholidaysapi.org and kept in a Holiday List."
 msgstr ""
 
 #: webshop/templates/pages/gift_cards.html:78
@@ -1372,11 +1398,13 @@ msgstr ""
 msgid "Could not update the customer details"
 msgstr ""
 
+#. Label of a Data field in DocType 'Webshop Settings'
 #. Label of a Link field in DocType 'WebshopSI Country'
 #: webshop/templates/includes/cart/cart_address.html:112
 #: webshop/templates/pages/checkout.html:181
 #: webshop/templates/pages/checkout.html:298
 #: webshop/templates/pages/checkout.js:705
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 #: webshop/webshop/doctype/webshopsi_country/webshopsi_country.json
 #: webshop/www/my_addresses.html:62
 msgid "Country"
@@ -1501,11 +1529,11 @@ msgstr ""
 msgid "Currency"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:151
+#: webshop/webshop/utils/store_hours.py:164
 msgid "Currently closed"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:150
+#: webshop/webshop/utils/store_hours.py:163
 msgid "Currently open"
 msgstr ""
 
@@ -2325,6 +2353,18 @@ msgstr ""
 msgid "Fermer"
 msgstr ""
 
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:773
+msgid "Fetch public holidays"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:850
+msgid "Fetched from openholidaysapi.org; nothing is called while a visitor loads a page."
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:818
+msgid "Fetching the public holidays…"
+msgstr ""
+
 #. Description of the 'Item Stock Field' (Data) field in DocType 'Webshop
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
@@ -2720,6 +2760,11 @@ msgstr ""
 #. Label of a Check field in DocType 'Cross Sell Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
 msgid "Hide when already in the cart"
+msgstr ""
+
+#. Label of a Link field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Holiday List"
 msgstr ""
 
 #. Description of the 'Exceptional Closures' (Table) field in DocType 'Webshop
@@ -3695,7 +3740,7 @@ msgid "No customer account found"
 msgstr ""
 
 #: webshop/webshop/quick_order/api.py:86 webshop/webshop/quick_order/api.py:904
-#: webshop/webshop/quick_order/test_quick_order.py:284
+#: webshop/webshop/quick_order/test_quick_order.py:285
 msgid "No customer account is linked to your user."
 msgstr ""
 
@@ -3721,7 +3766,7 @@ msgid "No points history yet. Start shopping to earn points!"
 msgstr ""
 
 #: webshop/webshop/quick_order/api.py:665
-#: webshop/webshop/quick_order/test_quick_order.py:572
+#: webshop/webshop/quick_order/test_quick_order.py:542
 msgid "No price for this item on your price list (price on request)."
 msgstr ""
 
@@ -3786,6 +3831,10 @@ msgstr ""
 
 #: webshop/webshop/utils/used_items.py:226
 msgid "No warehouse to receive the unit into. Pick one."
+msgstr ""
+
+#: webshop/webshop/utils/holidays.py:155
+msgid "No year to fetch."
 msgstr ""
 
 #. Option for the 'Advantage' (Select) field in DocType 'Cross Sell Offer'
@@ -3984,11 +4033,11 @@ msgstr ""
 msgid "Opening TWINT…"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:226 webshop/www/store-hours/index.py:14
+#: webshop/webshop/utils/store_hours.py:249 webshop/www/store-hours/index.py:14
 msgid "Opening hours"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:252
+#: webshop/webshop/utils/store_hours.py:278
 #: webshop/www/store-hours/index.html:18
 msgid "Opening hours are not published."
 msgstr ""
@@ -4002,19 +4051,19 @@ msgstr ""
 msgid "Opens"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:164
+#: webshop/webshop/utils/store_hours.py:177
 msgid "Opens on {0} at {1}"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:158
+#: webshop/webshop/utils/store_hours.py:171
 msgid "Opens today at {0}"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:160
+#: webshop/webshop/utils/store_hours.py:173
 msgid "Opens tomorrow at {0}"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:162
+#: webshop/webshop/utils/store_hours.py:175
 msgid "Opens {0} at {1}"
 msgstr ""
 
@@ -4150,7 +4199,7 @@ msgid "Out of stock: nothing available for {0}."
 msgstr ""
 
 #: webshop/webshop/quick_order/api.py:714
-#: webshop/webshop/quick_order/test_quick_order.py:551
+#: webshop/webshop/quick_order/test_quick_order.py:521
 msgid "Out of stock: {0} already in the cart, nothing more available."
 msgstr ""
 
@@ -4198,11 +4247,11 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:131
+#: webshop/templates/pages/cart.html:132
 msgid "Past Orders"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:134
+#: webshop/templates/pages/cart.html:135
 msgid "Past Quotes"
 msgstr ""
 
@@ -4791,6 +4840,19 @@ msgstr ""
 msgid "Précise le code ou le nom de l'article."
 msgstr ""
 
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Public Holidays"
+msgstr ""
+
+#: webshop/webshop/utils/holidays.py:113
+msgid "Public holiday"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:827
+msgid "Public holidays"
+msgstr ""
+
 #. Description of the 'Delivery Holiday List' (Link) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -4912,7 +4974,7 @@ msgstr ""
 msgid "Quantity must be a valid number"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:126 webshop/templates/pages/cart.html:204
+#: webshop/templates/pages/cart.html:127 webshop/templates/pages/cart.html:206
 #: webshop/www/quick-order/index.html:7 webshop/www/quick-order/index.py:18
 msgid "Quick order"
 msgstr ""
@@ -5368,11 +5430,11 @@ msgstr ""
 msgid "See it in the shop"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:208
+#: webshop/templates/pages/cart.html:210
 msgid "See past orders"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:210
+#: webshop/templates/pages/cart.html:212
 msgid "See past quotations"
 msgstr ""
 
@@ -5974,6 +6036,7 @@ msgstr ""
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
 #. Option for the 'Icon' (Select) field in DocType 'Webshop Trust Item'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:773
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 #: webshop/webshop/doctype/webshop_trust_item/webshop_trust_item.json
 msgid "Store"
@@ -6127,7 +6190,7 @@ msgid "Template Path"
 msgstr ""
 
 #. Label of a Link field in DocType 'WebshopSI Settings'
-#: webshop/templates/pages/cart.html:153
+#: webshop/templates/pages/cart.html:154
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
 msgid "Terms and Conditions"
 msgstr ""
@@ -6268,6 +6331,14 @@ msgstr ""
 msgid "The product's warehouse is"
 msgstr ""
 
+#: webshop/webshop/utils/holidays.py:170
+msgid "The public holidays could not be read from the provider."
+msgstr ""
+
+#: webshop/webshop/utils/holidays.py:243
+msgid "The public holidays could not be read."
+msgstr ""
+
 #: webshop/templates/pages/checkout.js:2355
 msgid "The quantity could not be updated. Please try again."
 msgstr ""
@@ -6278,6 +6349,10 @@ msgstr ""
 
 #: webshop/templates/pages/checkout.js:1616
 msgid "The server is taking too long to answer. Please check your connection and try again."
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:848
+msgid "The shop closes automatically on the days of this list, on top of the exceptional closures above."
 msgstr ""
 
 #: webshop/public/js/utils/frappe-mock.js:249
@@ -6501,6 +6576,11 @@ msgstr ""
 #: webshop/webshop/doctype/store_opening_hours/store_opening_hours.json
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Tuesday"
+msgstr ""
+
+#. Description of the 'Country' (Data) field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Two-letter country code, CH for Switzerland."
 msgstr ""
 
 #: webshop/webshop/quick_order/api.py:843
@@ -6777,7 +6857,7 @@ msgstr ""
 msgid "Visible On"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:200
+#: webshop/templates/pages/cart.html:201
 msgid "Voir les produits"
 msgstr ""
 
@@ -7164,6 +7244,11 @@ msgstr ""
 msgid "Where"
 msgstr ""
 
+#. Description of the 'Holiday List' (Link) field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Where the fetched holidays are stored. Edit it on the desk to add or remove a day."
+msgstr ""
+
 #. Description of the 'Receiving Warehouse' (Link) field in DocType 'Webshop
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
@@ -7340,7 +7425,7 @@ msgstr ""
 msgid "Your basket is empty"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:195
+#: webshop/templates/pages/cart.html:196
 msgid "Your cart is Empty"
 msgstr ""
 
@@ -7433,7 +7518,7 @@ msgstr ""
 msgid "from"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:203
+#: webshop/webshop/utils/store_hours.py:224
 msgid "from {0} to {1}"
 msgstr ""
 
@@ -7465,7 +7550,7 @@ msgstr ""
 msgid "new_arrivals"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:143
+#: webshop/webshop/utils/store_hours.py:156
 msgid "non-stop"
 msgstr ""
 
@@ -7618,6 +7703,10 @@ msgstr ""
 msgid "{0} categories updated"
 msgstr ""
 
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:832
+msgid "{0} days fetched into {1}, for {2}."
+msgstr ""
+
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.js:6
 msgid "{0} enrolled · {1} emails sent"
 msgstr ""
@@ -7652,7 +7741,7 @@ msgstr ""
 msgid "{0} items found."
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:131
+#: webshop/webshop/utils/store_hours.py:144
 msgid "{0} min"
 msgstr ""
 
@@ -7690,7 +7779,7 @@ msgstr ""
 msgid "{0}: {1} asked, {2} kept ({3} available)"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:130
+#: webshop/webshop/utils/store_hours.py:143
 msgid "{0}h {1}min"
 msgstr ""
 
