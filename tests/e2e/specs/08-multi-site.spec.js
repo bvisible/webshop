@@ -125,15 +125,15 @@ test.describe('Le prix affiché est le prix facturé', () => {
 		for (const url of [URL_B2C, URL_B2B]) {
 			const {contexte, page} = await ouvrirSite(browser, url);
 			try {
+				//// Sign in first: a professional site shows a visitor no price at all
+				//// (#273), and the cart of a reserved site refuses an anonymous visitor
+				//// (403) — both intentional. The three prices are read in ONE session.
+				test.skip(!(await connecterSurSite(page, url)), `connexion impossible sur ${url}`);
 				const catalogue = await catalogueDuSite(page);
 				const article = catalogue.find((i) => i.prix);
 				test.skip(!article, `aucun article tarifé sur ${url}`);
 
 				const recherche = await prixRecherche(page, article.item_code);
-
-				//// Sign in before touching the cart: a reserved site doesn't allow
-				//// one for an anonymous visitor (403), and that is intentional.
-				test.skip(!(await connecterSurSite(page, url)), `connexion impossible sur ${url}`);
 				const panier = await prixPanier(page, article.item_code);
 
 				if (recherche !== null) {
@@ -157,14 +157,16 @@ test.describe('Le prix affiché est le prix facturé', () => {
 		const b2c = await ouvrirSite(browser, URL_B2C);
 		const b2b = await ouvrirSite(browser, URL_B2B);
 		try {
-			const commun = await articleCommun(b2c.page, b2b.page);
-			test.skip(!commun, 'aucun article présent sur les deux domaines');
-
 			test.skip(
 				!(await connecterSurSite(b2c.page, URL_B2C)) ||
 					!(await connecterSurSite(b2b.page, URL_B2B)),
 				'connexion impossible sur l’un des domaines'
 			);
+			//// Signed in on both sides first: the professional site prices nothing for
+			//// a visitor (#273), and an item priced on one side only would give a null
+			//// to compare — the reseller list carries a fraction of the catalogue.
+			const commun = await articleTarifeSurLesDeux(b2c.page, b2b.page);
+			test.skip(!commun, 'aucun article tarifé sur les deux domaines');
 			const pB2C = await prixPanier(b2c.page, commun);
 			const pB2B = await prixPanier(b2b.page, commun);
 			test.skip(
@@ -287,7 +289,7 @@ test.describe('Boutique réservée aux professionnels', () => {
 		try {
 			//// An item PRICED on both sites: without a price, the page shows
 			//// no button at all and the test compares nothing.
-			const route = await routeArticleTarifeSurLesDeux(b2c.page, b2b.page);
+			const route = await routeArticleTarifeSurLesDeux(browser, b2c.page);
 			test.skip(!route, 'aucun article tarifé sur les deux domaines');
 
 			const lire = async (page) => {
@@ -338,6 +340,14 @@ test.describe('Boutique réservée aux professionnels', () => {
 	});
 });
 
+/** An item code PRICED on both domains, as their current sessions see them, or null. */
+async function articleTarifeSurLesDeux(pageA, pageB) {
+	const a = (await catalogueDuSite(pageA)).filter((i) => i.prix);
+	const codesB = new Set((await catalogueDuSite(pageB)).filter((i) => i.prix).map((i) => i.item_code));
+	const commun = a.find((i) => codesB.has(i.item_code));
+	return commun ? commun.item_code : null;
+}
+
 /** An item code served by both domains, or null. */
 async function articleCommun(pageA, pageB) {
 	const a = await catalogueDuSite(pageA);
@@ -360,11 +370,95 @@ async function premierCode(page) {
 //// instance only 6 of 310 items carry a « Vente B2B » rate, so picking the
 //// first item listed lands on one that shows nothing, and the test would
 //// compare two empty pages.
-async function routeArticleTarifeSurLesDeux(pageB2C, pageB2B) {
-	const catB2B = (await catalogueDuSite(pageB2B)).filter((i) => i.prix && i.route);
-	const codesB2C = new Set(
-		(await catalogueDuSite(pageB2C)).filter((i) => i.prix).map((i) => i.item_code)
-	);
-	const commun = catB2B.find((i) => codesB2C.has(i.item_code));
-	return commun ? commun.route : null;
+async function routeArticleTarifeSurLesDeux(browser, pageB2C) {
+	//// The professional site shows its prices to signed-in resellers only (#273):
+	//// discovery runs in a session of its own, the test itself stays anonymous.
+	const tarifesB2C = (await catalogueDuSite(pageB2C)).filter((i) => i.prix && i.route);
+	const codesB2C = new Set(tarifesB2C.map((i) => i.item_code));
+	const {contexte, page} = await ouvrirSite(browser, URL_B2B);
+	try {
+		if (await connecterSurSite(page, URL_B2B)) {
+			const catB2B = (await catalogueDuSite(page)).filter((i) => i.prix && i.route);
+			const commun = catB2B.find((i) => codesB2C.has(i.item_code));
+			return commun ? commun.route : null;
+		}
+		//// No reseller account to sign in with: on a site that hides its prices the
+		//// page shows the sign-in call for ANY item, priced there or not, so an item
+		//// served on both domains and priced on the consumer one is enough.
+		const servisB2B = new Set((await catalogueDuSite(page)).map((i) => i.item_code));
+		const commun = tarifesB2C.find((i) => servisB2B.has(i.item_code));
+		return commun ? commun.route : null;
+	} finally {
+		await contexte.close();
+	}
 }
+
+//// A distributor's B2B tariff is not for the public (#273): the professional site
+//// hides its prices from visitors on its own, the consumer site served by the same
+//// instance keeps showing them, and a signed-in reseller sees the tariff.
+test.describe('Les prix revendeurs ne sont pas publics', () => {
+	test.skip(!multiSiteDisponible(), 'un seul domaine configuré');
+
+	test('un visiteur ne voit aucun prix sur le site B2B, et les voit sur le B2C', async ({
+		browser,
+	}) => {
+		const b2b = await ouvrirSite(browser, URL_B2B);
+		const b2c = await ouvrirSite(browser, URL_B2C);
+		try {
+			const catB2B = await catalogueDuSite(b2b.page);
+			expect(catB2B.length, 'catalogue B2B vide').toBeGreaterThan(0);
+			expect(
+				catB2B.filter((i) => i.prix).map((i) => i.item_code),
+				'un visiteur voit des prix revendeurs'
+			).toEqual([]);
+			//// The search endpoint is a second door to the same tariff.
+			const recherche = await prixRecherche(b2b.page, catB2B[0].item_code);
+			expect(recherche, 'la recherche livre un prix revendeur au visiteur').toBeNull();
+
+			const catB2C = await catalogueDuSite(b2c.page);
+			expect(catB2C.some((i) => i.prix), 'le site grand public ne montre plus ses prix').toBe(true);
+		} finally {
+			await b2b.contexte.close();
+			await b2c.contexte.close();
+		}
+	});
+
+	test('la fiche produit invite le visiteur à se connecter plutôt que de rester muette', async ({
+		browser,
+	}) => {
+		const {contexte, page} = await ouvrirSite(browser, URL_B2B);
+		try {
+			const article = (await catalogueDuSite(page)).find((i) => i.route);
+			test.skip(!article, 'aucune fiche produit sur le site B2B');
+			await page.goto('/' + article.route);
+			await page.waitForLoadState('networkidle');
+			//// The related-items cards keep an empty price container: what must be absent is a NUMBER.
+			await expect(page.locator('.product-price', {hasText: /\d/}), 'un prix revendeur est rendu au visiteur').toHaveCount(0);
+			await expect(
+				page.locator('a.btn-add-to-cart[href*="/login"]'),
+				'aucune invitation à se connecter'
+			).toHaveCount(1);
+		} finally {
+			await contexte.close();
+		}
+	});
+
+	test('un revendeur connecté voit ses prix sur le site B2B', async ({browser}) => {
+		const {contexte, page} = await ouvrirSite(browser, URL_B2B);
+		try {
+			test.skip(!(await connecterSurSite(page, URL_B2B)), 'connexion impossible sur le site B2B');
+			//// osiris runs with deny_multiple_sessions: a shared reseller account
+			//// exercised by several tests has its session rotated out between the login
+			//// and the next call (the sid cookie comes back « Guest »). That is an osiris
+			//// test-harness limit, not a #273 behaviour, so skip rather than fail when the
+			//// session did not survive — the in-process suite (test_multi_site) and the
+			//// anonymous probes are what prove a signed-in reseller sees the tariff.
+			const qui = await appelSite(page, 'frappe.auth.get_logged_user');
+			test.skip(!qui || qui === 'Guest', 'session révoquée par deny_multiple_sessions (compte partagé)');
+			const cat = await catalogueDuSite(page);
+			expect(cat.some((i) => i.prix), 'connecté, le revendeur ne voit pas ses prix').toBe(true);
+		} finally {
+			await contexte.close();
+		}
+	});
+});

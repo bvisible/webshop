@@ -8361,3 +8361,6 @@ msgstr ""
 #: webshop/webshop/assistant/api.py:207
 msgid "écrit…"
 msgstr ""
+
+msgid "Sign in to see prices"
+msgstr "Connectez-vous pour voir les prix"

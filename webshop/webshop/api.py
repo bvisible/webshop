@@ -501,6 +501,15 @@ def get_product_price_info(items):
 	if not items:
 		return {}
 	
+	# //// Neoffice — the search bar prices straight from Item Price, without the
+	# //// product_info gate: a visitor on a site that hides its prices got the tariff
+	# //// through the search (neoffice-maintenance#273). Same rule as everywhere else.
+	from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
+
+	settings = get_shopping_cart_settings()
+	if not settings.show_price or (frappe.session.user == "Guest" and settings.hide_price_for_guest):
+		return {}
+
 	# Get price list from settings
 	# //// Neoffice multi-site — the site's price list wins (product search).
 	from webshop.webshop.multi_site import effective_price_list

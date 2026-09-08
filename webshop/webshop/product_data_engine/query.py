@@ -12,6 +12,16 @@ from webshop.webshop.utils.product import get_non_stock_item_status
 # //// (6fea19b1fe, 2025-06-17; 0134ef756e, 2025-07-03).
 from webshop.webshop.utils.loyalty_points import format_loyalty_points_message
 from webshop.webshop.shopping_cart.cart import get_party
+# //// Neoffice — the guest gate at the end of query() (neoffice-maintenance#273).
+from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
+
+# //// Neoffice — every price-bearing field a listing row can carry, across the pricing
+# //// paths of this file: what a visitor must not see on a site that hides its prices.
+GUEST_HIDDEN_PRICE_FIELDS = (
+	"price_list_rate", "formatted_price", "formatted_mrp", "mrp", "current_price",
+	"discount_percent", "discount", "formatted_discount_percent", "formatted_discount_rate",
+	"price_info", "template_price", "loyalty_points_html", "currency",
+)
 
 
 # //// Neoffice — added. The discount percentage as the item queries compute it,
@@ -151,6 +161,16 @@ class ProductQuery:
 			cart_items = self.get_cart_items()
 
 		result, discount_list = self.add_display_details(result, discount_list, cart_items)
+		# //// Neoffice — one gate for every pricing path (neoffice-maintenance#273). The
+		# //// SQL variants above (price sort, discount filter, custom search) format the
+		# //// rate they joined without asking product_info, so a visitor on a site that
+		# //// hides its prices still got two priced tiles out of twelve. Stripped here,
+		# //// after all of them, so the tile, the search and the carousels agree.
+		if frappe.session.user == "Guest" and get_shopping_cart_settings().hide_price_for_guest:
+			for item in result:
+				for field in GUEST_HIDDEN_PRICE_FIELDS:
+					item.pop(field, None)
+			discount_list = []
 
 		discounts = []
 		if discount_list:

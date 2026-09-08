@@ -338,6 +338,13 @@
 								{{ _("Add to Cart") if cart_settings.enable_checkout else  _("Add to Quote") }}
 							</button>
 						{% endif %}
+					{# //// Neoffice — a site that hides its prices from visitors (Website Profile,
+					   neoffice-maintenance#273) must still tell them what to do: without a price the
+					   block above renders nothing, not even a call to sign in. #}
+					{% elif frappe.session.user == "Guest" and cart_settings.show_price and cart_settings.hide_price_for_guest %}
+						<a href="/login" class="btn btn-primary btn-add-to-cart mr-2" role="button">
+							{{ _("Sign in to see prices") }}
+						</a>
 					{% endif %}
 
 					<!-- Contact Us -->

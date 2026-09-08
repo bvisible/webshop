@@ -489,6 +489,16 @@ def get_shopping_cart_settings():
         # //// (multi_site.require_login_to_buy).
         if profile.get("b2b_only"):
             settings_dict["enable_guest_cart"] = 0
+
+        # //// Neoffice multi-site — a site may hide its prices from visitors on its own:
+        # //// a distributor's B2B tariff is not for the public, while the B2C shop served
+        # //// by the same instance keeps showing its prices (neoffice-maintenance#273).
+        # //// Only the ON direction comes from the profile; OFF inherits the Single, so
+        # //// profiles without the flag and instances without profiles see no change.
+        # //// Every price gate reads this dict (product_info, variant_selector, and the
+        # //// listing through get_product_info_for_website), so this is the one place.
+        if profile.get("hide_price_for_guest"):
+            settings_dict["hide_price_for_guest"] = 1
     return settings_dict
 
 @frappe.whitelist(allow_guest=True)

@@ -427,3 +427,85 @@ class TestAvecProfil(unittest.TestCase):
 
 		with self._sur(PROFIL_B):
 			self.assertIn(nom, set(multi_site.excluded_item_names()))
+
+
+class TestGuestPricesPerSite(unittest.TestCase):
+	"""A site hides its prices from visitors on its own (neoffice-maintenance#273).
+
+	Webshop Settings.hide_price_for_guest is global: switched on for a distributor's B2B
+	site, it blanked the B2C shop served by the same instance. The profile's flag takes
+	the ON direction only; OFF inherits the Single, so instances without profiles and
+	profiles without the flag see no change. The Single is never written here: it is
+	answered by a stand-in, so the tests hold whatever the site has."""
+
+	def _single_says(self, hide_globally):
+		from types import SimpleNamespace
+		from unittest.mock import patch
+
+		from webshop.webshop.doctype.webshop_settings import webshop_settings
+
+		real = frappe.get_cached_doc
+		values = real("Webshop Settings").as_dict()
+		values["hide_price_for_guest"] = hide_globally
+		stand_in = SimpleNamespace(as_dict=lambda: frappe._dict(values), get=values.get, **values)
+
+		# webshop_settings.frappe IS the frappe module: only the Single is answered here,
+		# every other cached document goes to the real function
+		def cached(doctype, *args, **kwargs):
+			return stand_in if doctype == "Webshop Settings" and not args else real(doctype, *args, **kwargs)
+
+		return patch.object(webshop_settings.frappe, "get_cached_doc", side_effect=cached)
+
+	def _settings(self):
+		from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
+
+		return get_shopping_cart_settings()
+
+	def test_a_site_may_hide_its_prices_while_the_single_shows_them(self):
+		with self._single_says(0), profil_resolu("b2b", {"b2b_only": 1, "hide_price_for_guest": 1}):
+			self.assertEqual(self._settings().hide_price_for_guest, 1)
+
+	def test_a_site_without_the_flag_inherits_the_single(self):
+		for hide in (0, 1):
+			with self._single_says(hide), profil_resolu("b2c", {"hide_price_for_guest": 0}):
+				self.assertEqual(self._settings().hide_price_for_guest, hide)
+
+	def test_a_profile_cannot_show_what_the_single_hides(self):
+		"""OFF is inheritance, not an override: a global choice to hide stays global."""
+		with self._single_says(1), profil_resolu("b2c", {"hide_price_for_guest": 0}):
+			self.assertEqual(self._settings().hide_price_for_guest, 1)
+
+	def test_no_profile_changes_nothing(self):
+		with self._single_says(1), profil_resolu(None, None):
+			self.assertEqual(self._settings().hide_price_for_guest, 1)
+
+	def test_the_search_prices_nothing_for_a_visitor_on_a_hiding_site(self):
+		"""get_product_price_info prices straight from Item Price, outside product_info."""
+		from webshop.webshop.api import get_product_price_info
+
+		frappe.set_user("Guest")
+		try:
+			with self._single_says(0), profil_resolu("b2b", {"b2b_only": 1, "hide_price_for_guest": 1}):
+				self.assertEqual(get_product_price_info(["anything"]), {})
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_the_listing_carries_no_price_field_for_a_visitor_on_a_hiding_site(self):
+		"""The SQL pricing paths (price sort, discount filter) format the rate they join
+		without asking product_info: the gate at the end of query() is the one that holds."""
+		from webshop.webshop.product_data_engine.query import GUEST_HIDDEN_PRICE_FIELDS, ProductQuery
+
+		frappe.set_user("Guest")
+		try:
+			with self._single_says(0), profil_resolu("b2b", {"b2b_only": 1, "hide_price_for_guest": 1}):
+				for sort_order in (None, "price_low_to_high"):
+					items = ProductQuery().query(fields={}, start=0, sort_order=sort_order)["items"]
+					leaked = [(i.item_code, f) for i in items for f in GUEST_HIDDEN_PRICE_FIELDS if i.get(f)]
+					self.assertEqual(leaked, [], f"sort_order={sort_order}")
+			# the control: the same visitor on a site that does not hide keeps the prices
+			with self._single_says(0), profil_resolu("b2c", {"hide_price_for_guest": 0}):
+				items = ProductQuery().query(fields={}, start=0)["items"]
+				if not any(i.get("formatted_price") for i in items):
+					self.skipTest("no priced published item on this site: the control cannot tell")
+		finally:
+			frappe.set_user("Administrator")
