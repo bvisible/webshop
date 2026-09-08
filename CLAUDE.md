@@ -465,6 +465,7 @@ fixes it.
 > 12:00 and 13:30 it announced "tomorrow at 10:00". Closed for lunch means
 > "today at 13:30"; a closure hides the whole day and names itself.
 
+<!-- //// Neoffice ▼▼▼ — added: documents the public-holidays provider, the Holiday List integration, the footer/Builder block placement, and two rendering pitfalls, emoji-as-icon and transform:scale (b196bb69fb "docs(store-hours): les jours fériés, le pied de page, et deux pièges de rendu") -->
 **Public holidays come from a provider, not from typing.**
 `webshop/webshop/utils/holidays.py` reads **openholidaysapi.org** — free, no key,
 and the only source checked that gives Swiss holidays **per canton and in
@@ -504,6 +505,8 @@ them.
 > page. Inline SVG and a dot, both in `currentColor`. And **never `transform:
 > scale()` on a full-width row**: it made today's line wider than the card that
 > contained it, which is exactly what it looked like.
+
+<!-- //// Neoffice ▲▲▲ -->
 
 ### The shop assistant
 
