@@ -31,6 +31,7 @@ import frappe
 
 @contextmanager
 def shop_rights():
+	# //// Neoffice — restores the session field by field instead of calling set_user (b4264ff0b8 "fix(cart): shop_rights hands the session back as it was — set_user rewrote it, and login runs the block"): set_user rewrites local.session in place (sid becomes the username, data becomes {}) instead of switching users, and set_cart_count runs this block ON LOGIN — a customer was signed out by the very act of signing in
 	"""Run the block as Administrator, put the session back EXACTLY as it was.
 
 	🔴 Not `frappe.set_user(user)` on the way out. set_user does not switch a
@@ -49,12 +50,14 @@ def shop_rights():
 	if user == "Administrator":
 		yield
 		return
+	# //// Neoffice — snapshot sid, data and form_dict before switching (b4264ff0b8 "fix(cart): shop_rights hands the session back as it was — set_user rewrote it, and login runs the block"): needed to hand the session back unchanged on the way out
 	saved = {"sid": session.sid, "data": session.data}
 	form_dict = frappe.local.form_dict
 	frappe.set_user("Administrator")
 	try:
 		yield
 	finally:
+		# //// Neoffice — restore sid/data/form_dict field by field instead of frappe.set_user(user) (b4264ff0b8 "fix(cart): shop_rights hands the session back as it was — set_user rewrote it, and login runs the block"): set_user would rewrite the session again rather than putting the original one back
 		session.user = user
 		session.sid = saved["sid"]
 		session.data = saved["data"]

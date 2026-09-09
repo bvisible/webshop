@@ -215,6 +215,7 @@ class TestShopRights(FrappeTestCase):
 		self.assertEqual(frappe.session.user, "Guest")
 
 
+# //// Neoffice ▼▼▼ — added TestShopRightsKeepsTheSession (b4264ff0b8 "fix(cart): shop_rights hands the session back as it was — set_user rewrote it, and login runs the block"): covers that shop_rights() hands back sid, data and form_dict unchanged instead of letting set_user rewrite them, and that Administrator still passes through untouched
 class TestShopRightsKeepsTheSession(FrappeTestCase):
 	"""The block runs as Administrator and hands back the SAME session, not a rewritten one.
 
@@ -255,3 +256,4 @@ class TestShopRightsKeepsTheSession(FrappeTestCase):
 			self.assertEqual((frappe.session.sid, frappe.session.data.x), ("adminsid", 1))
 		finally:
 			frappe.local.session = saved
+# //// Neoffice ▲▲▲

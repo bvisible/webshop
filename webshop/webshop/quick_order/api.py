@@ -38,6 +38,7 @@ from webshop.webshop.shopping_cart.cart import (
 	is_gift_card_item,
 	set_cart_count,
 )
+# //// Neoffice — added shop_rights import (b4264ff0b8 "fix(cart): shop_rights hands the session back as it was — set_user rewrote it, and login runs the block"): _save_on_behalf now goes through the shared shop_rights() context manager instead of its own set_user pair
 from webshop.webshop.shopping_cart.shop_rights import shop_rights
 from webshop.webshop.utils.product import get_web_items_qty_in_stock
 from webshop.webshop.variant_selector.item_variants_cache import ItemVariantsCacheManager
@@ -591,11 +592,13 @@ def _save_on_behalf(quotation, party):
 	"""
 	user = frappe.session.user
 	was_new = quotation.is_new()
+	# //// Neoffice — replaced the local set_user("Administrator")/finally pair with shop_rights() (b4264ff0b8 "fix(cart): shop_rights hands the session back as it was — set_user rewrote it, and login runs the block"): set_user rewrites the session in place instead of switching it, which signed a customer out on login
 	# Through shop_rights: the session comes back field by field, not through a
 	# set_user that rewrote it (see shop_rights.py, 2026-09-09).
 	with shop_rights():
 		apply_cart_settings(party, quotation)
 		quotation.payment_schedule = []
+		# //// Neoffice — removed the try/finally frappe.set_user(user) restore that used to close this block (b4264ff0b8 "fix(cart): shop_rights hands the session back as it was — set_user rewrote it, and login runs the block"): shop_rights() now restores sid, data and form_dict field by field instead of calling set_user
 		quotation.save(ignore_version=True)
 	stamp = {"modified_by": user}
 	if was_new:
