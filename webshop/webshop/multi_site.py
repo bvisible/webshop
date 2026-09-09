@@ -68,7 +68,12 @@ def effective_price_list(fallback: str | None = None) -> str | None:
 	quoted 549.00 — the same item, the same page, three different prices.
 	"""
 	profile = getattr(frappe.local, "website_profile_doc", None)
-	if profile and profile.get("price_list"):
+	# //// Neoffice — a professional-only site shows its catalogue to everyone at the
+	# //// PUBLIC price: the profile's list is the resellers' tariff, for signed-in
+	# //// accounts only. A visitor sees the default selling list and cannot buy
+	# //// (require_login_to_buy); the tariff appears once signed in (The League,
+	# //// 2026-09-09: "afficher les produits et prix de vente, pas de panier sans compte").
+	if profile and profile.get("price_list") and not (profile.get("b2b_only") and frappe.session.user == "Guest"):
 		return profile["price_list"]
 	if fallback:
 		return fallback
