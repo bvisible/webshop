@@ -2,6 +2,9 @@
 # License: GNU General Public License v3. See license.txt
 import frappe
 from frappe import _
+# //// Neoffice — cint import: needed by gift_cards_hidden() below, the switch that
+# //// keeps gift cards out of the catalogue and its facets
+# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
 from frappe.utils import cint, floor
 # //// Neoffice — the currency formatter honours the shop's "hide currency symbol"
 # //// setting (0134ef756e, 2025-07-03).
@@ -59,6 +62,9 @@ class ProductFiltersBuilder:
 			item_filters, item_or_filters = {"published": 1}, []
 			if _excluded:
 				item_filters["name"] = ["not in", _excluded]
+			# //// Neoffice — a hidden gift card must not leave a facet checkbox that
+			# //// selects nothing (5100ecbe6d "fix(boutique): la case « cartes cadeaux »
+			# //// retire enfin la carte de la vitrine").
 			if gift_cards_hidden():
 				item_filters["is_gift_card"] = 0
 			# //// Neoffice — second-hand: a Select field has no linked doctype;
@@ -203,6 +209,9 @@ class ProductFiltersBuilder:
 		item_counts = {}
 		
 		# First, get direct counts
+		# //// Neoffice — gift_cond drops gift cards from the category counts too, so a
+		# //// hidden card does not inflate a category badge it will never appear in
+		# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
 		direct_counts = frappe.db.sql(f"""
 			SELECT item_group, COUNT(*) as count
 			FROM `tabWebsite Item`
@@ -223,6 +232,10 @@ class ProductFiltersBuilder:
 			
 			# Count products in this group and all descendants
 			all_groups = [item_group.name] + list(descendants)
+			# //// Neoffice — same gift_cond as the direct count above, applied to the
+			# //// rolled-up total so a category with only gift cards does not show a
+			# //// count with nothing to show for it
+			# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
 			total_count = frappe.db.sql(f"""
 				SELECT COUNT(*) as count
 				FROM `tabWebsite Item`
@@ -287,6 +300,9 @@ class ProductFiltersBuilder:
 			}
 			if _excluded:
 				brand_filters["name"] = ["not in", _excluded]
+			# //// Neoffice — same reasoning as the field filters above: a brand facet must
+			# //// not offer a checkbox for a gift card the shop keeps hidden
+			# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
 			if gift_cards_hidden():
 				brand_filters["is_gift_card"] = 0
 			count = frappe.db.count(

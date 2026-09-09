@@ -2,6 +2,8 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
+# //// Neoffice — cint import: needed by the enable_gift_cards catalogue filter below
+# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
 from frappe.utils import cint, flt
 
 from webshop.webshop.doctype.item_review.item_review import get_customer
