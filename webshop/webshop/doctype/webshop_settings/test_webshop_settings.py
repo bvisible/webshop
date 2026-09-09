@@ -58,6 +58,40 @@ class TestWebshopSettings(unittest.TestCase):
 
 		self.assertRaises(frappe.ValidationError, settings.save)
 
+	# //// Neoffice — the gift-card switch decides whether the card is on sale, the flag
+	# //// says which item is the card: unchecking must not clear it, or the catalogue filter
+	# //// has nothing left to filter (neoffice-maintenance#318, 2026-09-09).
+	def test_disabling_gift_cards_keeps_the_template_flagged(self):
+		from unittest.mock import MagicMock, patch
+
+		from webshop.webshop.doctype.webshop_settings.webshop_settings import WebshopSettings
+
+		settings = WebshopSettings(
+			{"doctype": "Webshop Settings", "name": "Webshop Settings", "enable_gift_cards": 0, "gift_card_template": "WEB-ITM-GIFT"}
+		)
+		old = MagicMock(enable_gift_cards=1, gift_card_template="WEB-ITM-GIFT")
+		with patch("frappe.get_doc", return_value=old), patch("frappe.db.set_value") as set_value:
+			settings.update_gift_card_template()
+		calls = [c.args for c in set_value.call_args_list]
+		self.assertNotIn(("Website Item", "WEB-ITM-GIFT", "is_gift_card", 0), calls)
+		self.assertIn(("Website Item", "WEB-ITM-GIFT", "is_gift_card", 1), calls)
+
+	def test_changing_the_gift_card_template_moves_the_flag(self):
+		from unittest.mock import MagicMock, patch
+
+		from webshop.webshop.doctype.webshop_settings.webshop_settings import WebshopSettings
+
+		settings = WebshopSettings(
+			{"doctype": "Webshop Settings", "name": "Webshop Settings", "enable_gift_cards": 1, "gift_card_template": "WEB-ITM-NEW"}
+		)
+		old = MagicMock(enable_gift_cards=1, gift_card_template="WEB-ITM-OLD")
+		with patch("frappe.get_doc", return_value=old), patch("frappe.db.set_value") as set_value:
+			settings.update_gift_card_template()
+		self.assertEqual(
+			[c.args for c in set_value.call_args_list],
+			[("Website Item", "WEB-ITM-OLD", "is_gift_card", 0), ("Website Item", "WEB-ITM-NEW", "is_gift_card", 1)],
+		)
+
 
 def setup_webshop_settings(values_dict):
 	"Accepts a dict of values that updates Webshop Settings."

@@ -436,22 +436,26 @@ class WebshopSettings(Document):
 		return True
 
 	def update_gift_card_template(self):
-		"""Updates is_gift_card field on Website Items when gift card template changes"""
+		"""Moves the is_gift_card flag when the gift card template changes.
+
+		//// Neoffice — the switch no longer touches the flag. `enable_gift_cards` says
+		//// whether the card is on sale (the catalogue, the search, the facets and the
+		//// carousels filter on the flag since 5100ecbe6d); the flag says which item IS
+		//// the card. Clearing it on disable turned the card into an ordinary 0.00
+		//// product the moment the filter needed the flag: first in the catalogue of a
+		//// B2B site with the option unchecked (theleague.neoffice.me, 2026-09-09,
+		//// neoffice-maintenance#318). Only a change of template moves the flag.
+		"""
 		old_doc = None
 		if self.name:
 			old_doc = frappe.get_doc("Webshop Settings", self.name)
 
-		if old_doc and ((old_doc.enable_gift_cards and not self.enable_gift_cards) or \
-			(old_doc.gift_card_template and old_doc.gift_card_template != self.gift_card_template)):
-			# If gift cards are disabled or if template has changed,
-			# disable old template
-			if (old_doc.enable_gift_cards and not self.enable_gift_cards) or \
-				(old_doc and old_doc.gift_card_template and old_doc.gift_card_template != self.gift_card_template):
-				frappe.db.set_value('Website Item', old_doc.gift_card_template, 'is_gift_card', 0)
-		
-		# Enable new template only if gift cards are enabled
-		if self.enable_gift_cards and self.gift_card_template:
-			frappe.db.set_value('Website Item', self.gift_card_template, 'is_gift_card', 1)
+		old_template = old_doc.gift_card_template if old_doc else None
+		if old_template and old_template != self.gift_card_template:
+			frappe.db.set_value("Website Item", old_template, "is_gift_card", 0)
+
+		if self.gift_card_template:
+			frappe.db.set_value("Website Item", self.gift_card_template, "is_gift_card", 1)
 
 
 def validate_cart_settings(doc=None, method=None):
