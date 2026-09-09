@@ -891,3 +891,13 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) — **green, and it runs**:
 > creating the payment request". Nobody could pay. Fixed in
 > `webshop/setup/install.py`: **a patch that creates a field belongs in
 > `CHAMPS_A_CREER_A_L_INSTALLATION`.**
+
+> **A `/* … */` marker outside a `<style>` block prints on the page.** HTML has no
+> such comment: the browser draws it as text. Two `//// Neoffice` markers had been
+> written that way, just above the `<style>` they described, and both showed to
+> customers — one of them right next to "Ajouter au panier" on every product page,
+> the other on the catalogue. In a template the comment syntax follows *where the
+> line sits*, not what it talks about: `{# … #}` in Jinja, `<!-- … -->` in HTML,
+> `/* … */` only inside `<style>` or `<script>`. Marking a fork change is not a
+> reason to reach for the wrong one.
+

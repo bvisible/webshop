@@ -290,9 +290,12 @@
 	});
 </script>
 
-/* //// Neoffice — the styles of the mobile filter drawer and the sticky header (same */
-/* //// series). Inline for the same reason as above. */
 <style>
+	/* //// Neoffice — the styles of the mobile filter drawer and the sticky header (same
+	   series). Inline for the same reason as above.
+
+	   These two lines used to sit OUTSIDE this <style> block, where `/* … *\/` is not a
+	   comment but text, and printed on the catalogue page. */
 	/* Sticky filter header on mobile */
 	@media (max-width: 767.98px) {
 		.sticky-filter-header {

@@ -11,13 +11,14 @@
 			<span aria-hidden="true">?</span>
 			<span class="btn-inquiry__label">{{ _('A question?') }}</span>
 		</button>
-		/* //// Neoffice — the label is hidden on desktop (the button is a small square next to */
-		/* //// "add to cart") and shown on mobile, where it stretches full width and a lone */
-		/* //// "?" tells nobody anything (69db8ac57d, 2026-08-26). */
 		<style>
-			/* Desktop: the small square button next to "Add to cart" keeps just
-			   the mark. Mobile: it stretches full width under the cart button,
-			   where a lone "?" tells nobody anything — the wording comes back. */
+			/* //// Neoffice — the label is hidden on desktop (the button is a small square
+			   next to "Add to cart") and shown on mobile, where it stretches full width and
+			   a lone "?" tells nobody anything (69db8ac57d, 2026-08-26).
+
+			   These three lines used to sit OUTSIDE this <style> block: `/* … *\/` is not a
+			   comment in HTML, so the whole explanation printed as text on the product page,
+			   right next to the button it was describing. */
 			.btn-inquiry__label { display: none; }
 			@media (max-width: 767.98px) {
 				.btn-inquiry__label { display: inline; margin-left: 6px; }
