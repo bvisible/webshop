@@ -2,7 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
-from frappe.utils import flt
+from frappe.utils import cint, flt
 
 from webshop.webshop.doctype.item_review.item_review import get_customer
 from webshop.webshop.shopping_cart.product_info import get_product_info_for_website
@@ -67,6 +67,17 @@ class ProductQuery:
 		excluded = excluded_item_names()
 		if excluded:
 			self.filters.append(["name", "not in", excluded])
+		# //// Neoffice — a gift card leaves the catalogue when the shop does not sell one.
+		# //// `enable_gift_cards` already gated the portal entry, the web form and the
+		# //// template, but never the listing: the card stayed published and came up in
+		# //// /all-products, in search and in an item group, first in the grid on a B2B
+		# //// site that never wanted one (theleague.neoffice.me, reported 2026-09-09).
+		# //// Filtering here rather than unpublishing means the merchant keeps the item,
+		# //// its price and its history, and one switch puts it back on the shelf.
+		# //// `is_gift_card` is a Check, so the column is NOT NULL DEFAULT 0 and `= 0`
+		# //// leaves nothing behind.
+		if not cint(self.settings.get("enable_gift_cards")):
+			self.filters.append(["is_gift_card", "=", 0])
 		self.fields = [
 			"web_item_name",
 			"name",

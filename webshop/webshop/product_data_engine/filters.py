@@ -2,10 +2,25 @@
 # License: GNU General Public License v3. See license.txt
 import frappe
 from frappe import _
-from frappe.utils import floor
+from frappe.utils import cint, floor
 # //// Neoffice — the currency formatter honours the shop's "hide currency symbol"
 # //// setting (0134ef756e, 2025-07-03).
 from webshop.webshop.utils.utils import format_currency_value
+
+
+# //// Neoffice — gift cards leave the facets too when the shop does not sell one.
+# //// Filtering only the listing left a "Carte cadeau" checkbox, badge "1", that
+# //// selected nothing — worse than showing the product, because the reader thinks
+# //// the shop has one and the filter is broken. Same switch as the catalogue,
+# //// `enable_gift_cards` on Webshop Settings.
+def gift_cards_hidden():
+	"""True when the shop's gift cards must not appear anywhere on the storefront."""
+	return not cint(frappe.db.get_single_value("Webshop Settings", "enable_gift_cards"))
+
+
+def gift_card_sql_condition(table="`tabWebsite Item`"):
+	"""The AND fragment that drops gift cards, or "" when they are on sale."""
+	return f" AND IFNULL({table}.is_gift_card, 0) = 0" if gift_cards_hidden() else ""
 
 
 class ProductFiltersBuilder:
@@ -44,6 +59,8 @@ class ProductFiltersBuilder:
 			item_filters, item_or_filters = {"published": 1}, []
 			if _excluded:
 				item_filters["name"] = ["not in", _excluded]
+			if gift_cards_hidden():
+				item_filters["is_gift_card"] = 0
 			# //// Neoffice — second-hand: a Select field has no linked doctype;
 			# //// its facet is the set of values the published items carry.
 			link_doctype_values = (
@@ -168,6 +185,7 @@ class ProductFiltersBuilder:
 		# //// Neoffice multi-site: scope to the current site
 		from webshop.webshop.multi_site import site_sql_condition
 		site_cond = site_sql_condition("`tabWebsite Item`")
+		gift_cond = gift_card_sql_condition()
 		# Get all categories with their parent/child information
 		all_item_groups = frappe.get_all(
 			"Item Group",
@@ -188,7 +206,7 @@ class ProductFiltersBuilder:
 		direct_counts = frappe.db.sql(f"""
 			SELECT item_group, COUNT(*) as count
 			FROM `tabWebsite Item`
-			WHERE published = 1 AND item_group IN %(groups)s{site_cond}
+			WHERE published = 1 AND item_group IN %(groups)s{site_cond}{gift_cond}
 			GROUP BY item_group
 		""", {"groups": [g.name for g in all_item_groups]}, as_dict=True)
 		
@@ -208,7 +226,7 @@ class ProductFiltersBuilder:
 			total_count = frappe.db.sql(f"""
 				SELECT COUNT(*) as count
 				FROM `tabWebsite Item`
-				WHERE published = 1 AND item_group IN %(groups)s{site_cond}
+				WHERE published = 1 AND item_group IN %(groups)s{site_cond}{gift_cond}
 			""", {"groups": all_groups}, as_dict=True)[0].count
 			
 			item_counts[item_group.name] = total_count
@@ -269,6 +287,8 @@ class ProductFiltersBuilder:
 			}
 			if _excluded:
 				brand_filters["name"] = ["not in", _excluded]
+			if gift_cards_hidden():
+				brand_filters["is_gift_card"] = 0
 			count = frappe.db.count(
 				"Website Item",
 				filters=brand_filters

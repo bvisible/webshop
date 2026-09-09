@@ -81,6 +81,14 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
     _site_pred = site_sql_predicate("wi")
     if _site_pred:
         conditions.append(_site_pred)
+    # //// Neoffice — a gift card stays out of a carousel when the shop does not sell
+    # //// one, exactly as it now stays out of the catalogue (see product_data_engine
+    # //// query.py). Otherwise switching the feature off cleared the listing but left
+    # //// the card on the home page.
+    from frappe.utils import cint as _cint
+
+    if not _cint(frappe.db.get_single_value("Webshop Settings", "enable_gift_cards")):
+        conditions.append("IFNULL(wi.is_gift_card, 0) = 0")
     params = {
         "price_list": price_list,
         "limit": limit + 10  # Get a few extra in case of filtering
