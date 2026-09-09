@@ -31,16 +31,39 @@ import frappe
 
 @contextmanager
 def shop_rights():
-	"""Run the block as Administrator, restore the session user whatever happens."""
-	user = frappe.session.user
+	"""Run the block as Administrator, put the session back EXACTLY as it was.
+
+	🔴 Not `frappe.set_user(user)` on the way out. set_user does not switch a
+	user, it rewrites the live session in place: `local.session.sid = username`
+	and `local.session.data = {}`. Restoring "the user" that way left every
+	customer with a session whose sid was their e-mail and whose data (csrf
+	token, device, stamped expiry) was gone — and set_cart_count runs this
+	block ON LOGIN, so the sid cookie handed to the browser named no session
+	at all: a portal customer was signed out by the very act of signing in.
+	Found 2026-09-09 on the pilot club's members (the sid cookie read
+	"gym-a%40yopmail.com"). What Administrator's rights need is the user; what
+	the customer needs back is their session, field by field.
+	"""
+	session = frappe.local.session
+	user = session.user
 	if user == "Administrator":
 		yield
 		return
+	saved = {"sid": session.sid, "data": session.data}
+	form_dict = frappe.local.form_dict
 	frappe.set_user("Administrator")
 	try:
 		yield
 	finally:
-		frappe.set_user(user)
+		session.user = user
+		session.sid = saved["sid"]
+		session.data = saved["data"]
+		frappe.local.form_dict = form_dict
+		# what set_user rightly drops on a switch, dropped again on the way back
+		frappe.local.cache = {}
+		frappe.local.jenv = None
+		frappe.local.role_permissions = {}
+		frappe.local.new_doc_templates = {}
 
 
 def save_as_shop(doc, submit=False, **save_kwargs):

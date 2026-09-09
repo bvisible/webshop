@@ -213,3 +213,45 @@ class TestShopRights(FrappeTestCase):
 		self.assertEqual(doc.party_name, self.guest_customer)
 		self.assertGreater(doc.grand_total, 0)
 		self.assertEqual(frappe.session.user, "Guest")
+
+
+class TestShopRightsKeepsTheSession(FrappeTestCase):
+	"""The block runs as Administrator and hands back the SAME session, not a rewritten one.
+
+	set_user(user) on the way out rewrote local.session in place — sid became the
+	e-mail, data became {} — and, since set_cart_count runs this block on login,
+	the sid cookie the browser received named no session: customers were signed
+	out by signing in (2026-09-09).
+	"""
+
+	def test_sid_data_and_form_dict_survive_the_block(self):
+		from webshop.webshop.shopping_cart.shop_rights import shop_rights
+
+		saved = frappe.local.session
+		saved_form = frappe.local.form_dict
+		try:
+			data = frappe._dict(csrf_token="tok", device="mobile", session_expiry="720:00:00")
+			frappe.local.session = frappe._dict(user="portal-customer@yopmail.com", sid="a1b2c3d4e5f6", data=data)
+			frappe.local.form_dict = frappe._dict(cmd="login", device="mobile")
+			with shop_rights():
+				self.assertEqual(frappe.session.user, "Administrator")
+			self.assertEqual(frappe.session.user, "portal-customer@yopmail.com")
+			self.assertEqual(frappe.session.sid, "a1b2c3d4e5f6")
+			self.assertIs(frappe.session.data, data)
+			self.assertEqual(frappe.session.data.device, "mobile")
+			self.assertEqual(frappe.local.form_dict.cmd, "login")
+		finally:
+			frappe.local.session = saved
+			frappe.local.form_dict = saved_form
+
+	def test_administrator_passes_through_untouched(self):
+		from webshop.webshop.shopping_cart.shop_rights import shop_rights
+
+		saved = frappe.local.session
+		try:
+			frappe.local.session = frappe._dict(user="Administrator", sid="adminsid", data=frappe._dict(x=1))
+			with shop_rights():
+				pass
+			self.assertEqual((frappe.session.sid, frappe.session.data.x), ("adminsid", 1))
+		finally:
+			frappe.local.session = saved

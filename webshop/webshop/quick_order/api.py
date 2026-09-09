@@ -38,6 +38,7 @@ from webshop.webshop.shopping_cart.cart import (
 	is_gift_card_item,
 	set_cart_count,
 )
+from webshop.webshop.shopping_cart.shop_rights import shop_rights
 from webshop.webshop.utils.product import get_web_items_qty_in_stock
 from webshop.webshop.variant_selector.item_variants_cache import ItemVariantsCacheManager
 
@@ -590,13 +591,12 @@ def _save_on_behalf(quotation, party):
 	"""
 	user = frappe.session.user
 	was_new = quotation.is_new()
-	frappe.set_user("Administrator")
-	try:
+	# Through shop_rights: the session comes back field by field, not through a
+	# set_user that rewrote it (see shop_rights.py, 2026-09-09).
+	with shop_rights():
 		apply_cart_settings(party, quotation)
 		quotation.payment_schedule = []
 		quotation.save(ignore_version=True)
-	finally:
-		frappe.set_user(user)
 	stamp = {"modified_by": user}
 	if was_new:
 		stamp["owner"] = user
