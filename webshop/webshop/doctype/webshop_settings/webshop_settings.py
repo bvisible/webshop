@@ -471,9 +471,15 @@ def get_shopping_cart_settings():
     # //// back to the Single, so instances without profiles are untouched.
     profile = getattr(frappe.local, "website_profile_doc", None)
     if profile:
-        for field in ("price_list", "guest_customer"):
-            if profile.get(field):
-                settings_dict[field] = profile[field]
+        # //// the price list goes through multi_site.effective_price_list, the one rule
+        # //// for every price shown: a visitor of a professional-only site keeps the
+        # //// public list (the recommendations carousel quoted the reseller tariff to
+        # //// visitors while the product page quoted the public price, 2026-09-09)
+        from webshop.webshop.multi_site import effective_price_list
+
+        settings_dict["price_list"] = effective_price_list(settings_dict.get("price_list"))
+        if profile.get("guest_customer"):
+            settings_dict["guest_customer"] = profile["guest_customer"]
 
         # //// Neoffice multi-site — a site reserved for professionals has no
         # //// guest cart, whatever the global setting says.
