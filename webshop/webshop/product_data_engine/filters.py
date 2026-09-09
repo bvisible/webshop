@@ -212,6 +212,7 @@ class ProductFiltersBuilder:
 		# //// Neoffice — gift_cond drops gift cards from the category counts too, so a
 		# //// hidden card does not inflate a category badge it will never appear in
 		# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
+		# //// Neoffice — see the marker above: the WHERE clause below carries gift_cond
 		direct_counts = frappe.db.sql(f"""
 			SELECT item_group, COUNT(*) as count
 			FROM `tabWebsite Item`
@@ -236,6 +237,7 @@ class ProductFiltersBuilder:
 			# //// rolled-up total so a category with only gift cards does not show a
 			# //// count with nothing to show for it
 			# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
+			# //// Neoffice — see the marker above: the WHERE clause below carries gift_cond
 			total_count = frappe.db.sql(f"""
 				SELECT COUNT(*) as count
 				FROM `tabWebsite Item`

@@ -450,6 +450,7 @@ class WebshopSettings(Document):
 		if self.name:
 			old_doc = frappe.get_doc("Webshop Settings", self.name)
 
+		# //// Neoffice — see the docstring above: only a template change moves the flag
 		old_template = old_doc.gift_card_template if old_doc else None
 		if old_template and old_template != self.gift_card_template:
 			frappe.db.set_value("Website Item", old_template, "is_gift_card", 0)
