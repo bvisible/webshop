@@ -539,6 +539,21 @@ token stops a double click becoming two orders.
 > existed in `fr.po` all along, nothing could read them. `checkout.html` seeds
 > `window.webshop_checkout_labels`, and `checkout.js` reads them through `say()`.
 
+> **A custom button added from a server callback does not survive.** `refresh`
+> runs several times while a form settles and each run rebuilds the action bar, so
+> a button added when a late callback returns is wiped by the next redraw — it
+> shows as a group that appears, then vanishes (a dashboard indicator dies the same
+> way). Fetch once, keep the answer on the form, and draw **synchronously** on every
+> refresh after that; forget it before `reload_doc()`. See
+> `public/js/override/sales_order.js`.
+
+> **The QR bill was already there.** `Oslo Payment Request` (neoffice_theme) has
+> carried the Swiss QR from the start — company header, recipient, order reference,
+> amount due, and the order number in the bill's "additional information". What was
+> added is the retention sentence (read off the order's state, so it never claims a
+> hold that is not happening) and the same bill **on the order itself**, built by the
+> payment request's own builder so both documents print an identical bill.
+
 ### Where the features live on the desk
 
 The workspace `Webshop` (`webshop/webshop/workspace/webshop/`) sits next to
