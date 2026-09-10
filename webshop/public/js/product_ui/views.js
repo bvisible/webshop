@@ -223,6 +223,7 @@ webshop.ProductView =  class {
 		this.products_section.append(`
 			<div class="active-filters-display mt-2 mb-2" style="display: none;">
 				<div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
+					<!-- //// Neoffice — prints the translated "Active filters:" label computed above, not the hard-coded English string (2bafdf34c2 "fix(catalogue): la page « Catégories et marques » cesse de parler anglais") -->
 					<small class="text-muted mr-2">${label}</small>
 					<div class="active-filter-badges d-flex flex-wrap" style="gap: 0.5rem;"></div>
 				</div>

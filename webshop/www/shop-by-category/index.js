@@ -41,13 +41,16 @@ $(() => {
 					<div class="row">
 						<div class="col-md-6">
 							<div class="category-search">
+								<!-- //// Neoffice — placeholder translated via window.product_translations (_t); a website page has no frappe._() (2bafdf34c2 "fix(catalogue): la page « Catégories et marques » cesse de parler anglais") -->
 								<input type="text" class="form-control" id="categorySearchInput" placeholder="${_t('Search a category or a brand')}">
 							</div>
 						</div>
 						<div class="col-md-6">
 							<div class="sort-options">
+								<!-- //// Neoffice — label translated via window.product_translations (_t), same fix as the search placeholder above (2bafdf34c2 "fix(catalogue): la page « Catégories et marques » cesse de parler anglais") -->
 								<label for="categorySortSelect">${_t('Sort by')}</label>
 								<select class="form-control" id="categorySortSelect">
+									<!-- //// Neoffice — the three options below are translated via window.product_translations (_t), same fix as above (2bafdf34c2) -->
 									<option value="default">${_t('Default')}</option>
 									<option value="asc">${_t('Alphabetical (A-Z)')}</option>
 									<option value="desc">${_t('Alphabetical (Z-A)')}</option>

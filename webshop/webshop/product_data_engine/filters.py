@@ -246,6 +246,9 @@ class ProductFiltersBuilder:
 		direct_counts = frappe.db.sql(f"""
 			SELECT item_group, COUNT(*) as count
 			FROM `tabWebsite Item`
+			-- //// Neoffice — gift_cond drops gift cards from this count too, so a hidden
+			-- //// card does not inflate a category badge it will never show
+			-- //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine")
 			WHERE published = 1 AND item_group IN %(groups)s{site_cond}{gift_cond}
 			GROUP BY item_group
 		""", {"groups": [g.name for g in all_item_groups]}, as_dict=True)
@@ -285,6 +288,9 @@ class ProductFiltersBuilder:
 			total_count = frappe.db.sql(f"""
 				SELECT COUNT(*) as count
 				FROM `tabWebsite Item`
+				-- //// Neoffice — same gift_cond as the direct count above, so a rolled-up
+				-- //// total does not include gift cards the shop keeps hidden
+				-- //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine")
 				WHERE published = 1 AND item_group IN %(groups)s{site_cond}{gift_cond}
 			""", {"groups": all_groups}, as_dict=True)[0].count
 			
