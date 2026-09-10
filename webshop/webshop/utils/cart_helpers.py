@@ -237,7 +237,7 @@ def format_cart_response(cart_data):
         }
 
 # //// Neoffice — POST only: every caller is a frappe.call (cart_component.js),
-# //// and a bare GET — bots probing the API by IP with no arguments (kmhome,
+# //// and a bare GET — bots probing the API by IP with no arguments (seen on a customer instance,
 # //// 2026-09) — used to die in a TypeError logged as a 500 on every hit. Now a
 # //// plain 403, and a cart mutation can no longer be triggered by a cross-site GET.
 @frappe.whitelist(allow_guest=True, methods=["POST"])
