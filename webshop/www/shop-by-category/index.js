@@ -18,6 +18,9 @@ $(() => {
 		//// French shop. They read window.product_translations (_t, declared above) instead.
 		//// No comment fits closer: they sit inside this template literal (2bafdf34c2 "fix(catalogue):
 		//// la page « Catégories et marques » cesse de parler anglais").
+		//// Neoffice — pointer: the search placeholder, the sort label and its three
+		//// options below (lines with ${_t(...)}) are the translated strings this fix
+		//// introduced (2bafdf34c2).
 		const filterHTML = `
 			<div class="container mt-3 p-0">
 				<div class="category-filter-section">

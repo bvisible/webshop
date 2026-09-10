@@ -205,6 +205,9 @@ webshop.ProductView =  class {
 		const label = (window.product_translations || {})["Active filters:"] || "Active filters:";
 		//// Neoffice — see the marker above: ${label} below renders the translated label;
 		//// no comment fits closer, the line sits inside this template literal.
+		//// Neoffice — pointer: the <small> three lines down prints ${label}, not the
+		//// hard-coded "Active filters:" (2bafdf34c2 "fix(catalogue): la page « Catégories
+		//// et marques » cesse de parler anglais").
 		this.products_section.append(`
 			<div class="active-filters-display mt-2 mb-2" style="display: none;">
 				<div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
