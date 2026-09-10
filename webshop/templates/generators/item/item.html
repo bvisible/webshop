@@ -278,6 +278,15 @@
 	.product-info-wrapper .recommended-card .carousel-clip-container { overflow: hidden; }
 	/* One heading rhythm for the three bottom cards. */
 	.product-info-wrapper .recommendation-container .recommendation-header { display: block; margin-bottom: 14px !important; }
+	/* //// Neoffice — the bottom cards line up with the hero panels. The hero row is a
+	   //// Bootstrap .row, whose negative margins cancel its columns' padding, and its
+	   //// columns ARE the white panels: their edge sits on the page edge. This wrapper is
+	   //// a bare flex row, so its cards sat 15px in from the panel above them (the lone
+	   //// "Recommended" card, theleague.neoffice.me, 2026-09-10). Same negative margins
+	   //// here, and the inner columns keep Bootstrap's own padding on both sides. */
+	.product-info-wrapper { margin-left: -15px; margin-right: -15px; }
+	.product-info-wrapper .recommendations-wrapper > .row > .recommended-item-section,
+	.product-info-wrapper .recommendations-wrapper > .row > .frequently-bought-section { padding-left: 15px; padding-right: 15px; }
 	/* Side by side, the cards ended at three different heights. */
 	.product-info-wrapper .recommendations-wrapper > .row { align-items: stretch; }
 	.product-info-wrapper .recommended-card,
@@ -338,7 +347,7 @@
 				{# //// Neoffice — half a row only when "frequently bought together" shares it:
 				   alone, the card took half the page with a margin on its left and four
 				   cards the size of stamps (theleague.neoffice.me, 2026-09-10). #}
-				{% set rec_inner_col = 'col-md-6' if (has_fbt and recommendations_col_class != 'col-lg-3') else 'col-12' %}
+				{% set rec_inner_col = 'col-md-6' if (has_fbt and recommendations_col_class != 'col-lg-3') else '' %}
 				<div class="col-12 {{ rec_inner_col }} recommended-item-section">
 					<div class="product-container recommended-card">
 						{% set website_items = recommended_items %}
@@ -355,7 +364,7 @@
 			   heading is inside it, read as two different designs. #}
 			{% if shopping_cart.cart_settings.enable_frequently_bought_together and frequently_bought_together %}
 				{# //// Neoffice — see rec_inner_col above: half a row only beside the recommendations #}
-				{% set fbt_inner_col = 'col-md-6' if (show_recommended_items and recommended_items and recommendations_col_class != 'col-lg-3') else 'col-12' %}
+				{% set fbt_inner_col = 'col-md-6' if (show_recommended_items and recommended_items and recommendations_col_class != 'col-lg-3') else '' %}
 				<div class="col-12 {{ fbt_inner_col }} frequently-bought-section">
 					<div class="product-container recommendation-container">
 						{# //// Neoffice — a span never picked up the theme's heading
