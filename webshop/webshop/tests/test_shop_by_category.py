@@ -18,6 +18,7 @@ tab and not the page.
 
 import importlib.util
 import json
+import os
 from urllib.parse import unquote
 
 import frappe
@@ -33,8 +34,10 @@ def _controller():
 
 	`www/shop-by-category` is not an importable package name — the hyphen makes it
 	a route, not an identifier — so the framework loads it by path and so does this.
+	`get_app_path` scrubs the segments it is handed (it would look for
+	`shop_by_category`), hence the plain join.
 	"""
-	path = frappe.get_app_path("webshop", "www", "shop-by-category", "index.py")
+	path = os.path.join(frappe.get_app_path("webshop"), "www", "shop-by-category", "index.py")
 	spec = importlib.util.spec_from_file_location("webshop_shop_by_category", path)
 	module = importlib.util.module_from_spec(spec)
 	spec.loader.exec_module(module)
