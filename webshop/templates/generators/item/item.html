@@ -335,7 +335,10 @@
 			   reviews and "frequently bought together" sat in white cards.
 			   Same card wrapper here, so the three blocks read as one family. #}
 			{% if show_recommended_items and recommended_items %}
-				{% set rec_inner_col = 'col-12' if recommendations_col_class == 'col-lg-3' else 'col-md-6' %}
+				{# //// Neoffice — half a row only when "frequently bought together" shares it:
+				   alone, the card took half the page with a margin on its left and four
+				   cards the size of stamps (theleague.neoffice.me, 2026-09-10). #}
+				{% set rec_inner_col = 'col-md-6' if (has_fbt and recommendations_col_class != 'col-lg-3') else 'col-12' %}
 				<div class="col-12 {{ rec_inner_col }} recommended-item-section">
 					<div class="product-container recommended-card">
 						{% set website_items = recommended_items %}
@@ -351,7 +354,8 @@
 			   block: a bare heading over a white card, next to a card whose
 			   heading is inside it, read as two different designs. #}
 			{% if shopping_cart.cart_settings.enable_frequently_bought_together and frequently_bought_together %}
-				{% set fbt_inner_col = 'col-12' if recommendations_col_class == 'col-lg-3' else 'col-md-6' %}
+				{# //// Neoffice — see rec_inner_col above: half a row only beside the recommendations #}
+				{% set fbt_inner_col = 'col-md-6' if (show_recommended_items and recommended_items and recommendations_col_class != 'col-lg-3') else 'col-12' %}
 				<div class="col-12 {{ fbt_inner_col }} frequently-bought-section">
 					<div class="product-container recommendation-container">
 						{# //// Neoffice — a span never picked up the theme's heading

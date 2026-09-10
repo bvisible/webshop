@@ -109,6 +109,7 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
             wi.item_code,
             wi.item_condition,
             wi.website_image,
+            wi.variant_of,
             wi.route,
             wi.item_group,
             wi.brand,
@@ -129,7 +130,12 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
     """.format(where_clause=where_clause)
     
     items = frappe.db.sql(query, params, as_dict=True)
-    
+    # //// Neoffice — a variant in a carousel shows its template's picture when it has
+    # //// none of its own (utils/variant_image.py)
+    from webshop.webshop.utils.variant_image import inherit_template_images
+
+    inherit_template_images(items)
+
     # Format items
     formatted_items = []
     for item in items:

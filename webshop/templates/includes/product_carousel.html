@@ -619,25 +619,21 @@
         function updateItemsPerView() {
           const carouselWidth = carousel.offsetWidth;
 
-          // Calculate how many items can fit based on actual carousel width
-          // Each item is ~25% of container + 10px margin (4 items per view)
-          const itemSlotWidth = Math.floor(carouselWidth * 0.25) + 10;
-
-          if (carouselWidth < 350) {
-            // Very narrow container - compact mode
-            carousel.classList.add('compact-carousel');
-            itemsPerView = 1;
-          } else if (carouselWidth < 768) {
-            carousel.classList.remove('compact-carousel');
-            itemsPerView = 2;
-          } else if (carouselWidth < 992) {
-            carousel.classList.remove('compact-carousel');
-            itemsPerView = 3;
-          } else {
-            carousel.classList.remove('compact-carousel');
-            // Calculate items that can fit, max 4
-            itemsPerView = Math.min(4, Math.max(1, Math.floor(carouselWidth / itemSlotWidth)));
+          // //// Neoffice — the view is measured on the cards, not guessed from the
+          // //// container: the stylesheet sizes a card by viewport breakpoint (a quarter
+          // //// of the row on a desktop) while the guess used the container width, so a
+          // //// half-width block showed four tiny cards, believed it showed two, and
+          // //// offered arrows and dots for a row entirely on screen
+          // //// (theleague.neoffice.me, 2026-09-10).
+          carousel.classList.toggle('compact-carousel', carouselWidth < 350);
+          let slot = 0;
+          if (items.length > 1) {
+            slot = items[1].getBoundingClientRect().left - items[0].getBoundingClientRect().left;
+          } else if (items.length === 1) {
+            slot = items[0].getBoundingClientRect().width;
           }
+          const clip = carousel.querySelector('.carousel-clip-container') || carouselInner || carousel;
+          itemsPerView = slot > 0 ? Math.max(1, Math.floor((clip.clientWidth + 2) / slot)) : Math.min(4, Math.max(1, itemCount));
 
           updateIndicators();
           updateControlsVisibility();
@@ -670,19 +666,16 @@
         }
         
         function updateControlsVisibility() {
-          // Always show controls for better UX
-          btnLeft.style.display = '';
-          btnRight.style.display = '';
-          indicators.style.display = '';
-
-          // Infinite loop - buttons always enabled when there are more items than visible
+          // //// Neoffice — arrows and dots only when there is something to scroll to;
+          // //// dimmed controls over a row that is entirely on screen read as broken.
           const hasMultiplePages = itemCount > itemsPerView;
+          btnLeft.style.display = hasMultiplePages ? '' : 'none';
+          btnRight.style.display = hasMultiplePages ? '' : 'none';
+          indicators.style.display = hasMultiplePages ? '' : 'none';
           btnLeft.disabled = !hasMultiplePages;
           btnRight.disabled = !hasMultiplePages;
-
-          // Update button opacity for visual feedback
-          btnLeft.style.opacity = hasMultiplePages ? '1' : '0.5';
-          btnRight.style.opacity = hasMultiplePages ? '1' : '0.5';
+          btnLeft.style.opacity = '';
+          btnRight.style.opacity = '';
         }
         
         function updateCarousel() {

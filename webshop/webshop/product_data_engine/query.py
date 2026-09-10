@@ -175,6 +175,11 @@ class ProductQuery:
 		if self.settings.enabled:
 			cart_items = self.get_cart_items()
 
+		# //// Neoffice — a variant listed without a picture shows its template's
+		# //// (utils/variant_image.py), before the display details derive from the picture
+		from webshop.webshop.utils.variant_image import inherit_template_images
+
+		inherit_template_images(result)
 		result, discount_list = self.add_display_details(result, discount_list, cart_items)
 		# //// Neoffice — one gate for every pricing path (neoffice-maintenance#273). The
 		# //// SQL variants above (price sort, discount filter, custom search) format the

@@ -303,6 +303,13 @@ class WebsiteItem(WebsiteGenerator):
 		context.search_link = "/search"
 		context.body_class = "product-page"
 
+		# //// Neoffice — a variant without a picture shows its template's, at render time
+		# //// only (utils/variant_image.py): the size 153 of a board is the same board.
+		if not self.website_image and self.variant_of:
+			from webshop.webshop.utils.variant_image import inherit_template_images
+
+			inherit_template_images([self])
+
 		context.parents = get_parent_item_groups(
 			self.item_group, from_item=True
 		)  # breadcumbs
@@ -373,10 +380,14 @@ class WebsiteItem(WebsiteGenerator):
 						"item_group": self.item_group,
 						"name": _name_filter
 					},
-					fields=["item_code", "web_item_name", "route", "website_image", "item_group"],
+					fields=["item_code", "web_item_name", "route", "website_image", "variant_of", "item_group"],
 					limit=4,
 					order_by="RAND()"
 				)
+				# //// Neoffice — a variant without a picture shows its template's (utils/variant_image.py)
+				from webshop.webshop.utils.variant_image import inherit_template_images
+
+				inherit_template_images(auto_items)
 
 				if auto_items and settings.show_price:
 					from erpnext.utilities.product import get_price
@@ -731,6 +742,7 @@ class WebsiteItem(WebsiteGenerator):
 				wi.route,
 				wi.web_item_name,
 				wi.website_image,
+				wi.variant_of,
 				wi.item_group,
 			)
 			.where((ri.parent == self.name) & (wi.published == 1))
@@ -742,6 +754,10 @@ class WebsiteItem(WebsiteGenerator):
 		if _excluded:
 			query = query.where(wi.name.notin(_excluded))
 		items = query.run(as_dict=True)
+		# //// Neoffice — a variant without a picture shows its template's (utils/variant_image.py)
+		from webshop.webshop.utils.variant_image import inherit_template_images
+
+		inherit_template_images(items)
 
 		if settings.show_price:
 			is_guest = frappe.session.user == "Guest"
