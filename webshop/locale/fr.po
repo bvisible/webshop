@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-10 16:10+0000\n"
+"POT-Creation-Date: 2026-09-10 16:14+0000\n"
 "PO-Revision-Date: 2025-12-15 15:24+0034\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
@@ -837,10 +837,6 @@ msgstr "Disponible pour ces pays uniquement ; si vide, accepte tous les pays"
 msgid "Available on backorder"
 msgstr "Disponible sur commande"
 
-#: webshop/public/js/override/sales_order.js:44
-msgid "Awaiting payment: {0}"
-msgstr "Paiement attendu : {0}"
-
 #. Option for the 'Icon' (Select) field in DocType 'Webshop Trust Item'
 #: webshop/webshop/doctype/webshop_trust_item/webshop_trust_item.json
 msgid "Award"
@@ -944,12 +940,12 @@ msgstr "Réserver"
 msgid "Book this payment and raise the invoice?"
 msgstr "Enregistrer ce paiement et émettre la facture ?"
 
-#: webshop/public/js/override/sales_order.js:100
+#: webshop/public/js/override/sales_order.js:102
 msgid "Book {0} as received, and raise the invoice?"
 msgstr "Enregistrer {0} comme reçu et émettre la facture ?"
 
 #: webshop/public/js/override/payment_request.js:28
-#: webshop/public/js/override/sales_order.js:107
+#: webshop/public/js/override/sales_order.js:109
 msgid "Booking the payment…"
 msgstr "Enregistrement du paiement…"
 
@@ -1673,7 +1669,7 @@ msgid "Cover"
 msgstr "Remplir"
 
 #: webshop/public/js/override/item.js:296
-#: webshop/public/js/override/sales_order.js:74
+#: webshop/public/js/override/sales_order.js:76
 msgid "Create"
 msgstr "Créer"
 
@@ -1862,7 +1858,7 @@ msgstr "Jours après l'achat"
 msgid "Debtors ({0})"
 msgstr "Débiteurs ({0})"
 
-#: webshop/public/js/override/sales_order.js:71
+#: webshop/public/js/override/sales_order.js:73
 msgid "Decides the account on the QR bill."
 msgstr "Détermine le compte porté par le QR-facture."
 
@@ -3079,7 +3075,7 @@ msgstr "Masquer si acheté dans les derniers (jours)"
 msgid "Hide when already in the cart"
 msgstr "Masquer si déjà dans le panier"
 
-#: webshop/public/js/override/sales_order.js:58
+#: webshop/public/js/override/sales_order.js:60
 msgid "Hold the order until it is paid"
 msgstr "Retenir la commande jusqu'au paiement"
 
@@ -3903,7 +3899,7 @@ msgid "Missing required columns: {0}"
 msgstr "Colonnes requises manquantes : {0}"
 
 #. Label of a Link field in DocType 'Webshop Payment Method'
-#: webshop/public/js/override/sales_order.js:67
+#: webshop/public/js/override/sales_order.js:69
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
 msgid "Mode of Payment"
 msgstr "Mode de paiement"
@@ -4835,7 +4831,7 @@ msgid "Payment already processed"
 msgstr "Paiement déjà traité"
 
 #: webshop/public/js/override/payment_request.js:32
-#: webshop/public/js/override/sales_order.js:110
+#: webshop/public/js/override/sales_order.js:112
 msgid "Payment booked"
 msgstr "Paiement enregistré"
 
@@ -4874,15 +4870,18 @@ msgid "Payment processed successfully"
 msgstr "Paiement traité avec succès"
 
 #: webshop/public/js/override/payment_request.js:20
-#: webshop/public/js/override/sales_order.js:40
 msgid "Payment received"
 msgstr "Paiement reçu"
+
+#: webshop/public/js/override/sales_order.js:45
+msgid "Payment received ({0})"
+msgstr "Paiement reçu ({0})"
 
 #: webshop/public/js/override/sales_order.js:26
 msgid "Payment request"
 msgstr "Demande de paiement"
 
-#: webshop/public/js/override/sales_order.js:88
+#: webshop/public/js/override/sales_order.js:90
 msgid "Payment request created"
 msgstr "Demande de paiement créée"
 
@@ -5492,7 +5491,7 @@ msgstr "Commande rapide"
 msgid "Quotation Series"
 msgstr "Série de devis"
 
-#: webshop/public/js/override/sales_order.js:85
+#: webshop/public/js/override/sales_order.js:87
 msgid "Raising the request…"
 msgstr "Création de la demande…"
 
@@ -5719,7 +5718,7 @@ msgid "Request for Quote"
 msgstr "Demande de devis"
 
 #: webshop/public/js/override/sales_order.js:29
-#: webshop/public/js/override/sales_order.js:53
+#: webshop/public/js/override/sales_order.js:55
 msgid "Request payment"
 msgstr "Demander un paiement"
 
@@ -6925,7 +6924,7 @@ msgstr ""
 msgid "The order bump: one box to tick before paying"
 msgstr "L'order bump : une case à cocher avant de payer"
 
-#: webshop/public/js/override/sales_order.js:60
+#: webshop/public/js/override/sales_order.js:62
 msgid ""
 "The order is put On Hold and the request says the goods are reserved. "
 "Uncheck for a deposit on an order that ships anyway."
