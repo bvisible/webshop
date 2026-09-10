@@ -380,6 +380,7 @@ class WebsiteItem(WebsiteGenerator):
 						"item_group": self.item_group,
 						"name": _name_filter
 					},
+					# //// Neoffice — variant_of/item_group fetched so a variant can inherit its template's picture below (40952f3117)
 					fields=["item_code", "web_item_name", "route", "website_image", "variant_of", "item_group"],
 					limit=4,
 					order_by="RAND()"
@@ -742,6 +743,7 @@ class WebsiteItem(WebsiteGenerator):
 				wi.route,
 				wi.web_item_name,
 				wi.website_image,
+				# //// Neoffice — see the block marker above: variant inherits template picture
 				wi.variant_of,
 				wi.item_group,
 			)

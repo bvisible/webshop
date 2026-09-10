@@ -632,6 +632,7 @@
           } else if (items.length === 1) {
             slot = items[0].getBoundingClientRect().width;
           }
+          // //// Neoffice — see the block marker above: carousel view measurement
           const clip = carousel.querySelector('.carousel-clip-container') || carouselInner || carousel;
           itemsPerView = slot > 0 ? Math.max(1, Math.floor((clip.clientWidth + 2) / slot)) : Math.min(4, Math.max(1, itemCount));
 
@@ -674,6 +675,7 @@
           indicators.style.display = hasMultiplePages ? '' : 'none';
           btnLeft.disabled = !hasMultiplePages;
           btnRight.disabled = !hasMultiplePages;
+          // //// Neoffice — see the block marker above: arrows/dots visibility
           btnLeft.style.opacity = '';
           btnRight.style.opacity = '';
         }

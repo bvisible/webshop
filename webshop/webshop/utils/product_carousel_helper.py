@@ -109,6 +109,8 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
             wi.item_code,
             wi.item_condition,
             wi.website_image,
+            # //// Neoffice — variant_of fetched so a variant without a picture can inherit
+            # //// its template's (40952f3117, utils/variant_image.py)
             wi.variant_of,
             wi.route,
             wi.item_group,
