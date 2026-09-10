@@ -427,6 +427,12 @@ land on `/cart?add=ITEM&qty=1` and `/cart?coupon=CODE`
 > quotation only stores the name. Without this, the coupon from an
 > abandoned-cart email vanished at the shipping step.
 
+<!-- //// Neoffice — new section: documents the /shop-by-category page and its fixes
+(the 403 on a Select filter, gift-card/group cards leading nowhere, the useless
+Condition tab, missing translations, the repeated title and lost 130px, per-card
+counts, and the "Default" sort not restoring the initial order) added across
+5d967ca17a, bd4341c282, bbbb6a25e4, ccce63886e, 2bafdf34c2, 4d0659d41a and
+56c6de8861. -->
 ### The category page
 
 `/shop-by-category` (`www/shop-by-category/`) draws one tab per filter field of

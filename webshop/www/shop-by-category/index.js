@@ -25,6 +25,9 @@ $(() => {
 		//// and its three options each sit several lines inside this template literal,
 		//// past what a JS comment can reach from outside the string (2bafdf34c2
 		//// "fix(catalogue): la page « Catégories et marques » cesse de parler anglais").
+		//// Neoffice — pointer can go no closer: the search placeholder, the sort label
+		//// and its three options are several lines inside this template literal
+		//// (2bafdf34c2).
 		const filterHTML = `
 			<div class="container mt-3 p-0">
 				<div class="category-filter-section">
@@ -58,6 +61,11 @@ $(() => {
 			const tabs = $('.category-tabs .nav-tabs').first();
 			if (tabs.length > 0) {
 				clearInterval(checkTabsLoaded);
+				//// Neoffice — "Default" used to re-insert the cards in their CURRENT
+				//// order instead of the one the server sent: once sorted A-Z there was
+				//// no way back. Snapshot each card's start position right after the
+				//// toolbar is injected (56c6de8861 "fix(shop-by-category): « Par défaut »
+				//// rend enfin l'ordre de départ").
 				tabs.closest('.category-tabs').prepend(filterHTML);
 				rememberInitialOrder();
 				initFilterEvents();
