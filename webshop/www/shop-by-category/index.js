@@ -59,11 +59,23 @@ $(() => {
 			if (tabs.length > 0) {
 				clearInterval(checkTabsLoaded);
 				tabs.closest('.category-tabs').prepend(filterHTML);
+				rememberInitialOrder();
 				initFilterEvents();
 			}
 		}, 100);
 	}
 	
+	//// Neoffice — "Default" promised an order it could not give back: sortCategories
+	//// re-inserted the cards in their CURRENT order for that option, so once the visitor
+	//// had sorted A-Z there was no way back. Each card remembers where it started.
+	function rememberInitialOrder() {
+		$('.tab-content .tab-pane').each(function() {
+			$(this).find('.category-card').each(function(index) {
+				this.dataset.order = index;
+			});
+		});
+	}
+
 	// Initialize filter events
 	function initFilterEvents() {
 		// Search functionality
@@ -188,7 +200,10 @@ $(() => {
 		const cards = productsList.children().toArray();
 		
 		// Sort cards based on the selected option
-		if (sortOption !== 'default') {
+		if (sortOption === 'default') {
+			//// Neoffice — back to the order the server sent (see rememberInitialOrder).
+			cards.sort((a, b) => (Number(a.dataset.order) || 0) - (Number(b.dataset.order) || 0));
+		} else {
 			cards.sort(function(a, b) {
 				//// Neoffice — data-name, for the same reason as the search above.
 				const titleA = (a.dataset.name || '').trim().toLowerCase();
