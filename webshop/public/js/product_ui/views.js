@@ -203,6 +203,8 @@ webshop.ProductView =  class {
 		//// that WERE translated; website pages read window.product_translations
 		//// (CLAUDE.md, "Internationalization").
 		const label = (window.product_translations || {})["Active filters:"] || "Active filters:";
+		//// Neoffice — see the marker above: ${label} below renders the translated label;
+		//// no comment fits closer, the line sits inside this template literal.
 		this.products_section.append(`
 			<div class="active-filters-display mt-2 mb-2" style="display: none;">
 				<div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">

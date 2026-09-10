@@ -13,6 +13,11 @@ $(() => {
 	// Create and move filters
 	function createAndMoveFilters() {
 		// Create HTML for filters and sorting options
+		//// Neoffice — the search placeholder, the sort label and its three options below were
+		//// frappe._(), which does not exist on a website page: they printed in English on a
+		//// French shop. They read window.product_translations (_t, declared above) instead.
+		//// No comment fits closer: they sit inside this template literal (2bafdf34c2 "fix(catalogue):
+		//// la page « Catégories et marques » cesse de parler anglais").
 		const filterHTML = `
 			<div class="container mt-3 p-0">
 				<div class="category-filter-section">
@@ -94,8 +99,12 @@ $(() => {
 		let category_value = e.currentTarget.dataset.value || e.currentTarget.dataset.name;
 		let href = e.currentTarget.querySelector('a.stretched-link')?.getAttribute('href');
 
+		//// Neoffice — see the marker above: a card the server already gave a route to (href set)
+		//// is left to its own link, instead of racing it with this rebuilt redirect.
 		if (category_type != "item_group" && (!href || href === "#")) {
 			let filters = {};
+			//// Neoffice — see the marker above: category_value now comes from data-value, so the
+			//// rebuilt filter/redirect matches what the catalogue actually filters on.
 			filters[category_type] =  [category_value];
 			window.location.href = "/all-products?field_filters=" + encodeURIComponent(JSON.stringify(filters));
 		}
@@ -148,6 +157,8 @@ $(() => {
 				//// through the page's translation table like every other label here.
 				const message = _t('No result found for "{0}". Try another search.')
 					.replace("{0}", frappe.utils.escape_html(searchTerm));
+				//// Neoffice — see the marker above: message is the translated string built there,
+				//// no longer the hard-coded French sentence.
 				activeTabContent.find('.products-list').append(
 					'<div class="col-12 text-center no-results-message"><p>' + message + '</p></div>'
 				);
