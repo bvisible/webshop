@@ -4,6 +4,13 @@ import json
 from webshop.webshop.shopping_cart.cart import place_order, _get_cart_quotation, is_gift_card_item
 # //// Neoffice — #277: the customer's session reads neither Item nor Account (shop_rights.py).
 from webshop.webshop.shopping_cart.shop_rights import save_as_shop, shop_rights
+# //// Neoffice — a payment method is offered to a customer group, and carries that
+# //// group's payment terms (utils/payment_methods.py).
+from webshop.webshop.utils.payment_methods import (
+    customer_group_of,
+    row_for_gateway,
+    rows_for_group,
+)
 from erpnext.accounts.doctype.payment_request.payment_request import make_payment_entry
 
 class PaymentHandler:
@@ -102,11 +109,13 @@ class PaymentHandler:
                     frappe.throw(_("Payment Gateway not found: {0}").format(payment_gateway))
                 gateway = payment_gateway
                 gateway_account = frappe.get_doc("Payment Gateway Account", {"payment_gateway": gateway})
-                payment_method_name = gateway.split("-")[0].strip()
-                for method in settings.payment_methods:
-                    if method.payment_gateway_account.startswith(payment_method_name):
-                        payment_terms_template = method.payment_terms_template
-                        break
+                # //// Neoffice — the terms come from the row this customer was OFFERED,
+                # //// not from the first row whose account name happens to start with the
+                # //// gateway's. Two groups can share a gateway on different terms — 30
+                # //// days for one, 2% within 10 for the other — and `startswith` handed
+                # //// both of them whichever row came first. See utils/payment_methods.py.
+                _row = row_for_gateway(gateway_account.name, settings, customer_group_of(quotation))
+                payment_terms_template = _row.payment_terms_template if _row else None
 
             # If gateway_settings is provided, use it directly
             elif gateway_settings:
@@ -118,22 +127,19 @@ class PaymentHandler:
                 # Get Payment Gateway Account
                 gateway_account = frappe.get_doc("Payment Gateway Account", {"payment_gateway": gateway})
                 
-                # Get the payment method from webshop settings based on the gateway name
-                # Extract the payment method name (part before the dash if any)
-                payment_method_name = gateway.split("-")[0].strip()
-                
-                # Find matching payment method in webshop settings
-                for method in settings.payment_methods:
-                    if method.payment_gateway_account.startswith(payment_method_name):
-                        payment_terms_template = method.payment_terms_template
-                        break
+                # //// Neoffice — see the marker above: the row this customer was offered.
+                _row = row_for_gateway(gateway_account.name, settings, customer_group_of(quotation))
+                payment_terms_template = _row.payment_terms_template if _row else None
                 
             else:
-                # Use default payment method
-                payment_method = self.get_default_payment_method()
-                payment_method_doc = frappe.get_doc("Webshop Payment Method", payment_method)
+                # //// Neoffice — the default is the first method THIS customer is offered,
+                # //// not the first row of the table: falling back to a row aimed at another
+                # //// group would charge them through a method the shop never showed them.
+                offered = rows_for_group(settings, customer_group_of(quotation))
+                if not offered:
+                    frappe.throw(_("No payment method is available for your account."))
+                payment_method_doc = offered[0]
                 payment_terms_template = payment_method_doc.payment_terms_template
-                # Get payment gateway account
                 gateway_account = frappe.get_doc("Payment Gateway Account", payment_method_doc.payment_gateway_account)
             
             # Update quotation with payment_gateway
@@ -520,11 +526,15 @@ class PaymentHandler:
                 "redirect_to": ""
             }
 
-    def get_default_payment_method(self):
-        """Get default payment method"""
-        settings = frappe.get_doc("Webshop Settings")
-        payment_methods = settings.get("payment_methods", [])
-        return payment_methods[0].name if payment_methods else None
+    def get_default_payment_method(self, customer_group=None):
+        """The first payment method offered, for `customer_group` when one is given.
+
+        //// Neoffice — takes the customer group into account. Without it, the answer
+        //// was the first row of the table, which may be aimed at another group
+        //// entirely (utils/payment_methods.py).
+        """
+        offered = rows_for_group(frappe.get_cached_doc("Webshop Settings"), customer_group)
+        return offered[0].name if offered else None
 
     def handle_direct_order(self, idempotency_token=None):
         """Handle direct order validation without payment"""

@@ -849,7 +849,7 @@ def get_shipping_address(user=None):
 		frappe.log_error(f"Error in get_shipping_address", e)
 		return None
 
-def _document_a_payer(reference_doctype=None, reference_docname=None):
+def _document_to_pay(reference_doctype=None, reference_docname=None):
 	"""//// Neoffice — what gets paid for is not always a cart.
 
 	The shop pays its cart; the booking module pays an invoice already issued,
@@ -881,8 +881,20 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 				"message": "Online payment is not enabled"
 			}
 
+		# //// Neoffice — the shopper is offered the rows meant for their customer group,
+		# //// not the whole table. A business that has just been approved pays in advance
+		# //// by transfer, an established reseller buys on account, a consumer pays by
+		# //// card — three sets of tiles on the same checkout. `rows_for_group` also picks
+		# //// WHICH row of a gateway applies, so the payment terms written on the document
+		# //// are the ones that group was promised. See utils/payment_methods.py.
+		from webshop.webshop.utils.payment_methods import customer_group_of, rows_for_group
+
+		# //// Neoffice — resolved once: the loop used to rebuild the cart on every row.
+		document_to_pay = _document_to_pay(reference_doctype, reference_docname)
+		offered_rows = rows_for_group(settings, customer_group_of(document_to_pay))
+
 		methods = []
-		for webshop_method in settings.payment_methods:
+		for webshop_method in offered_rows:
 			try:
 				# 1. For each method, get Payment Gateway Account
 				payment_gateway_account = frappe.get_doc("Payment Gateway Account", webshop_method.payment_gateway_account)
@@ -929,8 +941,8 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 				)
 				logo_html = f"<img src='{payment_gateway_account.logo}' alt='{title}' class='payment-logo'>" if payment_gateway_account.logo else ""
 				description = payment_gateway_account.checkout_description or ""
-				# //// Neoffice — the cart, or the document the caller named.
-				quotation_doc = _document_a_payer(reference_doctype, reference_docname)
+				# //// Neoffice — resolved above, once for the whole loop.
+				quotation_doc = document_to_pay
 
 				# Hide installment-based methods entirely when the cart doesn't reach
 				# the smallest configured minimum (all options would be greyed out).
@@ -1380,7 +1392,7 @@ def get_payment_template(payment_gateway_account, context=None):
 		# //// context, else the cart. Without this, a booking invoice was answered
 		# //// "Your basket is empty" when it never had a cart at all, and its
 		# //// reference was overwritten further down anyway.
-		quotation_doc = _document_a_payer(
+		quotation_doc = _document_to_pay(
 			context.get("reference_doctype"), context.get("reference_docname")
 		)
 

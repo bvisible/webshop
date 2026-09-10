@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "payment_gateway_account",
+  "customer_group",
   "payment_terms_template",
   "template_path",
   "use_payment_intent",
@@ -21,6 +22,15 @@
    "options": "Payment Gateway Account",
    "columns": 2,
    "reqd": 1
+  },
+  {
+   "fieldname": "customer_group",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Offered To",
+   "options": "Customer Group",
+   "columns": 2,
+   "description": "Offer this method only to that customer group <b>and its sub-groups</b>. Leave empty to offer it to everyone. Add the same gateway on several rows, one per group, when a group must get its own payment terms — a group buying on account at 30 days and another at 2% within 10 days are two rows of the same method."
   },
   {
    "fieldname": "payment_terms_template",
