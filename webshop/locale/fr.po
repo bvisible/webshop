@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-10 15:16+0000\n"
+"POT-Creation-Date: 2026-09-10 16:10+0000\n"
 "PO-Revision-Date: 2025-12-15 15:24+0034\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
@@ -303,6 +303,10 @@ msgstr "Ajouter une section avec onglets"
 #: webshop/templates/includes/cart/cart_address.html:40
 msgid "Add a new address"
 msgstr "Ajouter une nouvelle adresse"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:314
+msgid "Add at least one payment method before enabling the checkout."
+msgstr ""
 
 #: webshop/webshop/utils/cross_sell.py:229
 msgid "Add both"
@@ -833,6 +837,10 @@ msgstr "Disponible pour ces pays uniquement ; si vide, accepte tous les pays"
 msgid "Available on backorder"
 msgstr "Disponible sur commande"
 
+#: webshop/public/js/override/sales_order.js:44
+msgid "Awaiting payment: {0}"
+msgstr "Paiement attendu : {0}"
+
 #. Option for the 'Icon' (Select) field in DocType 'Webshop Trust Item'
 #: webshop/webshop/doctype/webshop_trust_item/webshop_trust_item.json
 msgid "Award"
@@ -936,7 +944,12 @@ msgstr "Réserver"
 msgid "Book this payment and raise the invoice?"
 msgstr "Enregistrer ce paiement et émettre la facture ?"
 
+#: webshop/public/js/override/sales_order.js:100
+msgid "Book {0} as received, and raise the invoice?"
+msgstr "Enregistrer {0} comme reçu et émettre la facture ?"
+
 #: webshop/public/js/override/payment_request.js:28
+#: webshop/public/js/override/sales_order.js:107
 msgid "Booking the payment…"
 msgstr "Enregistrement du paiement…"
 
@@ -1238,6 +1251,10 @@ msgstr ""
 "Le paiement est désactivé. Veuillez l'activer dans les paramètres de la "
 "boutique.Le paiement est désactivé. Veuillez l'activer dans les paramètres "
 "de la boutique."
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:315
+msgid "Checkout not enabled"
+msgstr ""
 
 #: webshop/templates/pages/checkout.html:347
 msgid "Choose Shipping Method"
@@ -1656,6 +1673,7 @@ msgid "Cover"
 msgstr "Remplir"
 
 #: webshop/public/js/override/item.js:296
+#: webshop/public/js/override/sales_order.js:74
 msgid "Create"
 msgstr "Créer"
 
@@ -1843,6 +1861,10 @@ msgstr "Jours après l'achat"
 #: webshop/webshop/shopping_cart/cart.py:2723
 msgid "Debtors ({0})"
 msgstr "Débiteurs ({0})"
+
+#: webshop/public/js/override/sales_order.js:71
+msgid "Decides the account on the QR bill."
+msgstr "Détermine le compte porté par le QR-facture."
 
 #: webshop/templates/pages/checkout.js:1068
 #: webshop/www/shop-by-category/index.html:91
@@ -3057,6 +3079,10 @@ msgstr "Masquer si acheté dans les derniers (jours)"
 msgid "Hide when already in the cart"
 msgstr "Masquer si déjà dans le panier"
 
+#: webshop/public/js/override/sales_order.js:58
+msgid "Hold the order until it is paid"
+msgstr "Retenir la commande jusqu'au paiement"
+
 #. Label of a Link field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Holiday List"
@@ -3863,12 +3889,12 @@ msgstr "Montant minimum requis :"
 msgid "Minutes"
 msgstr "Minutes"
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:329
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:346
 msgid "Missing"
 msgstr "Manquant"
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:315
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:319
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:332
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:336
 msgid "Missing Currency"
 msgstr "Devise manquante"
 
@@ -3877,9 +3903,10 @@ msgid "Missing required columns: {0}"
 msgstr "Colonnes requises manquantes : {0}"
 
 #. Label of a Link field in DocType 'Webshop Payment Method'
+#: webshop/public/js/override/sales_order.js:67
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
 msgid "Mode of Payment"
-msgstr ""
+msgstr "Mode de paiement"
 
 #. Label of a Data field in DocType 'Shop Assistant Message'
 #. Label of a Data field in DocType 'Webshop Settings'
@@ -4299,7 +4326,9 @@ msgid ""
 "Leave empty to offer it to everyone. Add the same gateway on several rows, "
 "one per group, when a group must get its own payment terms — a group buying "
 "on account at 30 days and another at 2% within 10 days are two rows of the "
-"same method."
+"same method.<br><br>The field is <b>not</b> called customer_group on "
+"purpose: Frappe fills a Link field of that name with the session default at "
+"insert time, so \"empty means everyone\" could never happen."
 msgstr ""
 
 #. Label of a Link field in DocType 'Cross Sell Offer'
@@ -4418,6 +4447,10 @@ msgstr ""
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json
 msgid "Open"
 msgstr ""
+
+#: webshop/public/js/override/sales_order.js:34
+msgid "Open request {0}"
+msgstr "Ouvrir la demande {0}"
 
 #: webshop/templates/pages/checkout.js:3089
 #: webshop/templates/pages/checkout.py:1196
@@ -4802,6 +4835,7 @@ msgid "Payment already processed"
 msgstr "Paiement déjà traité"
 
 #: webshop/public/js/override/payment_request.js:32
+#: webshop/public/js/override/sales_order.js:110
 msgid "Payment booked"
 msgstr "Paiement enregistré"
 
@@ -4840,8 +4874,17 @@ msgid "Payment processed successfully"
 msgstr "Paiement traité avec succès"
 
 #: webshop/public/js/override/payment_request.js:20
+#: webshop/public/js/override/sales_order.js:40
 msgid "Payment received"
 msgstr "Paiement reçu"
+
+#: webshop/public/js/override/sales_order.js:26
+msgid "Payment request"
+msgstr "Demande de paiement"
+
+#: webshop/public/js/override/sales_order.js:88
+msgid "Payment request created"
+msgstr "Demande de paiement créée"
 
 #: webshop/templates/pages/payment-success.html:19
 #: webshop/templates/pages/payment-success.html:42
@@ -4931,7 +4974,7 @@ msgstr "Veuillez accepter les conditions générales pour continuer"
 msgid "Please check your payment details"
 msgstr "Veuillez vérifier vos informations de paiement"
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:394
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:411
 msgid "Please enable 'Frequently Bought Together' first"
 msgstr "Veuillez d'abord activer 'Fréquemment achetés ensemble'"
 
@@ -5449,6 +5492,10 @@ msgstr "Commande rapide"
 msgid "Quotation Series"
 msgstr "Série de devis"
 
+#: webshop/public/js/override/sales_order.js:85
+msgid "Raising the request…"
+msgstr "Création de la demande…"
+
 #. Label of a Int field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
 msgid "Ranking"
@@ -5670,6 +5717,11 @@ msgstr ""
 #: webshop/templates/includes/cart/place_order.html:27
 msgid "Request for Quote"
 msgstr "Demande de devis"
+
+#: webshop/public/js/override/sales_order.js:29
+#: webshop/public/js/override/sales_order.js:53
+msgid "Request payment"
+msgstr "Demander un paiement"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:91
 msgid "Required columns: code, value"
@@ -6014,7 +6066,7 @@ msgstr "Définir les balises méta"
 msgid "Set Shipping Address or Billing Address"
 msgstr "Définir l'adresse de livraison ou de facturation"
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:333
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:350
 msgid "Set Tax Rule for shopping cart"
 msgstr "Définir la règle fiscale pour le panier"
 
@@ -6366,7 +6418,7 @@ msgstr "Plan du site"
 msgid "Sitemap Settings"
 msgstr "Paramètres du sitemap"
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:431
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:448
 msgid ""
 "Sitemap cache has been cleared successfully. The sitemaps will be "
 "regenerated on next access."
@@ -6604,6 +6656,10 @@ msgstr "Sujet"
 #: webshop/templates/generators/item/item_reviews.html:147
 msgid "Submit"
 msgstr "Valider"
+
+#: webshop/webshop/shopping_cart/offline_payment.py:159
+msgid "Submit the order first."
+msgstr "Validez d'abord la commande."
 
 #: webshop/templates/pages/order.html:84
 msgid "Submitted"
@@ -6869,6 +6925,14 @@ msgstr ""
 msgid "The order bump: one box to tick before paying"
 msgstr "L'order bump : une case à cocher avant de payer"
 
+#: webshop/public/js/override/sales_order.js:60
+msgid ""
+"The order is put On Hold and the request says the goods are reserved. "
+"Uncheck for a deposit on an order that ships anyway."
+msgstr ""
+"La commande passe en attente et la demande indique que la marchandise est "
+"réservée. Décochez pour un acompte sur une commande qui part quand même."
+
 #: webshop/templates/payments/stripe.html:213
 msgid "The payment could not be completed. Please try again."
 msgstr "Le paiement n'a pas pu aboutir. Veuillez réessayer."
@@ -7016,11 +7080,11 @@ msgstr "Ce moyen de paiement n'est pas disponible pour votre compte."
 msgid "This payment method is settled online."
 msgstr "Ce moyen de paiement se règle en ligne."
 
-#: webshop/webshop/shopping_cart/offline_payment.py:168
+#: webshop/webshop/shopping_cart/offline_payment.py:209
 msgid "This payment request is already settled."
 msgstr "Cette demande de paiement est déjà réglée."
 
-#: webshop/webshop/shopping_cart/offline_payment.py:166
+#: webshop/webshop/shopping_cart/offline_payment.py:207
 msgid "This payment request is not submitted."
 msgstr "Cette demande de paiement n'est pas validée."
 
@@ -7969,6 +8033,8 @@ msgid ""
 "Written on the payment request raised for an offline settlement, so the "
 "payment entry lands on the right account. Bank transfer, for instance."
 msgstr ""
+"Inscrit sur la demande de paiement émise pour un règlement hors ligne, afin "
+"que l'écriture tombe sur le bon compte. Le virement bancaire, par exemple."
 
 #. Option for the 'Hide Currency Symbol in Shop' (Select) field in DocType
 #. 'Webshop Settings'
@@ -8054,7 +8120,7 @@ msgstr "Vous n'avez pas encore d'adresses enregistrées."
 msgid "You don't have permission to create gift cards"
 msgstr "Vous n'avez pas la permission de créer des cartes cadeaux"
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:602
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:619
 msgid "You don't have permission to modify Item Groups"
 msgstr "Vous n'avez pas la permission de modifier les groupes d'articles"
 
@@ -8070,7 +8136,7 @@ msgstr "Vous devez avoir au moins"
 msgid "You must be at least {0} years old to order"
 msgstr "Vous devez avoir au moins {0} ans pour passer commande"
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:526
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:543
 msgid "You need to enable Shopping Cart"
 msgstr "Vous devez activer le panier d'achat"
 
@@ -8397,7 +8463,7 @@ msgstr ""
 msgid "{0} available"
 msgstr "{0} disponibles"
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:617
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:634
 msgid "{0} categories updated"
 msgstr "{0} catégories mises à jour"
 
