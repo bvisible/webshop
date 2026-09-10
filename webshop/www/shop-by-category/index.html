@@ -112,6 +112,10 @@
 				add_top_padding=0,
 				add_bottom_padding=0,
 			) }}
+	{# //// Neoffice — the endif tag used to close right here, just after the slideshow
+	content; it now wraps the whole <div> below instead, so an empty slideshow no longer
+	pays its 2rem bottom margin (5d967ca17a "feat(shop-by-category): le titre ne se répète
+	plus, la page remonte, et chaque vignette dit combien elle contient"). #}
 	</div>
 	{% endif %}
 	<div class="category-tabs">

@@ -193,6 +193,8 @@ def get_category_records(categories):
 			groups = frappe.db.get_all(
 				"Item Group",
 				filters={"show_in_website": 1},
+				# //// Neoffice — see the marker above: lft/rgt added here for the
+				# //// subtree-carries-items check (bd4341c282).
 				fields=["name", "parent_item_group", "is_group", "image", "route", "lft", "rgt"],
 			)
 			# //// Neoffice — a group the catalogue can show nothing in gets no card, and
