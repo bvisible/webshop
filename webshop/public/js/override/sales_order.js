@@ -9,18 +9,45 @@
 // request and a payment entry, and the last of them cannot even be reached from
 // the first.
 frappe.ui.form.on("Sales Order", {
+	//// The answer is fetched once and kept on the form, and the buttons are drawn
+	//// SYNCHRONOUSLY on every refresh after that.
+	////
+	//// Drawing them straight from the server callback did not hold: `refresh` runs
+	//// several times while a form settles, and each run rebuilds the action bar —
+	//// so a button added by a callback that came back late was wiped by the next
+	//// redraw. It showed on screen as a group that appeared, then vanished. The
+	//// dashboard indicator this file used to add died the same way.
+	onload(frm) {
+		frm.__webshop_request = undefined;
+	},
+
 	refresh(frm) {
 		if (frm.doc.docstatus !== 1) return;
 		//// Nothing to ask for on an order already invoiced in full.
 		if (frm.doc.per_billed >= 100) return;
 
+		if (frm.__webshop_request !== undefined) {
+			draw(frm, frm.__webshop_request);
+			return;
+		}
+		//// null while the answer travels, so a second refresh does not ask again.
+		frm.__webshop_request = null;
 		frappe.call({
 			method: "webshop.webshop.shopping_cart.offline_payment.open_payment_request",
 			args: { sales_order: frm.doc.name },
-			callback: (r) => draw(frm, r ? r.message : null),
+			callback: (r) => {
+				frm.__webshop_request = (r && r.message) || null;
+				draw(frm, frm.__webshop_request);
+			},
 		});
 	},
 });
+
+//// Whatever we knew is stale once an action ran: forget it, then reload.
+function refresh_after(frm) {
+	frm.__webshop_request = undefined;
+	frm.reload_doc();
+}
 
 function draw(frm, request) {
 	const group = __("Payment request");
@@ -88,7 +115,7 @@ function ask(frm) {
 				callback: (r) => {
 					if (!r.message) return;
 					frappe.show_alert({ message: __("Payment request created"), indicator: "green" });
-					frm.reload_doc();
+					refresh_after(frm);
 				},
 			});
 		},
@@ -110,7 +137,7 @@ function book(frm, request) {
 				callback: (r) => {
 					if (!r.message) return;
 					frappe.show_alert({ message: __("Payment booked"), indicator: "green" });
-					frm.reload_doc();
+					refresh_after(frm);
 				},
 			});
 		}
