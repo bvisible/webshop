@@ -201,7 +201,7 @@ DocType `Website Profile` (app `neoffice_theme`) : accueil, liste de prix,
 sous-ensemble du catalogue et règles d'accès propres à chacune.
 
 ```ini
-WEBSHOP_E2E_B2B_URL=https://osiris-votre-instance.neoffice.me
+WEBSHOP_E2E_B2B_URL=https://osiris-b2b.neoffice.me
 ```
 
 Sans cette variable, les tests multi-site s'ignorent en le disant.
