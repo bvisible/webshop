@@ -26,6 +26,22 @@ def gift_card_sql_condition(table="`tabWebsite Item`"):
 	return f" AND IFNULL({table}.is_gift_card, 0) = 0" if gift_cards_hidden() else ""
 
 
+# //// Neoffice — the rule that decides whether a Select facet is worth drawing, pulled
+# //// out of get_field_filters and named so that /shop-by-category can obey the SAME one.
+# //// That page had no rule at all and offered a "Condition" tab holding the single card
+# //// "New" on a shop that has never sold anything else (theleague, 2026-09-10) — while
+# //// the sidebar, right next to it, showed no Condition facet.
+def select_facet_is_useful(fieldname, values):
+	"""Does this Select field offer the visitor a choice?
+
+	Every item carries a condition, so a shop selling only new goods would get a
+	one-value facet reading "New": a tick box that selects the whole catalogue.
+	"""
+	if fieldname == "item_condition":
+		return bool([v for v in values if v and v != "New"])
+	return bool([v for v in values if v])
+
+
 class ProductFiltersBuilder:
 	def __init__(self, item_group=None):
 		# //// Neoffice — upstream reads the filter configuration from the Item Group when there
@@ -159,10 +175,10 @@ class ProductFiltersBuilder:
 			if None in values:
 				values.remove(None)
 
-			# //// Neoffice — second-hand: every item carries a condition, so a
-			# //// shop that only sells new goods would get a one-value facet
-			# //// reading "New". Show the facet once there is a choice to make.
-			if df.fieldname == "item_condition" and not [v for v in values if v and v != "New"]:
+			# //// Neoffice — second-hand: show a Select facet once there is a choice to
+			# //// make. The rule lives in select_facet_is_useful() above, because
+			# //// /shop-by-category has to draw its tabs by the same one.
+			if df.fieldtype == "Select" and not select_facet_is_useful(df.fieldname, values):
 				continue
 
 			if values:

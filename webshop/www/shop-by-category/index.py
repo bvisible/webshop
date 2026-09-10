@@ -88,7 +88,7 @@ def _select_cards(fieldname):
 	shop hides them. Each card links to the catalogue already filtered on its value.
 	"""
 	from webshop.webshop.multi_site import excluded_item_names
-	from webshop.webshop.product_data_engine.filters import gift_cards_hidden
+	from webshop.webshop.product_data_engine.filters import gift_cards_hidden, select_facet_is_useful
 
 	filters = {"published": 1}
 	excluded = excluded_item_names()
@@ -106,6 +106,11 @@ def _select_cards(fieldname):
 		)
 		if value
 	}
+	# //// Neoffice — the sidebar's own rule: no cards when the field offers no choice,
+	# //// so the page and the facets stop disagreeing.
+	if not select_facet_is_useful(fieldname, values):
+		return []
+
 	# The card reads in the visitor's language; the link carries the value stored on
 	# the item, which is what the catalogue filters on.
 	return [
@@ -137,7 +142,9 @@ def get_category_records(categories):
 		# //// The facets already handled Select (product_data_engine/filters.py); this page
 		# //// never learned to.
 		if df is not None and df.fieldtype == "Select":
-			categorical_data[category] = _select_cards(category)
+			cards = _select_cards(category)
+			if cards:
+				categorical_data[category] = cards
 			continue
 		if category == "item_group":
 			categorical_data["item_group"] = frappe.db.get_all(

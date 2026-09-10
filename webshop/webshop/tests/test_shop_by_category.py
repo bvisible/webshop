@@ -117,6 +117,19 @@ class TestShopByCategory(FrappeTestCase):
 		# the card reads in the visitor's language, the link carries what is stored
 		self.assertEqual(card.name, frappe._("Second-hand"))
 
+	def test_a_field_offering_no_choice_gets_no_tab_at_all(self):
+		"""The sidebar's rule, which this page now shares: a "Condition" tab holding the
+		single card "New" told the visitor nothing, on a shop that has never sold
+		anything else — while the sidebar right beside it showed no Condition facet."""
+		from webshop.webshop.product_data_engine.filters import select_facet_is_useful
+
+		self.assertFalse(select_facet_is_useful("item_condition", ["New"]))
+		self.assertFalse(select_facet_is_useful("item_condition", ["New", None]))
+		self.assertTrue(select_facet_is_useful("item_condition", ["New", "Second-hand"]))
+		# any other Select field: one published value is still something to filter on
+		self.assertTrue(select_facet_is_useful("_wstest_other_select", ["A"]))
+		self.assertFalse(select_facet_is_useful("_wstest_other_select", [None, ""]))
+
 	# --- and every other type still answers what it used to ---------------------------
 
 	def test_item_group_still_comes_back(self):
