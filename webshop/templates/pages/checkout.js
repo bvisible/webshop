@@ -2837,6 +2837,15 @@ frappe.ready(function() {
             //// At the slightest doubt — failed call, unexpected action — we
             //// fall back to the template: better a known path than an empty
             //// screen during a payment.
+            //// Neoffice — a tile that settles offline has no gateway to call and no
+            //// template to fetch: the shop places the order itself and tells the
+            //// shopper what happens next. Drawn here, before the intent probe, so no
+            //// PSP is contacted for a method that has none.
+            if (method.settlement && method.settlement !== 'Online') {
+                this.showOfflineScreen(method, $form, cleanId);
+                return;
+            }
+
             const self_ = this;
             frappe.call({
                 method: 'webshop.templates.pages.checkout.start_cart_intent',
@@ -2852,6 +2861,56 @@ frappe.ready(function() {
                     self_.loadLegacyPaymentTemplate(method, $form, cleanId, formId);
                 },
                 error: function () { self_.loadLegacyPaymentTemplate(method, $form, cleanId, formId); },
+            });
+        }
+
+        //// Neoffice — the screen of a tile that settles outside any gateway: bank
+        //// transfer before shipping, or buying on account. It says what will happen,
+        //// then places the order — same terms checkbox and same veil as every other
+        //// tile, through wrapWithTerms/bindIntentTerms.
+        ////
+        //// Every word comes from the server: a website page has no __() catalogue, so
+        //// anything written here would print in English on a French shop.
+        showOfflineScreen(method, $form, cleanId) {
+            const notice = method.settlement_notice || '';
+            const action = method.settlement_action || '';
+            const inner =
+                '<div class="offline-settlement">' +
+                (notice
+                    ? '<p class="text-muted mb-3">' + frappe.utils.escape_html(notice) + '</p>'
+                    : '') +
+                '<button type="button" class="btn btn-primary w-100 offline-place-order">' +
+                frappe.utils.escape_html(action) +
+                '</button></div>';
+
+            $form.html(this.wrapWithTerms(inner, cleanId, false)).show();
+            this.bindIntentTerms($form);
+
+            $form.find('.offline-place-order').on('click', () => {
+                if (!this.startPaymentProcessing()) return;
+                this.freezeElements(['payment-method-item']);
+                frappe.call({
+                    method: 'webshop.webshop.shopping_cart.offline_payment.place_offline_order',
+                    args: {
+                        payment_gateway_account: method.payment_gateway_account,
+                        idempotency_token: this.getIdempotencyToken(),
+                    },
+                    callback: (r) => {
+                        const answer = r && r.message;
+                        if (answer && answer.status === 'success' && answer.redirect_to) {
+                            window.location.href = answer.redirect_to;
+                            return;
+                        }
+                        this.stopPaymentProcessing();
+                        this.unfreezeElements(['payment-method-item']);
+                    },
+                    error: () => {
+                        //// Neoffice — the server has already shown its message; freeing
+                        //// the tiles is what lets the shopper try another one.
+                        this.stopPaymentProcessing();
+                        this.unfreezeElements(['payment-method-item']);
+                    },
+                });
             });
         }
 

@@ -871,6 +871,21 @@ def _document_to_pay(reference_doctype=None, reference_docname=None):
 	return (get_cart_quotation() or {}).get("doc")
 
 
+# //// Neoffice — added: what an offline tile tells the shopper before they commit.
+# //// Translated here and sent with the tile, because a website page carries no __()
+# //// catalogue of its own (CLAUDE.md, "Internationalization").
+def _settlement_notice(settlement):
+	"""One sentence saying what happens after the order is placed, or None."""
+	if settlement == "Transfer before shipping":
+		return _(
+			"Your order is registered and held until payment is received. "
+			"You will get the payment details with your order confirmation."
+		)
+	if settlement == "On account":
+		return _("Your order is registered and invoiced under your agreed payment terms.")
+	return None
+
+
 @frappe.whitelist(allow_guest=True)
 def get_payment_methods(reference_doctype=None, reference_docname=None):
 	"""Get payment methods configured in Webshop Settings"""
@@ -966,6 +981,10 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 					if mins and len(mins) == len(installments) and cart_amount < min(mins):
 						continue
 				
+				# //// Neoffice — read once: it decides both the tile's own screen and
+				# //// whether the shopper is handed to a gateway at all.
+				settlement = webshop_method.get("settlement") or "Online"
+
 				# Safe access to mode_of_payment (without error logging)
 				mode_of_payment = getattr(webshop_method, 'mode_of_payment', None)
 				
@@ -987,6 +1006,14 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 					"payment_gateway_account": payment_gateway_account.name,
 					"currency": payment_gateway_account.currency,
 					"gateway_type": gateway_type,
+					# //// Neoffice — how this tile settles. "Online" hands the shopper to the
+					# //// gateway, as it always did; the two offline values place the order
+					# //// and never call a PSP (see shopping_cart/offline_payment.py). The
+					# //// wording travels with the tile because a website page has no __()
+					# //// catalogue of its own (CLAUDE.md).
+					"settlement": settlement,
+					"settlement_notice": _settlement_notice(settlement),
+					"settlement_action": _("Place order") if settlement != "Online" else None,
 					"doc": quotation_doc
 				}
 				

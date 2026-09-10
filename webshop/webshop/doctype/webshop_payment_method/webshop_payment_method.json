@@ -7,7 +7,9 @@
  "field_order": [
   "payment_gateway_account",
   "customer_group",
+  "settlement",
   "payment_terms_template",
+  "mode_of_payment",
   "template_path",
   "use_payment_intent",
   "restrict_payment_methods",
@@ -33,12 +35,31 @@
    "description": "Offer this method only to that customer group <b>and its sub-groups</b>. Leave empty to offer it to everyone. Add the same gateway on several rows, one per group, when a group must get its own payment terms — a group buying on account at 30 days and another at 2% within 10 days are two rows of the same method."
   },
   {
+   "fieldname": "settlement",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Settlement",
+   "options": "Online\nTransfer before shipping\nOn account",
+   "default": "Online",
+   "columns": 2,
+   "reqd": 1,
+   "description": "<b>Online</b>: the shopper is handed to the gateway and the order follows the payment.<br><b>Transfer before shipping</b>: the order is placed and waits. A payment request carrying the QR bill is raised on it; no invoice is issued until the money arrives.<br><b>On account</b>: the order is placed and shipped, and invoiced on the terms above."
+  },
+  {
    "fieldname": "payment_terms_template",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Payment Terms Template",
    "options": "Payment Terms Template",
    "columns": 2
+  },
+  {
+   "fieldname": "mode_of_payment",
+   "fieldtype": "Link",
+   "label": "Mode of Payment",
+   "options": "Mode of Payment",
+   "depends_on": "eval:doc.settlement && doc.settlement != 'Online'",
+   "description": "Written on the payment request raised for an offline settlement, so the payment entry lands on the right account. Bank transfer, for instance."
   },
   {
    "fieldname": "template_path",
