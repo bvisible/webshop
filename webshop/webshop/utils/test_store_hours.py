@@ -54,7 +54,7 @@ class TestStoreHours(FrappeTestCase):
 		super().tearDownClass()
 
 	def test_closed_for_lunch_reopens_today_not_tomorrow(self):
-		"""The blowbackshop bug: 12:30 on a Friday said 'tomorrow at 10:00'."""
+		"""The footer-widget bug: 12:30 on a Friday said 'tomorrow at 10:00'."""
 		status = store_hours.status_at(at(FRIDAY, 12, 30), settings_like(WEEK))
 		self.assertFalse(status.is_open)
 		self.assertEqual(status.next_opening, at(FRIDAY, 13, 30))

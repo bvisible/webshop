@@ -524,7 +524,8 @@ Every computation takes the clock as an argument, so `test_store_hours.py`
 fixes it.
 
 > **The next opening is looked for on the current day first.** The footer
-> widget this replaces (blowbackshop.ch) started from tomorrow, so between
+> widget this replaces (the WordPress shop we migrated from) started from
+> tomorrow, so between
 > 12:00 and 13:30 it announced "tomorrow at 10:00". Closed for lunch means
 > "today at 13:30"; a closure hides the whole day and names itself.
 
