@@ -21,6 +21,10 @@ $(() => {
 		//// Neoffice — pointer: the search placeholder, the sort label and its three
 		//// options below (lines with ${_t(...)}) are the translated strings this fix
 		//// introduced (2bafdf34c2).
+		//// Neoffice — pointer can go no closer: the search placeholder, the sort label
+		//// and its three options each sit several lines inside this template literal,
+		//// past what a JS comment can reach from outside the string (2bafdf34c2
+		//// "fix(catalogue): la page « Catégories et marques » cesse de parler anglais").
 		const filterHTML = `
 			<div class="container mt-3 p-0">
 				<div class="category-filter-section">

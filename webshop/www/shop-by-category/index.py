@@ -185,6 +185,11 @@ def get_category_records(categories):
 				categorical_data[category] = cards
 			continue
 		if category == "item_group":
+			# //// Neoffice — lft/rgt added to the fetched fields: the subtree-carries-items
+			# //// check a few lines below (_carried_values) needs them to test whether a
+			# //// group or any of its descendants falls inside a range that actually has
+			# //// published items (bd4341c282 "fix(shop-by-category): une vignette qui ne
+			# //// mène nulle part disparaît").
 			groups = frappe.db.get_all(
 				"Item Group",
 				filters={"show_in_website": 1},
@@ -250,6 +255,10 @@ def get_category_records(categories):
 			elif meta.get_field("custom_show_in_website"):
 				filters = {"custom_show_in_website": 1}
 
+			# //// Neoffice — the get_all call itself is now wrapped too: a doctype that
+			# //// exists but whose table or column is missing costs only this tab, not the
+			# //// whole page (ccce63886e "fix(shop-by-category): un filtre Select ne fait
+			# //// plus tomber la page entière").
 			try:
 				rows = frappe.db.get_all(doctype, fields=fields, filters=filters or None)
 			except BaseException:

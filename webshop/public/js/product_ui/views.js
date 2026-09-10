@@ -208,6 +208,10 @@ webshop.ProductView =  class {
 		//// Neoffice — pointer: the <small> three lines down prints ${label}, not the
 		//// hard-coded "Active filters:" (2bafdf34c2 "fix(catalogue): la page « Catégories
 		//// et marques » cesse de parler anglais").
+		//// Neoffice — pointer can go no closer: the <small> that prints ${label} is
+		//// 3 lines inside this template literal, past what a JS comment can reach
+		//// (2bafdf34c2 "fix(catalogue): la page « Catégories et marques » cesse de
+		//// parler anglais").
 		this.products_section.append(`
 			<div class="active-filters-display mt-2 mb-2" style="display: none;">
 				<div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
