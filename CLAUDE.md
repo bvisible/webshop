@@ -524,6 +524,7 @@ Every computation takes the clock as an argument, so `test_store_hours.py`
 fixes it.
 
 > **The next opening is looked for on the current day first.** The footer
+> <!-- //// Neoffice — client name redacted for the public repo; the WordPress shop's identity is not the point, only that it started from tomorrow (35770b0c93 "chore: describe the case, never the client") -->
 > widget this replaces (the WordPress shop we migrated from) started from
 > tomorrow, so between
 > 12:00 and 13:30 it announced "tomorrow at 10:00". Closed for lunch means

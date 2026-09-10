@@ -28,6 +28,13 @@ $(() => {
 		//// Neoffice — pointer can go no closer: the search placeholder, the sort label
 		//// and its three options are several lines inside this template literal
 		//// (2bafdf34c2).
+		//// Neoffice — pointer, tightest legal spot: the input placeholder ("Search a
+		//// category or a brand", 6 lines down), the sort label ("Sort by", 11 lines
+		//// down) and its three options ("Default", "Alphabetical (A-Z)", "Alphabetical
+		//// (Z-A)", 13-15 lines down) all read _t(), not frappe._(), which does not exist
+		//// on a website page; none of those lines can carry its own comment, they are
+		//// inside the template literal opened right below (2bafdf34c2 "fix(catalogue):
+		//// la page « Catégories et marques » cesse de parler anglais").
 		const filterHTML = `
 			<div class="container mt-3 p-0">
 				<div class="category-filter-section">

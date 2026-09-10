@@ -238,6 +238,11 @@ class ProductFiltersBuilder:
 		# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
 		# //// Neoffice — pointer can go no closer: the WHERE clause three lines down
 		# //// carries {gift_cond} (5100ecbe6d).
+		# //// Neoffice — pointer, tightest legal spot: the WHERE clause of the SELECT
+		# //// opened right below carries {gift_cond} so gift cards do not inflate this
+		# //// direct count; the clause itself is inside the f-string and cannot carry
+		# //// its own comment (5100ecbe6d "fix(boutique): la case « cartes cadeaux »
+		# //// retire enfin la carte de la vitrine").
 		direct_counts = frappe.db.sql(f"""
 			SELECT item_group, COUNT(*) as count
 			FROM `tabWebsite Item`
@@ -272,6 +277,11 @@ class ProductFiltersBuilder:
 			# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
 			# //// Neoffice — pointer can go no closer: the WHERE clause three lines down
 			# //// carries {gift_cond} (5100ecbe6d).
+			# //// Neoffice — pointer, tightest legal spot: the WHERE clause of the SELECT
+			# //// opened right below carries {gift_cond}, same rolled-up-total rule as the
+			# //// direct count above; the clause itself is inside the f-string and cannot
+			# //// carry its own comment (5100ecbe6d "fix(boutique): la case « cartes
+			# //// cadeaux » retire enfin la carte de la vitrine").
 			total_count = frappe.db.sql(f"""
 				SELECT COUNT(*) as count
 				FROM `tabWebsite Item`
