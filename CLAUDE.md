@@ -427,6 +427,45 @@ land on `/cart?add=ITEM&qty=1` and `/cart?coupon=CODE`
 > quotation only stores the name. Without this, the coupon from an
 > abandoned-cart email vanished at the shipping step.
 
+### The category page
+
+`/shop-by-category` (`www/shop-by-category/`) draws one tab per filter field of
+Webshop Settings, and a card per value. **It has to build what the sidebar facets
+build** (`product_data_engine/filters.py`) — they had drifted, and the page had no
+test at all until 2026-09-10.
+
+> **A website page that raises answers 403.** The controller read a **Select**
+> field's `.options` as a doctype name, so `frappe.get_meta("New\nRefurbished\n
+> Second-hand")` raised outside the function's only try — and the whole page read
+> "Non autorisé" to every visitor of every shop whose filters include the Condition
+> field. One misconfigured filter now costs its own tab: an absent field, a deleted
+> link doctype, a Table MultiSelect with no mandatory Link (which left `doctype`
+> unbound, or carrying the PREVIOUS tab's).
+
+> **A card is a promise that something is behind it.** `show_in_website` says a
+> record MAY appear, never that the shop has anything to put in it.
+> `_carried_values()` is the catalogue's own scope — published, visible on this
+> site, gift cards out when they are off, variants out when hidden — and groups,
+> brands and collections all go through it. A parent group whose child carries
+> items stays, as in the facet. On a B2B shop with gift cards switched off, the
+> first card used to read "Carte cadeau" and led nowhere: **an item group is not an
+> item**, so the gift-card switch had never reached it.
+
+> **`select_facet_is_useful()`** (in `filters.py`) is the one rule deciding whether
+> a Select facet offers a choice. It used to live unnamed inside
+> `get_field_filters`, so this page offered a "Condition" tab holding the single
+> card "New" while the sidebar showed no Condition facet at all.
+
+> **`frappe._()` resolves nothing on a website page** — no `__()` catalogue there.
+> The page carries its own `window.product_translations`, filled server-side, like
+> every other webshop page. And `context.title` is what the theme prints as the
+> heading AND the last breadcrumb; leave it unset and Frappe writes the route name.
+
+> **`frappe.get_app_path("webshop", "www", "shop-by-category", …)` scrubs the
+> segments it is handed** and looks for `shop_by_category`. The module cannot be
+> imported either — a hyphen is not an identifier — so its test loads it with
+> `importlib.util.spec_from_file_location`.
+
 ### Where the features live on the desk
 
 The workspace `Webshop` (`webshop/webshop/workspace/webshop/`) sits next to
