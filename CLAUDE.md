@@ -490,6 +490,55 @@ test at all until 2026-09-10.
 > restores the server's order (each card remembers its index): it used to re-insert
 > the cards in their CURRENT order, so A-Z was a one-way door.
 
+### Paying without a gateway, and who is offered what
+
+A payment method row (`Webshop Payment Method`, the `payment_methods` table of
+Webshop Settings) is **one method offered to one audience, on its own terms**.
+`only_customer_group` empty means everyone; filled, it covers that group **and its
+sub-groups** — customer groups are a tree. Repeat the same gateway on several rows,
+one per group, when each needs its own `payment_terms_template`; when two rows of a
+gateway match, the closest group wins (`utils/payment_methods.py`).
+
+`settlement` says how the tile settles:
+
+| value | what happens |
+|---|---|
+| `Online` | unchanged: the shopper is handed to the gateway, the order follows the payment |
+| `Transfer before shipping` | the order is placed and **held**, a Payment Request is raised on it, and **no invoice** is issued until the money arrives |
+| `On account` | the order is placed and ships, invoiced on the group's terms |
+
+Both offline paths go through `shopping_cart/offline_payment.py`, never through
+`create_payment_request`: there is no PSP to call. The endpoint refuses a method the
+customer is not offered — hiding a tile is not a permission — and an idempotency
+token stops a double click becoming two orders.
+
+> **A held order cannot be invoiced, so `set_as_paid()` fails on exactly these
+> requests.** ERPNext refuses to invoice a Sales Order that is On Hold, and
+> `set_as_paid()` raises the invoice — so the framework's own "Set as Paid" answers
+> "Sales Order … is On Hold" and books nothing. `offline_payment.settle()` lifts the
+> hold first (`update_status("Draft")`, which restores the *computed* status, it does
+> not draft the order), then hands over to ERPNext. The desk button lives in
+> `public/js/override/payment_request.js`. Measured end to end: payment entry,
+> request Paid, order To Deliver, invoice Paid on the row's terms.
+
+> **Never name a Link field `customer_group`.** Frappe fills a Link of that name with
+> the session default at insert time (Selling Settings), so "empty means everyone"
+> can never happen — the rows come back naming whatever the session defaulted to, and
+> on a shop whose default is a real group every method would silently be restricted to
+> it. Hence `only_customer_group`, the same name and the same reason as
+> `Cross Sell Offer.only_customer_group`.
+
+> **`enable_checkout` used to drop back to 0 in silence.** Upstream's
+> `validate_checkout` only looked at the single `payment_gateway_account` field, which
+> the modern checkout does not read — it reads the `payment_methods` table. A shop that
+> had filled the table saw the tick undo itself on save, with no message anywhere. The
+> table counts now, and a refusal says so.
+
+> **`__()` resolves nothing on the checkout either.** The sentences around the terms
+> checkbox printed in English next to a link that *was* translated — the translations
+> existed in `fr.po` all along, nothing could read them. `checkout.html` seeds
+> `window.webshop_checkout_labels`, and `checkout.js` reads them through `say()`.
+
 ### Where the features live on the desk
 
 The workspace `Webshop` (`webshop/webshop/workspace/webshop/`) sits next to
