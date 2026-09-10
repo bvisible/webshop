@@ -40,7 +40,8 @@
 	/* //// Neoffice — Frappe's tab block opens on `mt-12` (3rem), which under the page
 	   header pushed the tabs a screenful down. The block no longer carries the
 	   repeated <h2> either, so the toolbar sits where that title was. */
-	.shop-by-category-content .category-tabs > .mt-12 {
+	/* the block nests it as .category-tabs > section.section > .mt-12 */
+	.shop-by-category-content .category-tabs .mt-12 {
 		margin-top: 1.25rem !important;
 	}
 	.shop-by-category-content .category-filter-section {
