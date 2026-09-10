@@ -78,17 +78,15 @@ def get_tabs(categories):
 
 
 # //// Neoffice — added with the Select branch above.
-def _select_cards(fieldname):
-	"""Cards for a Select filter field: the values published items actually carry.
+def _visible_item_filters():
+	"""The catalogue's own scope, as the sidebar facets apply it.
 
-	Listing every option of the field would offer "Refurbished" on a shop that has
-	never sold one, and the card would lead to an empty catalogue. So the scope is
-	the sidebar facet's own (`ProductFiltersBuilder.get_field_filters`): published,
-	visible on this site, gift cards out when they are off, variants out when the
-	shop hides them. Each card links to the catalogue already filtered on its value.
+	Published, visible on this site, gift cards out when the shop does not sell one,
+	variants out when the shop hides them — `ProductFiltersBuilder.get_field_filters`
+	builds every facet from exactly this.
 	"""
 	from webshop.webshop.multi_site import excluded_item_names
-	from webshop.webshop.product_data_engine.filters import gift_cards_hidden, select_facet_is_useful
+	from webshop.webshop.product_data_engine.filters import gift_cards_hidden
 
 	filters = {"published": 1}
 	excluded = excluded_item_names()
@@ -98,14 +96,45 @@ def _select_cards(fieldname):
 		filters["is_gift_card"] = 0
 	if frappe.db.get_single_value("Webshop Settings", "hide_variants"):
 		filters["variant_of"] = ["is", "not set"]
+	return filters
 
-	values = {
+
+# //// Neoffice — added with the Select branch above.
+def _carried_values(fieldname):
+	"""The values the items the catalogue can show actually carry on this field.
+
+	A card is a promise that there is something behind it. `show_in_website` says a
+	record MAY appear on the shop, never that the shop has anything to put in it —
+	and the sidebar facets, built from the items themselves, never listed those. The
+	two had drifted: on a B2B shop with gift cards switched off, the first card of
+	this page read "Carte cadeau" and led to an empty catalogue, while the sidebar
+	right beside it did not offer the group at all (theleague, 2026-09-10).
+	"""
+	return {
 		value
 		for value in frappe.get_all(
-			"Website Item", fields=[fieldname], filters=filters, distinct=True, pluck=fieldname
+			"Website Item",
+			fields=[fieldname],
+			filters=_visible_item_filters(),
+			distinct=True,
+			pluck=fieldname,
 		)
 		if value
 	}
+
+
+# //// Neoffice — added with the Select branch above.
+def _select_cards(fieldname):
+	"""Cards for a Select filter field: the values published items actually carry.
+
+	Listing every option of the field would offer "Refurbished" on a shop that has
+	never sold one, and the card would lead to an empty catalogue. The scope is the
+	sidebar facet's own (see `_visible_item_filters`). Each card links to the
+	catalogue already filtered on its value.
+	"""
+	from webshop.webshop.product_data_engine.filters import select_facet_is_useful
+
+	values = _carried_values(fieldname)
 	# //// Neoffice — the sidebar's own rule: no cards when the field offers no choice,
 	# //// so the page and the facets stop disagreeing.
 	if not select_facet_is_useful(fieldname, values):
@@ -147,11 +176,23 @@ def get_category_records(categories):
 				categorical_data[category] = cards
 			continue
 		if category == "item_group":
-			categorical_data["item_group"] = frappe.db.get_all(
+			groups = frappe.db.get_all(
 				"Item Group",
 				filters={"show_in_website": 1},
-				fields=["name", "parent_item_group", "is_group", "image", "route"],
+				fields=["name", "parent_item_group", "is_group", "image", "route", "lft", "rgt"],
 			)
+			# //// Neoffice — a group the catalogue can show nothing in gets no card. The
+			# //// facet keeps a group carrying items and its ancestors; the subtree test
+			# //// below is that same rule. See _carried_values() for what it cost.
+			carried = _carried_values("item_group")
+			edges = (
+				frappe.get_all("Item Group", filters={"name": ("in", list(carried))}, pluck="lft")
+				if carried
+				else []
+			)
+			categorical_data["item_group"] = [
+				group for group in groups if any(group.lft <= lft <= group.rgt for lft in edges)
+			]
 		else:
 			# //// Neoffice — `doctype` was read from the loop above without ever being
 			# //// initialised: a Table MultiSelect whose child has no mandatory Link left it
@@ -193,12 +234,17 @@ def get_category_records(categories):
 				filters = {"custom_show_in_website": 1}
 
 			try:
-				if filters:
-					categorical_data[category] = frappe.db.get_all(doctype, fields=fields, filters=filters)
-				else:
-					categorical_data[category] = frappe.db.get_all(doctype, fields=fields)
-
+				rows = frappe.db.get_all(doctype, fields=fields, filters=filters or None)
 			except BaseException:
 				frappe.throw(_("DocType {} not found").format(doctype))
+
+			# //// Neoffice — same rule as the item groups above: a brand or a collection
+			# //// nothing published carries led to an empty catalogue, and the sidebar
+			# //// facet never offered it. A Table MultiSelect is left alone — its values
+			# //// live in a child table, not in a column of Website Item.
+			if field_type == "Link":
+				carried = _carried_values(category)
+				rows = [row for row in rows if row.name in carried]
+			categorical_data[category] = rows
 
 	return categorical_data

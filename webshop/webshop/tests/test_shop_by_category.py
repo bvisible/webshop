@@ -24,7 +24,13 @@ from urllib.parse import unquote
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from webshop.webshop.tests.utils import leaf_item_group, make_test_item
+from webshop.webshop.tests.utils import (
+	leaf_item_group,
+	make_test_item,
+	restore_webshop_settings,
+	root_item_group,
+	snapshot_webshop_settings,
+)
 
 ITEM = "_WSTEST SBC second-hand"
 
@@ -143,6 +149,79 @@ class TestShopByCategory(FrappeTestCase):
 		self.assertIn("brand", data)
 		known = set(frappe.get_all("Brand", pluck="name"))
 		self.assertTrue({row.name for row in data["brand"]} <= known)
+
+	# --- a card is a promise that there is something behind it -------------------------
+
+	def test_a_category_the_catalogue_can_show_nothing_in_gets_no_card(self):
+		"""`show_in_website` says a group MAY appear, never that the shop has anything
+		to put in it — and the sidebar facet, built from the items themselves, never
+		listed those."""
+		group = self.make_group("_WSTEST SBC empty group")
+		try:
+			names = {row.name for row in self.records(["item_group"])["item_group"]}
+			self.assertNotIn(group, names)
+		finally:
+			frappe.delete_doc_if_exists("Item Group", group, force=True)
+
+	def test_a_group_holding_only_a_hidden_gift_card_gets_no_card(self):
+		"""The complaint this came from: on a B2B shop with gift cards switched off, the
+		first card of the page read "Carte cadeau" and led to an empty catalogue."""
+		if not frappe.get_meta("Website Item", cached=True).has_field("is_gift_card"):
+			self.skipTest("this site has no is_gift_card field on Website Item")
+		saved = snapshot_webshop_settings(["enable_gift_cards"])
+		group = self.make_group("_WSTEST SBC gift cards")
+		item = make_test_item("_WSTEST SBC gift card", is_stock_item=0, item_group=group)
+		web_item = frappe.db.get_value("Website Item", {"item_code": item.name}, "name")
+		if not web_item:
+			doc = frappe.get_doc(
+				{
+					"doctype": "Website Item",
+					"item_code": item.name,
+					"web_item_name": "_WSTEST SBC gift card",
+					"item_group": group,
+					"published": 1,
+				}
+			)
+			doc.flags.ignore_permissions = True
+			doc.insert()
+			web_item = doc.name
+		frappe.db.set_value(
+			"Website Item", web_item, {"published": 1, "item_group": group, "is_gift_card": 1}
+		)
+		frappe.db.commit()
+		try:
+			frappe.db.set_single_value("Webshop Settings", "enable_gift_cards", 1)
+			frappe.clear_cache()
+			self.assertIn(group, {row.name for row in self.records(["item_group"])["item_group"]})
+
+			frappe.db.set_single_value("Webshop Settings", "enable_gift_cards", 0)
+			frappe.clear_cache()
+			self.assertNotIn(group, {row.name for row in self.records(["item_group"])["item_group"]})
+		finally:
+			restore_webshop_settings(saved)
+			frappe.delete_doc_if_exists("Website Item", web_item, force=True)
+			frappe.delete_doc_if_exists("Item", item.name, force=True)
+			frappe.delete_doc_if_exists("Item Group", group, force=True)
+			frappe.db.commit()
+
+	def make_group(self, name):
+		"""A leaf Item Group published on the shop, holding nothing."""
+		if not frappe.db.exists("Item Group", name):
+			doc = frappe.get_doc(
+				{
+					"doctype": "Item Group",
+					"item_group_name": name,
+					"parent_item_group": root_item_group(),
+					"is_group": 0,
+					"show_in_website": 1,
+				}
+			)
+			doc.flags.ignore_permissions = True
+			doc.insert()
+		else:
+			frappe.db.set_value("Item Group", name, "show_in_website", 1)
+		frappe.db.commit()
+		return name
 
 	# --- a misconfigured filter costs its tab, not the page ---------------------------
 
