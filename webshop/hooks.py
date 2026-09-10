@@ -109,6 +109,9 @@ doctype_js = {
 	# //// transfer. ERPNext's own "Set as Paid" fails on those — the order is held
 	# //// until the money is in, and a held order cannot be invoiced.
 	"Payment Request": "public/js/override/payment_request.js",
+	# //// Neoffice — added: a bank-transfer order is driven from the order itself —
+	# //// raise the request, print it (the QR is inside), book the money.
+	"Sales Order": "public/js/override/sales_order.js",
 }
 
 doc_events = {

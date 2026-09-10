@@ -42,7 +42,7 @@ def _remember(token, sales_order):
 		frappe.cache().set_value(f"webshop_offline_order_{token}", sales_order, expires_in_sec=86400)
 
 
-def raise_payment_request(sales_order, row):
+def raise_payment_request(sales_order, row=None, mode_of_payment=None):
 	"""The demand to pay, raised on the order itself.
 
 	Deliberately **not** an invoice. The shop has not shipped yet, and an invoice
@@ -72,7 +72,7 @@ def raise_payment_request(sales_order, row):
 			"party": order.customer,
 			"grand_total": flt(order.rounded_total or order.grand_total),
 			"currency": order.currency,
-			"mode_of_payment": row.get("mode_of_payment") or None,
+			"mode_of_payment": mode_of_payment or (row.get("mode_of_payment") if row else None) or None,
 			# //// The shopper pays from the shop, not from a gateway page: the e-mail
 			# //// ERPNext would send on its own says "pay online" and links a gateway
 			# //// that does not exist here. The shop sends its own confirmation.
@@ -139,6 +139,47 @@ def place_offline_order(payment_gateway_account, idempotency_token=None):
 		"payment_request": payment_request,
 		"redirect_to": _thank_you(sales_order),
 	}
+
+
+@frappe.whitelist()
+def request_payment_for_order(sales_order, hold=1, mode_of_payment=None):
+	"""Ask the customer to pay this order, before anything ships.
+
+	The shop's own checkout does it on its own for a "Transfer before shipping"
+	method; this is the same thing raised by hand, on an order that came in some
+	other way — over the phone, from the desk, from a rep.
+
+	`hold` is what makes the request mean something: an order that ships anyway is
+	an order nobody needs to pay first. It is a choice, though — a deposit on an
+	order that ships in stages is a real case.
+	"""
+	order = frappe.get_doc("Sales Order", sales_order)
+	order.check_permission("write")
+	if order.docstatus != 1:
+		frappe.throw(_("Submit the order first."))
+
+	if frappe.utils.cint(hold) and order.status not in ("On Hold", "Closed", "Completed"):
+		order.update_status("On Hold")
+
+	name = raise_payment_request(sales_order, mode_of_payment=mode_of_payment)
+	return {"payment_request": name, "status": frappe.db.get_value("Sales Order", sales_order, "status")}
+
+
+@frappe.whitelist()
+def open_payment_request(sales_order):
+	"""The submitted request raised on this order, and what can be done with it."""
+	name = frappe.db.get_value(
+		"Payment Request",
+		{"reference_doctype": "Sales Order", "reference_name": sales_order, "docstatus": 1},
+		"name",
+		order_by="creation desc",
+	)
+	if not name:
+		return None
+	row = frappe.db.get_value(
+		"Payment Request", name, ["name", "status", "grand_total", "outstanding_amount"], as_dict=True
+	)
+	return row
 
 
 @frappe.whitelist()
