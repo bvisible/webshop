@@ -37,13 +37,15 @@ function draw(frm, request) {
 	);
 
 	if (request.status !== "Paid") {
-		frm.add_custom_button(__("Payment received"), () => book(frm, request), group);
-		//// The amount still owed, where the person deciding is looking.
-		frm.dashboard.add_indicator(
-			__("Awaiting payment: {0}", [
+		//// The amount is ON the button, not in a dashboard indicator: the form
+		//// dashboard redraws after this callback and swallowed the indicator every
+		//// time. It also belongs here — the figure matters where the decision is made.
+		frm.add_custom_button(
+			__("Payment received ({0})", [
 				format_currency(request.outstanding_amount, frm.doc.currency),
 			]),
-			"orange"
+			() => book(frm, request),
+			group
 		);
 	}
 }
