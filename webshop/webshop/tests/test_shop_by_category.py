@@ -150,6 +150,30 @@ class TestShopByCategory(FrappeTestCase):
 		known = set(frappe.get_all("Brand", pluck="name"))
 		self.assertTrue({row.name for row in data["brand"]} <= known)
 
+	def test_every_card_says_how_much_it_holds(self):
+		"""A category with 3 products and one with 161 look alike otherwise."""
+		for row in self.records(["item_group"])["item_group"]:
+			self.assertTrue(row.count, row.name)
+			self.assertIsInstance(row.count, int)
+
+	def test_a_group_counts_what_its_whole_subtree_carries(self):
+		"""The facet keeps a group carrying items AND its ancestors, so a parent whose
+		children hold the products has to answer for them."""
+		parent = self.make_group("_WSTEST SBC parent", is_group=1)
+		child = self.make_group("_WSTEST SBC child", parent=parent)
+		item = make_test_item("_WSTEST SBC child item", is_stock_item=0, item_group=child)
+		web_item = self.publish(item, child)
+		try:
+			rows = {row.name: row.count for row in self.records(["item_group"])["item_group"]}
+			self.assertEqual(rows.get(child), 1)
+			self.assertEqual(rows.get(parent), 1, "a parent must answer for what its children hold")
+		finally:
+			frappe.delete_doc_if_exists("Website Item", web_item, force=True)
+			frappe.delete_doc_if_exists("Item", item.name, force=True)
+			frappe.delete_doc_if_exists("Item Group", child, force=True)
+			frappe.delete_doc_if_exists("Item Group", parent, force=True)
+			frappe.db.commit()
+
 	# --- a card is a promise that there is something behind it -------------------------
 
 	def test_a_category_the_catalogue_can_show_nothing_in_gets_no_card(self):
@@ -204,15 +228,15 @@ class TestShopByCategory(FrappeTestCase):
 			frappe.delete_doc_if_exists("Item Group", group, force=True)
 			frappe.db.commit()
 
-	def make_group(self, name):
-		"""A leaf Item Group published on the shop, holding nothing."""
+	def make_group(self, name, parent=None, is_group=0):
+		"""An Item Group published on the shop, holding nothing of its own."""
 		if not frappe.db.exists("Item Group", name):
 			doc = frappe.get_doc(
 				{
 					"doctype": "Item Group",
 					"item_group_name": name,
-					"parent_item_group": root_item_group(),
-					"is_group": 0,
+					"parent_item_group": parent or root_item_group(),
+					"is_group": is_group,
 					"show_in_website": 1,
 				}
 			)
@@ -220,6 +244,28 @@ class TestShopByCategory(FrappeTestCase):
 			doc.insert()
 		else:
 			frappe.db.set_value("Item Group", name, "show_in_website", 1)
+		frappe.db.commit()
+		return name
+
+	def publish(self, item, group, **values):
+		"""The item's Website Item, published in `group`."""
+		name = frappe.db.get_value("Website Item", {"item_code": item.name}, "name")
+		if not name:
+			doc = frappe.get_doc(
+				{
+					"doctype": "Website Item",
+					"item_code": item.name,
+					"web_item_name": item.name,
+					"item_group": group,
+					"published": 1,
+				}
+			)
+			doc.flags.ignore_permissions = True
+			doc.insert()
+			name = doc.name
+		frappe.db.set_value(
+			"Website Item", name, dict({"published": 1, "item_group": group}, **values)
+		)
 		frappe.db.commit()
 		return name
 

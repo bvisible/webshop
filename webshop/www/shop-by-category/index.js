@@ -45,16 +45,16 @@ $(() => {
 			</div>
 		`;
 		
-		// Wait for the section title to load
+		//// Neoffice — the toolbar used to be inserted after `.section-title`, the <h2>
+		//// the tab block printed. That heading repeated the page's own H1 word for word
+		//// and is gone; the anchor is now the tab block itself, and the toolbar goes
+		//// right above the tabs. Still on an interval, because the block is drawn by the
+		//// theme and may arrive late.
 		const checkTabsLoaded = setInterval(() => {
-			const sectionTitle = $('.section-title');
-			if (sectionTitle.length > 0) {
+			const tabs = $('.category-tabs .nav-tabs').first();
+			if (tabs.length > 0) {
 				clearInterval(checkTabsLoaded);
-				
-				// Insert filters after the section title
-				sectionTitle.after(filterHTML);
-				
-				// Initialize filter events
+				tabs.closest('.category-tabs').prepend(filterHTML);
 				initFilterEvents();
 			}
 		}, 100);
@@ -140,7 +140,10 @@ $(() => {
 		
 		// Filter cards in the active tab
 		activeTabContent.find('.category-card').each(function() {
-			const cardTitle = $(this).find('.card-body').text().trim().toLowerCase();
+			//// Neoffice — read data-name, not the card's text: the card now also prints
+			//// how many products it holds, and searching "7" would have matched every
+			//// category with seven of them.
+			const cardTitle = (this.dataset.name || '').trim().toLowerCase();
 			
 			if (cardTitle.includes(searchTerm)) {
 				$(this).removeClass('hidden-card');
@@ -183,8 +186,9 @@ $(() => {
 		// Sort cards based on the selected option
 		if (sortOption !== 'default') {
 			cards.sort(function(a, b) {
-				const titleA = $(a).find('.card-body').text().trim().toLowerCase();
-				const titleB = $(b).find('.card-body').text().trim().toLowerCase();
+				//// Neoffice — data-name, for the same reason as the search above.
+				const titleA = (a.dataset.name || '').trim().toLowerCase();
+				const titleB = (b.dataset.name || '').trim().toLowerCase();
 				
 				if (sortOption === 'asc') {
 					return titleA.localeCompare(titleB, 'fr');

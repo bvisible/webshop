@@ -37,6 +37,35 @@
 	.hidden-card {
 		display: none !important;
 	}
+	/* //// Neoffice — Frappe's tab block opens on `mt-12` (3rem), which under the page
+	   header pushed the tabs a screenful down. The block no longer carries the
+	   repeated <h2> either, so the toolbar sits where that title was. */
+	.shop-by-category-content .category-tabs > .mt-12 {
+		margin-top: 1.25rem !important;
+	}
+	.shop-by-category-content .category-filter-section {
+		margin-top: 0;
+	}
+	/* //// Neoffice — how many products the category holds, next to its name. Without
+	   it a category with 3 and one with 161 look exactly alike, and the visitor cannot
+	   tell where the shop actually is. Same figure as the sidebar facet: same scope. */
+	.category-card .card-body {
+		display: flex;
+		align-items: baseline;
+		justify-content: center;
+		gap: .5rem;
+	}
+	.category-card-count {
+		flex: none;
+		font-size: .75rem;
+		font-variant-numeric: tabular-nums;
+		line-height: 1.4;
+		padding: .05rem .4rem;
+		border-radius: 999px;
+		background: rgba(127, 127, 127, .14);
+		color: inherit;
+		opacity: .8;
+	}
 	@media (max-width: 767px) {
 		.sort-options {
 			flex-direction: column;
@@ -69,8 +98,11 @@
 
 {% block page_content %}
 <div class="shop-by-category-content">
+	{# //// Neoffice — the wrapper is drawn only when there IS a slideshow. Empty, it #}
+	{# //// still carried its 2rem bottom margin, so every shop without one paid for a #}
+	{# //// band of nothing between the page title and the first tab. #}
+	{% if slideshow %}
 	<div class="category-slideshow">
-		{% if slideshow %}
 		<!-- slideshow -->
 			{{ web_block(
 				"Hero Slider",
@@ -79,8 +111,8 @@
 				add_top_padding=0,
 				add_bottom_padding=0,
 			) }}
-		{% endif %}
 	</div>
+	{% endif %}
 	<div class="category-tabs">
 		{% if tabs %}
 		<!-- tabs -->

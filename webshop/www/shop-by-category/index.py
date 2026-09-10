@@ -52,11 +52,13 @@ def get_slideshow(slideshow):
 
 
 def get_tabs(categories):
-	tab_values = {
-		# //// Neoffice — the tab title matches the page title: categories AND brands
-		# //// (48e2708353, 2025-03-13).
-		"title": _("Category and Brands"),
-	}
+	# //// Neoffice — the block no longer carries a title. It used to repeat
+	# //// _("Category and Brands"), which the page header already prints as the H1 AND
+	# //// as the last breadcrumb: the same three words three times, and 53 px of empty
+	# //// page before anything useful. `title` is optional in Frappe's "Section with
+	# //// Tabs" template, so dropping it drops the <h2> — index.js anchors its toolbar
+	# //// on the tab block instead of on that heading.
+	tab_values = {}
 
 	categorical_data = get_category_records(categories)
 	# //// Neoffice — fetched here so the loop below can read each tab field's own
@@ -100,8 +102,8 @@ def _visible_item_filters():
 
 
 # //// Neoffice — added with the Select branch above.
-def _carried_values(fieldname):
-	"""The values the items the catalogue can show actually carry on this field.
+def _carried_counts(fieldname):
+	"""{value: how many items the catalogue can show carry it}.
 
 	A card is a promise that there is something behind it. `show_in_website` says a
 	record MAY appear on the shop, never that the shop has anything to put in it —
@@ -109,18 +111,23 @@ def _carried_values(fieldname):
 	two had drifted: on a B2B shop with gift cards switched off, the first card of
 	this page read "Carte cadeau" and led to an empty catalogue, while the sidebar
 	right beside it did not offer the group at all (theleague, 2026-09-10).
+
+	The figure is what the card shows next to its name, the way the sidebar facets
+	print theirs — and it is the same count, since the scope is the same.
 	"""
-	return {
-		value
-		for value in frappe.get_all(
-			"Website Item",
-			fields=[fieldname],
-			filters=_visible_item_filters(),
-			distinct=True,
-			pluck=fieldname,
-		)
-		if value
-	}
+	rows = frappe.get_all(
+		"Website Item",
+		fields=[fieldname, "count(name) as total"],
+		filters=_visible_item_filters(),
+		group_by=fieldname,
+	)
+	return {row.get(fieldname): row.total for row in rows if row.get(fieldname)}
+
+
+# //// Neoffice — added with the Select branch above.
+def _carried_values(fieldname):
+	"""Just the values, when the count is of no use to the caller."""
+	return set(_carried_counts(fieldname))
 
 
 # //// Neoffice — added with the Select branch above.
@@ -134,7 +141,8 @@ def _select_cards(fieldname):
 	"""
 	from webshop.webshop.product_data_engine.filters import select_facet_is_useful
 
-	values = _carried_values(fieldname)
+	counts = _carried_counts(fieldname)
+	values = set(counts)
 	# //// Neoffice — the sidebar's own rule: no cards when the field offers no choice,
 	# //// so the page and the facets stop disagreeing.
 	if not select_facet_is_useful(fieldname, values):
@@ -146,6 +154,7 @@ def _select_cards(fieldname):
 		frappe._dict(
 			name=_(value),
 			value=value,
+			count=counts[value],
 			route="/all-products?field_filters=" + quote(json.dumps({fieldname: [value]})),
 		)
 		for value in sorted(values, key=lambda v: _(v))
@@ -181,18 +190,26 @@ def get_category_records(categories):
 				filters={"show_in_website": 1},
 				fields=["name", "parent_item_group", "is_group", "image", "route", "lft", "rgt"],
 			)
-			# //// Neoffice — a group the catalogue can show nothing in gets no card. The
-			# //// facet keeps a group carrying items and its ancestors; the subtree test
-			# //// below is that same rule. See _carried_values() for what it cost.
-			carried = _carried_values("item_group")
-			edges = (
-				frappe.get_all("Item Group", filters={"name": ("in", list(carried))}, pluck="lft")
-				if carried
-				else []
-			)
-			categorical_data["item_group"] = [
-				group for group in groups if any(group.lft <= lft <= group.rgt for lft in edges)
+			# //// Neoffice — a group the catalogue can show nothing in gets no card, and
+			# //// the one that stays says how much it holds. A group counts what its whole
+			# //// subtree carries, not what sits directly in it — the facet keeps a group
+			# //// carrying items AND its ancestors, so a parent whose children hold the
+			# //// products has to answer for them. See _carried_counts() for what the rule
+			# //// cost before it existed.
+			carried = _carried_counts("item_group")
+			edges = [
+				(row.lft, carried[row.name])
+				for row in frappe.get_all(
+					"Item Group", filters={"name": ("in", list(carried))}, fields=["name", "lft"]
+				)
 			]
+			kept = []
+			for group in groups:
+				total = sum(count for lft, count in edges if group.lft <= lft <= group.rgt)
+				if total:
+					group.count = total
+					kept.append(group)
+			categorical_data["item_group"] = kept
 		else:
 			# //// Neoffice — `doctype` was read from the loop above without ever being
 			# //// initialised: a Table MultiSelect whose child has no mandatory Link left it
@@ -243,8 +260,10 @@ def get_category_records(categories):
 			# //// facet never offered it. A Table MultiSelect is left alone — its values
 			# //// live in a child table, not in a column of Website Item.
 			if field_type == "Link":
-				carried = _carried_values(category)
+				carried = _carried_counts(category)
 				rows = [row for row in rows if row.name in carried]
+				for row in rows:
+					row.count = carried[row.name]
 			categorical_data[category] = rows
 
 	return categorical_data

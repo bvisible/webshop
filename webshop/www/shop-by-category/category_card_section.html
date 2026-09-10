@@ -1,7 +1,7 @@
 {# //// Neoffice — value= lets a card filter on something other than its title (a Select #}
 {# //// facet's card reads "Occasion" but must filter on "Second-hand") (2bafdf34c2 "fix(catalogue): #}
 {# //// la page « Catégories et marques » cesse de parler anglais") #}
-{%- macro card(title, image, type, url=None, value=None, text_primary=False) -%}
+{%- macro card(title, image, type, url=None, value=None, count=None, text_primary=False) -%}
 <!-- style defined at shop-by-category index -->
 {# //// Neoffice — data-value carries what the catalogue filters on, which is no longer #}
 {# //// always what the card SAYS: a Select facet's card reads "Occasion" and filters on #}
@@ -22,7 +22,11 @@
 	</div>
 	{% endif %}
 	<div class="card-body text-center text-muted">
-		{{ title or '' }}
+		{# //// Neoffice — the count sits next to the name, the way the sidebar facets #}
+		{# //// print theirs: a category with 3 products and one with 161 look the same #}
+		{# //// otherwise, and the visitor cannot tell where the shop actually is. #}
+		<span class="category-card-name">{{ title or '' }}</span>
+		{%- if count %}<span class="category-card-count">{{ count }}</span>{% endif -%}
 	</div>
 	<a href="{{ url or '#' }}" class="stretched-link"></a>
 </div>
@@ -37,7 +41,7 @@
 				{# //// Neoffice — row.get("value") passed through so a Select-facet card filters on #}
 				{# //// the stored value, not the displayed title (2bafdf34c2 "fix(catalogue): la page #}
 				{# //// « Catégories et marques » cesse de parler anglais") #}
-				{{ card(title, image, type, row.get("route"), row.get("value")) }}
+				{{ card(title, image, type, row.get("route"), row.get("value"), row.get("count")) }}
 			{%- endif -%}
 		{%- endfor -%}
 	</div>
