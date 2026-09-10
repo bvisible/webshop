@@ -12,6 +12,12 @@ sitemap = 1
 
 def get_context(context):
 	context.body_class = "product-page"
+	# //// Neoffice — themes print context.title as the visible heading and as the last
+	# //// breadcrumb, and Frappe defaults it to the route name: a French shop read
+	# //// "Shop By Category" on screen while its browser tab said "Catégories et marques".
+	# //// Same fix as build_listing_context() already carries for /all-products.
+	context.title = _("Category and Brands")
+	context.parents = [{"name": _("Home"), "route": "/"}]
 
 	settings = frappe.get_cached_doc("Webshop Settings")
 	context.categories_enabled = settings.enable_field_filters
@@ -105,6 +111,7 @@ def _select_cards(fieldname):
 	return [
 		frappe._dict(
 			name=_(value),
+			value=value,
 			route="/all-products?field_filters=" + quote(json.dumps({fieldname: [value]})),
 		)
 		for value in sorted(values, key=lambda v: _(v))

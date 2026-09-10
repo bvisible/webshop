@@ -1,4 +1,11 @@
 $(() => {
+	//// Neoffice — a website page has no __() catalogue: frappe._() here returned the
+	//// English string and the toolbar printed "Search a category or a brand" / "Sort by"
+	//// / "Default" on a French shop. index.html fills window.product_translations
+	//// server-side, the convention every other webshop page follows.
+	const t = window.product_translations || {};
+	const _t = (text) => t[text] || text;
+
 	//// Neoffice — added: a search box and an A-Z sort over the category/brand cards.
 	//// Upstream renders the cards flat, and a shop with 200 brands was unusable
 	//// (48e2708353, 2025-03-13). The block is injected after the section title once the
@@ -12,16 +19,16 @@ $(() => {
 					<div class="row">
 						<div class="col-md-6">
 							<div class="category-search">
-								<input type="text" class="form-control" id="categorySearchInput" placeholder="${frappe._('Search a category or a brand')}">
+								<input type="text" class="form-control" id="categorySearchInput" placeholder="${_t('Search a category or a brand')}">
 							</div>
 						</div>
 						<div class="col-md-6">
 							<div class="sort-options">
-								<label for="categorySortSelect">${frappe._('Sort by')}</label>
+								<label for="categorySortSelect">${_t('Sort by')}</label>
 								<select class="form-control" id="categorySortSelect">
-									<option value="default">${frappe._('Default')}</option>
-									<option value="asc">${frappe._('Alphabetical (A-Z)')}</option>
-									<option value="desc">${frappe._('Alphabetical (Z-A)')}</option>
+									<option value="default">${_t('Default')}</option>
+									<option value="asc">${_t('Alphabetical (A-Z)')}</option>
+									<option value="desc">${_t('Alphabetical (Z-A)')}</option>
 								</select>
 							</div>
 						</div>
@@ -80,12 +87,17 @@ $(() => {
 	// Handle clicks on category cards
 	$('.category-card').on('click', (e) => {
 		let category_type = e.currentTarget.dataset.type;
-		let category_name = e.currentTarget.dataset.name;
+		//// Neoffice — the URL is built from data-value, not from data-name: a Select
+		//// facet's card READS "Occasion" and FILTERS on "Second-hand", and rebuilding the
+		//// filter from the label selected nothing. And a card the server already gave a
+		//// route to is left to its own link, instead of two navigations racing.
+		let category_value = e.currentTarget.dataset.value || e.currentTarget.dataset.name;
+		let href = e.currentTarget.querySelector('a.stretched-link')?.getAttribute('href');
 
-		if (category_type != "item_group") {
+		if (category_type != "item_group" && (!href || href === "#")) {
 			let filters = {};
-			filters[category_type] =  [category_name];
-			window.location.href = "/all-products?field_filters=" + JSON.stringify(filters);
+			filters[category_type] =  [category_value];
+			window.location.href = "/all-products?field_filters=" + encodeURIComponent(JSON.stringify(filters));
 		}
 	});
 	//// Neoffice — sorting rebuilds the card list in place and re-applies the search
@@ -131,9 +143,13 @@ $(() => {
 		
 		if (visibleCards.length === 0 && searchTerm !== '') {
 			if (noResultsMsg.length === 0) {
+				//// Neoffice — the message was written in French straight in the source, so it
+				//// was both untranslatable and a rule violation (code is English). It goes
+				//// through the page's translation table like every other label here.
+				const message = _t('No result found for "{0}". Try another search.')
+					.replace("{0}", frappe.utils.escape_html(searchTerm));
 				activeTabContent.find('.products-list').append(
-					'<div class="col-12 text-center no-results-message"><p>Aucun résultat trouvé pour "' + 
-					searchTerm + '". Veuillez essayer une autre recherche.</p></div>'
+					'<div class="col-12 text-center no-results-message"><p>' + message + '</p></div>'
 				);
 			}
 		} else {

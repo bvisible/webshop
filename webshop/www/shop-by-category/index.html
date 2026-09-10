@@ -50,6 +50,20 @@
 {% endblock %}
 
 {% block script %}
+{# //// Neoffice — index.js called frappe._() for its search box and its sort list. A #}
+{# //// website page carries no __() catalogue (CLAUDE.md, "Internationalization"), so #}
+{# //// those three labels printed in English on a French shop. Website pages read #}
+{# //// window.product_translations, filled here server-side. #}
+<script>
+	window.product_translations = {
+		"Search a category or a brand": {{ _("Search a category or a brand")|json }},
+		"Sort by": {{ _("Sort by")|json }},
+		"Default": {{ _("Default")|json }},
+		"Alphabetical (A-Z)": {{ _("Alphabetical (A-Z)")|json }},
+		"Alphabetical (Z-A)": {{ _("Alphabetical (Z-A)")|json }},
+		"No result found for \"{0}\". Try another search.": {{ _('No result found for "{0}". Try another search.')|json }}
+	};
+</script>
 <script type="text/javascript" src="/shop-by-category/index.js"></script>
 {% endblock %}
 

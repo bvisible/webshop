@@ -1,6 +1,9 @@
-{%- macro card(title, image, type, url=None, text_primary=False) -%}
+{%- macro card(title, image, type, url=None, value=None, text_primary=False) -%}
 <!-- style defined at shop-by-category index -->
-<div class="card category-card" data-type="{{ type }}" data-name="{{ title }}">
+{# //// Neoffice — data-value carries what the catalogue filters on, which is no longer #}
+{# //// always what the card SAYS: a Select facet's card reads "Occasion" and filters on #}
+{# //// "Second-hand". index.js used to rebuild the URL from data-name. #}
+<div class="card category-card" data-type="{{ type }}" data-name="{{ title }}" data-value="{{ value or title }}">
 	{% if image %}
 	{# //// Neoffice — the image is centred inside a fixed-height box instead of being #}
 	{# //// stretched: brand logos have very different aspect ratios and upstream's #}
@@ -28,7 +31,7 @@
 			{%- set title = row.name -%}
 			{%- set image = row.get("image") -%}
 			{%- if title -%}
-				{{ card(title, image, type, row.get("route")) }}
+				{{ card(title, image, type, row.get("route"), row.get("value")) }}
 			{%- endif -%}
 		{%- endfor -%}
 	</div>

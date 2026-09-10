@@ -198,10 +198,15 @@ webshop.ProductView =  class {
 	
 	prepare_active_filters_display() {
 		// Add a section to show active filters
+		//// Neoffice — the label was hard-coded English. A website page has no __()
+		//// catalogue, so it printed "Active filters:" on a French shop right above chips
+		//// that WERE translated; website pages read window.product_translations
+		//// (CLAUDE.md, "Internationalization").
+		const label = (window.product_translations || {})["Active filters:"] || "Active filters:";
 		this.products_section.append(`
 			<div class="active-filters-display mt-2 mb-2" style="display: none;">
 				<div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
-					<small class="text-muted mr-2">Active filters:</small>
+					<small class="text-muted mr-2">${label}</small>
 					<div class="active-filter-badges d-flex flex-wrap" style="gap: 0.5rem;"></div>
 				</div>
 			</div>
@@ -255,7 +260,13 @@ webshop.ProductView =  class {
 							hasActiveFilters = true;
 							// Get display label from checkbox if available
 							const $checkbox = $(`input[data-filter-name="${fieldName}"][data-filter-value="${value}"]`);
-							const displayLabel = $checkbox.length ? $checkbox.next('label').text().trim() || value : value;
+							//// Neoffice — the sidebar checkbox is the best label, but the facets are
+							//// drawn asynchronously and a value whose facet has not rendered yet fell
+							//// back to the value STORED on the item: a French shop showed the chip
+							//// "Second-hand" next to a sidebar reading "Occasion". The catalogue's own
+							//// translation table is the fallback now.
+							const translated = translations[value] || value;
+							const displayLabel = $checkbox.length ? $checkbox.next('label').text().trim() || translated : translated;
 							$badges.append(`
 								<span class="badge badge-secondary active-filter-badge" data-filter-type="field" data-filter-name="${fieldName}" data-filter-value="${value}" style="cursor: pointer;">
 									${displayLabel}
