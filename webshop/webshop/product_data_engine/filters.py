@@ -214,6 +214,7 @@ class ProductFiltersBuilder:
 		# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
 		# //// Neoffice — see the marker above: the WHERE clause below carries gift_cond
 		# //// Neoffice — see the block marker above: gift card filter
+		# //// Neoffice — pointer can go no closer: the WHERE clause is inside this f-string
 		direct_counts = frappe.db.sql(f"""
 			SELECT item_group, COUNT(*) as count
 			FROM `tabWebsite Item`
@@ -240,6 +241,7 @@ class ProductFiltersBuilder:
 			# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
 			# //// Neoffice — see the marker above: the WHERE clause below carries gift_cond
 			# //// Neoffice — see the block marker above: gift card filter
+			# //// Neoffice — pointer can go no closer: the WHERE clause is inside this f-string
 			total_count = frappe.db.sql(f"""
 				SELECT COUNT(*) as count
 				FROM `tabWebsite Item`

@@ -1,3 +1,6 @@
+# //// Neoffice — json + quote build the /all-products?field_filters=… link a Select
+# //// card points to, in _select_cards() below (ccce63886e "fix(shop-by-category):
+# //// un filtre Select ne fait plus tomber la page entière").
 import json
 from urllib.parse import quote
 
@@ -50,6 +53,9 @@ def get_tabs(categories):
 	}
 
 	categorical_data = get_category_records(categories)
+	# //// Neoffice — fetched here so the loop below can read each tab field's own
+	# //// label instead of unscrubbing the fieldname (see the marker a few lines down;
+	# //// ccce63886e "fix(shop-by-category): un filtre Select ne fait plus tomber la page entière").
 	website_item_meta = frappe.get_meta("Website Item", cached=True)
 	for index, tab in enumerate(categorical_data, start=1):
 		# //// Neoffice — the tab takes the field's own label, translated. Upstream prints
@@ -139,12 +145,16 @@ def get_category_records(categories):
 			doctype = None
 			field_type = df.fieldtype
 
+			# //// Neoffice — see the marker above: `df` replaces the repeated
+			# //// get_field(category) calls this branch used to make.
 			if field_type == "Table MultiSelect":
 				child_doc = df.options
 				for field in frappe.get_meta(child_doc, cached=True).fields:
 					if field.fieldtype == "Link" and field.reqd:
 						doctype = field.options
 			else:
+				# //// Neoffice — see the marker above: `df` replaces the repeated
+				# //// get_field(category) calls this branch used to make.
 				doctype = df.options
 
 			fields = ["name"]
