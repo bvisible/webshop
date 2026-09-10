@@ -2937,6 +2937,16 @@ frappe.ready(function() {
             return true;
         }
 
+        //// Neoffice — a fixed label of this page, in the shopper's language.
+        ////
+        //// __() resolves nothing on a website page (CLAUDE.md): the sentences around
+        //// the terms checkbox printed in English on a French shop, right next to a
+        //// link that WAS translated. checkout.html seeds them server-side, the same
+        //// way it already seeded the terms label itself.
+        say(key, fallback) {
+            return (window.webshop_checkout_labels || {})[key] || fallback;
+        }
+
         //// Neoffice — wraps an intent action in the same terms line as the
         //// templates: same classes, same link, so the screen is the one the
         //// shopper knows and the styling follows without adding anything.
@@ -2967,7 +2977,7 @@ frappe.ready(function() {
             if (inline) {
                 return '<div class="intent-action">' + inner +
                     '<p class="text-muted small mt-2 mb-0 text-center intent-mention">' +
-                    __('By using this payment form, you accept the') + ' ' + link +
+                    this.say('by_using_you_accept', 'By using this payment form, you accept the') + ' ' + link +
                     '</p></div>';
             }
             //// Neoffice — the link sits OUTSIDE the label, as in the six payment
@@ -2991,12 +3001,12 @@ frappe.ready(function() {
             const conditions = '<div class="form-check mt-3">' +
                 '<input type="checkbox" class="form-check-input cursor-pointer terms-acceptance" id="' + id + '" required>' +
                 '<label class="form-check-label cursor-pointer" for="' + id + '">' +
-                __('By paying, I accept the') + '</label> ' + link + '</div>';
+                this.say('by_paying_i_accept', 'By paying, I accept the') + '</label> ' + link + '</div>';
             return '<div class="intent-action" style="position:relative">' +
                 '<div class="intent-veil" style="position:absolute; inset:0; z-index:2; ' +
                 'background:rgba(255,255,255,.72); display:flex; align-items:center; ' +
                 'justify-content:center; text-align:center; padding:1rem">' +
-                '<span class="text-muted">' + __('Accept the terms and conditions below to pay') + '</span>' +
+                '<span class="text-muted">' + this.say('accept_terms_to_pay', 'Accept the terms and conditions below to pay') + '</span>' +
                 '</div>' + inner + '</div>' + conditions;
         }
 
@@ -3038,7 +3048,7 @@ frappe.ready(function() {
                 if (!$terms.prop('checked')) {
                     e.preventDefault();
                     e.stopPropagation();
-                    frappe.msgprint(__('Please accept the terms and conditions first.'));
+                    frappe.msgprint(this.say('accept_terms_first', 'Please accept the terms and conditions first.'));
                 }
             });
             $terms.off('change.intent').on('change.intent', sync);

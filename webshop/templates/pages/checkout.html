@@ -451,6 +451,16 @@
 	{#- //// Neoffice — the same terms label the gateway templates print, so a
 	    tile drawn by the intent engine stops inventing its own. -#}
 	window.webshop_terms_label = {{ terms_label_json }};
+	{#- //// Neoffice — the two sentences the terms wrapper prints. __() resolves
+	    nothing on a website page (CLAUDE.md), so they used to show in English on a
+	    French shop, right under a link that WAS translated. Seeded here like the
+	    label above. -#}
+	window.webshop_checkout_labels = {
+		"by_paying_i_accept": {{ _("By paying, I accept the") | json }},
+		"accept_terms_to_pay": {{ _("Accept the terms and conditions below to pay") | json }},
+		"by_using_you_accept": {{ _("By using this payment form, you accept the") | json }},
+		"accept_terms_first": {{ _("Please accept the terms and conditions first.") | json }}
+	};
 </script>
 
 <style>
