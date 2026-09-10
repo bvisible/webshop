@@ -110,7 +110,7 @@ def _carried_counts(fieldname):
 	and the sidebar facets, built from the items themselves, never listed those. The
 	two had drifted: on a B2B shop with gift cards switched off, the first card of
 	this page read "Carte cadeau" and led to an empty catalogue, while the sidebar
-	right beside it did not offer the group at all (theleague, 2026-09-10).
+	right beside it did not offer the group at all (a reseller site, 2026-09-10).
 
 	The figure is what the card shows next to its name, the way the sidebar facets
 	print theirs — and it is the same count, since the scope is the same.
@@ -176,7 +176,7 @@ def get_category_records(categories):
 		# //// Second-hand) is one, and this branch used to read `.options` as a doctype name,
 		# //// so frappe.get_meta("New\nRefurbished\nSecond-hand") raised DoesNotExistError
 		# //// and the whole page answered 403 — "Non autorisé" — to every visitor, signed in
-		# //// or not. Reported 2026-09-10 on theleague.neoffice.me, reproduced on osiris.
+		# //// or not. Reported 2026-09-10 on a reseller site, reproduced on osiris.
 		# //// The facets already handled Select (product_data_engine/filters.py); this page
 		# //// never learned to.
 		if df is not None and df.fieldtype == "Select":

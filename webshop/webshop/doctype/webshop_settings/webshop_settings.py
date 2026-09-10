@@ -443,7 +443,7 @@ class WebshopSettings(Document):
 		//// carousels filter on the flag since 5100ecbe6d); the flag says which item IS
 		//// the card. Clearing it on disable turned the card into an ordinary 0.00
 		//// product the moment the filter needed the flag: first in the catalogue of a
-		//// B2B site with the option unchecked (theleague.neoffice.me, 2026-09-09,
+		//// B2B site with the option unchecked (a reseller site, 2026-09-09,
 		//// neoffice-maintenance#318). Only a change of template moves the flag.
 		"""
 		old_doc = None

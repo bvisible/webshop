@@ -73,7 +73,7 @@ class ProductQuery:
 		# //// `enable_gift_cards` already gated the portal entry, the web form and the
 		# //// template, but never the listing: the card stayed published and came up in
 		# //// /all-products, in search and in an item group, first in the grid on a B2B
-		# //// site that never wanted one (theleague.neoffice.me, reported 2026-09-09).
+		# //// site that never wanted one (a reseller site, reported 2026-09-09).
 		# //// Filtering here rather than unpublishing means the merchant keeps the item,
 		# //// its price and its history, and one switch puts it back on the shelf.
 		# //// `is_gift_card` is a Check, so the column is NOT NULL DEFAULT 0 and `= 0`

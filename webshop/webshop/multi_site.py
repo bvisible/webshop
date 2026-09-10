@@ -71,7 +71,7 @@ def effective_price_list(fallback: str | None = None) -> str | None:
 	# //// Neoffice — a professional-only site shows its catalogue to everyone at the
 	# //// PUBLIC price: the profile's list is the resellers' tariff, for signed-in
 	# //// accounts only. A visitor sees the default selling list and cannot buy
-	# //// (require_login_to_buy); the tariff appears once signed in (The League,
+	# //// (require_login_to_buy); the tariff appears once signed in (a reseller site,
 	# //// 2026-09-09: "afficher les produits et prix de vente, pas de panier sans compte").
 	if profile and profile.get("price_list") and not (profile.get("b2b_only") and frappe.session.user == "Guest"):
 		return profile["price_list"]

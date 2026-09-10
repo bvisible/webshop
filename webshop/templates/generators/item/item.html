@@ -282,7 +282,7 @@
 	   //// Bootstrap .row, whose negative margins cancel its columns' padding, and its
 	   //// columns ARE the white panels: their edge sits on the page edge. This wrapper is
 	   //// a bare flex row, so its cards sat 15px in from the panel above them (the lone
-	   //// "Recommended" card, theleague.neoffice.me, 2026-09-10). Same negative margins
+	   //// "Recommended" card, a reseller site, 2026-09-10). Same negative margins
 	   //// here, and the inner columns keep Bootstrap's own padding on both sides. */
 	.product-info-wrapper { margin-left: -15px; margin-right: -15px; }
 	.product-info-wrapper .recommendations-wrapper > .row > .recommended-item-section,
@@ -346,7 +346,7 @@
 			{% if show_recommended_items and recommended_items %}
 				{# //// Neoffice — half a row only when "frequently bought together" shares it:
 				   alone, the card took half the page with a margin on its left and four
-				   cards the size of stamps (theleague.neoffice.me, 2026-09-10). #}
+				   cards the size of stamps (a reseller site, 2026-09-10). #}
 				{% set rec_inner_col = 'col-md-6' if (has_fbt and recommendations_col_class != 'col-lg-3') else '' %}
 				<div class="col-12 {{ rec_inner_col }} recommended-item-section">
 					<div class="product-container recommended-card">

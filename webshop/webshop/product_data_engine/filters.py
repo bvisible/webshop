@@ -29,7 +29,7 @@ def gift_card_sql_condition(table="`tabWebsite Item`"):
 # //// Neoffice — the rule that decides whether a Select facet is worth drawing, pulled
 # //// out of get_field_filters and named so that /shop-by-category can obey the SAME one.
 # //// That page had no rule at all and offered a "Condition" tab holding the single card
-# //// "New" on a shop that has never sold anything else (theleague, 2026-09-10) — while
+# //// "New" on a shop that has never sold anything else (a reseller site, 2026-09-10) — while
 # //// the sidebar, right next to it, showed no Condition facet.
 def select_facet_is_useful(fieldname, values):
 	"""Does this Select field offer the visitor a choice?

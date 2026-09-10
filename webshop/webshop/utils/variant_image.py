@@ -3,7 +3,7 @@
 
 The variant of a board is the same board in another size: a reseller's import
 published it without a photo, and the catalogue, the carousels and the product page
-showed a letter in a grey box beside the template's photo (theleague.neoffice.me,
+showed a letter in a grey box beside the template's photo (a reseller site,
 2026-09-10). The picture is inherited at render time and never written to the
 variant, so a photo added to the variant later wins and the data stays untouched.
 """
