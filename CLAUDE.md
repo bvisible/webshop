@@ -466,6 +466,24 @@ test at all until 2026-09-10.
 > imported either — a hyphen is not an identifier — so its test loads it with
 > `importlib.util.spec_from_file_location`.
 
+> **The block carries no title, and `index.js` no longer anchors on one.** It used
+> to print an `<h2 class="section-title">` repeating the page's own H1 and its last
+> breadcrumb — the same three words three times — which `index.js` then used as the
+> insertion point for its toolbar. `title` is optional in Frappe's "Section with
+> Tabs" template; the toolbar is prepended to `.category-tabs` instead. Roughly
+> 130 px of empty page came back: that heading (53), the tab block's `mt-12` (48,
+> nested as `.category-tabs > section.section > .mt-12`, so a child selector misses
+> it) and the slideshow wrapper, which kept its 2rem bottom margin on every shop
+> that has no slideshow.
+
+> **Each card prints how many products it holds** (`_carried_counts`, one grouped
+> query, the same scope as the facets, so the same figure). A group answers for its
+> whole subtree, since the facet keeps a group carrying items AND its ancestors.
+> The search and the sort therefore read `data-name`, not the card's text — looking
+> for "7" used to match every category holding seven things. And "Default" now
+> restores the server's order (each card remembers its index): it used to re-insert
+> the cards in their CURRENT order, so A-Z was a one-way door.
+
 ### Where the features live on the desk
 
 The workspace `Webshop` (`webshop/webshop/workspace/webshop/`) sits next to
