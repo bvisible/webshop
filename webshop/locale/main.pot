@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-10 08:57+0000\n"
-"PO-Revision-Date: 2026-09-10 08:57+0000\n"
+"POT-Creation-Date: 2026-09-10 15:16+0000\n"
+"PO-Revision-Date: 2026-09-10 15:16+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -67,6 +67,12 @@ msgstr ""
 msgid "1 to 28."
 msgstr ""
 
+#. Description of the 'Settlement' (Select) field in DocType 'Webshop Payment
+#. Method'
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "<b>Online</b>: the shopper is handed to the gateway and the order follows the payment.<br><b>Transfer before shipping</b>: the order is placed and waits. A payment request carrying the QR bill is raised on it; no invoice is issued until the money arrives.<br><b>On account</b>: the order is placed and shipped, and invoiced on the terms above."
+msgstr ""
+
 #. Content of the 'sitemap_info' (HTML) field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "<p>The sitemap is automatically generated and cached for 6 hours. You can access it at:</p><ul><li><a href=\"/sitemap_index.xml\" target=\"_blank\">/sitemap_index.xml</a> - Main sitemap index</li><li><a href=\"/sitemap.xml\" target=\"_blank\">/sitemap.xml</a> - All content</li><li><a href=\"/sitemap_products.xml\" target=\"_blank\">/sitemap_products.xml</a> - Products only</li><li><a href=\"/sitemap_categories.xml\" target=\"_blank\">/sitemap_categories.xml</a> - Categories only</li><li><a href=\"/sitemap_brands.xml\" target=\"_blank\">/sitemap_brands.xml</a> - Brands only</li><li><a href=\"/sitemap_blog.xml\" target=\"_blank\">/sitemap_blog.xml</a> - Blog posts only</li><li><a href=\"/sitemap_pages.xml\" target=\"_blank\">/sitemap_pages.xml</a> - Pages only</li></ul>"
@@ -113,7 +119,7 @@ msgstr ""
 msgid "A selling price is required."
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:519
+#: webshop/controllers/payment_handler.py:525
 msgid "A system error occurred while processing payment failure"
 msgstr ""
 
@@ -144,12 +150,12 @@ msgstr ""
 msgid "Abandoned carts"
 msgstr ""
 
-#: webshop/templates/pages/checkout.js:2940
-#: webshop/templates/pages/checkout.py:1145
+#: webshop/templates/pages/checkout.html:460
+#: webshop/templates/pages/checkout.py:1187
 msgid "Accept the terms and conditions below to pay"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:1144
+#: webshop/templates/pages/checkout.py:1186
 msgid "Accept the terms and conditions to pay"
 msgstr ""
 
@@ -457,11 +463,11 @@ msgstr ""
 msgid "Allow users with System Manager or Website Manager roles to access the site during maintenance"
 msgstr ""
 
-#: webshop/www/shop-by-category/index.html:62
+#: webshop/www/shop-by-category/index.html:92
 msgid "Alphabetical (A-Z)"
 msgstr ""
 
-#: webshop/www/shop-by-category/index.html:63
+#: webshop/www/shop-by-category/index.html:93
 msgid "Alphabetical (Z-A)"
 msgstr ""
 
@@ -559,8 +565,8 @@ msgstr ""
 msgid "An error occurred while updating the shipping method. Please try again."
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:585
-#: webshop/controllers/payment_handler.py:718
+#: webshop/controllers/payment_handler.py:595
+#: webshop/controllers/payment_handler.py:728
 msgid "An error occurred while validating the order"
 msgstr ""
 
@@ -808,6 +814,14 @@ msgstr ""
 msgid "Book a slot"
 msgstr ""
 
+#: webshop/public/js/override/payment_request.js:22
+msgid "Book this payment and raise the invoice?"
+msgstr ""
+
+#: webshop/public/js/override/payment_request.js:28
+msgid "Booking the payment…"
+msgstr ""
+
 #. Description of the 'Nature' (Select) field in DocType 'Purchase Follow-up'
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json
 msgid "Both stop for a customer who unsubscribed; marketing is what the law calls advertising"
@@ -872,12 +886,12 @@ msgstr ""
 msgid "Buy a gift card"
 msgstr ""
 
-#: webshop/templates/pages/checkout.js:2935
-#: webshop/templates/pages/checkout.py:1148
+#: webshop/templates/pages/checkout.html:459
+#: webshop/templates/pages/checkout.py:1190
 msgid "By paying, I accept the"
 msgstr ""
 
-#: webshop/templates/pages/checkout.js:2911
+#: webshop/templates/pages/checkout.html:461
 msgid "By using this payment form, you accept the"
 msgstr ""
 
@@ -969,7 +983,7 @@ msgstr ""
 msgid "Cart & Checkout"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:76
+#: webshop/controllers/payment_handler.py:83
 msgid "Cart Error"
 msgstr ""
 
@@ -983,7 +997,8 @@ msgstr ""
 msgid "Cart is Empty"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:77
+#: webshop/controllers/payment_handler.py:84
+#: webshop/webshop/shopping_cart/offline_payment.py:104
 msgid "Cart is empty"
 msgstr ""
 
@@ -1021,7 +1036,6 @@ msgstr ""
 
 #: webshop/www/shop-by-category/index.html:4
 #: webshop/www/shop-by-category/index.py:19
-#: webshop/www/shop-by-category/index.py:58
 msgid "Category and Brands"
 msgstr ""
 
@@ -1341,8 +1355,8 @@ msgstr ""
 msgid "Continue to Payment"
 msgstr ""
 
-#: webshop/templates/pages/checkout.js:3023
-#: webshop/templates/pages/checkout.py:1135
+#: webshop/templates/pages/checkout.js:3092
+#: webshop/templates/pages/checkout.py:1177
 msgid "Continue to payment"
 msgstr ""
 
@@ -1653,7 +1667,7 @@ msgid "Debtors ({0})"
 msgstr ""
 
 #: webshop/templates/pages/checkout.js:1068
-#: webshop/www/shop-by-category/index.html:61
+#: webshop/www/shop-by-category/index.html:91
 msgid "Default"
 msgstr ""
 
@@ -1819,7 +1833,7 @@ msgstr ""
 msgid "Display text and button to display specific conditions for sales invoices"
 msgstr ""
 
-#: webshop/www/shop-by-category/index.py:195
+#: webshop/www/shop-by-category/index.py:267
 msgid "DocType {} not found"
 msgstr ""
 
@@ -2146,8 +2160,8 @@ msgstr ""
 #: webshop/templates/pages/checkout.js:1652
 #: webshop/templates/pages/checkout.js:2354
 #: webshop/templates/pages/checkout.js:2641
-#: webshop/templates/pages/checkout.js:3243
-#: webshop/templates/pages/checkout.js:3251
+#: webshop/templates/pages/checkout.js:3312
+#: webshop/templates/pages/checkout.js:3320
 msgid "Error"
 msgstr ""
 
@@ -2174,13 +2188,14 @@ msgstr ""
 msgid "Error creating invoice"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:552
+#: webshop/controllers/payment_handler.py:562
 #: webshop/webshop/doctype/override_doctype/payment_request.py:80
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:225
+#: webshop/webshop/shopping_cart/offline_payment.py:123
 msgid "Error creating order"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:222
+#: webshop/controllers/payment_handler.py:228
 #: webshop/templates/payments/paypal.html:144
 #: webshop/templates/payments/payrexx.html:92
 #: webshop/templates/payments/payrexx.html:120
@@ -2189,7 +2204,7 @@ msgstr ""
 msgid "Error creating payment request"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:76
+#: webshop/controllers/payment_handler.py:83
 msgid "Error during quotation retrieval: Cart is empty or quotation not found"
 msgstr ""
 
@@ -2205,8 +2220,8 @@ msgstr ""
 msgid "Error loading categories"
 msgstr ""
 
-#: webshop/templates/pages/checkout.js:3244
-#: webshop/templates/pages/checkout.js:3252
+#: webshop/templates/pages/checkout.js:3313
+#: webshop/templates/pages/checkout.js:3321
 msgid "Error loading payment template"
 msgstr ""
 
@@ -2222,12 +2237,12 @@ msgstr ""
 msgid "Error processing gift card for Sales Order {0}"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:405
-#: webshop/controllers/payment_handler.py:692
+#: webshop/controllers/payment_handler.py:411
+#: webshop/controllers/payment_handler.py:702
 msgid "Error processing payment"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:705
+#: webshop/controllers/payment_handler.py:715
 msgid "Error processing payment failure"
 msgstr ""
 
@@ -2824,7 +2839,7 @@ msgstr ""
 msgid "How to use your gift card"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:1149
+#: webshop/templates/pages/checkout.py:1191
 #: webshop/templates/payments/paypal.html:24
 #: webshop/templates/payments/payrexx.html:23
 #: webshop/templates/payments/stripe.html:25
@@ -3557,6 +3572,11 @@ msgstr ""
 msgid "Missing required columns: {0}"
 msgstr ""
 
+#. Label of a Link field in DocType 'Webshop Payment Method'
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "Mode of Payment"
+msgstr ""
+
 #. Label of a Data field in DocType 'Shop Assistant Message'
 #. Label of a Data field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json
@@ -3776,6 +3796,10 @@ msgstr ""
 msgid "No payment method configured"
 msgstr ""
 
+#: webshop/controllers/payment_handler.py:140
+msgid "No payment method is available for your account."
+msgstr ""
+
 #: webshop/templates/pages/loyalty_points.html:146
 msgid "No points history yet. Start shopping to earn points!"
 msgstr ""
@@ -3815,7 +3839,7 @@ msgstr ""
 msgid "No quotation or customer found"
 msgstr ""
 
-#: webshop/www/shop-by-category/index.html:64
+#: webshop/www/shop-by-category/index.html:94
 msgid "No result found for \"{0}\". Try another search."
 msgstr ""
 
@@ -3882,9 +3906,9 @@ msgstr ""
 msgid "Not in stock"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:246
-#: webshop/controllers/payment_handler.py:496
-#: webshop/templates/pages/checkout.py:1232
+#: webshop/controllers/payment_handler.py:252
+#: webshop/controllers/payment_handler.py:502
+#: webshop/templates/pages/checkout.py:1274
 msgid "Not permitted"
 msgstr ""
 
@@ -3903,8 +3927,8 @@ msgstr ""
 msgid "Nothing is enrolled and nothing goes out while this is off"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:1205
-#: webshop/templates/pages/checkout.py:1216
+#: webshop/templates/pages/checkout.py:1247
+#: webshop/templates/pages/checkout.py:1258
 msgid "Nothing to pay"
 msgstr ""
 
@@ -3947,9 +3971,20 @@ msgstr ""
 msgid "Offer a coupon from email number"
 msgstr ""
 
+#. Description of the 'Offered To' (Link) field in DocType 'Webshop Payment
+#. Method'
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "Offer this method only to that customer group <b>and its sub-groups</b>. Leave empty to offer it to everyone. Add the same gateway on several rows, one per group, when a group must get its own payment terms — a group buying on account at 30 days and another at 2% within 10 days are two rows of the same method."
+msgstr ""
+
 #. Label of a Link field in DocType 'Cross Sell Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
 msgid "Offered Item"
+msgstr ""
+
+#. Label of a Link field in DocType 'Webshop Payment Method'
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "Offered To"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Website Item'
@@ -3973,6 +4008,12 @@ msgstr ""
 msgid "On Backorder"
 msgstr ""
 
+#. Option for the 'Settlement' (Select) field in DocType 'Webshop Payment
+#. Method'
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "On account"
+msgstr ""
+
 #: webshop/templates/generators/item_group.html:172
 #: webshop/www/all-products/index.html:164
 msgid "On backorder"
@@ -3992,6 +4033,12 @@ msgstr ""
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "One row per opening period: a day with a lunch break has two rows. Shown on /store-hours, in the opening-hours block, and told by the assistant."
+msgstr ""
+
+#. Option for the 'Settlement' (Select) field in DocType 'Webshop Payment
+#. Method'
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "Online"
 msgstr ""
 
 #: webshop/webshop/api.py:1078
@@ -4032,8 +4079,8 @@ msgstr ""
 msgid "Open"
 msgstr ""
 
-#: webshop/templates/pages/checkout.js:3020
-#: webshop/templates/pages/checkout.py:1154
+#: webshop/templates/pages/checkout.js:3089
+#: webshop/templates/pages/checkout.py:1196
 msgid "Open the payment page in a new tab"
 msgstr ""
 
@@ -4106,8 +4153,8 @@ msgstr ""
 msgid "Optional: When maintenance is expected to end"
 msgstr ""
 
-#: webshop/templates/pages/checkout.js:3027
-#: webshop/templates/pages/checkout.py:1136
+#: webshop/templates/pages/checkout.js:3096
+#: webshop/templates/pages/checkout.py:1178
 msgid "Or type {0} in the app."
 msgstr ""
 
@@ -4164,8 +4211,12 @@ msgstr ""
 msgid "Order not available"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:578
+#: webshop/controllers/payment_handler.py:588
 msgid "Order validated successfully"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/offline_payment.py:80
+msgid "Order {0}"
 msgstr ""
 
 #: webshop/webshop/utils/follow_ups.py:263
@@ -4311,8 +4362,8 @@ msgstr ""
 
 #: webshop/templates/pages/checkout.html:32
 #: webshop/templates/pages/checkout.html:364
-#: webshop/templates/pages/checkout.js:3017
-#: webshop/templates/pages/checkout.py:1155
+#: webshop/templates/pages/checkout.js:3086
+#: webshop/templates/pages/checkout.py:1197
 msgid "Payment"
 msgstr ""
 
@@ -4337,13 +4388,13 @@ msgstr ""
 msgid "Payment Gateway Account not set"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:116
+#: webshop/controllers/payment_handler.py:125
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:142
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:295
 msgid "Payment Gateway not found for settings: {0}"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:102
+#: webshop/controllers/payment_handler.py:109
 msgid "Payment Gateway not found: {0}"
 msgstr ""
 
@@ -4377,14 +4428,18 @@ msgstr ""
 msgid "Payment Terms Template"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:269
-#: webshop/controllers/payment_handler.py:271
-#: webshop/controllers/payment_handler.py:284
+#: webshop/controllers/payment_handler.py:275
+#: webshop/controllers/payment_handler.py:277
+#: webshop/controllers/payment_handler.py:290
 msgid "Payment already processed"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:504
-#: webshop/controllers/payment_handler.py:511
+#: webshop/public/js/override/payment_request.js:32
+msgid "Payment booked"
+msgstr ""
+
+#: webshop/controllers/payment_handler.py:510
+#: webshop/controllers/payment_handler.py:517
 #: webshop/templates/payments/twint.html:90
 msgid "Payment failed"
 msgstr ""
@@ -4403,8 +4458,8 @@ msgstr ""
 msgid "Payment methods could not be loaded. Please try again."
 msgstr ""
 
-#: webshop/templates/pages/checkout.js:3118
-#: webshop/templates/pages/checkout.py:1138
+#: webshop/templates/pages/checkout.js:3187
+#: webshop/templates/pages/checkout.py:1180
 msgid "Payment not received. You can try again."
 msgstr ""
 
@@ -4412,8 +4467,12 @@ msgstr ""
 msgid "Payment options"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:398
+#: webshop/controllers/payment_handler.py:404
 msgid "Payment processed successfully"
+msgstr ""
+
+#: webshop/public/js/override/payment_request.js:20
+msgid "Payment received"
 msgstr ""
 
 #: webshop/templates/pages/payment-success.html:19
@@ -4475,8 +4534,12 @@ msgstr ""
 msgid "Place Order"
 msgstr ""
 
-#: webshop/templates/pages/checkout.js:2982
-#: webshop/templates/pages/checkout.py:1151
+#: webshop/templates/pages/checkout.py:1016
+msgid "Place order"
+msgstr ""
+
+#: webshop/templates/pages/checkout.html:462
+#: webshop/templates/pages/checkout.py:1193
 msgid "Please accept the terms and conditions first."
 msgstr ""
 
@@ -5384,7 +5447,7 @@ msgstr ""
 msgid "Search Tags"
 msgstr ""
 
-#: webshop/www/shop-by-category/index.html:59
+#: webshop/www/shop-by-category/index.html:89
 msgid "Search a category or a brand"
 msgstr ""
 
@@ -5409,6 +5472,7 @@ msgstr ""
 #. Option for the 'Condition' (Select) field in DocType 'Website Item'
 #: webshop/templates/generators/item_group.html:155
 #: webshop/webshop/doctype/website_item/website_item.json
+#: webshop/webshop/tests/test_shop_by_category.py:124
 #: webshop/www/all-products/index.html:52
 #: webshop/www/all-products/index.html:147
 msgid "Second-hand"
@@ -5568,6 +5632,11 @@ msgstr ""
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
 #: webshop/webshop/workspace/webshop/webshop.json
 msgid "Settings"
+msgstr ""
+
+#. Label of a Select field in DocType 'Webshop Payment Method'
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "Settlement"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Webshop Trust Item'
@@ -5918,7 +5987,7 @@ msgstr ""
 msgid "Sorry, something went wrong. Please refresh."
 msgstr ""
 
-#: webshop/www/shop-by-category/index.html:60
+#: webshop/www/shop-by-category/index.html:90
 msgid "Sort by"
 msgstr ""
 
@@ -6456,10 +6525,26 @@ msgstr ""
 msgid "This order has already been paid"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:63
-#: webshop/controllers/payment_handler.py:542
+#: webshop/controllers/payment_handler.py:70
+#: webshop/controllers/payment_handler.py:552
 #: webshop/templates/payments/paypal.py:37
 msgid "This order has already been processed. Order ID: {0}"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/offline_payment.py:109
+msgid "This payment method is not available for your account."
+msgstr ""
+
+#: webshop/webshop/shopping_cart/offline_payment.py:112
+msgid "This payment method is settled online."
+msgstr ""
+
+#: webshop/webshop/shopping_cart/offline_payment.py:168
+msgid "This payment request is already settled."
+msgstr ""
+
+#: webshop/webshop/shopping_cart/offline_payment.py:166
+msgid "This payment request is not submitted."
 msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:294
@@ -6575,6 +6660,12 @@ msgstr ""
 msgid "Transactional"
 msgstr ""
 
+#. Option for the 'Settlement' (Select) field in DocType 'Webshop Payment
+#. Method'
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "Transfer before shipping"
+msgstr ""
+
 #. Label of a Select field in DocType 'Cross Sell Offer'
 #. Label of a Select field in DocType 'Purchase Follow-up'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
@@ -6631,7 +6722,7 @@ msgstr ""
 msgid "UOM"
 msgstr ""
 
-#: webshop/templates/pages/checkout.js:3170
+#: webshop/templates/pages/checkout.js:3239
 msgid "Unable to load this payment method"
 msgstr ""
 
@@ -6741,7 +6832,7 @@ msgstr ""
 msgid "Uses ERPNext stock reservation: when the Purchase Receipt is submitted, the goods are reserved for the customer order that triggered the purchase. Enabling this sets the two matching Stock Settings. Note: a Sales Order holding reserved stock cannot be picked through a Pick List — deliver it with a Delivery Note (or release the reservation)."
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:70
+#: webshop/controllers/payment_handler.py:77
 msgid "Using existing payment request"
 msgstr ""
 
@@ -6920,8 +7011,8 @@ msgstr ""
 msgid "Vous pouvez aussi nous appeler au {0}."
 msgstr ""
 
-#: webshop/templates/pages/checkout.js:3031
-#: webshop/templates/pages/checkout.py:1137
+#: webshop/templates/pages/checkout.js:3100
+#: webshop/templates/pages/checkout.py:1179
 msgid "Waiting for your payment…"
 msgstr ""
 
@@ -7347,6 +7438,12 @@ msgstr ""
 msgid "Write the First Review"
 msgstr ""
 
+#. Description of the 'Mode of Payment' (Link) field in DocType 'Webshop
+#. Payment Method'
+#: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+msgid "Written on the payment request raised for an offline settlement, so the payment entry lands on the right account. Bank transfer, for instance."
+msgstr ""
+
 #. Option for the 'Hide Currency Symbol in Shop' (Select) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -7451,8 +7548,8 @@ msgid "Your Review"
 msgstr ""
 
 #: webshop/templates/pages/checkout.py:790
-#: webshop/templates/pages/checkout.py:1051
-#: webshop/templates/pages/checkout.py:1388
+#: webshop/templates/pages/checkout.py:1093
+#: webshop/templates/pages/checkout.py:1430
 msgid "Your basket is empty"
 msgstr ""
 
@@ -7495,6 +7592,14 @@ msgstr ""
 
 #: webshop/templates/pages/thank_you.html:34
 msgid "Your order has been confirmed."
+msgstr ""
+
+#: webshop/templates/pages/checkout.py:880
+msgid "Your order is registered and held until payment is received. You will get the payment details with your order confirmation."
+msgstr ""
+
+#: webshop/templates/pages/checkout.py:885
+msgid "Your order is registered and invoiced under your agreed payment terms."
 msgstr ""
 
 #: webshop/templates/pages/checkout_b2b.html:26
@@ -7667,9 +7772,9 @@ msgid "system"
 msgstr ""
 
 #: webshop/templates/pages/checkout.js:2590
-#: webshop/templates/pages/checkout.js:2889
+#: webshop/templates/pages/checkout.js:2958
 #: webshop/templates/pages/checkout.py:289
-#: webshop/templates/pages/checkout.py:1150
+#: webshop/templates/pages/checkout.py:1192
 #: webshop/templates/payments/paypal.html:25
 #: webshop/templates/payments/payrexx.html:24
 #: webshop/templates/payments/stripe.html:26
@@ -7802,7 +7907,7 @@ msgstr ""
 msgid "{0} — image {1}"
 msgstr ""
 
-#: webshop/webshop/product_data_engine/filters.py:415
+#: webshop/webshop/product_data_engine/filters.py:461
 msgid "{0}% and below"
 msgstr ""
 
