@@ -104,7 +104,11 @@ doctype_js = {
 	"Item Group": "public/js/override/cross_sell_trigger.js",
 	"Brand": "public/js/override/cross_sell_trigger.js",
 	"Homepage": "public/js/override/homepage.js",
-	"Coupon Code": "public/js/coupon_code.js"
+	"Coupon Code": "public/js/coupon_code.js",
+	# //// Neoffice — added: "Payment received" on a request the shop raised for a
+	# //// transfer. ERPNext's own "Set as Paid" fails on those — the order is held
+	# //// until the money is in, and a held order cannot be invoiced.
+	"Payment Request": "public/js/override/payment_request.js",
 }
 
 doc_events = {

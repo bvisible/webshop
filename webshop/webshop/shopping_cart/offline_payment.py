@@ -141,5 +141,43 @@ def place_offline_order(payment_gateway_account, idempotency_token=None):
 	}
 
 
+@frappe.whitelist()
+def settle(payment_request):
+	"""Book the money against an order that was held waiting for it.
+
+	//// Neoffice — this exists because ERPNext refuses to invoice a Sales Order that
+	//// is **On Hold**, and `Payment Request.set_as_paid()` raises the invoice: pressing
+	//// the framework's own "Set as Paid" on a held order fails with "Sales Order ... is
+	//// On Hold" and books nothing. Found by paying a real order on osiris, 2026-09-10.
+	////
+	//// Holding the order is the whole point — nothing ships before the money is in — so
+	//// the hold is lifted **here**, at the moment it stops being true, and the payment
+	//// is then booked by ERPNext's own code. `update_status("Draft")` puts the order
+	//// back on its computed status; it does not turn it into a draft.
+
+	The same entry point serves a human pressing the button and a bank statement being
+	matched, so both leave the same trail.
+	"""
+	frappe.only_for(
+		("Accounts User", "Accounts Manager", "Sales User", "Sales Manager", "System Manager")
+	)
+	request = frappe.get_doc("Payment Request", payment_request)
+	if request.docstatus != 1:
+		frappe.throw(_("This payment request is not submitted."))
+	if request.status == "Paid":
+		frappe.throw(_("This payment request is already settled."))
+
+	if request.reference_doctype == "Sales Order":
+		order = frappe.get_doc("Sales Order", request.reference_name)
+		if order.status == "On Hold":
+			order.update_status("Draft")
+
+	entry = request.set_as_paid()
+	return {
+		"payment_entry": getattr(entry, "name", None),
+		"status": frappe.db.get_value("Payment Request", payment_request, "status"),
+	}
+
+
 def _thank_you(sales_order):
 	return f"/thank_you?sales_order={sales_order}"
