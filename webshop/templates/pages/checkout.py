@@ -849,6 +849,8 @@ def get_shipping_address(user=None):
 		frappe.log_error(f"Error in get_shipping_address", e)
 		return None
 
+# //// Neoffice — renamed from _document_a_payer: the code is English, rule #00
+# //// (7bb8094d10 "feat(paiement): un mode de paiement s'offre à un groupe client, et à ses sous-groupes")
 def _document_to_pay(reference_doctype=None, reference_docname=None):
 	"""//// Neoffice — what gets paid for is not always a cart.
 
@@ -894,6 +896,7 @@ def get_payment_methods(reference_doctype=None, reference_docname=None):
 		offered_rows = rows_for_group(settings, customer_group_of(document_to_pay))
 
 		methods = []
+		# //// Neoffice — see the block marker above: iterates the group's offered_rows, not settings.payment_methods
 		for webshop_method in offered_rows:
 			try:
 				# 1. For each method, get Payment Gateway Account
