@@ -75,7 +75,7 @@ def rows_for_group(settings=None, customer_group=None):
 
 	best = {}
 	for row in settings.get("payment_methods") or []:
-		aimed_at = (row.get("customer_group") or "").strip()
+		aimed_at = (row.get("only_customer_group") or "").strip()
 		if aimed_at:
 			if aimed_at not in distance:
 				continue

@@ -296,8 +296,25 @@ class WebshopSettings(Document):
 			)
 
 	def validate_checkout(self):
-		if self.enable_checkout and not self.payment_gateway_account:
-			self.enable_checkout = 0
+		# //// Neoffice — the payment_methods TABLE counts as a configured gateway, and a
+		# //// refusal says so out loud.
+		# ////
+		# //// Upstream only looked at the single `payment_gateway_account` field, which
+		# //// the modern checkout does not use — it reads the table. So a shop that had
+		# //// filled the table and ticked "Enable Checkout" saw the tick **silently drop
+		# //// back to off** on save, with no message and nothing in the log. Measured on a
+		# //// client instance, 2026-09-10: two methods configured, checkout impossible to
+		# //// switch on.
+		if not self.enable_checkout:
+			return
+		if self.payment_gateway_account or self.get("payment_methods"):
+			return
+		self.enable_checkout = 0
+		frappe.msgprint(
+			_("Add at least one payment method before enabling the checkout."),
+			title=_("Checkout not enabled"),
+			indicator="orange",
+		)
 # //// Neoffice — the RediSearch validation block is removed with the feature (see #2).
 
 	def validate_price_list_exchange_rate(self):

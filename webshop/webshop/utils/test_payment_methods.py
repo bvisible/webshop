@@ -89,7 +89,7 @@ class TestPaymentMethods(FrappeTestCase):
 	# --- who is offered what ----------------------------------------------------------
 
 	def test_a_row_aimed_at_nobody_is_offered_to_everybody(self):
-		settings = settings_with({"payment_gateway_account": "Card", "customer_group": None})
+		settings = settings_with({"payment_gateway_account": "Card", "only_customer_group": None})
 		for group in (NEWCOMER, CONSUMER, None):
 			self.assertEqual(
 				[row.payment_gateway_account for row in rows_for_group(settings, group)],
@@ -98,21 +98,21 @@ class TestPaymentMethods(FrappeTestCase):
 			)
 
 	def test_a_row_aimed_at_a_group_reaches_its_sub_groups(self):
-		settings = settings_with({"payment_gateway_account": "OnAccount", "customer_group": BUSINESS})
+		settings = settings_with({"payment_gateway_account": "OnAccount", "only_customer_group": BUSINESS})
 		self.assertTrue(rows_for_group(settings, NEWCOMER))
 		self.assertTrue(rows_for_group(settings, RESELLER))
 		self.assertTrue(rows_for_group(settings, BUSINESS))
 
 	def test_a_row_aimed_at_a_group_is_hidden_from_the_others(self):
-		settings = settings_with({"payment_gateway_account": "OnAccount", "customer_group": BUSINESS})
+		settings = settings_with({"payment_gateway_account": "OnAccount", "only_customer_group": BUSINESS})
 		self.assertEqual(rows_for_group(settings, CONSUMER), [])
 		self.assertEqual(rows_for_group(settings, None), [], "a visitor is in no group")
 
 	def test_each_group_gets_its_own_set_of_tiles(self):
 		settings = settings_with(
-			{"payment_gateway_account": "Card", "customer_group": None},
-			{"payment_gateway_account": "Transfer", "customer_group": NEWCOMER},
-			{"payment_gateway_account": "OnAccount", "customer_group": RESELLER},
+			{"payment_gateway_account": "Card", "only_customer_group": None},
+			{"payment_gateway_account": "Transfer", "only_customer_group": NEWCOMER},
+			{"payment_gateway_account": "OnAccount", "only_customer_group": RESELLER},
 		)
 		def offered(group):
 			return {row.payment_gateway_account for row in rows_for_group(settings, group)}
@@ -126,25 +126,25 @@ class TestPaymentMethods(FrappeTestCase):
 	def test_the_closest_group_wins_and_brings_its_own_terms(self):
 		"""The whole point: one gateway, two groups, two sets of payment terms."""
 		settings = settings_with(
-			{"payment_gateway_account": "OnAccount", "customer_group": BUSINESS, "payment_terms_template": "Net 30"},
-			{"payment_gateway_account": "OnAccount", "customer_group": RESELLER, "payment_terms_template": "2% 10 days"},
+			{"payment_gateway_account": "OnAccount", "only_customer_group": BUSINESS, "payment_terms_template": "Net 30"},
+			{"payment_gateway_account": "OnAccount", "only_customer_group": RESELLER, "payment_terms_template": "2% 10 days"},
 		)
 		self.assertEqual(row_for_gateway("OnAccount", settings, RESELLER).payment_terms_template, "2% 10 days")
 		self.assertEqual(row_for_gateway("OnAccount", settings, NEWCOMER).payment_terms_template, "Net 30")
 
 	def test_a_group_specific_row_beats_the_one_aimed_at_nobody(self):
 		settings = settings_with(
-			{"payment_gateway_account": "OnAccount", "customer_group": None, "payment_terms_template": "Net 30"},
-			{"payment_gateway_account": "OnAccount", "customer_group": RESELLER, "payment_terms_template": "2% 10 days"},
+			{"payment_gateway_account": "OnAccount", "only_customer_group": None, "payment_terms_template": "Net 30"},
+			{"payment_gateway_account": "OnAccount", "only_customer_group": RESELLER, "payment_terms_template": "2% 10 days"},
 		)
 		self.assertEqual(row_for_gateway("OnAccount", settings, RESELLER).payment_terms_template, "2% 10 days")
 		self.assertEqual(row_for_gateway("OnAccount", settings, CONSUMER).payment_terms_template, "Net 30")
 
 	def test_the_order_the_shop_set_is_kept(self):
 		settings = settings_with(
-			{"payment_gateway_account": "Card", "customer_group": None},
-			{"payment_gateway_account": "Transfer", "customer_group": BUSINESS},
-			{"payment_gateway_account": "OnAccount", "customer_group": None},
+			{"payment_gateway_account": "Card", "only_customer_group": None},
+			{"payment_gateway_account": "Transfer", "only_customer_group": BUSINESS},
+			{"payment_gateway_account": "OnAccount", "only_customer_group": None},
 		)
 		self.assertEqual(
 			[row.payment_gateway_account for row in rows_for_group(settings, NEWCOMER)],
@@ -153,14 +153,14 @@ class TestPaymentMethods(FrappeTestCase):
 
 	def test_one_tile_per_gateway_even_when_several_rows_match(self):
 		settings = settings_with(
-			{"payment_gateway_account": "OnAccount", "customer_group": None},
-			{"payment_gateway_account": "OnAccount", "customer_group": BUSINESS},
-			{"payment_gateway_account": "OnAccount", "customer_group": RESELLER},
+			{"payment_gateway_account": "OnAccount", "only_customer_group": None},
+			{"payment_gateway_account": "OnAccount", "only_customer_group": BUSINESS},
+			{"payment_gateway_account": "OnAccount", "only_customer_group": RESELLER},
 		)
 		self.assertEqual(len(rows_for_group(settings, RESELLER)), 1)
 
 	def test_a_gateway_the_shopper_may_not_use_answers_nothing(self):
-		settings = settings_with({"payment_gateway_account": "OnAccount", "customer_group": BUSINESS})
+		settings = settings_with({"payment_gateway_account": "OnAccount", "only_customer_group": BUSINESS})
 		self.assertIsNone(row_for_gateway("OnAccount", settings, CONSUMER))
 		self.assertIsNone(row_for_gateway("Unknown", settings, RESELLER))
 

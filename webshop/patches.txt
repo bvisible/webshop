@@ -44,3 +44,4 @@ webshop.patches.seed_follow_up_email_templates
 # //// add_item_condition_fields, to match its new insert_after (0227bfd0
 # //// "feat(occasion): une section État qui n'avale rien, expliquée, et un chemin depuis le catalogue").
 webshop.patches.move_item_condition_section
+webshop.patches.rename_payment_method_customer_group

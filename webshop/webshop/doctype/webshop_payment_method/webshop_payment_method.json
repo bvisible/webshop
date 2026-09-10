@@ -6,7 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "payment_gateway_account",
-  "customer_group",
+  "only_customer_group",
   "settlement",
   "payment_terms_template",
   "mode_of_payment",
@@ -26,13 +26,13 @@
    "reqd": 1
   },
   {
-   "fieldname": "customer_group",
+   "fieldname": "only_customer_group",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Offered To",
    "options": "Customer Group",
    "columns": 2,
-   "description": "Offer this method only to that customer group <b>and its sub-groups</b>. Leave empty to offer it to everyone. Add the same gateway on several rows, one per group, when a group must get its own payment terms — a group buying on account at 30 days and another at 2% within 10 days are two rows of the same method."
+   "description": "Offer this method only to that customer group <b>and its sub-groups</b>. Leave empty to offer it to everyone. Add the same gateway on several rows, one per group, when a group must get its own payment terms — a group buying on account at 30 days and another at 2% within 10 days are two rows of the same method.<br><br>The field is <b>not</b> called customer_group on purpose: Frappe fills a Link field of that name with the session default at insert time, so \"empty means everyone\" could never happen."
   },
   {
    "fieldname": "settlement",
