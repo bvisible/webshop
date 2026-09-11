@@ -8012,3 +8012,70 @@ msgstr ""
 msgid "écrit…"
 msgstr ""
 
+# //// Neoffice — the product page's promises and folds (2026-09-11)
+
+msgid "Shopping Promises"
+msgstr ""
+
+msgid "Free Shipping From"
+msgstr ""
+
+msgid "Delivery Time"
+msgstr ""
+
+msgid "Return Period (days)"
+msgstr ""
+
+msgid "Extra Promise"
+msgstr ""
+
+msgid "Printed on every product page under the buy button. A Website Profile can override them for its site."
+msgstr ""
+
+msgid "The order amount from which delivery is free. Empty: no such promise."
+msgstr ""
+
+msgid "As the customer reads it, e.g. 2-4 working days."
+msgstr ""
+
+msgid "One more line, e.g. pick-up in store within the hour."
+msgstr ""
+
+msgid "Free delivery from {0}"
+msgstr ""
+
+msgid "Delivered in {0}"
+msgstr ""
+
+msgid "{0}-day returns"
+msgstr ""
+
+msgid "You may also like"
+msgstr ""
+
+msgid "Characteristics"
+msgstr ""
+
+msgid "About {0}"
+msgstr ""
+
+msgid "Zoom"
+msgstr ""
+
+msgid "Previous image"
+msgstr ""
+
+msgid "Next image"
+msgstr ""
+
+msgid "Add to Wishlist"
+msgstr ""
+
+msgid "No reviews yet."
+msgstr ""
+
+msgid "Shopping Promises (this site)"
+msgstr ""
+
+msgid "Leave a field empty to keep the Webshop Settings value."
+msgstr ""

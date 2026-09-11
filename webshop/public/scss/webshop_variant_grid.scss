@@ -7,10 +7,12 @@
 }
 
 .variant-grid-container {
-	background: var(--wsh-surface);
-	border-radius: var(--wsh-radius);
-	padding: 1rem;
-	border: 1px solid var(--wsh-line);
+	/* //// Neoffice — no frame: the buy column is flat since 2026-09-11, the variants are
+	   boxes on the page, not a card in a card. */
+	background: transparent;
+	border-radius: 0;
+	padding: 0;
+	border: none;
 	
 	.variant-grid-header {
 		margin-bottom: 1rem;

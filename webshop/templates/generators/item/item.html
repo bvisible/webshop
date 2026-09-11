@@ -8,27 +8,28 @@
 
 {% block breadcrumbs %}
 {# //// Neoffice — upstream renders Frappe's breadcrumbs at the top of the page. They are #}
-{# //// rendered inside the buy-box card, under the product title, instead (035b28d02b / #}
-{# //// 1c5119014b, 2026-07-06). #}
-{# breadcrumbs render inside the buy-box card, under the product title #}
+{# //// rendered under the product title instead (035b28d02b / 1c5119014b, 2026-07-06). #}
 {% endblock %}
 
+{# //// Neoffice — the page is rebuilt from here down (2026-09-11, "Modern", the only
+   //// look the shop has). Upstream stacks one image, a description and a cart form in
+   //// a single column; the cards-on-grey version we had since 2026-07-06 is gone too.
+   //// Now: a flat hero — the gallery on 60 % of the width (a mosaic from three
+   //// photos, a thumbnail rail with two, a single picture otherwise; a swipe strip on
+   //// a phone), a complete buy column beside it (price, stock, quantity, button,
+   //// promises, folds for the description, the characteristics and the brand) — then
+   //// full-width sections, each of which only exists when it has something to show. #}
 {% block page_content %}
-<div class="product-container item-main">
-	{% from "webshop/templates/includes/macros.html" import product_image %}
+<div class="product-container item-main wsp-product">
 	<div class="item-content">
 		<div class="product-page-content" itemscope itemtype="http://schema.org/Product">
-			<!-- Image, Description, Add to Cart -->
-			{# //// Neoffice — added: the product header (title + breadcrumbs) above the cards, and #}
-			{# //// the page is cut into distinct cards rather than one long column (6599cec9d6 / #}
-			{# //// 6cb3ad6997, 2026-07-06; one title only, 7bf95830e5, 2026-08-26). #}
-			<!-- Product header: title + breadcrumbs above the cards, left aligned -->
 			<div class="product-header-block">
 				<div class="d-flex align-items-start justify-content-between">
 					<h1 class="product-title-main" itemprop="name">{{ _(doc.web_item_name) }}</h1>
 					{% if shopping_cart.cart_settings.enable_wishlist %}
 						<div class="like-action-item-fp like-action {{ 'like-action-wished' if wished else '' }} ml-2"
-							data-item-code="{{ doc.item_code }}">
+							data-item-code="{{ doc.item_code }}"
+							title="{{ _('Add to Wishlist') }}" aria-label="{{ _('Add to Wishlist') }}">
 							<svg class="icon sm">
 								<use class="{{ 'wished' if wished else 'not-wished' }} wish-icon" href="#icon-heart"></use>
 							</svg>
@@ -40,217 +41,87 @@
 				</div>
 			</div>
 
-			{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
-			{#
-				The one number that decides: beyond it, the description is cut
-				in the purchase column and the full-width block carries the
-				entire version. Below it, it reads at the top with its formatting
-				and the bottom does not display — repeating the same text in two
-				places helps nobody.
-
-				//// Neoffice — see the block marker above: comment translated to English
-				Defined HERE because both blocks must read the SAME threshold:
-				if one cuts and the other does not complete it, the « Lire la
-				suite » link leads nowhere.
-			#}
-			{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
-			{#
-				900 let almost all of the full descriptions through into
-				the purchase column: it became twice as tall as the
-				photo, and the bottom block was never used. A few lines at
-				the top, the rest full-width — that is what the cut between
-				blocks can do, provided it is given a budget that fits
-				within the column.
-
-				//// Neoffice — see the block marker above: comment translated to English
-				450, not 320: the cut takes WHOLE blocks, so the
-				budget must be able to hold two of them. A description that opens
-				with a hook line followed by a paragraph (the common case)
-				only showed the hook — one line, then « Lire la suite ».
-			#}
-			{% set NB_EXCERPT = 450 %}
-			{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
-			{#
-				ONE description, chosen once for the whole page: the site's
-				if someone wrote it, otherwise the item's. That has been
-				Frappe's rule since 2022, and it also applies to the threshold —
-				without it, a 1,100-character spec sheet would flood the
-				purchase column without ever offering « Lire la suite », for lack of
-				a site description.
-			#}
+			{# ONE description, chosen once for the whole page: the site's if someone wrote
+			   it, otherwise the item's. Frappe's rule since 2022. It reads in full in the
+			   buy column's "Description" fold; a long one is clamped there with a "Show
+			   more" that expands it in place — no second copy further down the page. #}
 			{% set _desc_html = doc.web_long_description if frappe.utils.strip_html(doc.web_long_description or '') else doc.description %}
-			{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
-			{#
-				The excerpt cuts BETWEEN BLOCKS, not at the character: slicing
-				HTML by length forces stripping the tags, and the
-				description arrives in the purchase column as a grey slab —
-				no more lists, no more bold, no more paragraphs.
 
-				//// Neoffice — see the block marker above: comment translated to English
-				`cut` says whether there is still something to read: it is what decides
-				the « Lire la suite » link AND the full-width block, so the two cannot
-				contradict each other.
-			#}
-			{% set _extrait = description_excerpt(_desc_html, NB_EXCERPT) %}
-
-			<div class="row product-hero-row">
+			<div class="product-hero-row wsp-hero">
 				{% include "templates/generators/item/item_image.html" %}
 				{% include "templates/generators/item/item_details.html" %}
 			</div>
-			{# //// Neoffice — added: the buy-box card, the bundle contents (4a5c209e89, 2025-06-19), #}
-			{# //// the cross-sell and frequently-bought-together blocks (3c1e847e26, 2025-06-24; #}
-			{# //// 8c29208cca, 2026-09-03), the SEO metas / JSON-LD (ed337ce4a3, 2026-07-06) and the #}
-			{# //// mobile buy bar (0d17ac8d40, 2026-08-26). #}
-			
-{# //// Neoffice — styles moved to webshop/public/scss/webshop_product_page.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
-			{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
-			{# The entire description, full width — ONLY when the purchase
-			   column had to cut it. Otherwise it is already there, and repeating it here
-			   would make the same thing read twice. #}
-			{% if _extrait.cut %}
-			<div class="row">
-				<div class="col-12 product-long-description-section" id="product-long-desc" style="scroll-margin-top: 20px;">
-					<h2 class="product-section-title">{{ _("Description") }}</h2>
-					<div class="product-description product-long-description" itemprop="description">
-						{{ _(_desc_html) | safe }}
-					</div>
-				</div>
-			</div>
-			{% endif %}
 
-			<!-- Product Bundle Components -->
+			{# //// Neoffice — the bundle contents (4a5c209e89, 2025-06-19), the SEO metas / JSON-LD #}
+			{# //// (ed337ce4a3, 2026-07-06) and the mobile buy bar (0d17ac8d40, 2026-08-26). #}
 			{% include "templates/generators/item/item_bundle_components.html" %}
 		</div>
 	</div>
 </div>
 
-<!-- Additional Info/Reviews, Recommendations -->
+{# The sections under the hero. Each one is there only when it has something to say:
+   an empty "Reviews" card was a wall of nothing above the page's end. #}
 {% set has_tabs = show_tabs and tabs %}
-{% set has_specs = website_specifications %}
 {% set has_content = doc.website_content %}
 {% set has_reviews = shopping_cart.cart_settings.enable_reviews %}
-{% set show_recommended_items = shopping_cart.cart_settings.enable_recommendations %}
+{% set has_recommended = shopping_cart.cart_settings.enable_recommendations and recommended_items %}
 {% set has_fbt = shopping_cart.cart_settings.enable_frequently_bought_together and frequently_bought_together %}
-{% set has_recommendations = show_recommended_items or has_fbt %}
-{% set has_content_to_show = has_tabs or has_specs or has_content or has_reviews or has_recommendations %}
 
-{% if has_content_to_show %}
-<div class="d-flex flex-wrap product-info-wrapper">
-	<!-- Recommendations section (will be first on mobile) -->
-	{% if has_recommendations %}
-	{% if has_tabs or has_specs or has_content or has_reviews %}
-		{% if has_fbt %}
-			{% set recommendations_col_class = 'col-lg-6' %}
-		{% else %}
-			{% set recommendations_col_class = 'col-lg-3' %}
-		{% endif %}
-	{% else %}
-		{% set recommendations_col_class = 'col-lg-12' %}
+<div class="wsp-sections product-info-wrapper">
+	{% if has_recommended %}
+	<section class="wsp-section wsp-section--recommended recommended-item-section">
+		{% set website_items = recommended_items %}
+		{% set carousel_title = _("You may also like") %}
+		{% set carousel_id = "recommended-products-carousel" %}
+		{% include "templates/includes/product_carousel.html" %}
+	</section>
 	{% endif %}
-	<div class="col-12 {{ recommendations_col_class }} mt-4 order-1 order-lg-2 recommendations-wrapper">
-		<div class="row">
-			<!-- Recommended Items -->
-			{# //// Neoffice — the carousel was the only bottom section left
-			   bare: its heading and its cards floated on the gray page while
-			   reviews and "frequently bought together" sat in white cards.
-			   Same card wrapper here, so the three blocks read as one family. #}
-			{% if show_recommended_items and recommended_items %}
-				{# //// Neoffice — half a row only when "frequently bought together" shares it:
-				   alone, the card took half the page with a margin on its left and four
-				   cards the size of stamps (a reseller site, 2026-09-10). #}
-				{% set rec_inner_col = 'col-md-6' if (has_fbt and recommendations_col_class != 'col-lg-3') else '' %}
-				<div class="col-12 {{ rec_inner_col }} recommended-item-section">
-					<div class="product-container recommended-card">
-						{% set website_items = recommended_items %}
-						{% set carousel_title = _("Recommended") %}
-						{% set carousel_id = "recommended-products-carousel" %}
-						{% include "templates/includes/product_carousel.html" %}
-					</div>
-				</div>
-			{% endif %}
 
-			<!-- Frequently Bought Together -->
-			{# //// Neoffice — heading moved inside the card, like the reviews
-			   block: a bare heading over a white card, next to a card whose
-			   heading is inside it, read as two different designs. #}
-			{% if shopping_cart.cart_settings.enable_frequently_bought_together and frequently_bought_together %}
-				{# //// Neoffice — see rec_inner_col above: half a row only beside the recommendations #}
-				{% set fbt_inner_col = 'col-md-6' if (show_recommended_items and recommended_items and recommendations_col_class != 'col-lg-3') else '' %}
-				<div class="col-12 {{ fbt_inner_col }} frequently-bought-section">
-					<div class="product-container recommendation-container">
-						{# //// Neoffice — a span never picked up the theme's heading
-						   font, so this title alone read in a different typeface
-						   than "Reviews" and "Recommended" right beside it. #}
-						<h2 class="carousel-title recommendation-header">{{ _("Frequently Bought Together") }}</h2>
-						{% for item in frequently_bought_together[:4] %}
-							{{ recommended_item_row({
-								"website_item_name": item.web_item_name,
-								"route": item.route,
-								"website_item_thumbnail": item.thumbnail or item.website_image,
-								"price_info": {
-									"price_list_rate": item.price,
-									"currency": item.currency,
-									"formatted_price": item.formatted_price
-								} if item.price else None
-							}) }}
-						{% endfor %}
-					</div>
-				</div>
-			{% endif %}
+	{% if has_fbt %}
+	<section class="wsp-section wsp-section--fbt frequently-bought-section">
+		<h2 class="wsp-section__title recommendation-header">{{ _("Frequently Bought Together") }}</h2>
+		<div class="wsp-fbt recommendation-container">
+			{% for item in frequently_bought_together[:4] %}
+				{{ recommended_item_row({
+					"website_item_name": item.web_item_name,
+					"route": item.route,
+					"website_item_thumbnail": item.thumbnail or item.website_image,
+					"price_info": {
+						"price_list_rate": item.price,
+						"currency": item.currency,
+						"formatted_price": item.formatted_price
+					} if item.price else None
+				}) }}
+			{% endfor %}
 		</div>
-	</div>
+	</section>
 	{% endif %}
 
-	{# //// Neoffice — the information and reviews block comes second on mobile: the buy box #}
-	{# //// must be reachable without scrolling past the description (0d17ac8d40, #}
-	{# //// 2026-08-26). #}
-	<!-- Info and reviews section (will be second on mobile) -->
-	{% if has_tabs or has_specs or has_content or has_reviews %}
-	{% if has_recommendations %}
-		{% if has_fbt %}
-			{% set info_col_class = 'col-lg-6' %}
-		{% else %}
-			{% set info_col_class = 'col-lg-9' %}
-		{% endif %}
-	{% else %}
-		{% set info_col_class = 'col-lg-12' %}
+	{% if has_tabs %}
+	<section class="wsp-section wsp-section--tabs category-tabs">
+		{{ web_block("Section with Tabs", values=tabs, add_container=0, add_top_padding=0, add_bottom_padding=0) }}
+	</section>
 	{% endif %}
-	<div class="col-12 {{ info_col_class }} product-container mt-4 order-2 order-lg-1 {{ 'pt-0' if has_tabs else '' }}">
-		<div class="item-content {{ 'mt-minus-2' if has_tabs else '' }}">
-			<div class="product-page-content" itemscope itemtype="http://schema.org/Product">
-				<!-- Product Specifications Table Section -->
-				{# //// Neoffice — the tabs/specs/reviews sections are only rendered when they have #}
-				{# //// something in them; upstream always draws the headings, so a product with no #}
-				{# //// review showed an empty titled block (7bf95830e5, 2026-08-26). #}
-				{% if has_tabs %}
-					<div class="category-tabs">
-						<!-- tabs -->
-							{{ web_block("Section with Tabs", values=tabs, add_container=0,
-								add_top_padding=0, add_bottom_padding=0)
-							}}
-					</div>
-				{# //// Neoffice — see above. #}
-				{% elif has_specs %}
-					{% include "templates/generators/item/item_specifications.html"%}
-				{% endif %}
 
-				<!-- Advanced Custom Website Content -->
-				{{ doc.website_content or '' }}
-
-				<!-- Reviews and Comments -->
-				{# //// Neoffice — see above. #}
-				{% if has_reviews %}
-					{% include "templates/generators/item/item_reviews.html"%}
-				{% endif %}
-			</div>
-		</div>
-	{# //// Neoffice — upstream's trailing blocks are replaced by the card layout above. #}
-	</div>
+	{% if has_content %}
+	<section class="wsp-section wsp-section--content">
+		{{ doc.website_content }}
+	</section>
 	{% endif %}
+
+	{% if has_reviews %}
+	<section class="wsp-section wsp-section--reviews">
+		{% include "templates/generators/item/item_reviews.html" %}
+	</section>
+	{% endif %}
+
+	{# Drawn by the script below from what this browser looked at (localStorage);
+	   stays hidden when there is nothing but this very product. #}
+	<section class="wsp-section wsp-section--recent" id="wsp-recently-viewed" hidden>
+		<h2 class="wsp-section__title">{{ _("Recently viewed") }}</h2>
+		<div class="wsp-recent"></div>
+	</section>
 </div>
-{# //// Neoffice — closes the page (see above). #}
-{% endif %}
-
 {% endblock %}
 
 {% block base_scripts %}
@@ -265,12 +136,30 @@
 	frappe.sys_defaults = frappe.boot.sysdefaults;
 </script>
 <script>
-	// Track recently viewed products (consumed by the cart drawer and shop sidebar)
+	// Track recently viewed products (consumed by the cart drawer, the shop sidebar and
+	// the strip at the bottom of this page)
 	(function() {
+		const KEY = 'webshop_recently_viewed';
+		const current = {{ doc.item_code | tojson }};
+		function draw(list) {
+			const section = document.getElementById('wsp-recently-viewed');
+			if (!section) return;
+			const others = list.filter(i => i && i.route && i.code !== current).slice(0, 6);
+			if (!others.length) return;
+			const host = section.querySelector('.wsp-recent');
+			host.innerHTML = others.map(i => {
+				const name = document.createElement('span'); name.textContent = i.name || i.code;
+				const price = document.createElement('span'); price.textContent = i.price || '';
+				const img = i.image ? `<img src="${encodeURI(i.image)}" alt="" loading="lazy">` : `<span class="wsp-recent__abbr">${(i.name || '?').charAt(0).toUpperCase()}</span>`;
+				return `<a class="wsp-recent__card" href="/${encodeURI(i.route)}"><span class="wsp-recent__media">${img}</span><span class="wsp-recent__name">${name.innerHTML}</span><span class="wsp-recent__price">${price.innerHTML}</span></a>`;
+			}).join('');
+			section.hidden = false;
+		}
 		try {
-			const KEY = 'webshop_recently_viewed';
+			let list = JSON.parse(localStorage.getItem(KEY) || '[]');
+			draw(list);
 			const entry = {
-				code: {{ doc.item_code | tojson }},
+				code: current,
 				name: {{ (doc.web_item_name or doc.item_name or doc.item_code) | tojson }},
 				image: {{ (doc.website_image or '') | tojson }},
 				route: {{ (doc.route or '') | tojson }},
@@ -279,7 +168,6 @@
 			if (!entry.route) return;
 			const priceEl = document.querySelector('.product-price');
 			if (priceEl) entry.price = priceEl.textContent.trim().split('\n')[0].trim().slice(0, 24);
-			let list = JSON.parse(localStorage.getItem(KEY) || '[]');
 			list = list.filter(i => i && i.code !== entry.code);
 			list.unshift(entry);
 			localStorage.setItem(KEY, JSON.stringify(list.slice(0, 8)));
@@ -295,6 +183,27 @@
 				} catch (e) {}
 			}, 1500);
 		} catch (e) { /* storage unavailable */ }
+	})();
+</script>
+<script>
+	// A long description is clamped in the buy column; "Show more" opens it in place.
+	(function() {
+		document.querySelectorAll('.wsp-acc__body[data-clamp]').forEach(function(body) {
+			const limit = parseInt(body.dataset.clamp, 10) || 320;
+			if (body.scrollHeight <= limit + 40) return;
+			body.classList.add('is-clamped');
+			body.style.maxHeight = limit + 'px';
+			const button = document.createElement('button');
+			button.type = 'button';
+			button.className = 'wsp-acc__more';
+			button.textContent = {{ _("Show more") | tojson }};
+			button.addEventListener('click', function() {
+				const open = body.classList.toggle('is-open');
+				body.style.maxHeight = open ? 'none' : limit + 'px';
+				button.textContent = open ? {{ _("Show less") | tojson }} : {{ _("Show more") | tojson }};
+			});
+			body.insertAdjacentElement('afterend', button);
+		});
 	})();
 </script>
 {% endblock %}

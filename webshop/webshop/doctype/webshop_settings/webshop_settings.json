@@ -179,6 +179,12 @@
   "column_break_maintenance",
   "maintenance_message",
   "maintenance_end_time",
+  "promise_section",
+  "free_shipping_from",
+  "delivery_delay",
+  "promise_column",
+  "return_days",
+  "promise_note",
   "trust_badges_section",
   "trust_items"
  ],
@@ -1212,6 +1218,39 @@
    "fieldname": "allow_system_users_during_maintenance",
    "fieldtype": "Check",
    "label": "Allow System Users During Maintenance"
+  },
+  {
+   "fieldname": "promise_section",
+   "fieldtype": "Section Break",
+   "label": "Shopping Promises",
+   "description": "Printed on every product page under the buy button. A Website Profile can override them for its site."
+  },
+  {
+   "fieldname": "free_shipping_from",
+   "fieldtype": "Currency",
+   "label": "Free Shipping From",
+   "description": "The order amount from which delivery is free. Empty: no such promise."
+  },
+  {
+   "fieldname": "delivery_delay",
+   "fieldtype": "Data",
+   "label": "Delivery Time",
+   "description": "As the customer reads it, e.g. 2-4 working days."
+  },
+  {
+   "fieldname": "promise_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "return_days",
+   "fieldtype": "Int",
+   "label": "Return Period (days)"
+  },
+  {
+   "fieldname": "promise_note",
+   "fieldtype": "Data",
+   "label": "Extra Promise",
+   "description": "One more line, e.g. pick-up in store within the hour."
   },
   {
    "collapsible": 1,

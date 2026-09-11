@@ -8576,3 +8576,71 @@ msgstr ""
 #: webshop/webshop/assistant/api.py:207
 msgid "écrit…"
 msgstr ""
+
+# //// Neoffice — the product page's promises and folds (2026-09-11)
+
+msgid "Shopping Promises"
+msgstr "Promesses d'achat"
+
+msgid "Free Shipping From"
+msgstr "Livraison offerte dès"
+
+msgid "Delivery Time"
+msgstr "Délai de livraison"
+
+msgid "Return Period (days)"
+msgstr "Délai de retour (jours)"
+
+msgid "Extra Promise"
+msgstr "Promesse supplémentaire"
+
+msgid "Printed on every product page under the buy button. A Website Profile can override them for its site."
+msgstr "Affichées sur chaque fiche produit sous le bouton d'achat. Un profil de site peut les remplacer pour son site."
+
+msgid "The order amount from which delivery is free. Empty: no such promise."
+msgstr "Le montant de commande à partir duquel la livraison est offerte. Vide : aucune promesse."
+
+msgid "As the customer reads it, e.g. 2-4 working days."
+msgstr "Tel que le client le lit, p. ex. 2-4 jours ouvrés."
+
+msgid "One more line, e.g. pick-up in store within the hour."
+msgstr "Une ligne de plus, p. ex. retrait en magasin dans l'heure."
+
+msgid "Free delivery from {0}"
+msgstr "Livraison offerte dès {0}"
+
+msgid "Delivered in {0}"
+msgstr "Livré en {0}"
+
+msgid "{0}-day returns"
+msgstr "Retour sous {0} jours"
+
+msgid "You may also like"
+msgstr "Vous aimerez aussi"
+
+msgid "Characteristics"
+msgstr "Caractéristiques"
+
+msgid "About {0}"
+msgstr "À propos de {0}"
+
+msgid "Zoom"
+msgstr "Zoom"
+
+msgid "Previous image"
+msgstr "Image précédente"
+
+msgid "Next image"
+msgstr "Image suivante"
+
+msgid "Add to Wishlist"
+msgstr "Ajouter à la liste d'envies"
+
+msgid "No reviews yet."
+msgstr "Pas encore d'avis."
+
+msgid "Shopping Promises (this site)"
+msgstr "Promesses d'achat (ce site)"
+
+msgid "Leave a field empty to keep the Webshop Settings value."
+msgstr "Laisser un champ vide pour garder la valeur des réglages de la boutique."

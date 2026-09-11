@@ -74,20 +74,17 @@
 				{% endif %}
 
 			{% else %}
-				<div class="no-reviews-section text-center py-5">
-					<svg class="icon icon-xl text-muted mb-3">
-						<use href="#icon-star"></use>
-					</svg>
-					{# //// Neoffice — h5 under an h2 skipped two levels. #}
-					<h3 class="text-muted">{{ _("No Reviews Yet") }}</h3>
-					<p class="text-muted">{{ _("Be the first to review this product") }}</p>
+				{# //// Neoffice — one quiet line, not a page-high empty card: a product with no
+				   review yet says so under its heading and offers the first one, then the page
+				   goes on (2026-09-11). #}
+				<p class="wsp-reviews-empty no-reviews-section">
+					{{ _("No reviews yet.") }}
 					{% if frappe.session.user != "Guest" and user_is_customer %}
-						<button class="btn btn-primary btn-write-review mt-3 d-inline-block"
-							data-web-item="{{ doc.name }}">
-							{{ _("Write the First Review") }}
-						</button>
+						<button type="button" class="btn btn-link btn-write-review p-0" data-web-item="{{ doc.name }}">{{ _("Be the first to review this product") }}</button>
+					{% else %}
+						{{ _("Be the first to review this product") }}
 					{% endif %}
-				</div>
+				</p>
 			{% endif %}
 		</div>
 	</div>

@@ -322,6 +322,7 @@ CHAMPS_A_CREER_A_L_INSTALLATION = [
 	"add_condition_shop_filter",
 	"add_item_replenishment_field",
 	"seed_follow_up_email_templates",
+	"add_promise_fields_to_website_profile",
 ]
 
 

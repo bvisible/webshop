@@ -45,3 +45,4 @@ webshop.patches.seed_follow_up_email_templates
 # //// "feat(occasion): une section État qui n'avale rien, expliquée, et un chemin depuis le catalogue").
 webshop.patches.move_item_condition_section
 webshop.patches.rename_payment_method_customer_group
+webshop.patches.add_promise_fields_to_website_profile

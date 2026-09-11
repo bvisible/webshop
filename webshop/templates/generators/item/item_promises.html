@@ -1,0 +1,20 @@
+{# //// Neoffice — added file (no upstream equivalent). What the shop promises, under the #}
+{# //// buy button: free delivery from an amount, the delivery time, the return period, one #}
+{# //// free line. The lines come from utils/promises.py (Webshop Settings, overridable per #}
+{# //// site); an empty set prints nothing — no block, no heading. #}
+{%- set _promise_icons = {
+	"truck": '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
+	"clock": '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+	"return": '<polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>',
+	"check": '<path d="M20 6 9 17l-5-5"/>',
+} -%}
+{%- if promises %}
+<ul class="wsp-promises" aria-label="{{ _('Shopping Promises') }}">
+	{%- for promise in promises %}
+	<li class="wsp-promises__item wsp-promises__item--{{ promise.key }}">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{ _promise_icons.get(promise.icon, _promise_icons["check"]) | safe }}</svg>
+		<span>{{ promise.text }}</span>
+	</li>
+	{%- endfor %}
+</ul>
+{%- endif %}

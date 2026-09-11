@@ -1,325 +1,192 @@
 {# //// Neoffice — the gallery is rebuilt from here down. ▼▼▼ Upstream shows one image #}
-{# //// with a carousel of slides underneath. Ours is a thumbnail column with a main #}
-{# //// image that switches without reloading, plus a full-screen zoom (0c10921750, #}
-{# //// 2025-06-18 "Feat. gallery switch"), and the whole thing is responsive #}
-{# //// (912b84dbf6, 2025-06-25 "image mobile"). ▲▲▲ #}
-{% set column_size = 6 if slides else 4 %}
-<div class="col-md-{{ column_size }} h-100 d-flex mb-4 product-image-wrapper">
-	{% if slides %}
-		{# //// Neoffice — the thumbnail column is a flex column, hidden under md (the mobile #}
-		{# //// layout swipes the main image instead). #}
-		<div class="item-slideshow d-flex flex-column mr-3 d-none d-md-flex">
-			{% for item in slides %}
-			{# //// Neoffice — an auto-generated slideshow has no heading, so
-			   every thumbnail carried an empty alt. Falls back to the product
-			   name and the position, which is what a screen reader needs. #}
-			<img class="item-slideshow-image mb-2 {% if loop.first %}active{% endif %}"
-					{# //// Neoffice — lazy loading and async decoding on the thumbnails: a product with #}
-					{# //// fifteen images blocked the page paint (912b84dbf6, 2025-06-25). #}
-					src="{{ item.image }}" loading="lazy" decoding="async"
-					alt="{{ item.heading or _('{0} — image {1}').format(_(doc.web_item_name), loop.index) }}">
-			{% endfor %}
+{# //// with a carousel of slides underneath. Since 2026-09-11 the layout follows the #}
+{# //// number of photos: a mosaic from three (two large, then small tiles), a thumbnail #}
+{# //// rail with two, a single picture otherwise, and a full-width swipe strip on a #}
+{# //// phone. Any picture opens the full-screen zoom (0c10921750, 2025-06-18). ▲▲▲ #}
+{%- set photos = [] -%}
+{%- if slides -%}
+	{%- for s in slides -%}{%- set _ = photos.append({"image": s.image, "alt": s.heading or _('{0} — image {1}').format(_(doc.web_item_name), loop.index)}) -%}{%- endfor -%}
+{%- elif doc.website_image -%}
+	{%- set _ = photos.append({"image": doc.website_image, "alt": doc.website_image_alt or doc.item_name}) -%}
+{%- endif -%}
+{%- set layout = "mosaic" if photos | length >= 3 else ("rail" if photos | length == 2 else ("single" if photos else "empty")) -%}
+<div class="col-md-{{ 6 if slides else 4 }} product-image-wrapper wsp-gallery wsp-gallery--{{ layout }}" data-layout="{{ layout }}" data-fit="{{ shopping_cart.cart_settings.product_image_fit or 'Contain' }}" data-photos="{{ photos | map(attribute='image') | list | tojson | forceescape }}">
+	{%- if layout == "mosaic" %}
+	{# two large tiles, then the rest as small ones; every tile opens the zoom at its index #}
+	<div class="wsp-gallery__mosaic product-image">
+		<div class="wsp-gallery__large" role="list">
+			{%- for p in photos[:2] %}
+			<a class="wsp-gallery__tile wsp-gallery__tile--large" href="{{ p.image }}" data-index="{{ loop.index0 }}" role="listitem" aria-label="{{ _('Zoom') }}">
+				<img class="{{ 'website-image' if loop.first else '' }} wsp-gallery__img" src="{{ p.image }}" alt="{{ p.alt }}" loading="eager" decoding="async">
+			</a>
+			{%- endfor %}
 		</div>
-		<div class="product-image-container">
-			{{ product_image(slides[0].image, 'product-image', alt=doc.web_item_name) }}
-			<!-- Enhanced image slideshow with navigation and autoplay -->
+		<div class="wsp-gallery__small" role="list">
+			{%- for p in photos[2:] %}
+			<a class="wsp-gallery__tile" href="{{ p.image }}" data-index="{{ loop.index0 + 2 }}" role="listitem" aria-label="{{ _('Zoom') }}">
+				<img class="wsp-gallery__img" src="{{ p.image }}" alt="{{ p.alt }}" loading="lazy" decoding="async">
+			</a>
+			{%- endfor %}
+		</div>
+	</div>
+	{%- elif layout == "rail" %}
+	<div class="wsp-gallery__rail d-none d-md-flex">
+		<div class="wsp-gallery__thumbs" role="list">
+			{%- for p in photos %}
+			<img class="wsp-gallery__thumb {% if loop.first %}active{% endif %}" src="{{ p.image }}" alt="{{ p.alt }}" loading="lazy" decoding="async" data-index="{{ loop.index0 }}" role="listitem">
+			{%- endfor %}
+		</div>
+		<div class="product-image-container wsp-gallery__stage">
+			<div class="product-image wsp-gallery__main">
+				<img class="website-image wsp-gallery__img" src="{{ photos[0].image }}" alt="{{ photos[0].alt }}" data-index="0">
+			</div>
 			<div class="slideshow-navigation">
-				<button class="slideshow-btn prev" aria-label="Previous image">‹</button>
-				<button class="slideshow-btn next" aria-label="Next image">›</button>
-			</div>
-			<div class="slideshow-progress">
-				{% for item in slides %}
-				<span class="progress-dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></span>
-				{% endfor %}
+				<button type="button" class="slideshow-btn prev" aria-label="{{ _('Previous image') }}">‹</button>
+				<button type="button" class="slideshow-btn next" aria-label="{{ _('Next image') }}">›</button>
 			</div>
 		</div>
-		<!-- Mobile thumbnails - shown only on mobile below the image -->
-		<div class="item-slideshow-mobile d-flex d-md-none mt-3">
-			{% for item in slides %}
-			<img class="item-slideshow-image {% if loop.first %}active{% endif %}"
-					src="{{ item.image }}" loading="lazy" decoding="async"
-					alt="{{ item.heading or _('{0} — image {1}').format(_(doc.web_item_name), loop.index) }}">
-			{% endfor %}
-		{# //// Neoffice — closes the thumbnail column (see the block above). #}
+	</div>
+	{%- elif layout == "single" %}
+	<div class="wsp-gallery__single product-image d-none d-md-block">
+		<a class="wsp-gallery__tile" href="{{ photos[0].image }}" data-index="0" aria-label="{{ _('Zoom') }}">
+			<img class="website-image wsp-gallery__img" src="{{ photos[0].image }}" alt="{{ photos[0].alt }}" data-index="0">
+		</a>
+	</div>
+	{%- else %}
+	<div class="wsp-gallery__empty product-image" aria-hidden="true">
+		<span>{{ frappe.utils.get_abbr(doc.web_item_name or doc.item_name or '?') }}</span>
+	</div>
+	{%- endif %}
+
+	{%- if photos %}
+	{# the phone: one strip to swipe, edge to edge, with its dots #}
+	<div class="wsp-gallery__strip d-md-none" data-strip>
+		<div class="wsp-gallery__track">
+			{%- for p in photos %}
+			<div class="wsp-gallery__slide" data-index="{{ loop.index0 }}">
+				<img class="{{ 'website-image' if loop.first and layout == 'empty' else '' }} wsp-gallery__img" src="{{ p.image }}" alt="{{ p.alt }}" loading="{{ 'eager' if loop.first else 'lazy' }}" decoding="async">
+			</div>
+			{%- endfor %}
 		</div>
-		<script>
-			frappe.ready(() => {
-				//// Neoffice — the switching logic only drives the DESKTOP thumbnails; the mobile
-				//// layout duplicates them, and selecting by class alone matched both.
-				// Only select desktop thumbnails for the slideshow logic
-				const slides = document.querySelectorAll('.item-slideshow:not(.item-slideshow-mobile) .item-slideshow-image');
-				const totalSlides = slides.length;
-				let currentSlide = 0;
-				let autoplayInterval = null;
-				let isMouseOver = false;
-				
-				// Click on thumbnail
-				$('.page_content').on('click', '.item-slideshow-image', (e) => {
-					const $img = $(e.currentTarget);
-					//// Neoffice — thumbnails are matched on their src, not on their index: the same
-					//// image can legitimately appear twice (a variant reusing the template's picture)
-					//// and the index then pointed at the wrong slide.
-					// Get index based on the src attribute to handle duplicated thumbnails
-					const clickedSrc = $img.attr('src');
-					let index = 0;
-					slides.forEach((slide, i) => {
-						if ($(slide).attr('src') === clickedSrc) {
-							index = i;
-						}
-					});
-					showSlide(index);
-					resetAutoplay();
-				});
-				
-				// Click on progress dots
-				$('.progress-dot').on('click', (e) => {
-					const index = parseInt($(e.currentTarget).data('index'));
-					showSlide(index);
-					resetAutoplay();
-				});
-				
-				// Navigation buttons
-				$('.slideshow-btn.prev').on('click', () => {
-					currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-					showSlide(currentSlide);
-					resetAutoplay();
-				});
-				
-				$('.slideshow-btn.next').on('click', () => {
-					currentSlide = (currentSlide + 1) % totalSlides;
-					showSlide(currentSlide);
-					resetAutoplay();
-				});
-				
-				// Keyboard navigation
-				$(document).on('keydown', (e) => {
-					if ($('.image-zoom-view').is(':visible')) return;
-					
-					if (e.key === 'ArrowLeft') {
-						currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-						showSlide(currentSlide);
-						resetAutoplay();
-					} else if (e.key === 'ArrowRight') {
-						currentSlide = (currentSlide + 1) % totalSlides;
-						showSlide(currentSlide);
-						resetAutoplay();
-					}
-				});
-				
-				// Mouse hover detection
-				$('.product-image, .item-slideshow').on('mouseenter', () => {
-					isMouseOver = true;
-					stopAutoplay();
-				}).on('mouseleave', () => {
-					isMouseOver = false;
-					startAutoplay();
-				});
-				
-				function showSlide(index) {
-					currentSlide = index;
-					const $img = $(slides[index]);
-					const link = $img.prop('src');
-					const $product_image = $('.product-image');
-					//// Neoffice — see the gallery block above.
-					
-					// Fade effect
-					$product_image.find('img').fadeOut(200, function() {
-						$(this).prop('src', link).fadeIn(200);
-					});
-					$product_image.find('a').prop('href', link);
-					//// Neoffice — see the gallery block above (main image switching, keyboard and
-					//// swipe handling).
-					
-					// Update active state for all thumbnails with the same src
-					$('.item-slideshow-image').each(function() {
-						if ($(this).attr('src') === link) {
-							$(this).addClass('active');
-						} else {
-							$(this).removeClass('active');
-						}
-					});
-					
-					// Update progress dots
-					$('.progress-dot').removeClass('active');
-					$('.progress-dot').eq(index).addClass('active');
-				}
-				
-				function startAutoplay() {
-					if (!isMouseOver && totalSlides > 1) {
-						stopAutoplay();
-						autoplayInterval = setInterval(() => {
-							currentSlide = (currentSlide + 1) % totalSlides;
-							showSlide(currentSlide);
-						}, 8000); // 8 seconds
-					}
-				}
-				
-				function stopAutoplay() {
-					if (autoplayInterval) {
-						clearInterval(autoplayInterval);
-						autoplayInterval = null;
-					}
-				}
-				
-				function resetAutoplay() {
-					stopAutoplay();
-					if (!isMouseOver) {
-						startAutoplay();
-					}
-				}
-				
-				// Start autoplay initially
-				startAutoplay();
-			})
-		</script>
-	{% else %}
-		{{ product_image(doc.website_image, alt=doc.website_image_alt or doc.item_name) }}
-	{% endif %}
+		{%- if photos | length > 1 %}
+		<div class="wsp-gallery__dots" aria-hidden="true">
+			{%- for p in photos %}<span class="wsp-gallery__dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></span>{%- endfor %}
+		</div>
+		{%- endif %}
+	</div>
+	{%- endif %}
 
-	<!-- Simple image preview -->
-
-	<div class="image-zoom-view" style="display: none;">
-		<button type="button" class="close" aria-label="Close">
+	<!-- Full-screen zoom -->
+	<div class="image-zoom-view" style="display: none;" role="dialog" aria-modal="true" aria-label="{{ _('Zoom') }}">
+		<button type="button" class="close" aria-label="{{ _('Close') }}">
 			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
 			stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x">
 				<line x1="18" y1="6" x2="6" y2="18"></line>
 				<line x1="6" y1="6" x2="18" y2="18"></line>
 			</svg>
 		</button>
-		{# //// Neoffice — added: the full-screen zoom view; upstream has none (0c10921750, #}
-		{# //// 2025-06-18). #}
 		<div class="zoom-content">
-			<button class="zoom-nav zoom-prev" aria-label="Previous image">‹</button>
+			<button type="button" class="zoom-nav zoom-prev" aria-label="{{ _('Previous image') }}">‹</button>
 			<div class="zoom-image-container"></div>
-			<button class="zoom-nav zoom-next" aria-label="Next image">›</button>
+			<button type="button" class="zoom-nav zoom-next" aria-label="{{ _('Next image') }}">›</button>
 		</div>
-		{% if slides %}
+		{%- if photos | length > 1 %}
 		<div class="zoom-thumbnails">
-			{% for item in slides %}
-			<img class="zoom-thumbnail {% if loop.first %}active{% endif %}" 
-				src="{{ item.image }}" loading="lazy" decoding="async"
-				alt="{{ item.heading or _('{0} — image {1}').format(_(doc.web_item_name), loop.index) }}" data-index="{{ loop.index0 }}">
-			{% endfor %}
+			{%- for p in photos %}
+			<img class="zoom-thumbnail {% if loop.first %}active{% endif %}" src="{{ p.image }}" loading="lazy" decoding="async" alt="{{ p.alt }}" data-index="{{ loop.index0 }}">
+			{%- endfor %}
 		</div>
-		{% endif %}
+		{%- endif %}
 	</div>
 </div>
-{# //// Neoffice — styles moved to webshop/public/scss/webshop_product_gallery.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
+{# //// Neoffice — styles in webshop/public/scss/webshop_product_gallery.scss (no <style> lives in a template). #}
 <script>
-	frappe.ready(() => {
-		const $zoom_wrapper = $('.image-zoom-view');
-		//// Neoffice — the zoom behaviour (see the block above).
-		const $zoom_container = $('.zoom-image-container');
-		let zoomImages = [];
-		let currentZoomIndex = 0;
-		
-		// Get all slide images from thumbnails if they exist
-		const $thumbnails = $('.item-slideshow-image');
-		if ($thumbnails.length > 0) {
-			$thumbnails.each(function() {
-				zoomImages.push($(this).attr('src'));
+// The gallery: one script for the three layouts and the phone strip. Any picture
+// opens the zoom at its own index; the rail switches its main picture; the strip
+// keeps its dots in step with the scroll. No autoplay: a product gallery that moves
+// on its own moves the price out from under the cursor.
+frappe.ready(function() {
+	const root = document.querySelector('.wsp-gallery');
+	if (!root) return;
+	let photos = [];
+	try { photos = JSON.parse(root.dataset.photos || '[]'); } catch (e) { photos = []; }
+	if (!photos.length) return;
+	let current = 0;
+
+	// --- the rail: thumbnails switch the main picture ---
+	const main = root.querySelector('.wsp-gallery__main img');
+	const thumbs = root.querySelectorAll('.wsp-gallery__thumb');
+	function showRail(index) {
+		current = (index + photos.length) % photos.length;
+		if (main) { main.src = photos[current]; main.dataset.index = current; }
+		thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
+	}
+	thumbs.forEach(t => t.addEventListener('click', () => showRail(parseInt(t.dataset.index, 10))));
+	root.querySelectorAll('.slideshow-btn.prev').forEach(b => b.addEventListener('click', () => showRail(current - 1)));
+	root.querySelectorAll('.slideshow-btn.next').forEach(b => b.addEventListener('click', () => showRail(current + 1)));
+
+	// --- the strip on a phone: dots follow the scroll ---
+	const strip = root.querySelector('[data-strip]');
+	if (strip) {
+		const track = strip.querySelector('.wsp-gallery__track');
+		const dots = strip.querySelectorAll('.wsp-gallery__dot');
+		const slides = strip.querySelectorAll('.wsp-gallery__slide');
+		const watcher = new IntersectionObserver((entries) => {
+			entries.forEach(entry => {
+				if (!entry.isIntersecting) return;
+				const index = parseInt(entry.target.dataset.index, 10);
+				dots.forEach((d, i) => d.classList.toggle('active', i === index));
 			});
-		} else {
-			// Get the main image
-			const mainImage = $('.website-image').attr('src');
-			if (mainImage) {
-				zoomImages = [mainImage];
-			}
-		}
+		}, { root: track, threshold: 0.6 });
+		slides.forEach(s => watcher.observe(s));
+		dots.forEach(d => d.addEventListener('click', () => {
+			const index = parseInt(d.dataset.index, 10);
+			slides[index] && slides[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+		}));
+	}
 
-		// Click on main image to open zoom
-		$('.website-image').on('click', (e) => {
-			e.preventDefault();
-			const $img = $(e.target);
-			const src = $img.prop('src');
-			if (!src) return;
-			//// Neoffice — see the block above.
-			
-			// Find the index of the clicked image
-			currentZoomIndex = zoomImages.indexOf(src);
-			if (currentZoomIndex === -1) currentZoomIndex = 0;
-			
-			show_zoom_preview();
+	// --- the zoom ---
+	const zoom = root.querySelector('.image-zoom-view');
+	const zoomHost = zoom && zoom.querySelector('.zoom-image-container');
+	const zoomThumbs = zoom ? zoom.querySelectorAll('.zoom-thumbnail') : [];
+	let zoomIndex = 0;
+	function showZoom(index) {
+		zoomIndex = (index + photos.length) % photos.length;
+		zoomHost.innerHTML = '';
+		const img = document.createElement('img');
+		img.src = photos[zoomIndex];
+		img.alt = '';
+		zoomHost.appendChild(img);
+		zoomThumbs.forEach((t, i) => t.classList.toggle('active', i === zoomIndex));
+	}
+	function openZoom(index) {
+		if (!zoom) return;
+		showZoom(index);
+		zoom.style.display = 'flex';
+		document.body.style.overflow = 'hidden';
+	}
+	function closeZoom() {
+		zoom.style.display = 'none';
+		document.body.style.overflow = '';
+	}
+	root.querySelectorAll('.wsp-gallery__tile').forEach(tile => tile.addEventListener('click', (e) => {
+		e.preventDefault();
+		openZoom(parseInt(tile.dataset.index, 10) || 0);
+	}));
+	if (main) main.addEventListener('click', () => openZoom(current));
+	if (strip) strip.querySelectorAll('.wsp-gallery__slide img').forEach(img => img.addEventListener('click', () => openZoom(parseInt(img.parentElement.dataset.index, 10) || 0)));
+	if (zoom) {
+		zoom.querySelector('.close').addEventListener('click', closeZoom);
+		zoom.addEventListener('click', (e) => { if (e.target === zoom) closeZoom(); });
+		zoom.querySelector('.zoom-prev').addEventListener('click', () => showZoom(zoomIndex - 1));
+		zoom.querySelector('.zoom-next').addEventListener('click', () => showZoom(zoomIndex + 1));
+		zoomThumbs.forEach(t => t.addEventListener('click', () => showZoom(parseInt(t.dataset.index, 10))));
+		document.addEventListener('keydown', (e) => {
+			if (zoom.style.display === 'none') return;
+			if (e.key === 'Escape') closeZoom();
+			if (e.key === 'ArrowLeft') showZoom(zoomIndex - 1);
+			if (e.key === 'ArrowRight') showZoom(zoomIndex + 1);
 		});
-
-		//// Neoffice — the close button binding (see the block above).
-		// Close button
-		$zoom_wrapper.on('click', '.close', hide_zoom_preview);
-		
-		// Click outside image to close
-		$zoom_wrapper.on('click', (e) => {
-			if ($(e.target).hasClass('image-zoom-view')) {
-				hide_zoom_preview();
-			}
-		});
-		
-		// Navigation buttons
-		$zoom_wrapper.on('click', '.zoom-prev', () => {
-			currentZoomIndex = (currentZoomIndex - 1 + zoomImages.length) % zoomImages.length;
-			update_zoom_image();
-		});
-		
-		$zoom_wrapper.on('click', '.zoom-next', () => {
-			currentZoomIndex = (currentZoomIndex + 1) % zoomImages.length;
-			update_zoom_image();
-		});
-		
-		// Thumbnail clicks
-		$zoom_wrapper.on('click', '.zoom-thumbnail', (e) => {
-			currentZoomIndex = parseInt($(e.target).data('index'));
-			update_zoom_image();
-		});
-
-		// Keyboard navigation
-		$(document).on('keydown', (e) => {
-			//// Neoffice — Escape and arrow keys only act while the zoom is open.
-			if (!$zoom_wrapper.is(':visible')) return;
-			
-			if (e.key === 'Escape') {
-				//// Neoffice — see the block above.
-				hide_zoom_preview();
-			} else if (e.key === 'ArrowLeft') {
-				e.preventDefault();
-				currentZoomIndex = (currentZoomIndex - 1 + zoomImages.length) % zoomImages.length;
-				update_zoom_image();
-			} else if (e.key === 'ArrowRight') {
-				e.preventDefault();
-				currentZoomIndex = (currentZoomIndex + 1) % zoomImages.length;
-				update_zoom_image();
-			}
-		});
-
-		//// Neoffice — see the block above.
-		function show_zoom_preview() {
-			$zoom_wrapper.show();
-			//// Neoffice — see the block above.
-			update_zoom_image();
-			$('body').css('overflow', 'hidden'); // Prevent scrolling
-		}
-
-		//// Neoffice — see the block above.
-		function hide_zoom_preview() {
-			$zoom_wrapper.hide();
-			//// Neoffice — the zoom container is emptied on close so a large image is not kept
-			//// in memory for the rest of the visit.
-			$zoom_container.empty();
-			$('body').css('overflow', ''); // Restore scrolling
-		}
-		
-		function update_zoom_image() {
-			const src = zoomImages[currentZoomIndex];
-			$zoom_container.html(`<img src="${src}" alt="Product image">`);
-			
-			// Update thumbnail active state
-			$('.zoom-thumbnail').removeClass('active');
-			$('.zoom-thumbnail').eq(currentZoomIndex).addClass('active');
-			
-			// Hide navigation if only one image
-			if (zoomImages.length <= 1) {
-				$('.zoom-nav, .zoom-thumbnails').hide();
-			} else {
-				$('.zoom-nav, .zoom-thumbnails').show();
-			}
-		}
-	})
+	}
+});
 </script>

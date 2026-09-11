@@ -1,440 +1,426 @@
-// //// Neoffice — added file (no upstream equivalent). The product page's styles, moved
-// out of the templates that used to carry them inline (item.html, item_details,
-// item_add_to_cart, item_inquiry, item_bundle_components): a stylesheet that lives
-// in a template cannot be themed, and a /* */ that slips outside a <style> prints
-// on the page. Part of the shop bundle.
+// //// Neoffice — added file (no upstream equivalent). The product page, rewritten on
+// 2026-09-11 for the one look the shop has ("Modern"): a flat hero — gallery on 60 % of
+// the width, a complete buy column beside it — then full-width sections. No card in a
+// card any more: the content sits on the page and the white, the type and the lines
+// separate it. Everything draws with the tokens (webshop_tokens.scss), so a chrome with
+// a colour, a corner and a shadow of its own is followed. The gallery's own rules are in
+// webshop_product_gallery.scss; the variant grid's in webshop_variant_grid.scss.
 
-/* ---- from webshop/templates/generators/item/item.html (block 1) ---- */
-	/* Product page: harmonized section styling */
-	.product-section-title {
-		font-size: 1.25rem;
-		font-weight: 600;
-		margin: 8px 0 14px;
-		color: var(--wsh-text);
-	}
-	.product-long-description-section { margin: 4px 0 28px; }
-	.product-long-description {
-		line-height: 1.7;
-		color: var(--wsh-text);
-		max-width: 100%;
-	}
-	.product-long-description img { max-width: 100%; height: auto; border-radius: var(--wsh-radius); }
-	.product-long-description table { max-width: 100%; }
-	.product-long-description iframe { max-width: 100%; }
-	/* Bottom sections: one heading style for reviews / recommended / FBT */
-	.product-info-wrapper .reviews-title,
-	.product-info-wrapper .carousel-title,
-	.product-info-wrapper .recommendation-header {
-		font-size: 1.25rem !important;
-		font-weight: 600 !important;
-		color: var(--wsh-text) !important;
-		line-height: 1.3 !important;
-		display: flex !important;
-		align-items: center;
-		gap: 8px;
-		margin: 0 0 14px !important;
-		padding: 0 !important;
-	}
-	.product-info-wrapper .review-count-badge { font-size: 0.8rem; }
-	/* same top rhythm for the three blocks */
-	.product-info-wrapper .ratings-reviews-section { margin-top: 0 !important; }
-	.product-info-wrapper .carousel-header { margin: 0 !important; padding: 0 !important; }
-	.recommendations-wrapper a:hover { text-decoration: none; }
+// ---------------------------------------------------------------- the page
 
-	/* ---- Distinct card blocks (gallery / buy box / description / info) ---- */
-	body.product-page { background: var(--wsh-surface-muted); }
-	.product-header-block { margin: 4px 0 16px; }
-	/* buy-box trust block + excerpt */
-	.buybox-trust {
-		margin-top: 18px;
-		padding-top: 16px;
-		border-top: 1px solid var(--wsh-line-light);
-		display: flex;
-		flex-direction: column;
-		gap: 9px;
-	}
-	.buybox-trust__item {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		font-size: 0.86rem;
-		color: var(--wsh-text);
-	}
-	.buybox-trust__item svg { width: 16px; height: 16px; color: var(--wsh-ok); flex-shrink: 0; }
-	.buybox-trust__item--legal { color: var(--wsh-danger-strong); }
-	.buybox-trust__item--legal svg { color: var(--wsh-danger-strong); }
-	.buybox-excerpt {
-		margin-top: 16px;
-		padding-top: 16px;
-		border-top: 1px solid var(--wsh-line-light);
-		font-size: 0.875rem;
-		line-height: 1.65;
-		color: var(--wsh-muted);
-	}
-	.buybox-excerpt a { white-space: nowrap; font-weight: 500; }
-	/* //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") */
-	/* The link to the rest: detached from the text, so it is distinguished from the
-	   description itself. */
-	.buybox-more { margin: 10px 0 0; }
-	.buybox-more a { white-space: nowrap; font-weight: 500; }
-	/* the item's own description, when no Website Description overrides it */
-	.buybox-description {
-		margin-top: 16px;
-		padding-top: 16px;
-		border-top: 1px solid var(--wsh-line-light);
-	}
-	.buybox-description > *:first-child { margin-top: 0; }
-	.buybox-description > *:last-child { margin-bottom: 0; }
-	/* //// Neoffice — only while a product page is shown: bundle-wide, smooth scrolling would
-	   animate every programmatic scroll of the catalogue as well. */
-	html:has(.product-container.item-main) { scroll-behavior: smooth; }
-	.product-header-block .product-title-main {
-		font-size: 1.65rem;
-		font-weight: 700;
-		color: var(--wsh-text);
-		line-height: 1.25;
-		margin: 0;
-	}
-	.product-header-block .product-title-breadcrumbs { margin: 6px 0 0; }
-	.product-header-block .breadcrumb-container,
-	.product-header-block .breadcrumb-container.container {
-		padding: 0 !important;
-		margin-top: 0 !important;
-		max-width: none;
-	}
-	.product-header-block .product-title-breadcrumbs .breadcrumb,
-	.product-header-block .product-title-breadcrumbs ol,
-	.product-header-block .product-title-breadcrumbs ul {
-		padding: 0 !important; margin: 0 !important; background: transparent !important;
-		font-size: 0.78rem; justify-content: flex-start !important;
-	}
-	.product-header-block .product-title-breadcrumbs .breadcrumb li:last-child,
-	.product-header-block .product-title-breadcrumbs .breadcrumb-item:last-child { display: none; }
-	/* Themes that print their own page header (title + breadcrumbs above the
-	   content) made the product page say everything twice. When such a header
-	   is on the page, this block keeps only the wishlist heart — on a theme
-	   without one, the title and breadcrumbs stay exactly where they were. */
-	body:has(.site-page-header) .product-header-block .product-title-main,
-	body:has(.site-page-header) .product-header-block .product-title-breadcrumbs { display: none; }
-	/* Left alone, the wishlist heart stayed behind on its own empty line above
-	   the cards. It goes where shops put it — top right of the product, over
-	   the buy box (and over the picture once the columns stack). */
-	body:has(.site-page-header) .product-page-content { position: relative; }
-	body:has(.site-page-header) .product-header-block {
-		position: absolute;
-		top: 16px;
-		right: 18px;
-		z-index: 4;
-		margin: 0;
-	}
-	body:has(.site-page-header) .product-header-block .like-action { margin: 0; }
-	/* the legacy page wrapper painted the whole product page white, hiding the
-	   gray background between the cards */
-	body.product-page .product-container.item-main { background: transparent !important; box-shadow: none !important; border: none !important; }
-	.product-hero-row { row-gap: 20px; }
-	.product-hero-row > .product-image-wrapper,
-	.product-hero-row > .product-details {
-		background: var(--wsh-surface);
-		border: 1px solid var(--wsh-line);
-		border-radius: var(--wsh-radius-lg);
-		padding: 24px !important;
-		margin-bottom: 0 !important;
-		box-shadow: var(--wsh-shadow-sm);
-	}
-	@media (min-width: 768px) {
-		.product-hero-row { display: flex; flex-wrap: nowrap; gap: 20px; align-items: stretch; }
-		.product-hero-row > .product-image-wrapper { flex: 0 0 calc(48% - 10px) !important; max-width: none !important; }
-		.product-hero-row > .product-details { flex: 1 1 auto !important; max-width: none !important; width: auto !important; }
-		/* The gallery column carries Bootstrap's h-100. On a flex row whose
-		   height comes from its content, an explicit height beats align-items
-		   stretch, so the picture card stopped short of the buy box instead of
-		   matching it. Height auto hands the arbitration back to the row, and
-		   the image sits centred in whatever height the buy box dictates. */
-		.product-hero-row > .product-image-wrapper.h-100 { height: auto !important; }
-		.product-hero-row > .product-image-wrapper { align-items: center; justify-content: center; }
-		.product-hero-row > .product-image-wrapper .product-image-container,
-		.product-hero-row > .product-image-wrapper > a { width: 100%; }
-	}
-	.product-long-description-section {
-		background: var(--wsh-surface);
-		border: 1px solid var(--wsh-line);
-		border-radius: var(--wsh-radius-lg);
-		padding: 24px 28px;
-		margin: 20px 0 28px;
-		box-shadow: var(--wsh-shadow-sm);
-	}
-	.product-info-wrapper .product-container {
-		background: var(--wsh-surface);
-		border: 1px solid var(--wsh-line);
-		border-radius: var(--wsh-radius-lg);
-		padding: 24px 28px;
-		box-shadow: var(--wsh-shadow-sm);
-	}
-	.product-info-wrapper .frequently-bought-section .recommendation-container,
-	.product-info-wrapper .frequently-bought-section > div {
-		background: var(--wsh-surface);
-		border-radius: var(--wsh-radius-lg);
-	}
-	/* The carousel brings its own outer spacing and lets its cards slide past
-	   its edges — inside a card that spilled over the neighbouring block. */
-	.product-info-wrapper .recommended-card { overflow: hidden; }
-	.product-info-wrapper .recommended-card .product-carousel { margin: 0; padding: 0; }
-	.product-info-wrapper .recommended-card .carousel-clip-container { overflow: hidden; }
-	/* One heading rhythm for the three bottom cards. */
-	.product-info-wrapper .recommendation-container .recommendation-header { display: block; margin-bottom: 14px !important; }
-	/* //// Neoffice — the bottom cards line up with the hero panels. The hero row is a
-	   //// Bootstrap .row, whose negative margins cancel its columns' padding, and its
-	   //// columns ARE the white panels: their edge sits on the page edge. This wrapper is
-	   //// a bare flex row, so its cards sat 15px in from the panel above them (the lone
-	   //// "Recommended" card, a reseller site, 2026-09-10). Same negative margins
-	   //// here, and the inner columns keep Bootstrap's own padding on both sides. */
-	.product-info-wrapper { margin-left: -15px; margin-right: -15px; }
-	.product-info-wrapper .recommendations-wrapper > .row > .recommended-item-section,
-	.product-info-wrapper .recommendations-wrapper > .row > .frequently-bought-section { padding-left: 15px; padding-right: 15px; }
-	/* Side by side, the cards ended at three different heights. */
-	.product-info-wrapper .recommendations-wrapper > .row { align-items: stretch; }
-	.product-info-wrapper .recommended-card,
-	.product-info-wrapper .frequently-bought-section .recommendation-container { height: 100%; }
-
-/* ---- from webshop/templates/generators/item/item_details.html (block 1) ---- */
-	.product-separator {
-		margin: 0 0.5rem;
-		color: var(--wsh-muted);
-	}
-	
-	.product-brand {
-		font-weight: 500;
-	}
-	
-	.brand-link {
-		color: var(--wsh-primary);
-		text-decoration: none;
-		transition: all var(--wsh-motion);
-	}
-	
-	.brand-link:hover {
-		color: var(--wsh-primary-hover);
-		text-decoration: underline;
-	}
-	
-	.product-code {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 0.25rem;
-		margin-bottom: 1rem;
-		color: var(--wsh-muted);
-		font-size: 0.9rem;
-	}
-	
-	.product-item-group {
-		font-weight: 500;
-		color: var(--wsh-text);
-	}
-	
-	.product-item-code {
-		margin-left: 0.5rem;
-	}
-
-/* ---- from webshop/templates/generators/item/item_details.html (block 2) ---- */
-	.product-condition { margin: 4px 0 14px; padding: 12px 14px; border: 1px solid var(--wsh-line); border-radius: var(--wsh-radius-lg); background: var(--wsh-surface-muted); }
-	.product-condition__head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.9rem; color: var(--wsh-text); }
-	.product-condition__grade { font-weight: 600; }
-	.product-condition__warranty::before { content: "\2713\00a0"; color: var(--wsh-ok); }
-	.product-condition__details { margin: 8px 0 0; color: var(--wsh-muted); font-size: 0.9rem; white-space: pre-line; }
-	.product-condition__reference { display: inline-block; margin-top: 8px; font-size: 0.85rem; }
-	/* the bundle positions .condition-badge in a card corner; in the buy box it is a plain pill */
-	.product-condition .condition-badge--inline { position: static !important; display: inline-flex !important; border-radius: var(--wsh-radius-pill); }
-	.product-used-units { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--wsh-line-light); }
-	.product-used-units__title { font-weight: 600; font-size: 0.95rem; margin-bottom: 8px; color: var(--wsh-text); }
-	.product-used-unit { display: flex; align-items: center; gap: 10px; padding: 8px 0; color: inherit; text-decoration: none; border-bottom: 1px dashed var(--wsh-line-light); }
-	.product-used-unit:hover { text-decoration: none; opacity: .85; }
-	.product-used-unit img, .product-used-unit__abbr { width: 44px; height: 44px; border-radius: var(--wsh-radius); object-fit: cover; background: var(--wsh-surface-muted); display: flex; align-items: center; justify-content: center; color: var(--wsh-faint); font-weight: 600; flex-shrink: 0; }
-	.product-used-unit__body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-	.product-used-unit__name { font-size: 0.85rem; line-height: 1.25; }
-	.product-used-unit__meta { font-size: 0.75rem; color: var(--wsh-muted); }
-	.product-used-unit__price { font-weight: 600; white-space: nowrap; }
-
-/* ---- from webshop/templates/generators/item/item_add_to_cart.html (block 1) ---- */
-					.webshop-warehouse-sources { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
-					.webshop-source-option { display: flex; align-items: center; gap: 8px; border: 1px solid var(--wsh-line-strong); border-radius: var(--wsh-radius); padding: 8px 12px; cursor: pointer; margin-bottom: 0; }
-					.webshop-source-option:has(input:checked) { border-color: var(--wsh-primary); box-shadow: 0 0 0 1px var(--wsh-primary); }
-					.webshop-source-option.webshop-source-out { opacity: 0.55; cursor: not-allowed; }
-					.webshop-source-label { font-weight: 600; }
-					.webshop-source-qty { font-size: 0.85em; }
-					.webshop-source-qty.webshop-in { color: var(--wsh-ok); }
-					.webshop-source-qty.webshop-out { color: var(--wsh-danger); }
-					.webshop-source-delay { font-size: 0.85em; color: var(--wsh-muted); margin-left: auto; }
-				
-
-/* ---- from webshop/templates/generators/item/item_add_to_cart.html (block 2) ---- */
-	.webshop-buybar { display: none; }
-	@media (max-width: 767.98px) {
-		.webshop-buybar {
-			display: flex;
-			align-items: center;
-			gap: 12px;
-			position: fixed;
-			left: 0; right: 0; bottom: 0;
-			z-index: 1030;
-			padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
-			background: var(--wsh-surface);
-			border-top: 1px solid var(--wsh-line);
-			box-shadow: var(--wsh-shadow);
-			transform: translateY(110%);
-			transition: transform var(--wsh-motion);
-		}
-		.webshop-buybar.is-visible { transform: translateY(0); }
-		.webshop-buybar__info { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
-		.webshop-buybar__name {
-			font-size: .8rem; color: var(--wsh-muted);
-			overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-		}
-		.webshop-buybar__price { font-weight: 700; font-size: 1rem; color: var(--wsh-text); }
-		.webshop-buybar__btn { flex: 0 0 auto; }
-		/* The bar covers the end of the page while it is up. */
-		body.webshop-buybar-on { padding-bottom: 76px; }
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.webshop-buybar { transition: none; }
-	}
-
-/* ---- from webshop/templates/generators/item/item_inquiry.html (block 1) ---- */
-			/* //// Neoffice — the label is hidden on desktop (the button is a small square
-			   next to "Add to cart") and shown on mobile, where it stretches full width and
-			   a lone "?" tells nobody anything (69db8ac57d, 2026-08-26).
-
-			   These three lines used to sit OUTSIDE this <style> block: `/* … *\/` is not a
-			   comment in HTML, so the whole explanation printed as text on the product page,
-			   right next to the button it was describing. */
-			.btn-inquiry__label { display: none; }
-			@media (max-width: 767.98px) {
-				.btn-inquiry__label { display: inline; margin-left: 6px; }
-			}
-		
-
-/* ---- from webshop/templates/generators/item/item_bundle_components.html (block 1) ---- */
-.product-bundle-section {
-	background-color: var(--wsh-surface-muted);
-	padding: 1.5rem;
-	border-radius: var(--wsh-radius);
-	margin-bottom: 2rem;
+body.product-page { background: var(--wsh-bg); }
+/* the legacy wrapper painted itself as a card */
+body.product-page .product-container.item-main,
+.wsp-product {
+	background: transparent !important;
+	box-shadow: none !important;
+	border: none !important;
+	padding: 0 !important;
 }
+html:has(.wsp-product) { scroll-behavior: smooth; }
 
-.bundle-title {
-	margin-top: 0;
-	margin-bottom: 1.5rem;
-	font-size: 1.25rem;
-	font-weight: 600;
+// ---------------------------------------------------------------- header block
+
+.product-header-block { margin: 4px 0 20px; }
+.product-header-block .product-title-main {
+	font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.1rem);
+	font-weight: 700;
 	color: var(--wsh-text);
+	line-height: 1.2;
+	margin: 0;
+	letter-spacing: -0.01em;
 }
+.product-header-block .product-title-breadcrumbs { margin: 6px 0 0; }
+.product-header-block .breadcrumb-container,
+.product-header-block .breadcrumb-container.container {
+	padding: 0 !important;
+	margin-top: 0 !important;
+	max-width: none;
+}
+.product-header-block .product-title-breadcrumbs .breadcrumb,
+.product-header-block .product-title-breadcrumbs ol,
+.product-header-block .product-title-breadcrumbs ul {
+	padding: 0 !important; margin: 0 !important; background: transparent !important;
+	font-size: 0.78rem; justify-content: flex-start !important;
+}
+.product-header-block .product-title-breadcrumbs .breadcrumb li:last-child,
+.product-header-block .product-title-breadcrumbs .breadcrumb-item:last-child { display: none; }
+.product-header-block .like-action {
+	width: 40px; height: 40px;
+	border-radius: var(--wsh-radius-pill);
+	border: 1px solid var(--wsh-line);
+	background: var(--wsh-surface);
+	display: inline-flex; align-items: center; justify-content: center;
+	cursor: pointer;
+	transition: border-color var(--wsh-motion), transform var(--wsh-motion);
+}
+.product-header-block .like-action:hover { border-color: var(--wsh-text); transform: scale(1.05); }
+/* A site chrome that prints its own page header (title + breadcrumbs) would make the
+   page say everything twice: only the heart stays, top right of the hero. */
+body:has(.site-page-header) .product-header-block .product-title-main,
+body:has(.site-page-header) .product-header-block .product-title-breadcrumbs { display: none; }
+body:has(.site-page-header) .product-page-content { position: relative; }
+body:has(.site-page-header) .product-header-block {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 4;
+	margin: 0;
+}
+body:has(.site-page-header) .product-header-block .like-action { margin: 0; }
 
-.bundle-items-container {
+// ---------------------------------------------------------------- the hero
+
+.wsp-hero {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-	gap: 1.5rem;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 28px;
+	align-items: start;
+	margin: 0 0 8px;
+}
+/* the two columns carry Bootstrap's col-md-* classes for the scripts that read them;
+   in a grid those widths must not apply */
+.wsp-hero > .product-image-wrapper,
+.wsp-hero > .product-details {
+	max-width: none !important;
+	width: auto !important;
+	flex: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+@media (min-width: 992px) {
+	.wsp-hero {
+		grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+		gap: 48px;
+	}
+	.wsp-hero > .product-details { position: sticky; top: 24px; }
+}
+@media (min-width: 1400px) {
+	.wsp-hero { gap: 64px; }
 }
 
-.bundle-item {
+// ---------------------------------------------------------------- the buy column
+// Every rule below is rooted on .wsp-product: upstream's product-page rules
+// (webshop_cart.scss, `.product-container .item-cart .product-price` and friends)
+// outrank a lone class, and the page would keep their 22px price and 13px text.
+
+.wsp-product .wsp-buy { min-width: 0; }
+.wsp-product .wsp-buy .product-code {
 	display: flex;
 	align-items: center;
-	background: var(--wsh-surface);
-	padding: 1rem;
-	border-radius: var(--wsh-radius);
-	border: 1px solid var(--wsh-line);
-	transition: all var(--wsh-motion);
+	flex-wrap: wrap;
+	gap: 0.25rem;
+	margin: 0 0 12px;
+	color: var(--wsh-muted);
+	font-size: 0.82rem;
+	letter-spacing: 0.01em;
 }
+.wsp-product .wsp-buy .product-brand { font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.78rem; }
+.wsp-product .wsp-buy .brand-link { color: var(--wsh-text); text-decoration: none; transition: color var(--wsh-motion); }
+.wsp-product .wsp-buy .brand-link:hover { color: var(--wsh-primary); text-decoration: underline; }
+.wsp-product .wsp-buy .product-item-group { font-weight: 500; color: var(--wsh-muted); }
+.wsp-product .wsp-buy .product-separator { margin: 0 0.35rem; color: var(--wsh-faint); }
+.wsp-product .wsp-buy .product-item-code { margin-left: 0.25rem; }
 
-.bundle-item:hover {
-	border-color: var(--wsh-primary);
-	box-shadow: var(--wsh-shadow);
+/* price and stock */
+.wsp-product .wsp-buy .item-cart { margin: 0 !important; }
+.wsp-product .wsp-buy .item-cart > .col-md-12 { padding: 0; max-width: none; flex: none; }
+.wsp-product .wsp-buy .product-price {
+	font-size: clamp(1.5rem, 1.2rem + 1vw, 1.9rem);
+	font-weight: 700;
+	color: var(--wsh-text);
+	line-height: 1.2;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 6px 10px;
+	margin: 4px 0 6px;
 }
-
-.bundle-item-image {
-	width: 60px;
-	height: 60px;
-	flex-shrink: 0;
-	margin-right: 1rem;
-}
-
-.bundle-item-img {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
+.wsp-product .wsp-buy .product-price .formatted-price { font-size: 0.85rem; font-weight: 500; color: var(--wsh-muted); }
+.wsp-product .wsp-buy .product-price .formatted-price s { color: var(--wsh-faint); }
+.wsp-product .wsp-buy .product-price .in-green {
+	color: var(--wsh-danger-strong);
+	background: var(--wsh-danger-soft);
 	border-radius: var(--wsh-radius-sm);
+	padding: 2px 8px;
+	font-weight: 700;
+}
+.wsp-product .wsp-buy .has-stock { color: var(--wsh-ok-strong); font-weight: 600; font-size: 0.9rem; }
+.wsp-product .wsp-buy .has-stock::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--wsh-ok); margin-right: 6px; vertical-align: 1px; }
+.wsp-product .wsp-buy .no-stock { color: var(--wsh-danger-strong); font-weight: 600; font-size: 0.9rem; }
+.wsp-product .wsp-buy .loyalty-points-section { margin: 6px 0 0; }
+
+/* quantity and the button: one row, the button takes what is left */
+.wsp-product .wsp-buy .action-buttons { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; margin-bottom: 0 !important; }
+.wsp-product .wsp-buy .action-buttons > .mt-2 { margin-top: 0 !important; }
+.wsp-product .wsp-buy .action-buttons .number-spinner { width: 128px !important; margin: 0 !important; }
+.wsp-product .wsp-buy .action-buttons .number-spinner .cart-btn {
+	border: 1px solid var(--wsh-line-strong);
+	background: var(--wsh-surface);
+	color: var(--wsh-text);
+	width: 40px;
+}
+.wsp-product .wsp-buy .action-buttons .number-spinner .item-qty { border-color: var(--wsh-line-strong) !important; font-weight: 600; }
+.wsp-product .wsp-buy .action-buttons .btn-add-to-cart {
+	flex: 1 1 200px;
+	margin: 0 !important;
+	padding: 12px 20px;
+	font-weight: 600;
+	font-size: 0.95rem;
+	border-radius: var(--wsh-radius);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+.wsp-product .wsp-buy .action-buttons .btn-view-in-cart { margin: 0 !important; }
+.wsp-product .wsp-buy .action-buttons .btn-inquiry { margin: 0; border-radius: var(--wsh-radius); }
+.wsp-product .wsp-buy .item-cart .mt-6 { margin-top: 20px !important; }
+.wsp-product .wsp-buy .item-cart .mb-5 { margin-bottom: 8px !important; }
+
+/* promises */
+.wsp-product .wsp-promises {
+	list-style: none;
+	margin: 20px 0 0;
+	padding: 16px 0 0;
+	border-top: 1px solid var(--wsh-line);
+	display: flex;
+	flex-direction: column;
+	gap: 9px;
+}
+.wsp-product .wsp-promises__item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 0.9rem;
+	color: var(--wsh-text);
+}
+.wsp-product .wsp-promises__item svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--wsh-ok-strong); }
+.wsp-product .wsp-promises + .buybox-trust { margin-top: 12px; padding-top: 0; border-top: none; }
+.wsp-product .buybox-trust {
+	margin-top: 20px;
+	padding-top: 16px;
+	border-top: 1px solid var(--wsh-line);
+	display: flex;
+	flex-direction: column;
+	gap: 9px;
+}
+.wsp-product .buybox-trust__item { display: flex; align-items: center; gap: 10px; font-size: 0.86rem; color: var(--wsh-muted); }
+.wsp-product .buybox-trust__item svg { width: 16px; height: 16px; color: var(--wsh-ok); flex-shrink: 0; }
+.wsp-product .buybox-trust__item--legal { color: var(--wsh-danger-strong); }
+.wsp-product .buybox-trust__item--legal svg { color: var(--wsh-danger-strong); }
+
+/* the folds */
+.wsp-product .wsp-folds { margin-top: 24px; border-top: 1px solid var(--wsh-line); }
+.wsp-product .wsp-acc { border-bottom: 1px solid var(--wsh-line); }
+.wsp-product .wsp-acc__head {
+	list-style: none;
+	cursor: pointer;
+	padding: 14px 28px 14px 0;
+	font-weight: 600;
+	font-size: 0.95rem;
+	color: var(--wsh-text);
+	position: relative;
+	user-select: none;
+}
+.wsp-product .wsp-acc__head::-webkit-details-marker { display: none; }
+.wsp-product .wsp-acc__head::after {
+	content: "";
+	position: absolute;
+	right: 6px;
+	top: 50%;
+	width: 8px;
+	height: 8px;
+	border-right: 2px solid var(--wsh-muted);
+	border-bottom: 2px solid var(--wsh-muted);
+	transform: translateY(-70%) rotate(45deg);
+	transition: transform var(--wsh-motion);
+}
+.wsp-product .wsp-acc[open] > .wsp-acc__head::after { transform: translateY(-30%) rotate(-135deg); }
+.wsp-product .wsp-acc__body {
+	padding: 0 0 16px;
+	font-size: 0.92rem;
+	line-height: 1.65;
+	color: var(--wsh-text);
+}
+.wsp-product .wsp-acc__body > *:first-child { margin-top: 0; }
+.wsp-product .wsp-acc__body > *:last-child { margin-bottom: 0; }
+.wsp-product .wsp-acc__body img { max-width: 100%; height: auto; border-radius: var(--wsh-radius); }
+.wsp-product .wsp-acc__body table, .wsp-acc__body iframe { max-width: 100%; }
+.wsp-product .wsp-acc__body.is-clamped {
+	overflow: hidden;
+	mask-image: linear-gradient(to bottom, #000 72%, transparent);
+	-webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent);
+	padding-bottom: 0;
+}
+.wsp-product .wsp-acc__body.is-open { mask-image: none; -webkit-mask-image: none; }
+.wsp-product .wsp-acc__more {
+	background: none;
+	border: none;
+	padding: 6px 0 16px;
+	font-weight: 600;
+	font-size: 0.9rem;
+	color: var(--wsh-text);
+	text-decoration: underline;
+	cursor: pointer;
+}
+.wsp-product .wsp-specs { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.wsp-product .wsp-specs th, .wsp-specs td { padding: 8px 0; border-bottom: 1px solid var(--wsh-line-light); vertical-align: top; text-align: left; }
+.wsp-product .wsp-specs tr:last-child th, .wsp-specs tr:last-child td { border-bottom: none; }
+.wsp-product .wsp-specs th { color: var(--wsh-muted); font-weight: 500; width: 40%; padding-right: 12px; }
+.wsp-product .wsp-brand__logo { max-height: 40px; max-width: 160px; margin-bottom: 10px; display: block; }
+.wsp-product .wsp-brand__text { color: var(--wsh-muted); }
+
+// ---------------------------------------------------------------- what stayed of the buy column's components
+
+/* second-hand */
+.product-condition { margin: 4px 0 14px; padding: 12px 14px; border: 1px solid var(--wsh-line); border-radius: var(--wsh-radius-lg); background: var(--wsh-surface-muted); }
+.product-condition__head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.9rem; color: var(--wsh-text); }
+.product-condition__grade { font-weight: 600; }
+.product-condition__warranty::before { content: "\2713\00a0"; color: var(--wsh-ok); }
+.product-condition__details { margin: 8px 0 0; color: var(--wsh-muted); font-size: 0.9rem; white-space: pre-line; }
+.product-condition__reference { display: inline-block; margin-top: 8px; font-size: 0.85rem; }
+.product-condition .condition-badge--inline { position: static !important; display: inline-flex !important; border-radius: var(--wsh-radius-pill); }
+.product-used-units { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--wsh-line-light); }
+.product-used-units__title { font-weight: 600; font-size: 0.95rem; margin-bottom: 8px; color: var(--wsh-text); }
+.product-used-unit { display: flex; align-items: center; gap: 10px; padding: 8px 0; color: inherit; text-decoration: none; border-bottom: 1px dashed var(--wsh-line-light); }
+.product-used-unit:hover { text-decoration: none; opacity: .85; }
+.product-used-unit img, .product-used-unit__abbr { width: 44px; height: 44px; border-radius: var(--wsh-radius); object-fit: cover; background: var(--wsh-surface-muted); display: flex; align-items: center; justify-content: center; color: var(--wsh-faint); font-weight: 600; flex-shrink: 0; }
+.product-used-unit__body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.product-used-unit__name { font-size: 0.85rem; line-height: 1.25; }
+.product-used-unit__meta { font-size: 0.75rem; color: var(--wsh-muted); }
+.product-used-unit__price { font-weight: 600; white-space: nowrap; }
+
+/* several stock sources */
+.webshop-warehouse-sources { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+.webshop-source-option { display: flex; align-items: center; gap: 8px; border: 1px solid var(--wsh-line-strong); border-radius: var(--wsh-radius); padding: 8px 12px; cursor: pointer; margin-bottom: 0; }
+.webshop-source-option:has(input:checked) { border-color: var(--wsh-primary); box-shadow: 0 0 0 1px var(--wsh-primary); }
+.webshop-source-option.webshop-source-out { opacity: 0.55; cursor: not-allowed; }
+.webshop-source-label { font-weight: 600; }
+.webshop-source-qty { font-size: 0.85em; }
+.webshop-source-qty.webshop-in { color: var(--wsh-ok); }
+.webshop-source-qty.webshop-out { color: var(--wsh-danger); }
+.webshop-source-delay { font-size: 0.85em; color: var(--wsh-muted); margin-left: auto; }
+
+/* the mobile buy bar: appears once the real button has left the screen */
+.webshop-buybar { display: none; }
+@media (max-width: 767.98px) {
+	.webshop-buybar {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		position: fixed;
+		left: 0; right: 0; bottom: 0;
+		z-index: 1030;
+		padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+		background: var(--wsh-surface);
+		border-top: 1px solid var(--wsh-line);
+		box-shadow: var(--wsh-shadow);
+		transform: translateY(110%);
+		transition: transform var(--wsh-motion);
+	}
+	.webshop-buybar.is-visible { transform: translateY(0); }
+	.webshop-buybar__info { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+	.webshop-buybar__name { font-size: .8rem; color: var(--wsh-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.webshop-buybar__price { font-weight: 700; font-size: 1rem; color: var(--wsh-text); }
+	.webshop-buybar__btn { flex: 0 0 auto; }
+	body.webshop-buybar-on { padding-bottom: 76px; }
+}
+@media (prefers-reduced-motion: reduce) {
+	.webshop-buybar { transition: none; }
 }
 
-.bundle-item-placeholder {
-	width: 100%;
-	height: 100%;
+/* the question button: an icon beside the cart button, words on a phone */
+.btn-inquiry__label { display: none; }
+@media (max-width: 767.98px) {
+	.btn-inquiry__label { display: inline; margin-left: 6px; }
+}
+
+/* a bundle's contents */
+.product-bundle-section { padding: 24px 0 0; margin: 24px 0 0; border-top: 1px solid var(--wsh-line); }
+.bundle-title { margin: 0 0 16px; font-size: 1.15rem; font-weight: 600; color: var(--wsh-text); }
+.bundle-items-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+.bundle-item { display: flex; align-items: center; background: var(--wsh-surface); padding: 12px; border-radius: var(--wsh-radius); border: 1px solid var(--wsh-line); transition: border-color var(--wsh-motion); }
+.bundle-item:hover { border-color: var(--wsh-text); }
+.bundle-item-image { width: 60px; height: 60px; flex-shrink: 0; margin-right: 1rem; }
+.bundle-item-img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--wsh-radius-sm); }
+.bundle-item-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--wsh-surface-muted); color: var(--wsh-faint); border-radius: var(--wsh-radius-sm); font-weight: 600; }
+.bundle-item-details { flex: 1; min-width: 0; }
+.bundle-item-name { font-weight: 600; color: var(--wsh-text); text-decoration: none; display: block; }
+a.bundle-item-name:hover { color: var(--wsh-primary); }
+.bundle-item-qty { font-size: 0.85rem; color: var(--wsh-muted); }
+.bundle-item-price { font-weight: 600; font-size: 0.9rem; }
+.bundle-item-stock { font-size: 0.8rem; margin-top: 2px; }
+.bundle-item-stock.in-stock { color: var(--wsh-ok-strong); }
+.bundle-item-stock.out-of-stock { color: var(--wsh-danger-strong); }
+
+// ---------------------------------------------------------------- the sections under the hero
+
+.wsp-sections { margin: 56px 0 0; }
+.wsp-section { margin: 0 0 48px; }
+.wsp-section:last-child { margin-bottom: 0; }
+.wsp-section__title,
+.wsp-sections .reviews-title,
+.wsp-sections .carousel-title,
+.wsp-sections .recommendation-header {
+	font-size: 1.35rem !important;
+	font-weight: 700 !important;
+	color: var(--wsh-text) !important;
+	line-height: 1.3 !important;
+	letter-spacing: -0.01em;
+	margin: 0 0 18px !important;
+	padding: 0 !important;
+	display: flex !important;
+	align-items: center;
+	gap: 8px;
+}
+.wsp-sections .review-count-badge { font-size: 0.8rem; }
+.wsp-sections .carousel-header { margin: 0 !important; padding: 0 !important; }
+.wsp-sections .product-carousel { margin: 0; padding: 0; background: transparent; border: none; box-shadow: none; }
+.wsp-sections .ratings-reviews-section { margin-top: 0 !important; }
+.wsp-sections .reviews-container { background: transparent; border: none; box-shadow: none; padding: 0; }
+.wsp-reviews-empty { color: var(--wsh-muted); font-size: 0.92rem; margin: 0; }
+.wsp-reviews-empty .btn-link { color: var(--wsh-text); font-weight: 600; text-decoration: underline; vertical-align: baseline; }
+
+/* bought together: rows in two columns */
+.wsp-fbt { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 32px; }
+@media (min-width: 768px) { .wsp-fbt { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.wsp-fbt .recommended-item { margin-top: 0 !important; padding: 12px 0; border-bottom: 1px solid var(--wsh-line-light); }
+
+/* recently viewed: a strip of small cards */
+.wsp-recent {
+	display: flex;
+	gap: 16px;
+	overflow-x: auto;
+	scroll-snap-type: x proximity;
+	padding-bottom: 6px;
+	scrollbar-width: thin;
+}
+.wsp-recent__card {
+	flex: 0 0 150px;
+	scroll-snap-align: start;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	color: inherit;
+	text-decoration: none;
+}
+.wsp-recent__card:hover { text-decoration: none; }
+.wsp-recent__card:hover .wsp-recent__name { text-decoration: underline; }
+.wsp-recent__media {
+	aspect-ratio: 4 / 5;
+	border-radius: var(--wsh-radius);
+	background: var(--wsh-surface-muted);
+	overflow: hidden;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background-color: var(--wsh-surface-muted);
-	border-radius: var(--wsh-radius-sm);
-	color: var(--wsh-faint);
 }
+.wsp-recent__media img { width: 100%; height: 100%; object-fit: cover; }
+.wsp-recent__abbr { font-size: 1.5rem; font-weight: 700; color: var(--wsh-faint); }
+.wsp-recent__name { font-size: 0.85rem; line-height: 1.3; color: var(--wsh-text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.wsp-recent__price { font-size: 0.85rem; font-weight: 700; color: var(--wsh-text); }
 
-.bundle-item-details {
-	flex: 1;
-	min-width: 0;
+@media (max-width: 767.98px) {
+	.wsp-sections { margin-top: 40px; }
+	.wsp-section { margin-bottom: 36px; }
 }
-
-.bundle-item-name {
-	display: block;
-	font-weight: 500;
-	color: var(--wsh-text);
-	text-decoration: none;
-	margin-bottom: 0.25rem;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-a.bundle-item-name:hover {
-	color: var(--wsh-primary);
-	text-decoration: underline;
-}
-
-.bundle-item-qty {
-	font-size: 0.875rem;
-	color: var(--wsh-muted);
-}
-
-.bundle-item-price {
-	font-size: 1rem;
-	font-weight: 600;
-	color: var(--wsh-primary);
-	margin-top: 0.5rem;
-}
-
-.bundle-item-stock {
-	font-size: 0.875rem;
-	margin-top: 0.25rem;
-}
-
-.bundle-item-stock .in-green,
-.bundle-item-stock .has-stock {
-	color: var(--wsh-ok);
-}
-
-.bundle-item-stock .no-stock,
-.bundle-item-stock .out-of-stock {
-	color: var(--wsh-danger);
-}
-
-@media (max-width: 768px) {
-	.bundle-items-container {
-		grid-template-columns: 1fr;
-	}
-	
-	.bundle-item {
-		padding: 0.75rem;
-	}
-	
-	.bundle-item-image {
-		width: 50px;
-		height: 50px;
-	}
-}
-

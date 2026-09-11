@@ -326,6 +326,16 @@ class WebsiteItem(WebsiteGenerator):
 		self.set_shopping_cart_data(context)
 
 		settings = context.shopping_cart.cart_settings
+		# //// Neoffice — what the page promises under the buy button (utils/promises.py),
+		# //// and the brand's own text for the "About <brand>" fold of the buy column.
+		from webshop.webshop.utils.promises import shopping_promises
+
+		context.promises = shopping_promises(settings)
+		context.brand_info = None
+		if self.brand:
+			brand = frappe.get_cached_value("Brand", self.brand, ["description", "image"], as_dict=True) or {}
+			if frappe.utils.strip_html(brand.get("description") or "").strip() or brand.get("image"):
+				context.brand_info = frappe._dict(name=self.brand, description=brand.get("description"), image=brand.get("image"))
 		# //// Neoffice — multi-site: a Website Item can be published to some sites only, and
 		# //// the publish dialog writes the chosen ones here (c61d26c41a, 2026-07-08).
 		

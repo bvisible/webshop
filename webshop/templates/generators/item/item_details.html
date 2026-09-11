@@ -2,41 +2,36 @@
 {% set cart_settings = shopping_cart.cart_settings %}
 {% set product_info = shopping_cart.product_info %}
 {% set price_info = product_info.get('price') or {} %}
-
-{# //// Neoffice — the details column width follows the gallery (a product with no image #}
-{# //// gets the full width), and the upstream header block is replaced by the buy-box #}
-{# //// card of item.html (5ce9a4ec4c / a2f5dc2153, 2026-08-03). #}
-<div class="col-md-8 product-details {{ width_class }}">
-	<!-- title, wishlist and breadcrumbs render above the cards (item.html) -->
-
+{# //// Neoffice — the buy column, rebuilt on 2026-09-11 ("Modern"): brand and reference #}
+{# //// first, the condition of a used unit, then the price, stock, quantity and button #}
+{# //// (item_add_to_cart.html, whose controls the cart handlers read), the offers tied to #}
+{# //// this item, its used units, the shop's promises, the trust items, and three folds — #}
+{# //// description, characteristics, brand — so the page never repeats itself below. #}
+{# //// Upstream prints a title, a code, a description and the cart form in one column. #}
+<div class="col-md-8 product-details wsp-buy {{ width_class }}">
+	<!-- title, wishlist and breadcrumbs render above (item.html) -->
 	<div itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
 	</div>
-
 	<div itemprop="review" itemscope itemtype="https://schema.org/Review">
 	</div>
 
-	<p class="product-code">
-		<span class="product-item-group">
-			{{ _(doc.item_group) }}
-		</span>
-		{# //// Neoffice — the brand is shown on the product page; upstream prints only the item #}
-		{# //// group. #}
+	<p class="product-code wsp-buy__meta">
 		{% if doc.brand %}
-		<span class="product-separator">•</span>
-		<span class="product-brand">
+		<span class="product-brand wsp-buy__brand">
 			<a href="/all-products?field_filters={{ {'brand':[doc.brand]}|tojson|urlencode }}" class="brand-link">
 				{{ _(doc.brand) }}
 			</a>
 		</span>
+		<span class="product-separator">·</span>
 		{% endif %}
-		<span class="product-separator">•</span>
-		<span class="product-item-code" itemprop="name">
-			{{ _("Item Code") }}:
-		</span>
+		<span class="product-item-group">{{ _(doc.item_group) }}</span>
+		<span class="product-separator">·</span>
+		<span class="product-item-code" itemprop="name">{{ _("Item Code") }}:</span>
 		<span itemprop="name">{{ _(doc.item_code) }}</span>
 	</p>
-	{# //// Neoffice — second-hand: a used or refurbished unit says so before
-	   the price, with its grade, its warranty and what the seller noticed. #}
+
+	{# //// Neoffice — second-hand: a used or refurbished unit says so before the price, #}
+	{# //// with its grade, its warranty and what the seller noticed. #}
 	{% if condition_info %}
 	<div class="product-condition">
 		<div class="product-condition__head">
@@ -56,17 +51,18 @@
 		{% endif %}
 	</div>
 	{% endif %}
+
 	{% if has_variants %}
-		<!-- configure template -->
-		{# //// Neoffice — the grid variant selector is included instead of upstream's dropdown #}
-		{# //// configurator (6fea19b1fe, 2025-06-17). #}
+		{# //// Neoffice — the grid variant selector instead of upstream's dropdown configurator #}
+		{# //// (6fea19b1fe, 2025-06-17). #}
 		{% include "templates/generators/item/item_configure_grid.html" %}
 	{% else %}
-		<!-- add variant to cart -->
 		{% include "templates/generators/item/item_add_to_cart.html" %}
 	{% endif %}
+
 	{# //// Neoffice — cross-sell offers whose trigger is this item (public/js/cross_sell.js) #}
 	<div class="cross-sell-offers" data-placement="product" data-item-code="{{ doc.item_code }}" data-autoload></div>
+
 	{# //// Neoffice — second-hand: the new item points at its used units. #}
 	{% if used_units %}
 	<div class="product-used-units">
@@ -87,8 +83,9 @@
 		{% endfor %}
 	</div>
 	{% endif %}
-	<!-- trust / reassurance items (configured in Webshop Settings > Trust Badges) -->
-	{% set _long_text = frappe.utils.strip_html(doc.web_long_description or '') %}
+
+	{# the shop's promises, then the trust items the shop typed (Webshop Settings) #}
+	{% include "templates/generators/item/item_promises.html" %}
 	{% set _trust_items = cart_settings.get("trust_items") or [] %}
 	{% if _trust_items %}
 	{% set _icon_paths = {
@@ -115,63 +112,53 @@
 	</div>
 	{% endif %}
 
-	{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
-	{#
-		The description, next to the price — in full when it fits.
-
-		//// Neoffice — see the block marker above: comment translated to English
-		🔴 It was cut at 210 characters, ALWAYS, with « … Lire la suite »
-		even when there was nothing more to read. Measured on a client shop, 2026-08-03:
-		out of 6,419 published item pages, **1,778 descriptions fit under 210
-		characters** — their excerpt displayed the entire text, added
-		an ellipsis to it, and linked back to itself. « Cartouches CO2 12 gr…
-		Lire la suite ↓ » : four words, and an invitation to read more that
-		does not exist.
-
-		//// Neoffice — see the block marker above: comment translated to English
-		So: below the threshold, the text reads HERE, **with its formatting** —
-		lists, bold, everything. Above it, an excerpt cut at the nearest word links to the
-		full-width block, which carries the complete version.
-
-		//// Neoffice — see the block marker above: comment translated to English
-		`NB_EXCERPT` is defined by item.html, which renders the bottom block on the
-		same criterion: a single number for both, otherwise one cuts and the other
-		does not complete it.
-	#}
-	{# //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") #}
-	{# `_desc_html`, `_long_full` and `_long_cut` come from item.html, which renders the
-	   bottom block on EXACTLY the same criterion. The fallback values only
-	   apply if this file is included from elsewhere. #}
+	{# The folds. The description reads here in full — a long one is clamped and opens in
+	   place (item.html's script) — so the page never carries a second copy below. #}
 	{% set _texte = _desc_html | default(doc.web_long_description or doc.description) %}
-	{% set _bloc = _extrait | default(description_excerpt(_texte, 900)) %}
-	{% if _bloc.html %}
-	<div class="buybox-description product-description product-long-description{{ ' is-excerpt' if _bloc.cut else '' }}" itemprop="description">
-		{{ _bloc.html | safe }}
-		{% if _bloc.cut %}
-		{# //// Neoffice — "Read more" promises the rest of the text; the link
-		   actually jumps to the full-width block, which restates the beginning
-		   too. Saying "full description" sets the right expectation instead of
-		   making the shopper wonder why they are re-reading. #}
-		<p class="buybox-more"><a href="#product-long-desc">{{ _("Read the full description") }} &darr;</a></p>
+	{% set _has_desc = frappe.utils.strip_html(_texte or '') | trim %}
+	{% if _has_desc or website_specifications or brand_info %}
+	<div class="wsp-folds">
+		{% if _has_desc %}
+		<details class="wsp-acc" open>
+			<summary class="wsp-acc__head">{{ _("Description") }}</summary>
+			<div class="wsp-acc__body buybox-description product-description product-long-description" itemprop="description" data-clamp="320">
+				{{ _(_texte) | safe }}
+			</div>
+		</details>
+		{% endif %}
+		{% if website_specifications %}
+		<details class="wsp-acc">
+			<summary class="wsp-acc__head">{{ _("Characteristics") }}</summary>
+			<div class="wsp-acc__body">
+				<table class="wsp-specs">
+					{% for d in website_specifications -%}
+					<tr>
+						<th class="spec-label">{{ _(d.label) }}</th>
+						<td class="spec-content">{{ _(d.description) }}</td>
+					</tr>
+					{%- endfor %}
+				</table>
+			</div>
+		</details>
+		{% endif %}
+		{% if brand_info %}
+		<details class="wsp-acc">
+			<summary class="wsp-acc__head">{{ _("About {0}").format(_(brand_info.name)) }}</summary>
+			<div class="wsp-acc__body wsp-brand">
+				{% if brand_info.image %}<img class="wsp-brand__logo" src="{{ brand_info.image }}" alt="{{ brand_info.name }}" loading="lazy">{% endif %}
+				{% if brand_info.description %}<div class="wsp-brand__text">{{ brand_info.description | safe }}</div>{% endif %}
+			</div>
+		</details>
 		{% endif %}
 	</div>
 	{% endif %}
 </div>
 
-{# //// Neoffice — added {# //// Neoffice — styles moved to webshop/public/scss/webshop_product_page.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
-
-{% block base_scripts %}
-<!-- js should be loaded in body! -->
-<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
-{% endblock %}
-
 <script>
 	$('.page_content').on('click', '.like-action-item-fp', (e) => {
-			// Bind action on wishlist button
-			const $btn = $(e.currentTarget);
-			webshop.webshop.wishlist.wishlist_action($btn);
-		});
+		// Bind action on wishlist button
+		const $btn = $(e.currentTarget);
+		webshop.webshop.wishlist.wishlist_action($btn);
+	});
 </script>
-
-{# //// Neoffice — second-hand styles, next to the markup they dress. #}
-{# //// Neoffice — styles moved to webshop/public/scss/webshop_product_page.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
+{# //// Neoffice — styles in webshop/public/scss/webshop_product_page.scss (no <style> lives in a template). #}

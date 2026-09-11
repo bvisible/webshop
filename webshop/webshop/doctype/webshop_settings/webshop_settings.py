@@ -527,6 +527,15 @@ def get_shopping_cart_settings():
         # //// listing through get_product_info_for_website), so this is the one place.
         if profile.get("hide_price_for_guest"):
             settings_dict["hide_price_for_guest"] = 1
+
+        # //// Neoffice — the shop's promises (free delivery from, delivery time, returns,
+        # //// one free line) are set once for the shop and overridden per site when the
+        # //// profile says so; an empty profile field keeps the shop's value.
+        from webshop.webshop.utils.promises import PROMISE_FIELDS
+
+        for key in PROMISE_FIELDS:
+            if profile.get(key) not in (None, "", 0):
+                settings_dict[key] = profile[key]
     return settings_dict
 
 @frappe.whitelist(allow_guest=True)
