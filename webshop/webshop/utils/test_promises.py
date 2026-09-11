@@ -28,12 +28,14 @@ class TestShoppingPromises(FrappeTestCase):
 		price_list = frappe.db.get_value("Price List", {"selling": 1, "enabled": 1}, "name")
 		if not price_list:
 			self.skipTest("no selling price list on this site")
+		from webshop.webshop.utils.utils import webshop_fmt_money
+
 		currency = frappe.db.get_value("Price List", price_list, "currency")
 		lines = shopping_promises(frappe._dict(free_shipping_from=49.5, price_list=price_list))
 		self.assertEqual(len(lines), 1)
-		self.assertIn("49.5", lines[0]["text"])
-		if currency:
-			self.assertIn(currency, lines[0]["text"])
+		# the amount is written the way every price of the shop is — a symbol for a
+		# currency that has one ($ 49.50), the code otherwise (CHF 49.50)
+		self.assertIn(webshop_fmt_money(49.5, currency=currency), lines[0]["text"])
 
 	def test_a_site_profile_overrides_only_what_it_sets(self):
 		before = getattr(frappe.local, "website_profile_doc", None)
