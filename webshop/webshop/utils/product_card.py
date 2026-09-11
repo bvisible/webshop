@@ -26,7 +26,35 @@ def render_product_card(item, settings, variant="grid", cart_settings=None):
 
 def attach_cards(items, settings):
 	"""Give every item of a listing its grid and list tiles, in place."""
+	hover = second_pictures(items)
 	for item in items or []:
+		if item.get("item_code") in hover:
+			item["hover_image"] = hover[item["item_code"]]
 		item["card_html"] = render_product_card(item, settings, "grid")
 		item["list_html"] = render_product_card(item, settings, "list")
 	return items
+
+
+def second_pictures(items):
+	"""The second photo of each item that has a slideshow: {item_code: image}.
+
+	One query for the whole listing. The tile shows it on hover, the way a fashion
+	shop turns the garment around; an item with one picture shows nothing new.
+	"""
+	slideshows = {item.get("slideshow"): item.get("item_code") for item in items or [] if item.get("slideshow")}
+	if not slideshows:
+		return {}
+	rows = frappe.get_all(
+		"Website Slideshow Item",
+		filters={"parent": ("in", list(slideshows)), "parenttype": "Website Slideshow"},
+		fields=["parent", "image", "idx"],
+		order_by="parent, idx",
+	)
+	seen = {}
+	for row in rows:
+		code = slideshows[row.parent]
+		first = next((i for i in items if i.get("item_code") == code), None)
+		main = first.get("website_image") if first else None
+		if row.image and row.image != main and code not in seen:
+			seen[code] = row.image
+	return seen

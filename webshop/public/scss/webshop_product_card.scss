@@ -1,0 +1,260 @@
+// //// Neoffice — added file (no upstream equivalent). The product card's look — the one
+// card of templates/includes/product_card.html, in its grid and carousel variants
+// (2026-09-11, the one look the shop has: no frame, a portrait picture, brand, name and
+// price, the heart and the badges over the picture, the button on hover). Imported by
+// the shop bundle and by the carousel bundle, so a carousel dropped in a Builder page
+// draws the same card as the catalogue. Everything draws with the tokens.
+
+// ---------------------------------------------------------------- the tile
+
+.wsp-card--grid,
+.wsp-card--carousel {
+	.card,
+	.wsp-card__frame {
+		position: relative;
+		background: transparent;
+		border: none;
+		border-radius: 0;
+		box-shadow: none;
+		overflow: visible;
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		transition: none;
+		transform: none;
+	}
+	.card:hover { box-shadow: none; transform: none; }
+
+	/* the picture */
+	.card-img-container,
+	.wsp-card__media {
+		position: relative;
+		overflow: hidden;
+		border-radius: var(--wsh-radius);
+		background: var(--wsh-surface-muted);
+		aspect-ratio: 1 / 1;
+		padding: 0;
+		width: 100%;
+	}
+	&.wsp-card--cover .card-img-container,
+	&.wsp-card--cover .wsp-card__media { aspect-ratio: 4 / 5; }
+	.wsp-card__link { display: block; width: 100%; height: 100%; text-decoration: none; }
+	.card-img,
+	.wsp-card__image {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		object-position: center;
+		padding: 0;
+		transition: transform var(--wsh-motion), opacity var(--wsh-motion);
+	}
+	&.wsp-card--cover .card-img,
+	&.wsp-card--cover .wsp-card__image { object-fit: cover; }
+	.wsp-card__image--hover {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+	}
+	&:hover .wsp-card__image--hover { opacity: 1; }
+	&:hover .wsp-card__image:not(.wsp-card__image--hover) { transform: scale(1.03); }
+	.card-img-top.no-image,
+	.wsp-card__placeholder {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--wsh-faint);
+		font-size: 2rem;
+		font-weight: 700;
+		letter-spacing: .04em;
+	}
+
+	/* the badges, top left; the heart, top right */
+	.discount-badge,
+	.condition-badge {
+		position: absolute;
+		top: 8px;
+		left: 8px;
+		z-index: 3;
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		padding: 3px 8px;
+		border-radius: var(--wsh-radius-sm);
+		font-size: 0.72rem;
+		font-weight: 700;
+		line-height: 1.2;
+		box-shadow: none;
+	}
+	.discount-badge { background: var(--wsh-danger); color: var(--wsh-on-ink); }
+	.condition-badge { background: var(--wsh-text); color: var(--wsh-on-ink); }
+	.discount-badge + .condition-badge { top: 36px; }
+	.like-action,
+	.wsp-card__wish {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		z-index: 3;
+		width: 32px;
+		height: 32px;
+		border-radius: var(--wsh-radius-pill);
+		background: var(--wsh-surface);
+		box-shadow: var(--wsh-shadow-sm);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		visibility: visible !important;
+		transition: transform var(--wsh-motion);
+		margin: 0;
+	}
+	.like-action:hover { transform: scale(1.08); }
+	.like-action .icon { width: 16px; height: 16px; }
+	.cart-indicator {
+		position: absolute;
+		top: 8px;
+		right: 48px;
+		z-index: 3;
+		width: 22px;
+		height: 22px;
+		border-radius: var(--wsh-radius-pill);
+		background: var(--wsh-primary);
+		color: var(--wsh-on-primary);
+		font-size: 0.7rem;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		margin: 0;
+	}
+	.cart-indicator.hidden { display: none; }
+
+	/* the words */
+	.card-body,
+	.wsp-card__body {
+		padding: 10px 0 0;
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		width: 100%;
+		position: static;
+	}
+	.wsp-card__head { display: flex; align-items: center; gap: 8px; min-height: 0; margin: 0; }
+	.wsp-card__brand {
+		font-size: 0.7rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--wsh-muted);
+	}
+	.product-title,
+	.wsp-card__title {
+		font-size: 0.9rem;
+		font-weight: 500;
+		line-height: 1.35;
+		color: var(--wsh-text);
+		min-height: 0;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		margin: 0;
+	}
+	.wsp-card__title-link { text-decoration: none; color: inherit; }
+	.wsp-card__title-link:hover .wsp-card__title { text-decoration: underline; }
+	.product-category-stock,
+	.wsp-card__meta { display: flex; align-items: center; gap: 8px; min-height: 0; }
+	.product-category { display: none; }
+	.stock-info {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		font-size: 0.75rem;
+		color: var(--wsh-muted);
+	}
+	.stock-badge { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+	.stock-badge.in-stock { background: var(--wsh-ok); }
+	.stock-badge.low-stock { background: var(--wsh-warn); }
+	.stock-badge.out-of-stock { background: var(--wsh-danger); }
+	.stock-badge.on-backorder { background: var(--wsh-primary); }
+	.stock-text { font-weight: 500; }
+	.stock-info:has(.in-stock) .stock-text { color: var(--wsh-ok-strong); }
+	.stock-info:has(.low-stock) .stock-text { color: var(--wsh-warn-strong); }
+	.stock-info:has(.out-of-stock) .stock-text { color: var(--wsh-danger-strong); }
+	.stock-qty { color: var(--wsh-muted); }
+	.stock-tooltip { display: none; }
+
+	/* the price */
+	.price-loyalty-wrapper,
+	.wsp-card__pricing { display: flex; align-items: center; gap: 8px; margin: 2px 0 0; }
+	.product-price,
+	.wsp-card__price {
+		font-size: 0.95rem;
+		font-weight: 700;
+		color: var(--wsh-text);
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 6px;
+		margin: 0;
+	}
+	.striked-price { color: var(--wsh-faint); font-weight: 400; font-size: 0.8rem; margin: 0; opacity: 1; }
+	.product-info-green { color: var(--wsh-danger-strong); font-weight: 700; font-size: 0.8rem; margin: 0; }
+	.loyalty-points-icon-wrapper { position: relative; display: inline-flex; }
+	.loyalty-icon-inline { width: 16px; height: 16px; }
+	.loyalty-tooltip-inline {
+		display: none;
+		position: absolute;
+		bottom: 120%;
+		left: 0;
+		background: var(--wsh-text);
+		color: var(--wsh-on-ink);
+		padding: 6px 8px;
+		border-radius: var(--wsh-radius-sm);
+		font-size: 0.72rem;
+		white-space: nowrap;
+		z-index: 5;
+	}
+	.loyalty-points-icon-wrapper:hover .loyalty-tooltip-inline { display: block; }
+
+	/* the button: quiet, and only when the cursor is on the card */
+	.wsp-card__cta {
+		margin: 8px 0 0 !important;
+		padding: 9px 12px;
+		font-size: 0.82rem;
+		font-weight: 600;
+		border-radius: var(--wsh-radius);
+		border: 1px solid var(--wsh-line-strong);
+		background: var(--wsh-surface);
+		color: var(--wsh-text);
+		width: 100%;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		line-height: 1.2;
+		visibility: visible !important;
+		transition: background var(--wsh-motion), color var(--wsh-motion), border-color var(--wsh-motion), opacity var(--wsh-motion);
+	}
+	.wsp-card__cta:hover { background: var(--wsh-primary); color: var(--wsh-on-primary); border-color: var(--wsh-primary); text-decoration: none; }
+	.wsp-card__cta.hidden { display: none; }
+	.wsp-card__cta .icon { width: 16px; height: 16px; }
+	a:has(> .wsp-card__cta) { text-decoration: none; }
+	@media (hover: hover) and (min-width: 768px) {
+		.wsp-card__cta { opacity: 0; }
+		&:hover .wsp-card__cta,
+		.wsp-card__cta:focus-visible { opacity: 1; }
+	}
+}
+
+// the catalogue's columns: four on a wide screen, two on a phone
+.wsp-card--grid {
+	margin-bottom: 28px;
+}
+
+// the carousel keeps its own widths (webshop_product_carousel.bundle.scss); its cards
+// only lose the frame like the grid's

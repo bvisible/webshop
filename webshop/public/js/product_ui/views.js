@@ -2169,7 +2169,7 @@ webshop.ProductView =  class {
 			if (isGridView) {
 				// Grid skeleton
 				skeletonItems += `
-					<div class="col-sm-6 col-lg-4 item-card skeleton-item">
+					<div class="col-6 col-md-4 col-xl-3 item-card skeleton-item">
 						<div class="card text-left">
 							<div class="card-img-container">
 								<div class="skeleton-img skeleton-loader"></div>

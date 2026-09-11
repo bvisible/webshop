@@ -9,6 +9,8 @@
 // //// Neoffice — the design tokens come first: a component a Builder page includes reads
 // the same tokens as the shop's own pages.
 @import "./webshop_tokens";
+// //// Neoffice — the card itself is the shop's one product card, shared with the catalogue.
+@import "./webshop_product_card";
 
 /* ---- from webshop/templates/includes/product_carousel.html (block 1) ---- */
       .product-carousel {
@@ -91,9 +93,10 @@
       }
 
       @media (max-width: 768px) {
+        /* two cards and a half: the half says there is more to swipe */
         .item-card {
-          flex: 0 0 calc(50% - 10px);
-          width: calc(50% - 10px);
+          flex: 0 0 calc(42% - 10px);
+          width: calc(42% - 10px);
         }
       }
 
@@ -108,10 +111,6 @@
         font-size: 1.4em;
       }
 
-      .product-carousel.compact-carousel .card-img-container {
-        padding-top: 100%;
-        min-height: 150px;
-      }
 
       .product-carousel.compact-carousel .carousel-btn {
         width: 30px;
@@ -119,77 +118,14 @@
         font-size: 0.9em;
       }
 
-      .item-card:hover {
-        transform: translateY(-5px);
-      }
 
-      .card {
-        background-color: var(--wsh-surface);
-        border: 1px solid var(--wsh-line);
-        border-radius: var(--wsh-radius);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        transition: all var(--wsh-motion);
-      }
 
-      .card:hover {
-        box-shadow: var(--wsh-shadow-lg);
-        transform: translateY(-2px);
-      }
 
-      .card-img-container {
-        width: 100%;
-        overflow: hidden;
-        position: relative;
-        padding-top: 100%; 
-        background-color: var(--wsh-surface);
-      }
 
-      .card-img {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        object-position: center;
-        transition: transform 0.5s ease;
-        padding: 15px;
-        box-sizing: border-box;
-      }
 
-      .card:hover .card-img {
-        transform: scale(1.05);
-      }
 
-      .card-img-top.no-image {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, var(--wsh-surface-muted) 0%, var(--wsh-surface-muted) 100%);
-        color: var(--wsh-muted);
-        font-size: 2.5em;
-        font-weight: bold;
-      }
 
-      .card-body {
-        padding: 15px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-      }
 
-      .card-body-flex {
-        width: 100%;
-      }
 
       .text-left {
         text-align: left;
@@ -201,54 +137,10 @@
         margin-bottom: 0.5rem;
       }
 
-      .product-title {
-        font-size: 1em;
-        font-weight: 600;
-        color: var(--wsh-text);
-        line-height: 1.3;
-        min-height: 2.5rem;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
 
-      .product-category-stock {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 0.5rem;
-        gap: 0.5rem;
-      }
 
-      .product-category {
-        color: var(--wsh-muted);
-        font-size: 0.875rem;
-        flex: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
 
-      .product-price {
-        font-size: 1.1em;
-        font-weight: 500;
-        color: var(--wsh-text);
-        margin-top: 0.75rem;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
 
-      .striked-price {
-        font-size: 0.85em;
-        color: var(--wsh-faint);
-        text-decoration: line-through;
-      }
 
       .product-discount,
       .product-info-green {
@@ -257,9 +149,6 @@
         font-weight: 600;
       }
       
-      .ml-1 {
-        margin-left: 0.25rem;
-      }
 
       .product-price-unavailable {
         font-size: 0.9em;

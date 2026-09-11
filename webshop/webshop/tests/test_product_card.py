@@ -53,7 +53,7 @@ def _settings(**overrides):
 class TestProductCard(FrappeTestCase):
 	def test_grid_carries_every_hook_the_handlers_read(self):
 		html = render_product_card(_item(), _settings(), "grid")
-		self.assertIn('class="col-sm-4 item-card wsp-card wsp-card--grid"', html)
+		self.assertIn('class="col-6 col-md-4 col-xl-3 item-card wsp-card wsp-card--grid"', html)
 		self.assertIn('class="product-title wsp-card__title"', html)
 		self.assertIn("A very fine product", html)
 		self.assertIn('data-item-code="ITEM-0001"', html)
@@ -98,13 +98,12 @@ class TestProductCard(FrappeTestCase):
 		self.assertIn("<s>CHF150.00</s>", html)
 		self.assertIn("product-info-green", html)
 
-	def test_cover_fit_writes_the_focus_inline(self):
+	def test_cover_fit_writes_the_focus_on_the_list_row(self):
 		html = render_product_card(
-			_item(image_focus="Top Left"), _settings(product_image_fit="Cover", product_image_aspect_ratio="4/5"), "grid"
+			_item(image_focus="Top Left"), _settings(product_image_fit="Cover", product_image_aspect_ratio="4/5"), "list"
 		)
-		self.assertIn("aspect-ratio: 4/5;", html)
 		self.assertIn("object-position: left top;", html)
-		self.assertNotIn("aspect-ratio", render_product_card(_item(), _settings(), "grid"))
+		self.assertNotIn("object-position", render_product_card(_item(), _settings(), "list"))
 
 	def test_list_row_keeps_its_own_hooks(self):
 		html = render_product_card(_item(short_description="Short and sweet"), _settings(), "list")
@@ -119,7 +118,7 @@ class TestProductCard(FrappeTestCase):
 	def test_carousel_has_no_control_a_builder_page_could_not_serve(self):
 		html = render_product_card(_item(price=120, currency="CHF"), {}, "carousel")
 		self.assertIn("wsp-card--carousel", html)
-		self.assertNotIn("col-sm-4", html)
+		self.assertNotIn("col-md-4", html)
 		self.assertNotIn("like-action", html)
 		self.assertNotIn("cart-indicator", html)
 		self.assertNotIn("btn-add-to-cart-list", html)
@@ -136,6 +135,21 @@ class TestProductCard(FrappeTestCase):
 		gone = render_product_card(_item(available=0), _settings(), "wishlist", cart_settings=_settings())
 		self.assertIn("out-of-stock", gone)
 		self.assertNotIn("btn-add-to-cart", gone)
+
+	def test_brand_and_second_picture_when_the_item_has_them(self):
+		html = render_product_card(_item(brand="Volcom", hover_image="/files/back.png"), _settings(), "grid")
+		self.assertIn('class="wsp-card__brand">Volcom<', html)
+		self.assertIn("wsp-card__image--hover", html)
+		self.assertIn("/files/back.png", html)
+		bare = render_product_card(_item(), _settings(), "grid")
+		self.assertNotIn("wsp-card__brand", bare)
+		self.assertNotIn("wsp-card__image--hover", bare)
+
+	def test_cover_fit_marks_the_tile_and_keeps_the_focus(self):
+		html = render_product_card(_item(image_focus="Top Left"), _settings(product_image_fit="Cover"), "grid")
+		self.assertIn("wsp-card--cover", html)
+		self.assertIn("object-position: left top;", html)
+		self.assertNotIn("wsp-card--cover", render_product_card(_item(), _settings(), "grid"))
 
 	def test_the_title_is_escaped_and_cut(self):
 		html = render_product_card(_item(web_item_name="<b>" + "x" * 100), _settings(), "grid")

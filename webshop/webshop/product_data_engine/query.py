@@ -102,6 +102,9 @@ class ProductQuery:
 			# //// Neoffice — second-hand: the cards badge used and refurbished
 			# //// units, and the product page block needs the grade.
 			"item_condition",
+			# //// Neoffice — the tile prints the brand and turns the picture on hover
+			"brand",
+			"slideshow",
 			"condition_grade",
 		]
 		# //// Neoffice — added state: the cached total (the listing shows "N of M"), the
