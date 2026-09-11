@@ -288,33 +288,17 @@ def get_opening_hours():
 # //// page the web bundle already carries the same rules; the duplicate is identical
 # //// and costs ~5 KB, which is cheaper than a block that only looks right on half the
 # //// site. Remove this the day Builder pages carry app assets.
-_CSS_BUNDLE = "webshop_opening_hours.bundle.css"
 
 
 def opening_hours_css():
-	"""The block's compiled CSS, once per request. "" on later calls, and on failure.
+	"""The block's compiled CSS, once per request.
 
-	Returning "" the second time is what keeps a page with two blocks from carrying
-	the stylesheet twice.
+	//// Neoffice — the mechanism moved to utils/assets.py::component_css, shared with
+	//// every component a Builder page may include; this name stays for the include.
 	"""
-	if getattr(frappe.local, "webshop_hours_css_done", False):
-		return ""
-	frappe.local.webshop_hours_css_done = True
-	try:
-		import os
+	from webshop.webshop.utils.assets import component_css
 
-		from frappe.utils import get_assets_json
-
-		path = (get_assets_json() or {}).get(_CSS_BUNDLE)
-		if not path:
-			return ""
-		# "/assets/webshop/dist/css/x.css" -> <bench>/sites/assets/webshop/dist/css/x.css
-		full = os.path.join(frappe.local.sites_path, path.lstrip("/"))
-		with open(full, encoding="utf-8") as fh:
-			return fh.read()
-	except Exception:
-		frappe.log_error("Opening hours stylesheet unavailable", frappe.get_traceback())
-		return ""
+	return component_css("webshop_opening_hours")
 
 
 def webshop_opening_hours():

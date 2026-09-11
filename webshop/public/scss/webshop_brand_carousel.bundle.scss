@@ -1,0 +1,250 @@
+// //// Neoffice — added file (no upstream equivalent). The brand carousel's own
+// stylesheet, printed inline once per request by the include (utils/assets.py):
+// this component is included in Builder pages, which load no shop bundle.
+// Not imported by webshop-web.bundle.scss.
+
+/* ---- from webshop/templates/includes/brand_carousel.html (block 1) ---- */
+      .brand-carousel {
+        position: relative;
+        margin: 30px auto;
+        padding: 30px 0;
+        max-width: 1200px;
+        width: 100%;
+      }
+
+      /* Carousel header */
+      .brand-carousel .carousel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0 !important;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .brand-carousel .carousel-title {
+        font-size: 2.2em;
+        font-weight: 600;
+        margin: 0;
+        padding-bottom: 5px;
+      }
+
+      .brand-carousel .btn-view-more {
+        background-color: transparent;
+        color: var(--primary-color, #171717);
+        border: 1px solid var(--primary-color, #171717);
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+      }
+
+      .brand-carousel .btn-view-more:hover {
+        background-color: var(--primary-color, #171717);
+        color: white;
+        text-decoration: none;
+        transform: translateX(2px);
+      }
+
+      .brand-carousel .carousel-wrapper {
+        overflow: hidden;
+        padding: 10px;
+      }
+
+      .brand-carousel .carousel-inner {
+        display: flex;
+        transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        padding: 10px 0;
+      }
+
+      .brand-carousel .item-card {
+        flex: 0 0 calc(25% - 30px);
+        margin: 15px;
+        box-sizing: border-box;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        width: calc(25% - 30px);
+      }
+
+      .brand-carousel .item-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .brand-carousel .card {
+        background-color: #fff;
+        border: 1px solid #eaeaea;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        transition: all 0.3s ease;
+      }
+
+      .brand-carousel .card:hover {
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+      }
+      
+      .brand-carousel .btn {
+        display: inline-block;
+        font-weight: 500;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        border: 1px solid transparent;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        transition: all 0.15s ease-in-out;
+      }
+
+      .brand-carousel .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        border-radius: 0.2rem;
+      }
+
+      .brand-carousel .w-100 {
+        width: 100%;
+      }
+
+      .brand-carousel .mt-2 {
+        margin-top: 0.5rem;
+      }
+
+      .brand-carousel .btn-explore-variants {
+        background-color: var(--primary-color, #171717);
+        color: white;
+        border: 1px solid var(--primary-color, #171717);
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        transition: all 0.2s ease;
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      
+      .brand-carousel .card:hover .btn-explore-variants {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      .brand-carousel .btn-explore-variants:hover {
+        background-color: var(--primary-dark, #040404);
+        border-color: var(--primary-dark, #040404);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .brand-carousel .card-img-container {
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+        padding-top: 100%; 
+        background-color: #fff;
+      }
+
+      .brand-carousel .card-img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center;
+        transition: transform 0.5s ease;
+        padding: 15px;
+        box-sizing: border-box;
+      }
+
+      .brand-carousel .card:hover .card-img {
+        transform: scale(1.05);
+      }
+
+      .brand-carousel .card-img-top.no-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+        color: #6c757d;
+        font-size: 2.5em;
+        font-weight: bold;
+      }
+
+      .brand-carousel .card-body {
+        padding: 15px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      .brand-carousel .brand-title {
+        font-size: 1.1em;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        transition: color 0.3s ease;
+      }
+
+      .brand-carousel .brand-product-count {
+        font-size: 0.85em;
+        color: var(--primary-color, #171717);
+        font-weight: 500;
+        margin-top: 4px;
+        margin-bottom: 8px;
+      }
+      
+      .brand-carousel .brand-description {
+        font-size: 0.9em;
+        color: #6c757d;
+        margin-bottom: 15px;
+        flex-grow: 1;
+      }
+      
+      /* Responsive adjustments */
+      @media (max-width: 1200px) {
+        .brand-carousel .item-card {
+          flex: 0 0 calc(33.33% - 30px);
+          width: calc(33.33% - 30px);
+        }
+      }
+      
+      @media (max-width: 992px) {
+        .brand-carousel .item-card {
+          flex: 0 0 calc(50% - 30px);
+          width: calc(50% - 30px);
+        }
+      }
+      
+      @media (max-width: 576px) {
+        .brand-carousel .item-card {
+          flex: 0 0 calc(100% - 30px);
+          width: calc(100% - 30px);
+        }
+        
+        .brand-carousel .carousel-header {
+          justify-content: center;
+        }
+        
+        .brand-carousel .carousel-title {
+          font-size: 1.8em;
+          text-align: center;
+          width: 100%;
+        }
+        
+        .brand-carousel .btn-view-more {
+          width: 100%;
+          text-align: center;
+        }
+      }
+      
+

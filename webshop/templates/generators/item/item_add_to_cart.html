@@ -75,17 +75,7 @@
 				     the shopper's pick becomes the warehouse of the cart line.
 				     product_page.js keeps the preselection in sync with the
 				     requested quantity (first source that covers it). -->
-				<style>
-					.webshop-warehouse-sources { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
-					.webshop-source-option { display: flex; align-items: center; gap: 8px; border: 1px solid var(--gray-300, #d1d8dd); border-radius: 8px; padding: 8px 12px; cursor: pointer; margin-bottom: 0; }
-					.webshop-source-option:has(input:checked) { border-color: var(--primary-color, #7575ff); box-shadow: 0 0 0 1px var(--primary-color, #7575ff); }
-					.webshop-source-option.webshop-source-out { opacity: 0.55; cursor: not-allowed; }
-					.webshop-source-label { font-weight: 600; }
-					.webshop-source-qty { font-size: 0.85em; }
-					.webshop-source-qty.webshop-in { color: var(--green-600, green); }
-					.webshop-source-qty.webshop-out { color: var(--red-600, red); }
-					.webshop-source-delay { font-size: 0.85em; color: var(--text-muted, #6c7680); margin-left: auto; }
-				</style>
+				{# //// Neoffice — styles moved to webshop/public/scss/webshop_product_page.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
 				{# //// Neoffice — a bare pile of radios is announced without any
 				   context by a screen reader: the group needs a role and a name
 				   for "Store, in stock, delivery in ~2 days" to mean anything. #}
@@ -379,38 +369,7 @@
 	</button>
 </div>
 
-<style>
-	.webshop-buybar { display: none; }
-	@media (max-width: 767.98px) {
-		.webshop-buybar {
-			display: flex;
-			align-items: center;
-			gap: 12px;
-			position: fixed;
-			left: 0; right: 0; bottom: 0;
-			z-index: 1030;
-			padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
-			background: #fff;
-			border-top: 1px solid #e3e6ea;
-			box-shadow: 0 -2px 12px rgba(16,24,40,.10);
-			transform: translateY(110%);
-			transition: transform .22s ease;
-		}
-		.webshop-buybar.is-visible { transform: translateY(0); }
-		.webshop-buybar__info { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
-		.webshop-buybar__name {
-			font-size: .8rem; color: #6c7680;
-			overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-		}
-		.webshop-buybar__price { font-weight: 700; font-size: 1rem; color: #111827; }
-		.webshop-buybar__btn { flex: 0 0 auto; }
-		/* The bar covers the end of the page while it is up. */
-		body.webshop-buybar-on { padding-bottom: 76px; }
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.webshop-buybar { transition: none; }
-	}
-</style>
+{# //// Neoffice — styles moved to webshop/public/scss/webshop_product_page.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
 
 <script>
 //// Neoffice — added script: the gift-card amount fields, the warehouse source

@@ -1,0 +1,331 @@
+// //// Neoffice — added file (no upstream equivalent). The styles of the account and
+// service pages — cart, checkout, terms, gift cards, addresses, wishlist, loyalty,
+// payment outcome — moved out of the templates that carried them inline. Part of
+// the shop bundle.
+
+/* ---- from webshop/templates/pages/cart.html (block 1) ---- */
+@media (max-width: 767.98px) {
+	/* Column headers have no columns left to title. */
+	.cart-table thead { display: none; }
+
+	.cart-table,
+	.cart-table tbody,
+	.cart-table tfoot { display: block; width: 100%; }
+
+	.cart-table .cart-items tr {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		align-items: center;
+		gap: 10px 12px;
+		border: 1px solid #e3e6ea;
+		border-radius: 12px;
+		padding: 14px;
+		margin-bottom: 12px;
+	}
+	.cart-table .cart-items td {
+		display: block;
+		border: none !important;
+		padding: 0 !important;
+		width: auto !important;
+	}
+	/* Product block spans the card; quantity then sits left, price right. */
+	.cart-table .cart-items td:nth-child(1) { grid-column: 1 / -1; }
+	.cart-table .cart-items td:nth-child(2) { grid-column: 1; justify-self: start; }
+	.cart-table .cart-items td:nth-child(3) { grid-column: 2; justify-self: end; text-align: right; }
+
+	/* With the full card width available the spinner lies flat again. */
+	.cart-table .container-qty {
+		flex-direction: row !important;
+		flex-wrap: nowrap;
+		align-items: center;
+		gap: 8px;
+	}
+	.cart-table .container-qty .number-spinner { margin: 0 !important; }
+	.cart-table .cart-items .notes textarea { width: 100%; }
+	.cart-table .cart-items .item-price-details { align-items: flex-end; }
+
+	/* Net total: label left, amount right, on one line. */
+	.cart-table .cart-tax-items tr {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 12px;
+		padding: 12px 14px 0;
+		border-top: 1px solid #e3e6ea;
+	}
+	.cart-table .cart-tax-items th { border: none !important; padding: 0 !important; }
+	.cart-table .cart-tax-items th:empty { display: none; }
+}
+
+/* ---- from webshop/templates/pages/checkout.html (block 1) ---- */
+/* //// Neoffice — address book picker (see checkout.js). Deliberately quiet:
+   it sits above a form the shopper may not need to touch at all. */
+.address-picker { margin-bottom: 18px; }
+.address-picker__label {
+	font-size: .82rem;
+	font-weight: 600;
+	color: var(--text-muted, #6c7680);
+	margin-bottom: 8px;
+}
+.address-picker__list { display: flex; flex-wrap: wrap; gap: 10px; }
+.address-card-choice {
+	flex: 1 1 210px;
+	max-width: 320px;
+	text-align: left;
+	border: 1px solid var(--gray-300, #d1d8dd);
+	border-radius: 10px;
+	background: #fff;
+	padding: 10px 12px;
+	cursor: pointer;
+	transition: border-color .15s, box-shadow .15s;
+}
+.address-card-choice:hover { border-color: var(--gray-500, #8d99a6); }
+.address-card-choice.is-selected {
+	border-color: var(--primary-color, #7575ff);
+	box-shadow: 0 0 0 1px var(--primary-color, #7575ff);
+}
+.address-card-choice__title { font-weight: 600; font-size: .88rem; display: flex; align-items: center; gap: 6px; }
+.address-card-choice__lines { font-size: .8rem; color: var(--text-muted, #6c7680); margin-top: 2px; line-height: 1.45; }
+.address-card-choice__tag {
+	font-size: .66rem;
+	text-transform: uppercase;
+	letter-spacing: .03em;
+	color: var(--text-muted, #6c7680);
+	border: 1px solid var(--gray-300, #d1d8dd);
+	border-radius: 20px;
+	padding: 1px 7px;
+	font-weight: 500;
+}
+.address-card-choice--new { border-style: dashed; display: flex; align-items: center; justify-content: center; min-height: 62px; font-weight: 500; }
+@media (max-width: 767.98px) {
+	.address-card-choice { flex: 1 1 100%; max-width: none; }
+}
+/* //// Neoffice — the step buttons refuse clicks during a loading
+   //// (two simultaneous step changes corrupt the quotation). They used to do this
+   //// silently: the customer would click, nothing moved, nothing explained it. */
+.next-step.is-busy, .prev-step.is-busy {
+	opacity: .6;
+	cursor: progress;
+	pointer-events: none;
+}
+
+/* ---- from webshop/templates/pages/cgv.html (block 1) ---- */
+.cgv-content {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.cgv-terms {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #333;
+}
+
+.cgv-terms h2 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 24px;
+    color: #2c3e50;
+}
+
+.cgv-terms h3 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 20px;
+    color: #34495e;
+}
+
+.cgv-terms p {
+    margin-bottom: 15px;
+}
+
+.cgv-terms ul, .cgv-terms ol {
+    margin-bottom: 15px;
+    padding-left: 30px;
+}
+
+.cgv-terms li {
+    margin-bottom: 8px;
+}
+
+.page-title {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .cgv-content {
+        padding: 20px !important;
+    }
+    
+    .cgv-terms {
+        font-size: 14px;
+    }
+}
+
+/* ---- from webshop/templates/pages/gift_cards.html (block 1) ---- */
+.gift-cards-container .btn-primary {
+	background: black;
+	border: none;
+}
+
+.gift-cards-container .btn-primary:hover {
+	background: #333;
+}
+
+.gift-card-item {
+	transition: transform 0.2s, box-shadow 0.2s;
+	overflow: hidden;
+}
+
+.gift-card-item:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.gift-card-expired,
+.gift-card-used {
+	opacity: 0.7;
+}
+
+.gift-card-header {
+	border-radius: 8px 8px 0 0;
+}
+
+.copy-code-btn {
+	padding: 4px 8px;
+}
+
+.copy-code-btn:hover {
+	background: #e9ecef;
+}
+
+.badge-dark {
+	background-color: black;
+}
+
+/* ---- from webshop/www/my_addresses.html (block 1) ---- */
+.card {
+	border-radius: 8px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.card:hover {
+	box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+.card-title {
+	color: #333;
+	font-weight: 600;
+}
+.badge {
+	font-size: 0.75rem;
+}
+#address-form-container {
+	border: none;
+	border-radius: 8px;
+	overflow: hidden;
+}
+#address-form-container .card-header {
+	background-color: var(--primary, #000);
+	border-radius: 0;
+}
+#address-form-container .card-header h5,
+#address-form-container .card-header #address-form-title {
+	color: white !important;
+}
+#address-form-container .btn-close {
+	filter: invert(1);
+}
+#address-form-container .form-select {
+	width: 100%;
+	max-width: 100%;
+	border-radius: 8px;
+	height: auto;
+	padding: 8px 12px;
+}
+
+/* ---- from webshop/templates/includes/wishlist_component.html (block 1) ---- */
+    .header-wishlist {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .wishlist-button {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      color: var(--text-color);
+    }
+    
+    .wishlist-badge {
+      position: absolute;
+      top: -5px;
+      right: -7px;
+      background-color: #7c7c7ce0;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 400;
+    }
+  
+
+/* ---- from webshop/templates/pages/loyalty_points.html (block 1) ---- */
+.loyalty-points-container .badge-primary {
+	background-color: black;
+}
+
+.loyalty-points-container .btn-primary {
+	background: black;
+	border: none;
+}
+
+.loyalty-points-container .btn-primary:hover {
+	background: #333;
+}
+
+.loyalty-points-container .points-balance {
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.loyalty-points-container .table th {
+	border-top: none;
+	font-weight: 600;
+	color: #6c757d;
+	font-size: 0.85rem;
+	text-transform: uppercase;
+}
+
+.loyalty-points-container .table td {
+	vertical-align: middle;
+}
+
+/* ---- from webshop/templates/pages/payment-success.html (block 1) ---- */
+.payment-success {
+    padding: 40px 20px;
+}
+.success-message {
+    max-width: 500px;
+    margin: 0 auto;
+}
+.success-emoji {
+    font-size: 48px;
+    line-height: 1;
+}
+.progress-bar {
+    background-color: var(--primary);
+}
+
+/* ---- from webshop/templates/pages/thank_you.html (block 1) ---- */
+    .website-image {
+        max-height: 50px;
+    }
+

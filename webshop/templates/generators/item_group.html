@@ -96,19 +96,7 @@
 					<div class="filter-label mb-3">{{ _("Recently viewed") }}</div>
 					<div id="recently-viewed-items"></div>
 				</div>
-				<style>
-					/* Keep recently-viewed as the LAST sidebar block, even though the
-					   discount filter is injected later by JS (flex order beats DOM order). */
-					@media (min-width: 768px) {
-						#product-filters { display: flex !important; flex-direction: column; } /* beats bootstrap d-md-block */
-						#recently-viewed-block { order: 999; }
-					}
-					#recently-viewed-items .rv-card{display:flex;align-items:center;gap:10px;padding:6px 0;text-decoration:none;color:inherit}
-					#recently-viewed-items .rv-card:hover{text-decoration:none;opacity:.8}
-					#recently-viewed-items .rv-card img,#recently-viewed-items .rv-card .rv-abbr{width:44px;height:44px;border-radius:6px;object-fit:cover;background:#f3f4f6;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-weight:600;font-size:.75rem;flex-shrink:0}
-					#recently-viewed-items .rv-name{font-size:.8rem;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-					#recently-viewed-items .rv-price{font-size:.75rem;font-weight:600;color:#374151;margin-top:2px}
-				</style>
+				{# //// Neoffice — styles moved to webshop/public/scss/webshop_catalogue.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
 				<script>
 				(function() {
 					try {
@@ -297,107 +285,7 @@
 {# //// and JSON-LD (ed337ce4a3 / f94822992c / f39c6eb87b, 2026-07-06 — the title was #}
 {# //// re-set later in get_context, so it had to be suffixed there too). #}
 
-<style>
-	/* Sticky filter header on mobile */
-	@media (max-width: 767.98px) {
-		.sticky-filter-header {
-			padding: 10px 15px;
-			margin: 0 -15px;
-			transition: background-color 0.2s ease, box-shadow 0.2s ease, position 0s;
-		}
-
-		.sticky-filter-header.is-sticky {
-			position: fixed;
-			top: 0;
-			left: 0;
-			right: 0;
-			z-index: 100;
-			padding: 8px 40px;
-			background: #ffffff;
-			background: linear-gradient(180deg, rgba(255, 255, 255, 1) 32%, rgba(255, 255, 255, 0.71) 71%, rgba(0, 0, 0, 0) 100%);
-		}
-	}
-
-	/* Filter button styles */
-	.filter-button {
-		background: none;
-		border: 1px solid #ddd;
-		border-radius: 4px;
-		padding: 6px 12px;
-		display: flex;
-		align-items: center;
-		cursor: pointer;
-		background-color: #f8f9fa;
-	}
-
-	.filter-button svg {
-		margin-right: 5px;
-	}
-
-	/* Overlay styles */
-	.filter-overlay {
-		position: fixed;
-		top: 0;
-		right: 0;
-		bottom: 0;
-		left: 0;
-		background-color: rgba(0, 0, 0, 0.5);
-		z-index: 1000;
-		opacity: 0;
-		visibility: hidden;
-		transition: opacity 0.3s ease, visibility 0.3s ease;
-	}
-
-	.filter-overlay.show {
-		opacity: 1;
-		visibility: visible;
-	}
-
-	/* Sidebar filter styles */
-	@media (max-width: 767.98px) {
-		.filters-section {
-			position: fixed;
-			top: 0;
-			right: -320px;
-			width: 300px;
-			height: 100%;
-			background-color: white;
-			box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
-			z-index: 1001;
-			transition: transform 0.3s ease-in-out;
-			transform: translateX(100%);
-			overflow-y: auto;
-			padding: 15px;
-		}
-
-		.filters-section.show {
-			transform: translateX(0);
-			right: 0;
-			margin-right: 0 !important;
-			animation: slideInFilter 0.3s ease-in-out;
-		}
-	}
-
-	@keyframes slideInFilter {
-		from {
-			transform: translateX(100%);
-		}
-		to {
-			transform: translateX(0);
-		}
-	}
-
-	/* Close filter button styles */
-	.close-filter-button {
-		background: none;
-		border: none;
-		cursor: pointer;
-		padding: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-</style>
+{# //// Neoffice — styles moved to webshop/public/scss/webshop_catalogue.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
 {% endblock %}
 
 {% block head_include %}

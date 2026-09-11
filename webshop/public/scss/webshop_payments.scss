@@ -1,0 +1,30 @@
+// //// Neoffice — added file (no upstream equivalent). The styles the Stripe and
+// WebshopSI payment templates used to carry inline. Part of the shop bundle.
+
+/* ---- from webshop/templates/payments/stripe.html (block 1) ---- */
+.StripeElement {
+    background-color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.StripeElement--focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.StripeElement--invalid {
+    border-color: #fa755a;
+}
+
+/* ---- from webshop/templates/payments/webshopsi.html (block 1) ---- */
+    .payment-method-disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+    .payment-method-disabled input[type="radio"] {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+

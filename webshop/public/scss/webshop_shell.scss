@@ -1,0 +1,253 @@
+// //// Neoffice — added file (no upstream equivalent). What web.html and the mobile menu
+// used to style inline: the page shell around every shop page (sidebar drawer, title
+// rules) and the mobile navigation. Part of the shop bundle.
+
+/* ---- from webshop/templates/web.html (block 1) ---- */
+	/* Target the trail itself, not .page-breadcrumbs: checkout reuses that
+	   class for its own step indicator (Cart → Information → Shipping →
+	   Payment), and hiding the container took the steps away with it. */
+	body:has(.site-page-header) .page-breadcrumbs > .breadcrumb-container,
+	body:has(.site-page-header) .webshop-page-title { display: none; }
+
+/* ---- from webshop/templates/web.html (block 2) ---- */
+/* Sidebar button styles */
+.sidebar-button {
+	background: none;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 6px 12px;
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	background-color: #f8f9fa;
+	position: absolute;
+    right: 30px;
+    top: 25px;
+}
+
+/* Overlay styles */
+.sidebar-overlay {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 1000;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sidebar-overlay.show {
+	opacity: 1;
+	visibility: visible;
+}
+
+/* Mobile sidebar styles */
+.mobile-sidebar-container {
+	position: fixed;
+	top: 0;
+	right: -320px;
+	width: 300px;
+	height: 100%;
+	background-color: white;
+	box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+	z-index: 1001;
+	transition: transform 0.3s ease-in-out;
+	transform: translateX(100%);
+	overflow-y: auto;
+	padding: 15px;
+}
+
+.mobile-sidebar-container.show {
+	transform: translateX(0);
+	right: 0;
+	margin-right: 0 !important;
+	animation: slideSidebar 0.3s ease-in-out;
+}
+
+@keyframes slideSidebar {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+/* Close sidebar button styles */
+.close-sidebar-button {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.sidebar-title {
+	font-weight: bold;
+	font-size: 1.1rem;
+}
+
+/* ---- from webshop/templates/includes/mobile_menu.html (block 1) ---- */
+    /* Header authentication wrapper styles */
+    .mobile-auth-wrapper {
+        width: 100%;
+        padding: 0 0 10px 0;
+    }
+    
+    .mobile-auth-wrapper .header-auth {
+        margin-left: 0 !important;
+        width: 100%;
+    }
+    
+    .mobile-auth-wrapper .auth-wrapper {
+        width: 100%;
+    }
+    
+    .mobile-auth-wrapper .auth-button {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .mobile-auth-wrapper #user-dropdown {
+        position: absolute;
+        width: 100%;
+        margin-top: 10px;
+        padding-top: 0;
+    }
+    
+    .mobile-auth-wrapper #user-dropdown.show {
+        display: block;
+    }
+    
+    .mobile-auth-wrapper .dropdown-item {
+        padding: 10px 15px;
+    }
+    
+    .mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        z-index: 1001;
+    }
+    
+    .hamburger-icon {
+        width: 24px;
+        height: 18px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .hamburger-icon .line {
+        display: block;
+        width: 100%;
+        height: 2px;
+        background-color: #383838;
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-menu-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1090;
+        display: none;
+    }
+    
+    .mobile-menu {
+        position: fixed;
+        top: 0;
+        /* //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") */
+        right: -300px; /* Hidden off-screen */
+        width: 280px;
+        height: 100%;
+        background-color: white;
+        z-index: 1100;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+        transition: right 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    
+    .mobile-menu.open {
+        right: 0;
+    }
+    
+    .mobile-menu-overlay.open {
+        display: block;
+    }
+    
+    .mobile-menu-header {
+        padding: 25px;
+        border-bottom: 1px solid #ededed;
+        position: relative;
+    }
+    
+    .mobile-menu-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        cursor: pointer;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .mobile-menu-content {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+    }
+    
+    /* Mobile navigation styles - v2.10.5 */
+    .mobile-navigation-wrapper nav {
+        display: flex;
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    .mobile-navigation-wrapper nav a {
+        padding: 15px 20px !important; /* v2.10.5: Increased for touch-friendly (min 44px) */
+        text-decoration: none;
+        color: #383838 !important;
+        border-bottom: 1px solid #f5f5f5;
+        font-size: 16px !important;
+        display: block !important;
+        width: 100% !important;
+        text-align: left !important;
+        transition: background-color 0.2s ease; /* v2.10.5: Smooth hover */
+        min-height: 44px; /* v2.10.5: Touch target minimum */
+        display: flex;
+        align-items: center;
+    }
+
+    .mobile-navigation-wrapper nav a:hover,
+    .mobile-navigation-wrapper nav a:active {
+        background-color: #f8f9fa; /* v2.10.5: Visual feedback */
+    }
+
+    .mobile-navigation-wrapper nav a p {
+        margin: 0 !important;
+    }
+
+    /* v2.10.5: Fallback message styling */
+    .mobile-menu-fallback {
+        width: 100%;
+        padding: 20px;
+    }
+

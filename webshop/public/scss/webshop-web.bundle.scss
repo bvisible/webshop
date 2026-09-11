@@ -5,6 +5,14 @@
 @import "./webshop_price_slider";
 @import "./webshop_responsive";
 @import "./webshop_loyalty";
+// //// Neoffice — the styles that used to live inline in the product page templates
+// //// (lot 0a, 2026-09-11): a stylesheet in a template cannot be themed.
+@import "./webshop_product_page";
+@import "./webshop_product_gallery";
+@import "./webshop_catalogue";
+@import "./webshop_shell";
+@import "./webshop_pages";
+@import "./webshop_payments";
 
 // Enhanced Product Card styles
 .item-card {

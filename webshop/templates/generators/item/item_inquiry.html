@@ -11,19 +11,7 @@
 			<span aria-hidden="true">?</span>
 			<span class="btn-inquiry__label">{{ _('A question?') }}</span>
 		</button>
-		<style>
-			/* //// Neoffice — the label is hidden on desktop (the button is a small square
-			   next to "Add to cart") and shown on mobile, where it stretches full width and
-			   a lone "?" tells nobody anything (69db8ac57d, 2026-08-26).
-
-			   These three lines used to sit OUTSIDE this <style> block: `/* … *\/` is not a
-			   comment in HTML, so the whole explanation printed as text on the product page,
-			   right next to the button it was describing. */
-			.btn-inquiry__label { display: none; }
-			@media (max-width: 767.98px) {
-				.btn-inquiry__label { display: inline; margin-left: 6px; }
-			}
-		</style>
+		{# //// Neoffice — styles moved to webshop/public/scss/webshop_product_page.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
 	{% endif %}
 <script>
 {% include "templates/generators/item/item_inquiry.js" %}

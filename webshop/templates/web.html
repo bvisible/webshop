@@ -19,13 +19,7 @@
 {% block content %}
 {# This template extends another one: anything outside a block is never
    rendered, so these rules have to live inside one. #}
-<style>
-	/* Target the trail itself, not .page-breadcrumbs: checkout reuses that
-	   class for its own step indicator (Cart → Information → Shipping →
-	   Payment), and hiding the container took the steps away with it. */
-	body:has(.site-page-header) .page-breadcrumbs > .breadcrumb-container,
-	body:has(.site-page-header) .webshop-page-title { display: none; }
-</style>
+{# //// Neoffice — styles moved to webshop/public/scss/webshop_shell.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
 
 {% macro main_content() %}
 <div class="page-content-wrapper">
@@ -187,88 +181,6 @@ id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
 	}
 </script>
 
-<style>
-/* Sidebar button styles */
-.sidebar-button {
-	background: none;
-	border: 1px solid #ddd;
-	border-radius: 4px;
-	padding: 6px 12px;
-	display: flex;
-	align-items: center;
-	cursor: pointer;
-	background-color: #f8f9fa;
-	position: absolute;
-    right: 30px;
-    top: 25px;
-}
-
-/* Overlay styles */
-.sidebar-overlay {
-	position: fixed;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	left: 0;
-	background-color: rgba(0, 0, 0, 0.5);
-	z-index: 1000;
-	opacity: 0;
-	visibility: hidden;
-	transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-.sidebar-overlay.show {
-	opacity: 1;
-	visibility: visible;
-}
-
-/* Mobile sidebar styles */
-.mobile-sidebar-container {
-	position: fixed;
-	top: 0;
-	right: -320px;
-	width: 300px;
-	height: 100%;
-	background-color: white;
-	box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
-	z-index: 1001;
-	transition: transform 0.3s ease-in-out;
-	transform: translateX(100%);
-	overflow-y: auto;
-	padding: 15px;
-}
-
-.mobile-sidebar-container.show {
-	transform: translateX(0);
-	right: 0;
-	margin-right: 0 !important;
-	animation: slideSidebar 0.3s ease-in-out;
-}
-
-@keyframes slideSidebar {
-	from {
-		transform: translateX(100%);
-	}
-	to {
-		transform: translateX(0);
-	}
-}
-
-/* Close sidebar button styles */
-.close-sidebar-button {
-	background: none;
-	border: none;
-	cursor: pointer;
-	padding: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.sidebar-title {
-	font-weight: bold;
-	font-size: 1.1rem;
-}
-</style>
+{# //// Neoffice — styles moved to webshop/public/scss/webshop_shell.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
 
 {% endblock %}

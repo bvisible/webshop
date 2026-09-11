@@ -158,50 +158,7 @@
 	{% endif %}
 </div>
 
-{# //// Neoffice — added <style> block: the description card and its clamped excerpt. #}
-{# //// Kept inline because these blocks are rendered inside a Builder page, outside the #}
-{# //// shop's SCSS bundle (0b86ab6b9d, 2026-07-06 — the styles had been appended outside #}
-{# //// the template blocks and were never rendered). #}
-<style>
-	.product-separator {
-		margin: 0 0.5rem;
-		color: var(--text-muted);
-	}
-	
-	.product-brand {
-		font-weight: 500;
-	}
-	
-	.brand-link {
-		color: var(--primary-color, #171717);
-		text-decoration: none;
-		transition: all 0.2s ease;
-	}
-	
-	.brand-link:hover {
-		color: var(--primary-dark, #040404);
-		text-decoration: underline;
-	}
-	
-	.product-code {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 0.25rem;
-		margin-bottom: 1rem;
-		color: var(--text-muted);
-		font-size: 0.9rem;
-	}
-	
-	.product-item-group {
-		font-weight: 500;
-		color: var(--text-color);
-	}
-	
-	.product-item-code {
-		margin-left: 0.5rem;
-	}
-</style>
+{# //// Neoffice — added {# //// Neoffice — styles moved to webshop/public/scss/webshop_product_page.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
 
 {% block base_scripts %}
 <!-- js should be loaded in body! -->
@@ -217,22 +174,4 @@
 </script>
 
 {# //// Neoffice — second-hand styles, next to the markup they dress. #}
-<style>
-	.product-condition { margin: 4px 0 14px; padding: 12px 14px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fafafa; }
-	.product-condition__head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.9rem; color: #374151; }
-	.product-condition__grade { font-weight: 600; }
-	.product-condition__warranty::before { content: "\2713\00a0"; color: #16a34a; }
-	.product-condition__details { margin: 8px 0 0; color: #4b5563; font-size: 0.9rem; white-space: pre-line; }
-	.product-condition__reference { display: inline-block; margin-top: 8px; font-size: 0.85rem; }
-	/* the bundle positions .condition-badge in a card corner; in the buy box it is a plain pill */
-	.product-condition .condition-badge--inline { position: static !important; display: inline-flex !important; border-radius: 999px; }
-	.product-used-units { margin-top: 16px; padding-top: 14px; border-top: 1px solid #eef0f3; }
-	.product-used-units__title { font-weight: 600; font-size: 0.95rem; margin-bottom: 8px; color: #111827; }
-	.product-used-unit { display: flex; align-items: center; gap: 10px; padding: 8px 0; color: inherit; text-decoration: none; border-bottom: 1px dashed #eef0f3; }
-	.product-used-unit:hover { text-decoration: none; opacity: .85; }
-	.product-used-unit img, .product-used-unit__abbr { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; background: #f3f4f6; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-weight: 600; flex-shrink: 0; }
-	.product-used-unit__body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-	.product-used-unit__name { font-size: 0.85rem; line-height: 1.25; }
-	.product-used-unit__meta { font-size: 0.75rem; color: #6b7280; }
-	.product-used-unit__price { font-weight: 600; white-space: nowrap; }
-</style>
+{# //// Neoffice — styles moved to webshop/public/scss/webshop_product_page.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}

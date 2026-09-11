@@ -10,3 +10,5 @@ blob-report/
 package-lock.json
 .diag-*.js
 .explore-*.js
+# //// Neoffice — the visual harness captures (tests/e2e/visual): large, and they show a live catalogue.
+visual/shots/

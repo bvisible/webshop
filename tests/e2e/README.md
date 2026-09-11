@@ -334,3 +334,22 @@ for nom in frappe.get_all(\"User\", filters={\"email\": [\"like\", \"e2e.auto.%\
 frappe.db.commit()
 "'
 ```
+
+## Harnais visuel (`visual/`)
+
+Captures pleine page, desktop et mobile, des pages listées dans `visual/pages.json`,
+puis comparaison pixel à pixel entre deux jeux. Sert de garde-fou à tout chantier
+qui touche les gabarits ou les feuilles de style.
+
+```bash
+export WEBSHOP_E2E_URL=https://<instance>
+export WEBSHOP_SID=<sid>          # bench --site <site> browse --user <client>, pour les pages connectées
+npm run visual:capture -- baseline
+# … les changements …
+npm run visual:capture -- after
+npm run visual:compare -- baseline after --threshold 0.5
+```
+
+Les captures vont dans `visual/shots/<label>/` (non versionné) ; les diffs dans
+`visual/shots/<after>/diff/`, pixels déplacés en rouge. `WEBSHOP_ONLY=cart,checkout`
+restreint la capture à quelques pages.

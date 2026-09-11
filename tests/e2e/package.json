@@ -11,7 +11,9 @@
     "test:mobile": "playwright test --project=mobile",
     "test:paiement": "playwright test --project=client specs/05-paiement-stripe.spec.js",
     "ui": "playwright test --ui",
-    "test:multisite": "playwright test --project=multi-site"
+    "test:multisite": "playwright test --project=multi-site",
+    "visual:capture": "node visual/capture.mjs",
+    "visual:compare": "python3 visual/compare.py"
   },
   "keywords": [],
   "author": "",

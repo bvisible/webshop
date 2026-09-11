@@ -5,61 +5,7 @@
 {# //// both (94c96c6bac), then queries the filter API directly, debounced (466b055610). #}
 {# Shop sidebar extras: sticky sidebar, active-filter chips, live results counter.
    Included at the end of the filters column (item_group + all-products). #}
-<style>
-	@media (min-width: 768px) {
-		#product-filters {
-			position: sticky;
-			top: 16px;
-			max-height: calc(100vh - 32px);
-			overflow-y: auto;
-			overflow-x: hidden;
-			padding-right: 6px;
-			/* slim, always-visible scrollbar (macOS overlay hides it otherwise) */
-			scrollbar-width: thin;
-			scrollbar-color: #c7ccd1 transparent;
-		}
-		#product-filters::-webkit-scrollbar { width: 6px; }
-		#product-filters::-webkit-scrollbar-track { background: transparent; }
-		#product-filters::-webkit-scrollbar-thumb { background: #c7ccd1; border-radius: 999px; }
-		#product-filters::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-		/* price slider: round handles were clipped by the column's overflow */
-		#product-filters #price-slider-track { margin-left: 10px; margin-right: 10px; }
-	}
-	#active-filter-chips { display: none; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-	@media (min-width: 768px) { #active-filter-chips { order: -1; } }
-	#active-filter-chips.has-chips { display: flex; }
-	.afc-chip {
-		display: inline-flex; align-items: center; gap: 6px;
-		background: #1a1a1a; color: #fff; border-radius: 999px;
-		padding: 3px 10px; font-size: 0.75rem; line-height: 1.4; cursor: default;
-	}
-	.afc-chip button {
-		background: none; border: none; color: #fff; cursor: pointer;
-		font-size: 0.9rem; line-height: 1; padding: 0; opacity: 0.75;
-	}
-	.afc-chip button:hover { opacity: 1; }
-	/* collapsible filter sections */
-	#product-filters .filter-block > .filter-label {
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		user-select: none;
-	}
-	#product-filters .filter-block > .filter-label::after {
-		content: "";
-		width: 8px; height: 8px;
-		border-right: 2px solid #9ca3af;
-		border-bottom: 2px solid #9ca3af;
-		transform: rotate(45deg);
-		transition: transform 0.15s ease;
-		margin-left: 8px; margin-top: -4px;
-		flex-shrink: 0;
-	}
-	#product-filters .filter-block.afc-collapsed > .filter-label::after { transform: rotate(-45deg); margin-top: 2px; }
-	#product-filters .filter-block.afc-collapsed > *:not(.filter-label) { display: none !important; }
-	#results-count-live { font-size: 0.8rem; color: #6b7280; font-weight: 400; margin-left: 8px; white-space: nowrap; }
-</style>
+{# //// Neoffice — styles moved to webshop/public/scss/webshop_catalogue.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
 <div id="active-filter-chips" aria-live="polite"></div>
 <script>
 (function() {

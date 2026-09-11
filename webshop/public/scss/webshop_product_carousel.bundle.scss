@@ -1,0 +1,482 @@
+// //// Neoffice — added file (no upstream equivalent). The product carousel's own
+// stylesheet: this component is included in Builder pages, which load none of the
+// shop bundles, so the include prints this file inline once per request
+// (utils/assets.py::component_css). It is NOT imported by webshop-web.bundle.scss.
+// The rules used to be scoped by the carousel's generated id (#{{ unique_carousel_id }});
+// the class .product-carousel now scopes them, since a stylesheet cannot carry an id
+// minted at render time.
+
+/* ---- from webshop/templates/includes/product_carousel.html (block 1) ---- */
+      .product-carousel {
+        position: relative;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        max-width: 1200px;
+        width: 100%;
+        overflow: visible;
+        min-height: 500px;
+      }
+
+      /* Carousel header */
+      .carousel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0 !important;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .carousel-title {
+        font-size: 2.2em;
+        font-weight: 600;
+        margin: 0;
+        padding-bottom: 5px;
+      }
+
+      .btn-view-more {
+        background-color: transparent;
+        color: var(--primary-color, #171717);
+        border: 1px solid var(--primary-color, #171717);
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+      }
+
+      .btn-view-more:hover {
+        background-color: var(--primary-color, #171717);
+        color: white;
+        text-decoration: none;
+        transform: translateX(2px);
+      }
+
+      .carousel-clip-container {
+        overflow-x: hidden;
+        overflow-y: visible;
+        position: relative;
+      }
+
+      .carousel-wrapper {
+        overflow: visible !important;
+        padding: 10px;
+        height: auto !important;
+        position: relative;
+      }
+
+      .carousel-inner {
+        display: flex;
+        transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        padding: 10px 0;
+        overflow: visible !important;
+      }
+
+      .item-card {
+        flex: 0 0 calc(25% - 10px);
+        margin: 5px;
+        box-sizing: border-box;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        width: calc(25% - 10px);
+      }
+
+      @media (max-width: 992px) {
+        .item-card {
+          flex: 0 0 calc(33.33% - 10px);
+          width: calc(33.33% - 10px);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .item-card {
+          flex: 0 0 calc(50% - 10px);
+          width: calc(50% - 10px);
+        }
+      }
+
+      /* Compact mode for narrow containers (sidebar recommendations) */
+      .product-carousel.compact-carousel .item-card {
+        flex: 0 0 calc(100% - 10px) !important;
+        width: calc(100% - 10px) !important;
+        min-width: calc(100% - 10px) !important;
+      }
+
+      .product-carousel.compact-carousel .carousel-title {
+        font-size: 1.4em;
+      }
+
+      .product-carousel.compact-carousel .card-img-container {
+        padding-top: 100%;
+        min-height: 150px;
+      }
+
+      .product-carousel.compact-carousel .carousel-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.9em;
+      }
+
+      .item-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .card {
+        background-color: #fff;
+        border: 1px solid #eaeaea;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+      }
+
+      .card-img-container {
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+        padding-top: 100%; 
+        background-color: #fff;
+      }
+
+      .card-img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center;
+        transition: transform 0.5s ease;
+        padding: 15px;
+        box-sizing: border-box;
+      }
+
+      .card:hover .card-img {
+        transform: scale(1.05);
+      }
+
+      .card-img-top.no-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+        color: #6c757d;
+        font-size: 2.5em;
+        font-weight: bold;
+      }
+
+      .card-body {
+        padding: 15px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      .card-body-flex {
+        width: 100%;
+      }
+
+      .text-left {
+        text-align: left;
+      }
+
+      .product-header {
+        display: flex;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .product-title {
+        font-size: 1em;
+        font-weight: 600;
+        color: #333;
+        line-height: 1.3;
+        min-height: 2.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .product-category-stock {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.5rem;
+        gap: 0.5rem;
+      }
+
+      .product-category {
+        color: var(--text-muted, #666);
+        font-size: 0.875rem;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .product-price {
+        font-size: 1.1em;
+        font-weight: 500;
+        color: #333;
+        margin-top: 0.75rem;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .striked-price {
+        font-size: 0.85em;
+        color: #999;
+        text-decoration: line-through;
+      }
+
+      .product-discount,
+      .product-info-green {
+        color: #4CAF50;
+        font-size: 0.85em;
+        font-weight: 600;
+      }
+      
+      .ml-1 {
+        margin-left: 0.25rem;
+      }
+
+      .product-price-unavailable {
+        font-size: 0.9em;
+        font-style: italic;
+        color: #777;
+      }
+
+      .btn {
+        display: inline-block;
+        font-weight: 500;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        border: 1px solid transparent;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        transition: all 0.15s ease-in-out;
+      }
+
+      .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        border-radius: 0.2rem;
+      }
+
+      /* //// Neoffice — these two rules hard-painted `.btn-primary`, for
+          the WHOLE site: a carousel component decided the color of the
+          « Ajouter au panier » button, of the cart and of checkout, overriding
+          the one the site's theme publishes (`--primary-color`, DocType
+          `Website Header Footer Config`). The purchase tunnel ended up
+          inconsistent with itself — black here, brand color right next to it. They
+          now follow the theme, like the neighboring rules in this same
+          file already did. Black remains the fallback. */
+      .btn-primary {
+        color: #fff;
+        background-color: var(--primary-color, #171717);
+        border-color: var(--primary-color, #171717);
+      }
+
+      .btn-primary:hover {
+        background-color: var(--primary-hover, #040404);
+        border-color: var(--primary-hover, black);
+      }
+      
+      .btn-explore-variants {
+        background-color: var(--primary-color, #171717);
+        color: white;
+        border: 1px solid var(--primary-color, #171717);
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        transition: all 0.2s ease;
+      }
+      
+      .btn-explore-variants:hover {
+        background-color: var(--primary-dark, #040404);
+        border-color: var(--primary-dark, #040404);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      .discount-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+        background: #28a745;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      
+      /* //// Neoffice — second-hand badge; sits under the discount badge when both show */
+      .condition-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+        background: #374151;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      .discount-badge + .condition-badge { top: 40px; }
+
+      .product-price-placeholder {
+        color: #999;
+        font-style: italic;
+        font-size: 0.9em;
+      }
+
+      .btn-explore-variants {
+        visibility: visible !important;
+      }
+
+      .w-100 {
+        width: 100%;
+      }
+
+      .mt-2 {
+        margin-top: 0.5rem;
+      }
+
+      .mr-2 {
+        margin-right: 0.5rem;
+      }
+
+      /* Scoped icon styles for carousel only - do not override global .icon */
+      .product-carousel .carousel-icon {
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        vertical-align: -0.125em;
+      }
+
+      .product-carousel .carousel-icon-sm {
+        width: 0.875em;
+        height: 0.875em;
+      }
+
+      .carousel-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: white;
+        border: 1px solid #ddd;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 1.2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        line-height: 40px;
+      }
+
+      .carousel-btn:hover:not(:disabled) {
+        background-color: #f8f9fa;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      }
+      
+      .carousel-btn:disabled {
+        cursor: not-allowed;
+      }
+
+      .carousel-btn.left {
+        left: 0;
+      }
+
+      .carousel-btn.right {
+        right: 0;
+      }
+
+      .carousel-indicators {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #ddd;
+        margin: 0 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .indicator.active {
+        background-color: #000;
+        transform: scale(1.2);
+      }
+
+      @media (max-width: 576px) {
+        .product-carousel .item-card {
+          flex: 0 0 calc(100% - 10px) !important;
+          width: calc(100% - 10px) !important;
+          min-width: calc(100% - 10px) !important;
+        }
+        .product-carousel .carousel-btn {
+          width: 35px;
+          height: 35px;
+          font-size: 1em;
+        }
+        .product-carousel .product-title {
+          height: auto;
+          max-height: none;
+          -webkit-line-clamp: 3;
+          line-clamp: 3;
+        }
+        .product-carousel .carousel-header {
+          justify-content: center;
+        }
+        .product-carousel .carousel-title {
+          font-size: 1.8em;
+          text-align: center;
+          width: 100%;
+        }
+        .product-carousel .btn-view-more {
+          width: 100%;
+          text-align: center;
+        }
+        .product-carousel .card-img-container {
+          min-height: 200px;
+        }
+      }
+      
+

@@ -1,0 +1,423 @@
+// //// Neoffice — added file (no upstream equivalent). The catalogue's styles — listing
+// page, filter sidebar, category page, item-group page — moved out of the templates
+// that carried them inline. Part of the shop bundle.
+
+/* ---- from webshop/www/all-products/index.html (block 1) ---- */
+					/* Keep recently-viewed as the LAST sidebar block, even though the
+					   discount filter is injected later by JS (flex order beats DOM order). */
+					@media (min-width: 768px) {
+						#product-filters { display: flex !important; flex-direction: column; } /* beats bootstrap d-md-block */
+						#recently-viewed-block { order: 999; }
+					}
+					#recently-viewed-items .rv-card{display:flex;align-items:center;gap:10px;padding:6px 0;text-decoration:none;color:inherit}
+					#recently-viewed-items .rv-card:hover{text-decoration:none;opacity:.8}
+					#recently-viewed-items .rv-card img,#recently-viewed-items .rv-card .rv-abbr{width:44px;height:44px;border-radius:6px;object-fit:cover;background:#f3f4f6;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-weight:600;font-size:.75rem;flex-shrink:0}
+					#recently-viewed-items .rv-name{font-size:.8rem;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+					#recently-viewed-items .rv-price{font-size:.75rem;font-weight:600;color:#374151;margin-top:2px}
+				
+
+/* ---- from webshop/www/all-products/index.html (block 2) ---- */
+	/* //// Neoffice — the styles of the mobile filter drawer and the sticky header (same
+	   series). Inline for the same reason as above.
+
+	   These two lines used to sit OUTSIDE this <style> block, where `/* … *\/` is not a
+	   comment but text, and printed on the catalogue page. */
+	/* Sticky filter header on mobile */
+	@media (max-width: 767.98px) {
+		.sticky-filter-header {
+			padding: 10px 15px;
+			margin: 0 -15px;
+			transition: background-color 0.2s ease, box-shadow 0.2s ease, position 0s;
+		}
+
+		.sticky-filter-header.is-sticky {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			z-index: 100;
+			padding: 8px 40px;
+			background: #ffffff;
+			background: linear-gradient(180deg, rgba(255, 255, 255, 1) 32%, rgba(255, 255, 255, 0.71) 71%, rgba(0, 0, 0, 0) 100%);
+		}
+	}
+
+	/* Filter button styles */
+	.filter-button {
+		background: none;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 6px 12px;
+		display: flex;
+		align-items: center;
+		cursor: pointer;
+		background-color: #f8f9fa;
+	}
+
+	.filter-button svg {
+		margin-right: 5px;
+	}
+
+	/* Overlay styles */
+	.filter-overlay {
+		position: fixed;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		z-index: 1000;
+		opacity: 0;
+		visibility: hidden;
+		transition: opacity 0.3s ease, visibility 0.3s ease;
+	}
+
+	.filter-overlay.show {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	/* Sidebar filter styles */
+	@media (max-width: 767.98px) {
+		.filters-section {
+			position: fixed;
+			top: 0;
+			right: -320px;
+			width: 300px;
+			height: 100%;
+			background-color: white;
+			box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+			z-index: 1001;
+			transition: transform 0.3s ease-in-out;
+			transform: translateX(100%);
+			overflow-y: auto;
+			padding: 15px;
+		}
+
+		.filters-section.show {
+			transform: translateX(0);
+			right: 0;
+			margin-right: 0 !important;
+			animation: slideInFilter 0.3s ease-in-out;
+		}
+	}
+
+	@keyframes slideInFilter {
+		from {
+			transform: translateX(100%);
+		}
+		to {
+			transform: translateX(0);
+		}
+	}
+
+	/* Close filter button styles */
+	.close-filter-button {
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	/* Price slider styles */
+	.price-range-slider {
+		position: relative;
+		height: 6px;
+		margin: 30px 0;
+	}
+	
+	.slider-track {
+		position: relative;
+		height: 6px;
+		width: 100%;
+		background-color: #e9ecef;
+		border-radius: 3px;
+	}
+	
+	.slider-selection {
+		position: absolute;
+		height: 100%;
+		background-color: var(--gray-600);
+		border-radius: 3px;
+	}
+	
+	.slider-handle {
+		position: absolute;
+		top: 50%;
+		width: 18px;
+		height: 18px;
+		background-color: #fff;
+		border: 2px solid var(--gray-600);
+		border-radius: 50%;
+		cursor: pointer;
+		transform: translate(-50%, -50%);
+		z-index: 2;
+	}
+	
+	.slider-handle:hover {
+		background-color: #f8f9fa;
+	}
+	
+	.slider-handle:active {
+		background-color: #e9ecef;
+	}
+	
+	.price-input-container {
+		position: relative;
+		width: 45%;
+	}
+	
+	.price-input-container input {
+		text-align: right;
+	}
+	
+	.price-range-separator {
+		color: #6c757d;
+	}
+
+/* ---- from webshop/templates/includes/shop_sidebar_extras.html (block 1) ---- */
+	@media (min-width: 768px) {
+		#product-filters {
+			position: sticky;
+			top: 16px;
+			max-height: calc(100vh - 32px);
+			overflow-y: auto;
+			overflow-x: hidden;
+			padding-right: 6px;
+			/* slim, always-visible scrollbar (macOS overlay hides it otherwise) */
+			scrollbar-width: thin;
+			scrollbar-color: #c7ccd1 transparent;
+		}
+		#product-filters::-webkit-scrollbar { width: 6px; }
+		#product-filters::-webkit-scrollbar-track { background: transparent; }
+		#product-filters::-webkit-scrollbar-thumb { background: #c7ccd1; border-radius: 999px; }
+		#product-filters::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+		/* price slider: round handles were clipped by the column's overflow */
+		#product-filters #price-slider-track { margin-left: 10px; margin-right: 10px; }
+	}
+	#active-filter-chips { display: none; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+	@media (min-width: 768px) { #active-filter-chips { order: -1; } }
+	#active-filter-chips.has-chips { display: flex; }
+	.afc-chip {
+		display: inline-flex; align-items: center; gap: 6px;
+		background: #1a1a1a; color: #fff; border-radius: 999px;
+		padding: 3px 10px; font-size: 0.75rem; line-height: 1.4; cursor: default;
+	}
+	.afc-chip button {
+		background: none; border: none; color: #fff; cursor: pointer;
+		font-size: 0.9rem; line-height: 1; padding: 0; opacity: 0.75;
+	}
+	.afc-chip button:hover { opacity: 1; }
+	/* collapsible filter sections */
+	#product-filters .filter-block > .filter-label {
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		user-select: none;
+	}
+	#product-filters .filter-block > .filter-label::after {
+		content: "";
+		width: 8px; height: 8px;
+		border-right: 2px solid #9ca3af;
+		border-bottom: 2px solid #9ca3af;
+		transform: rotate(45deg);
+		transition: transform 0.15s ease;
+		margin-left: 8px; margin-top: -4px;
+		flex-shrink: 0;
+	}
+	#product-filters .filter-block.afc-collapsed > .filter-label::after { transform: rotate(-45deg); margin-top: 2px; }
+	#product-filters .filter-block.afc-collapsed > *:not(.filter-label) { display: none !important; }
+	#results-count-live { font-size: 0.8rem; color: #6b7280; font-weight: 400; margin-left: 8px; white-space: nowrap; }
+
+/* ---- from webshop/templates/generators/item_group.html (block 1) ---- */
+					/* Keep recently-viewed as the LAST sidebar block, even though the
+					   discount filter is injected later by JS (flex order beats DOM order). */
+					@media (min-width: 768px) {
+						#product-filters { display: flex !important; flex-direction: column; } /* beats bootstrap d-md-block */
+						#recently-viewed-block { order: 999; }
+					}
+					#recently-viewed-items .rv-card{display:flex;align-items:center;gap:10px;padding:6px 0;text-decoration:none;color:inherit}
+					#recently-viewed-items .rv-card:hover{text-decoration:none;opacity:.8}
+					#recently-viewed-items .rv-card img,#recently-viewed-items .rv-card .rv-abbr{width:44px;height:44px;border-radius:6px;object-fit:cover;background:#f3f4f6;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-weight:600;font-size:.75rem;flex-shrink:0}
+					#recently-viewed-items .rv-name{font-size:.8rem;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+					#recently-viewed-items .rv-price{font-size:.75rem;font-weight:600;color:#374151;margin-top:2px}
+				
+
+/* ---- from webshop/templates/generators/item_group.html (block 2) ---- */
+	/* Sticky filter header on mobile */
+	@media (max-width: 767.98px) {
+		.sticky-filter-header {
+			padding: 10px 15px;
+			margin: 0 -15px;
+			transition: background-color 0.2s ease, box-shadow 0.2s ease, position 0s;
+		}
+
+		.sticky-filter-header.is-sticky {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			z-index: 100;
+			padding: 8px 40px;
+			background: #ffffff;
+			background: linear-gradient(180deg, rgba(255, 255, 255, 1) 32%, rgba(255, 255, 255, 0.71) 71%, rgba(0, 0, 0, 0) 100%);
+		}
+	}
+
+	/* Filter button styles */
+	.filter-button {
+		background: none;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 6px 12px;
+		display: flex;
+		align-items: center;
+		cursor: pointer;
+		background-color: #f8f9fa;
+	}
+
+	.filter-button svg {
+		margin-right: 5px;
+	}
+
+	/* Overlay styles */
+	.filter-overlay {
+		position: fixed;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		z-index: 1000;
+		opacity: 0;
+		visibility: hidden;
+		transition: opacity 0.3s ease, visibility 0.3s ease;
+	}
+
+	.filter-overlay.show {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	/* Sidebar filter styles */
+	@media (max-width: 767.98px) {
+		.filters-section {
+			position: fixed;
+			top: 0;
+			right: -320px;
+			width: 300px;
+			height: 100%;
+			background-color: white;
+			box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+			z-index: 1001;
+			transition: transform 0.3s ease-in-out;
+			transform: translateX(100%);
+			overflow-y: auto;
+			padding: 15px;
+		}
+
+		.filters-section.show {
+			transform: translateX(0);
+			right: 0;
+			margin-right: 0 !important;
+			animation: slideInFilter 0.3s ease-in-out;
+		}
+	}
+
+	@keyframes slideInFilter {
+		from {
+			transform: translateX(100%);
+		}
+		to {
+			transform: translateX(0);
+		}
+	}
+
+	/* Close filter button styles */
+	.close-filter-button {
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+/* ---- from webshop/www/shop-by-category/index.html (block 1) ---- */
+	.category-slideshow {
+		margin-bottom: 2rem;
+	}
+	.category-card {
+		height: 300px !important;
+		width: 300px !important;
+		margin: 30px !important;
+	}
+	/* //// Neoffice — styles of the search and sort bar added to this page (see index.js). */
+	.category-filter-section {
+		margin-bottom: 20px;
+		padding: 15px;
+		background-color: #f8f9fa;
+		border-radius: 5px;
+	}
+	.category-search {
+		margin-bottom: 10px;
+	}
+	.sort-options {
+		display: flex;
+		align-items: center;
+	}
+	.sort-options label {
+		margin-right: 10px;
+		margin-bottom: 0;
+	}
+	.sort-options select {
+		width: auto;
+	}
+	.hidden-card {
+		display: none !important;
+	}
+	/* //// Neoffice — Frappe's tab block opens on `mt-12` (3rem), which under the page
+	   header pushed the tabs a screenful down. The block no longer carries the
+	   repeated <h2> either, so the toolbar sits where that title was. */
+	/* the block nests it as .category-tabs > section.section > .mt-12 */
+	.shop-by-category-content .category-tabs .mt-12 {
+		margin-top: 1.25rem !important;
+	}
+	.shop-by-category-content .category-filter-section {
+		margin-top: 0;
+	}
+	/* //// Neoffice — how many products the category holds, next to its name. Without
+	   it a category with 3 and one with 161 look exactly alike, and the visitor cannot
+	   tell where the shop actually is. Same figure as the sidebar facet: same scope. */
+	.category-card .card-body {
+		display: flex;
+		align-items: baseline;
+		justify-content: center;
+		gap: .5rem;
+	}
+	.category-card-count {
+		flex: none;
+		font-size: .75rem;
+		font-variant-numeric: tabular-nums;
+		line-height: 1.4;
+		padding: .05rem .4rem;
+		border-radius: 999px;
+		background: rgba(127, 127, 127, .14);
+		color: inherit;
+		opacity: .8;
+	}
+	@media (max-width: 767px) {
+		.sort-options {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+		.sort-options label {
+			margin-bottom: 5px;
+		}
+	}
+

@@ -463,58 +463,7 @@
 	};
 </script>
 
-<style>
-/* //// Neoffice — address book picker (see checkout.js). Deliberately quiet:
-   it sits above a form the shopper may not need to touch at all. */
-.address-picker { margin-bottom: 18px; }
-.address-picker__label {
-	font-size: .82rem;
-	font-weight: 600;
-	color: var(--text-muted, #6c7680);
-	margin-bottom: 8px;
-}
-.address-picker__list { display: flex; flex-wrap: wrap; gap: 10px; }
-.address-card-choice {
-	flex: 1 1 210px;
-	max-width: 320px;
-	text-align: left;
-	border: 1px solid var(--gray-300, #d1d8dd);
-	border-radius: 10px;
-	background: #fff;
-	padding: 10px 12px;
-	cursor: pointer;
-	transition: border-color .15s, box-shadow .15s;
-}
-.address-card-choice:hover { border-color: var(--gray-500, #8d99a6); }
-.address-card-choice.is-selected {
-	border-color: var(--primary-color, #7575ff);
-	box-shadow: 0 0 0 1px var(--primary-color, #7575ff);
-}
-.address-card-choice__title { font-weight: 600; font-size: .88rem; display: flex; align-items: center; gap: 6px; }
-.address-card-choice__lines { font-size: .8rem; color: var(--text-muted, #6c7680); margin-top: 2px; line-height: 1.45; }
-.address-card-choice__tag {
-	font-size: .66rem;
-	text-transform: uppercase;
-	letter-spacing: .03em;
-	color: var(--text-muted, #6c7680);
-	border: 1px solid var(--gray-300, #d1d8dd);
-	border-radius: 20px;
-	padding: 1px 7px;
-	font-weight: 500;
-}
-.address-card-choice--new { border-style: dashed; display: flex; align-items: center; justify-content: center; min-height: 62px; font-weight: 500; }
-@media (max-width: 767.98px) {
-	.address-card-choice { flex: 1 1 100%; max-width: none; }
-}
-/* //// Neoffice — the step buttons refuse clicks during a loading
-   //// (two simultaneous step changes corrupt the quotation). They used to do this
-   //// silently: the customer would click, nothing moved, nothing explained it. */
-.next-step.is-busy, .prev-step.is-busy {
-	opacity: .6;
-	cursor: progress;
-	pointer-events: none;
-}
-</style>
+{# //// Neoffice — styles moved to webshop/public/scss/webshop_pages.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
 
 <script>
 	{% include "templates/pages/checkout.js" %}
