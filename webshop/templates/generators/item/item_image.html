@@ -61,7 +61,8 @@
 	{%- if photos %}
 	{# the phone: one strip to swipe, edge to edge, with its dots #}
 	<div class="wsp-gallery__strip d-md-none" data-strip>
-		<div class="wsp-gallery__track">
+		{# .product-image on the track: the browser tests look for the visible product picture through it #}
+		<div class="wsp-gallery__track product-image">
 			{%- for p in photos %}
 			<div class="wsp-gallery__slide" data-index="{{ loop.index0 }}">
 				<img class="{{ 'website-image' if loop.first and layout == 'empty' else '' }} wsp-gallery__img" src="{{ p.image }}" alt="{{ p.alt }}" loading="{{ 'eager' if loop.first else 'lazy' }}" decoding="async">

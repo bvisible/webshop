@@ -58,7 +58,9 @@ test.describe('Fiche produit', () => {
 	});
 
 	test('l’image du produit se charge réellement', async ({page}) => {
-		const image = page.locator('.product-image img, .website-image img, img.product-image').first();
+		//// The gallery draws one layout for a wide screen and a swipe strip for a phone;
+		//// the other is in the DOM but hidden. The picture to check is the visible one.
+		const image = page.locator('.product-image img, .website-image img, img.product-image').filter({ visible: true }).first();
 		if ((await image.count()) === 0) test.skip(true, 'produit sans image');
 		await expect(image).toBeVisible();
 		//// naturalWidth = 0: the tag is there but the file failed to load.
