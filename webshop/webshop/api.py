@@ -154,6 +154,12 @@ def get_product_filter_data(query_args=None):
 	if price_filters:
 		filters["price_filters"] = price_filters
 
+	# //// Neoffice — each item carries its tiles, rendered here by the one card macro
+	# //// (utils/product_card.py); grid.js and list.js only append them.
+	from webshop.webshop.utils.product_card import attach_cards
+
+	attach_cards(result.get("items"), engine.settings)
+
 	return {
 		# //// Neoffice — the payload carries both counts (this page, and the whole result set)
 		# //// so the pager and the "N of M" counter agree.

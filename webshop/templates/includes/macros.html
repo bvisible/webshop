@@ -225,103 +225,11 @@
 {# //// Neoffice — cart_settings is threaded through the wishlist macros so the card can #}
 {# //// tell whether the shop allows a guest to add to the cart (b9f319c437, #}
 {# //// 2025-02-24). #}
-{%- macro wishlist_card(item, settings, cart_settings=None) %}
-{%- set title = item.web_item_name or ''-%}
-{%- set title = title[:90] + "..." if title|len > 90 else title -%}
-<div class="col-sm-3 wishlist-card">
-	<div class="card text-center">
-		<div class="card-img-container">
-			<a href="/{{ item.route or '#' }}" style="text-decoration: none;">
-				{% if item.image %}
-					<img itemprop="image" class="card-img" src="{{ item.image }}" alt="{{ _(title) }}">
-				{% else %}
-					<div itemprop="image" class="card-img-top no-image">
-						{{ frappe.utils.get_abbr(title) }}
-					</div>
-				{% endif %}
-			</a>
-			<div class="remove-wish" data-item-code="{{ item.item_code }}">
-				<svg class="icon icon-md remove-wish-icon">
-					<use class="close" href="#icon-delete"></use>
-				</svg>
-			</div>
-		</div>
-
-		{# //// Neoffice — see above (cart_settings passed down). #}
-		{{ wishlist_card_body(item, title, settings, cart_settings) }}
-	</div>
-</div>
-{%- endmacro -%}
-
-{# //// Neoffice — see above (cart_settings passed down). #}
-{%- macro wishlist_card_body(item, title, settings, cart_settings=None) %}
-<div class="card-body card-body-flex text-left" style="width: 100%;">
-	<div class="mt-4">
-		<div class="product-title">{{ _(title) or ''}}</div>
-		<div class="product-category">{{ _(item.item_group) or '' }}</div>
-	</div>
-	<div  class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
-		{# //// Neoffice — upstream prints item.formatted_price, which is formatted server-side #}
-		{# //// with the site's currency. Ours goes through webshop_fmt_money so the shop's #}
-		{# //// "hide currency symbol" setting applies (0134ef756e, 2025-07-03), and a course #}
-		{# //// sold in several durations shows "from X" (7eab718951, 2026-08-03). #}
-		{% if item.get("price_info") %}
-			{% if course_offer_count(item.get('item_code')) > 1 %}<small class="text-muted">{{ _("from") }}</small> {% endif %}{{ webshop_fmt_money(item.price_info.get("price_list_rate", 0), currency=item.price_info.get("currency")) }}
-		{% elif item.get("price") %}
-			{{ webshop_fmt_money(item.get("price", 0), currency=item.get("currency")) }}
-		{% else %}
-			{{ item.get("formatted_price") or '' }}
-		{% endif %}
-
-		{% if item.get("formatted_mrp") %}
-			<small class="ml-1 striked-price">
-				{# //// Neoffice — same for the struck-through list price (see above). #}
-				<s>
-				{% if item.get("price_info") and item.get("price_info").get("mrp") %}
-					{{ webshop_fmt_money(item.price_info.get("mrp"), currency=item.price_info.get("currency")) }}
-				{% elif item.get("mrp") %}
-					{{ webshop_fmt_money(item.get("mrp", 0), currency=item.get("currency")) }}
-				{% else %}
-					{{ _(item.formatted_mrp) }}
-				{% endif %}
-				</s>
-			</small>
-			<small class="ml-1 product-info-green" >
-				{# //// Neoffice — "- 20%" instead of upstream's "20% OFF": one string fewer to #}
-				{# //// translate, and the label read badly in French. #}
-				- {{ _(item.discount) }}
-			</small>
-		{% endif %}
-	</div>
-
-	{% if (item.available and settings.show_stock_availability) or (not settings.show_stock_availability) %}
-		<!-- Show move to cart button if in stock or if showing stock availability is disabled -->
-		{# //// Neoffice — upstream always renders the "Move to Cart" button. On a shop that #}
-		{# //// does not allow guest carts, an anonymous visitor pressing it got a redirect to #}
-		{# //// /login with no explanation; they are now told, and offered the sign-in #}
-		{# //// (b9f319c437, 2025-02-24). #}
-		{% if cart_settings and cart_settings.enable_guest_cart == 0 and frappe.session.user == "Guest" %}
-			<a href="/login" class="btn btn-primary btn-add-to-cart mr-2 w-30-40"
-				role="button">
-				{{  _("To add to cart, please log in") }}
-			</a>	
-		{% else %}
-			<button data-item-code="{{ item.item_code}}"
-				class="btn btn-primary btn-add-to-cart-list btn-add-to-cart mt-2 w-100">
-				<span class="mr-2">
-					<svg class="icon icon-md">
-						<use href="#icon-assets"></use>
-					</svg>
-				</span>
-				{{ _("Move to Cart") }}
-			</button>
-		{% endif %}
-	{% else %}
-		<div class="out-of-stock">
-			{{ _("Out of stock") }}
-		</div>
-	{% endif %}
-</div>
+{# //// Neoffice — the wishlist card is the shop's one product card (product_card.html) #}
+{# //// in its wishlist variant; the macro name stays for the page that imports it. #}
+{%- macro wishlist_card(item, settings, cart_settings=None) -%}
+{%- from "webshop/templates/includes/product_card.html" import product_card with context -%}
+{{ product_card(item, settings, variant="wishlist", cart_settings=cart_settings) }}
 {%- endmacro -%}
 
 {%- macro ratings_with_title(avg_rating, title, size, rating_header_class, for_summary=False) -%}

@@ -39,78 +39,13 @@
       <div class="carousel-clip-container">
         <div class="carousel-wrapper">
           <div class="carousel-inner">
+          {# //// Neoffice — the tile is the shop's one product card (product_card.html), drawn #}
+          {# //// here in its carousel variant: no cart or wishlist control, whose handlers a #}
+          {# //// Builder page may not load. #}
+          {%- from "webshop/templates/includes/product_card.html" import product_card with context -%}
           {% for item in website_items %}
             {% if not (hide_without_image and not item.website_image) %}
-            <div class="item-card">
-              <div class="card text-left">
-                <div class="card-img-container">
-                  {% if item.discount_percent and item.discount_percent > 0 %}
-                    <div class="discount-badge">
-                      <span>{{ item.discount }}</span>
-                    </div>
-                  {% endif %}
-                  {# //// Neoffice — second-hand badge, same spot as the discount #}
-                  {% if item.item_condition and item.item_condition != 'New' %}
-                    <div class="condition-badge"><span>{{ _(item.item_condition) }}</span></div>
-                  {% endif %}
-                  <a href="/{{ item.route or '#' }}" style="text-decoration: none;">
-                    {% if item.website_image %}
-                      <img class="card-img" src="{{ item.website_image }}" alt="{{ item.web_item_name or item.item_name or item.name }}">
-                    {% else %}
-                      <div class="card-img-top no-image">
-                        {% set display_name = item.web_item_name or item.item_name or item.name %}
-                        {{ display_name[0].upper() if display_name else "?" }}
-                      </div>
-                    {% endif %}
-                  </a>
-                </div>
-                <div class="card-body text-left card-body-flex" style="width:100%">
-                  <div style="margin-top: 1rem; display: flex; text-decoration: none;">
-                    <a href="/{{ item.route or '#' }}">
-                      <div class="product-title" itemprop="name">
-                        {{ _(item.web_item_name or item.item_name or item.name) }}
-                      </div>
-                    </a>
-                  </div>
-                  
-                  {# Category and stock info in same line #}
-                  <div class="product-category-stock">
-                    <div class="product-category" itemprop="name">{{ item.item_group or '' }}</div>
-                    {# Stock info would go here if we had it #}
-                  </div>
-                  
-                  {# Price section #}
-                  <div class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
-                    {% if item.formatted_price or item.price %}
-                      {% if item.price and item.currency %}
-                        {{ webshop_fmt_money(item.price, currency=item.currency) }}
-                      {% else %}
-                        {{ item.formatted_price }}
-                      {% endif %}
-                      {% if item.formatted_mrp %}
-                        <small class="striked-price">
-                          <s>
-                            {% if item.mrp and item.currency %}
-                              {{ webshop_fmt_money(item.mrp, currency=item.currency) }}
-                            {% else %}
-                              {{ item.formatted_mrp }}
-                            {% endif %}
-                          </s>
-                        </small>
-                        <small class="ml-1 product-info-green">
-                          {{ item.discount }}
-                        </small>
-                      {% endif %}
-                    {% endif %}
-                  </div>
-                  
-                  {# Explore button #}
-                  <a href="/{{ item.route or '#' }}" class="btn btn-sm btn-explore-variants w-100 mt-4">
-                    {{ _("Explore") }}
-                  </a>
-                </div>
-              </div>
-            </div>
+            {{ product_card(item, {}, variant="carousel") }}
             {% endif %}
           {% endfor %}
           </div>

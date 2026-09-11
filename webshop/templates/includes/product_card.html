@@ -1,0 +1,359 @@
+{# //// Neoffice — added file (no upstream equivalent). The product card, once. #}
+{#
+	Every listing of the shop draws its products through product_card(): the catalogue
+	grid and list (rendered per item on the server by api.get_product_filter_data and
+	appended by grid.js / list.js), the product carousel, the wishlist. Before this file
+	the card lived in six places and three languages (JS template strings, Jinja, a
+	macro), and each fix had to be made three times — the second-hand badge was the last.
+
+	Variants keep today's markup exactly, so the stylesheet and the cart / wishlist
+	handlers (which read .like-action, .cart-indicator, .btn-add-to-cart-list,
+	.go-to-cart-grid, .cart-action-container, .remove-wish and data-item-code) work
+	unchanged. The wsp-card* classes are the stable hooks the themes style; the legacy
+	classes stay next to them until the catalogue is redrawn.
+
+	product_card(item, settings, variant, cart_settings)
+	  variant: "grid" (catalogue tiles), "list" (catalogue rows), "carousel" (product
+	  carousel, no cart or wishlist controls: a Builder page may not load their
+	  handlers), "wishlist" (the customer's list, with its remove cross).
+#}
+
+{%- macro card_badges(item) -%}
+	{%- if item.discount_percent and item.discount_percent > 0 -%}
+		<div class="discount-badge wsp-card__badge wsp-card__badge--discount"><span>- {{ item.discount_percent | round | int }}%</span></div>
+	{%- endif -%}
+	{%- if item.item_condition and item.item_condition != "New" -%}
+		<div class="condition-badge wsp-card__badge wsp-card__badge--condition"><span>{{ _(item.item_condition) }}</span></div>
+	{%- endif -%}
+{%- endmacro -%}
+
+{%- macro wishlist_icon(item, list_variant=False) -%}
+	<div class="{{ 'like-action-list' if list_variant else 'like-action' }} wsp-card__wish {{ 'like-action-wished' if item.wished else '' }}" data-item-code="{{ item.item_code }}">
+		<svg class="icon sm">
+			<use class="{{ 'wished' if item.wished else 'not-wished' }} wish-icon" href="#icon-heart"></use>
+		</svg>
+	</div>
+{%- endmacro -%}
+
+{%- macro stock_info(item) -%}
+	{%- set qty = item.stock_qty | float if item.stock_qty not in (None, "") else None -%}
+	{%- if item.on_backorder -%}
+		{%- set stock_class, stock_text, stock_qty, tooltip = "on-backorder", _("On backorder"), "", _("On backorder") -%}
+	{%- elif not item.in_stock -%}
+		{#- a second-hand unit is one of a kind: gone means sold -#}
+		{%- set stock_text = _("Sold") if item.item_condition and item.item_condition != "New" else _("Out of stock") -%}
+		{%- set stock_class, stock_qty, tooltip = "out-of-stock", "", stock_text -%}
+	{%- elif qty is not none and qty > 0 and qty <= 5 -%}
+		{%- set stock_class, stock_text, stock_qty = "low-stock", _("Low stock"), "(" ~ (qty | int) ~ ")" -%}
+		{%- set tooltip = _("Low stock") ~ ": " ~ (qty | int) ~ " " ~ _("available") -%}
+	{%- else -%}
+		{%- set stock_class, stock_text = "in-stock", _("In stock") -%}
+		{%- if qty is not none and qty > 0 -%}
+			{%- set stock_qty = "(" ~ (qty | int) ~ ")" -%}
+			{%- set tooltip = _("In stock") ~ ": " ~ (qty | int) ~ " " ~ _("available") -%}
+		{%- else -%}
+			{%- set stock_qty, tooltip = "", _("In stock") -%}
+		{%- endif -%}
+	{%- endif -%}
+	<span class="stock-info wsp-card__stock" role="status" aria-label="{{ tooltip | e }}" title="{{ tooltip | e }}">
+		<span class="stock-badge {{ stock_class }}" aria-hidden="true"></span>
+		<span class="stock-text">{{ stock_text }}</span>
+		{% if stock_qty %}<span class="stock-qty">{{ stock_qty }}</span>{% endif %}
+		<span class="stock-tooltip">{{ tooltip | e }}</span>
+	</span>
+{%- endmacro -%}
+
+{#- The price line: the listing's formatted price, or the amount and currency a
+    carousel or the wishlist carries, through webshop_fmt_money so the shop's
+    "hide currency symbol" setting applies. A gift card shows no price: its amount is
+    chosen on its page. -#}
+{%- macro price_block(item) -%}
+	{%- if not item.is_gift_card -%}
+	<div class="product-price wsp-card__price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
+		{%- if item.get("price_info") -%}
+			{% if course_offer_count is defined and course_offer_count(item.get("item_code")) > 1 %}<small class="text-muted">{{ _("from") }}</small> {% endif %}{{ webshop_fmt_money(item.price_info.get("price_list_rate", 0), currency=item.price_info.get("currency")) }}
+		{%- elif item.price and item.currency -%}
+			{{ webshop_fmt_money(item.price, currency=item.currency) }}
+		{%- else -%}
+			{{ item.formatted_price or "" }}
+		{%- endif %}
+		{%- if item.formatted_mrp %}
+		<small class="striked-price">
+			<s>
+				{%- if item.get("price_info") and item.price_info.get("mrp") -%}
+					{{ webshop_fmt_money(item.price_info.get("mrp"), currency=item.price_info.get("currency")) }}
+				{%- elif item.mrp and item.currency -%}
+					{{ webshop_fmt_money(item.mrp, currency=item.currency) }}
+				{%- else -%}
+					{{ item.formatted_mrp | replace(" ", "") }}
+				{%- endif -%}
+			</s>
+		</small>
+		<small class="ml-1 product-info-green">
+			- {{ item.discount }}
+		</small>
+		{%- endif %}
+	</div>
+	{%- endif -%}
+{%- endmacro -%}
+
+{#- What the tile's button does, in the catalogue's own order of precedence. -#}
+{%- macro primary_button(item, settings, variant) -%}
+	{%- set guest_without_cart = frappe.utils.cint(settings.enable_guest_cart) == 0 and frappe.session.user == "Guest" -%}
+	{%- if item.bookable -%}
+		{#- a bookable service is not added to the cart from here: the page picks the moment -#}
+		<a href="/{{ item.route or '#' }}">
+			<div class="btn btn-sm btn-explore-variants wsp-card__cta wsp-card__cta--explore {{ 'btn mb-0 mt-0' if variant == 'list' else 'w-100 mt-4' }}">
+				{{ _("Book a slot") }}
+			</div>
+		</a>
+	{%- elif item.has_variants or item.is_gift_card or guest_without_cart -%}
+		<a href="/{{ item.route or '#' }}">
+			<div class="btn btn-sm btn-explore-variants wsp-card__cta wsp-card__cta--explore {{ 'btn mb-0 mt-0' if variant == 'list' else 'w-100 mt-4' }}">
+				{{ _("Explore") }}
+			</div>
+		</a>
+	{%- elif settings.enabled and (settings.allow_items_not_in_stock or item.in_stock) -%}
+		{%- set add_label = _("Add to Cart") if settings.enable_checkout else _("Add to Quote") -%}
+		{%- set go_label = _("Go to Cart") if settings.enable_checkout else _("Go to Quote") -%}
+		{%- if variant == "list" -%}
+		<div id="{{ item.name }}" class="btn btn-sm btn-primary btn-add-to-cart-list wsp-card__cta wsp-card__cta--add mb-0 {{ 'hidden' if item.in_cart else '' }}"
+			data-item-code="{{ item.item_code }}"
+			style="margin-top: 0px !important; max-height: 30px; float: right; padding: 0.25rem 1rem; min-width: 135px;">
+			<span class="mr-2">
+				<svg class="icon icon-md">
+					<use href="#icon-assets"></use>
+				</svg>
+			</span>
+			{{ add_label }}
+		</div>
+
+		<div class="cart-indicator list-indicator wsp-card__in-cart {{ '' if item.in_cart else 'hidden' }}">
+			1
+		</div>
+
+		<a href="/cart">
+			<div id="{{ item.name }}" class="btn btn-sm btn-primary btn-add-to-cart-list ml-4 go-to-cart mb-0 mt-0 wsp-card__cta wsp-card__cta--go {{ '' if item.in_cart else 'hidden' }}"
+				data-item-code="{{ item.item_code }}"
+				style="padding: 0.25rem 1rem; min-width: 135px;">
+				{{ go_label }}
+			</div>
+		</a>
+		{%- else -%}
+		<div id="{{ item.name }}" class="btn btn-sm btn-primary btn-add-to-cart-list w-100 mt-2 wsp-card__cta wsp-card__cta--add {{ 'hidden' if item.in_cart else '' }}"
+			data-item-code="{{ item.item_code }}">
+			<span class="mr-2">
+				<svg class="icon icon-md">
+					<use href="#icon-assets"></use>
+				</svg>
+			</span>
+			{{ add_label }}
+		</div>
+
+		<a href="/cart">
+			<div id="{{ item.name }}" class="btn btn-sm btn-primary btn-add-to-cart-list w-100 mt-4 go-to-cart-grid wsp-card__cta wsp-card__cta--go {{ '' if item.in_cart else 'hidden' }}"
+				data-item-code="{{ item.item_code }}">
+				{{ go_label }}
+			</div>
+		</a>
+		{%- endif -%}
+	{%- endif -%}
+{%- endmacro -%}
+
+{%- macro product_card(item, settings, variant="grid", cart_settings=None) -%}
+{%- set raw_title = item.web_item_name or item.item_name or item.item_code or item.name or "" -%}
+{%- set cut = {"grid": 90, "wishlist": 90, "list": 200}.get(variant) -%}
+{%- set title = (raw_title[:cut] ~ "...") if cut and raw_title | length > cut else raw_title -%}
+{%- set image = item.website_image or item.image -%}
+{%- set route = item.route or "#" -%}
+{#- Cover / Contain fit with the item's own focus point. Inline on purpose: the
+    Webshop Settings toggle takes effect without a fresh `bench build`. -#}
+{%- set fit = {"container": "", "anchor": "", "img": "", "list_img": ""} -%}
+{%- if settings.product_image_fit == "Cover" -%}
+	{%- set focus_map = {"Center": "center center", "Top": "center top", "Bottom": "center bottom", "Left": "left center", "Right": "right center", "Top Left": "left top", "Top Right": "right top", "Bottom Left": "left bottom", "Bottom Right": "right bottom"} -%}
+	{%- set ratio = (settings.product_image_aspect_ratio or "1/1") | trim -%}
+	{%- set position = focus_map.get(item.image_focus) or "center center" -%}
+	{%- set fit = {
+		"container": " style=\"aspect-ratio: " ~ ratio ~ ";\"",
+		"anchor": "display: block; width: 100%; height: 100%;",
+		"img": " style=\"object-fit: cover; object-position: " ~ position ~ "; width: 100%; height: 100%; max-height: none;\"",
+		"list_img": " style=\"object-fit: cover; object-position: " ~ position ~ ";\"",
+	} -%}
+{%- endif -%}
+{%- if variant == "list" -%}
+<div class="row list-row w-100 mb-4 wsp-card wsp-card--list">
+	<div class="col-2 border text-center rounded list-image wsp-card__media" style="position: relative; overflow: hidden;">
+		{{ card_badges(item) }}
+		{%- if image %}
+		<a class="product-link product-list-link wsp-card__link" href="/{{ route }}">
+			<img itemprop="image" class="website-image h-100 w-100 wsp-card__image" alt="{{ title | e }}" src="{{ image }}"{{ fit.list_img }}>
+		</a>
+		{%- else %}
+		<a class="product-link product-list-link wsp-card__link" href="/{{ route }}" style="text-decoration: none">
+			<div class="card-img-top no-image-list wsp-card__placeholder">
+				{{ frappe.utils.get_abbr(title) }}
+			</div>
+		</a>
+		{%- endif %}
+		{%- if not item.has_variants and settings.enable_wishlist %}
+		{{ wishlist_icon(item, list_variant=True) }}
+		{%- endif %}
+	</div>
+	<div class="col-10 text-left wsp-card__body">
+		<div style="display: flex; margin-left: -15px;" class="wsp-card__head">
+			<div class="col-8" style="margin-right: -15px;">
+				<a class="wsp-card__title" href="/{{ route }}" style="color: var(--gray-800); font-weight: 500;">
+					{{ title | e }}
+				</a>
+			</div>
+			{%- if settings.enabled %}
+			<div class="col-4 cart-action-container wsp-card__actions {{ 'd-flex' if item.in_cart else '' }}">
+				{{ primary_button(item, settings, "list") }}
+			</div>
+			{%- endif %}
+		</div>
+		{%- if item.is_gift_card %}
+		<p class="product-code wsp-card__meta">
+			{{ item.item_group | e }} | {{ _("Item Code") }} : {{ item.item_code }}
+		</p>
+		<div class="mt-2 wsp-card__excerpt" style="color: var(--gray-600) !important; font-size: 13px;">
+			{{ item.short_description or "" }}
+		</div>
+		{%- else %}
+		<div class="product-category-stock wsp-card__meta">
+			<p class="product-code" style="margin-bottom: 0.5rem;">
+				{{ item.item_group | e }} | {{ _("Item Code") }} : {{ item.item_code }}
+				{%- if settings.show_stock_availability and not item.has_variants %} | {{ stock_info(item) }}{% endif %}
+			</p>
+		</div>
+		<div class="mt-2 wsp-card__excerpt" style="color: var(--gray-600) !important; font-size: 13px;">
+			{{ item.short_description or "" }}
+		</div>
+		{{ price_block(item) }}
+		{%- if item.loyalty_points_html %}
+		<div class="loyalty-points-info wsp-card__loyalty">
+			<span class="loyalty-points-badge loyalty-badge-small">
+				<img src="/assets/webshop/icons/loyalty_icon.svg" class="loyalty-icon" alt="{{ _('Loyalty Points') }}">
+				{{ item.loyalty_points_html }}
+			</span>
+		</div>
+		{%- endif %}
+		{%- endif %}
+	</div>
+</div>
+{%- elif variant == "wishlist" -%}
+<div class="col-sm-3 wishlist-card wsp-card wsp-card--wishlist">
+	<div class="card text-center wsp-card__frame">
+		<div class="card-img-container wsp-card__media">
+			<a href="/{{ route }}" class="wsp-card__link" style="text-decoration: none;">
+				{%- if image %}
+				<img itemprop="image" class="card-img wsp-card__image" src="{{ image }}" alt="{{ title | e }}">
+				{%- else %}
+				<div itemprop="image" class="card-img-top no-image wsp-card__placeholder">
+					{{ frappe.utils.get_abbr(title) }}
+				</div>
+				{%- endif %}
+			</a>
+			<div class="remove-wish wsp-card__remove" data-item-code="{{ item.item_code }}">
+				<svg class="icon icon-md remove-wish-icon">
+					<use class="close" href="#icon-delete"></use>
+				</svg>
+			</div>
+		</div>
+		<div class="card-body card-body-flex text-left wsp-card__body" style="width: 100%;">
+			<div class="mt-4 wsp-card__head">
+				<div class="product-title wsp-card__title">{{ title | e }}</div>
+				<div class="product-category wsp-card__category">{{ _(item.item_group) if item.item_group else "" }}</div>
+			</div>
+			{{ price_block(item) }}
+			{%- if (item.available and settings.show_stock_availability) or (not settings.show_stock_availability) %}
+			{#- a visitor of a shop without guest cart is told, and offered the sign-in, instead of a silent redirect -#}
+			{%- if cart_settings and frappe.utils.cint(cart_settings.enable_guest_cart) == 0 and frappe.session.user == "Guest" %}
+			<a href="/login" class="btn btn-primary btn-add-to-cart mr-2 w-30-40 wsp-card__cta wsp-card__cta--login" role="button">
+				{{ _("To add to cart, please log in") }}
+			</a>
+			{%- else %}
+			<button data-item-code="{{ item.item_code }}" class="btn btn-primary btn-add-to-cart-list btn-add-to-cart mt-2 w-100 wsp-card__cta wsp-card__cta--add">
+				<span class="mr-2">
+					<svg class="icon icon-md">
+						<use href="#icon-assets"></use>
+					</svg>
+				</span>
+				{{ _("Move to Cart") }}
+			</button>
+			{%- endif %}
+			{%- else %}
+			<div class="out-of-stock wsp-card__stock wsp-card__stock--out">
+				{{ _("Out of stock") }}
+			</div>
+			{%- endif %}
+		</div>
+	</div>
+</div>
+{%- else -%}
+{#- grid and carousel share the tile; the carousel carries no cart or wishlist control -#}
+<div class="{{ 'col-sm-4 ' if variant == 'grid' else '' }}item-card wsp-card wsp-card--{{ variant }}">
+	<div class="card text-left wsp-card__frame">
+		<div class="card-img-container wsp-card__media"{{ fit.container }}>
+			{{ card_badges(item) }}
+			<a href="/{{ route }}" class="wsp-card__link" style="text-decoration: none;{{ fit.anchor }}">
+				{%- if image %}
+				<img itemprop="image" class="card-img wsp-card__image" src="{{ image }}" alt="{{ title | e }}"{{ fit.img }}>
+				{%- else %}
+				<div class="card-img-top no-image wsp-card__placeholder">
+					{{ frappe.utils.get_abbr(title) }}
+				</div>
+				{%- endif %}
+			</a>
+		</div>
+		<div class="card-body text-left card-body-flex wsp-card__body" style="width:100%">
+			<div style="margin-top: 1rem; display: flex;" class="wsp-card__head">
+				<a href="/{{ route }}" class="wsp-card__link" style="text-decoration: none;">
+					<div class="product-title wsp-card__title" itemprop="name">
+						{{ title | e }}
+					</div>
+				</a>
+				{%- if variant == "grid" and not item.has_variants %}
+				{%- if settings.enable_wishlist %}
+				{{ wishlist_icon(item) }}
+				{%- endif %}
+				{%- if settings.enabled %}
+				<div class="cart-indicator wsp-card__in-cart {{ '' if item.in_cart else 'hidden' }}" data-item-code="{{ item.item_code }}">
+					1
+				</div>
+				{%- endif %}
+				{%- endif %}
+			</div>
+			<div class="product-category-stock wsp-card__meta">
+				<div class="product-category wsp-card__category" itemprop="name">{{ item.item_group | e if item.item_group else "" }}</div>
+				{%- if variant == "grid" and settings.show_stock_availability and not item.has_variants %}
+				{{ stock_info(item) }}
+				{%- endif %}
+			</div>
+			{%- if variant == "grid" and item.formatted_price %}
+			<div class="price-loyalty-wrapper wsp-card__pricing">
+				{{ price_block(item) }}
+				{%- if item.loyalty_points_html %}
+				<span class="loyalty-points-icon-wrapper wsp-card__loyalty">
+					<img src="/assets/webshop/icons/loyalty_icon.svg" class="loyalty-icon-inline" alt="{{ _('Loyalty Points') }}">
+					<span class="loyalty-tooltip-inline">
+						{{ item.loyalty_points_html }}
+					</span>
+				</span>
+				{%- endif %}
+			</div>
+			{%- elif variant == "carousel" and (item.formatted_price or item.price) %}
+			{{ price_block(item) }}
+			{%- endif %}
+			{%- if variant == "carousel" %}
+			<a href="/{{ route }}" class="btn btn-sm btn-explore-variants w-100 mt-4 wsp-card__cta wsp-card__cta--explore">
+				{{ _("Explore") }}
+			</a>
+			{%- else %}
+			{{ primary_button(item, settings, "grid") }}
+			{%- endif %}
+		</div>
+	</div>
+</div>
+{%- endif -%}
+{%- endmacro -%}

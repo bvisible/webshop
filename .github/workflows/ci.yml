@@ -233,6 +233,7 @@ jobs:
             webshop.webshop.tests.test_desk \
             webshop.webshop.tests.test_shop_by_category \
             webshop.webshop.tests.test_item_group_page \
+            webshop.webshop.tests.test_product_card \
             webshop.webshop.utils.test_store_hours \
             webshop.webshop.utils.test_holidays \
             webshop.webshop.assistant.test_assistant \
