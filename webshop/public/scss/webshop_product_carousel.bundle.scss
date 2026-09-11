@@ -6,6 +6,10 @@
 // the class .product-carousel now scopes them, since a stylesheet cannot carry an id
 // minted at render time.
 
+// //// Neoffice — the design tokens come first: a component a Builder page includes reads
+// the same tokens as the shop's own pages.
+@import "./webshop_tokens";
+
 /* ---- from webshop/templates/includes/product_carousel.html (block 1) ---- */
       .product-carousel {
         position: relative;
@@ -36,17 +40,17 @@
 
       .btn-view-more {
         background-color: transparent;
-        color: var(--primary-color, #171717);
-        border: 1px solid var(--primary-color, #171717);
+        color: var(--wsh-primary);
+        border: 1px solid var(--wsh-primary);
         font-weight: 500;
         text-decoration: none;
-        transition: all 0.3s ease;
+        transition: all var(--wsh-motion);
         white-space: nowrap;
       }
 
       .btn-view-more:hover {
-        background-color: var(--primary-color, #171717);
-        color: white;
+        background-color: var(--wsh-primary);
+        color: var(--wsh-on-primary);
         text-decoration: none;
         transform: translateX(2px);
       }
@@ -75,7 +79,7 @@
         flex: 0 0 calc(25% - 10px);
         margin: 5px;
         box-sizing: border-box;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: transform var(--wsh-motion), box-shadow var(--wsh-motion);
         width: calc(25% - 10px);
       }
 
@@ -120,18 +124,18 @@
       }
 
       .card {
-        background-color: #fff;
-        border: 1px solid #eaeaea;
-        border-radius: 8px;
+        background-color: var(--wsh-surface);
+        border: 1px solid var(--wsh-line);
+        border-radius: var(--wsh-radius);
         overflow: hidden;
         display: flex;
         flex-direction: column;
         height: 100%;
-        transition: all 0.3s ease;
+        transition: all var(--wsh-motion);
       }
 
       .card:hover {
-        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        box-shadow: var(--wsh-shadow-lg);
         transform: translateY(-2px);
       }
 
@@ -140,7 +144,7 @@
         overflow: hidden;
         position: relative;
         padding-top: 100%; 
-        background-color: #fff;
+        background-color: var(--wsh-surface);
       }
 
       .card-img {
@@ -169,8 +173,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
-        color: #6c757d;
+        background: linear-gradient(135deg, var(--wsh-surface-muted) 0%, var(--wsh-surface-muted) 100%);
+        color: var(--wsh-muted);
         font-size: 2.5em;
         font-weight: bold;
       }
@@ -200,7 +204,7 @@
       .product-title {
         font-size: 1em;
         font-weight: 600;
-        color: #333;
+        color: var(--wsh-text);
         line-height: 1.3;
         min-height: 2.5rem;
         display: -webkit-box;
@@ -220,7 +224,7 @@
       }
 
       .product-category {
-        color: var(--text-muted, #666);
+        color: var(--wsh-muted);
         font-size: 0.875rem;
         flex: 1;
         white-space: nowrap;
@@ -231,7 +235,7 @@
       .product-price {
         font-size: 1.1em;
         font-weight: 500;
-        color: #333;
+        color: var(--wsh-text);
         margin-top: 0.75rem;
         margin-bottom: 10px;
         display: flex;
@@ -242,13 +246,13 @@
 
       .striked-price {
         font-size: 0.85em;
-        color: #999;
+        color: var(--wsh-faint);
         text-decoration: line-through;
       }
 
       .product-discount,
       .product-info-green {
-        color: #4CAF50;
+        color: var(--wsh-ok);
         font-size: 0.85em;
         font-weight: 600;
       }
@@ -260,7 +264,7 @@
       .product-price-unavailable {
         font-size: 0.9em;
         font-style: italic;
-        color: #777;
+        color: var(--wsh-muted);
       }
 
       .btn {
@@ -274,7 +278,7 @@
         font-size: 0.9rem;
         line-height: 1.5;
         border-radius: 0.25rem;
-        transition: all 0.15s ease-in-out;
+        transition: all var(--wsh-motion);
       }
 
       .btn-sm {
@@ -293,33 +297,33 @@
           now follow the theme, like the neighboring rules in this same
           file already did. Black remains the fallback. */
       .btn-primary {
-        color: #fff;
-        background-color: var(--primary-color, #171717);
-        border-color: var(--primary-color, #171717);
+        color: var(--wsh-on-primary);
+        background-color: var(--wsh-primary);
+        border-color: var(--wsh-primary);
       }
 
       .btn-primary:hover {
-        background-color: var(--primary-hover, #040404);
-        border-color: var(--primary-hover, black);
+        background-color: var(--wsh-primary-hover);
+        border-color: var(--wsh-primary-hover);
       }
       
       .btn-explore-variants {
-        background-color: var(--primary-color, #171717);
-        color: white;
-        border: 1px solid var(--primary-color, #171717);
+        background-color: var(--wsh-primary);
+        color: var(--wsh-on-primary);
+        border: 1px solid var(--wsh-primary);
         text-decoration: none;
         display: inline-block;
         text-align: center;
-        transition: all 0.2s ease;
+        transition: all var(--wsh-motion);
       }
       
       .btn-explore-variants:hover {
-        background-color: var(--primary-dark, #040404);
-        border-color: var(--primary-dark, #040404);
-        color: white;
+        background-color: var(--wsh-primary-hover);
+        border-color: var(--wsh-primary-hover);
+        color: var(--wsh-on-primary);
         text-decoration: none;
         transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: var(--wsh-shadow);
       }
       
       .discount-badge {
@@ -327,13 +331,13 @@
         top: 10px;
         left: 10px;
         z-index: 10;
-        background: #28a745;
-        color: white;
+        background: var(--wsh-ok);
+        color: var(--wsh-on-primary);
         padding: 4px 10px;
-        border-radius: 4px;
+        border-radius: var(--wsh-radius-sm);
         font-size: 0.75rem;
         font-weight: 600;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        box-shadow: var(--wsh-shadow-sm);
       }
       
       /* //// Neoffice — second-hand badge; sits under the discount badge when both show */
@@ -342,18 +346,18 @@
         top: 10px;
         left: 10px;
         z-index: 10;
-        background: #374151;
-        color: white;
+        background: var(--wsh-text);
+        color: var(--wsh-on-ink);
         padding: 4px 10px;
-        border-radius: 4px;
+        border-radius: var(--wsh-radius-sm);
         font-size: 0.75rem;
         font-weight: 600;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        box-shadow: var(--wsh-shadow-sm);
       }
       .discount-badge + .condition-badge { top: 40px; }
 
       .product-price-placeholder {
-        color: #999;
+        color: var(--wsh-faint);
         font-style: italic;
         font-size: 0.9em;
       }
@@ -391,8 +395,8 @@
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
-        background-color: white;
-        border: 1px solid #ddd;
+        background-color: var(--wsh-surface);
+        border: 1px solid var(--wsh-line);
         width: 40px;
         height: 40px;
         border-radius: 50%;
@@ -402,14 +406,14 @@
         justify-content: center;
         cursor: pointer;
         z-index: 10;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
+        box-shadow: var(--wsh-shadow);
+        transition: all var(--wsh-motion);
         line-height: 40px;
       }
 
       .carousel-btn:hover:not(:disabled) {
-        background-color: #f8f9fa;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        background-color: var(--wsh-surface-muted);
+        box-shadow: var(--wsh-shadow);
       }
       
       .carousel-btn:disabled {
@@ -434,14 +438,14 @@
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background-color: #ddd;
+        background-color: var(--wsh-line);
         margin: 0 5px;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all var(--wsh-motion);
       }
 
       .indicator.active {
-        background-color: #000;
+        background-color: var(--wsh-text);
         transform: scale(1.2);
       }
 

@@ -17,8 +17,8 @@
 		grid-template-columns: 1fr auto;
 		align-items: center;
 		gap: 10px 12px;
-		border: 1px solid #e3e6ea;
-		border-radius: 12px;
+		border: 1px solid var(--wsh-line);
+		border-radius: var(--wsh-radius-lg);
 		padding: 14px;
 		margin-bottom: 12px;
 	}
@@ -51,7 +51,7 @@
 		align-items: baseline;
 		gap: 12px;
 		padding: 12px 14px 0;
-		border-top: 1px solid #e3e6ea;
+		border-top: 1px solid var(--wsh-line);
 	}
 	.cart-table .cart-tax-items th { border: none !important; padding: 0 !important; }
 	.cart-table .cart-tax-items th:empty { display: none; }
@@ -64,7 +64,7 @@
 .address-picker__label {
 	font-size: .82rem;
 	font-weight: 600;
-	color: var(--text-muted, #6c7680);
+	color: var(--wsh-muted);
 	margin-bottom: 8px;
 }
 .address-picker__list { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -72,26 +72,26 @@
 	flex: 1 1 210px;
 	max-width: 320px;
 	text-align: left;
-	border: 1px solid var(--gray-300, #d1d8dd);
-	border-radius: 10px;
-	background: #fff;
+	border: 1px solid var(--wsh-line-strong);
+	border-radius: var(--wsh-radius-lg);
+	background: var(--wsh-surface);
 	padding: 10px 12px;
 	cursor: pointer;
-	transition: border-color .15s, box-shadow .15s;
+	transition: border-color var(--wsh-motion), box-shadow var(--wsh-motion);
 }
-.address-card-choice:hover { border-color: var(--gray-500, #8d99a6); }
+.address-card-choice:hover { border-color: var(--wsh-faint); }
 .address-card-choice.is-selected {
-	border-color: var(--primary-color, #7575ff);
-	box-shadow: 0 0 0 1px var(--primary-color, #7575ff);
+	border-color: var(--wsh-primary);
+	box-shadow: 0 0 0 1px var(--wsh-primary);
 }
 .address-card-choice__title { font-weight: 600; font-size: .88rem; display: flex; align-items: center; gap: 6px; }
-.address-card-choice__lines { font-size: .8rem; color: var(--text-muted, #6c7680); margin-top: 2px; line-height: 1.45; }
+.address-card-choice__lines { font-size: .8rem; color: var(--wsh-muted); margin-top: 2px; line-height: 1.45; }
 .address-card-choice__tag {
 	font-size: .66rem;
 	text-transform: uppercase;
 	letter-spacing: .03em;
-	color: var(--text-muted, #6c7680);
-	border: 1px solid var(--gray-300, #d1d8dd);
+	color: var(--wsh-muted);
+	border: 1px solid var(--wsh-line-strong);
 	border-radius: 20px;
 	padding: 1px 7px;
 	font-weight: 500;
@@ -111,22 +111,22 @@
 
 /* ---- from webshop/templates/pages/cgv.html (block 1) ---- */
 .cgv-content {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    background: var(--wsh-surface);
+    border-radius: var(--wsh-radius);
+    box-shadow: var(--wsh-shadow);
 }
 
 .cgv-terms {
     font-size: 16px;
     line-height: 1.8;
-    color: #333;
+    color: var(--wsh-text);
 }
 
 .cgv-terms h2 {
     margin-top: 30px;
     margin-bottom: 15px;
     font-size: 24px;
-    color: #2c3e50;
+    color: var(--wsh-text);
 }
 
 .cgv-terms h3 {
@@ -151,7 +151,7 @@
 
 /* //// Neoffice — scoped: .page-title is a class other pages carry too. */
 .cgv-page .page-title {
-    color: #2c3e50;
+    color: var(--wsh-text);
     font-weight: 600;
 }
 
@@ -167,22 +167,22 @@
 
 /* ---- from webshop/templates/pages/gift_cards.html (block 1) ---- */
 .gift-cards-container .btn-primary {
-	background: black;
+	background: var(--wsh-text);
 	border: none;
 }
 
 .gift-cards-container .btn-primary:hover {
-	background: #333;
+	background: var(--wsh-text);
 }
 
 .gift-card-item {
-	transition: transform 0.2s, box-shadow 0.2s;
+	transition: transform var(--wsh-motion), box-shadow var(--wsh-motion);
 	overflow: hidden;
 }
 
 .gift-card-item:hover {
 	transform: translateY(-2px);
-	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--wsh-shadow-lg);
 }
 
 .gift-card-expired,
@@ -199,12 +199,12 @@
 }
 
 .copy-code-btn:hover {
-	background: #e9ecef;
+	background: var(--wsh-line);
 }
 
 /* //// Neoffice — scoped: .badge-dark is Bootstrap's, black is the gift-card page's choice. */
 .gift-cards-container .badge-dark {
-	background-color: black;
+	background-color: var(--wsh-text);
 }
 
 /* ---- from webshop/www/my_addresses.html (block 1) ---- */
@@ -213,14 +213,14 @@
    would restyle every card and badge of the shop. */
 .my-addresses-page {
 	.card {
-		border-radius: 8px;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		border-radius: var(--wsh-radius);
+		box-shadow: var(--wsh-shadow-sm);
 	}
 	.card:hover {
-		box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+		box-shadow: var(--wsh-shadow);
 	}
 	.card-title {
-		color: #333;
+		color: var(--wsh-text);
 		font-weight: 600;
 	}
 	.badge {
@@ -228,16 +228,16 @@
 	}
 	#address-form-container {
 		border: none;
-		border-radius: 8px;
+		border-radius: var(--wsh-radius);
 		overflow: hidden;
 	}
 	#address-form-container .card-header {
-		background-color: var(--primary, #000);
+		background-color: var(--wsh-primary);
 		border-radius: 0;
 	}
 	#address-form-container .card-header h5,
 	#address-form-container .card-header #address-form-title {
-		color: white !important;
+		color: var(--wsh-on-primary) !important;
 	}
 	#address-form-container .btn-close {
 		filter: invert(1);
@@ -245,7 +245,7 @@
 	#address-form-container .form-select {
 		width: 100%;
 		max-width: 100%;
-		border-radius: 8px;
+		border-radius: var(--wsh-radius);
 		height: auto;
 		padding: 8px 12px;
 	}
@@ -265,7 +265,7 @@
       align-items: center;
       justify-content: center;
       position: relative;
-      color: var(--text-color);
+      color: var(--wsh-text);
     }
     
     .wishlist-badge {
@@ -273,7 +273,7 @@
       top: -5px;
       right: -7px;
       background-color: #7c7c7ce0;
-      color: white;
+      color: var(--wsh-on-ink);
       border-radius: 50%;
       width: 20px;
       height: 20px;
@@ -287,26 +287,26 @@
 
 /* ---- from webshop/templates/pages/loyalty_points.html (block 1) ---- */
 .loyalty-points-container .badge-primary {
-	background-color: black;
+	background-color: var(--wsh-text);
 }
 
 .loyalty-points-container .btn-primary {
-	background: black;
+	background: var(--wsh-text);
 	border: none;
 }
 
 .loyalty-points-container .btn-primary:hover {
-	background: #333;
+	background: var(--wsh-text);
 }
 
 .loyalty-points-container .points-balance {
-	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+	box-shadow: var(--wsh-shadow-lg);
 }
 
 .loyalty-points-container .table th {
 	border-top: none;
 	font-weight: 600;
-	color: #6c757d;
+	color: var(--wsh-muted);
 	font-size: 0.85rem;
 	text-transform: uppercase;
 }
@@ -329,7 +329,7 @@
 }
 /* //// Neoffice — scoped: .progress-bar is Bootstrap's, this colour is the success page's. */
 .payment-success .progress-bar {
-    background-color: var(--primary);
+    background-color: var(--wsh-primary);
 }
 
 /* ---- from webshop/templates/pages/thank_you.html (block 1) ---- */

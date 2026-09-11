@@ -9,4 +9,6 @@
    //// So the same partial is compiled twice: inside `webshop-web.bundle.scss` for the
    //// shop's own pages, and here on its own, which `store_hours.opening_hours_css()`
    //// reads and the include inlines once per request. One source, two deliveries. */
+// //// Neoffice — the design tokens come first: every partial below draws with them.
+@import "./webshop_tokens";
 @import "./webshop_opening_hours";

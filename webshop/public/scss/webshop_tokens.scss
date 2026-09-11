@@ -1,0 +1,64 @@
+// //// Neoffice — added file (no upstream equivalent). The shop's design tokens.
+//
+// The shop draws with these and with nothing else: no colour, radius, shadow or
+// motion literal lives in another partial of the bundle. Each token reads the site
+// chrome's variable first — Builder's theme_variables.html sets --primary-color,
+// --text-color, --radius, --shadow, --transition… on every page, the shop's included —
+// then Frappe's own token, then a literal equal to what the shop drew before it had
+// tokens. A shop whose site has no Builder chrome therefore looks as it always did; a
+// shop whose chrome carries a design follows it, colours, corners, depth and pace.
+//
+// Imported first by the shop bundle and by every component bundle a Builder page can
+// include (product carousel, brand carousel, opening hours), so a carousel dropped in
+// a Builder page reads the same tokens as the catalogue.
+//
+// Naming: --wsh-<meaning>. Nothing is named after a colour: "muted", "line", "ok",
+// never "gray-600" or "green". The chrome decides what muted looks like.
+:root {
+	// brand
+	--wsh-primary: var(--primary-color, var(--primary, #171717));
+	--wsh-primary-hover: var(--primary-hover, var(--primary-dark, #040404));
+	--wsh-primary-soft: var(--primary-light, color-mix(in srgb, var(--wsh-primary) 12%, transparent));
+	--wsh-on-primary: var(--primary-text, #ffffff);
+
+	// ink
+	--wsh-text: var(--text-color, var(--gray-900, #111827));
+	--wsh-muted: var(--text-muted, var(--gray-600, #6b7280));
+	--wsh-faint: var(--text-light, var(--gray-500, #9ca3af));
+	--wsh-on-ink: #ffffff;
+
+	// surfaces and lines
+	--wsh-bg: var(--background-color, var(--bg-color, #ffffff));
+	--wsh-surface: var(--surface-color, var(--card-bg, #ffffff));
+	--wsh-surface-muted: var(--surface-muted, var(--gray-50, #f8f9fa));
+	--wsh-line: var(--border-color, var(--gray-200, #e5e7eb));
+	--wsh-line-strong: var(--gray-300, #d1d5db);
+	--wsh-line-light: var(--border-light, var(--gray-100, #f3f4f6));
+	--wsh-overlay: rgba(0, 0, 0, 0.5);
+
+	// meaning — the chrome has no semantic palette, these are the shop's own
+	--wsh-ok: #16a34a;
+	--wsh-ok-strong: #15803d;
+	--wsh-ok-soft: #dcfce7;
+	--wsh-warn: #f59e0b;
+	--wsh-warn-strong: #9a6700;
+	--wsh-warn-soft: #fffbeb;
+	--wsh-danger: #dc2626;
+	--wsh-danger-strong: #b91c1c;
+	--wsh-danger-soft: #fee2e2;
+
+	// shape
+	--wsh-radius-sm: var(--radius-sm, 4px);
+	--wsh-radius: var(--radius, var(--border-radius, 8px));
+	--wsh-radius-lg: var(--radius-lg, 12px);
+	--wsh-radius-pill: var(--radius-pill, 999px);
+
+	// depth — a flat chrome sets these to none, and the shop goes flat with it
+	--wsh-shadow-sm: var(--shadow-sm, 0 1px 3px rgba(16, 24, 40, 0.07), 0 1px 2px rgba(16, 24, 40, 0.05));
+	--wsh-shadow: var(--shadow, 0 4px 12px rgba(0, 0, 0, 0.1));
+	--wsh-shadow-lg: var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.15));
+
+	// motion — a duration and an easing, as Builder's --transition ("200ms ease");
+	// used as `transition: all var(--wsh-motion)`, never as the whole shorthand
+	--wsh-motion: var(--transition, 200ms ease);
+}

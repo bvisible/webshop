@@ -6,8 +6,8 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: var(--green-50, #e8f5e9);
-    color: var(--green-700, #2e7d32);
+    background: var(--wsh-ok-soft);
+    color: var(--green-700, var(--wsh-ok-strong));
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.875rem;
@@ -37,9 +37,9 @@
 .cart-container,
 .checkout-page {
     .loyalty-points-section {
-        background: var(--green-50, #e8f5e9);
+        background: var(--wsh-ok-soft);
         border: 1px solid var(--green-200, #a5d6a7);
-        border-radius: 8px;
+        border-radius: var(--wsh-radius);
         padding: 12px 16px;
         margin-top: 16px;
         display: flex;
@@ -58,11 +58,11 @@
             width: 24px;
             height: 24px;
             min-width: 24px;
-            fill: var(--green-600, #43a047);
+            fill: var(--wsh-ok);
         }
         
         .loyalty-text {
-            color: var(--green-800, #1b5e20);
+            color: var(--green-800, var(--wsh-ok-strong));
             font-size: 0.9375rem;
             font-weight: 500;
             margin: 0;
@@ -74,15 +74,15 @@
             bottom: 100%;
             left: 50%;
             transform: translateX(-50%) translateY(5px);
-            background: var(--gray-900, #212529);
-            color: white;
+            background: var(--wsh-text);
+            color: var(--wsh-on-ink);
             padding: 8px 12px;
-            border-radius: 6px;
+            border-radius: var(--wsh-radius);
             font-size: 0.8125rem;
             white-space: nowrap;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.2s ease;
+            transition: all var(--wsh-motion);
             margin-bottom: 8px;
             z-index: 1000;
             
@@ -93,7 +93,7 @@
                 left: 50%;
                 transform: translateX(-50%);
                 border: 6px solid transparent;
-                border-top-color: var(--gray-900, #212529);
+                border-top-color: var(--wsh-text);
             }
         }
     }
@@ -143,7 +143,7 @@
 .item-card .loyalty-icon-inline {
     width: 24px;
     height: 24px;
-    transition: transform 0.2s ease;
+    transition: transform var(--wsh-motion);
     display: inline-block;
     vertical-align: middle;
     
@@ -157,15 +157,15 @@
     bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
-    background: var(--gray-900, #212529);
-    color: white;
+    background: var(--wsh-text);
+    color: var(--wsh-on-ink);
     padding: 6px 10px;
-    border-radius: 4px;
+    border-radius: var(--wsh-radius-sm);
     font-size: 0.75rem;
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.2s ease;
+    transition: all var(--wsh-motion);
     z-index: 1000;
 
     &::after {
@@ -175,7 +175,7 @@
         left: 50%;
         transform: translateX(-50%);
         border: 4px solid transparent;
-        border-top-color: var(--gray-900, #212529);
+        border-top-color: var(--wsh-text);
     }
 }
 

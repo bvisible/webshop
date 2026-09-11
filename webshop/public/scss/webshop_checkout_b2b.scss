@@ -48,7 +48,7 @@ body[data-path="checkout_b2b"] {
 
         .toggle-order-items {
           .chevron-icon {
-            transition: transform 0.3s ease;
+            transition: transform var(--wsh-motion);
             
             @media (min-width: 768px) {
               transform: rotate(180deg);
@@ -91,7 +91,7 @@ body[data-path="checkout_b2b"] {
         }
 
         .order-items-content {
-          transition: max-height 0.3s ease-out;
+          transition: max-height var(--wsh-motion);
           overflow: hidden;
 
           @media (max-width: 768px) {
@@ -125,7 +125,7 @@ body[data-path="checkout_b2b"] {
 
         .card-body .table {
           .bill-label {
-            color: var(--gray-600);
+            color: var(--wsh-muted);
             font-size: 14px;
           }
     
@@ -154,7 +154,7 @@ body[data-path="checkout_b2b"] {
           margin-top: 1rem;
 
           .order-item {
-            border-bottom: 1px solid var(--gray-200);
+            border-bottom: 1px solid var(--wsh-line);
 
             &:first-of-type {
               margin-top: 0.5rem;
@@ -197,8 +197,8 @@ body[data-path="checkout_b2b"] {
               display: flex;
               align-items: center;
               justify-content: center;
-              background-color: var(--gray-200);
-              border-radius: 4px;
+              background-color: var(--wsh-line);
+              border-radius: var(--wsh-radius-sm);
               font-size: 14px;
             }
 
@@ -223,7 +223,7 @@ body[data-path="checkout_b2b"] {
               font-size: 12px;
               
               .original-price {
-                color: var(--text-color);
+                color: var(--wsh-text);
                 font-size: 16px;
                 font-weight: 500;
               }
@@ -236,19 +236,19 @@ body[data-path="checkout_b2b"] {
 
                 .striked-price {
                   font-size: 12px;
-                  color: var(--gray-600);
+                  color: var(--wsh-muted);
                   text-decoration: line-through;
                 }
                 
                 .discount {
-                  color: var(--green-info);
+                  color: var(--wsh-ok);
                   font-weight: 600;
                   font-size: 12px;
                 }
               }
 
               .unit-price {
-                color: var(--gray-600);
+                color: var(--wsh-muted);
               }
             }
           }
@@ -328,7 +328,7 @@ body[data-path="checkout_b2b"] {
 
 @keyframes color {
   0% {
-    color: #3cba54;
+    color: var(--wsh-ok);
   }
   
   25% {

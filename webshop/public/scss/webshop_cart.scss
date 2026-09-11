@@ -25,21 +25,21 @@ body[data-path=update-profile] {
 }
 
 .btn.btn-primary:hover {
-	color: #fff;
-	background-color: #040404;
-	border-color: black;
+	color: var(--wsh-on-primary);
+	background-color: var(--wsh-primary-hover);
+	border-color: var(--wsh-text);
 }
 .btn.btn-primary:focus, .btn.btn-primary.focus {
-	color: #fff;
-	background-color: #040404;
-	border-color: black;
-	box-shadow: 0 0 0 0.2rem rgba(58, 58, 58, 0.5);
+	color: var(--wsh-on-primary);
+	background-color: var(--wsh-primary-hover);
+	border-color: var(--wsh-text);
+	box-shadow: 0 0 0 0.2rem var(--wsh-primary-soft);
 }
 
 .item-breadcrumbs {
 	.breadcrumb-container {
 		a {
-			color: var(--gray-900);
+			color: var(--wsh-text);
 		}
 	}
 }
@@ -50,9 +50,9 @@ body[data-path=update-profile] {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: white;
-	box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.08), 0px 1px 2px 1px rgba(0, 0, 0, 0.06);
-	border-radius: 100px;
+	background: var(--wsh-surface);
+	box-shadow: var(--wsh-shadow-sm);
+	border-radius: var(--wsh-radius-pill);
 }
 
 .carousel-control-prev,
@@ -88,7 +88,7 @@ body[data-path=update-profile] {
 
 .product-category-section {
 	.card:hover {
-		box-shadow: 0px 16px 45px 6px rgba(0, 0, 0, 0.08), 0px 8px 10px -10px rgba(0, 0, 0, 0.04);
+		box-shadow: var(--wsh-shadow-lg);
 	}
 
 	.card-grid {
@@ -101,10 +101,10 @@ body[data-path=update-profile] {
 .no-image-item {
 	height: 340px;
 	width: 340px;
-	background: var(--gray-100);
-	border-radius: var(--border-radius);
+	background: var(--wsh-surface-muted);
+	border-radius: var(--wsh-radius);
 	font-size: 2rem;
-	color: var(--gray-500);
+	color: var(--wsh-faint);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -117,7 +117,7 @@ body[data-path=update-profile] {
 		justify-content: center;
 
 		&:hover {
-			box-shadow: 0px 16px 60px rgba(0, 0, 0, 0.08), 0px 8px 30px -20px rgba(0, 0, 0, 0.04);
+			box-shadow: var(--wsh-shadow-lg);
 			transition: box-shadow 400ms;
 		}
 	}
@@ -146,7 +146,7 @@ body[data-path=update-profile] {
 		object-fit: contain;
 		//// Neoffice — white card ground and no max-height, so a cover-fit image fills the
 		//// card instead of being letterboxed (3cec45d8b4, 2026-04-19).
-		background: var(--neutral-white);
+		background: var(--neutral-var(--wsh-surface));
 		margin: 1rem;
 		width: calc( 100% - 2rem);
 	}
@@ -154,20 +154,20 @@ body[data-path=update-profile] {
 	.no-image {
 		@include flex(flex, center, center, null);
 		height: 220px;
-		background: var(--gray-100);
+		background: var(--wsh-surface-muted);
 		width: 100%;
-		border-radius: var(--border-radius) var(--border-radius) 0 0;
+		border-radius: var(--wsh-radius) var(--wsh-radius) 0 0;
 		font-size: 2rem;
-		color: var(--gray-500);
+		color: var(--wsh-faint);
 	}
 
 	.no-image-list {
 		@include flex(flex, center, center, null);
 		height: 150px;
-		background: var(--gray-100);
-		border-radius: var(--border-radius);
+		background: var(--wsh-surface-muted);
+		border-radius: var(--wsh-radius);
 		font-size: 2rem;
-		color: var(--gray-500);
+		color: var(--wsh-faint);
 		margin-top: 15px;
 		margin-bottom: 15px;
 	}
@@ -182,7 +182,7 @@ body[data-path=update-profile] {
 	.product-title {
 		//// Neoffice — card title size (48e2708353, 2025-03-13).
 		font-size: 16px;
-		color: var(--gray-800);
+		color: var(--wsh-text);
 		//// Neoffice — card title weight and clamp, so two-line titles stop breaking the
 		//// grid's row height (48e2708353, 2025-03-13).
 		font-weight: 600;
@@ -194,7 +194,7 @@ body[data-path=update-profile] {
 
 	.product-description {
 		font-size: 12px;
-		color: var(--text-color);
+		color: var(--wsh-text);
 		margin: 20px 0;
 		display: -webkit-box;
 		-webkit-line-clamp: 6;
@@ -207,7 +207,7 @@ body[data-path=update-profile] {
 
 	.product-category {
 		font-size: 13px;
-		color: var(--text-muted);
+		color: var(--wsh-muted);
 		margin: var(--margin-sm) 0;
 	}
 
@@ -215,7 +215,7 @@ body[data-path=update-profile] {
 		font-size: 18px;
 		//// Neoffice — price weight/size on the card (48e2708353, 2025-03-13).
 		font-weight: 500;
-		color: var(--gray-600);
+		color: var(--wsh-muted);
 		margin: var(--margin-sm) 0;
 		margin-bottom: auto !important;
 		//// Neoffice — the price no longer carries the upstream top margin: the category and
@@ -224,12 +224,12 @@ body[data-path=update-profile] {
 		.striked-price {
 			font-weight: 500;
 			font-size: 15px;
-			color: var(--gray-500);
+			color: var(--wsh-faint);
 		}
 	}
 
 	.product-info-green {
-		color: var(--green-info);
+		color: var(--wsh-ok);
 		font-weight: 600;
 	}
 
@@ -254,14 +254,14 @@ body[data-path=update-profile] {
 }
 
 .list-row {
-	background-color: white;
+	background-color: var(--wsh-surface);
 	padding-bottom: 1rem;
 	padding-top: 1.5rem !important;
-	border-radius: 8px;
-	border-bottom: 1px solid var(--gray-50);
+	border-radius: var(--wsh-radius);
+	border-bottom: 1px solid var(--wsh-surface-muted);
 
 	&:hover, &:focus-within {
-		box-shadow: 0px 16px 60px rgba(0, 0, 0, 0.08), 0px 8px 30px -20px rgba(0, 0, 0, 0.04);
+		box-shadow: var(--wsh-shadow-lg);
 		transition: box-shadow 400ms;
 
 		.btn-add-to-cart-list {
@@ -292,14 +292,14 @@ body[data-path=update-profile] {
 	.page-header {
 		font-size: 20px;
 		font-weight: 700;
-		color: var(--text-color);
+		color: var(--wsh-text);
 		//// Neoffice — the buy button spans the card width.
 		width: 100%;
 	}
 
 	.filters-section {
 		.title-section {
-			border-bottom: 1px solid var(--table-border-color);
+			border-bottom: 1px solid var(--wsh-line);
 		}
 
 		.filter-title {
@@ -311,11 +311,11 @@ body[data-path=update-profile] {
 		}
 
 		.filter-lookup-input {
-			background-color: white;
-			border: 1px solid var(--gray-300);
+			background-color: var(--wsh-surface);
+			border: 1px solid var(--wsh-line-strong);
 
 			&:focus {
-				border: 1px solid var(--primary);
+				border: 1px solid var(--wsh-primary);
 			}
 		}
 
@@ -324,18 +324,18 @@ body[data-path=update-profile] {
 			//// the commit gives no further rationale).
 			font-size: 14px;
 			font-weight: 600;
-			color: var(--gray-700);
+			color: var(--wsh-muted);
 			text-transform: uppercase;
 		}
 
 		.filter-block {
-			border-bottom: 1px solid var(--table-border-color);
+			border-bottom: 1px solid var(--wsh-line);
 		}
 
 		.checkbox {
 			.label-area {
 				font-size: 13px;
-				color: var(--gray-800);
+				color: var(--wsh-text);
 			}
 		}
 	}
@@ -372,7 +372,7 @@ body[data-path=update-profile] {
 }
 
 .badge-light {
-	color: var(--gray-500);
+	color: var(--wsh-faint);
 	font-size: 0.75rem;
 	font-weight: 500;
 }
@@ -392,7 +392,7 @@ body[data-path=update-profile] {
 	border: none !important;
 	overflow: hidden;
 	max-height: 200px;
-	background-color: white;
+	background-color: var(--wsh-surface);
 }
 
 .product-container {
@@ -467,7 +467,7 @@ body[data-path=update-profile] {
 
 	.btn-view-in-wishlist {
 		svg use {
-			fill: #F47A7A;
+			fill: var(--wsh-danger);
 			--icon-stroke: none;
 		}
 	}
@@ -476,13 +476,13 @@ body[data-path=update-profile] {
 		//// Neoffice — product title size on the item page (48e2708353, 2025-03-13).
 		font-size: 22px;
 		font-weight: 600;
-		color: var(--text-color);
+		color: var(--wsh-text);
 		padding: 0 !important;
 	}
 
 	.product-description {
 		font-size: 13px;
-		color: var(--gray-800);
+		color: var(--wsh-text);
 	}
 
 	//// Neoffice — the long description keeps the seller's own formatting (headings,
@@ -494,7 +494,7 @@ body[data-path=update-profile] {
     }
 
 	.product-image {
-		border-color: var(--table-border-color) !important;
+		border-color: var(--wsh-line) !important;
 		padding: 15px;
 
 		@media (max-width: var(--md-width)) {
@@ -530,23 +530,23 @@ body[data-path=update-profile] {
 		width: 6rem;
 		object-fit: contain;
 		padding: 0.5rem;
-		border: 1px solid var(--table-border-color);
-		border-radius: 4px;
+		border: 1px solid var(--wsh-line);
+		border-radius: var(--wsh-radius-sm);
 		cursor: pointer;
 
 		&:hover, &.active {
-			border-color: var(--primary);
+			border-color: var(--wsh-primary);
 		}
 	}
 
 	.item-cart {
 		.product-price {
 			font-size: 22px;
-			color: var(--text-color);
+			color: var(--wsh-text);
 			font-weight: 600;
 
 			.formatted-price {
-				color: var(--text-muted);
+				color: var(--wsh-muted);
 				font-size: 14px;
 			}
 		}
@@ -557,7 +557,7 @@ body[data-path=update-profile] {
 
 		.offers-heading {
 			font-size: 16px !important;
-			color: var(--text-color);
+			color: var(--wsh-text);
 			.tag-icon {
 				--icon-stroke: var(--gray-500);
 			}
@@ -576,20 +576,20 @@ body[data-path=update-profile] {
 		.gift-card-amounts {
 			.form-check {
 			  cursor: pointer;
-			  transition: all 0.2s ease;
+			  transition: all var(--wsh-motion);
 			  padding: 0.75rem 1.5rem;
-			  border-radius: var(--border-radius-md);
+			  border-radius: var(--wsh-radius);
 			  margin-right: 1rem;
 			  margin-bottom: 1rem;
 		  
 			  &:hover {
 				transform: translateY(-2px);
-				box-shadow: var(--shadow-base);
+				box-shadow: var(--wsh-shadow-sm);
 			  }
 		  
 			  &.selected {
-				border-color: var(--primary);
-				box-shadow: 0 0 0 1px var(--primary);
+				border-color: var(--wsh-primary);
+				box-shadow: 0 0 0 1px var(--wsh-primary);
 			  }
 		  
 			  .form-check-label {
@@ -634,11 +634,11 @@ body[data-path=update-profile] {
 
 			.no-image-r-item {
 				display: flex; justify-content: center;
-				background-color: var(--gray-200);
+				background-color: var(--wsh-line);
 				align-items: center;
-				color: var(--gray-400);
+				color: var(--wsh-faint);
 				margin-top: .15rem;
-				border-radius: 6px;
+				border-radius: var(--wsh-radius);
 				height: 100%;
 				font-size: 24px;
 			}
@@ -651,19 +651,19 @@ body[data-path=update-profile] {
 			width: 60%;
 
 			a {
-				color: var(--gray-800);
+				color: var(--wsh-text);
 				font-weight: 400;
 			}
 
 			.item-price {
 				font-size: 15px;
 				font-weight: 600;
-				color: var(--text-color);
+				color: var(--wsh-text);
 			}
 
 			.striked-item-price {
 				font-weight: 500;
-				color: var(--gray-500);
+				color: var(--wsh-faint);
 			}
 		}
 //// Neoffice — the recommendation cards get the same height (110d27e81f,
@@ -679,7 +679,7 @@ body[data-path=update-profile] {
 
 .product-code {
 	padding: .5rem 0;
-	color: var(--text-muted);
+	color: var(--wsh-muted);
 	font-size: 14px;
 	.product-item-group {
 		padding-right: .25rem;
@@ -714,7 +714,7 @@ body[data-path=update-profile] {
 				.form-group {
 					.control-label {
 						font-size: var(--text-md);
-						color: var(--gray-700);
+						color: var(--wsh-muted);
 					}
 
 					.help-box {
@@ -737,10 +737,10 @@ body[data-path=update-profile] {
 .sub-category-container {
 	padding-bottom: .5rem;
 	margin-bottom: 1.25rem;
-	border-bottom: 1px solid var(--table-border-color);
+	border-bottom: 1px solid var(--wsh-line);
 
 	.heading {
-		color: var(--gray-500);
+		color: var(--wsh-faint);
 	}
 }
 
@@ -750,7 +750,7 @@ body[data-path=update-profile] {
 		width: fit-content;
 		padding: 6px 12px;
 		margin-bottom: 8px;
-		background-color: #ecf5fe;
+		background-color: var(--wsh-primary-soft);
 		font-size: 14px;
 		border-radius: 18px;
 		color: var(--blue-500);
@@ -762,7 +762,7 @@ body[data-path=update-profile] {
 	position: relative;
 	top: -10px;
 	left: -12px;
-	background: var(--red-600);
+	background: var(--wsh-danger);
 	align-items: center;
 	height: 16px;
 	font-size: 10px;
@@ -797,7 +797,7 @@ body[data-path=update-profile] {
 
 .total-discount {
 	font-size: 14px;
-	color: var(--primary-color) !important;
+	color: var(--wsh-primary) !important;
 }
 
 #page-cart {
@@ -806,7 +806,7 @@ body[data-path=update-profile] {
 	}
 
 	.cart-container {
-		color: var(--text-color);
+		color: var(--wsh-text);
 
 		.frappe-card {
 			display: flex;
@@ -829,13 +829,13 @@ body[data-path=update-profile] {
 			th {
 				font-weight: normal;
 				font-size: 13px;
-				color: var(--text-muted);
+				color: var(--wsh-muted);
 				padding: var(--padding-sm) 0;
 			}
 
 			td {
 				padding: var(--padding-sm) 0;
-				color: var(--text-color);
+				color: var(--wsh-text);
 			}
 
 			//// Neoffice — the cart table header (see above).
@@ -860,11 +860,11 @@ body[data-path=update-profile] {
 					//// Neoffice — the line title size.
 					font-size: 16px;
 					font-weight: 600;
-					color: var(--text-color);
+					color: var(--wsh-text);
 				}
 
 				.item-subtitle {
-					color: var(--text-muted);
+					color: var(--wsh-muted);
 					font-size: 13px;
 				}
 
@@ -882,7 +882,7 @@ body[data-path=update-profile] {
 
 				.item-rate {
 					font-size: 13px;
-					color: var(--text-muted);
+					color: var(--wsh-muted);
 				}
 
 				//// Neoffice — the discount line (coupon, gift card, loyalty points) in the cart
@@ -895,12 +895,12 @@ body[data-path=update-profile] {
 		
 					.striked-price {
 						font-size: 12px;
-						color: var(--gray-600);
+						color: var(--wsh-muted);
 						text-decoration: line-through;
 					}
 					
 					.discount {
-						color: var(--green-info);
+						color: var(--wsh-ok);
 						font-weight: 600;
 						font-size: 12px;
 					}
@@ -908,7 +908,7 @@ body[data-path=update-profile] {
 
 				.free-tag {
 					padding: 4px 8px;
-					border-radius: 4px;
+					border-radius: var(--wsh-radius-sm);
 					background-color: var(--dark-green-50);
 				}
 
@@ -924,7 +924,7 @@ body[data-path=update-profile] {
 				.item-grand-total {
 					font-size: 16px;
 					font-weight: 700;
-					color: var(--text-color);
+					color: var(--wsh-text);
 				}
 				//// Neoffice — the grand-total row of the cart.
 				.item-grand-total.totals {
@@ -946,13 +946,13 @@ body[data-path=update-profile] {
 			}
 
 			.remove-cart-item {
-				border-radius: 6px;
-				border: 1px solid var(--gray-100);
+				border-radius: var(--wsh-radius);
+				border: 1px solid var(--wsh-surface-muted);
 				width: 28px;
 				height: 28px;
 				font-weight: 300;
-				color: var(--gray-700);
-				background-color: var(--gray-100);
+				color: var(--wsh-muted);
+				background-color: var(--wsh-surface-muted);
 				float: right;
 				cursor: pointer;
 				margin-top: .25rem;
@@ -964,20 +964,20 @@ body[data-path=update-profile] {
 			.remove-cart-item-logo {
 				margin-top: 2px;
 				margin-left: 2.2px;
-				fill: var(--gray-700) !important;
+				fill: var(--wsh-muted) !important;
 			}
 		}
 
 		.cart-payment-addresses {
 			hr {
-				border-color: var(--border-color);
+				border-color: var(--wsh-line);
 			}
 		}
 
 		.payment-summary {
 			h6 {
 				padding-bottom: 1rem;
-				border-bottom: solid 1px var(--gray-200);
+				border-bottom: solid 1px var(--wsh-line);
 			}
 
 			table {
@@ -989,12 +989,12 @@ body[data-path=update-profile] {
 				}
 
 				&.grand-total {
-					border-top: solid 1px var(--gray-200);
+					border-top: solid 1px var(--wsh-line);
 				}
 			}
 
 			.bill-label {
-				color: var(--gray-600);
+				color: var(--wsh-muted);
 			}
 
 			.bill-content {
@@ -1007,7 +1007,7 @@ body[data-path=update-profile] {
 
 			.btn-coupon-code {
 				font-size: 14px;
-				border: dashed 1px var(--gray-400);
+				border: dashed 1px var(--wsh-faint);
 				box-shadow: none;
 			}
 		}
@@ -1029,11 +1029,11 @@ body[data-path=update-profile] {
 			width: 75%;
 			min-width: 105px;
 			//// Neoffice — rounded corners on the quantity spinner.
-			border-radius: 6px;
+			border-radius: var(--wsh-radius);
 
 			.cart-btn {
 				border: none;
-				background: var(--gray-100);
+				background: var(--wsh-surface-muted);
 				box-shadow: none;
 				width: 24px;
 				height: 28px;
@@ -1042,7 +1042,7 @@ body[data-path=update-profile] {
 				display: flex;
 				font-size: 20px;
 				font-weight: 300;
-				color: var(--gray-700);
+				color: var(--wsh-muted);
 			}
 
 			.cart-qty {
@@ -1053,7 +1053,7 @@ body[data-path=update-profile] {
 				width: 22px;
 				padding: 0;
 				&:disabled {
-					background: var(--gray-100);
+					background: var(--wsh-surface-muted);
 					opacity: 0.65;
 				}
 			}
@@ -1068,7 +1068,7 @@ body[data-path=update-profile] {
 				flex-wrap: nowrap;
 				align-items: center;
 				justify-content: flex-start;
-				background-color: #f3f3f3;
+				background-color: var(--wsh-surface-muted);
 				width: auto;
 				min-width: 0;
 			}
@@ -1093,11 +1093,11 @@ body[data-path=update-profile] {
 .no-image-cart-item {
 	max-height: 112px;
 	display: flex; justify-content: center;
-	background-color: var(--gray-200);
+	background-color: var(--wsh-line);
 	align-items: center;
-	color: var(--gray-400);
+	color: var(--wsh-faint);
 	margin-top: .15rem;
-	border-radius: 6px;
+	border-radius: var(--wsh-radius);
 	height: 100%;
 	font-size: 24px;
 }
@@ -1108,7 +1108,7 @@ body[data-path=update-profile] {
 
 	.cart-empty-message {
 		font-size: 18px;
-		color: var(--text-color);
+		color: var(--wsh-text);
 		font-weight: bold;
 	}
 }
@@ -1125,20 +1125,20 @@ body[data-path=update-profile] {
 
 	.card-text {
 		font-size: 13px;
-		color: var(--gray-700);
+		color: var(--wsh-muted);
 	}
 
 	.card-link {
 		font-size: 13px;
 
 		svg use {
-			stroke: var(--primary-color);
+			stroke: var(--wsh-primary);
 		}
 	}
 
 	.btn-change-address {
-		border: 1px solid var(--primary-color);
-		color: var(--primary-color);
+		border: 1px solid var(--wsh-primary);
+		color: var(--wsh-primary);
 		box-shadow: none;
 	}
 }
@@ -1150,17 +1150,17 @@ body[data-path=update-profile] {
 .btn-new-address {
 	float: right;
 	font-size: 15px !important;
-	color: var(--primary-color) !important;
+	color: var(--wsh-primary) !important;
 }
 
 .btn-new-address:hover, .btn-change-address:hover {
-	color: var(--primary-color) !important;
+	color: var(--wsh-primary) !important;
 }
 
 .modal .address-card {
 	.card-body {
 		padding: var(--padding-sm);
-		border-radius: var(--border-radius);
+		border-radius: var(--wsh-radius);
 		border: 1px solid var(--dark-border-color);
 	}
 }
@@ -1175,9 +1175,9 @@ body[data-path=update-profile] {
     top: -6px;
 
 	border-radius: 66px;
-	box-shadow: 0px 2px 6px rgba(17, 43, 66, 0.08), 0px 1px 4px rgba(17, 43, 66, 0.1);
-	background: white;
-	color: var(--primary-color);
+	box-shadow: var(--wsh-shadow);
+	background: var(--wsh-surface);
+	color: var(--wsh-primary);
 	font-size: 14px;
 
 	&.list-indicator {
@@ -1199,8 +1199,8 @@ body[data-path=update-profile] {
 	top: 20px;
 
 	/* White */
-	background: white;
-	box-shadow: 0px 2px 6px rgba(17, 43, 66, 0.08), 0px 1px 4px rgba(17, 43, 66, 0.1);
+	background: var(--wsh-surface);
+	box-shadow: var(--wsh-shadow);
 	border-radius: 66px;
 
 	&.like-action-wished {
@@ -1223,8 +1223,8 @@ body[data-path=update-profile] {
 	top: 0;
 
 	/* White */
-	background: white;
-	box-shadow: 0px 2px 6px rgba(17, 43, 66, 0.08), 0px 1px 4px rgba(17, 43, 66, 0.1);
+	background: var(--wsh-surface);
+	box-shadow: var(--wsh-shadow);
 	border-radius: 66px;
 
 	&.like-action-wished {
@@ -1266,13 +1266,13 @@ body[data-path=update-profile] {
 	--icon-stroke: #F47A7A !important;
 
 	&:hover {
-		fill: #F47A7A;
+		fill: var(--wsh-danger);
 	}
 }
 
 .wished {
 	--icon-stroke: none;
-	fill: #F47A7A !important;
+	fill: var(--wsh-danger) !important;
 }
 
 .list-row-checkbox {
@@ -1297,15 +1297,15 @@ body[data-path=update-profile] {
 	width: 90px;
 	max-height: 50px; // to avoid resizing on window resize
 	flex: none;
-	transition: 0.3s ease;
+	transition: all var(--wsh-motion);
 
-	color: white;
-	background-color: var(--orange-500);
-	border: 1px solid var(--orange-500);
+	color: var(--wsh-on-ink);
+	background-color: var(--wsh-warn);
+	border: 1px solid var(--wsh-warn);
 	font-size: 13px;
 
 	&:hover {
-		color: white;
+		color: var(--wsh-on-ink);
 	}
 }
 
@@ -1316,12 +1316,12 @@ body[data-path=update-profile] {
 	// margin-top: auto !important;
 	max-height: 50px; // to avoid resizing on window resize
 	flex: none;
-	transition: 0.3s ease;
+	transition: all var(--wsh-motion);
 
 	font-size: 13px;
 
 	&:hover {
-		color: white;
+		color: var(--wsh-on-ink);
 	}
 
 	@media (max-width: 992px) {
@@ -1340,7 +1340,7 @@ body[data-path=update-profile] {
 }
 
 .remove-wish {
-	background-color: white;
+	background-color: var(--wsh-surface);
 	position: absolute;
 	cursor: pointer;
 	top:10px;
@@ -1349,8 +1349,8 @@ body[data-path=update-profile] {
 	height: 32px;
 
 	border-radius: 50%;
-	border: 1px solid var(--gray-100);
-	box-shadow: 0px 2px 6px rgba(17, 43, 66, 0.08), 0px 1px 4px rgba(17, 43, 66, 0.1);
+	border: 1px solid var(--wsh-surface-muted);
+	box-shadow: var(--wsh-shadow);
 }
 
 .wish-removed {
@@ -1372,11 +1372,11 @@ body[data-path=update-profile] {
 	}
 
 	.spec-label {
-		color: var(--gray-600);
+		color: var(--wsh-muted);
 	}
 
 	.spec-content {
-		color: var(--gray-800);
+		color: var(--wsh-text);
 	}
 }
 
@@ -1396,15 +1396,15 @@ body[data-path=update-profile] {
 		.reviews-title {
 			font-size: 24px;
 			font-weight: 600;
-			color: var(--gray-900);
+			color: var(--wsh-text);
 			display: flex;
 			align-items: center;
 			gap: 12px;
 
 			//// Neoffice — the review-count badge (see the block above).
 			.review-count-badge {
-				background: var(--primary);
-				color: white;
+				background: var(--wsh-primary);
+				color: var(--wsh-on-primary);
 				font-size: 14px;
 				font-weight: 500;
 				padding: 4px 12px;
@@ -1420,20 +1420,20 @@ body[data-path=update-profile] {
 		font-weight: 500;
 		display: flex;
 		align-items: center;
-		transition: all 0.2s ease;
+		transition: all var(--wsh-motion);
 
 		//// Neoffice — its hover state (see the block above).
 		&:hover {
 			transform: translateY(-1px);
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+			box-shadow: var(--wsh-shadow);
 		}
 	//// Neoffice — see the block above.
 	}
 
 	//// Neoffice — the rating summary card (see the block above).
 	.reviews-summary-card {
-		background: var(--gray-50);
-		border-radius: 12px;
+		background: var(--wsh-surface-muted);
+		border-radius: var(--wsh-radius-lg);
 		padding: 2rem;
 		margin-bottom: 2rem;
 	}
@@ -1447,8 +1447,8 @@ body[data-path=update-profile] {
 	//// when a product has no review, which left a titled section with a blank body
 	//// (7bf95830e5, 2026-08-26).
 	.no-reviews-section {
-		background: var(--gray-50);
-		border-radius: 12px;
+		background: var(--wsh-surface-muted);
+		border-radius: var(--wsh-radius-lg);
 		padding: 3rem;
 
 		.icon-xl {
@@ -1469,7 +1469,7 @@ body[data-path=update-profile] {
 		.rating-score {
 			font-size: 48px;
 			font-weight: 700;
-			color: var(--gray-900);
+			color: var(--wsh-text);
 			line-height: 1;
 		}
 
@@ -1489,31 +1489,31 @@ body[data-path=update-profile] {
 			.star-label {
 				font-size: 14px;
 				font-weight: 500;
-				color: var(--gray-700);
+				color: var(--wsh-muted);
 				min-width: 20px;
 			}
 
 			.star-icon {
-				fill: var(--yellow-300);
+				fill: var(--wsh-warn-soft);
 				margin-right: 8px;
 			}
 
 			.rating-progress {
 				height: 8px;
-				background: var(--gray-200);
-				border-radius: 4px;
+				background: var(--wsh-line);
+				border-radius: var(--wsh-radius-sm);
 				overflow: hidden;
 
 				//// Neoffice — the per-star progress bars (see the block above).
 				.progress-bar {
-					background: var(--yellow-300);
+					background: var(--wsh-warn-soft);
 					transition: width 0.6s ease;
 				}
 			}
 
 			.percent-label {
 				font-size: 13px;
-				color: var(--gray-600);
+				color: var(--wsh-muted);
 				min-width: 40px;
 				text-align: right;
 			}
@@ -1524,15 +1524,15 @@ body[data-path=update-profile] {
 //// Neoffice — the user reviews list (see the block above).
 .user-reviews {
 	.review-card {
-		background: white;
-		border: 1px solid var(--gray-200);
-		border-radius: 8px;
+		background: var(--wsh-surface);
+		border: 1px solid var(--wsh-line);
+		border-radius: var(--wsh-radius);
 		padding: 1.5rem;
 		margin-bottom: 1rem;
-		transition: all 0.2s ease;
+		transition: all var(--wsh-motion);
 
 		&:hover {
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+			box-shadow: var(--wsh-shadow);
 			transform: translateY(-2px);
 		}
 
@@ -1543,7 +1543,7 @@ body[data-path=update-profile] {
 			.review-title {
 				font-size: 16px;
 				font-weight: 600;
-				color: var(--gray-900);
+				color: var(--wsh-text);
 				margin-bottom: 0.5rem;
 			}
 
@@ -1554,12 +1554,12 @@ body[data-path=update-profile] {
 				.rating-text {
 					font-size: 14px;
 					font-weight: 500;
-					color: var(--gray-700);
+					color: var(--wsh-muted);
 				}
 			}
 
 			.badge-success {
-				background: var(--green-50);
+				background: var(--wsh-ok-soft);
 				color: var(--green-700);
 				border: 1px solid var(--green-200);
 				font-size: 12px;
@@ -1573,7 +1573,7 @@ body[data-path=update-profile] {
 			p {
 				font-size: 15px;
 				line-height: 1.6;
-				color: var(--gray-700);
+				color: var(--wsh-muted);
 			}
 		}
 
@@ -1582,7 +1582,7 @@ body[data-path=update-profile] {
 				display: flex;
 				align-items: center;
 				font-size: 14px;
-				color: var(--gray-600);
+				color: var(--wsh-muted);
 
 				.reviewer-name {
 					font-weight: 500;
@@ -1590,7 +1590,7 @@ body[data-path=update-profile] {
 
 				.review-separator {
 					margin: 0 8px;
-					color: var(--gray-400);
+					color: var(--wsh-faint);
 				}
 			}
 		}
@@ -1599,12 +1599,12 @@ body[data-path=update-profile] {
 
 //// Neoffice — filled/empty star colours (see the block above).
 .star-filled {
-	fill: var(--yellow-300);
+	fill: var(--wsh-warn-soft);
 }
 
 //// Neoffice — empty star colour (see the reviews block above).
 .star-empty {
-	fill: var(--gray-300);
+	fill: var(--wsh-line-strong);
 }
 
 .rating {
@@ -1622,12 +1622,12 @@ body[data-path=update-profile] {
 .review-signature {
 	display: flex;
 	font-size: 13px;
-	color: var(--gray-500);
+	color: var(--wsh-faint);
 	font-weight: 400;
 
 	.reviewer {
 		padding-right: 8px;
-		color: var(--gray-600);
+		color: var(--wsh-muted);
 	}
 }
 
@@ -1644,8 +1644,8 @@ body[data-path=update-profile] {
 		margin-top: 6px;
 
 		.progress-bar-cosmetic {
-			background-color: var(--gray-600);
-			border-radius: var(--border-radius);
+			background-color: var(--wsh-muted);
+			border-radius: var(--wsh-radius);
 		}
 	}
 }
@@ -1655,33 +1655,33 @@ body[data-path=update-profile] {
 }
 
 #search-results-container {
-	border: 1px solid var(--gray-200);
+	border: 1px solid var(--wsh-line);
 	padding: .25rem 1rem;
 
 	.category-chip {
-		background-color: var(--gray-100);
+		background-color: var(--wsh-surface-muted);
 		border: none !important;
 		box-shadow: none;
 	}
 
 	.recent-search {
 		padding: .5rem .5rem;
-		border-radius: var(--border-radius);
+		border-radius: var(--wsh-radius);
 		//// Neoffice — the rating progress bars layout (see the block above).
 		display: flex;
 
 		&:hover {
-			background-color: var(--gray-100);
+			background-color: var(--wsh-surface-muted);
 		}
 	}
 }
 
 #search-box {
-	background-color: white;
+	background-color: var(--wsh-surface);
 	height: 100%;
 	//// Neoffice — indentation of the review body (see the block above).
 	padding-left: 2.5rem!important;
-	border: 1px solid var(--gray-200);
+	border: 1px solid var(--wsh-line);
 }
 
 .search-icon {
@@ -1700,8 +1700,8 @@ body[data-path=update-profile] {
 	float: right;
 
 	.btn-primary {
-		background-color: var(--gray-600);
-		box-shadow: 0 0 0 0.2rem var(--gray-400);
+		background-color: var(--wsh-muted);
+		box-shadow: 0 0 0 0.2rem var(--wsh-faint);
 	}
 }
 
@@ -1710,7 +1710,7 @@ body[data-path=update-profile] {
 	width: -webkit-fill-available;
 	padding: 50px;
 	text-align: center;
-	background-color: #F9FAFA;
+	background-color: var(--wsh-surface-muted);
 	border-top-left-radius: calc(0.75rem - 1px);
 	border-top-right-radius: calc(0.75rem - 1px);
 }
@@ -1720,7 +1720,7 @@ body[data-path=update-profile] {
 
 [data-path="cart"] {
 	.modal-backdrop {
-		background-color: var(--gray-50); // lighter backdrop only on cart freeze
+		background-color: var(--wsh-surface-muted); // lighter backdrop only on cart freeze
 	}
 }
 
@@ -1748,8 +1748,8 @@ body[data-path=update-profile] {
 }
 
 .alert-error {
-	color: #e27a84;
-	background-color: #fff6f7;
+	color: var(--wsh-danger);
+	background-color: var(--wsh-danger-soft);
 	border-color: #f5c6cb;
 }
 
@@ -1758,7 +1758,7 @@ body[data-path=update-profile] {
 }
 
 .in-green {
-	color: var(--green-info) !important;
+	color: var(--wsh-ok) !important;
 	font-weight: 500;
 }
 
@@ -1770,7 +1770,7 @@ body[data-path=update-profile] {
 	font-weight: 400;
 	font-size: 14px;
 	line-height: 20px;
-	color: #F47A7A;
+	color: var(--wsh-danger);
 }
 
 .mt-minus-2 {
@@ -1793,7 +1793,7 @@ body[data-path=update-profile] {
 	font-size: var(--text-xs);
 	opacity: 0;
 	cursor: copy;
-	transition: opacity 0.3s, transform 3s;
+	transition: opacity var(--wsh-motion), transform 3s;
 	pointer-events: none;
 }
 
@@ -1825,9 +1825,9 @@ input[disabled][title] {
         left: 50%;
         transform: translateX(-50%);
         padding: 5px 10px;
-        background-color: rgb(0, 0, 0);
-        color: white;
-        border-radius: 4px;
+        background-color: var(--wsh-text);
+        color: var(--wsh-on-ink);
+        border-radius: var(--wsh-radius-sm);
         font-size: 12px;
         white-space: nowrap;
         z-index: 1000;
@@ -1842,7 +1842,7 @@ input[disabled][title] {
         transform: translateX(-50%);
         border-width: 5px;
         border-style: solid;
-        border-color: rgb(0, 0, 0) transparent transparent transparent;
+        border-color: var(--wsh-text) transparent transparent transparent;
         margin-bottom: -5px;
     }
 }
@@ -1851,7 +1851,7 @@ input[disabled][title] {
 .txtcoupon[disabled],
 .txtreferral_sales_partner[disabled],
 #loyalty-point-to-redeem[disabled] {
-    background-color: var(--gray-100);
+    background-color: var(--wsh-surface-muted);
     opacity: 0.7;
 }
 
@@ -1859,8 +1859,8 @@ input[disabled][title] {
 .bt-coupon[disabled],
 .bt-loyalty-point[disabled] {
     opacity: 0.7;
-    background-color: var(--gray-300);
-    border-color: var(--gray-400);
+    background-color: var(--wsh-line-strong);
+    border-color: var(--wsh-faint);
 }
 
 // Change padding of account-info on mobile
@@ -1923,10 +1923,10 @@ input[disabled][title] {
 	padding: 0;
 	.result .transaction-list-item {
 		padding: var(--padding-md);
-		background-color: var(--card-bg);
+		background-color: var(--wsh-surface);
 		box-shadow: none;
-		border: 1px solid var(--gray-300);
+		border: 1px solid var(--wsh-line-strong);
 		margin-bottom: 15px;
-		border-radius: var(--border-radius-md);
+		border-radius: var(--wsh-radius);
 	}
 }

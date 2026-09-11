@@ -21,21 +21,24 @@
 	//// Neoffice — the colours are now design tokens (theme-driven) instead of hard-coded light values (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 	/* One accent, one surface, one hairline: everything else is derived. The theme's
 	   --primary wins when there is one, so the block never fights the site around it. */
-	--wsh-accent: var(--primary, #b5683f);
-	--wsh-surface: #fff;
-	--wsh-row: #f7f8fa;
-	--wsh-line: rgba(17, 24, 39, .09);
-	--wsh-text: #111827;
-	--wsh-muted: #6b7280;
-	--wsh-open: #15803d;
-	--wsh-open-soft: rgba(21, 128, 61, .09);
-	--wsh-closed: #b42318;
-	--wsh-closed-soft: rgba(180, 35, 24, .08);
+	/* //// Neoffice — the block's own tokens (--wsh-oh-*) read the shop's (--wsh-*, see
+	   webshop_tokens.scss), which read the site chrome's: one primary, one surface, one
+	   line for the whole shop. The dark-scheme and footer variants below stay the block's. */
+	--wsh-oh-accent: var(--wsh-primary, #b5683f);
+	--wsh-oh-surface: var(--wsh-surface, #fff);
+	--wsh-oh-row: var(--wsh-surface-muted, #f7f8fa);
+	--wsh-oh-line: var(--wsh-line, rgba(17, 24, 39, .09));
+	--wsh-oh-text: var(--wsh-text, #111827);
+	--wsh-oh-muted: var(--wsh-muted, #6b7280);
+	--wsh-oh-open: var(--wsh-ok-strong, #15803d);
+	--wsh-oh-open-soft: color-mix(in srgb, var(--wsh-oh-open) 9%, transparent);
+	--wsh-oh-closed: var(--wsh-danger-strong, #b42318);
+	--wsh-oh-closed-soft: color-mix(in srgb, var(--wsh-oh-closed) 8%, transparent);
 
 	max-width: 34rem;
 	margin: 0 auto;
-	//// Neoffice — color now follows the --wsh-text token instead of a hard-coded value (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
-	color: var(--wsh-text);
+	//// Neoffice — color now follows the --wsh-oh-text token instead of a hard-coded value (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
+	color: var(--wsh-oh-text);
 	font-size: 1rem;
 	//// Neoffice — added line-height for legibility in the modernized block (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 	line-height: 1.5;
@@ -51,12 +54,12 @@
 	}
 	&__icon {
 		display: inline-flex;
-		color: var(--wsh-accent);
+		color: var(--wsh-oh-accent);
 		margin-bottom: .35rem;
 		svg { display: block; width: 1.75rem; height: 1.75rem; }
 	}
 	&__title { font-size: 1.5rem; font-weight: 600; letter-spacing: -.01em; margin: 0; }
-	&__date { color: var(--wsh-muted); font-size: .9rem; }
+	&__date { color: var(--wsh-oh-muted); font-size: .9rem; }
 
 	/* The status line is a pill, not a slab: it states one fact and gets out of the way. */
 	&__status {
@@ -75,8 +78,8 @@
 		strong { display: inline-flex; align-items: center; gap: .5rem; font-weight: 600; }
 		span { color: inherit; opacity: .85; }
 
-		&.is-open { background: var(--wsh-open-soft); color: var(--wsh-open); }
-		&.is-closed { background: var(--wsh-closed-soft); color: var(--wsh-closed); }
+		&.is-open { background: var(--wsh-oh-open-soft); color: var(--wsh-oh-open); }
+		&.is-closed { background: var(--wsh-oh-closed-soft); color: var(--wsh-oh-closed); }
 	}
 	/* The dot replaces the padlock emoji. Open, it breathes; closed, it simply sits. */
 	//// Neoffice — the 🔒 emoji is replaced by a themed currentColor dot (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
@@ -100,15 +103,15 @@
 		gap: 1rem;
 		padding: .7rem 1rem;
 		border-radius: .65rem;
-		background: var(--wsh-row);
+		background: var(--wsh-oh-row);
 
-		&.is-closed .wsh-hours__day-hours { color: var(--wsh-muted); }
+		&.is-closed .wsh-hours__day-hours { color: var(--wsh-oh-muted); }
 
 		/* Today: an accent bar and a tint. No transform, so the row keeps its box and
 		   cannot spill past the card the way the scaled version did. */
 		&.is-today {
 			//// Neoffice — today's row is now set apart with an accent tint and bar, not `transform: scale(1.02)` which overflowed the card (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
-			background: color-mix(in srgb, var(--wsh-accent) 10%, transparent);
+			background: color-mix(in srgb, var(--wsh-oh-accent) 10%, transparent);
 			font-weight: 600;
 			padding-left: 1.35rem;
 
@@ -118,7 +121,7 @@
 				left: .55rem; top: .55rem; bottom: .55rem;
 				width: 3px;
 				border-radius: 3px;
-				background: var(--wsh-accent);
+				background: var(--wsh-oh-accent);
 			}
 			.wsh-hours__day-hours { color: inherit; }
 		}
@@ -143,9 +146,9 @@
 			gap: .55rem;
 			padding: .5rem .85rem;
 			border-radius: .55rem;
-			border: 1px solid var(--wsh-line);
+			border: 1px solid var(--wsh-oh-line);
 			background: transparent;
-			color: var(--wsh-muted);
+			color: var(--wsh-oh-muted);
 			font-size: .9rem;
 
 			&::before {
@@ -153,13 +156,13 @@
 				flex: none;
 				width: .4rem; height: .4rem;
 				border-radius: 50%;
-				background: var(--wsh-accent);
+				background: var(--wsh-oh-accent);
 				opacity: .55;
 				transform: translateY(-.15em);
 			}
 		}
 	}
-	&__note { margin: 1rem 0 0; color: var(--wsh-muted); font-size: .875rem; text-align: center; }
+	&__note { margin: 1rem 0 0; color: var(--wsh-oh-muted); font-size: .875rem; text-align: center; }
 
 	/* The compact form: a footer column has no room for a week. One status line,
 	   today's hours, and a way through to the full page. */
@@ -192,7 +195,7 @@
 		opacity: .85;
 		&:hover { opacity: 1; }
 	}
-	//// Neoffice — removed a duplicate old &__note rule keyed to the since-renamed --wsh-hours-muted variable, superseded by the &__note rule above using --wsh-muted (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
+	//// Neoffice — removed a duplicate old &__note rule keyed to the since-renamed --wsh-hours-muted variable, superseded by the &__note rule above using --wsh-oh-muted (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus")
 	//// Neoffice ▲▲▲
 }
 
@@ -210,29 +213,29 @@
    follows the reader's scheme rather than forcing a white card on a dark page. */
 @media (prefers-color-scheme: dark) {
 	.wsh-hours {
-		--wsh-surface: #111318;
-		--wsh-row: rgba(255, 255, 255, .05);
-		--wsh-line: rgba(255, 255, 255, .14);
-		--wsh-text: #e8eaed;
-		--wsh-muted: #9aa1ab;
-		--wsh-open: #6ee7a8;
-		--wsh-open-soft: rgba(110, 231, 168, .12);
-		--wsh-closed: #fca5a5;
-		--wsh-closed-soft: rgba(252, 165, 165, .12);
+		--wsh-oh-surface: #111318;
+		--wsh-oh-row: rgba(255, 255, 255, .05);
+		--wsh-oh-line: rgba(255, 255, 255, .14);
+		--wsh-oh-text: #e8eaed;
+		--wsh-oh-muted: #9aa1ab;
+		--wsh-oh-open: #6ee7a8;
+		--wsh-oh-open-soft: rgba(110, 231, 168, .12);
+		--wsh-oh-closed: #fca5a5;
+		--wsh-oh-closed-soft: rgba(252, 165, 165, .12);
 	}
 }
 
 /* In a dark footer the surrounding text is already light: inherit it rather than
    guessing, so the block never prints dark grey on a dark ground. */
 .site-footer .wsh-hours {
-	/* `--wsh-text: inherit` would inherit the PARENT'S --wsh-text, not the footer's
-	   text colour — and where the parent defines none, `color: var(--wsh-text)`
+	/* `--wsh-oh-text: inherit` would inherit the PARENT'S --wsh-oh-text, not the footer's
+	   text colour — and where the parent defines none, `color: var(--wsh-oh-text)`
 	   falls back to nothing and the block printed dark grey on a dark ground.
 	   Overriding `color` itself is what actually follows the footer. */
 	color: inherit;
-	--wsh-muted: currentColor;
-	--wsh-row: rgba(127, 127, 127, .12);
-	--wsh-line: rgba(127, 127, 127, .28);
+	--wsh-oh-muted: currentColor;
+	--wsh-oh-row: rgba(127, 127, 127, .12);
+	--wsh-oh-line: rgba(127, 127, 127, .28);
 	.wsh-hours__title, .wsh-hours__day-name, .wsh-hours__day-hours { color: inherit; }
 	.wsh-hours__date, .wsh-hours__note, .wsh-hours__closures li { opacity: .75; }
 }

@@ -13,13 +13,13 @@
 /* Sidebar button styles */
 .sidebar-button {
 	background: none;
-	border: 1px solid #ddd;
-	border-radius: 4px;
+	border: 1px solid var(--wsh-line);
+	border-radius: var(--wsh-radius-sm);
 	padding: 6px 12px;
 	display: flex;
 	align-items: center;
 	cursor: pointer;
-	background-color: #f8f9fa;
+	background-color: var(--wsh-surface-muted);
 	position: absolute;
     right: 30px;
     top: 25px;
@@ -32,11 +32,11 @@
 	right: 0;
 	bottom: 0;
 	left: 0;
-	background-color: rgba(0, 0, 0, 0.5);
+	background-color: var(--wsh-overlay);
 	z-index: 1000;
 	opacity: 0;
 	visibility: hidden;
-	transition: opacity 0.3s ease, visibility 0.3s ease;
+	transition: opacity var(--wsh-motion), visibility var(--wsh-motion);
 }
 
 .sidebar-overlay.show {
@@ -51,10 +51,10 @@
 	right: -320px;
 	width: 300px;
 	height: 100%;
-	background-color: white;
-	box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+	background-color: var(--wsh-surface);
+	box-shadow: var(--wsh-shadow);
 	z-index: 1001;
-	transition: transform 0.3s ease-in-out;
+	transition: transform var(--wsh-motion);
 	transform: translateX(100%);
 	overflow-y: auto;
 	padding: 15px;
@@ -151,8 +151,8 @@
         display: block;
         width: 100%;
         height: 2px;
-        background-color: #383838;
-        transition: all 0.3s ease;
+        background-color: var(--wsh-text);
+        transition: all var(--wsh-motion);
     }
     
     .mobile-menu-overlay {
@@ -161,7 +161,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: var(--wsh-overlay);
         z-index: 1090;
         display: none;
     }
@@ -173,10 +173,10 @@
         right: -300px; /* Hidden off-screen */
         width: 280px;
         height: 100%;
-        background-color: white;
+        background-color: var(--wsh-surface);
         z-index: 1100;
-        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-        transition: right 0.3s ease;
+        box-shadow: var(--wsh-shadow);
+        transition: right var(--wsh-motion);
         display: flex;
         flex-direction: column;
         overflow-y: auto;
@@ -224,13 +224,13 @@
     .mobile-navigation-wrapper nav a {
         padding: 15px 20px !important; /* v2.10.5: Increased for touch-friendly (min 44px) */
         text-decoration: none;
-        color: #383838 !important;
-        border-bottom: 1px solid #f5f5f5;
+        color: var(--wsh-text) !important;
+        border-bottom: 1px solid var(--wsh-line-light);
         font-size: 16px !important;
         display: block !important;
         width: 100% !important;
         text-align: left !important;
-        transition: background-color 0.2s ease; /* v2.10.5: Smooth hover */
+        transition: background-color var(--wsh-motion); /* v2.10.5: Smooth hover */
         min-height: 44px; /* v2.10.5: Touch target minimum */
         display: flex;
         align-items: center;
@@ -238,7 +238,7 @@
 
     .mobile-navigation-wrapper nav a:hover,
     .mobile-navigation-wrapper nav a:active {
-        background-color: #f8f9fa; /* v2.10.5: Visual feedback */
+        background-color: var(--wsh-surface-muted); /* v2.10.5: Visual feedback */
     }
 
     .mobile-navigation-wrapper nav a p {

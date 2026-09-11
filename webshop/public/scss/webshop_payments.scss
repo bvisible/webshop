@@ -3,15 +3,15 @@
 
 /* ---- from webshop/templates/payments/stripe.html (block 1) ---- */
 .StripeElement {
-    background-color: white;
+    background-color: var(--wsh-surface);
     padding: 8px 12px;
-    border-radius: 4px;
-    border: 1px solid #ddd;
+    border-radius: var(--wsh-radius-sm);
+    border: 1px solid var(--wsh-line);
 }
 
 .StripeElement--focus {
     border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    box-shadow: 0 0 0 0.2rem var(--wsh-primary-soft);
 }
 
 .StripeElement--invalid {

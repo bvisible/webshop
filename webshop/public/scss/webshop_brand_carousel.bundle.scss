@@ -3,6 +3,10 @@
 // this component is included in Builder pages, which load no shop bundle.
 // Not imported by webshop-web.bundle.scss.
 
+// //// Neoffice — the design tokens come first: a component a Builder page includes reads
+// the same tokens as the shop's own pages.
+@import "./webshop_tokens";
+
 /* ---- from webshop/templates/includes/brand_carousel.html (block 1) ---- */
       .brand-carousel {
         position: relative;
@@ -31,17 +35,17 @@
 
       .brand-carousel .btn-view-more {
         background-color: transparent;
-        color: var(--primary-color, #171717);
-        border: 1px solid var(--primary-color, #171717);
+        color: var(--wsh-primary);
+        border: 1px solid var(--wsh-primary);
         font-weight: 500;
         text-decoration: none;
-        transition: all 0.3s ease;
+        transition: all var(--wsh-motion);
         white-space: nowrap;
       }
 
       .brand-carousel .btn-view-more:hover {
-        background-color: var(--primary-color, #171717);
-        color: white;
+        background-color: var(--wsh-primary);
+        color: var(--wsh-on-primary);
         text-decoration: none;
         transform: translateX(2px);
       }
@@ -61,7 +65,7 @@
         flex: 0 0 calc(25% - 30px);
         margin: 15px;
         box-sizing: border-box;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: transform var(--wsh-motion), box-shadow var(--wsh-motion);
         width: calc(25% - 30px);
       }
 
@@ -70,18 +74,18 @@
       }
 
       .brand-carousel .card {
-        background-color: #fff;
-        border: 1px solid #eaeaea;
-        border-radius: 8px;
+        background-color: var(--wsh-surface);
+        border: 1px solid var(--wsh-line);
+        border-radius: var(--wsh-radius);
         overflow: hidden;
         display: flex;
         flex-direction: column;
         height: 100%;
-        transition: all 0.3s ease;
+        transition: all var(--wsh-motion);
       }
 
       .brand-carousel .card:hover {
-        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        box-shadow: var(--wsh-shadow-lg);
       }
       
       .brand-carousel .btn {
@@ -95,7 +99,7 @@
         font-size: 0.9rem;
         line-height: 1.5;
         border-radius: 0.25rem;
-        transition: all 0.15s ease-in-out;
+        transition: all var(--wsh-motion);
       }
 
       .brand-carousel .btn-sm {
@@ -114,13 +118,13 @@
       }
 
       .brand-carousel .btn-explore-variants {
-        background-color: var(--primary-color, #171717);
-        color: white;
-        border: 1px solid var(--primary-color, #171717);
+        background-color: var(--wsh-primary);
+        color: var(--wsh-on-primary);
+        border: 1px solid var(--wsh-primary);
         text-decoration: none;
         display: inline-block;
         text-align: center;
-        transition: all 0.2s ease;
+        transition: all var(--wsh-motion);
         opacity: 0;
         transform: translateY(10px);
       }
@@ -131,12 +135,12 @@
       }
       
       .brand-carousel .btn-explore-variants:hover {
-        background-color: var(--primary-dark, #040404);
-        border-color: var(--primary-dark, #040404);
-        color: white;
+        background-color: var(--wsh-primary-hover);
+        border-color: var(--wsh-primary-hover);
+        color: var(--wsh-on-primary);
         text-decoration: none;
         transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: var(--wsh-shadow);
       }
 
       .brand-carousel .card-img-container {
@@ -144,7 +148,7 @@
         overflow: hidden;
         position: relative;
         padding-top: 100%; 
-        background-color: #fff;
+        background-color: var(--wsh-surface);
       }
 
       .brand-carousel .card-img {
@@ -173,8 +177,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
-        color: #6c757d;
+        background: linear-gradient(135deg, var(--wsh-surface-muted) 0%, var(--wsh-surface-muted) 100%);
+        color: var(--wsh-muted);
         font-size: 2.5em;
         font-weight: bold;
       }
@@ -191,13 +195,13 @@
         font-size: 1.1em;
         font-weight: 600;
         margin-bottom: 8px;
-        color: #333;
-        transition: color 0.3s ease;
+        color: var(--wsh-text);
+        transition: color var(--wsh-motion);
       }
 
       .brand-carousel .brand-product-count {
         font-size: 0.85em;
-        color: var(--primary-color, #171717);
+        color: var(--wsh-primary);
         font-weight: 500;
         margin-top: 4px;
         margin-bottom: 8px;
@@ -205,7 +209,7 @@
       
       .brand-carousel .brand-description {
         font-size: 0.9em;
-        color: #6c757d;
+        color: var(--wsh-muted);
         margin-bottom: 15px;
         flex-grow: 1;
       }

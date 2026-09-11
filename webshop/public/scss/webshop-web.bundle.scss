@@ -1,3 +1,5 @@
+// //// Neoffice — the design tokens come first: every partial below draws with them.
+@import "./webshop_tokens";
 @import "./webshop_cart";
 @import "./webshop_checkout";
 @import "./webshop_checkout_b2b";
@@ -19,12 +21,12 @@
 	.card {
 		position: relative;
 		overflow: visible;
-		transition: all 0.3s ease;
-		border: 1px solid var(--gray-200);
+		transition: all var(--wsh-motion);
+		border: 1px solid var(--wsh-line);
 		
 		&:hover {
 			transform: translateY(-2px);
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+			box-shadow: var(--wsh-shadow);
 			
 			.btn-add-to-cart-list {
 				visibility: visible !important;
@@ -42,13 +44,13 @@
 		top: 5px;
 		left: 5px;
 		z-index: 10;
-		background: #28a745;
-		color: white;
+		background: var(--wsh-ok);
+		color: var(--wsh-on-ink);
 		padding: 4px 10px;
 		border-radius: 12px 4px 4px 4px;
 		font-size: 0.75rem;
 		font-weight: 600;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		box-shadow: var(--wsh-shadow-sm);
 		display: flex;
 		align-items: center;
 		gap: 4px;
@@ -64,13 +66,13 @@
 		top: 5px;
 		left: 5px;
 		z-index: 10;
-		background: #374151;
-		color: white;
+		background: var(--wsh-text);
+		color: var(--wsh-on-ink);
 		padding: 4px 10px;
 		border-radius: 12px 4px 4px 4px;
 		font-size: 0.75rem;
 		font-weight: 600;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		box-shadow: var(--wsh-shadow-sm);
 		display: flex;
 		align-items: center;
 	}
@@ -87,7 +89,7 @@
 		overflow: visible;
 		
 		.product-category {
-			color: var(--text-muted);
+			color: var(--wsh-muted);
 			font-size: 0.875rem;
 			flex: 1;
 			white-space: nowrap;
@@ -110,19 +112,19 @@
 				cursor: help;
 				
 				&.in-stock {
-					background-color: #28a745;
+					background-color: var(--wsh-ok);
 				}
 				
 				&.low-stock {
-					background-color: #ffc107;
+					background-color: var(--wsh-warn);
 				}
 				
 				&.out-of-stock {
-					background-color: #dc3545;
+					background-color: var(--wsh-danger);
 				}
 				
 				&.on-backorder {
-					background-color: var(--primary-color);
+					background-color: var(--wsh-primary);
 				}
 			}
 			
@@ -132,16 +134,16 @@
 			.stock-text {
 				font-size: 0.75rem;
 				font-weight: 500;
-				color: var(--text-muted);
+				color: var(--wsh-muted);
 
-				.stock-info:has(.in-stock) & { color: #1a7f37; }
-				.stock-info:has(.low-stock) & { color: #9a6700; }
-				.stock-info:has(.out-of-stock) & { color: #b91c1c; }
+				.stock-info:has(.in-stock) & { color: var(--wsh-ok-strong); }
+				.stock-info:has(.low-stock) & { color: var(--wsh-warn-strong); }
+				.stock-info:has(.out-of-stock) & { color: var(--wsh-danger-strong); }
 			}
 
 			.stock-qty {
 				font-size: 0.75rem;
-				color: var(--text-muted);
+				color: var(--wsh-muted);
 				font-weight: 500;
 			}
 			
@@ -156,16 +158,16 @@
 				bottom: 100%;
 				right: -10px;
 				transform: translateY(-4px);
-				background-color: rgba(0, 0, 0, 0.9);
-				color: white;
+				background-color: var(--wsh-text);
+				color: var(--wsh-on-ink);
 				padding: 6px 10px;
-				border-radius: 4px;
+				border-radius: var(--wsh-radius-sm);
 				font-size: 0.75rem;
 				white-space: nowrap;
 				margin-bottom: 4px;
 				opacity: 0;
 				visibility: hidden;
-				transition: opacity 0.2s ease, transform 0.2s ease;
+				transition: opacity var(--wsh-motion), transform var(--wsh-motion);
 				z-index: 10000;
 				
 				&::after {
@@ -175,7 +177,7 @@
 					right: 15px;
 					border-width: 4px;
 					border-style: solid;
-					border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
+					border-color: var(--wsh-text) transparent transparent transparent;
 				}
 			}
 		}
@@ -191,7 +193,7 @@
 		}
 		
 		.product-info-green {
-			color: #28a745;
+			color: var(--wsh-ok);
 			font-weight: 600;
 		}
 	}
@@ -199,12 +201,12 @@
 	// Card image improvements
 	.card-img-container {
 		position: relative;
-		background: var(--gray-50);
+		background: var(--wsh-surface-muted);
 		overflow: hidden;
 		border-radius: 0.75rem 0.75rem 0 0;
 
 		img {
-			transition: transform 0.3s ease;
+			transition: transform var(--wsh-motion);
 		}
 		
 		&:hover img {
@@ -214,11 +216,11 @@
 	
 	// Button improvements
 	.btn-add-to-cart-list {
-		transition: all 0.2s ease;
+		transition: all var(--wsh-motion);
 		
 		&:hover {
 			transform: translateY(-1px);
-			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+			box-shadow: var(--wsh-shadow);
 		}
 	}
 	
@@ -236,7 +238,7 @@
 		font-size: 0.875rem;
 
 		.fa-star {
-			color: #ffc107;
+			color: var(--wsh-warn);
 		}
 	}
 }
@@ -258,9 +260,9 @@ input[type=week],
 select[multiple],
 textarea,
 select {
-	background-color: #f8f8f8;
-	border-radius: 8px;
-	border: 1px solid #999 !important;
+	background-color: var(--wsh-surface-muted);
+	border-radius: var(--wsh-radius);
+	border: 1px solid var(--wsh-line-strong) !important;
 }
 
 // Checkout page styles
@@ -288,7 +290,7 @@ body[data-path=checkout] #page-checkout .order-summary-wrapper .order-summary .o
 	}
 
 	.text-muted {
-		color: var(--gray-600);
+		color: var(--wsh-muted);
 		font-size: 0.875rem;
 	}
 }
@@ -309,26 +311,26 @@ body:has(.for-login-with-email-link) .page-breadcrumbs {
 /* //// Neoffice — cross-sell offers (product page, cart page, drawer, checkout) */
 /* an empty box must not show: .frappe-card would win the display battle otherwise */
 .cross-sell-offers:not(.has-offers) { display: none !important; }
-.xsell-title { font-weight: 600; font-size: 0.95rem; color: #111827; margin: 16px 0 8px; }
+.xsell-title { font-weight: 600; font-size: 0.95rem; color: var(--wsh-text); margin: 16px 0 8px; }
 .xsell-card {
 	display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin-bottom: 8px;
-	border: 1px solid #e5e7eb; border-radius: 10px; background: #fff;
+	border: 1px solid var(--wsh-line); border-radius: var(--wsh-radius-lg); background: var(--wsh-surface);
 }
 .xsell-card__image img, .xsell-card__image .xsell-abbr, .xsell-bump__image img, .xsell-bump__image .xsell-abbr {
-	width: 56px; height: 56px; border-radius: 8px; object-fit: cover; background: #f3f4f6;
-	display: flex; align-items: center; justify-content: center; color: #9ca3af; font-weight: 600; flex-shrink: 0;
+	width: 56px; height: 56px; border-radius: var(--wsh-radius); object-fit: cover; background: var(--wsh-surface-muted);
+	display: flex; align-items: center; justify-content: center; color: var(--wsh-faint); font-weight: 600; flex-shrink: 0;
 }
 .xsell-card__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.xsell-card__headline { font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: .02em; }
-.xsell-card__name { font-size: 0.9rem; font-weight: 600; color: #111827; text-decoration: none; }
+.xsell-card__headline { font-size: 0.75rem; color: var(--wsh-muted); text-transform: uppercase; letter-spacing: .02em; }
+.xsell-card__name { font-size: 0.9rem; font-weight: 600; color: var(--wsh-text); text-decoration: none; }
 .xsell-card__name:hover { text-decoration: none; opacity: .8; }
-.xsell-card__desc { font-size: 0.8rem; color: #4b5563; }
+.xsell-card__desc { font-size: 0.8rem; color: var(--wsh-muted); }
 .xsell-card__price { font-size: 0.9rem; }
-.xsell-price { font-weight: 700; color: #111827; }
-.xsell-old-price { color: #9ca3af; margin-left: 4px; }
+.xsell-price { font-weight: 700; color: var(--wsh-text); }
+.xsell-old-price { color: var(--wsh-faint); margin-left: 4px; }
 .xsell-badge {
-	display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 0.72rem; font-weight: 600;
-	background: #dcfce7; color: #166534; margin-left: 4px;
+	display: inline-block; padding: 1px 7px; border-radius: var(--wsh-radius-pill); font-size: 0.72rem; font-weight: 600;
+	background: var(--wsh-ok-soft); color: var(--wsh-ok-strong); margin-left: 4px;
 }
 .xsell-card__btn { white-space: nowrap; }
 .cross-sell-offers--drawer { padding: 0 16px 8px; }
@@ -336,14 +338,14 @@ body:has(.for-login-with-email-link) .page-breadcrumbs {
 .cross-sell-offers--drawer .xsell-card__image img, .cross-sell-offers--drawer .xsell-card__image .xsell-abbr { width: 44px; height: 44px; }
 .xsell-bump {
 	display: flex; align-items: center; gap: 14px; padding: 14px 16px; margin-bottom: 16px; cursor: pointer;
-	border: 2px dashed #d1d5db; border-radius: 12px; background: #fffbeb;
+	border: 2px dashed var(--wsh-line-strong); border-radius: var(--wsh-radius-lg); background: var(--wsh-warn-soft);
 }
-.xsell-bump:has(.xsell-bump__check:checked) { border-color: #16a34a; background: #f0fdf4; }
+.xsell-bump:has(.xsell-bump__check:checked) { border-color: var(--wsh-ok); background: var(--wsh-ok-soft); }
 .xsell-bump__check { width: 20px; height: 20px; flex-shrink: 0; cursor: pointer; }
-.xsell-bump__text { display: flex; flex-direction: column; gap: 2px; font-size: 0.9rem; color: #111827; }
-.xsell-bump__headline { color: #6b7280; font-size: 0.8rem; }
+.xsell-bump__text { display: flex; flex-direction: column; gap: 2px; font-size: 0.9rem; color: var(--wsh-text); }
+.xsell-bump__headline { color: var(--wsh-muted); font-size: 0.8rem; }
 .xsell-bump__price { margin-top: 2px; }
-.xsell-bump__instead { color: #6b7280; font-size: 0.8rem; }
+.xsell-bump__instead { color: var(--wsh-muted); font-size: 0.8rem; }
 //// Neoffice — new store opening-hours styles, single source of truth for /store-hours and the public block (afaa23b6d8 "feat(magasin): les horaires d'ouverture, saisis dans les réglages et affichés partout")
 @import "./webshop_opening_hours";
 @import "./webshop_assistant";
@@ -358,20 +360,20 @@ body:has(.for-login-with-email-link) .page-breadcrumbs {
 	display: flex; flex-wrap: wrap; gap: 20px; align-items: center;
 }
 .cart-actions__links a, .cart-empty-links a {
-	color: var(--gray-600, #6b7280); font-size: 0.9rem; text-decoration: none;
+	color: var(--wsh-muted); font-size: 0.9rem; text-decoration: none;
 }
 .cart-actions__links a:hover, .cart-empty-links a:hover {
-	color: var(--primary, #1f2937); text-decoration: underline;
+	color: var(--wsh-primary); text-decoration: underline;
 }
 .cart-empty { text-align: center; padding: 2.5rem 1rem 3rem; }
 .cart-empty-links { justify-content: center; margin-top: 1rem; }
 /* "Continue shopping" reads as a modest outline button, distinct from the quiet links */
 .cart-actions > .btn-outline-primary {
-	border: 1px solid var(--gray-300, #d1d5db); color: var(--gray-800, #1f2937);
-	background: #fff; border-radius: 8px; padding: 8px 18px; font-weight: 500;
+	border: 1px solid var(--wsh-line-strong); color: var(--wsh-text);
+	background: var(--wsh-surface); border-radius: var(--wsh-radius); padding: 8px 18px; font-weight: 500;
 }
 .cart-actions > .btn-outline-primary:hover {
-	border-color: var(--primary, #1f2937); color: var(--primary, #1f2937); background: #fff;
+	border-color: var(--wsh-primary); color: var(--wsh-primary); background: var(--wsh-surface);
 }
 //// Neoffice — the quick order page (quick_order/, www/quick-order/)
 @import "./webshop_quick_order";
