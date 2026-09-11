@@ -1082,6 +1082,48 @@ handlers read them — and the add-to-cart handler finds its "go to cart" twin w
 > the item's focus point): the Webshop Settings toggle must take effect without a
 > `bench build`, and the focus is per item.
 
+### The product page
+
+`templates/generators/item/item.html` composes the page (2026-09-11, the one look the
+shop has): a flat hero — the gallery on 60 % of the width, the buy column beside it,
+sticky on a wide screen — then full-width sections that exist only when they have
+something to show (recommendations, bought together, tabs, free content, reviews,
+recently viewed). The gallery (`item_image.html`) follows the number of photos: a
+mosaic from three (two large, then the rest, every row filled), a thumbnail rail with
+two, one picture otherwise, a swipe strip on a phone; any picture opens the zoom. Its
+tiles are portrait when Webshop Settings' image fit is Cover and square otherwise. The
+buy column (`item_details.html`) keeps every control the cart, wishlist and
+multi-warehouse handlers read (`item_add_to_cart.html` is untouched but for the "MRP"
+prefix), adds the shop's **promises** (`item_promises.html`, `utils/promises.py`) and
+three folds — description, characteristics, brand — as native `<details>`.
+
+The promises are four fields of Webshop Settings (`free_shipping_from`,
+`delivery_delay`, `return_days`, `promise_note`, section "Shopping Promises") which a
+Website Profile overrides for its site through custom fields the shop adds to that
+doctype (`patches/add_promise_fields_to_website_profile.py`); `get_shopping_cart_settings`
+does the shadowing, `shopping_promises()` writes the lines, and an empty set prints
+nothing — no block, no heading.
+
+> **Never name a throwaway variable `_` in a template.** `{% set _ = list.append(x) %}`
+> assigns None to the translation function, and the next `_("…")` in the template
+> raises `'NoneType' object is not callable` — on the pages where that `set` sits at
+> top level, which is why only the single-picture page answered 500 while the mosaic
+> pages, whose `set` lived inside a loop, rendered. Use `_appended`, `_ignored`,
+> anything else.
+
+> **Upstream's product-page rules live in `webshop_cart.scss`** (`.product-container
+> .item-cart .product-price` and friends, a 22px price, a 13px description, a padded
+> 350px picture box). They outrank a lone class, so every rule of the new column is
+> rooted on `.wsp-product`, and the gallery neutralises `.product-image` — a class the
+> browser tests and the zoom still read — on its own containers. The `@media (max-width:
+> var(--md-width))` blocks in that file never applied: a media query cannot read a
+> custom property.
+
+> **`.filter({ visible: true })` before `.first()`** when a locator can match a hidden
+> twin: the gallery draws one layout for a wide screen and a strip for a phone, and the
+> other is in the DOM but hidden; `first()` alone picked the hidden one and the mobile
+> image test failed while the desktop one passed.
+
 ### Testing with a non-desk account
 
 After any upstream merge, permission change or routing change, test with **three
