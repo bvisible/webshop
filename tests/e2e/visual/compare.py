@@ -31,6 +31,15 @@ def load(label):
 	return folder, {f[:-4] for f in os.listdir(folder) if f.endswith(".png")}
 
 
+def summary(folder):
+	"""What capture.mjs noted about each page (status, product count...), if it ran."""
+	try:
+		with open(os.path.join(folder, "summary.json"), encoding="utf-8") as fh:
+			return json.load(fh)
+	except (OSError, ValueError):
+		return {}
+
+
 def compare_one(before_path, after_path, diff_path):
 	before = Image.open(before_path).convert("RGB")
 	after = Image.open(after_path).convert("RGB")
@@ -42,7 +51,7 @@ def compare_one(before_path, after_path, diff_path):
 	diff = ImageChops.difference(before_c, after_c).convert("L")
 	# anti-aliasing and font hinting move a few pixels by a few levels: ignore them
 	mask = diff.point(lambda v: 255 if v > 24 else 0)
-	changed = sum(1 for v in mask.getdata() if v)
+	changed = sum(1 for v in mask.tobytes() if v)
 	ratio = changed / float(width * height) if width and height else 0.0
 	if changed:
 		faded = Image.blend(after_c, Image.new("RGB", after_c.size, "white"), 0.6)
@@ -62,6 +71,7 @@ def main():
 
 	before_dir, before_pages = load(args.before)
 	after_dir, after_pages = load(args.after)
+	before_notes, after_notes = summary(before_dir), summary(after_dir)
 	common = sorted(before_pages & after_pages)
 	rows, moved = [], []
 	for page in common:
@@ -71,20 +81,32 @@ def main():
 			os.path.join(after_dir, "diff", page + ".png"),
 		)
 		percent = ratio * 100
-		flag = "MOVED" if percent > args.threshold or abs(height_delta) > 4 else "same"
-		if flag == "MOVED":
+		items = (before_notes.get(page, {}).get("items"), after_notes.get(page, {}).get("items"))
+		status = (before_notes.get(page, {}).get("status"), after_notes.get(page, {}).get("status"))
+		if status[0] not in (None, 200) or status[1] not in (None, 200):
+			# one side is an error page: nothing to compare, and nothing to conclude
+			flag = "INVALID"
+		elif percent > args.threshold or abs(height_delta) > 4:
+			# a listing that shows another number of products is data, not a style change,
+			# as long as the pixels they share did not move
+			flag = "items" if items[0] != items[1] and percent <= args.threshold else "MOVED"
+		else:
+			flag = "same"
+		if flag in ("MOVED", "INVALID"):
 			moved.append(page)
-		rows.append((page, percent, height_delta, flag))
+		rows.append((page, percent, height_delta, flag, items, status))
 
 	width = max((len(p) for p in common), default=10)
-	print(f"{'page':{width}}  {'pixels':>8}  {'height':>8}  ")
-	for page, percent, height_delta, flag in rows:
-		print(f"{page:{width}}  {percent:7.2f}%  {height_delta:+7d}  {flag}")
+	print(f"{'page':{width}}  {'pixels':>8}  {'height':>8}  {'items':>9}  ")
+	for page, percent, height_delta, flag, items, status in rows:
+		count = f"{items[0]}->{items[1]}" if items[0] != items[1] else (str(items[0]) if items[0] is not None else "")
+		note = "" if flag != "INVALID" else f" (status {status[0]}/{status[1]})"
+		print(f"{page:{width}}  {percent:7.2f}%  {height_delta:+7d}  {count:>9}  {flag}{note}")
 	missing = sorted((before_pages | after_pages) - set(common))
 	if missing:
 		print("only on one side:", ", ".join(missing))
 	report = {"before": args.before, "after": args.after, "threshold": args.threshold,
-	          "pages": {p: {"pixels_percent": round(pc, 3), "height_delta": hd, "flag": f} for p, pc, hd, f in rows},
+	          "pages": {p: {"pixels_percent": round(pc, 3), "height_delta": hd, "flag": f, "items": list(it), "status": list(st)} for p, pc, hd, f, it, st in rows},
 	          "moved": moved}
 	with open(os.path.join(after_dir, "compare.json"), "w", encoding="utf-8") as fh:
 		json.dump(report, fh, indent=1)

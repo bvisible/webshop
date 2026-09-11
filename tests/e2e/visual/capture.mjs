@@ -61,16 +61,30 @@ for (const page of config.pages) {
 			// button — captured mid-transition they show as differences that mean nothing
 			await tab.addStyleTag({ content: "*, *::before, *::after { transition: none !important; animation: none !important; caret-color: transparent !important; }" }).catch(() => {});
 			await tab.evaluate(() => document.fonts && document.fonts.ready).catch(() => {});
-			// wake lazy images, then settle back at the top so the capture is stable
-			for (let y = 0; y < 8000; y += 700) {
-				await tab.mouse.wheel(0, 700);
-				await tab.waitForTimeout(80);
-			}
-			await tab.evaluate(() => window.scrollTo(0, 0));
-			await tab.waitForTimeout(1500);
-			await tab.screenshot({ path: path.join(out, `${key}.png`), fullPage: true });
+			// Wake every lazy image without scrolling: scrolling would ask a listing for its
+			// next batches, and how many arrive before the capture depends on the server's
+			// mood (measured: 120 vs 168 products from the same build). The first batch is
+			// what gets captured, always the same one.
+			await tab.evaluate(async () => {
+				const images = [...document.images];
+				for (const img of images) {
+					if (img.loading === "lazy") img.loading = "eager";
+					if (img.dataset.src && !img.getAttribute("src")) img.src = img.dataset.src;
+				}
+				const settle = images.filter((i) => !i.complete).map((i) => new Promise((done) => { i.addEventListener("load", done, { once: true }); i.addEventListener("error", done, { once: true }); }));
+				await Promise.race([Promise.all(settle), new Promise((done) => setTimeout(done, 8000))]);
+			});
+			await tab.waitForTimeout(600);
+			// the shop's own content is <main>; the site header, the theme's title block and the
+			// footer around it belong to the site chrome, which changes on its own (another
+			// session regenerating a design). Capture <main> when there is one, the page otherwise.
+			const main = tab.locator("main").first();
+			const scope = (await main.count()) ? "main" : "page";
+			if (scope === "main") await main.screenshot({ path: path.join(out, `${key}.png`), animations: "disabled" });
+			else await tab.screenshot({ path: path.join(out, `${key}.png`), fullPage: true });
 			summary[key] = {
 				status: response ? response.status() : null,
+				scope,
 				...(await tab.evaluate(() => {
 					const text = (el) => (el?.textContent || "").replace(/\s+/g, " ").trim();
 					const visible = (el) => {
@@ -83,6 +97,8 @@ for (const page of config.pages) {
 						height: document.documentElement.scrollHeight,
 						headings: [...document.querySelectorAll("h2,h3")].filter(visible).slice(0, 12).map((h) => text(h).slice(0, 40)),
 						inline_styles: document.querySelectorAll("body style").length,
+						// how many products the page shows: a catalogue that loaded one batch less is data, not CSS
+						items: document.querySelectorAll("[data-item-code]").length,
 						errors: [...document.querySelectorAll(".alert-danger,.msgprint")].filter(visible).map(text).slice(0, 3),
 					};
 				})),
