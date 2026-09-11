@@ -1049,6 +1049,39 @@ first by the shop bundle and by every component bundle a Builder page can includ
 > Left as literals on purpose: Google's brand colours on the sign-in button, the
 > white glass buttons over photos, three status borders in the checkout and cart.
 
+### One product card
+
+`templates/includes/product_card.html` is the only product card, in four variants
+(`grid`, `list`, `carousel`, `wishlist`). The listing endpoint
+(`api.get_product_filter_data`) renders the tile of every item it returns —
+`card_html` and `list_html`, through `utils/product_card.py` — and `grid.js` /
+`list.js` only append what they are given; the carousel and the wishlist call the
+macro directly. The `wsp-card*` classes are the hooks a theme styles; the legacy
+classes (`item-card`, `product-title`, `like-action`, `cart-indicator`,
+`btn-add-to-cart-list`, `go-to-cart-grid`, `cart-action-container`, `remove-wish`)
+stay on the same elements because the stylesheet and the cart and wishlist
+handlers read them — and the add-to-cart handler finds its "go to cart" twin with
+`$btn.parent().find()`, so both stay direct children of the card's body.
+
+> **Before this, the card lived in six places and three languages** (JS template
+> strings, Jinja, a macro) and every fix was made three times — the second-hand
+> badge was the last one. Measured after the change: 0.00 % on the catalogue, the
+> item group, the wishlist and the product pages' carousels, 18 browser tests of
+> the catalogue and the cart green. Two harmonisations on purpose: the carousel's
+> discount badge reads "- 20%" like the catalogue's, and a card without picture
+> shows `get_abbr`'s two letters everywhere.
+
+> **Calling a macro from Python**: `frappe.get_template(path).module.product_card(…)`
+> returns the rendered Markup; the sandboxed environment exposes `frappe.utils`,
+> `frappe.session` and the jinja methods of `hooks.py` to it, but nothing from the
+> page's context — pass the settings in. `course_offer_count` is the LMS app's and
+> is guarded with `is defined`. The environment does not autoescape: titles and
+> categories go through `| e`.
+
+> **The cover-fit styles stay inline on the tile** (`aspect-ratio`, `object-fit`,
+> the item's focus point): the Webshop Settings toggle must take effect without a
+> `bench build`, and the focus is per item.
+
 ### Testing with a non-desk account
 
 After any upstream merge, permission change or routing change, test with **three
