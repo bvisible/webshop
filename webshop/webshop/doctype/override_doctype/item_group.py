@@ -63,9 +63,12 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		metatags = frappe._dict(context.get("metatags") or {})
 		metatags.update({"title": self.name, "description": " ".join(_cat_desc.split())[:158]})
 		context.metatags = metatags
-		_site_name = frappe.db.get_single_value("Website Settings", "app_name")
-		if _site_name and _site_name != "Frappe":
-			context.title = self.name + " | " + _site_name
+		# //// Neoffice — the shop name is a <title> matter, never a heading one: context.title
+		# //// is what the site chrome prints as the H1 and as the last breadcrumb, so suffixing
+		# //// it here put "Fleece | <shop>" on screen (reported 2026-09-11). The suffixed form
+		# //// goes to context.html_title, which item_group.html feeds to {% block title %} —
+		# //// the same split item.html got on 2026-07-06. Set once, below, where the title is
+		# //// final; nothing to suffix here.
 
 		context.field_filters = filter_engine.get_field_filters()
 		context.attribute_filters = filter_engine.get_attribute_filters()
@@ -105,12 +108,15 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 			context.slideshow = values
 
 		context.no_breadcrumbs = False
-		# //// Neoffice — the page title is suffixed with the shop name here as well: get_context
-		# //// re-set it further down, so suffixing only in one place lost it (f39c6eb87b,
-		# //// 2026-07-06).
+		# //// Neoffice — the heading stays the category's own name; the browser tab gets the
+		# //// shop name after it (Website Settings' app name, skipped when it is Frappe's
+		# //// default). See the note in get_context above.
 		_site_name = frappe.db.get_single_value("Website Settings", "app_name")
 		_base_title = self.website_title or self.name
-		context.title = _base_title + " | " + _site_name if _site_name and _site_name != "Frappe" else _base_title
+		context.title = _base_title
+		context.html_title = (
+			_base_title + " | " + _site_name if _site_name and _site_name != "Frappe" else _base_title
+		)
 		context.name = self.name
 		context.item_group_name = self.item_group_name
 
