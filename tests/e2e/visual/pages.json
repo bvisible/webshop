@@ -1,28 +1,110 @@
 {
   "_comment": "Pages the visual harness captures. `auth` pages get the session cookie from WEBSHOP_SID. Routes are those of the development instance; the product routes name items published there.",
   "viewports": {
-    "desktop": { "width": 1400, "height": 900 },
-    "mobile": { "width": 390, "height": 844, "isMobile": true, "deviceScaleFactor": 2 }
+    "desktop": {
+      "width": 1400,
+      "height": 900
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "isMobile": true,
+      "deviceScaleFactor": 2
+    }
   },
   "pages": [
-    { "name": "product_photos", "path": "/products/loc-tente", "mobile": true },
-    { "name": "product_simple", "path": "/products/tp-link-access-point-eap723-ulpq7", "mobile": true },
-    { "name": "product_variants", "path": "/products/t-shirt-top-kw2ag" },
-    { "name": "product_secondhand", "path": "/products/souris-rapoo-560-occasion-coqlt" },
-    { "name": "catalogue", "path": "/all-products", "mobile": true },
-    { "name": "catalogue_filtered", "path": "/all-products?field_filters=%7B%22brand%22%3A%20%5B%22Canon%22%5D%7D" },
-    { "name": "item_group", "path": "/cours-et-s%C3%A9ances/formations-en-ligne" },
-    { "name": "shop_by_category", "path": "/shop-by-category" },
-    { "name": "occasions", "path": "/occasions" },
-    { "name": "store_hours", "path": "/store-hours" },
-    { "name": "cgv", "path": "/cgv" },
-    { "name": "gift_cards", "path": "/gift_cards" },
-    { "name": "cart", "path": "/cart", "auth": true, "mobile": true },
-    { "name": "checkout", "path": "/checkout", "auth": true, "mobile": true },
-    { "name": "wishlist", "path": "/wishlist", "auth": true },
-    { "name": "order", "path": "/orders/BC-2026-00427", "auth": true },
-    { "name": "my_addresses", "path": "/my_addresses", "auth": true },
-    { "name": "loyalty_points", "path": "/loyalty_points", "auth": true },
-    { "name": "quick_order", "path": "/quick-order", "auth": true }
+    {
+      "name": "product_photos",
+      "path": "/products/loc-tente",
+      "mobile": true
+    },
+    {
+      "name": "product_simple",
+      "path": "/products/tp-link-access-point-eap723-ulpq7",
+      "mobile": true
+    },
+    {
+      "name": "product_variants",
+      "path": "/products/t-shirt-top-kw2ag"
+    },
+    {
+      "name": "product_secondhand",
+      "path": "/products/souris-rapoo-560-occasion-coqlt"
+    },
+    {
+      "name": "product_mosaic",
+      "path": "/products/souris-rapoo-560-tovki",
+      "mobile": true
+    },
+    {
+      "name": "catalogue",
+      "path": "/all-products",
+      "mobile": true
+    },
+    {
+      "name": "catalogue_filtered",
+      "path": "/all-products?field_filters=%7B%22brand%22%3A%20%5B%22Canon%22%5D%7D"
+    },
+    {
+      "name": "item_group",
+      "path": "/cours-et-s%C3%A9ances/formations-en-ligne"
+    },
+    {
+      "name": "shop_by_category",
+      "path": "/shop-by-category"
+    },
+    {
+      "name": "occasions",
+      "path": "/occasions"
+    },
+    {
+      "name": "store_hours",
+      "path": "/store-hours"
+    },
+    {
+      "name": "cgv",
+      "path": "/cgv"
+    },
+    {
+      "name": "gift_cards",
+      "path": "/gift_cards"
+    },
+    {
+      "name": "cart",
+      "path": "/cart",
+      "auth": true,
+      "mobile": true
+    },
+    {
+      "name": "checkout",
+      "path": "/checkout",
+      "auth": true,
+      "mobile": true
+    },
+    {
+      "name": "wishlist",
+      "path": "/wishlist",
+      "auth": true
+    },
+    {
+      "name": "order",
+      "path": "/orders/BC-2026-00427",
+      "auth": true
+    },
+    {
+      "name": "my_addresses",
+      "path": "/my_addresses",
+      "auth": true
+    },
+    {
+      "name": "loyalty_points",
+      "path": "/loyalty_points",
+      "auth": true
+    },
+    {
+      "name": "quick_order",
+      "path": "/quick-order",
+      "auth": true
+    }
   ]
 }

@@ -31,6 +31,10 @@
 	cursor: zoom-in;
 }
 .wsp-gallery[data-fit="Cover"] .wsp-gallery__img { object-fit: cover; }
+/* a portrait tile suits photos on a set (Cover); an object on white sits in a square */
+.wsp-gallery:not([data-fit="Cover"]) .wsp-gallery__tile,
+.wsp-gallery:not([data-fit="Cover"]) .wsp-gallery__main,
+.wsp-gallery:not([data-fit="Cover"]) .wsp-gallery__single { aspect-ratio: 1 / 1; }
 
 /* --- mosaic: two large tiles, then the rest, every row filled --- */
 .wsp-gallery__mosaic {

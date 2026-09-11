@@ -30,7 +30,8 @@
 				{% if price_info.formatted_mrp %}
 					<small itemprop="highPrice" class="formatted-price">
 						{# //// Neoffice — see above (webshop_fmt_money on the struck-through price). #}
-						<s>MRP {{ webshop_fmt_money(price_info.get("mrp") or price_info.get("price_list_rate", 0), currency=price_info.get("currency")) }}</s>
+						{# //// Neoffice — no "MRP" in front of the struck price: the acronym means nothing to a shopper here #}
+						<s>{{ webshop_fmt_money(price_info.get("mrp") or price_info.get("price_list_rate", 0), currency=price_info.get("currency")) }}</s>
 					</small>
 					<small class="ml-1 formatted-price in-green">
 						-{{ price_info.get("formatted_discount_percent") or price_info.get("formatted_discount_rate")}}

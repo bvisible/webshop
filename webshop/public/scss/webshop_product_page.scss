@@ -173,6 +173,12 @@ body:has(.site-page-header) .product-header-block .like-action { margin: 0; }
 	justify-content: center;
 }
 .wsp-product .wsp-buy .action-buttons .btn-view-in-cart { margin: 0 !important; }
+/* upstream stacks the row on a narrow screen (flex-direction: column); a flex-basis
+   meant as a width then becomes a height */
+@media (max-width: 576px) {
+	.wsp-product .wsp-buy .action-buttons .btn-add-to-cart { flex: 0 0 auto; width: 100%; }
+	.wsp-product .wsp-buy .action-buttons .btn-inquiry { width: 100%; }
+}
 .wsp-product .wsp-buy .action-buttons .btn-inquiry { margin: 0; border-radius: var(--wsh-radius); }
 .wsp-product .wsp-buy .item-cart .mt-6 { margin-top: 20px !important; }
 .wsp-product .wsp-buy .item-cart .mb-5 { margin-bottom: 8px !important; }
