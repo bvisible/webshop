@@ -5,9 +5,9 @@
 {# //// phone. Any picture opens the full-screen zoom (0c10921750, 2025-06-18). ▲▲▲ #}
 {%- set photos = [] -%}
 {%- if slides -%}
-	{%- for s in slides -%}{%- set _ = photos.append({"image": s.image, "alt": s.heading or _('{0} — image {1}').format(_(doc.web_item_name), loop.index)}) -%}{%- endfor -%}
+	{%- for s in slides -%}{%- set _appended = photos.append({"image": s.image, "alt": s.heading or _('{0} — image {1}').format(_(doc.web_item_name), loop.index)}) -%}{%- endfor -%}
 {%- elif doc.website_image -%}
-	{%- set _ = photos.append({"image": doc.website_image, "alt": doc.website_image_alt or doc.item_name}) -%}
+	{%- set _appended = photos.append({"image": doc.website_image, "alt": doc.website_image_alt or doc.item_name}) -%}
 {%- endif -%}
 {%- set layout = "mosaic" if photos | length >= 3 else ("rail" if photos | length == 2 else ("single" if photos else "empty")) -%}
 <div class="col-md-{{ 6 if slides else 4 }} product-image-wrapper wsp-gallery wsp-gallery--{{ layout }}" data-layout="{{ layout }}" data-fit="{{ shopping_cart.cart_settings.product_image_fit or 'Contain' }}" data-photos="{{ photos | map(attribute='image') | list | tojson | forceescape }}">
