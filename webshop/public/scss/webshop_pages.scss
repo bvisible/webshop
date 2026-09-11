@@ -149,7 +149,8 @@
     margin-bottom: 8px;
 }
 
-.page-title {
+/* //// Neoffice — scoped: .page-title is a class other pages carry too. */
+.cgv-page .page-title {
     color: #2c3e50;
     font-weight: 600;
 }
@@ -201,47 +202,53 @@
 	background: #e9ecef;
 }
 
-.badge-dark {
+/* //// Neoffice — scoped: .badge-dark is Bootstrap's, black is the gift-card page's choice. */
+.gift-cards-container .badge-dark {
 	background-color: black;
 }
 
 /* ---- from webshop/www/my_addresses.html (block 1) ---- */
-.card {
-	border-radius: 8px;
-	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-.card:hover {
-	box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-.card-title {
-	color: #333;
-	font-weight: 600;
-}
-.badge {
-	font-size: 0.75rem;
-}
-#address-form-container {
-	border: none;
-	border-radius: 8px;
-	overflow: hidden;
-}
-#address-form-container .card-header {
-	background-color: var(--primary, #000);
-	border-radius: 0;
-}
-#address-form-container .card-header h5,
-#address-form-container .card-header #address-form-title {
-	color: white !important;
-}
-#address-form-container .btn-close {
-	filter: invert(1);
-}
-#address-form-container .form-select {
-	width: 100%;
-	max-width: 100%;
-	border-radius: 8px;
-	height: auto;
-	padding: 8px 12px;
+/* //// Neoffice — nested under the page's root: .card, .card-title and .badge are Bootstrap
+   classes, and these rules used to be inline on this page only. In the shared bundle they
+   would restyle every card and badge of the shop. */
+.my-addresses-page {
+	.card {
+		border-radius: 8px;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	}
+	.card:hover {
+		box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+	}
+	.card-title {
+		color: #333;
+		font-weight: 600;
+	}
+	.badge {
+		font-size: 0.75rem;
+	}
+	#address-form-container {
+		border: none;
+		border-radius: 8px;
+		overflow: hidden;
+	}
+	#address-form-container .card-header {
+		background-color: var(--primary, #000);
+		border-radius: 0;
+	}
+	#address-form-container .card-header h5,
+	#address-form-container .card-header #address-form-title {
+		color: white !important;
+	}
+	#address-form-container .btn-close {
+		filter: invert(1);
+	}
+	#address-form-container .form-select {
+		width: 100%;
+		max-width: 100%;
+		border-radius: 8px;
+		height: auto;
+		padding: 8px 12px;
+	}
 }
 
 /* ---- from webshop/templates/includes/wishlist_component.html (block 1) ---- */
@@ -320,12 +327,16 @@
     font-size: 48px;
     line-height: 1;
 }
-.progress-bar {
+/* //// Neoffice — scoped: .progress-bar is Bootstrap's, this colour is the success page's. */
+.payment-success .progress-bar {
     background-color: var(--primary);
 }
 
 /* ---- from webshop/templates/pages/thank_you.html (block 1) ---- */
-    .website-image {
-        max-height: 50px;
-    }
+/* //// Neoffice — scoped to the page: .website-image is also the main picture of the product
+   page, and a bundle-wide max-height of 50px shrank it to a thumbnail (measured on
+   2026-09-11 by the visual harness). */
+.thank-you-page .website-image {
+	max-height: 50px;
+}
 

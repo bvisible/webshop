@@ -85,7 +85,9 @@
 	}
 	.buybox-description > *:first-child { margin-top: 0; }
 	.buybox-description > *:last-child { margin-bottom: 0; }
-	html { scroll-behavior: smooth; }
+	/* //// Neoffice — only while a product page is shown: bundle-wide, smooth scrolling would
+	   animate every programmatic scroll of the catalogue as well. */
+	html:has(.product-container.item-main) { scroll-behavior: smooth; }
 	.product-header-block .product-title-main {
 		font-size: 1.65rem;
 		font-weight: 700;

@@ -57,13 +57,17 @@ for (const page of config.pages) {
 		try {
 			const response = await Promise.race([budget, tab.goto(base + page.path, { waitUntil: "domcontentloaded", timeout: 45000 })]);
 			await tab.waitForTimeout(2500);
+			// freeze what moves on its own: a sticky header sliding in, a pulsing bubble, a fading
+			// button — captured mid-transition they show as differences that mean nothing
+			await tab.addStyleTag({ content: "*, *::before, *::after { transition: none !important; animation: none !important; caret-color: transparent !important; }" }).catch(() => {});
+			await tab.evaluate(() => document.fonts && document.fonts.ready).catch(() => {});
 			// wake lazy images, then settle back at the top so the capture is stable
 			for (let y = 0; y < 8000; y += 700) {
 				await tab.mouse.wheel(0, 700);
 				await tab.waitForTimeout(80);
 			}
 			await tab.evaluate(() => window.scrollTo(0, 0));
-			await tab.waitForTimeout(900);
+			await tab.waitForTimeout(1500);
 			await tab.screenshot({ path: path.join(out, `${key}.png`), fullPage: true });
 			summary[key] = {
 				status: response ? response.status() : null,
