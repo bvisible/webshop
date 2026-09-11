@@ -1016,6 +1016,39 @@ read. Usage and the reasons behind each choice are in `tests/e2e/README.md`.
 > `subtest.local` has no webshop. A new test module runs in CI only — put it in
 > `ci.yml`'s blocking list, or it is never read.
 
+### The shop's design tokens (`--wsh-*`)
+
+`public/scss/webshop_tokens.scss` is the one place a colour, a radius, a shadow or
+a duration is written; every other partial draws with `var(--wsh-…)`. Each token
+reads the site chrome's variable first (Builder's `theme_variables.html` puts
+`--primary-color`, `--text-color`, `--radius`, `--shadow`, `--transition`… on every
+page, the shop's included), then Frappe's token, then a literal equal to what the
+shop drew before it had tokens. Names say what a thing *means* — `--wsh-muted`,
+`--wsh-line`, `--wsh-ok-soft` — never what colour it is. The partial is imported
+first by the shop bundle and by every component bundle a Builder page can include.
+
+> **Builder's `--transition` is a duration and an easing (`200ms ease`), not a
+> shorthand.** `--wsh-motion` aliases it and is used as `transition: all
+> var(--wsh-motion)`; writing `transition: var(--wsh-motion)` yields an invalid
+> declaration and no transition at all.
+
+> **`color: #fff` means two different things.** On a block that paints
+> `--wsh-primary`, white is `--wsh-on-primary` (Builder's `--primary-text`, which a
+> light brand colour sets to dark); anywhere else it is `--wsh-on-ink`, white on a
+> dark badge or overlay. A shadow's depth is read off its **blur**, not its alpha:
+> `0 1px 2px rgba(0,0,0,.3)` is `--wsh-shadow-sm`, `0 16px 60px rgba(0,0,0,.08)` is
+> `--wsh-shadow-lg`. A flat chrome sets the shadows to `none` and the shop goes flat.
+
+> **The opening-hours block keeps its own tokens, namespaced `--wsh-oh-*`** and
+> reading the shop's; its dark-scheme and footer variants are the block's own
+> design. Two token families sharing a name would silently shadow each other.
+
+> **Measured on osiris (2026-09-11), 0.5–2.5 % of pixels moved on 13 pages and no
+> height changed:** inputs and cards took the chrome's corner radius, muted text
+> took the chrome's 60 % tint, input borders went from `#999` to the line token.
+> Left as literals on purpose: Google's brand colours on the sign-in button, the
+> white glass buttons over photos, three status borders in the checkout and cart.
+
 ### Testing with a non-desk account
 
 After any upstream merge, permission change or routing change, test with **three
