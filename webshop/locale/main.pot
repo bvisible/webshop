@@ -43,13 +43,13 @@ msgstr ""
 #. Description of the 'Multi-Warehouse Stock' (Section Break) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "//// Neoffice — multi-warehouse feature: expose several stock sources per product, with labels, lead times and supplier procurement."
+msgid "Multi-warehouse feature: expose several stock sources per product, with labels, lead times and supplier procurement."
 msgstr ""
 
 #. Description of the 'Warehouse Sources Mode' (Select) field in DocType
 #. 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
-msgid "//// Neoffice — multi-warehouse: Auto follows Webshop Settings (auto-enabled sources with stock), Custom lists sources below, Off keeps this item single-warehouse."
+msgid "Multi-warehouse: Auto follows Webshop Settings (auto-enabled sources with stock), Custom lists sources below, Off keeps this item single-warehouse."
 msgstr ""
 
 #: webshop/templates/pages/loyalty_points.html:49

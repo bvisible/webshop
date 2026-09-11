@@ -159,6 +159,11 @@ doc_events = {
 	# //// supplier) or a Material Request. Gated inside on Webshop Settings
 	# //// (enable_multi_warehouse + enable_supplier_procurement) and on
 	# //// order_type "Shopping Cart"; never raises into the submit.
+	# //// The feature's doctype fields are ours too: Webshop Settings
+	# //// "multi_warehouse_section" (+ its warehouse source table) and Website
+	# //// Item "warehouse_sources_mode". Their help texts used to start with
+	# //// this marker, which the desk then displayed to users: the marker
+	# //// lives here, the descriptions are plain user text (translated).
 	"Sales Order": {
 		"on_submit": [
 			"webshop.webshop.multi_warehouse.procurement.process_sales_order",

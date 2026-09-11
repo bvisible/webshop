@@ -1227,7 +1227,7 @@
    "options": "Webshop Trust Item"
   },
   {
-   "description": "//// Neoffice — multi-warehouse feature: expose several stock sources per product, with labels, lead times and supplier procurement.",
+   "description": "Multi-warehouse feature: expose several stock sources per product, with labels, lead times and supplier procurement.",
    "fieldname": "multi_warehouse_section",
    "fieldtype": "Section Break",
    "label": "Multi-Warehouse Stock"

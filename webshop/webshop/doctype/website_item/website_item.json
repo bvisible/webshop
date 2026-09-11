@@ -295,7 +295,7 @@
   },
   {
    "default": "Auto",
-   "description": "//// Neoffice — multi-warehouse: Auto follows Webshop Settings (auto-enabled sources with stock), Custom lists sources below, Off keeps this item single-warehouse.",
+   "description": "Multi-warehouse: Auto follows Webshop Settings (auto-enabled sources with stock), Custom lists sources below, Off keeps this item single-warehouse.",
    "fieldname": "warehouse_sources_mode",
    "fieldtype": "Select",
    "label": "Warehouse Sources Mode",

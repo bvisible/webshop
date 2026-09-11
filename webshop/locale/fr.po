@@ -64,19 +64,14 @@ msgstr "+ {0} autres marques"
 #. Description of the 'Multi-Warehouse Stock' (Section Break) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid ""
-"//// Neoffice — multi-warehouse feature: expose several stock sources per "
-"product, with labels, lead times and supplier procurement."
-msgstr ""
+msgid "Multi-warehouse feature: expose several stock sources per product, with labels, lead times and supplier procurement."
+msgstr "Fonction multi-entrepôt : exposer plusieurs sources de stock par produit, avec libellés, délais de livraison et approvisionnement fournisseur."
 
 #. Description of the 'Warehouse Sources Mode' (Select) field in DocType
 #. 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
-msgid ""
-"//// Neoffice — multi-warehouse: Auto follows Webshop Settings (auto-enabled"
-" sources with stock), Custom lists sources below, Off keeps this item "
-"single-warehouse."
-msgstr ""
+msgid "Multi-warehouse: Auto follows Webshop Settings (auto-enabled sources with stock), Custom lists sources below, Off keeps this item single-warehouse."
+msgstr "Multi-entrepôt : Auto suit les réglages du shop (sources activées automatiquement disposant de stock), Personnalisé liste les sources ci-dessous, Désactivé conserve un entrepôt unique pour cet article."
 
 #: webshop/templates/pages/loyalty_points.html:49
 msgid "1 point = {0}"
@@ -1426,7 +1421,7 @@ msgstr "Informations de l'entreprise"
 #. Label of a Link field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Compare-at Price List"
-msgstr ""
+msgstr "Liste de prix barré"
 
 #: webshop/webshop/utils/cross_sell.py:32
 #: webshop/webshop/utils/cross_sell.py:234
@@ -2189,7 +2184,7 @@ msgstr ""
 msgid ""
 "Empty: no coupon, ever. The literature says not before the second email; "
 "your call."
-msgstr ""
+msgstr "Vide : jamais de bon de réduction. Selon la littérature, pas avant le second e-mail ; à vous de décider."
 
 #. Description of the 'Model' (Data) field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -4523,7 +4518,7 @@ msgstr ""
 msgid ""
 "Optional. The list a struck-through \"was\" price is compared against, e.g. "
 "an MRP. Leave empty to show discounts from Pricing Rules only."
-msgstr ""
+msgstr "Facultatif. La liste à laquelle un prix barré « avant » est comparé, par exemple un MRP. Laissez ce champ vide pour n'afficher que les remises issues des règles de tarification."
 
 #. Description of the 'Expected End Time' (Datetime) field in DocType 'Webshop
 #. Settings'
@@ -4579,7 +4574,7 @@ msgstr "Commande confirmée avec succès"
 msgid ""
 "Order lines sourced from a supplier warehouse prepare a draft Purchase Order"
 " (stacked per supplier) or a Material Request on order submission."
-msgstr ""
+msgstr "Les lignes de commande approvisionnées depuis un entrepôt fournisseur préparent une commande fournisseur brouillon (regroupée par fournisseur) ou une demande de matériel lors de la validation de la commande."
 
 #. Description of the 'Warehouse Sources' (Table) field in DocType 'Webshop
 #. Settings'
@@ -4587,7 +4582,7 @@ msgstr ""
 msgid ""
 "Order matters: first source that covers the requested quantity is "
 "preselected. The item's own Website Warehouse is always shown first."
-msgstr ""
+msgstr "L'ordre compte : la première source couvrant la quantité demandée est présélectionnée. L'entrepôt du site de l'article est toujours affiché en premier."
 
 #: webshop/templates/pages/thank_you.html:18
 msgid "Order not available"
@@ -5304,7 +5299,7 @@ msgstr "Produits"
 msgid ""
 "Products can display and sell from several stock sources (below). Off: "
 "historical single-warehouse behaviour."
-msgstr ""
+msgstr "Les articles peuvent s'afficher et se vendre depuis plusieurs sources de stock (ci-dessous). Désactivé : comportement historique à entrepôt unique."
 
 #. Label of a Int field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -5359,7 +5354,7 @@ msgstr "Jours fériés"
 msgid ""
 "Public holidays skipped when counting business days for delivery estimates. "
 "Empty: Saturdays and Sundays only."
-msgstr ""
+msgstr "Jours fériés ignorés lors du calcul des jours ouvrables pour les délais de livraison estimés. Vide : uniquement les samedis et dimanches."
 
 #. Option for the 'Visible On' (Select) field in DocType 'Webshop Warehouse
 #. Source'
@@ -5447,7 +5442,7 @@ msgid ""
 "Purchase Order: one draft per supplier, new webshop orders stack into it. "
 "Material Request: submitted requests, consolidate them into Purchase Orders "
 "with the native \"Get Items From\" button."
-msgstr ""
+msgstr "Commande fournisseur : un brouillon par fournisseur, les nouvelles commandes de la boutique en ligne s'y ajoutent. Demande de matériel : demandes soumises, à consolider en commandes fournisseur avec le bouton natif « Obtenir les articles depuis »."
 
 #. Description of the 'Supplier' (Link) field in DocType 'Webshop Warehouse
 #. Source'
@@ -7383,7 +7378,7 @@ msgid ""
 "Enabling this sets the two matching Stock Settings. Note: a Sales Order "
 "holding reserved stock cannot be picked through a Pick List — deliver it "
 "with a Delivery Note (or release the reservation)."
-msgstr ""
+msgstr "Utilise la réservation de stock d'ERPNext : lorsque la réception d'achat est validée, la marchandise est réservée pour la commande client à l'origine de l'achat. Activer cette option définit les deux réglages de stock correspondants. Remarque : une commande client détenant du stock réservé ne peut pas être préparée via une liste de préparation — livrez-la avec un bon de livraison (ou libérez la réservation)."
 
 #: webshop/controllers/payment_handler.py:77
 msgid "Using existing payment request"
