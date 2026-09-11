@@ -964,6 +964,58 @@ Full setup, gotchas and cleanup: `tests/e2e/README.md`.
 > `npx playwright install chromium` first — otherwise every test is red with
 > "Executable doesn't exist", and the shop has nothing to do with it.
 
+### The visual harness, and what moving the styles taught
+
+`tests/e2e/visual/` (`capture.mjs`, `compare.py`, `pages.json`) captures the shop's
+pages before and after a change and says what moved, page by page, in pixels and in
+height. It is the condition of every lot of the theme work (Obsidian note 19): a
+change to the templates or the stylesheets is not done until the comparison is
+read. Usage and the reasons behind each choice are in `tests/e2e/README.md`.
+
+> **A capture is only worth what it excludes.** Three things had to be silenced
+> before two captures of the *same* build agreed (0.00 %): the page is **not
+> scrolled** (scrolling asks a listing for its next batches, and 96, 120 or 168
+> products arrived depending on the server's load — lazy images are woken with
+> `loading=eager` instead); transitions and animations are frozen (a sticky header
+> caught mid-slide is a difference); and only `<main>` is captured — the site
+> header, the theme's title block and the footer are the site chrome, which changes
+> on its own: another session regenerated osiris' design during a verification,
+> and every page "changed" by 30 %. A page captured on a 502 is `INVALID`, not
+> compared. Read the `items` column before reading `MOVED`.
+
+> **No `<style>` lives in a template any more** (lot 0a, 2026-09-11). Page styles
+> are partials of the shop bundle (`public/scss/webshop_*.scss`); a component a
+> Builder page can include (product carousel, brand carousel, opening hours) has its
+> own `<name>.bundle.scss` and prints it itself, once per request, through
+> `utils/assets.py::component_css` — a Builder page loads neither
+> `web_include_css` nor `web_include_js`. Two exceptions on purpose:
+> `www/maintenance.html` (a self-contained page) and two rules in `macros.html`
+> (a fragment rendered inside Builder pages).
+
+> **A rule inline on one page becomes a rule on every page once bundled.** The
+> harness found six: `thank_you.html` capped `.website-image` at 50 px and the main
+> picture of every product page became a thumbnail; `my_addresses.html` restyled
+> `.card`, `.card-title` and `.badge` (Bootstrap classes), `cgv.html` `.page-title`,
+> `gift_cards.html` `.badge-dark`, `payment-success.html` `.progress-bar`, and
+> `item.html` put `html { scroll-behavior: smooth }` on the catalogue too. Every
+> page-local rule is scoped on its page's root class (added to the template when it
+> had none: `.thank-you-page`, `.my-addresses-page`, `.cgv-page`). When moving
+> styles, list the selectors that are Bootstrap's or an element's before trusting
+> a green diff.
+
+> **`context.title` is the heading, not only the tab.** The site chrome prints it
+> as the H1 and as the last breadcrumb, so a controller that suffixes it with the
+> shop name for SEO ("Fleece | <shop>", reported on a client shop) writes that suffix
+> on screen. The product page had the split since July (`context.html_title`, fed to
+> `{% block title %}`); the category page got it on 2026-09-11, with
+> `tests/test_item_group_page.py`. The suffix itself is Website Settings' `app_name`
+> — "Neoffice" on an instance nobody renamed.
+
+> **`bench run-tests` on `prod.local` is refused by the fleet's bench** (a guard from
+> incident #245: a fixture takes the default outgoing mail account). Osiris'
+> `subtest.local` has no webshop. A new test module runs in CI only — put it in
+> `ci.yml`'s blocking list, or it is never read.
+
 ### Testing with a non-desk account
 
 After any upstream merge, permission change or routing change, test with **three

@@ -337,9 +337,18 @@ frappe.db.commit()
 
 ## Harnais visuel (`visual/`)
 
-Captures pleine page, desktop et mobile, des pages listées dans `visual/pages.json`,
-puis comparaison pixel à pixel entre deux jeux. Sert de garde-fou à tout chantier
-qui touche les gabarits ou les feuilles de style.
+Captures du contenu de la boutique (l'élément `<main>` : l'en-tête, le bloc titre et le
+pied de page sont le chrome du site, qui change sans nous), desktop et mobile, des
+pages listées dans `visual/pages.json`, puis comparaison pixel à pixel entre deux jeux.
+Sert de garde-fou à tout chantier qui touche les gabarits ou les feuilles de style.
+
+Ce que la capture fait pour être reproductible, mesuré le 2026-09-11 sur osiris :
+elle ne fait **pas défiler** la page (le défilement demande au catalogue ses lots
+suivants, et leur nombre à l'instant de la prise dépend de la charge du serveur —
+96, 120 ou 168 produits d'une prise à l'autre) ; elle réveille les images paresseuses
+en passant `loading=eager` et attend qu'elles soient chargées ; elle gèle transitions
+et animations (l'en-tête collant saisi en plein glissement comptait comme une
+différence). Deux captures du même build : 0,00 % sur chaque page.
 
 ```bash
 export WEBSHOP_E2E_URL=https://<instance>
@@ -353,3 +362,10 @@ npm run visual:compare -- baseline after --threshold 0.5
 Les captures vont dans `visual/shots/<label>/` (non versionné) ; les diffs dans
 `visual/shots/<after>/diff/`, pixels déplacés en rouge. `WEBSHOP_ONLY=cart,checkout`
 restreint la capture à quelques pages.
+
+Le tableau de `compare.py` lit aussi le `summary.json` de chaque jeu : la colonne
+`items` donne le nombre de produits affichés, et une page dont seul ce nombre change
+(pixels communs identiques) est notée `items`, pas `MOVED` ; une capture faite sur une
+page en erreur (statut ≠ 200) est notée `INVALID` — elle ne prouve rien, la reprendre
+(`WEBSHOP_ONLY=<page>` avec le même label écrase la seule capture concernée, mais
+remplace le `summary.json` entier : garder une copie et la fusionner, ou tout reprendre).
