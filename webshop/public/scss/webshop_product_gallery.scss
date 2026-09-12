@@ -47,7 +47,7 @@
 	gap: 8px;
 }
 .wsp-gallery__large { grid-template-columns: repeat(auto-fit, minmax(45%, 1fr)); }
-.wsp-gallery__small { grid-template-columns: repeat(auto-fit, minmax(30%, 1fr)); }
+.wsp-gallery__small { grid-template-columns: repeat(auto-fill, minmax(30%, 1fr)); } /* auto-fill: a lone third photo keeps a third of the width, it does not stretch to the whole row */
 .wsp-gallery__tile {
 	display: block;
 	position: relative;
