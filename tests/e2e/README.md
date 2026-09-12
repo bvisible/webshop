@@ -374,3 +374,22 @@ Le tableau de `compare.py` lit aussi le `summary.json` de chaque jeu : la colonn
 page en erreur (statut ≠ 200) est notée `INVALID` — elle ne prouve rien, la reprendre
 (`WEBSHOP_ONLY=<page>` avec le même label écrase la seule capture concernée, mais
 remplace le `summary.json` entier : garder une copie et la fusionner, ou tout reprendre).
+
+### Audit de contraste (`visual/contrast.mjs`)
+
+La boutique dessine avec les jetons du chrome : ses couleurs n'existent qu'une fois un
+vrai site rendu, et une boutique parfaite sur un chrome clair a livré son titre en sombre
+sur sombre chez un revendeur (2026-09-11). L'audit parcourt chaque texte, champ, `<select>`,
+bouton et icône de `<main>` et de la bande de titre du chrome, compose le fond réel à
+travers les ancêtres (alpha compris, `color(srgb …)` de Chrome compris) et calcule le
+ratio WCAG ; tout ce qui passe sous le seuil est listé avec son chemin, et le code de
+sortie vaut 1 — de quoi verrouiller un déploiement.
+
+```bash
+WEBSHOP_E2E_URL=https://<site> node visual/contrast.mjs /all-products /<une-fiche> /shop-by-category /wishlist
+WEBSHOP_E2E_URL=https://<site> node visual/contrast.mjs            # les pages publiques de pages.json (+ les `auth` avec WEBSHOP_SID)
+WEBSHOP_CONTRAST_MIN=4.5 …                                          # seuil (3 par défaut) ; --json pour la sortie brute
+```
+
+À lancer **sur le site cible** avant tout déploiement chez un client, anonyme suffit. La
+spec `11-contraste` (projet `invite`) fait la même chose sur l'instance de la suite.

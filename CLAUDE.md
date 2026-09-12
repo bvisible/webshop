@@ -1049,6 +1049,46 @@ first by the shop bundle and by every component bundle a Builder page can includ
 > Left as literals on purpose: Google's brand colours on the sign-in button, the
 > white glass buttons over photos, three status borders in the checkout and cart.
 
+### The ground under the shop's pages (`webshop_ground.scss`)
+
+Every page the shop renders carries `body.product-page` — upstream's name for the
+product page alone; the shop gives it to all of its pages, and **a new page controller
+must set `context.body_class = "product-page"` too**, or it keeps Frappe's light-ground
+literals. Under that class, `webshop_ground.scss` re-anchors Frappe's own tokens
+(`--text-color`, `--heading-color`, `--text-muted`, `--text-light`, `--icon-stroke`) on
+the `--wsh-*` tokens inside the page wrapper and the chrome's title band, makes every
+card the shop draws a chrome surface (`.frappe-card`, `.category-card`), and gives
+Frappe's controls (inputs, selects, default and outline buttons, tabs, the current page
+of the pager) the tokens.
+
+> **A light chrome proves nothing for a dark one.** The tokens read the chrome, so their
+> values only exist once a real site renders them. The theme shipped to a dark reseller
+> site on 2026-09-11 with the product title, the filter heading, the search icon and the
+> hearts dark on dark: the chrome's own rule of 2026-09-09 (`body.product-page … { color:
+> #1f272e }`, written while the shop painted a white ground whatever the site) turned the
+> shop's ink dark once the shop followed the chrome. And the reverse on a card Frappe
+> paints white: the shop's light `--wsh-text` on `--card-bg`. Before a client deploy, run
+> `tests/e2e/visual/contrast.mjs` against **that** site (see the e2e README).
+
+> **`var(--x)` resolves where the property is defined, not where it is read.**
+> `--wsh-text: var(--text-color)` on `:root` keeps the chrome's value even when an
+> ancestor redefines `--text-color` — which is what lets the ground re-anchor Frappe's
+> tokens on the shop's. At equal specificity the chrome's inline sheet (in the body) comes
+> after the bundle (in `<head>`): the element in the selector (`div.page-content-wrapper`,
+> `section.site-page-header`) is what wins.
+
+> **The status shades follow the ground.** `--wsh-ok-strong` is
+> `color-mix(--wsh-ok 70%, --wsh-text)` and `--wsh-ok-soft` `color-mix(--wsh-ok 14%,
+> --wsh-bg)` (same for warn and danger): the text shade lightens and the box darkens on
+> a dark site, and both stay within a few units of the old literals on white. A state
+> button (the active view toggle, the current page) inverts the ink instead of using the
+> primary: on one site the primary colour *is* the page background.
+
+> **A CSS-only change deploys with `bench build --app webshop` and `clear-cache`, no
+> restart** — the bundle hash sits in a Redis cache, not in the workers. Through the
+> neoservice hop, run a long build under `nohup` and read its log: the hop closes the
+> connection mid-build.
+
 ### One product card
 
 `templates/includes/product_card.html` is the only product card, in four variants
