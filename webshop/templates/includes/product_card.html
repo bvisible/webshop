@@ -344,7 +344,7 @@
 				</span>
 				{%- endif %}
 			</div>
-			{%- elif variant == "carousel" and (item.formatted_price or item.price) %}
+			{%- elif variant == "carousel" and (item.formatted_price or item.price or item.get("price_info")) %}
 			{{ price_block(item) }}
 			{%- endif %}
 			{%- if variant == "carousel" %}
