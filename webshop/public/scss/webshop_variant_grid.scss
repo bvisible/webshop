@@ -58,16 +58,19 @@
 		align-items: center;
 		justify-content: center;
 		
+		/* //// Neoffice — boxes, not floating cards (2026-09-12): a hover darkens the line, the
+		   chosen one is drawn in ink with a soft tint; the primary-rgb variable it used to
+		   read exists on no chrome. */
 		&:hover:not(.disabled) {
-			border-color: var(--wsh-primary);
-			box-shadow: var(--wsh-shadow);
-			transform: translateY(-2px);
+			border-color: var(--wsh-text);
+			box-shadow: none;
+			transform: none;
 		}
 		
 		&.selected {
-			border-color: var(--wsh-primary);
-			background: var(--primary-light);
-			box-shadow: 0 2px 12px rgba(var(--primary-rgb), 0.3);
+			border-color: var(--wsh-text);
+			background: var(--wsh-primary-soft);
+			box-shadow: 0 0 0 1px var(--wsh-text);
 		}
 		
 		&.disabled {
@@ -118,12 +121,12 @@
 			padding: 0 4px;
 			
 			&.available {
-				background-color: var(--success);
+				background-color: var(--wsh-ok);
 				color: var(--wsh-on-ink);
 			}
 			
 			&.unavailable {
-				background-color: var(--danger);
+				background-color: var(--wsh-danger);
 				width: 8px;
 				height: 8px;
 				min-width: 8px;
@@ -132,9 +135,10 @@
 	}
 	
 	.variant-grid-footer {
-		background: var(--wsh-surface-muted);
-		border-radius: var(--wsh-radius);
-		padding: 0.75rem 1rem;
+		background: transparent;
+		border-top: 1px solid var(--wsh-line);
+		border-radius: 0;
+		padding: 0.75rem 0 0;
 		margin-top: 0.75rem;
 		
 		.selected-variant-info {
@@ -144,15 +148,15 @@
 				font-size: 0.9rem;
 				
 				.selected-variant-name {
-					color: var(--wsh-primary);
+					color: var(--wsh-text);
 					font-weight: 600;
 				}
 			}
 			
 			.selected-variant-price {
 				font-size: 1.1rem;
-				font-weight: 600;
-				color: var(--wsh-primary);
+				font-weight: 700;
+				color: var(--wsh-text);
 				margin-bottom: 0;
 			}
 			

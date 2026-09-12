@@ -20,6 +20,22 @@ test.describe('Catalogue', () => {
 		await page.waitForLoadState('networkidle');
 		expect(await compterTitresVisibles(page), 'double titre revenu').toBe(1);
 	});
+
+	//// The one product card (templates/includes/product_card.html): every tile carries
+	//// its picture, its name and its price through the same hooks, whatever the page.
+	test('chaque carte porte une image, un nom et un prix', async ({page}) => {
+		await page.goto('/all-products');
+		await page.waitForLoadState('networkidle');
+		const cartes = page.locator('.wsp-card--grid');
+		expect(await cartes.count(), 'aucune carte du catalogue').toBeGreaterThan(0);
+		const premiere = cartes.first();
+		await expect(premiere.locator('.wsp-card__media')).toBeVisible();
+		await expect(premiere.locator('.wsp-card__title')).toBeVisible();
+		await expect(premiere.locator('.wsp-card__title')).not.toHaveText(/^\s*$/);
+		//// a gift card shows no price; every other tile does
+		const prix = premiere.locator('.wsp-card__price');
+		if (await prix.count()) await expect(prix).toContainText(/\d/);
+	});
 });
 
 test.describe('Fiche produit', () => {
@@ -47,6 +63,41 @@ test.describe('Fiche produit', () => {
 		const bouton = page.locator('.btn-add-to-cart').first();
 		await expect(bouton).toBeVisible();
 		await expect(bouton).toBeEnabled();
+	});
+
+	//// The promises (free delivery from, delivery time, returns) come from Webshop
+	//// Settings; a shop that set none prints no block at all, so the test can only say
+	//// "when there is a block, it says something".
+	test('les promesses de la boutique se lisent sous le bouton', async ({page}) => {
+		const bloc = page.locator('.wsp-promises');
+		test.skip((await bloc.count()) === 0, 'aucune promesse réglée sur ce site');
+		await expect(bloc).toBeVisible();
+		const lignes = bloc.locator('.wsp-promises__item');
+		expect(await lignes.count()).toBeGreaterThan(0);
+		await expect(lignes.first()).not.toHaveText(/^\s*$/);
+	});
+
+	test('une photo ouvre le zoom, Échap le ferme', async ({page}) => {
+		const image = page.locator('.product-image img').filter({ visible: true }).first();
+		test.skip((await image.count()) === 0, 'produit sans image');
+		await image.click();
+		const zoom = page.locator('.image-zoom-view');
+		await expect(zoom).toBeVisible();
+		await expect(zoom.locator('.zoom-image-container img')).toBeVisible();
+		await page.keyboard.press('Escape');
+		await expect(zoom).toBeHidden();
+	});
+
+	test('la description est un repli ouvert, les autres se déplient', async ({page}) => {
+		const replis = page.locator('details.wsp-acc');
+		test.skip((await replis.count()) === 0, 'produit sans description ni caractéristiques');
+		const premier = replis.first();
+		await expect(premier).toHaveAttribute('open', '');
+		const ferme = page.locator('details.wsp-acc:not([open])').first();
+		if (await ferme.count()) {
+			await ferme.locator('summary').click();
+			await expect(ferme).toHaveAttribute('open', '');
+		}
 	});
 
 	//// The empty reviews block must not take up screen space just to say « 0 avis ».
