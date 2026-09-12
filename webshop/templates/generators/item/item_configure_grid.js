@@ -191,7 +191,11 @@ class ItemConfigureGrid {
 		});
 		
 		// Add to cart handler
-		const addToCartBtn = document.querySelector('.btn-add-to-cart');
+		//// Neoffice — the footer's own button, not the first .btn-add-to-cart of the
+		//// document: the site chrome's cart drawer carries one too, and the grid bound
+		//// its handler to that one — the click on "Add to cart" under the variants did
+		//// nothing at all (2026-09-12).
+		const addToCartBtn = document.querySelector('.variant-grid-footer .btn-add-to-cart');
 		if (addToCartBtn) {
 			addToCartBtn.addEventListener('click', function() {
 				if (self.selected_variant) {
@@ -227,6 +231,9 @@ class ItemConfigureGrid {
 	update_selected_info() {
 		const footer = document.querySelector('.variant-grid-footer');
 		if (!footer) return;
+		// the chosen variant's code on the button, for whoever reads it (the browser tests do)
+		const footerBtn = footer.querySelector('.btn-add-to-cart');
+		if (footerBtn) footerBtn.setAttribute('data-item-code', this.selected_variant ? this.selected_variant.item_code : '');
 		
 		if (this.selected_variant) {
 			// Build variant name from attributes
