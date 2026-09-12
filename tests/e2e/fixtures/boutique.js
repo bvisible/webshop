@@ -250,7 +250,10 @@ async function premierArticleAchetable(page) {
 	for (const route of await articlesDuCatalogue(page, 6)) {
 		const code = await codeArticleDeLaFiche(page, route);
 		if (!code || /-USED-\d+$/.test(code)) continue;
-		if (await page.locator('.condition-info, .condition-badge').count()) continue;
+		//// Only the product's own condition block: since the recommendations carousel
+		//// badges its used items too, a page-wide count rejected every product whose
+		//// neighbours included one, and the whole suite skipped itself.
+		if (await page.locator('.product-condition, .wsp-buy .condition-badge, .condition-info').count()) continue;
 		return {route, item_code: code};
 	}
 	return null;
