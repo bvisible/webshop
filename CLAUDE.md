@@ -1151,6 +1151,24 @@ item group) — carry `brand` and `item_condition`.
 > skipped, none failed). It reads the buy column only now (`.product-condition`,
 > `.wsp-buy .condition-badge`). Read the `skipped` count after every change to a tile.
 
+> **Stars are painted through `--star-fill`, not `fill`.** Frappe's `#icon-star` symbol
+> paints its path with `fill="var(--star-fill)"`, so a `fill` on the `<svg>` never reaches
+> it: five hollow stars sat next to "4/5" until `.star-filled` set `--star-fill`. The
+> Rating field stores 0..1; a review row that compares it with 1..5 draws nothing.
+
+> **A `sid` minted with `bench browse` expires within the hour.** A probe or a capture
+> that still carries it silently runs as Guest: signed-in pages render as a visitor's
+> (empty cart, 403 on an order) and a comparison against them means nothing. Mint again
+> before a signed-in run, and print `frappe.session.user` in any probe that matters.
+
+> **The variant grid binds its button by class.** `document.querySelector('.btn-add-to-cart')`
+> took the first such button of the document; the grid's own is
+> `.variant-grid-footer .btn-add-to-cart`, and it now carries the chosen variant's
+> `data-item-code`. Two demonstration products live on osiris for the eye
+> (`DEMO-TRAIL-01`, five photos, reviews, bought-together, discount; `DEMO-TEE`, 3
+> colours × 4 sizes, three sizes sold out) — `hide_variants` is on there so the twelve
+> sizes do not flood the listings; the brand facet still counts them.
+
 ### Testing with a non-desk account
 
 After any upstream merge, permission change or routing change, test with **three
