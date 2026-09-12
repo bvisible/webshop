@@ -93,7 +93,14 @@ body:has(.site-page-header) .product-header-block .like-action { margin: 0; }
 		grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
 		gap: 48px;
 	}
+	/* Both columns are sticky: a sticky box only holds while its row runs past it, so
+	   the SHORTER column stays in view while the taller one scrolls — the gallery under a
+	   long buy column, the buy column under a tall mosaic. */
+	.wsp-hero > .product-image-wrapper,
 	.wsp-hero > .product-details { position: sticky; top: 24px; }
+	/* under a sticky site header, leave it room */
+	body:has(.site-header--sticky) .wsp-hero > .product-image-wrapper,
+	body:has(.site-header--sticky) .wsp-hero > .product-details { top: 84px; }
 }
 @media (min-width: 1400px) {
 	.wsp-hero { gap: 64px; }
@@ -421,11 +428,6 @@ a.bundle-item-name:hover { color: var(--wsh-primary); }
 .wsp-sections .reviews-list-section,
 .wsp-sections .no-reviews-section { background: transparent !important; padding: 0 !important; border: none !important; box-shadow: none !important; }
 .wsp-reviews-empty .btn-link { color: var(--wsh-text); font-weight: 600; text-decoration: underline; vertical-align: baseline; }
-
-/* bought together: rows in two columns */
-.wsp-fbt { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 32px; }
-@media (min-width: 768px) { .wsp-fbt { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.wsp-fbt .recommended-item { margin-top: 0 !important; padding: 12px 0; border-bottom: 1px solid var(--wsh-line-light); }
 
 /* recently viewed: a strip of small cards */
 .wsp-recent {

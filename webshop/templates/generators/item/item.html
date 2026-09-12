@@ -1,5 +1,4 @@
 {% extends "templates/web.html" %}
-{% from "webshop/templates/includes/macros.html" import recommended_item_row %}
 
 {# //// Neoffice — the browser <title> takes the shop-suffixed variant;
    `title` itself stays the plain product name because themes print it as the
@@ -78,22 +77,14 @@
 	{% endif %}
 
 	{% if has_fbt %}
+	{# //// Neoffice — the same tiles as the recommendations (2026-09-12): the rows of
+	   picture-and-name it used to draw read as a half-empty table. #}
 	<section class="wsp-section wsp-section--fbt frequently-bought-section">
-		<h2 class="wsp-section__title recommendation-header">{{ _("Frequently Bought Together") }}</h2>
-		<div class="wsp-fbt recommendation-container">
-			{% for item in frequently_bought_together[:4] %}
-				{{ recommended_item_row({
-					"website_item_name": item.web_item_name,
-					"route": item.route,
-					"website_item_thumbnail": item.thumbnail or item.website_image,
-					"price_info": {
-						"price_list_rate": item.price,
-						"currency": item.currency,
-						"formatted_price": item.formatted_price
-					} if item.price else None
-				}) }}
-			{% endfor %}
-		</div>
+		{% set website_items = frequently_bought_together %}
+		{% set carousel_title = _("Frequently Bought Together") %}
+		{% set carousel_id = "bought-together-carousel" %}
+		{% set hide_without_image = False %}
+		{% include "templates/includes/product_carousel.html" %}
 	</section>
 	{% endif %}
 
