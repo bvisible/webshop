@@ -9,8 +9,8 @@
 
 .wsp-card--grid,
 .wsp-card--carousel {
-	/* written in the chrome's ink whatever a chrome says on .item-card or .card (a dark
-	   site's white-card rule made the heart's stroke near-black on the dark tile) */
+	/* //// Neoffice — written in the chrome's ink whatever a chrome says on .item-card or
+	   .card (a dark site's white-card rule made the heart's stroke near-black on the tile) */
 	color: var(--wsh-text);
 	.card,
 	.wsp-card__frame {
@@ -205,7 +205,7 @@
 		gap: 6px;
 		margin: 0;
 	}
-	/* muted, not faint: the old price is struck through, it still has to be read (2.5:1 on white as faint) */
+	/* //// Neoffice — muted, not faint: the old price is struck through, it still has to be read (2.5:1 on white as faint) */
 	.striked-price { color: var(--wsh-muted); font-weight: 400; font-size: 0.8rem; margin: 0; opacity: 1; }
 	.product-info-green { color: var(--wsh-danger-strong); font-weight: 700; font-size: 0.8rem; margin: 0; }
 	.loyalty-points-icon-wrapper { position: relative; display: inline-flex; }

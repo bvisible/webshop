@@ -18,13 +18,27 @@
 // whatever an ancestor says. `div.page-content-wrapper` outweighs a rule written on
 // `.page-content-wrapper` with the same class chain, which is what it has to beat.
 
-body.product-page div.page-content-wrapper {
+body.product-page div.page-content-wrapper,
+/* the title band a chrome prints above the shop's page is the shop's title: written in
+   the same ink (the chrome's rule of 2026-09-09 sat on `.site-page-header` too) */
+body.product-page section.site-page-header {
 	color: var(--wsh-text);
 	--text-color: var(--wsh-text);
 	--heading-color: var(--wsh-text);
 	--text-muted: var(--wsh-muted);
 	--text-light: var(--wsh-faint);
 	--icon-stroke: var(--wsh-text);
+}
+
+/* the shop's own containers a chrome may still list among its white cards (the same
+   2026-09-09 rule named .product-card, .item-card and .cart-items): not surfaces, so
+   no ground of their own, but the ink and the tokens are the chrome's inside them */
+body.product-page :is(.cart-items, .item-card, .product-card) {
+	color: var(--wsh-text);
+	--text-color: var(--wsh-text);
+	--heading-color: var(--wsh-text);
+	--text-muted: var(--wsh-muted);
+	--text-light: var(--wsh-faint);
 }
 
 /* A card the shop draws is a chrome surface: dark on a dark site, with the chrome's ink

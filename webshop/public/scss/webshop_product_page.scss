@@ -21,6 +21,7 @@ html:has(.wsp-product) { scroll-behavior: smooth; }
 
 // ---------------------------------------------------------------- header block
 
+/* //// Neoffice — the header block writes in the ink: the heart's stroke is currentColor */
 .product-header-block { margin: 4px 0 20px; color: var(--wsh-text); }
 .product-header-block .product-title-main {
 	font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.1rem);

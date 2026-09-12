@@ -36,6 +36,7 @@
 	--wsh-line-light: var(--border-light, var(--gray-100, #f3f4f6));
 	--wsh-overlay: rgba(0, 0, 0, 0.5);
 
+	// //// Neoffice — the status shades follow the ground (2026-09-12); see the note.
 	// meaning — the chrome has no semantic palette, these are the shop's own. The
 	// "strong" shade is the one written as text, the "soft" one a box behind it; both
 	// lean towards the chrome's ink and ground (2026-09-12), so on a dark site the text
