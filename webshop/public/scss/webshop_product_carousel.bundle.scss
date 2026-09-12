@@ -343,7 +343,7 @@
         .product-carousel .item-card {
           flex: 0 0 calc(42% - 10px) !important;
           width: calc(42% - 10px) !important;
-          min-width: calc(100% - 10px) !important;
+          min-width: 0 !important;
         }
         .product-carousel .carousel-btn {
           width: 35px;
