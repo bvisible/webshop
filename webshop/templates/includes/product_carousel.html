@@ -92,7 +92,9 @@
           // //// half-width block showed four tiny cards, believed it showed two, and
           // //// offered arrows and dots for a row entirely on screen
           // //// (a reseller site, 2026-09-10).
-          carousel.classList.toggle('compact-carousel', carouselWidth < 350);
+          // compact (one card per view) only in a really narrow slot: a phone's page is
+          // 350-390px wide and shows two cards and a half (2026-09-12)
+          carousel.classList.toggle('compact-carousel', carouselWidth < 280);
           let slot = 0;
           if (items.length > 1) {
             slot = items[1].getBoundingClientRect().left - items[0].getBoundingClientRect().left;
