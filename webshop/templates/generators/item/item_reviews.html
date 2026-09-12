@@ -79,11 +79,14 @@
 				   goes on (2026-09-11). #}
 				<p class="wsp-reviews-empty no-reviews-section">
 					{{ _("No reviews yet.") }}
+					{# //// Neoffice — the quiet empty state (2026-09-11): one sentence, and the invitation
+					   is the review button only for a signed-in customer; upstream drew a card. #}
 					{% if frappe.session.user != "Guest" and user_is_customer %}
 						<button type="button" class="btn btn-link btn-write-review p-0" data-web-item="{{ doc.name }}">{{ _("Be the first to review this product") }}</button>
 					{% else %}
 						{{ _("Be the first to review this product") }}
 					{% endif %}
+					{# //// Neoffice — end of the empty state. #}
 				</p>
 			{% endif %}
 		</div>

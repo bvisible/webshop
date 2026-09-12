@@ -15,15 +15,19 @@
 	<div itemprop="review" itemscope itemtype="https://schema.org/Review">
 	</div>
 
+	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top. #}
 	<p class="product-code wsp-buy__meta">
 		{% if doc.brand %}
+		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top. #}
 		<span class="product-brand wsp-buy__brand">
 			<a href="/all-products?field_filters={{ {'brand':[doc.brand]}|tojson|urlencode }}" class="brand-link">
 				{{ _(doc.brand) }}
 			</a>
 		</span>
+		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: · #}
 		<span class="product-separator">·</span>
 		{% endif %}
+		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: _(doc.item_group) #}
 		<span class="product-item-group">{{ _(doc.item_group) }}</span>
 		<span class="product-separator">·</span>
 		<span class="product-item-code" itemprop="name">{{ _("Item Code") }}:</span>
@@ -83,6 +87,7 @@
 		{% endfor %}
 	</div>
 	{% endif %}
+{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: include "templates/generators/item/item_promises.html" #}
 
 	{# the shop's promises, then the trust items the shop typed (Webshop Settings) #}
 	{% include "templates/generators/item/item_promises.html" %}
@@ -112,9 +117,11 @@
 	</div>
 	{% endif %}
 
+	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: place (item.html's script) — so the page never carries a second … #}
 	{# The folds. The description reads here in full — a long one is clamped and opens in
 	   place (item.html's script) — so the page never carries a second copy below. #}
 	{% set _texte = _desc_html | default(doc.web_long_description or doc.description) %}
+	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: set _has_desc = frappe.utils.strip_html(_texte or '') | trim #}
 	{% set _has_desc = frappe.utils.strip_html(_texte or '') | trim %}
 	{% if _has_desc or website_specifications or brand_info %}
 	<div class="wsp-folds">
@@ -163,6 +170,7 @@
 			const $btn = $(e.currentTarget);
 			webshop.webshop.wishlist.wishlist_action($btn);
 		});
+	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: ); #}
 	});
 </script>
 {# //// Neoffice — styles in webshop/public/scss/webshop_product_page.scss (no <style> lives in a template). #}

@@ -113,6 +113,7 @@
 				<span class="in-green has-stock">
 					{{ _('In stock') }}
 					{% if product_info.show_stock_qty and product_info.stock_qty %}
+						{# //// Neoffice — a whole stock prints as an integer: "En stock (24.0)" read as a decimal (2026-09-12). #}
 						({{ (product_info.stock_qty | int) if (product_info.stock_qty | float) == (product_info.stock_qty | int) else product_info.stock_qty }})
 					{% endif %}
 				</span>

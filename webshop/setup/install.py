@@ -322,6 +322,8 @@ CHAMPS_A_CREER_A_L_INSTALLATION = [
 	"add_condition_shop_filter",
 	"add_item_replenishment_field",
 	"seed_follow_up_email_templates",
+	# //// Neoffice — the shop's promises on Website Profile (a per-site override of Webshop
+	# //// Settings); a patch that creates a field belongs here, install-app skips patches.txt.
 	"add_promise_fields_to_website_profile",
 ]
 

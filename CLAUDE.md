@@ -1,3 +1,4 @@
+<!-- //// Neoffice — added file (no upstream equivalent): the fork's guide, read by Claude Code. -->
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.

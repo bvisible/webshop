@@ -2168,6 +2168,8 @@ webshop.ProductView =  class {
 		for (let i = 0; i < itemCount; i++) {
 			if (isGridView) {
 				// Grid skeleton
+				//// Neoffice — the skeleton's columns are the tile's (four from 1200 px, two on
+				//// a phone, product_card.html); upstream drew three of col-md-4 (2026-09-11).
 				skeletonItems += `
 					<div class="col-6 col-md-4 col-xl-3 item-card skeleton-item">
 						<div class="card text-left">

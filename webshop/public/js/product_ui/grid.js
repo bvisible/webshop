@@ -29,14 +29,20 @@ webshop.ProductGrid = class {
 	}
 
 	make() {
+		//// Neoffice — the tile is rendered on the server (templates/includes/product_card.html,
+		//// utils/product_card.py): upstream built it here from template strings, a third copy
+		//// of the card next to the carousel's and the wishlist's (2026-09-11).
 		let html = ``;
 		this.items.forEach((item) => {
+			//// Neoffice — see make(): the listing endpoint sends each item's tile.
 			html += this.get_item_html(item);
 		});
+		//// Neoffice — one append for the whole batch, as before; only the source changed.
 		this.products_section.append(html);
 	}
 
 	get_item_html(item) {
+		//// Neoffice — the server's tile (attach_cards); upstream's 300-line template string is gone.
 		return item.card_html || "";
 	}
 };

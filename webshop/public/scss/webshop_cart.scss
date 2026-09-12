@@ -25,11 +25,13 @@ body[data-path=update-profile] {
 }
 
 .btn.btn-primary:hover {
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	color: var(--wsh-on-primary);
 	background-color: var(--wsh-primary-hover);
 	border-color: var(--wsh-text);
 }
 .btn.btn-primary:focus, .btn.btn-primary.focus {
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	color: var(--wsh-on-primary);
 	background-color: var(--wsh-primary-hover);
 	border-color: var(--wsh-text);
@@ -39,6 +41,7 @@ body[data-path=update-profile] {
 .item-breadcrumbs {
 	.breadcrumb-container {
 		a {
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			color: var(--wsh-text);
 		}
 	}
@@ -50,6 +53,7 @@ body[data-path=update-profile] {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	background: var(--wsh-surface);
 	box-shadow: var(--wsh-shadow-sm);
 	border-radius: var(--wsh-radius-pill);
@@ -88,6 +92,7 @@ body[data-path=update-profile] {
 
 .product-category-section {
 	.card:hover {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		box-shadow: var(--wsh-shadow-lg);
 	}
 
@@ -101,9 +106,11 @@ body[data-path=update-profile] {
 .no-image-item {
 	height: 340px;
 	width: 340px;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	background: var(--wsh-surface-muted);
 	border-radius: var(--wsh-radius);
 	font-size: 2rem;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	color: var(--wsh-faint);
 	display: flex;
 	align-items: center;
@@ -117,6 +124,7 @@ body[data-path=update-profile] {
 		justify-content: center;
 
 		&:hover {
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			box-shadow: var(--wsh-shadow-lg);
 			transition: box-shadow 400ms;
 		}
@@ -154,19 +162,24 @@ body[data-path=update-profile] {
 	.no-image {
 		@include flex(flex, center, center, null);
 		height: 220px;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		background: var(--wsh-surface-muted);
 		width: 100%;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		border-radius: var(--wsh-radius) var(--wsh-radius) 0 0;
 		font-size: 2rem;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-faint);
 	}
 
 	.no-image-list {
 		@include flex(flex, center, center, null);
 		height: 150px;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		background: var(--wsh-surface-muted);
 		border-radius: var(--wsh-radius);
 		font-size: 2rem;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-faint);
 		margin-top: 15px;
 		margin-bottom: 15px;
@@ -194,6 +207,7 @@ body[data-path=update-profile] {
 
 	.product-description {
 		font-size: 12px;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-text);
 		margin: 20px 0;
 		display: -webkit-box;
@@ -207,6 +221,7 @@ body[data-path=update-profile] {
 
 	.product-category {
 		font-size: 13px;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-muted);
 		margin: var(--margin-sm) 0;
 	}
@@ -230,6 +245,7 @@ body[data-path=update-profile] {
 	}
 
 	.product-info-green {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-ok);
 		font-weight: 600;
 	}
@@ -255,13 +271,16 @@ body[data-path=update-profile] {
 }
 
 .list-row {
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	background-color: var(--wsh-surface);
 	padding-bottom: 1rem;
 	padding-top: 1.5rem !important;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	border-radius: var(--wsh-radius);
 	border-bottom: 1px solid var(--wsh-surface-muted);
 
 	&:hover, &:focus-within {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		box-shadow: var(--wsh-shadow-lg);
 		transition: box-shadow 400ms;
 
@@ -293,6 +312,7 @@ body[data-path=update-profile] {
 	.page-header {
 		font-size: 20px;
 		font-weight: 700;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-text);
 		//// Neoffice — the buy button spans the card width.
 		width: 100%;
@@ -300,6 +320,7 @@ body[data-path=update-profile] {
 
 	.filters-section {
 		.title-section {
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			border-bottom: 1px solid var(--wsh-line);
 		}
 
@@ -312,10 +333,12 @@ body[data-path=update-profile] {
 		}
 
 		.filter-lookup-input {
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			background-color: var(--wsh-surface);
 			border: 1px solid var(--wsh-line-strong);
 
 			&:focus {
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				border: 1px solid var(--wsh-primary);
 			}
 		}
@@ -330,12 +353,14 @@ body[data-path=update-profile] {
 		}
 
 		.filter-block {
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			border-bottom: 1px solid var(--wsh-line);
 		}
 
 		.checkbox {
 			.label-area {
 				font-size: 13px;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-text);
 			}
 		}
@@ -398,6 +423,7 @@ body[data-path=update-profile] {
 	border: none !important;
 	overflow: hidden;
 	max-height: 200px;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	background-color: var(--wsh-surface);
 }
 
@@ -473,6 +499,7 @@ body[data-path=update-profile] {
 
 	.btn-view-in-wishlist {
 		svg use {
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			fill: var(--wsh-danger);
 			--icon-stroke: none;
 		}
@@ -488,6 +515,7 @@ body[data-path=update-profile] {
 
 	.product-description {
 		font-size: 13px;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-text);
 	}
 
@@ -500,6 +528,7 @@ body[data-path=update-profile] {
     }
 
 	.product-image {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		border-color: var(--wsh-line) !important;
 		padding: 15px;
 
@@ -536,11 +565,13 @@ body[data-path=update-profile] {
 		width: 6rem;
 		object-fit: contain;
 		padding: 0.5rem;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		border: 1px solid var(--wsh-line);
 		border-radius: var(--wsh-radius-sm);
 		cursor: pointer;
 
 		&:hover, &.active {
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			border-color: var(--wsh-primary);
 		}
 	}
@@ -548,10 +579,12 @@ body[data-path=update-profile] {
 	.item-cart {
 		.product-price {
 			font-size: 22px;
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			color: var(--wsh-text);
 			font-weight: 600;
 
 			.formatted-price {
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-muted);
 				font-size: 14px;
 			}
@@ -563,6 +596,7 @@ body[data-path=update-profile] {
 
 		.offers-heading {
 			font-size: 16px !important;
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			color: var(--wsh-text);
 			.tag-icon {
 				--icon-stroke: var(--gray-500);
@@ -582,18 +616,22 @@ body[data-path=update-profile] {
 		.gift-card-amounts {
 			.form-check {
 			  cursor: pointer;
+			  // //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			  transition: all var(--wsh-motion);
 			  padding: 0.75rem 1.5rem;
+			  // //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			  border-radius: var(--wsh-radius);
 			  margin-right: 1rem;
 			  margin-bottom: 1rem;
 		  
 			  &:hover {
 				transform: translateY(-2px);
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				box-shadow: var(--wsh-shadow-sm);
 			  }
 		  
 			  &.selected {
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				border-color: var(--wsh-primary);
 				box-shadow: 0 0 0 1px var(--wsh-primary);
 			  }
@@ -640,10 +678,13 @@ body[data-path=update-profile] {
 
 			.no-image-r-item {
 				display: flex; justify-content: center;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				background-color: var(--wsh-line);
 				align-items: center;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-faint);
 				margin-top: .15rem;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				border-radius: var(--wsh-radius);
 				height: 100%;
 				font-size: 24px;
@@ -657,6 +698,7 @@ body[data-path=update-profile] {
 			width: 60%;
 
 			a {
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-text);
 				font-weight: 400;
 			}
@@ -664,11 +706,13 @@ body[data-path=update-profile] {
 			.item-price {
 				font-size: 15px;
 				font-weight: 600;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-text);
 			}
 
 			.striked-item-price {
 				font-weight: 500;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-faint);
 			}
 		}
@@ -685,6 +729,7 @@ body[data-path=update-profile] {
 
 .product-code {
 	padding: .5rem 0;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	color: var(--wsh-muted);
 	font-size: 14px;
 	.product-item-group {
@@ -720,6 +765,7 @@ body[data-path=update-profile] {
 				.form-group {
 					.control-label {
 						font-size: var(--text-md);
+						// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 						color: var(--wsh-muted);
 					}
 
@@ -743,9 +789,11 @@ body[data-path=update-profile] {
 .sub-category-container {
 	padding-bottom: .5rem;
 	margin-bottom: 1.25rem;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	border-bottom: 1px solid var(--wsh-line);
 
 	.heading {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-faint);
 	}
 }
@@ -756,6 +804,7 @@ body[data-path=update-profile] {
 		width: fit-content;
 		padding: 6px 12px;
 		margin-bottom: 8px;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		background-color: var(--wsh-primary-soft);
 		font-size: 14px;
 		border-radius: 18px;
@@ -768,6 +817,7 @@ body[data-path=update-profile] {
 	position: relative;
 	top: -10px;
 	left: -12px;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	background: var(--wsh-danger);
 	align-items: center;
 	height: 16px;
@@ -803,6 +853,7 @@ body[data-path=update-profile] {
 
 .total-discount {
 	font-size: 14px;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	color: var(--wsh-primary) !important;
 }
 
@@ -812,6 +863,7 @@ body[data-path=update-profile] {
 	}
 
 	.cart-container {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-text);
 
 		.frappe-card {
@@ -835,12 +887,14 @@ body[data-path=update-profile] {
 			th {
 				font-weight: normal;
 				font-size: 13px;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-muted);
 				padding: var(--padding-sm) 0;
 			}
 
 			td {
 				padding: var(--padding-sm) 0;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-text);
 			}
 
@@ -870,6 +924,7 @@ body[data-path=update-profile] {
 				}
 
 				.item-subtitle {
+					// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 					color: var(--wsh-muted);
 					font-size: 13px;
 				}
@@ -888,6 +943,7 @@ body[data-path=update-profile] {
 
 				.item-rate {
 					font-size: 13px;
+					// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 					color: var(--wsh-muted);
 				}
 
@@ -901,11 +957,13 @@ body[data-path=update-profile] {
 		
 					.striked-price {
 						font-size: 12px;
+						// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 						color: var(--wsh-muted);
 						text-decoration: line-through;
 					}
 					
 					.discount {
+						// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 						color: var(--wsh-ok);
 						font-weight: 600;
 						font-size: 12px;
@@ -914,6 +972,7 @@ body[data-path=update-profile] {
 
 				.free-tag {
 					padding: 4px 8px;
+					// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 					border-radius: var(--wsh-radius-sm);
 					background-color: var(--dark-green-50);
 				}
@@ -930,6 +989,7 @@ body[data-path=update-profile] {
 				.item-grand-total {
 					font-size: 16px;
 					font-weight: 700;
+					// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 					color: var(--wsh-text);
 				}
 				//// Neoffice — the grand-total row of the cart.
@@ -952,11 +1012,13 @@ body[data-path=update-profile] {
 			}
 
 			.remove-cart-item {
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				border-radius: var(--wsh-radius);
 				border: 1px solid var(--wsh-surface-muted);
 				width: 28px;
 				height: 28px;
 				font-weight: 300;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-muted);
 				background-color: var(--wsh-surface-muted);
 				float: right;
@@ -970,12 +1032,14 @@ body[data-path=update-profile] {
 			.remove-cart-item-logo {
 				margin-top: 2px;
 				margin-left: 2.2px;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				fill: var(--wsh-muted) !important;
 			}
 		}
 
 		.cart-payment-addresses {
 			hr {
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				border-color: var(--wsh-line);
 			}
 		}
@@ -983,6 +1047,7 @@ body[data-path=update-profile] {
 		.payment-summary {
 			h6 {
 				padding-bottom: 1rem;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				border-bottom: solid 1px var(--wsh-line);
 			}
 
@@ -995,11 +1060,13 @@ body[data-path=update-profile] {
 				}
 
 				&.grand-total {
+					// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 					border-top: solid 1px var(--wsh-line);
 				}
 			}
 
 			.bill-label {
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-muted);
 			}
 
@@ -1013,6 +1080,7 @@ body[data-path=update-profile] {
 
 			.btn-coupon-code {
 				font-size: 14px;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				border: dashed 1px var(--wsh-faint);
 				box-shadow: none;
 			}
@@ -1039,6 +1107,7 @@ body[data-path=update-profile] {
 
 			.cart-btn {
 				border: none;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				background: var(--wsh-surface-muted);
 				box-shadow: none;
 				width: 24px;
@@ -1048,6 +1117,7 @@ body[data-path=update-profile] {
 				display: flex;
 				font-size: 20px;
 				font-weight: 300;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-muted);
 			}
 
@@ -1059,6 +1129,7 @@ body[data-path=update-profile] {
 				width: 22px;
 				padding: 0;
 				&:disabled {
+					// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 					background: var(--wsh-surface-muted);
 					opacity: 0.65;
 				}
@@ -1074,6 +1145,7 @@ body[data-path=update-profile] {
 				flex-wrap: nowrap;
 				align-items: center;
 				justify-content: flex-start;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				background-color: var(--wsh-surface-muted);
 				width: auto;
 				min-width: 0;
@@ -1099,10 +1171,13 @@ body[data-path=update-profile] {
 .no-image-cart-item {
 	max-height: 112px;
 	display: flex; justify-content: center;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	background-color: var(--wsh-line);
 	align-items: center;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	color: var(--wsh-faint);
 	margin-top: .15rem;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	border-radius: var(--wsh-radius);
 	height: 100%;
 	font-size: 24px;
@@ -1114,6 +1189,7 @@ body[data-path=update-profile] {
 
 	.cart-empty-message {
 		font-size: 18px;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-text);
 		font-weight: bold;
 	}
@@ -1131,6 +1207,7 @@ body[data-path=update-profile] {
 
 	.card-text {
 		font-size: 13px;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-muted);
 	}
 
@@ -1138,11 +1215,13 @@ body[data-path=update-profile] {
 		font-size: 13px;
 
 		svg use {
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			stroke: var(--wsh-primary);
 		}
 	}
 
 	.btn-change-address {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		border: 1px solid var(--wsh-primary);
 		color: var(--wsh-primary);
 		box-shadow: none;
@@ -1156,16 +1235,19 @@ body[data-path=update-profile] {
 .btn-new-address {
 	float: right;
 	font-size: 15px !important;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	color: var(--wsh-primary) !important;
 }
 
 .btn-new-address:hover, .btn-change-address:hover {
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	color: var(--wsh-primary) !important;
 }
 
 .modal .address-card {
 	.card-body {
 		padding: var(--padding-sm);
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		border-radius: var(--wsh-radius);
 		border: 1px solid var(--dark-border-color);
 	}
@@ -1181,6 +1263,7 @@ body[data-path=update-profile] {
     top: -6px;
 
 	border-radius: 66px;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	box-shadow: var(--wsh-shadow);
 	background: var(--wsh-surface);
 	color: var(--wsh-primary);
@@ -1205,6 +1288,7 @@ body[data-path=update-profile] {
 	top: 20px;
 
 	/* White */
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	background: var(--wsh-surface);
 	box-shadow: var(--wsh-shadow);
 	border-radius: 66px;
@@ -1229,6 +1313,7 @@ body[data-path=update-profile] {
 	top: 0;
 
 	/* White */
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	background: var(--wsh-surface);
 	box-shadow: var(--wsh-shadow);
 	border-radius: 66px;
@@ -1272,12 +1357,14 @@ body[data-path=update-profile] {
 	--icon-stroke: #F47A7A !important;
 
 	&:hover {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		fill: var(--wsh-danger);
 	}
 }
 
 .wished {
 	--icon-stroke: none;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	fill: var(--wsh-danger) !important;
 }
 
@@ -1303,14 +1390,17 @@ body[data-path=update-profile] {
 	width: 90px;
 	max-height: 50px; // to avoid resizing on window resize
 	flex: none;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	transition: all var(--wsh-motion);
 
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	color: var(--wsh-on-ink);
 	background-color: var(--wsh-warn);
 	border: 1px solid var(--wsh-warn);
 	font-size: 13px;
 
 	&:hover {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-on-ink);
 	}
 }
@@ -1322,11 +1412,13 @@ body[data-path=update-profile] {
 	// margin-top: auto !important;
 	max-height: 50px; // to avoid resizing on window resize
 	flex: none;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	transition: all var(--wsh-motion);
 
 	font-size: 13px;
 
 	&:hover {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-on-ink);
 	}
 
@@ -1346,6 +1438,7 @@ body[data-path=update-profile] {
 }
 
 .remove-wish {
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	background-color: var(--wsh-surface);
 	position: absolute;
 	cursor: pointer;
@@ -1355,6 +1448,7 @@ body[data-path=update-profile] {
 	height: 32px;
 
 	border-radius: 50%;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	border: 1px solid var(--wsh-surface-muted);
 	box-shadow: var(--wsh-shadow);
 }
@@ -1378,10 +1472,12 @@ body[data-path=update-profile] {
 	}
 
 	.spec-label {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-muted);
 	}
 
 	.spec-content {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-text);
 	}
 }
@@ -1402,6 +1498,7 @@ body[data-path=update-profile] {
 		.reviews-title {
 			font-size: 24px;
 			font-weight: 600;
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			color: var(--wsh-text);
 			display: flex;
 			align-items: center;
@@ -1426,6 +1523,7 @@ body[data-path=update-profile] {
 		font-weight: 500;
 		display: flex;
 		align-items: center;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		transition: all var(--wsh-motion);
 
 		//// Neoffice — its hover state (see the block above).
@@ -1475,6 +1573,7 @@ body[data-path=update-profile] {
 		.rating-score {
 			font-size: 48px;
 			font-weight: 700;
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			color: var(--wsh-text);
 			line-height: 1;
 		}
@@ -1495,17 +1594,20 @@ body[data-path=update-profile] {
 			.star-label {
 				font-size: 14px;
 				font-weight: 500;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-muted);
 				min-width: 20px;
 			}
 
 			.star-icon {
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				fill: var(--wsh-warn);
 				margin-right: 8px;
 			}
 
 			.rating-progress {
 				height: 8px;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				background: var(--wsh-line);
 				border-radius: var(--wsh-radius-sm);
 				overflow: hidden;
@@ -1519,6 +1621,7 @@ body[data-path=update-profile] {
 
 			.percent-label {
 				font-size: 13px;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-muted);
 				min-width: 40px;
 				text-align: right;
@@ -1535,9 +1638,11 @@ body[data-path=update-profile] {
 		border-radius: var(--wsh-radius);
 		padding: 1.5rem;
 		margin-bottom: 1rem;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		transition: all var(--wsh-motion);
 
 		&:hover {
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			box-shadow: var(--wsh-shadow);
 			transform: translateY(-2px);
 		}
@@ -1549,6 +1654,7 @@ body[data-path=update-profile] {
 			.review-title {
 				font-size: 16px;
 				font-weight: 600;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-text);
 				margin-bottom: 0.5rem;
 			}
@@ -1560,11 +1666,13 @@ body[data-path=update-profile] {
 				.rating-text {
 					font-size: 14px;
 					font-weight: 500;
+					// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 					color: var(--wsh-muted);
 				}
 			}
 
 			.badge-success {
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				background: var(--wsh-ok-soft);
 				color: var(--green-700);
 				border: 1px solid var(--green-200);
@@ -1579,6 +1687,7 @@ body[data-path=update-profile] {
 			p {
 				font-size: 15px;
 				line-height: 1.6;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-muted);
 			}
 		}
@@ -1588,6 +1697,7 @@ body[data-path=update-profile] {
 				display: flex;
 				align-items: center;
 				font-size: 14px;
+				// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 				color: var(--wsh-muted);
 
 				.reviewer-name {
@@ -1596,6 +1706,7 @@ body[data-path=update-profile] {
 
 				.review-separator {
 					margin: 0 8px;
+					// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 					color: var(--wsh-faint);
 				}
 			}
@@ -1620,9 +1731,11 @@ body[data-path=update-profile] {
 .rating {
 	--star-fill: var(--gray-300);
 	.star-hover {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		--star-fill: var(--wsh-warn-soft);
 	}
 	.star-click {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		--star-fill: var(--wsh-warn);
 	}
 }
@@ -1632,11 +1745,13 @@ body[data-path=update-profile] {
 .review-signature {
 	display: flex;
 	font-size: 13px;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	color: var(--wsh-faint);
 	font-weight: 400;
 
 	.reviewer {
 		padding-right: 8px;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		color: var(--wsh-muted);
 	}
 }
@@ -1654,6 +1769,7 @@ body[data-path=update-profile] {
 		margin-top: 6px;
 
 		.progress-bar-cosmetic {
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			background-color: var(--wsh-muted);
 			border-radius: var(--wsh-radius);
 		}
@@ -1665,10 +1781,12 @@ body[data-path=update-profile] {
 }
 
 #search-results-container {
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	border: 1px solid var(--wsh-line);
 	padding: .25rem 1rem;
 
 	.category-chip {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		background-color: var(--wsh-surface-muted);
 		border: none !important;
 		box-shadow: none;
@@ -1676,17 +1794,20 @@ body[data-path=update-profile] {
 
 	.recent-search {
 		padding: .5rem .5rem;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		border-radius: var(--wsh-radius);
 		//// Neoffice — the rating progress bars layout (see the block above).
 		display: flex;
 
 		&:hover {
+			// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 			background-color: var(--wsh-surface-muted);
 		}
 	}
 }
 
 #search-box {
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	background-color: var(--wsh-surface);
 	height: 100%;
 	//// Neoffice — indentation of the review body (see the block above).
@@ -1714,12 +1835,14 @@ body[data-path=update-profile] {
 	   colour under Frappe's white icon — a pale square with a white icon on a dark site
 	   (2026-09-12). */
 	.btn-primary {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		background-color: var(--wsh-text);
 		border-color: var(--wsh-text);
 		color: var(--wsh-bg);
 		--icon-stroke: currentColor;
 		box-shadow: none;
 	}
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	.btn:not(.btn-primary) { color: var(--wsh-muted); }
 	.btn:not(.btn-primary):hover { color: var(--wsh-text); }
 }
@@ -1729,6 +1852,7 @@ body[data-path=update-profile] {
 	width: -webkit-fill-available;
 	padding: 50px;
 	text-align: center;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	background-color: var(--wsh-surface-muted);
 	border-top-left-radius: calc(0.75rem - 1px);
 	border-top-right-radius: calc(0.75rem - 1px);
@@ -1739,6 +1863,7 @@ body[data-path=update-profile] {
 
 [data-path="cart"] {
 	.modal-backdrop {
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		background-color: var(--wsh-surface-muted); // lighter backdrop only on cart freeze
 	}
 }
@@ -1767,6 +1892,7 @@ body[data-path=update-profile] {
 }
 
 .alert-error {
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	color: var(--wsh-danger);
 	background-color: var(--wsh-danger-soft);
 	border-color: #f5c6cb;
@@ -1777,6 +1903,7 @@ body[data-path=update-profile] {
 }
 
 .in-green {
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	color: var(--wsh-ok) !important;
 	font-weight: 500;
 }
@@ -1789,6 +1916,7 @@ body[data-path=update-profile] {
 	font-weight: 400;
 	font-size: 14px;
 	line-height: 20px;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	color: var(--wsh-danger);
 }
 
@@ -1812,6 +1940,7 @@ body[data-path=update-profile] {
 	font-size: var(--text-xs);
 	opacity: 0;
 	cursor: copy;
+	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	transition: opacity var(--wsh-motion), transform 3s;
 	pointer-events: none;
 }
@@ -1844,6 +1973,7 @@ input[disabled][title] {
         left: 50%;
         transform: translateX(-50%);
         padding: 5px 10px;
+        // //// Neoffice — tokens (c4df010553, 2026-09-11): 
         background-color: var(--wsh-text);
         color: var(--wsh-on-ink);
         border-radius: var(--wsh-radius-sm);
@@ -1861,6 +1991,7 @@ input[disabled][title] {
         transform: translateX(-50%);
         border-width: 5px;
         border-style: solid;
+        // //// Neoffice — tokens (c4df010553, 2026-09-11): 
         border-color: var(--wsh-text) transparent transparent transparent;
         margin-bottom: -5px;
     }
@@ -1870,6 +2001,7 @@ input[disabled][title] {
 .txtcoupon[disabled],
 .txtreferral_sales_partner[disabled],
 #loyalty-point-to-redeem[disabled] {
+    // //// Neoffice — tokens (c4df010553, 2026-09-11): 
     background-color: var(--wsh-surface-muted);
     opacity: 0.7;
 }
@@ -1878,6 +2010,7 @@ input[disabled][title] {
 .bt-coupon[disabled],
 .bt-loyalty-point[disabled] {
     opacity: 0.7;
+    // //// Neoffice — tokens (c4df010553, 2026-09-11): 
     background-color: var(--wsh-line-strong);
     border-color: var(--wsh-faint);
 }
@@ -1942,10 +2075,13 @@ input[disabled][title] {
 	padding: 0;
 	.result .transaction-list-item {
 		padding: var(--padding-md);
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		background-color: var(--wsh-surface);
 		box-shadow: none;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		border: 1px solid var(--wsh-line-strong);
 		margin-bottom: 15px;
+		// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 		border-radius: var(--wsh-radius);
 	}
 }

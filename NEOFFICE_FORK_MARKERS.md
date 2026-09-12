@@ -144,6 +144,11 @@ the CSV is silently ignored).
 `tests/e2e/package.json` — **added** with the Playwright suite (`36c14da9a6` /
 `1c36a8f365`, 2026-08-27; multi-site specs `d6018e6311`, 2026-08-28).
 
+`tests/e2e/visual/pages.json` — **added** with the visual harness (`09efa8999e`,
+2026-09-11): the pages it captures and audits, with the viewports; the product routes name
+items published on the development instance (`product_mosaic`, `product_full`,
+`product_variable` added on 2026-09-12 for the Modern product page).
+
 ---
 
 ## Whitespace-only divergences
@@ -233,6 +238,7 @@ Every path covered above, spelled in full (the marker checker matches literally)
 
 ```
 tests/e2e/package.json
+tests/e2e/visual/pages.json
 webshop/locale/fr.po
 webshop/locale/main.pot
 webshop/public/web.bundle.js

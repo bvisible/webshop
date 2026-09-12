@@ -27,6 +27,7 @@
 					<h1 class="product-title-main" itemprop="name">{{ _(doc.web_item_name) }}</h1>
 					{% if shopping_cart.cart_settings.enable_wishlist %}
 						<div class="like-action-item-fp like-action {{ 'like-action-wished' if wished else '' }} ml-2"
+							{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: data-item-code=" doc.item_code " #}
 							data-item-code="{{ doc.item_code }}"
 							title="{{ _('Add to Wishlist') }}" aria-label="{{ _('Add to Wishlist') }}">
 							<svg class="icon sm">
@@ -40,12 +41,15 @@
 				</div>
 			</div>
 
+			{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: it, otherwise the item's. Frappe's rule since 2022. It reads in … #}
 			{# ONE description, chosen once for the whole page: the site's if someone wrote
 			   it, otherwise the item's. Frappe's rule since 2022. It reads in full in the
 			   buy column's "Description" fold; a long one is clamped there with a "Show
 			   more" that expands it in place — no second copy further down the page. #}
 			{% set _desc_html = doc.web_long_description if frappe.utils.strip_html(doc.web_long_description or '') else doc.description %}
+{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: The excerpt cuts BETWEEN BLOCKS, not at the character: slicing #}
 
+			{# //// Neoffice — Modern product page (2026-09-11), see the note at the top. #}
 			<div class="product-hero-row wsp-hero">
 				{% include "templates/generators/item/item_image.html" %}
 				{% include "templates/generators/item/item_details.html" %}
@@ -58,14 +62,19 @@
 	</div>
 </div>
 
+{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: an empty "Reviews" card was a wall of nothing above the page's e… #}
 {# The sections under the hero. Each one is there only when it has something to say:
    an empty "Reviews" card was a wall of nothing above the page's end. #}
 {% set has_tabs = show_tabs and tabs %}
+{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: set has_specs = website_specifications #}
 {% set has_content = doc.website_content %}
 {% set has_reviews = shopping_cart.cart_settings.enable_reviews %}
+{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: set has_recommended = shopping_cart.cart_settings.enable_recomme… #}
 {% set has_recommended = shopping_cart.cart_settings.enable_recommendations and recommended_items %}
 {% set has_fbt = shopping_cart.cart_settings.enable_frequently_bought_together and frequently_bought_together %}
+{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: set has_recommendations = show_recommended_items or has_fbt #}
 
+{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: div class="wsp-sections product-info-wrapper"> #}
 <div class="wsp-sections product-info-wrapper">
 	{% if has_recommended %}
 	<section class="wsp-section wsp-section--recommended recommended-item-section">
@@ -88,30 +97,36 @@
 	</section>
 	{% endif %}
 
+	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: if has_tabs #}
 	{% if has_tabs %}
 	<section class="wsp-section wsp-section--tabs category-tabs">
 		{{ web_block("Section with Tabs", values=tabs, add_container=0, add_top_padding=0, add_bottom_padding=0) }}
 	</section>
 	{% endif %}
+{# //// Neoffice — Modern product page (2026-09-11), see the note at the top. #}
 
+	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: if has_content #}
 	{% if has_content %}
 	<section class="wsp-section wsp-section--content">
 		{{ doc.website_content }}
 	</section>
 	{% endif %}
 
+	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: if has_reviews #}
 	{% if has_reviews %}
 	<section class="wsp-section wsp-section--reviews">
 		{% include "templates/generators/item/item_reviews.html" %}
 	</section>
 	{% endif %}
 
+	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: stays hidden when there is nothing but this very product. #}
 	{# Drawn by the script below from what this browser looked at (localStorage);
 	   stays hidden when there is nothing but this very product. #}
 	<section class="wsp-section wsp-section--recent" id="wsp-recently-viewed" hidden>
 		<h2 class="wsp-section__title">{{ _("Recently viewed") }}</h2>
 		<div class="wsp-recent"></div>
 	</section>
+{# //// Neoffice — Modern product page (2026-09-11): the old two-column wrappers closed here (three closing tags gone). #}
 </div>
 {% endblock %}
 
@@ -130,6 +145,7 @@
 	// Track recently viewed products (consumed by the cart drawer, the shop sidebar and
 	// the strip at the bottom of this page)
 	(function() {
+		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: const KEY = 'webshop_recently_viewed'; #}
 		const KEY = 'webshop_recently_viewed';
 		const current = {{ doc.item_code | tojson }};
 		function draw(list) {
@@ -147,9 +163,11 @@
 			section.hidden = false;
 		}
 		try {
+			{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: let list = JSON.parse(localStorage.getItem(KEY) || '[]'); #}
 			let list = JSON.parse(localStorage.getItem(KEY) || '[]');
 			draw(list);
 			const entry = {
+				{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: code: current, #}
 				code: current,
 				name: {{ (doc.web_item_name or doc.item_name or doc.item_code) | tojson }},
 				image: {{ (doc.website_image or '') | tojson }},
@@ -159,6 +177,7 @@
 			if (!entry.route) return;
 			const priceEl = document.querySelector('.product-price');
 			if (priceEl) entry.price = priceEl.textContent.trim().split('\n')[0].trim().slice(0, 24);
+			{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: let list = JSON.parse(localStorage.getItem(KEY) || '[]'); #}
 			list = list.filter(i => i && i.code !== entry.code);
 			list.unshift(entry);
 			localStorage.setItem(KEY, JSON.stringify(list.slice(0, 8)));
@@ -176,6 +195,7 @@
 		} catch (e) { /* storage unavailable */ }
 	})();
 </script>
+{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: script> #}
 <script>
 	// A long description is clamped in the buy column; "Show more" opens it in place.
 	(function() {

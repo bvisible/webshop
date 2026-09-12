@@ -21,6 +21,7 @@
 			</a>
 			{%- endfor %}
 		</div>
+		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top. #}
 		<div class="wsp-gallery__small" role="list">
 			{%- for p in photos[2:] %}
 			<a class="wsp-gallery__tile" href="{{ p.image }}" data-index="{{ loop.index0 + 2 }}" role="listitem" aria-label="{{ _('Zoom') }}">
@@ -41,9 +42,11 @@
 				<img class="website-image wsp-gallery__img" src="{{ photos[0].image }}" alt="{{ photos[0].alt }}" data-index="0">
 			</div>
 			<div class="slideshow-navigation">
+				{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: ‹ #}
 				<button type="button" class="slideshow-btn prev" aria-label="{{ _('Previous image') }}">‹</button>
 				<button type="button" class="slideshow-btn next" aria-label="{{ _('Next image') }}">›</button>
 			</div>
+		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top. #}
 		</div>
 	</div>
 	{%- elif layout == "single" %}
@@ -67,16 +70,20 @@
 			<div class="wsp-gallery__slide" data-index="{{ loop.index0 }}">
 				<img class="{{ 'website-image' if loop.first and layout == 'empty' else '' }} wsp-gallery__img" src="{{ p.image }}" alt="{{ p.alt }}" loading="{{ 'eager' if loop.first else 'lazy' }}" decoding="async">
 			</div>
+			{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: - endfor #}
 			{%- endfor %}
 		</div>
+		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: - if photos | length > 1 #}
 		{%- if photos | length > 1 %}
 		<div class="wsp-gallery__dots" aria-hidden="true">
 			{%- for p in photos %}<span class="wsp-gallery__dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></span>{%- endfor %}
 		</div>
+		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: - endif #}
 		{%- endif %}
 	</div>
 	{%- endif %}
 
+	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top. #}
 	<!-- Full-screen zoom -->
 	<div class="image-zoom-view" style="display: none;" role="dialog" aria-modal="true" aria-label="{{ _('Zoom') }}">
 		<button type="button" class="close" aria-label="{{ _('Close') }}">
@@ -87,16 +94,21 @@
 			</svg>
 		</button>
 		<div class="zoom-content">
+			{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: ‹ #}
 			<button type="button" class="zoom-nav zoom-prev" aria-label="{{ _('Previous image') }}">‹</button>
 			<div class="zoom-image-container"></div>
+			{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: › #}
 			<button type="button" class="zoom-nav zoom-next" aria-label="{{ _('Next image') }}">›</button>
 		</div>
+		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: - if photos | length > 1 #}
 		{%- if photos | length > 1 %}
 		<div class="zoom-thumbnails">
+			{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: - for p in photos #}
 			{%- for p in photos %}
 			<img class="zoom-thumbnail {% if loop.first %}active{% endif %}" src="{{ p.image }}" loading="lazy" decoding="async" alt="{{ p.alt }}" data-index="{{ loop.index0 }}">
 			{%- endfor %}
 		</div>
+		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: - endif #}
 		{%- endif %}
 	</div>
 </div>
@@ -114,6 +126,7 @@ frappe.ready(function() {
 	if (!photos.length) return;
 	let current = 0;
 
+	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: const main = root.querySelector('.wsp-gallery__main img'); #}
 	// --- the rail: thumbnails switch the main picture ---
 	const main = root.querySelector('.wsp-gallery__main img');
 	const thumbs = root.querySelectorAll('.wsp-gallery__thumb');
@@ -126,6 +139,7 @@ frappe.ready(function() {
 	root.querySelectorAll('.slideshow-btn.prev').forEach(b => b.addEventListener('click', () => showRail(current - 1)));
 	root.querySelectorAll('.slideshow-btn.next').forEach(b => b.addEventListener('click', () => showRail(current + 1)));
 
+	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: const strip = root.querySelector('[data-strip]'); #}
 	// --- the strip on a phone: dots follow the scroll ---
 	const strip = root.querySelector('[data-strip]');
 	if (strip) {
@@ -146,6 +160,7 @@ frappe.ready(function() {
 		}));
 	}
 
+	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: const zoom = root.querySelector('.image-zoom-view'); #}
 	// --- the zoom ---
 	const zoom = root.querySelector('.image-zoom-view');
 	const zoomHost = zoom && zoom.querySelector('.zoom-image-container');
@@ -188,6 +203,7 @@ frappe.ready(function() {
 			if (e.key === 'ArrowLeft') showZoom(zoomIndex - 1);
 			if (e.key === 'ArrowRight') showZoom(zoomIndex + 1);
 		});
+	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top. #}
 	}
 });
 </script>

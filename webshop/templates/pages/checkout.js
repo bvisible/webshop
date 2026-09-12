@@ -2977,6 +2977,9 @@ frappe.ready(function() {
             if (inline) {
                 return '<div class="intent-action">' + inner +
                     '<p class="text-muted small mt-2 mb-0 text-center intent-mention">' +
+                    //// Neoffice — through say(): __() resolves nothing on the checkout page, the
+                    //// sentence printed in English next to a translated link (checkout.html seeds
+                    //// window.webshop_checkout_labels).
                     this.say('by_using_you_accept', 'By using this payment form, you accept the') + ' ' + link +
                     '</p></div>';
             }
@@ -3001,11 +3004,13 @@ frappe.ready(function() {
             const conditions = '<div class="form-check mt-3">' +
                 '<input type="checkbox" class="form-check-input cursor-pointer terms-acceptance" id="' + id + '" required>' +
                 '<label class="form-check-label cursor-pointer" for="' + id + '">' +
+                //// Neoffice — say(), same reason as above: no __() catalogue on this page.
                 this.say('by_paying_i_accept', 'By paying, I accept the') + '</label> ' + link + '</div>';
             return '<div class="intent-action" style="position:relative">' +
                 '<div class="intent-veil" style="position:absolute; inset:0; z-index:2; ' +
                 'background:rgba(255,255,255,.72); display:flex; align-items:center; ' +
                 'justify-content:center; text-align:center; padding:1rem">' +
+                //// Neoffice — say(), same reason: no __() catalogue on this page.
                 '<span class="text-muted">' + this.say('accept_terms_to_pay', 'Accept the terms and conditions below to pay') + '</span>' +
                 '</div>' + inner + '</div>' + conditions;
         }
@@ -3048,6 +3053,7 @@ frappe.ready(function() {
                 if (!$terms.prop('checked')) {
                     e.preventDefault();
                     e.stopPropagation();
+                    //// Neoffice — say(), same reason: no __() catalogue on this page.
                     frappe.msgprint(this.say('accept_terms_first', 'Please accept the terms and conditions first.'));
                 }
             });

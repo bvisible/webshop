@@ -322,6 +322,7 @@
 								<use href="#icon-star"></use>
 							</svg>
 						{% endfor %}
+						{# //// Neoffice — the Rating field stores 0..1: a review read "0.6.0"; printed on 5 (2026-09-12). #}
 						<span class="rating-text ml-2">{{ ((review.rating * 5) if review.rating <= 1 else review.rating) | round | int }}/5</span>
 					</div>
 				</div>
