@@ -1494,7 +1494,7 @@ body[data-path=update-profile] {
 			}
 
 			.star-icon {
-				fill: var(--wsh-warn-soft);
+				fill: var(--wsh-warn);
 				margin-right: 8px;
 			}
 
@@ -1506,7 +1506,7 @@ body[data-path=update-profile] {
 
 				//// Neoffice — the per-star progress bars (see the block above).
 				.progress-bar {
-					background: var(--wsh-warn-soft);
+					background: var(--wsh-warn);
 					transition: width 0.6s ease;
 				}
 			}
@@ -1599,7 +1599,7 @@ body[data-path=update-profile] {
 
 //// Neoffice — filled/empty star colours (see the block above).
 .star-filled {
-	fill: var(--wsh-warn-soft);
+	fill: var(--wsh-warn);
 }
 
 //// Neoffice — empty star colour (see the reviews block above).
@@ -1610,10 +1610,10 @@ body[data-path=update-profile] {
 .rating {
 	--star-fill: var(--gray-300);
 	.star-hover {
-		--star-fill: var(--yellow-100);
+		--star-fill: var(--wsh-warn-soft);
 	}
 	.star-click {
-		--star-fill: var(--yellow-300);
+		--star-fill: var(--wsh-warn);
 	}
 }
 //// Neoffice — the review signature block replaces upstream's inline author line

@@ -388,7 +388,9 @@ class WebsiteItem(WebsiteGenerator):
 					filters={
 						"published": 1,
 						"item_group": self.item_group,
-						"name": _name_filter
+						"name": _name_filter,
+						# //// Neoffice — never a variant: a template's page recommended its own sizes
+						"variant_of": ("is", "not set"),
 					},
 					# //// Neoffice — variant_of/item_group fetched so a variant can inherit its template's picture below (40952f3117)
 					# //// Neoffice — brand and condition too: the tile names the one and badges the other

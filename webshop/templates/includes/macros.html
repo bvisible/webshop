@@ -315,12 +315,14 @@
 					<h5 class="review-title mb-1">{{ _(review.review_title) }}</h5>
 					<div class="review-rating mb-2">
 						{% for i in range(1,6) %}
-							{% set fill_class = 'star-filled' if i <= review.rating else 'star-empty' %}
+							{# //// Neoffice — Frappe's Rating field stores 0..1; the row used to compare it with 1..5 and drew five empty stars #}
+							{% set stars = ((review.rating * 5) if review.rating <= 1 else review.rating) | round | int %}
+							{% set fill_class = 'star-filled' if i <= stars else 'star-empty' %}
 							<svg class="icon icon-sm {{ fill_class }}">
 								<use href="#icon-star"></use>
 							</svg>
 						{% endfor %}
-						<span class="rating-text ml-2">{{ review.rating }}.0</span>
+						<span class="rating-text ml-2">{{ ((review.rating * 5) if review.rating <= 1 else review.rating) | round | int }}/5</span>
 					</div>
 				</div>
 				<div class="review-verified">
