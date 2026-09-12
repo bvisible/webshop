@@ -1169,6 +1169,15 @@ item group) — carry `brand` and `item_condition`.
 > colours × 4 sizes, three sizes sold out) — `hide_variants` is on there so the twelve
 > sizes do not flood the listings; the brand facet still counts them.
 
+> **Both hero columns are sticky, and that is what makes the shorter one stay.** A
+> sticky box only holds while its grid row runs past it, so under a tall mosaic the buy
+> column stays, and under a long buy column the gallery stays — no script measures
+> anything. The offset is 84px under a sticky site header (`body:has(.site-header--sticky)`),
+> 24px otherwise. "Bought together" draws the carousel's tiles like the
+> recommendations; a tile prints a price only when the item has one on the **shop's**
+> price list (`Webshop Settings.price_list`) — the listing may price it through the
+> customer's list, the helpers here do not.
+
 ### Testing with a non-desk account
 
 After any upstream merge, permission change or routing change, test with **three
