@@ -11,6 +11,7 @@ no_cache = 1
 
 
 def get_context(context):
+	context.body_class = "product-page"  # //// Neoffice — the shop's ground (webshop_ground.scss)
 	context.title = _("Opening hours")
 	context.parents = [{"name": _("Home"), "route": "/"}]
 	context.hours = opening_hours()

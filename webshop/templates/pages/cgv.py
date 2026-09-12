@@ -6,6 +6,7 @@ from frappe import _
 no_cache = 1
 
 def get_context(context):
+    context.body_class = "product-page"  # //// Neoffice — the shop's ground (webshop_ground.scss)
     """Get CGV content from Webshop Settings"""
     
     # Get webshop settings

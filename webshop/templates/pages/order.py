@@ -8,6 +8,7 @@ from webshop.webshop.doctype.webshop_settings.webshop_settings import show_attac
 
 
 def get_context(context):
+	context.body_class = "product-page"  # //// Neoffice — the shop's ground (webshop_ground.scss)
 	context.no_cache = 1
 	context.show_sidebar = True
 	context.doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)

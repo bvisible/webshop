@@ -1,0 +1,87 @@
+// //// Neoffice — added file (no upstream equivalent). The ground under the shop's pages.
+//
+// Every page the shop renders carries `body.product-page` — upstream's name for the
+// product page alone; the shop gives it to all of its pages (templates/pages/*.py,
+// www/*/index.py) — and sits on the chrome's ground (--wsh-bg), written in the chrome's
+// ink (--wsh-text). This partial says so once, for the page and for what Frappe's bundle
+// draws inside it, so a dark site gets a dark shop with light text and controls that read.
+//
+// Why Frappe's own tokens are re-anchored here: its bundle reads --text-color,
+// --heading-color, --text-muted and --icon-stroke for headings, muted text and icons, and a
+// site chrome may redefine them on an ancestor of the page. A dark reseller site did
+// exactly that on the shop's wrapper (Builder's theme_variables.html, 2026-09-09), back
+// when the shop drew on a white ground whatever the site; once the shop followed the
+// chrome (2026-09-11) the same rule turned its ink dark on its own dark ground — the
+// product title, the filter heading, the search icon and the hearts vanished
+// (2026-09-12). The --wsh-* tokens resolve at :root, where they read the chrome's real
+// values, so pointing Frappe's tokens at them inside the page restores the chrome's ink
+// whatever an ancestor says. `div.page-content-wrapper` outweighs a rule written on
+// `.page-content-wrapper` with the same class chain, which is what it has to beat.
+
+body.product-page div.page-content-wrapper {
+	color: var(--wsh-text);
+	--text-color: var(--wsh-text);
+	--heading-color: var(--wsh-text);
+	--text-muted: var(--wsh-muted);
+	--text-light: var(--wsh-faint);
+	--icon-stroke: var(--wsh-text);
+}
+
+/* A card the shop draws is a chrome surface: dark on a dark site, with the chrome's ink
+   inside. Frappe's bundle paints it white (--card-bg) and a chrome then rightly writes
+   dark text in it — which the shop's light text ran into ("the wishlist is empty", white
+   on white on a dark site, 2026-09-12). The tokens are re-anchored on the card too: a
+   chrome's white-card rule redefines them on the card itself. */
+body.product-page .frappe-card,
+body.product-page .category-card {
+	background-color: var(--wsh-surface);
+	border-color: var(--wsh-line);
+	color: var(--wsh-text);
+	--text-color: var(--wsh-text);
+	--heading-color: var(--wsh-text);
+	--text-muted: var(--wsh-muted);
+	--text-light: var(--wsh-faint);
+}
+
+/* Frappe's controls draw with light-ground literals — gray-700 text in an input, a
+   #f3f3f3 default button, an outline button in the primary colour (the page background
+   itself on one site), tab links in gray: on the shop's pages they take the tokens. */
+body.product-page {
+	.form-control,
+	.custom-select {
+		color: var(--wsh-text);
+		&::placeholder { color: var(--wsh-faint); }
+	}
+	.btn.btn-default,
+	.btn.btn-light {
+		background-color: var(--wsh-surface-muted);
+		border: 1px solid var(--wsh-line);
+		color: var(--wsh-text);
+		&:hover, &:active, &:focus { background-color: var(--wsh-line); color: var(--wsh-text); }
+	}
+	.btn.btn-outline-primary {
+		color: var(--wsh-text);
+		border-color: var(--wsh-line-strong);
+		background-color: transparent;
+		&:hover, &:focus, &:active {
+			background-color: var(--wsh-primary);
+			border-color: var(--wsh-primary);
+			color: var(--wsh-on-primary);
+		}
+	}
+	.nav-tabs .nav-link { color: var(--wsh-muted); }
+	.nav-tabs .nav-link:hover { color: var(--wsh-text); }
+	.nav-tabs .nav-link.active {
+		color: var(--wsh-text);
+		border-bottom-color: var(--wsh-text);
+		background-color: transparent;
+	}
+	/* a state, not a call to action: the current page of the pager inverts the ink,
+	   which reads whatever the chrome's primary is */
+	.btn-page.btn-primary {
+		background-color: var(--wsh-text);
+		border-color: var(--wsh-text);
+		color: var(--wsh-bg);
+		opacity: 1;
+	}
+}

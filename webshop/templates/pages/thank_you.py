@@ -38,6 +38,7 @@ def _visiteur_a_droit(commande) -> bool:
 		return False
 
 def get_context(context):
+	context.body_class = "product-page"  # //// Neoffice — the shop's ground (webshop_ground.scss)
 	# //// Neoffice — Frappe derives context.title from the route when
 	# //// nobody sets it, and never translates it; themes print it as
 	# //// the visible page heading, so the page read "thank-you".

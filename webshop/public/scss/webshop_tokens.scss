@@ -36,16 +36,20 @@
 	--wsh-line-light: var(--border-light, var(--gray-100, #f3f4f6));
 	--wsh-overlay: rgba(0, 0, 0, 0.5);
 
-	// meaning — the chrome has no semantic palette, these are the shop's own
+	// meaning — the chrome has no semantic palette, these are the shop's own. The
+	// "strong" shade is the one written as text, the "soft" one a box behind it; both
+	// lean towards the chrome's ink and ground (2026-09-12), so on a dark site the text
+	// shade lightens and the box darkens. As literals they were the light-ground values,
+	// and a dark reseller site printed "in stock" as dark green on near-black.
 	--wsh-ok: #16a34a;
-	--wsh-ok-strong: #15803d;
-	--wsh-ok-soft: #dcfce7;
+	--wsh-ok-strong: color-mix(in srgb, var(--wsh-ok) 70%, var(--wsh-text));
+	--wsh-ok-soft: color-mix(in srgb, var(--wsh-ok) 14%, var(--wsh-bg));
 	--wsh-warn: #f59e0b;
-	--wsh-warn-strong: #9a6700;
-	--wsh-warn-soft: #fffbeb;
+	--wsh-warn-strong: color-mix(in srgb, var(--wsh-warn) 60%, var(--wsh-text));
+	--wsh-warn-soft: color-mix(in srgb, var(--wsh-warn) 12%, var(--wsh-bg));
 	--wsh-danger: #dc2626;
-	--wsh-danger-strong: #b91c1c;
-	--wsh-danger-soft: #fee2e2;
+	--wsh-danger-strong: color-mix(in srgb, var(--wsh-danger) 70%, var(--wsh-text));
+	--wsh-danger-soft: color-mix(in srgb, var(--wsh-danger) 14%, var(--wsh-bg));
 
 	// shape
 	--wsh-radius-sm: var(--radius-sm, 4px);

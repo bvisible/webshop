@@ -1708,10 +1708,19 @@ body[data-path=update-profile] {
 #toggle-view {
 	float: right;
 
+	/* //// Neoffice — the active view is a state, not a call to action: it inverts the
+	   ink, which reads whatever the chrome's primary is. It used to paint the muted
+	   colour under Frappe's white icon — a pale square with a white icon on a dark site
+	   (2026-09-12). */
 	.btn-primary {
-		background-color: var(--wsh-muted);
-		box-shadow: 0 0 0 0.2rem var(--wsh-faint);
+		background-color: var(--wsh-text);
+		border-color: var(--wsh-text);
+		color: var(--wsh-bg);
+		--icon-stroke: currentColor;
+		box-shadow: none;
 	}
+	.btn:not(.btn-primary) { color: var(--wsh-muted); }
+	.btn:not(.btn-primary):hover { color: var(--wsh-text); }
 }
 
 .placeholder-div {

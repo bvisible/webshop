@@ -12,6 +12,7 @@ no_cache = 1
 
 
 def get_context(context):
+	context.body_class = "product-page"  # //// Neoffice — the shop's ground (webshop_ground.scss)
 	context.no_cache = 1
 	context.show_sidebar = 0
 	# //// Neoffice — msgid rewritten from French to English (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais, traduits en français"): matches the repo's English-msgid/French-msgstr convention, so the string reaches main.pot and fr.po

@@ -63,7 +63,9 @@ module.exports = defineConfig({
 			//// Neoffice — 08-assistant added: its signed-out tests (no first name in the
 			//// greeting, the guest's email field on the team form) skipped forever, since
 			//// this project never matched the file and a conditional skip reads as a pass.
-			testMatch: /(01-authentification|07-nouveau-client|08-assistant|10-quick-order)\.spec\.js/,
+			//// Neoffice — 11-contraste added: the public pages are audited signed out, the way a
+			//// visitor of a client's shop sees them.
+			testMatch: /(01-authentification|07-nouveau-client|08-assistant|10-quick-order|11-contraste)\.spec\.js/,
 			use: {...devices['Desktop Chrome']},
 		},
 		{

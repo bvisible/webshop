@@ -110,6 +110,7 @@ def _require_login_on_b2b_site():
 
 def get_context(context):
 	"""Context for the payment page"""
+	context.body_class = "product-page"  # //// Neoffice — the shop's ground (webshop_ground.scss)
 	# //// Neoffice multi-site — a trade-only site requires a signed-in visitor
 	# //// in order to ORDER.
 	# ////

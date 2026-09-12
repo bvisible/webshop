@@ -7,6 +7,7 @@ from webshop.webshop.shopping_cart.cart import get_cart_quotation, get_party, _g
 
 def get_context(context):
     """Context for the B2B checkout page"""
+    context.body_class = "product-page"  # //// Neoffice — the shop's ground (webshop_ground.scss)
     # //// Neoffice — Frappe derives context.title from the route when nobody
     # //// sets it, and never translates it; themes print it as the visible
     # //// page heading, so the page read "checkout-b2b".

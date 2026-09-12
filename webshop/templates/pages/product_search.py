@@ -19,6 +19,7 @@ from frappe import _
 
 
 def get_context(context):
+	context.body_class = "product-page"  # //// Neoffice — the shop's ground (webshop_ground.scss)
 	# //// Neoffice — themes print context.title as the visible page heading
 	# //// and as the last breadcrumb, and Frappe defaults it to the route
 	# //// name — untranslated. A French shop read "product-search" on screen while
