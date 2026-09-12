@@ -63,6 +63,10 @@ body.product-page .category-card {
 body.product-page {
 	.form-control,
 	.custom-select {
+		/* the ground too: a <select> kept Frappe's light control ground under the ink
+		   (light on light on a dark site, 2026-09-12) — inputs already had it from the bundle */
+		background-color: var(--wsh-surface-muted);
+		border-color: var(--wsh-line-strong);
 		color: var(--wsh-text);
 		&::placeholder { color: var(--wsh-faint); }
 	}
