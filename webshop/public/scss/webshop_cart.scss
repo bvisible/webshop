@@ -372,9 +372,14 @@ body[data-path=update-profile] {
 }
 
 .badge-light {
-	color: var(--wsh-faint);
-	font-size: 0.75rem;
-	font-weight: 500;
+	/* //// Neoffice — the facet counts: a soft pill in the chrome's muted colours; the
+	   white pill with white figures was invisible on a dark chrome (2026-09-12) */
+	background: var(--wsh-surface-muted);
+	color: var(--wsh-muted);
+	border: 1px solid var(--wsh-line);
+	font-weight: 600;
+	border-radius: var(--wsh-radius-pill);
+	padding: 2px 8px;
 }
 
 .children-container {
