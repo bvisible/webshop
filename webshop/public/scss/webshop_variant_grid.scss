@@ -17,14 +17,20 @@
 	.variant-grid-header {
 		margin-bottom: 1rem;
 		
+		/* //// Neoffice — heading and price range in the chrome's text colour: on a dark chrome
+		   both read dark-on-dark (a client shop, 2026-09-12); Bootstrap's .text-primary on the
+		   range is overruled for the same reason */
 		h5 {
 			font-size: 1.1rem;
 			margin-bottom: 0.25rem;
+			color: var(--wsh-text);
 		}
+		.price-range { color: var(--wsh-text) !important; font-weight: 700; }
 		
 		p {
 			font-size: 0.875rem;
 			margin-bottom: 0;
+			color: var(--wsh-muted);
 		}
 	}
 	
