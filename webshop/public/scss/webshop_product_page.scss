@@ -145,9 +145,12 @@ body:has(.site-page-header) .product-header-block .like-action { margin: 0; }
 	margin: 4px 0 6px;
 }
 .wsp-product .wsp-buy .product-price .formatted-price { font-size: 0.85rem; font-weight: 500; color: var(--wsh-muted); }
-.wsp-product .wsp-buy .product-price .formatted-price s { color: var(--wsh-faint); }
+/* //// Neoffice — muted, not faint: the struck price still has to be read (2.5:1 on white as faint,
+   2026-09-12); and the discount badge says its colour with !important because the global
+   .in-green (webshop_cart.scss) does, and painted the badge green on its red-tinted box */
+.wsp-product .wsp-buy .product-price .formatted-price s { color: var(--wsh-muted); }
 .wsp-product .wsp-buy .product-price .in-green {
-	color: var(--wsh-danger-strong);
+	color: var(--wsh-danger-strong) !important;
 	background: var(--wsh-danger-soft);
 	border-radius: var(--wsh-radius-sm);
 	padding: 2px 8px;
