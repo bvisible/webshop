@@ -385,6 +385,9 @@ a.bundle-item-name:hover { color: var(--wsh-primary); }
 .wsp-sections .ratings-reviews-section { margin-top: 0 !important; }
 .wsp-sections .reviews-container { background: transparent; border: none; box-shadow: none; padding: 0; }
 .wsp-reviews-empty { color: var(--wsh-muted); font-size: 0.92rem; margin: 0; }
+/* upstream's reviews block wraps its list in a grey card; the quiet empty line sits on the page */
+.wsp-sections .reviews-list-section,
+.wsp-sections .no-reviews-section { background: transparent !important; padding: 0 !important; border: none !important; box-shadow: none !important; }
 .wsp-reviews-empty .btn-link { color: var(--wsh-text); font-weight: 600; text-decoration: underline; vertical-align: baseline; }
 
 /* bought together: rows in two columns */
