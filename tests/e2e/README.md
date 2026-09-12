@@ -363,6 +363,11 @@ Les captures vont dans `visual/shots/<label>/` (non versionné) ; les diffs dans
 `visual/shots/<after>/diff/`, pixels déplacés en rouge. `WEBSHOP_ONLY=cart,checkout`
 restreint la capture à quelques pages.
 
+Les pages de `pages.json` nomment des articles publiés sur l'instance de développement ;
+`product_mosaic` est une fiche à quatre photos (la galerie en mosaïque), `product_photos`
+une prestation à réserver (une autre page, celle du thème), `product_secondhand` une
+unité d'occasion, `product_variants` un modèle à déclinaisons.
+
 Le tableau de `compare.py` lit aussi le `summary.json` de chaque jeu : la colonne
 `items` donne le nombre de produits affichés, et une page dont seul ce nombre change
 (pixels communs identiques) est notée `items`, pas `MOVED` ; une capture faite sur une

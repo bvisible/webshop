@@ -1144,6 +1144,13 @@ item group) — carry `brand` and `item_condition`.
 > `.card` rules are gone**, not overridden. What is left in `webshop_cart.scss` about
 > `.product-container` is upstream's product page and still dead weight.
 
+> **A fixture that reads the whole page reads the neighbours too.** `premierArticleAchetable`
+> rejected any product whose page carried a `.condition-badge`, to skip one-of-a-kind used
+> units; once the recommendations carousel badged its used items, every page carried one,
+> the fixture answered "no product" and the suite skipped itself green (24 tests, 5
+> skipped, none failed). It reads the buy column only now (`.product-condition`,
+> `.wsp-buy .condition-badge`). Read the `skipped` count after every change to a tile.
+
 ### Testing with a non-desk account
 
 After any upstream merge, permission change or routing change, test with **three
