@@ -1599,11 +1599,15 @@ body[data-path=update-profile] {
 
 //// Neoffice — filled/empty star colours (see the block above).
 .star-filled {
+	/* //// Neoffice — Frappe's star symbol paints its path with var(--star-fill), so a
+	   `fill` on the <svg> never reaches it: five stars stayed hollow next to "4/5" */
+	--star-fill: var(--wsh-warn);
 	fill: var(--wsh-warn);
 }
 
 //// Neoffice — empty star colour (see the reviews block above).
 .star-empty {
+	--star-fill: var(--wsh-line-strong);
 	fill: var(--wsh-line-strong);
 }
 
