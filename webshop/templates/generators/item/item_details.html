@@ -155,10 +155,14 @@
 </div>
 
 <script>
-	$('.page_content').on('click', '.like-action-item-fp', (e) => {
-		// Bind action on wishlist button
-		const $btn = $(e.currentTarget);
-		webshop.webshop.wishlist.wishlist_action($btn);
+	// //// Neoffice — jQuery and the shop bundle load at the end of the body: bound at
+	// //// once, `$` was not defined and the heart on the page did nothing (found on a
+	// //// client shop, 2026-09-12). frappe.ready runs once they are there.
+	frappe.ready(() => {
+		$('.page_content').on('click', '.like-action-item-fp', (e) => {
+			const $btn = $(e.currentTarget);
+			webshop.webshop.wishlist.wishlist_action($btn);
+		});
 	});
 </script>
 {# //// Neoffice — styles in webshop/public/scss/webshop_product_page.scss (no <style> lives in a template). #}

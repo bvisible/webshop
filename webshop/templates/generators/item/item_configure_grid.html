@@ -28,9 +28,15 @@
 						<h6 class="mb-1">{{ _('Selected') }}: <span class="selected-variant-name"></span></h6>
 						<div class="selected-variant-price"></div>
 					</div>
+					{# //// Neoffice — no guest cart: the footer sends the visitor to sign in, as the
+					   plain product page does, instead of a button that answers nothing #}
+					{% if cart_settings.enable_guest_cart == 0 and frappe.session.user == "Guest" %}
+					<a href="/login" class="btn btn-primary" role="button">{{ _("To add to cart, please log in") }}</a>
+					{% else %}
 					<button class="btn btn-primary btn-add-to-cart">
 						{{ _('Add to Cart') }}
 					</button>
+					{% endif %}
 				</div>
 			</div>
 		</div>
