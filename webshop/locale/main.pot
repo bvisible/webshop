@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-10 16:14+0000\n"
-"PO-Revision-Date: 2026-09-10 16:14+0000\n"
+"POT-Creation-Date: 2026-09-12 06:02+0000\n"
+"PO-Revision-Date: 2026-09-12 06:02+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -36,20 +36,8 @@ msgstr ""
 msgid "'Hide Variants' has been automatically disabled. These two features are mutually exclusive: Attribute filters allow customers to filter by variant attributes (like Size, Color), which requires variants to be visible."
 msgstr ""
 
-#: webshop/templates/includes/macros.html:515
+#: webshop/templates/includes/macros.html:423
 msgid "+ {0} more brands"
-msgstr ""
-
-#. Description of the 'Multi-Warehouse Stock' (Section Break) field in DocType
-#. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
-msgid "Multi-warehouse feature: expose several stock sources per product, with labels, lead times and supplier procurement."
-msgstr ""
-
-#. Description of the 'Warehouse Sources Mode' (Select) field in DocType
-#. 'Website Item'
-#: webshop/webshop/doctype/website_item/website_item.json
-msgid "Multi-warehouse: Auto follows Webshop Settings (auto-enabled sources with stock), Custom lists sources below, Off keeps this item single-warehouse."
 msgstr ""
 
 #: webshop/templates/pages/loyalty_points.html:49
@@ -150,6 +138,10 @@ msgstr ""
 msgid "Abandoned carts"
 msgstr ""
 
+#: webshop/templates/generators/item/item_details.html:146
+msgid "About {0}"
+msgstr ""
+
 #: webshop/templates/pages/checkout.html:460
 #: webshop/templates/pages/checkout.py:1187
 msgid "Accept the terms and conditions below to pay"
@@ -198,8 +190,8 @@ msgstr ""
 msgid "Active"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:185
-#: webshop/www/all-products/index.html:182
+#: webshop/templates/generators/item_group.html:176
+#: webshop/www/all-products/index.html:170
 msgid "Active filters:"
 msgstr ""
 
@@ -244,26 +236,32 @@ msgstr ""
 msgid "Add notes"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:259
-#: webshop/templates/generators/item/item_add_to_cart.html:338
-#: webshop/templates/generators/item/item_add_to_cart.html:378
+#: webshop/templates/generators/item/item_add_to_cart.html:250
+#: webshop/templates/generators/item/item_add_to_cart.html:329
+#: webshop/templates/generators/item/item_add_to_cart.html:369
 #: webshop/templates/generators/item/item_configure.js:219
 #: webshop/templates/generators/item/item_configure_grid.html:32
 #: webshop/templates/generators/item/item_configure_grid.js:370
 #: webshop/templates/generators/item/item_configure_grid.js:375
 #: webshop/templates/generators/item/item_configure_grid.js:436
 #: webshop/templates/generators/item/item_configure_grid.js:441
-#: webshop/templates/generators/item_group.html:178
-#: webshop/www/all-products/index.html:171
+#: webshop/templates/generators/item_group.html:169
+#: webshop/templates/includes/product_card.html:117
+#: webshop/www/all-products/index.html:159
 msgid "Add to Cart"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:259
-#: webshop/templates/generators/item/item_add_to_cart.html:338
-#: webshop/templates/generators/item/item_add_to_cart.html:378
-#: webshop/templates/generators/item_group.html:179
-#: webshop/www/all-products/index.html:172
+#: webshop/templates/generators/item/item_add_to_cart.html:250
+#: webshop/templates/generators/item/item_add_to_cart.html:329
+#: webshop/templates/generators/item/item_add_to_cart.html:369
+#: webshop/templates/generators/item_group.html:170
+#: webshop/templates/includes/product_card.html:117
+#: webshop/www/all-products/index.html:160
 msgid "Add to Quote"
+msgstr ""
+
+#: webshop/templates/generators/item/item.html:32
+msgid "Add to Wishlist"
 msgstr ""
 
 #: webshop/templates/includes/cart_component.js:1273
@@ -330,16 +328,16 @@ msgstr ""
 msgid "Address created successfully"
 msgstr ""
 
-#: webshop/webshop/api.py:1274 webshop/www/my_addresses.js:88
+#: webshop/webshop/api.py:1280 webshop/www/my_addresses.js:88
 msgid "Address deleted successfully"
 msgstr ""
 
-#: webshop/webshop/api.py:1146 webshop/webshop/api.py:1190
-#: webshop/webshop/api.py:1242
+#: webshop/webshop/api.py:1152 webshop/webshop/api.py:1196
+#: webshop/webshop/api.py:1248
 msgid "Address not found or access denied"
 msgstr ""
 
-#: webshop/webshop/api.py:1218 webshop/www/my_addresses.js:163
+#: webshop/webshop/api.py:1224 webshop/www/my_addresses.js:163
 msgid "Address updated successfully"
 msgstr ""
 
@@ -380,7 +378,7 @@ msgid "All"
 msgstr ""
 
 #: webshop/templates/includes/breadcrumbs.html:48
-#: webshop/webshop/doctype/override_doctype/item_group.py:147
+#: webshop/webshop/doctype/override_doctype/item_group.py:153
 #: webshop/www/all-products/index.py:16
 msgid "All Products"
 msgstr ""
@@ -410,7 +408,7 @@ msgstr ""
 msgid "All opening hours"
 msgstr ""
 
-#: webshop/www/all-products/index.html:178
+#: webshop/www/all-products/index.html:166
 msgid "All products loaded"
 msgstr ""
 
@@ -467,20 +465,20 @@ msgstr ""
 msgid "Allow users with System Manager or Website Manager roles to access the site during maintenance"
 msgstr ""
 
-#: webshop/www/shop-by-category/index.html:92
+#: webshop/www/shop-by-category/index.html:20
 msgid "Alphabetical (A-Z)"
 msgstr ""
 
-#: webshop/www/shop-by-category/index.html:93
+#: webshop/www/shop-by-category/index.html:21
 msgid "Alphabetical (Z-A)"
 msgstr ""
 
 #: webshop/webshop/doctype/website_item/website_item.py:97
-#: webshop/webshop/doctype/website_item/website_item.py:927
+#: webshop/webshop/doctype/website_item/website_item.py:941
 msgid "Already Published"
 msgstr ""
 
-#: webshop/templates/generators/item/item_details.html:73
+#: webshop/templates/generators/item/item_details.html:69
 msgid "Also available second-hand"
 msgstr ""
 
@@ -529,9 +527,9 @@ msgid "An email containing the connection link has been sent to you. Please chec
 msgstr ""
 
 #: webshop/public/js/auth_dialog.js:809 webshop/public/js/auth_dialog.js:852
-#: webshop/templates/payments/stripe.html:387
-#: webshop/templates/payments/webshopsi.html:418
-#: webshop/templates/payments/webshopsi.html:421
+#: webshop/templates/payments/stripe.html:371
+#: webshop/templates/payments/webshopsi.html:409
+#: webshop/templates/payments/webshopsi.html:412
 msgid "An error occurred"
 msgstr ""
 
@@ -539,13 +537,13 @@ msgstr ""
 msgid "An error occurred during payment initialization"
 msgstr ""
 
-#: webshop/templates/payments/webshopsi.html:545
+#: webshop/templates/payments/webshopsi.html:536
 msgid "An error occurred during payment processing"
 msgstr ""
 
-#: webshop/templates/payments/stripe.html:326
-#: webshop/templates/payments/stripe.html:330
-#: webshop/templates/payments/stripe.html:407
+#: webshop/templates/payments/stripe.html:310
+#: webshop/templates/payments/stripe.html:314
+#: webshop/templates/payments/stripe.html:391
 msgid "An error occurred during payment processing."
 msgstr ""
 
@@ -606,6 +604,12 @@ msgstr ""
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "As it should read on the opening-hours page and in the assistant's answers"
+msgstr ""
+
+#. Description of the 'Delivery Time' (Data) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "As the customer reads it, e.g. 2-4 working days."
 msgstr ""
 
 #: webshop/templates/generators/item/item_inquiry.html:9
@@ -718,10 +722,10 @@ msgstr ""
 msgid "Available for these countries only, if empty, accepts all countries"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:70
+#: webshop/templates/generators/item/item_add_to_cart.html:71
 #: webshop/templates/generators/item/item_bundle_components.html:48
-#: webshop/templates/generators/item_group.html:183
-#: webshop/www/all-products/index.html:176
+#: webshop/templates/generators/item_group.html:174
+#: webshop/www/all-products/index.html:164
 msgid "Available on backorder"
 msgstr ""
 
@@ -768,11 +772,12 @@ msgstr ""
 msgid "Barcode"
 msgstr ""
 
-#: webshop/templates/includes/macros.html:362
+#: webshop/templates/includes/macros.html:270
 msgid "Based on"
 msgstr ""
 
 #: webshop/templates/generators/item/item_reviews.html:83
+#: webshop/templates/generators/item/item_reviews.html:85
 msgid "Be the first to review this product"
 msgstr ""
 
@@ -813,8 +818,9 @@ msgstr ""
 msgid "Bonjour,<br><br>Votre demande « {0} » est enregistrée sous le numéro {1}. Notre équipe la traite et vous répond à cette adresse."
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:156
-#: webshop/www/all-products/index.html:148
+#: webshop/templates/generators/item_group.html:147
+#: webshop/templates/includes/product_card.html:107
+#: webshop/www/all-products/index.html:136
 msgid "Book a slot"
 msgstr ""
 
@@ -822,12 +828,12 @@ msgstr ""
 msgid "Book this payment and raise the invoice?"
 msgstr ""
 
-#: webshop/public/js/override/sales_order.js:102
+#: webshop/public/js/override/sales_order.js:129
 msgid "Book {0} as received, and raise the invoice?"
 msgstr ""
 
 #: webshop/public/js/override/payment_request.js:28
-#: webshop/public/js/override/sales_order.js:109
+#: webshop/public/js/override/sales_order.js:136
 msgid "Booking the payment…"
 msgstr ""
 
@@ -960,12 +966,12 @@ msgstr ""
 msgid "Card Details"
 msgstr ""
 
-#: webshop/templates/payments/stripe.html:143
+#: webshop/templates/payments/stripe.html:127
 msgid "Card payment is not configured. Please choose another payment method."
 msgstr ""
 
-#: webshop/templates/payments/stripe.html:119
-#: webshop/templates/payments/stripe.html:137
+#: webshop/templates/payments/stripe.html:103
+#: webshop/templates/payments/stripe.html:121
 msgid "Card payment is unavailable right now. Please choose another payment method."
 msgstr ""
 
@@ -1067,6 +1073,10 @@ msgstr ""
 msgid "Channel name or id that receives the requests; empty when Raven is not used"
 msgstr ""
 
+#: webshop/templates/generators/item/item_details.html:131
+msgid "Characteristics"
+msgstr ""
+
 #: webshop/templates/pages/checkout_b2b.html:121
 msgid "Chargement des méthodes de livraison..."
 msgstr ""
@@ -1107,7 +1117,7 @@ msgstr ""
 msgid "Choose a saved address"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:93
+#: webshop/templates/generators/item/item_add_to_cart.html:84
 msgid "Choose a stock source"
 msgstr ""
 
@@ -1147,7 +1157,7 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:61
+#: webshop/templates/generators/item_group.html:64
 #: webshop/www/all-products/index.html:41
 msgid "Clear All"
 msgstr ""
@@ -1181,6 +1191,7 @@ msgstr ""
 msgid "Clock"
 msgstr ""
 
+#: webshop/templates/generators/item/item_image.html:82
 #: webshop/webshop/quick_order/api.py:855
 msgid "Close"
 msgstr ""
@@ -1192,7 +1203,7 @@ msgstr ""
 msgid "Closed"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:341
+#: webshop/webshop/utils/store_hours.py:325
 msgid "Closed {0}"
 msgstr ""
 
@@ -1220,8 +1231,8 @@ msgstr ""
 msgid "Code"
 msgstr ""
 
-#: webshop/templates/pages/gift_cards.html:211
-#: webshop/templates/pages/gift_cards.html:223
+#: webshop/templates/pages/gift_cards.html:171
+#: webshop/templates/pages/gift_cards.html:183
 msgid "Code copied to clipboard"
 msgstr ""
 
@@ -1358,7 +1369,7 @@ msgstr ""
 msgid "Continue Selection"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:122
+#: webshop/templates/pages/cart.html:69
 #: webshop/templates/pages/thank_you.html:20
 #: webshop/templates/pages/thank_you.html:218
 msgid "Continue Shopping"
@@ -1499,7 +1510,7 @@ msgid "Cover"
 msgstr ""
 
 #: webshop/public/js/override/item.js:296
-#: webshop/public/js/override/sales_order.js:76
+#: webshop/public/js/override/sales_order.js:103
 msgid "Create"
 msgstr ""
 
@@ -1585,7 +1596,7 @@ msgstr ""
 msgid "Custom"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:207
+#: webshop/templates/generators/item/item_add_to_cart.html:198
 msgid "Custom Amount"
 msgstr ""
 
@@ -1610,8 +1621,8 @@ msgstr ""
 msgid "Customer Group"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:163
-#: webshop/www/all-products/index.html:155
+#: webshop/templates/generators/item_group.html:154
+#: webshop/www/all-products/index.html:143
 msgid "Customer Rating"
 msgstr ""
 
@@ -1680,12 +1691,12 @@ msgstr ""
 msgid "Debtors ({0})"
 msgstr ""
 
-#: webshop/public/js/override/sales_order.js:73
+#: webshop/public/js/override/sales_order.js:100
 msgid "Decides the account on the QR bill."
 msgstr ""
 
 #: webshop/templates/pages/checkout.js:1068
-#: webshop/www/shop-by-category/index.html:91
+#: webshop/www/shop-by-category/index.html:19
 msgid "Default"
 msgstr ""
 
@@ -1742,6 +1753,10 @@ msgstr ""
 msgid "Deleting..."
 msgstr ""
 
+#: webshop/webshop/utils/promises.py:34
+msgid "Delivered in {0}"
+msgstr ""
+
 #: webshop/templates/pages/checkout.js:1069
 msgid "Delivery"
 msgstr ""
@@ -1756,7 +1771,12 @@ msgstr ""
 msgid "Delivery Lead Time"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:110
+#. Label of a Data field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Delivery Time"
+msgstr ""
+
+#: webshop/templates/generators/item/item_add_to_cart.html:101
 #: webshop/templates/includes/cart/cart_items.html:86
 #: webshop/templates/includes/order_summary_items.html:27
 msgid "Delivery in ~{0} days"
@@ -1783,7 +1803,7 @@ msgstr ""
 #. Label of a Text Editor field in DocType 'Homepage Featured Product'
 #. Label of a Small Text field in DocType 'WebshopSI Invoice Installments'
 #. Label of a Text Editor field in DocType 'Wishlist Item'
-#: webshop/templates/generators/item/item.html:302
+#: webshop/templates/generators/item/item_details.html:123
 #: webshop/templates/pages/loyalty_points.html:98
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
 #: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json
@@ -1806,12 +1826,12 @@ msgstr ""
 msgid "Discount value cannot exceed total amount"
 msgstr ""
 
-#: webshop/www/all-products/index.html:180
+#: webshop/www/all-products/index.html:168
 msgid "Discounted Only"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:169
-#: webshop/www/all-products/index.html:161
+#: webshop/templates/generators/item_group.html:160
+#: webshop/www/all-products/index.html:149
 msgid "Discounts"
 msgstr ""
 
@@ -1899,7 +1919,7 @@ msgid "Earn {points} points with this purchase"
 msgstr ""
 
 #: webshop/templates/pages/loyalty_points.html:109
-#: webshop/templates/pages/loyalty_points.html:207
+#: webshop/templates/pages/loyalty_points.html:178
 msgid "Earned"
 msgstr ""
 
@@ -2129,7 +2149,7 @@ msgstr ""
 msgid "Enter Loyalty Points"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:215
+#: webshop/templates/generators/item/item_add_to_cart.html:206
 msgid "Enter amount"
 msgstr ""
 
@@ -2217,7 +2237,7 @@ msgstr ""
 #: webshop/templates/payments/paypal.html:144
 #: webshop/templates/payments/payrexx.html:92
 #: webshop/templates/payments/payrexx.html:120
-#: webshop/templates/payments/stripe.html:427
+#: webshop/templates/payments/stripe.html:411
 #: webshop/templates/payments/wallee.html:278
 msgid "Error creating payment request"
 msgstr ""
@@ -2226,7 +2246,7 @@ msgstr ""
 msgid "Error during quotation retrieval: Cart is empty or quotation not found"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:669
+#: webshop/templates/generators/item/item_add_to_cart.html:629
 msgid "Error generating gift card code"
 msgstr ""
 
@@ -2341,10 +2361,16 @@ msgstr ""
 msgid "Expired"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:177
-#: webshop/templates/includes/product_carousel.html:105
-#: webshop/www/all-products/index.html:170
+#: webshop/templates/generators/item_group.html:168
+#: webshop/templates/includes/product_card.html:113
+#: webshop/templates/includes/product_card.html:351
+#: webshop/www/all-products/index.html:158
 msgid "Explore"
+msgstr ""
+
+#. Label of a Data field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Extra Promise"
 msgstr ""
 
 #: webshop/templates/includes/cart/cart_items.html:21
@@ -2392,8 +2418,8 @@ msgstr ""
 msgid "Fee Percentage"
 msgstr ""
 
-#: webshop/templates/payments/webshopsi.html:411
-#: webshop/templates/payments/webshopsi.html:414
+#: webshop/templates/payments/webshopsi.html:402
+#: webshop/templates/payments/webshopsi.html:405
 msgid "Fees have been updated"
 msgstr ""
 
@@ -2428,8 +2454,8 @@ msgstr ""
 msgid "Filter Options"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:14
-#: webshop/templates/generators/item_group.html:57
+#: webshop/templates/generators/item_group.html:17
+#: webshop/templates/generators/item_group.html:60
 #: webshop/www/all-products/index.html:19
 #: webshop/www/all-products/index.html:37
 msgid "Filters"
@@ -2502,13 +2528,22 @@ msgstr ""
 msgid "Free"
 msgstr ""
 
+#. Label of a Currency field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Free Shipping From"
+msgstr ""
+
+#: webshop/webshop/utils/promises.py:31
+msgid "Free delivery from {0}"
+msgstr ""
+
 #. Label of a Int field in DocType 'Frequently Bought Together'
 #: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
 msgid "Frequency"
 msgstr ""
 
 #. Name of a DocType
-#: webshop/templates/generators/item/item.html:373
+#: webshop/templates/generators/item/item.html:82
 #: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
 msgid "Frequently Bought Together"
 msgstr ""
@@ -2584,7 +2619,7 @@ msgstr ""
 msgid "Gift Card Code"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:176
+#: webshop/templates/generators/item/item_add_to_cart.html:167
 msgid "Gift Card Options"
 msgstr ""
 
@@ -2664,8 +2699,9 @@ msgstr ""
 msgid "Go further than {0}"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:180
-#: webshop/www/all-products/index.html:173
+#: webshop/templates/generators/item_group.html:171
+#: webshop/templates/includes/product_card.html:118
+#: webshop/www/all-products/index.html:161
 msgid "Go to Cart"
 msgstr ""
 
@@ -2673,8 +2709,9 @@ msgstr ""
 msgid "Go to Login"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:181
-#: webshop/www/all-products/index.html:174
+#: webshop/templates/generators/item_group.html:172
+#: webshop/templates/includes/product_card.html:118
+#: webshop/www/all-products/index.html:162
 msgid "Go to Quote"
 msgstr ""
 
@@ -2746,7 +2783,7 @@ msgid "Has Variants"
 msgstr ""
 
 #. Label of a Data field in DocType 'Cross Sell Offer'
-#: webshop/templates/generators/item/item_reviews.html:117
+#: webshop/templates/generators/item/item_reviews.html:114
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
 msgid "Headline"
 msgstr ""
@@ -2810,7 +2847,7 @@ msgstr ""
 msgid "Hide when already in the cart"
 msgstr ""
 
-#: webshop/public/js/override/sales_order.js:60
+#: webshop/public/js/override/sales_order.js:87
 msgid "Hold the order until it is paid"
 msgstr ""
 
@@ -2826,7 +2863,7 @@ msgid "Holidays, inventory, a move: the day counts as closed whatever the weekly
 msgstr ""
 
 #: webshop/templates/includes/breadcrumbs.html:13
-#: webshop/webshop/doctype/override_doctype/item_group.py:157
+#: webshop/webshop/doctype/override_doctype/item_group.py:163
 #: webshop/webshop/product_data_engine/listing_context.py:26
 #: webshop/www/shop-by-category/index.py:20 webshop/www/store-hours/index.py:15
 msgid "Home"
@@ -2962,16 +2999,19 @@ msgstr ""
 msgid "In Stock"
 msgstr ""
 
-#: webshop/www/all-products/index.html:179
+#: webshop/www/all-products/index.html:167
 msgid "In Stock Only"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:105
-#: webshop/templates/generators/item/item_add_to_cart.html:123
+#: webshop/templates/generators/item/item_add_to_cart.html:96
+#: webshop/templates/generators/item/item_add_to_cart.html:114
 #: webshop/templates/generators/item/item_bundle_components.html:56
-#: webshop/templates/generators/item_group.html:175
+#: webshop/templates/generators/item_group.html:166
+#: webshop/templates/includes/product_card.html:50
+#: webshop/templates/includes/product_card.html:53
+#: webshop/templates/includes/product_card.html:55
 #: webshop/templates/includes/product_page.js:36
-#: webshop/www/all-products/index.html:168
+#: webshop/www/all-products/index.html:156
 msgid "In stock"
 msgstr ""
 
@@ -3057,7 +3097,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Purchase Follow-up Entry'
 #. Label of a Link in the Webshop Workspace
 #: webshop/templates/includes/cart/cart_dropdown.html:11
-#: webshop/templates/pages/cart.html:94 webshop/templates/pages/order.html:109
+#: webshop/templates/pages/cart.html:41 webshop/templates/pages/order.html:109
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
 #: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json
 #: webshop/webshop/doctype/item_review/item_review.json
@@ -3071,14 +3111,17 @@ msgstr ""
 #. Label of a Data field in DocType 'Recommended Items'
 #. Label of a Link field in DocType 'Website Item'
 #. Label of a Link field in DocType 'Wishlist Item'
-#: webshop/templates/generators/item/item_details.html:34
-#: webshop/templates/generators/item_group.html:182
+#: webshop/templates/generators/item/item_details.html:29
+#: webshop/templates/generators/item_group.html:173
+#: webshop/templates/includes/product_card.html:217
+#: webshop/templates/includes/product_card.html:225
 #: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json
 #: webshop/webshop/doctype/recommended_items/recommended_items.json
 #: webshop/webshop/doctype/website_item/website_item.json
 #: webshop/webshop/doctype/wishlist_item/wishlist_item.json
+#: webshop/webshop/tests/test_product_card.py:116
 #: webshop/webshop/utils/order_export.py:51
-#: webshop/www/all-products/index.html:175
+#: webshop/www/all-products/index.html:163
 msgid "Item Code"
 msgstr ""
 
@@ -3373,7 +3416,7 @@ msgstr ""
 msgid "Loading categories..."
 msgstr ""
 
-#: webshop/www/all-products/index.html:177
+#: webshop/www/all-products/index.html:165
 msgid "Loading more products..."
 msgstr ""
 
@@ -3431,13 +3474,17 @@ msgstr ""
 msgid "Login with {0}"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:174
-#: webshop/www/all-products/index.html:167
+#: webshop/templates/generators/item_group.html:165
+#: webshop/templates/includes/product_card.html:47
+#: webshop/templates/includes/product_card.html:48
+#: webshop/www/all-products/index.html:155
 msgid "Low stock"
 msgstr ""
 
 #: webshop/templates/includes/cart/cart_payment_summary.html:112
 #: webshop/templates/includes/order_summary.html:96
+#: webshop/templates/includes/product_card.html:236
+#: webshop/templates/includes/product_card.html:342
 #: webshop/templates/pages/checkout.js:2024
 #: webshop/templates/pages/checkout_b2b.html:450
 #: webshop/templates/pages/loyalty_points.html:6
@@ -3530,13 +3577,13 @@ msgstr ""
 msgid "Maximum Amount"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:486
-#: webshop/templates/generators/item/item_add_to_cart.html:511
-#: webshop/templates/generators/item/item_add_to_cart.html:583
+#: webshop/templates/generators/item/item_add_to_cart.html:446
+#: webshop/templates/generators/item/item_add_to_cart.html:471
+#: webshop/templates/generators/item/item_add_to_cart.html:543
 msgid "Maximum available quantity is {0}"
 msgstr ""
 
-#: webshop/templates/web.html:83 webshop/templates/web.html:105
+#: webshop/templates/web.html:77 webshop/templates/web.html:99
 msgid "Menu"
 msgstr ""
 
@@ -3595,7 +3642,7 @@ msgid "Missing required columns: {0}"
 msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Payment Method'
-#: webshop/public/js/override/sales_order.js:69
+#: webshop/public/js/override/sales_order.js:96
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
 msgid "Mode of Payment"
 msgstr ""
@@ -3625,7 +3672,7 @@ msgstr ""
 msgid "Monthly token cap"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:158
+#: webshop/templates/generators/item/item_add_to_cart.html:149
 msgid "More"
 msgstr ""
 
@@ -3642,12 +3689,13 @@ msgstr ""
 msgid "More..."
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:159
-#: webshop/www/all-products/index.html:151
+#: webshop/templates/generators/item_group.html:150
+#: webshop/www/all-products/index.html:139
 msgid "Most Relevant"
 msgstr ""
 
-#: webshop/templates/includes/macros.html:316
+#: webshop/templates/includes/product_card.html:282
+#: webshop/webshop/tests/test_product_card.py:134
 msgid "Move to Cart"
 msgstr ""
 
@@ -3660,6 +3708,18 @@ msgstr ""
 #. Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Multi-site: restrict this source to B2B (reseller) sites or to public sites. Single-site instances always show it."
+msgstr ""
+
+#. Description of the 'Multi-Warehouse Stock' (Section Break) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Multi-warehouse feature: expose several stock sources per product, with labels, lead times and supplier procurement."
+msgstr ""
+
+#. Description of the 'Warehouse Sources Mode' (Select) field in DocType
+#. 'Website Item'
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Multi-warehouse: Auto follows Webshop Settings (auto-enabled sources with stock), Custom lists sources below, Off keeps this item single-warehouse."
 msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:116
@@ -3716,9 +3776,9 @@ msgid "Net Total ("
 msgstr ""
 
 #. Option for the 'Condition' (Select) field in DocType 'Website Item'
-#: webshop/templates/generators/item_group.html:153
+#: webshop/templates/generators/item_group.html:144
 #: webshop/webshop/doctype/website_item/website_item.json
-#: webshop/www/all-products/index.html:145
+#: webshop/www/all-products/index.html:133
 msgid "New"
 msgstr ""
 
@@ -3726,8 +3786,8 @@ msgstr ""
 msgid "New Address"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:162
-#: webshop/www/all-products/index.html:154
+#: webshop/templates/generators/item_group.html:153
+#: webshop/www/all-products/index.html:142
 msgid "New Arrivals"
 msgstr ""
 
@@ -3735,8 +3795,8 @@ msgstr ""
 msgid "New address"
 msgstr ""
 
-#: webshop/templates/includes/brand_carousel.html:116
-#: webshop/templates/includes/product_carousel.html:115
+#: webshop/templates/includes/brand_carousel.html:120
+#: webshop/templates/includes/product_carousel.html:54
 #: webshop/webshop/web_template/hero_slider/hero_slider.html:73
 msgid "Next"
 msgstr ""
@@ -3756,6 +3816,11 @@ msgstr ""
 msgid "Next email"
 msgstr ""
 
+#: webshop/templates/generators/item/item_image.html:45
+#: webshop/templates/generators/item/item_image.html:92
+msgid "Next image"
+msgstr ""
+
 #. Option for the 'Hide Currency Symbol in Shop' (Select) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -3767,16 +3832,12 @@ msgstr ""
 msgid "No Reviews"
 msgstr ""
 
-#: webshop/templates/generators/item/item_reviews.html:82
-msgid "No Reviews Yet"
-msgstr ""
-
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:137
 #: webshop/webshop/shopping_cart/cart.py:3150
 msgid "No active quotation found"
 msgstr ""
 
-#: webshop/templates/includes/brand_carousel.html:573
+#: webshop/templates/includes/brand_carousel.html:334
 msgid "No brands available at the moment"
 msgstr ""
 
@@ -3792,8 +3853,8 @@ msgstr ""
 msgid "No conversion factor found between {0} and {1}"
 msgstr ""
 
-#: webshop/webshop/api.py:1135 webshop/webshop/api.py:1175
-#: webshop/webshop/api.py:1231 webshop/www/my_addresses.py:22
+#: webshop/webshop/api.py:1141 webshop/webshop/api.py:1181
+#: webshop/webshop/api.py:1237 webshop/www/my_addresses.py:22
 msgid "No customer account found"
 msgstr ""
 
@@ -3810,8 +3871,8 @@ msgstr ""
 msgid "No model open. Search for a reference to start."
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:171
-#: webshop/www/all-products/index.html:163
+#: webshop/templates/generators/item_group.html:162
+#: webshop/www/all-products/index.html:151
 msgid "No more discounted products. Returning to first page."
 msgstr ""
 
@@ -3832,12 +3893,12 @@ msgstr ""
 msgid "No price for this item on your price list (price on request)."
 msgstr ""
 
-#: webshop/templates/includes/product_carousel.html:825
+#: webshop/templates/includes/product_carousel.html:292
 msgid "No products available"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:167
-#: webshop/www/all-products/index.html:159
+#: webshop/templates/generators/item_group.html:158
+#: webshop/www/all-products/index.html:147
 #: webshop/www/all-products/not_found.html:1
 msgid "No products found"
 msgstr ""
@@ -3846,7 +3907,7 @@ msgstr ""
 msgid "No products found for"
 msgstr ""
 
-#: webshop/templates/includes/product_carousel.html:823
+#: webshop/templates/includes/product_carousel.html:290
 msgid "No products on sale at the moment"
 msgstr ""
 
@@ -3862,8 +3923,12 @@ msgstr ""
 msgid "No quotation or customer found"
 msgstr ""
 
-#: webshop/www/shop-by-category/index.html:94
+#: webshop/www/shop-by-category/index.html:22
 msgid "No result found for \"{0}\". Try another search."
+msgstr ""
+
+#: webshop/templates/generators/item/item_reviews.html:81
+msgid "No reviews yet."
 msgstr ""
 
 #: webshop/templates/pages/thank_you.html:79
@@ -3874,12 +3939,12 @@ msgstr ""
 msgid "No shipping methods available for your location"
 msgstr ""
 
-#: webshop/templates/payments/webshopsi.html:168
+#: webshop/templates/payments/webshopsi.html:159
 msgid "No special conditions defined."
 msgstr ""
 
-#: webshop/templates/includes/macros.html:552
-#: webshop/templates/includes/macros.html:628
+#: webshop/templates/includes/macros.html:460
+#: webshop/templates/includes/macros.html:536
 msgid "No values"
 msgstr ""
 
@@ -4037,8 +4102,9 @@ msgstr ""
 msgid "On account"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:172
-#: webshop/www/all-products/index.html:164
+#: webshop/templates/generators/item_group.html:163
+#: webshop/templates/includes/product_card.html:41
+#: webshop/www/all-products/index.html:152
 msgid "On backorder"
 msgstr ""
 
@@ -4050,6 +4116,12 @@ msgstr ""
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "One email per delay, comma separated"
+msgstr ""
+
+#. Description of the 'Extra Promise' (Data) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "One more line, e.g. pick-up in store within the hour."
 msgstr ""
 
 #. Description of the 'Opening Hours' (Section Break) field in DocType 'Webshop
@@ -4064,7 +4136,7 @@ msgstr ""
 msgid "Online"
 msgstr ""
 
-#: webshop/webshop/api.py:1078
+#: webshop/webshop/api.py:1084
 msgid "Only System Manager can clear webshop cache"
 msgstr ""
 
@@ -4102,7 +4174,7 @@ msgstr ""
 msgid "Open"
 msgstr ""
 
-#: webshop/public/js/override/sales_order.js:34
+#: webshop/public/js/override/sales_order.js:61
 msgid "Open request {0}"
 msgstr ""
 
@@ -4130,7 +4202,7 @@ msgstr ""
 msgid "Opening hours"
 msgstr ""
 
-#: webshop/webshop/utils/store_hours.py:338
+#: webshop/webshop/utils/store_hours.py:322
 #: webshop/www/store-hours/index.html:18
 msgid "Opening hours are not published."
 msgstr ""
@@ -4218,7 +4290,7 @@ msgstr ""
 msgid "Order Weekday"
 msgstr ""
 
-#: webshop/templates/payments/webshopsi.html:526
+#: webshop/templates/payments/webshopsi.html:517
 msgid "Order confirmed with success"
 msgstr ""
 
@@ -4262,11 +4334,11 @@ msgstr ""
 msgid "Orders"
 msgstr ""
 
-#: webshop/templates/payments/webshopsi.html:433
-#: webshop/templates/payments/webshopsi.html:435
-#: webshop/templates/payments/webshopsi.html:438
-#: webshop/templates/payments/webshopsi.html:471
-#: webshop/templates/payments/webshopsi.html:474
+#: webshop/templates/payments/webshopsi.html:424
+#: webshop/templates/payments/webshopsi.html:426
+#: webshop/templates/payments/webshopsi.html:429
+#: webshop/templates/payments/webshopsi.html:462
+#: webshop/templates/payments/webshopsi.html:465
 msgid "Orders from your country cannot be processed through invoice payment"
 msgstr ""
 
@@ -4285,9 +4357,11 @@ msgstr ""
 
 #: webshop/templates/generators/item/item_add_to_cart.html:3
 #: webshop/templates/generators/item/item_bundle_components.html:52
-#: webshop/templates/generators/item_group.html:173
-#: webshop/templates/includes/macros.html:321
-#: webshop/www/all-products/index.html:165
+#: webshop/templates/generators/item_group.html:164
+#: webshop/templates/includes/product_card.html:44
+#: webshop/templates/includes/product_card.html:287
+#: webshop/webshop/tests/test_product_card.py:87
+#: webshop/www/all-products/index.html:153
 msgid "Out of stock"
 msgstr ""
 
@@ -4313,7 +4387,7 @@ msgstr ""
 msgid "Ouvrir l'assistant"
 msgstr ""
 
-#: webshop/templates/generators/item/item_reviews.html:118
+#: webshop/templates/generators/item/item_reviews.html:115
 msgid "Overall Rating"
 msgstr ""
 
@@ -4322,9 +4396,9 @@ msgid "Où en est ma commande ?"
 msgstr ""
 
 #. Label of a Data field in DocType 'Shop Assistant Conversation'
-#: webshop/templates/generators/item_group.html:164
+#: webshop/templates/generators/item_group.html:155
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json
-#: webshop/www/all-products/index.html:156
+#: webshop/www/all-products/index.html:144
 msgid "Page"
 msgstr ""
 
@@ -4344,11 +4418,11 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:132
+#: webshop/templates/pages/cart.html:79
 msgid "Past Orders"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:135
+#: webshop/templates/pages/cart.html:82
 msgid "Past Quotes"
 msgstr ""
 
@@ -4360,7 +4434,7 @@ msgstr ""
 
 #: webshop/templates/pages/order.html:54 webshop/templates/pages/order.html:56
 #: webshop/templates/payments/stripe.html:36
-#: webshop/templates/payments/stripe.html:182
+#: webshop/templates/payments/stripe.html:166
 msgid "Pay"
 msgstr ""
 
@@ -4462,7 +4536,7 @@ msgid "Payment already processed"
 msgstr ""
 
 #: webshop/public/js/override/payment_request.js:32
-#: webshop/public/js/override/sales_order.js:112
+#: webshop/public/js/override/sales_order.js:139
 msgid "Payment booked"
 msgstr ""
 
@@ -4503,25 +4577,25 @@ msgstr ""
 msgid "Payment received"
 msgstr ""
 
-#: webshop/public/js/override/sales_order.js:45
+#: webshop/public/js/override/sales_order.js:72
 msgid "Payment received ({0})"
 msgstr ""
 
-#: webshop/public/js/override/sales_order.js:26
+#: webshop/public/js/override/sales_order.js:53
 msgid "Payment request"
 msgstr ""
 
-#: webshop/public/js/override/sales_order.js:90
+#: webshop/public/js/override/sales_order.js:117
 msgid "Payment request created"
 msgstr ""
 
 #: webshop/templates/pages/payment-success.html:19
 #: webshop/templates/pages/payment-success.html:42
-#: webshop/templates/payments/stripe.html:359
+#: webshop/templates/payments/stripe.html:343
 msgid "Payment successful!"
 msgstr ""
 
-#: webshop/templates/payments/stripe.html:280
+#: webshop/templates/payments/stripe.html:264
 msgid "Payment was declined. Please check your card or use a different one."
 msgstr ""
 
@@ -4608,7 +4682,7 @@ msgstr ""
 msgid "Please enter a coupon code"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:598
+#: webshop/templates/generators/item/item_add_to_cart.html:558
 msgid "Please enter a valid amount"
 msgstr ""
 
@@ -4618,7 +4692,7 @@ msgstr ""
 
 #: webshop/public/js/auth_dialog.js:602
 #: webshop/templates/payments/paypal.html:83
-#: webshop/templates/payments/stripe.html:459
+#: webshop/templates/payments/stripe.html:443
 #: webshop/templates/payments/wallee.html:104 webshop/webshop/auth/api.py:50
 msgid "Please enter a valid email address"
 msgstr ""
@@ -4627,9 +4701,9 @@ msgstr ""
 msgid "Please enter a valid number of points"
 msgstr ""
 
-#: webshop/templates/payments/webshopsi.html:296
-#: webshop/templates/payments/webshopsi.html:482
-#: webshop/templates/payments/webshopsi.html:484
+#: webshop/templates/payments/webshopsi.html:287
+#: webshop/templates/payments/webshopsi.html:473
+#: webshop/templates/payments/webshopsi.html:475
 msgid "Please enter your date of birth"
 msgstr ""
 
@@ -4654,7 +4728,7 @@ msgstr ""
 msgid "Please fill in all fields"
 msgstr ""
 
-#: webshop/templates/payments/stripe.html:453 webshop/webshop/auth/api.py:40
+#: webshop/templates/payments/stripe.html:437 webshop/webshop/auth/api.py:40
 msgid "Please fill in all required fields"
 msgstr ""
 
@@ -4689,8 +4763,8 @@ msgstr ""
 msgid "Please log in to view your loyalty points."
 msgstr ""
 
-#: webshop/webshop/api.py:1131 webshop/webshop/api.py:1171
-#: webshop/webshop/api.py:1227
+#: webshop/webshop/api.py:1137 webshop/webshop/api.py:1177
+#: webshop/webshop/api.py:1233
 msgid "Please login to continue"
 msgstr ""
 
@@ -4702,8 +4776,8 @@ msgstr ""
 msgid "Please remove loyalty points first"
 msgstr ""
 
-#: webshop/templates/payments/webshopsi.html:494
-#: webshop/templates/payments/webshopsi.html:496
+#: webshop/templates/payments/webshopsi.html:485
+#: webshop/templates/payments/webshopsi.html:487
 msgid "Please select a payment option"
 msgstr ""
 
@@ -4786,10 +4860,15 @@ msgstr ""
 msgid "Preparing payment..."
 msgstr ""
 
-#: webshop/templates/includes/brand_carousel.html:71
-#: webshop/templates/includes/product_carousel.html:34
+#: webshop/templates/includes/brand_carousel.html:75
+#: webshop/templates/includes/product_carousel.html:38
 #: webshop/webshop/web_template/hero_slider/hero_slider.html:65
 msgid "Previous"
+msgstr ""
+
+#: webshop/templates/generators/item/item_image.html:44
+#: webshop/templates/generators/item/item_image.html:90
+msgid "Previous image"
 msgstr ""
 
 #: webshop/templates/includes/cart/cart_dropdown.html:14
@@ -4816,13 +4895,13 @@ msgstr ""
 msgid "Price per 1,000 tokens"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:161
-#: webshop/www/all-products/index.html:153
+#: webshop/templates/generators/item_group.html:152
+#: webshop/www/all-products/index.html:141
 msgid "Price: High to Low"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:160
-#: webshop/www/all-products/index.html:152
+#: webshop/templates/generators/item_group.html:151
+#: webshop/www/all-products/index.html:140
 msgid "Price: Low to High"
 msgstr ""
 
@@ -4853,6 +4932,12 @@ msgstr ""
 msgid "Print"
 msgstr ""
 
+#. Description of the 'Shopping Promises' (Section Break) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Printed on every product page under the buy button. A Website Profile can override them for its site."
+msgstr ""
+
 #. Label of a Int field in DocType 'Cross Sell Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
 msgid "Priority"
@@ -4875,10 +4960,10 @@ msgstr ""
 msgid "Processing payment..."
 msgstr ""
 
-#: webshop/templates/payments/stripe.html:469
+#: webshop/templates/payments/stripe.html:453
 #: webshop/templates/payments/wallee.html:367
 #: webshop/templates/payments/wallee.html:388
-#: webshop/templates/payments/webshopsi.html:509
+#: webshop/templates/payments/webshopsi.html:500
 msgid "Processing..."
 msgstr ""
 
@@ -4898,7 +4983,7 @@ msgid "Product Card Aspect Ratio"
 msgstr ""
 
 #: webshop/templates/generators/item/item_specifications.html:7
-#: webshop/webshop/doctype/website_item/website_item.py:716
+#: webshop/webshop/doctype/website_item/website_item.py:727
 msgid "Product Details"
 msgstr ""
 
@@ -5082,9 +5167,9 @@ msgstr ""
 
 #. Label of a Float field in DocType 'Cross Sell Offer'
 #: webshop/public/js/override/item.js:284
-#: webshop/templates/generators/item/item_add_to_cart.html:318
+#: webshop/templates/generators/item/item_add_to_cart.html:309
 #: webshop/templates/generators/item/item_bundle_components.html:37
-#: webshop/templates/pages/cart.html:95 webshop/templates/pages/order.html:112
+#: webshop/templates/pages/cart.html:42 webshop/templates/pages/order.html:112
 #: webshop/templates/pages/thank_you.html:92
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
 #: webshop/webshop/utils/order_export.py:55
@@ -5096,7 +5181,7 @@ msgstr ""
 msgid "Quantity must be a valid number"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:127 webshop/templates/pages/cart.html:206
+#: webshop/templates/pages/cart.html:74 webshop/templates/pages/cart.html:153
 #: webshop/www/quick-order/index.html:7 webshop/www/quick-order/index.py:18
 msgid "Quick order"
 msgstr ""
@@ -5106,7 +5191,7 @@ msgstr ""
 msgid "Quotation Series"
 msgstr ""
 
-#: webshop/public/js/override/sales_order.js:87
+#: webshop/public/js/override/sales_order.js:114
 msgid "Raising the request…"
 msgstr ""
 
@@ -5135,10 +5220,6 @@ msgstr ""
 msgid "Raven channel"
 msgstr ""
 
-#: webshop/templates/generators/item/item_details.html:155
-msgid "Read the full description"
-msgstr ""
-
 #. Label of a Data field in DocType 'Store Closure'
 #: webshop/webshop/doctype/store_closure/store_closure.json
 msgid "Reason shown to customers"
@@ -5159,13 +5240,10 @@ msgstr ""
 msgid "Recent"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:96
+#: webshop/templates/generators/item/item.html:121
+#: webshop/templates/generators/item_group.html:99
 #: webshop/www/all-products/index.html:91
 msgid "Recently viewed"
-msgstr ""
-
-#: webshop/templates/generators/item/item.html:354
-msgid "Recommended"
 msgstr ""
 
 #. Name of a DocType
@@ -5189,7 +5267,7 @@ msgid "Redeem"
 msgstr ""
 
 #: webshop/templates/pages/loyalty_points.html:111
-#: webshop/templates/pages/loyalty_points.html:207
+#: webshop/templates/pages/loyalty_points.html:178
 msgid "Redeemed"
 msgstr ""
 
@@ -5247,9 +5325,9 @@ msgid "Refresh"
 msgstr ""
 
 #. Option for the 'Condition' (Select) field in DocType 'Website Item'
-#: webshop/templates/generators/item_group.html:154
+#: webshop/templates/generators/item_group.html:145
 #: webshop/webshop/doctype/website_item/website_item.json
-#: webshop/www/all-products/index.html:146
+#: webshop/www/all-products/index.html:134
 msgid "Refurbished"
 msgstr ""
 
@@ -5321,8 +5399,8 @@ msgstr ""
 msgid "Request for Quote"
 msgstr ""
 
-#: webshop/public/js/override/sales_order.js:29
-#: webshop/public/js/override/sales_order.js:55
+#: webshop/public/js/override/sales_order.js:56
+#: webshop/public/js/override/sales_order.js:82
 msgid "Request payment"
 msgstr ""
 
@@ -5362,6 +5440,11 @@ msgstr ""
 msgid "Retour au checkout"
 msgstr ""
 
+#. Label of a Int field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Return Period (days)"
+msgstr ""
+
 #: webshop/templates/includes/mobile_menu.html:44
 msgid "Return to Home"
 msgstr ""
@@ -5375,7 +5458,7 @@ msgid "Returned"
 msgstr ""
 
 #: webshop/public/js/customer_reviews.js:44
-#: webshop/templates/generators/item/item_reviews.html:138
+#: webshop/templates/generators/item/item_reviews.html:135
 msgid "Review Submitted"
 msgstr ""
 
@@ -5481,10 +5564,10 @@ msgstr ""
 msgid "Scheduled"
 msgstr ""
 
-#: webshop/templates/includes/macros.html:469
-#: webshop/templates/includes/macros.html:472
-#: webshop/templates/includes/macros.html:607
-#: webshop/www/all-products/index.html:144
+#: webshop/templates/includes/macros.html:377
+#: webshop/templates/includes/macros.html:380
+#: webshop/templates/includes/macros.html:515
+#: webshop/www/all-products/index.html:132
 msgid "Search"
 msgstr ""
 
@@ -5492,11 +5575,11 @@ msgstr ""
 msgid "Search Results"
 msgstr ""
 
-#: webshop/templates/includes/macros.html:643
+#: webshop/templates/includes/macros.html:551
 msgid "Search Tags"
 msgstr ""
 
-#: webshop/www/shop-by-category/index.html:89
+#: webshop/www/shop-by-category/index.html:17
 msgid "Search a category or a brand"
 msgstr ""
 
@@ -5505,8 +5588,8 @@ msgstr ""
 msgid "Search and SEO"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:157
-#: webshop/www/all-products/index.html:149
+#: webshop/templates/generators/item_group.html:148
+#: webshop/www/all-products/index.html:137
 msgid "Search for Products"
 msgstr ""
 
@@ -5519,11 +5602,11 @@ msgid "Searching…"
 msgstr ""
 
 #. Option for the 'Condition' (Select) field in DocType 'Website Item'
-#: webshop/templates/generators/item_group.html:155
+#: webshop/templates/generators/item_group.html:146
 #: webshop/webshop/doctype/website_item/website_item.json
 #: webshop/webshop/tests/test_shop_by_category.py:124
 #: webshop/www/all-products/index.html:52
-#: webshop/www/all-products/index.html:147
+#: webshop/www/all-products/index.html:135
 msgid "Second-hand"
 msgstr ""
 
@@ -5550,11 +5633,11 @@ msgstr ""
 msgid "Seconds"
 msgstr ""
 
-#: webshop/templates/includes/macros.html:543
+#: webshop/templates/includes/macros.html:451
 msgid "See all brands"
 msgstr ""
 
-#: webshop/templates/includes/macros.html:547
+#: webshop/templates/includes/macros.html:455
 msgid "See all item groups"
 msgstr ""
 
@@ -5566,15 +5649,15 @@ msgstr ""
 msgid "See it in the shop"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:210
+#: webshop/templates/pages/cart.html:157
 msgid "See past orders"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:212
+#: webshop/templates/pages/cart.html:159
 msgid "See past quotations"
 msgstr ""
 
-#: webshop/templates/generators/item/item_details.html:55
+#: webshop/templates/generators/item/item_details.html:50
 msgid "See the new model"
 msgstr ""
 
@@ -5582,7 +5665,7 @@ msgstr ""
 msgid "See the second-hand deals ({0})"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:180
+#: webshop/templates/generators/item/item_add_to_cart.html:171
 msgid "Select Amount"
 msgstr ""
 
@@ -5784,7 +5867,7 @@ msgid "Shop assistant"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/override_doctype/item_group.py:145
+#: webshop/webshop/doctype/override_doctype/item_group.py:151
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Shop by Category"
 msgstr ""
@@ -5794,6 +5877,12 @@ msgstr ""
 #: webshop/templates/pages/cart.py:105
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Shopping Cart"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/templates/generators/item/item_promises.html:12
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Shopping Promises"
 msgstr ""
 
 #. Description of the 'Short Website Description' (Small Text) field in DocType
@@ -5876,7 +5965,7 @@ msgstr ""
 msgid "Show errors"
 msgstr ""
 
-#: webshop/templates/includes/macros.html:522
+#: webshop/templates/includes/macros.html:430
 msgid "Show fewer brands"
 msgstr ""
 
@@ -5885,11 +5974,14 @@ msgstr ""
 msgid "Show in cart"
 msgstr ""
 
+#: webshop/templates/generators/item/item.html:203
 #: webshop/templates/pages/checkout.js:792
 #: webshop/templates/pages/checkout.js:811
 msgid "Show less"
 msgstr ""
 
+#: webshop/templates/generators/item/item.html:199
+#: webshop/templates/generators/item/item.html:203
 #: webshop/templates/pages/checkout.html:408
 #: webshop/templates/pages/checkout.js:796
 msgid "Show more"
@@ -5904,8 +5996,8 @@ msgstr ""
 msgid "Show only items in stock"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:170
-#: webshop/www/all-products/index.html:162
+#: webshop/templates/generators/item_group.html:161
+#: webshop/www/all-products/index.html:150
 msgid "Show only products with discount"
 msgstr ""
 
@@ -5949,7 +6041,7 @@ msgstr ""
 msgid "Sign in"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:346
+#: webshop/templates/generators/item/item_add_to_cart.html:337
 msgid "Sign in to see prices"
 msgstr ""
 
@@ -6008,8 +6100,13 @@ msgstr ""
 msgid "So far"
 msgstr ""
 
+#: webshop/templates/includes/product_card.html:44
+#: webshop/webshop/tests/test_product_card.py:90
+msgid "Sold"
+msgstr ""
+
 #: webshop/templates/generators/item/item_add_to_cart.html:3
-#: webshop/www/all-products/index.html:166
+#: webshop/www/all-products/index.html:154
 msgctxt "second-hand unit"
 msgid "Sold"
 msgstr ""
@@ -6023,8 +6120,8 @@ msgstr ""
 msgid "Something went wrong!"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:168
-#: webshop/www/all-products/index.html:160
+#: webshop/templates/generators/item_group.html:159
+#: webshop/www/all-products/index.html:148
 msgid "Something went wrong. Please refresh or contact us."
 msgstr ""
 
@@ -6036,12 +6133,12 @@ msgstr ""
 msgid "Sorry, something went wrong. Please refresh."
 msgstr ""
 
-#: webshop/www/shop-by-category/index.html:90
+#: webshop/www/shop-by-category/index.html:18
 msgid "Sort by"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:158
-#: webshop/www/all-products/index.html:150
+#: webshop/templates/generators/item_group.html:149
+#: webshop/www/all-products/index.html:138
 msgid "Sort by:"
 msgstr ""
 
@@ -6206,7 +6303,7 @@ msgid "Subject"
 msgstr ""
 
 #: webshop/public/js/customer_reviews.js:53
-#: webshop/templates/generators/item/item_reviews.html:147
+#: webshop/templates/generators/item/item_reviews.html:144
 msgid "Submit"
 msgstr ""
 
@@ -6219,11 +6316,11 @@ msgid "Submitted"
 msgstr ""
 
 #: webshop/public/js/customer_reviews.js:39
-#: webshop/templates/generators/item/item_reviews.html:133
+#: webshop/templates/generators/item/item_reviews.html:130
 msgid "Submitting Review ..."
 msgstr ""
 
-#: webshop/templates/pages/cart.html:99
+#: webshop/templates/pages/cart.html:46
 #: webshop/templates/pages/thank_you.html:155
 msgid "Subtotal"
 msgstr ""
@@ -6314,7 +6411,7 @@ msgstr ""
 msgid "Tabs"
 msgstr ""
 
-#: webshop/templates/includes/macros.html:640
+#: webshop/templates/includes/macros.html:548
 msgid "Tags"
 msgstr ""
 
@@ -6343,7 +6440,7 @@ msgid "Template Path"
 msgstr ""
 
 #. Label of a Link field in DocType 'WebshopSI Settings'
-#: webshop/templates/pages/cart.html:154
+#: webshop/templates/pages/cart.html:101
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
 msgid "Terms and Conditions"
 msgstr ""
@@ -6366,7 +6463,7 @@ msgstr ""
 msgid "Thank you for submitting your review"
 msgstr ""
 
-#: webshop/templates/generators/item/item_reviews.html:137
+#: webshop/templates/generators/item/item_reviews.html:134
 msgid "Thank you for the review"
 msgstr ""
 
@@ -6462,21 +6559,27 @@ msgstr ""
 msgid "The order amount does not match the criteria of the selected payment option"
 msgstr ""
 
+#. Description of the 'Free Shipping From' (Currency) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "The order amount from which delivery is free. Empty: no such promise."
+msgstr ""
+
 #. Description of the 'Show at checkout' (Check) field in DocType 'Cross Sell
 #. Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
 msgid "The order bump: one box to tick before paying"
 msgstr ""
 
-#: webshop/public/js/override/sales_order.js:62
+#: webshop/public/js/override/sales_order.js:89
 msgid "The order is put On Hold and the request says the goods are reserved. Uncheck for a deposit on an order that ships anyway."
 msgstr ""
 
-#: webshop/templates/payments/stripe.html:213
+#: webshop/templates/payments/stripe.html:197
 msgid "The payment could not be completed. Please try again."
 msgstr ""
 
-#: webshop/templates/payments/stripe.html:433
+#: webshop/templates/payments/stripe.html:417
 msgid "The payment could not be started. Your card has not been charged. Please try again."
 msgstr ""
 
@@ -6646,10 +6749,10 @@ msgstr ""
 msgid "To Date"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:246
-#: webshop/templates/generators/item/item_add_to_cart.html:300
+#: webshop/templates/generators/item/item_add_to_cart.html:237
+#: webshop/templates/generators/item/item_add_to_cart.html:291
 #: webshop/templates/generators/item/item_configure.js:207
-#: webshop/templates/includes/macros.html:306
+#: webshop/templates/includes/product_card.html:273
 msgid "To add to cart, please log in"
 msgstr ""
 
@@ -6774,7 +6877,7 @@ msgstr ""
 msgid "Télécharger la commande en Excel"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:63
+#: webshop/templates/generators/item/item_add_to_cart.html:64
 #: webshop/webshop/utils/order_export.py:56
 msgid "UOM"
 msgstr ""
@@ -6925,8 +7028,8 @@ msgid "Validate Order"
 msgstr ""
 
 #: webshop/templates/payments/webshopsi.html:112
-#: webshop/templates/payments/webshopsi.html:402
-#: webshop/templates/payments/webshopsi.html:448
+#: webshop/templates/payments/webshopsi.html:393
+#: webshop/templates/payments/webshopsi.html:439
 msgid "Validate my order"
 msgstr ""
 
@@ -6957,7 +7060,7 @@ msgid "Variant of"
 msgstr ""
 
 #. Label of a Check field in DocType 'Item Review'
-#: webshop/templates/includes/macros.html:424
+#: webshop/templates/includes/macros.html:332
 #: webshop/webshop/doctype/item_review/item_review.json
 msgid "Verified Purchase"
 msgstr ""
@@ -6996,7 +7099,7 @@ msgstr ""
 msgid "View Product"
 msgstr ""
 
-#: webshop/templates/includes/brand_carousel.html:108
+#: webshop/templates/includes/brand_carousel.html:112
 msgid "View Products"
 msgstr ""
 
@@ -7017,13 +7120,13 @@ msgstr ""
 msgid "View all results"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:267
-#: webshop/templates/generators/item/item_add_to_cart.html:295
+#: webshop/templates/generators/item/item_add_to_cart.html:258
+#: webshop/templates/generators/item/item_add_to_cart.html:286
 msgid "View in Cart"
 msgstr ""
 
-#: webshop/templates/generators/item/item_add_to_cart.html:267
-#: webshop/templates/generators/item/item_add_to_cart.html:295
+#: webshop/templates/generators/item/item_add_to_cart.html:258
+#: webshop/templates/generators/item/item_add_to_cart.html:286
 msgid "View in Quote"
 msgstr ""
 
@@ -7036,7 +7139,7 @@ msgstr ""
 msgid "Visible On"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:201
+#: webshop/templates/pages/cart.html:148
 msgid "Voir les produits"
 msgstr ""
 
@@ -7167,7 +7270,7 @@ msgstr ""
 msgid "We hope to be back online very soon. Thank you for your patience and we apologize for any inconvenience caused."
 msgstr ""
 
-#: webshop/templates/payments/stripe.html:416
+#: webshop/templates/payments/stripe.html:400
 msgid "We lost contact with the payment server. Please check your orders before trying again."
 msgstr ""
 
@@ -7203,7 +7306,7 @@ msgstr ""
 msgid "Webshop Warehouse Source"
 msgstr ""
 
-#: webshop/webshop/api.py:1113
+#: webshop/webshop/api.py:1119
 msgid "Webshop cache cleared successfully"
 msgstr ""
 
@@ -7317,7 +7420,7 @@ msgstr ""
 msgid "Website Item already exists against Item {0}"
 msgstr ""
 
-#: webshop/webshop/doctype/website_item/website_item.py:924
+#: webshop/webshop/doctype/website_item/website_item.py:938
 msgid "Website Item already exists against {0}"
 msgstr ""
 
@@ -7486,13 +7589,9 @@ msgstr ""
 
 #: webshop/public/js/customer_reviews.js:21
 #: webshop/templates/generators/item/item_reviews.html:32
-#: webshop/templates/generators/item/item_reviews.html:115
+#: webshop/templates/generators/item/item_reviews.html:112
 #: webshop/templates/pages/customer_reviews.html:20
 msgid "Write a Review"
-msgstr ""
-
-#: webshop/templates/generators/item/item_reviews.html:87
-msgid "Write the First Review"
 msgstr ""
 
 #. Description of the 'Mode of Payment' (Link) field in DocType 'Webshop
@@ -7567,7 +7666,7 @@ msgstr ""
 msgid "You don't have permission to create gift cards"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:619
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:628
 msgid "You don't have permission to modify Item Groups"
 msgstr ""
 
@@ -7575,7 +7674,11 @@ msgstr ""
 msgid "You have a coupon code or gift card?"
 msgstr ""
 
-#: webshop/templates/payments/webshopsi.html:314
+#: webshop/templates/generators/item/item.html:74
+msgid "You may also like"
+msgstr ""
+
+#: webshop/templates/payments/webshopsi.html:305
 msgid "You must be at least"
 msgstr ""
 
@@ -7583,7 +7686,7 @@ msgstr ""
 msgid "You must be at least {0} years old to order"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:543
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:552
 msgid "You need to enable Shopping Cart"
 msgstr ""
 
@@ -7600,7 +7703,7 @@ msgstr ""
 msgid "Your Gift Cards"
 msgstr ""
 
-#: webshop/templates/generators/item/item_reviews.html:120
+#: webshop/templates/generators/item/item_reviews.html:117
 msgid "Your Review"
 msgstr ""
 
@@ -7610,7 +7713,7 @@ msgstr ""
 msgid "Your basket is empty"
 msgstr ""
 
-#: webshop/templates/pages/cart.html:196
+#: webshop/templates/pages/cart.html:143
 msgid "Your cart is Empty"
 msgstr ""
 
@@ -7663,8 +7766,15 @@ msgstr ""
 msgid "Your order will be processed according to your B2B account settings."
 msgstr ""
 
-#: webshop/templates/payments/stripe.html:356
+#: webshop/templates/payments/stripe.html:340
 msgid "Your payment has been processed successfully. Redirecting..."
+msgstr ""
+
+#: webshop/templates/generators/item/item_image.html:19
+#: webshop/templates/generators/item/item_image.html:26
+#: webshop/templates/generators/item/item_image.html:51
+#: webshop/templates/generators/item/item_image.html:81
+msgid "Zoom"
 msgstr ""
 
 #: webshop/webshop/shopping_cart/cart.py:614
@@ -7676,8 +7786,10 @@ msgstr ""
 msgid "assistant"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:176
-#: webshop/www/all-products/index.html:169
+#: webshop/templates/generators/item_group.html:167
+#: webshop/templates/includes/product_card.html:48
+#: webshop/templates/includes/product_card.html:53
+#: webshop/www/all-products/index.html:157
 msgid "available"
 msgstr ""
 
@@ -7703,9 +7815,9 @@ msgstr ""
 msgid "for order from quotation"
 msgstr ""
 
-#: webshop/templates/includes/macros.html:269
-#: webshop/templates/includes/macros.html:697 webshop/webshop/api.py:1336
-#: webshop/webshop/product_data_engine/query.py:1632
+#: webshop/templates/includes/macros.html:605
+#: webshop/templates/includes/product_card.html:74 webshop/webshop/api.py:1342
+#: webshop/webshop/product_data_engine/query.py:1635
 #: webshop/webshop/shopping_cart/product_info.py:281
 #: webshop/webshop/shopping_cart/product_info.py:282
 msgid "from"
@@ -7747,8 +7859,8 @@ msgstr ""
 msgid "non-stop"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:165
-#: webshop/www/all-products/index.html:157
+#: webshop/templates/generators/item_group.html:156
+#: webshop/www/all-products/index.html:145
 msgid "of"
 msgstr ""
 
@@ -7792,13 +7904,13 @@ msgstr ""
 msgid "prix sur demande"
 msgstr ""
 
-#: webshop/templates/includes/brand_carousel.html:98
+#: webshop/templates/includes/brand_carousel.html:102
 msgid "product"
 msgstr ""
 
-#: webshop/templates/generators/item_group.html:166
-#: webshop/templates/includes/brand_carousel.html:98
-#: webshop/www/all-products/index.html:158
+#: webshop/templates/generators/item_group.html:157
+#: webshop/templates/includes/brand_carousel.html:102
+#: webshop/www/all-products/index.html:146
 msgid "products"
 msgstr ""
 
@@ -7815,7 +7927,7 @@ msgid "relevance"
 msgstr ""
 
 #: webshop/templates/generators/item/item_reviews.html:68
-#: webshop/templates/includes/macros.html:362
+#: webshop/templates/includes/macros.html:270
 msgid "reviews"
 msgstr ""
 
@@ -7868,7 +7980,7 @@ msgstr ""
 msgid "user"
 msgstr ""
 
-#: webshop/templates/payments/webshopsi.html:314
+#: webshop/templates/payments/webshopsi.html:305
 msgid "years old to order"
 msgstr ""
 
@@ -7892,7 +8004,7 @@ msgstr ""
 msgid "{0} available"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:634
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.py:643
 msgid "{0} categories updated"
 msgstr ""
 
@@ -7938,7 +8050,7 @@ msgstr ""
 msgid "{0} min"
 msgstr ""
 
-#: webshop/templates/generators/item/item_details.html:48
+#: webshop/templates/generators/item/item_details.html:43
 msgid "{0} months warranty"
 msgstr ""
 
@@ -7958,14 +8070,16 @@ msgstr ""
 msgid "{0} variants"
 msgstr ""
 
-#: webshop/templates/generators/item/item_image.html:20
-#: webshop/templates/generators/item/item_image.html:41
-#: webshop/templates/generators/item/item_image.html:201
+#: webshop/templates/generators/item/item_image.html:8
 msgid "{0} — image {1}"
 msgstr ""
 
 #: webshop/webshop/product_data_engine/filters.py:461
 msgid "{0}% and below"
+msgstr ""
+
+#: webshop/webshop/utils/promises.py:37
+msgid "{0}-day returns"
 msgstr ""
 
 #: webshop/webshop/quick_order/api.py:886
@@ -7980,7 +8094,7 @@ msgstr ""
 msgid "{points} points = {amount}"
 msgstr ""
 
-#: webshop/templates/payments/webshopsi.html:167
+#: webshop/templates/payments/webshopsi.html:158
 msgid "{{ payment_context.terms_title }}"
 msgstr ""
 
@@ -8012,70 +8126,3 @@ msgstr ""
 msgid "écrit…"
 msgstr ""
 
-# //// Neoffice — the product page's promises and folds (2026-09-11)
-
-msgid "Shopping Promises"
-msgstr ""
-
-msgid "Free Shipping From"
-msgstr ""
-
-msgid "Delivery Time"
-msgstr ""
-
-msgid "Return Period (days)"
-msgstr ""
-
-msgid "Extra Promise"
-msgstr ""
-
-msgid "Printed on every product page under the buy button. A Website Profile can override them for its site."
-msgstr ""
-
-msgid "The order amount from which delivery is free. Empty: no such promise."
-msgstr ""
-
-msgid "As the customer reads it, e.g. 2-4 working days."
-msgstr ""
-
-msgid "One more line, e.g. pick-up in store within the hour."
-msgstr ""
-
-msgid "Free delivery from {0}"
-msgstr ""
-
-msgid "Delivered in {0}"
-msgstr ""
-
-msgid "{0}-day returns"
-msgstr ""
-
-msgid "You may also like"
-msgstr ""
-
-msgid "Characteristics"
-msgstr ""
-
-msgid "About {0}"
-msgstr ""
-
-msgid "Zoom"
-msgstr ""
-
-msgid "Previous image"
-msgstr ""
-
-msgid "Next image"
-msgstr ""
-
-msgid "Add to Wishlist"
-msgstr ""
-
-msgid "No reviews yet."
-msgstr ""
-
-msgid "Shopping Promises (this site)"
-msgstr ""
-
-msgid "Leave a field empty to keep the Webshop Settings value."
-msgstr ""
