@@ -1124,6 +1124,26 @@ nothing — no block, no heading.
 > other is in the DOM but hidden; `first()` alone picked the hidden one and the mobile
 > image test failed while the desktop one passed.
 
+### The catalogue tile
+
+`public/scss/webshop_product_card.scss` dresses the one card (`grid` and `carousel`
+variants) and is imported by the shop bundle **and** the carousel bundle: no frame,
+the picture first (square for an object on white, portrait 4/5 when Webshop Settings'
+image fit is Cover, with the item's focus point), badges top left and the wishlist
+heart top right over it, a second picture on hover when the item has a slideshow
+(`utils/product_card.py::second_pictures`, one query per listing), then brand in small
+caps, the name on two lines, the stock, the price, and a quiet button that only shows
+under a cursor (`@media (hover: hover)`; always on a phone). Four columns from 1200 px
+(`col-6 col-md-4 col-xl-3`), two on a phone; the carousel shows two cards and a half on
+a phone so the half says there is more to swipe. The listing query
+(`ProductQuery.fields`) carries `brand` and `slideshow` for it; the product page's
+recommendations — manual (`get_recommended_items`) and automatic (`RAND()` in the same
+item group) — carry `brand` and `item_condition`.
+
+> **The old `.item-card` block of `webshop-web.bundle.scss` and the carousel bundle's
+> `.card` rules are gone**, not overridden. What is left in `webshop_cart.scss` about
+> `.product-container` is upstream's product page and still dead weight.
+
 ### Testing with a non-desk account
 
 After any upstream merge, permission change or routing change, test with **three
