@@ -339,9 +339,10 @@
       }
 
       @media (max-width: 576px) {
+          /* two cards and a half on a phone (2026-09-12): the half says there is more to swipe */
         .product-carousel .item-card {
-          flex: 0 0 calc(100% - 10px) !important;
-          width: calc(100% - 10px) !important;
+          flex: 0 0 calc(42% - 10px) !important;
+          width: calc(42% - 10px) !important;
           min-width: calc(100% - 10px) !important;
         }
         .product-carousel .carousel-btn {
