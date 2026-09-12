@@ -391,7 +391,8 @@ class WebsiteItem(WebsiteGenerator):
 						"name": _name_filter
 					},
 					# //// Neoffice — variant_of/item_group fetched so a variant can inherit its template's picture below (40952f3117)
-					fields=["item_code", "web_item_name", "route", "website_image", "variant_of", "item_group"],
+					# //// Neoffice — brand and condition too: the tile names the one and badges the other
+					fields=["item_code", "web_item_name", "route", "website_image", "variant_of", "item_group", "brand", "item_condition"],
 					limit=4,
 					order_by="RAND()"
 				)
