@@ -153,14 +153,46 @@ body:has(.site-page-header) .product-header-block .like-action { margin: 0; }
 /* quantity and the button: one row, the button takes what is left */
 .wsp-product .wsp-buy .action-buttons { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; margin-bottom: 0 !important; }
 .wsp-product .wsp-buy .action-buttons > .mt-2 { margin-top: 0 !important; }
-.wsp-product .wsp-buy .action-buttons .number-spinner { width: 128px !important; margin: 0 !important; }
-.wsp-product .wsp-buy .action-buttons .number-spinner .cart-btn {
+/* the quantity: one box the height of the button, the field between its two keys —
+   Bootstrap's input-group let the keys stretch while the field kept its own height */
+.wsp-product .wsp-buy .action-buttons .number-spinner {
+	display: flex;
+	align-items: stretch;
+	width: 132px !important;
+	margin: 0 !important;
 	border: 1px solid var(--wsh-line-strong);
+	border-radius: var(--wsh-radius);
+	overflow: hidden;
+	background: var(--wsh-surface);
+}
+.wsp-product .wsp-buy .action-buttons .number-spinner .input-group-prepend,
+.wsp-product .wsp-buy .action-buttons .number-spinner .input-group-append { display: flex; margin: 0; }
+.wsp-product .wsp-buy .action-buttons .number-spinner .cart-btn {
+	border: none !important;
+	border-radius: 0 !important;
 	background: var(--wsh-surface);
 	color: var(--wsh-text);
 	width: 40px;
+	height: auto;
+	padding: 0;
+	font-size: 1.1rem;
+	line-height: 1;
+	box-shadow: none;
 }
-.wsp-product .wsp-buy .action-buttons .number-spinner .item-qty { border-color: var(--wsh-line-strong) !important; font-weight: 600; }
+.wsp-product .wsp-buy .action-buttons .number-spinner .cart-btn:hover { background: var(--wsh-surface-muted); }
+.wsp-product .wsp-buy .action-buttons .number-spinner .item-qty {
+	flex: 1 1 auto;
+	max-width: none !important;
+	height: auto;
+	border: none !important;
+	border-left: 1px solid var(--wsh-line) !important;
+	border-right: 1px solid var(--wsh-line) !important;
+	border-radius: 0 !important;
+	background: var(--wsh-surface) !important;
+	box-shadow: none !important;
+	font-weight: 600;
+	text-align: center;
+}
 .wsp-product .wsp-buy .action-buttons .btn-add-to-cart {
 	flex: 1 1 200px;
 	margin: 0 !important;

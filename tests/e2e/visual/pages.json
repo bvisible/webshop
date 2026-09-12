@@ -37,6 +37,16 @@
       "mobile": true
     },
     {
+      "name": "product_full",
+      "path": "/products/chaussures/chaussures-de-trail-ridge-runner-fjdk1",
+      "mobile": true
+    },
+    {
+      "name": "product_variable",
+      "path": "/products/t-shirt/t-shirt-coastline-0kqot",
+      "mobile": true
+    },
+    {
       "name": "catalogue",
       "path": "/all-products",
       "mobile": true
