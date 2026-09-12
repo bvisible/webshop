@@ -756,6 +756,9 @@ class WebsiteItem(WebsiteGenerator):
 				# //// Neoffice — see the block marker above: variant inherits template picture
 				wi.variant_of,
 				wi.item_group,
+				# //// Neoffice — the tile prints the brand and badges a used unit (2026-09-12)
+				wi.brand,
+				wi.item_condition,
 			)
 			.where((ri.parent == self.name) & (wi.published == 1))
 			.orderby(ri.idx)
