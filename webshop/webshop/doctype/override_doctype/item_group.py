@@ -54,7 +54,7 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 			context.body_class += " wsp-filters-drawer"
 		# //// Neoffice — the second-hand toggle of the sidebar shows when the shop publishes
 		# //// used units (views.js get_second_hand_filter_html, 2026-09-13).
-		from webshop.webshop.utils.used_items import count_second_hand
+		from webshop.webshop.product_data_engine.listing_context import count_second_hand
 
 		context.second_hand_count = count_second_hand()
 		context.page_length = (
