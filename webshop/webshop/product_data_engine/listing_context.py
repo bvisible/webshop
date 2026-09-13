@@ -23,6 +23,11 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	# //// browser tab said the translated title.
 	context.title = title
 	context.body_class = "product-page"
+	# //// Neoffice — "filters in a drawer on every screen" (Webshop Settings, 2026-09-13):
+	# //// the page carries a class and the stylesheet turns the sidebar into the phone's
+	# //// drawer at every width; the products take the whole width.
+	if frappe.db.get_single_value("Webshop Settings", "filters_in_drawer"):
+		context.body_class += " wsp-filters-drawer"
 	context.parents = [{"name": _("Home"), "route": "/"}]
 	context.listing_route = listing_route
 	context.locked_field_filters = locked_field_filters or {}

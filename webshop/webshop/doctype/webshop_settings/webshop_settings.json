@@ -28,6 +28,7 @@
   "show_attachments",
   "product_image_section",
   "product_image_fit",
+  "filters_in_drawer",
   "product_image_aspect_ratio",
   "tab_filters",
   "filter_categories_section",
@@ -707,6 +708,14 @@
    "fieldtype": "Select",
    "label": "Product Image Fit",
    "options": "Contain\nCover"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.enable_field_filters || doc.enable_attribute_filters",
+   "description": "Hide the filter sidebar on wide screens too: the products take the whole width and a Filters button opens the sidebar as a drawer, as on a phone.",
+   "fieldname": "filters_in_drawer",
+   "fieldtype": "Check",
+   "label": "Filters in a Drawer on Every Screen"
   },
   {
    "default": "1/1",

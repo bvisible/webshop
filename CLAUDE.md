@@ -1353,6 +1353,13 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) — **green, and it runs**:
 > `webshop/setup/install.py`: **a patch that creates a field belongs in
 > `CHAMPS_A_CREER_A_L_INSTALLATION`.**
 
+> **Filters in a drawer on every screen** is a Webshop Settings check (`filters_in_drawer`,
+> off by default): the listing's `body_class` gains `wsp-filters-drawer`, and the
+> stylesheet applies the phone's drawer rules — one `@mixin` in `webshop_catalogue.scss`,
+> included under the phone's media query and under that class — at every width, gives the
+> sidebar's column back to the products and shows the Filters button. The wide-screen
+> sticky sidebar rule carries the id, so the drawer-mode rule carries it too.
+
 > **`bind_price_filters` runs again after every filter change, so it must bind once.**
 > The slider's bounds follow the result set, and the rebind stacked a new set of
 > handlers with stale bounds on the same handles and inputs each time: after a few

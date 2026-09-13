@@ -1162,6 +1162,10 @@ webshop.ProductView =  class {
 				query_args: args
 			},
 			callback: function(result) {
+				//// Neoffice — a filter change resets the state while a page may still be in
+				//// flight: its callback then wrote on null ("Cannot set properties of null",
+				//// 2026-09-13). A stale answer is dropped.
+				if (!me.infinite_scroll_state) return;
 				me.infinite_scroll_state.loading = false;
 				$('.infinite-scroll-spinner').hide();
 
@@ -1194,7 +1198,7 @@ webshop.ProductView =  class {
 				me.update_infinite_scroll_status();
 			},
 			error: function() {
-				me.infinite_scroll_state.loading = false;
+				if (me.infinite_scroll_state) me.infinite_scroll_state.loading = false;
 				$('.infinite-scroll-spinner').hide();
 			}
 		});

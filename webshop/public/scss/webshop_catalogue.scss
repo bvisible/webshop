@@ -77,30 +77,59 @@
 		visibility: visible;
 	}
 
-	/* Sidebar filter styles */
+	/* Sidebar filter styles — the drawer: off-canvas on the right, slid in by .show.
+	   //// Neoffice — one definition (2026-09-13): the phone gets it under its media query,
+	   //// and a shop that switched "filters in a drawer on every screen" on gets it at every
+	   //// width through body.wsp-filters-drawer (listing_context.py). */
+	@mixin wsp-filters-drawer {
+	.filters-section {
+		position: fixed;
+		top: 0;
+		right: -320px;
+		width: 300px;
+		height: 100%;
+		background-color: var(--wsh-surface);
+		box-shadow: var(--wsh-shadow);
+		z-index: 1001;
+		transition: transform var(--wsh-motion);
+		transform: translateX(100%);
+		overflow-y: auto;
+		padding: 15px;
+	}
+
+	.filters-section.show {
+		transform: translateX(0);
+		right: 0;
+		margin-right: 0 !important;
+		animation: slideInFilter 0.3s ease-in-out;
+	}
+
+	}
 	@media (max-width: 767.98px) {
-		.filters-section {
+		@include wsp-filters-drawer;
+	}
+	body.wsp-filters-drawer {
+		@include wsp-filters-drawer;
+		/* the sidebar's column gives its width back to the products */
+		#product-listing { flex: 0 0 100%; max-width: 100%; }
+		.row > [class*="col-md-3"]:has(#product-filters) { flex: 0 0 0; max-width: 0; padding: 0; }
+		/* the phone-only controls come back, over Bootstrap's d-md-none */
+		.filter-button, .close-filter-button { display: inline-flex !important; }
+		.filter-overlay { display: block !important; }
+		/* the wide-screen sticky column must not win over the drawer (its rule carries the id) */
+		#product-filters {
 			position: fixed;
 			top: 0;
 			right: -320px;
-			width: 300px;
+			max-height: none;
 			height: 100%;
-			background-color: var(--wsh-surface);
-			box-shadow: var(--wsh-shadow);
-			z-index: 1001;
-			transition: transform var(--wsh-motion);
-			transform: translateX(100%);
-			overflow-y: auto;
+			margin-right: 0;
 			padding: 15px;
+			overflow-y: auto;
 		}
-
-		.filters-section.show {
-			transform: translateX(0);
-			right: 0;
-			margin-right: 0 !important;
-			animation: slideInFilter 0.3s ease-in-out;
-		}
+		#product-filters.show { right: 0; }
 	}
+
 
 	@keyframes slideInFilter {
 		from {
