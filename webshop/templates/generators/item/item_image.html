@@ -193,6 +193,10 @@ frappe.ready(function() {
 	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: const zoom = root.querySelector('.image-zoom-view'); #}
 	// --- the zoom ---
 	const zoom = root.querySelector('.image-zoom-view');
+	// //// Neoffice — the lightbox is moved to <body> (2026-09-13): the gallery column is
+	// //// sticky, and a sticky box is a stacking context — the buy column, sticky too and
+	// //// later in the DOM, painted over the fixed overlay and the player behind it.
+	if (zoom && zoom.parentElement !== document.body) document.body.appendChild(zoom);
 	const zoomHost = zoom && zoom.querySelector('.zoom-image-container');
 	const zoomThumbs = zoom ? zoom.querySelectorAll('.zoom-thumbnail') : [];
 	let zoomIndex = 0;

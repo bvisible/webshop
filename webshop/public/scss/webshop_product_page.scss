@@ -476,3 +476,26 @@ a.bundle-item-name:hover { color: var(--wsh-primary); }
 	.wsp-sections { margin-top: 40px; }
 	.wsp-section { margin-bottom: 36px; }
 }
+
+// ---------------------------------------------------------------- gift card amounts
+/* //// Neoffice — the amounts of a gift card as chips (2026-09-13): the chosen one is
+   inked, the custom amount opens a field under them. */
+.wsp-product .wsp-gift { margin: 4px 0 16px; }
+.wsp-product .wsp-gift__label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--wsh-text); margin: 0 0 8px; }
+.wsp-product .wsp-gift__amounts { gap: 8px; }
+.wsp-product .wsp-gift__chip {
+	margin: 0;
+	padding: 0;
+	min-height: 0;
+	border: 1px solid var(--wsh-line-strong);
+	border-radius: var(--wsh-radius);
+	background: var(--wsh-surface);
+	color: var(--wsh-text);
+	cursor: pointer;
+	transition: border-color var(--wsh-motion), background var(--wsh-motion), color var(--wsh-motion);
+}
+.wsp-product .wsp-gift__chip .form-check-label { display: block; padding: 8px 14px; margin: 0; font-weight: 600; cursor: pointer; }
+.wsp-product .wsp-gift__chip:hover { border-color: var(--wsh-text); }
+.wsp-product .wsp-gift__chip.selected { background: var(--wsh-text); border-color: var(--wsh-text); color: var(--wsh-bg); }
+.wsp-product .wsp-gift__amounts .custom-amount-input { flex: 0 0 100%; }
+.wsp-product .wsp-gift__amounts .custom-amount-input .form-control { max-width: 220px; }

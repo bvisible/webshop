@@ -242,7 +242,7 @@ video.wsp-gallery__img { object-fit: cover; }
 	justify-content: center;
 	align-items: center;
 	background: rgba(0, 0, 0, 0.95);
-	z-index: 1080;
+	z-index: 10050; /* above the site header and the sticky columns */
 }
 .image-zoom-view .close {
 	position: absolute;

@@ -90,7 +90,10 @@
 {# //// Neoffice — Modern product page (2026-09-11), see the note at the top: include "templates/generators/item/item_promises.html" #}
 
 	{# the shop's promises, then the trust items the shop typed (Webshop Settings) #}
+	{# //// Neoffice — not under a gift card: nothing ships, nothing comes back (2026-09-13). #}
+	{% if not doc.is_gift_card %}
 	{% include "templates/generators/item/item_promises.html" %}
+	{% endif %}
 	{% set _trust_items = cart_settings.get("trust_items") or [] %}
 	{% if _trust_items %}
 	{% set _icon_paths = {

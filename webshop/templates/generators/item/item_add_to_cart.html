@@ -60,7 +60,8 @@
 				{% endif %}
 			</div>
 			{% endif %}
-		{% else %}
+		{% elif not doc.is_gift_card %}
+			{# //// Neoffice — a gift card has no unit worth printing: the amount is its price (2026-09-13). #}
 			{{ _("UOM") }} : {{ product_info.uom }}
 		{% endif %}
 
@@ -165,15 +166,16 @@
 				{% set cart = frappe.call('webshop.webshop.shopping_cart.cart.get_cart_quotation') %}
 				{% set ns = namespace(has_gift_card=False) %} {% for item in cart.doc.items %} {% set is_gift = frappe.db.get_value('Website Item', {'item_code': item.item_code}, 'is_gift_card') %} {% if is_gift %} {% set ns.has_gift_card = True %} {% endif %} {% endfor %}
 				{% if not ns.has_gift_card %}
-					<h5>{{ _("Gift Card Options") }}</h5>
-					
-					<!-- Gift Card Amount Selection -->
-					<div class="gift-card-amount frappe-card p-5 mb-4 mt-4">
-						<label class="form-label">{{ _("Select Amount") }}</label>
-						<div class="d-flex flex-wrap gap-2 gift-card-amounts">
+					{# //// Neoffice — the amounts are chips on the page (2026-09-13): the buy column is
+					   flat since the Modern page, and the boxed "Gift Card Options" card read as a form
+					   dropped into it. Same inputs, same names: the script below and the cart handler
+					   read them unchanged. #}
+					<div class="gift-card-amount wsp-gift">
+						<label class="form-label wsp-gift__label">{{ _("Select Amount") }}</label>
+						<div class="d-flex flex-wrap gap-2 gift-card-amounts wsp-gift__amounts">
 							{% set gift_card_amounts = frappe.get_all('Gift Card Amount', fields=['amount']) %}
 							{% for amount in gift_card_amounts | sort(attribute='amount') %}
-							<div class="form-check frappe-card mr-3 {% if loop.first %}selected{% endif %}">
+							<div class="form-check wsp-gift__chip {% if loop.first %}selected{% endif %}">
 								<input type="radio" 
 									class="form-check-input gift-card-amount-radio" 
 									name="gift_card_amount" 
@@ -188,7 +190,7 @@
 							{% endfor %}
 							
 							{% if frappe.db.get_single_value('Webshop Settings', 'enable_custom_amount') %}
-							<div class="form-check frappe-card">
+							<div class="form-check wsp-gift__chip wsp-gift__chip--custom">
 								<input type="radio" 
 									class="form-check-input" 
 									name="gift_card_amount" 
@@ -514,10 +516,23 @@ frappe.ready(() => {
 			mw_apply_source_max();
 		}
 
+		//// Neoffice — the delivery promise follows the chosen source (2026-09-13): the
+		//// settings' "delivered in 2 to 4 days" under a source that says "~15 days" was a
+		//// contradiction on the same screen. Without a delay on the source, the promise
+		//// says what the settings say.
+		function mw_sync_delivery_promise() {
+			const $line = $('.wsp-promises [data-promise="delay"]');
+			if (!$line.length) return;
+			const $checked = $("input[name='webshop-warehouse-source']:checked");
+			const delay = $checked.length ? $checked.closest('.webshop-source-option').find('.webshop-source-delay').text().trim() : '';
+			$line.text(delay || $line.data('default'));
+		}
 		$('.page_content').on('change', "input[name='webshop-warehouse-source']", function() {
 			mw_source_manually_picked = true;
 			mw_apply_source_max();
+			mw_sync_delivery_promise();
 		});
+		mw_sync_delivery_promise();
 		$('.page_content').on('change', '.item-qty', mw_preselect_covering_source);
 		$('.page_content').on('click', '.cart-btn', function() {
 			setTimeout(mw_preselect_covering_source, 0);
