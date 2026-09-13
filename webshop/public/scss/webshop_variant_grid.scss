@@ -149,6 +149,12 @@
 		padding: 0.75rem 0 0;
 		margin-top: 0.75rem;
 		
+		/* //// Neoffice — the text block keeps its width next to the button (or the sign-in
+		   link, wider): "only 7 left" broke over three lines in a client's column (2026-09-13) */
+		.selected-variant-info > .d-flex { flex-wrap: wrap; gap: 8px 16px; }
+		.selected-variant-info > .d-flex > div:first-child { flex: 1 1 12rem; min-width: 0; }
+		.selected-variant-stock small { white-space: nowrap; }
+		
 		.selected-variant-info {
 			h6 {
 				margin-bottom: 0.5rem;
