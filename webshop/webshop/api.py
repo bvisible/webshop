@@ -497,6 +497,7 @@ def get_all_variants_info(item_code):
 
 	return {
 		"variants": variants_data,
+		# //// Neoffice — see attribute_values above
 		"attribute_values": attribute_values,
 		"attributes": variant_attributes,
 		"price_range": price_range

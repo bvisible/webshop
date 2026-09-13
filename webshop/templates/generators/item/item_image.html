@@ -23,12 +23,14 @@
 	{%- if p.video %}{{ play_badge() }}{% endif -%}
 {%- endmacro -%}
 {%- set layout = "mosaic" if photos | length >= 3 else ("rail" if photos | length == 2 else ("single" if photos else "empty")) -%}
+{# //// Neoffice — data-media carries each entry's video payload for the lightbox (2026-09-13) #}
 <div class="col-md-{{ 6 if slides else 4 }} product-image-wrapper wsp-gallery wsp-gallery--{{ layout }}" data-layout="{{ layout }}" data-fit="{{ shopping_cart.cart_settings.product_image_fit or 'Contain' }}" data-photos="{{ photos | map(attribute='image') | list | tojson | forceescape }}" data-media="{{ photos | tojson | forceescape }}">
 	{%- if layout == "mosaic" %}
 	{# two large tiles, then the rest as small ones; every tile opens the zoom at its index #}
 	<div class="wsp-gallery__mosaic product-image">
 		<div class="wsp-gallery__large" role="list">
 			{%- for p in photos[:2] %}
+			{# //// Neoffice — a video tile wears the play badge (media_img) #}
 			<a class="wsp-gallery__tile wsp-gallery__tile--large{% if p.video %} wsp-gallery__tile--video{% endif %}" href="{{ p.image or '#' }}" data-index="{{ loop.index0 }}" role="listitem" aria-label="{{ _('Play the video') if p.video else _('Zoom') }}">
 				{{ media_img(p, ('website-image ' if loop.first else '') ~ 'wsp-gallery__img', loading='eager') }}
 			</a>
@@ -47,6 +49,7 @@
 	<div class="wsp-gallery__rail d-none d-md-flex">
 		<div class="wsp-gallery__thumbs" role="list">
 			{%- for p in photos %}
+			{# //// Neoffice — a video thumb opens the player (script below) #}
 			{%- if p.video %}
 			<span class="wsp-gallery__thumb wsp-gallery__thumb--video" data-index="{{ loop.index0 }}" role="listitem" data-video="1">{{ media_img(p, 'wsp-gallery__thumb-img') }}</span>
 			{%- else %}
@@ -68,6 +71,7 @@
 	</div>
 	{%- elif layout == "single" %}
 	<div class="wsp-gallery__single product-image d-none d-md-block">
+		{# //// Neoffice — the single picture may be a video too #}
 		<a class="wsp-gallery__tile{% if photos[0].video %} wsp-gallery__tile--video{% endif %}" href="{{ photos[0].image or '#' }}" data-index="0" aria-label="{{ _('Play the video') if photos[0].video else _('Zoom') }}">
 			{{ media_img(photos[0], 'website-image wsp-gallery__img', loading='eager', index=0) }}
 		</a>
@@ -84,6 +88,7 @@
 		{# .product-image on the track: the browser tests look for the visible product picture through it #}
 		<div class="wsp-gallery__track product-image">
 			{%- for p in photos %}
+			{# //// Neoffice — a video slide on the phone strip #}
 			<div class="wsp-gallery__slide{% if p.video %} wsp-gallery__slide--video{% endif %}" data-index="{{ loop.index0 }}">
 				{{ media_img(p, ('website-image ' if loop.first and layout == 'empty' else '') ~ 'wsp-gallery__img', loading=('eager' if loop.first else 'lazy')) }}
 			</div>
@@ -161,6 +166,7 @@ frappe.ready(function() {
 		if (main) { main.src = photos[current]; main.dataset.index = current; }
 		thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
 	}
+	// //// Neoffice — a video thumb opens the lightbox instead of switching the main picture
 	thumbs.forEach(t => t.addEventListener('click', () => {
 		const i = parseInt(t.dataset.index, 10);
 		if (videoAt(i)) { openZoom(i); return; } // a video plays in the lightbox, the main picture stays
@@ -202,6 +208,7 @@ frappe.ready(function() {
 	let zoomIndex = 0;
 	function showZoom(index) {
 		zoomIndex = (index + photos.length) % photos.length;
+		// //// Neoffice — the lightbox plays a video entry (2026-09-13)
 		zoomHost.innerHTML = ''; // also stops whatever was playing
 		const video = videoAt(zoomIndex);
 		if (video && video.kind === 'file') {
@@ -237,7 +244,8 @@ frappe.ready(function() {
 	}
 	function closeZoom() {
 		zoom.style.display = 'none';
-		zoomHost.innerHTML = ''; // a player left behind would keep playing
+		// //// Neoffice — emptied on close: a player left behind would keep playing
+		zoomHost.innerHTML = '';
 		document.body.style.overflow = '';
 	}
 	root.querySelectorAll('.wsp-gallery__tile').forEach(tile => tile.addEventListener('click', (e) => {

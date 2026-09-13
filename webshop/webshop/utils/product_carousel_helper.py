@@ -109,6 +109,7 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
             wi.item_name,
             wi.item_code,
             wi.item_condition,
+            # //// Neoffice — the play badge of the tile (utils/videos.py)
             wi.has_video,
             wi.website_image,
             # //// Neoffice — variant_of fetched so a variant without a picture can inherit

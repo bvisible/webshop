@@ -533,8 +533,10 @@ frappe.ready(() => {
 		$('.page_content').on('change', "input[name='webshop-warehouse-source']", function() {
 			mw_source_manually_picked = true;
 			mw_apply_source_max();
+			//// Neoffice — the promise line follows the source (mw_sync_delivery_promise above)
 			mw_sync_delivery_promise();
 		});
+		//// Neoffice — the promise line follows the source (mw_sync_delivery_promise above)
 		mw_sync_delivery_promise();
 		$('.page_content').on('change', '.item-qty', mw_preselect_covering_source);
 		$('.page_content').on('click', '.cart-btn', function() {
