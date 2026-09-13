@@ -8180,3 +8180,6 @@ msgstr "Choisissez vos options"
 
 msgid "Pick a value on each row; the price and the stock follow"
 msgstr "Choisissez une valeur sur chaque ligne ; le prix et le stock suivent"
+
+msgid "Gift cards"
+msgstr "Cartes cadeaux"

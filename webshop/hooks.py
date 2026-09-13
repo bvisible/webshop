@@ -81,6 +81,13 @@ override_doctype_dashboards = {
 	"Quotation": "webshop.webshop.utils.follow_ups.quotation_dashboard",
 }
 
+# //// Neoffice — the customer's gift cards page (/gift_cards) in the account's menu: the
+# //// page existed with no link to it anywhere (2026-09-13). Portal Settings lets a shop
+# //// without gift cards switch the entry off.
+standard_portal_menu_items = [
+	{"title": "Gift Cards", "route": "/gift_cards", "reference_doctype": "Coupon Code", "role": "Customer"},
+]
+
 website_generators = ["Website Item", "Item Group"]
 
 override_doctype_class = {

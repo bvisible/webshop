@@ -190,6 +190,9 @@
 	opacity: 0.7;
 }
 
+/* //// Neoffice — the amount inherits the header's own colour: Frappe's h3 rule painted it in
+   --heading-color, near-black on the black card of an active gift card (2026-09-13). */
+.gift-card-header h3 { color: inherit; }
 .gift-card-header {
 	border-radius: 8px 8px 0 0;
 }
