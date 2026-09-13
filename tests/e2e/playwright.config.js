@@ -65,7 +65,7 @@ module.exports = defineConfig({
 			//// this project never matched the file and a conditional skip reads as a pass.
 			//// Neoffice — 11-contraste added: the public pages are audited signed out, the way a
 			//// visitor of a client's shop sees them.
-			testMatch: /(01-authentification|07-nouveau-client|08-assistant|10-quick-order|11-contraste)\.spec\.js/,
+			testMatch: /(01-authentification|07-nouveau-client|08-assistant|10-quick-order|11-contraste|12-variantes)\.spec\.js/,
 			use: {...devices['Desktop Chrome']},
 		},
 		{
