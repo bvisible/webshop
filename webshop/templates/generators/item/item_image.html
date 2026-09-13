@@ -54,6 +54,7 @@
 			<span class="wsp-gallery__thumb wsp-gallery__thumb--video" data-index="{{ loop.index0 }}" role="listitem" data-video="1">{{ media_img(p, 'wsp-gallery__thumb-img') }}</span>
 			{%- else %}
 			<img class="wsp-gallery__thumb {% if loop.first %}active{% endif %}" src="{{ p.image }}" alt="{{ p.alt }}" loading="lazy" decoding="async" data-index="{{ loop.index0 }}" role="listitem">
+			{# //// Neoffice — video entries in the phone strip and the lightbox (2026-09-13) #}
 			{%- endif %}
 			{%- endfor %}
 		</div>
