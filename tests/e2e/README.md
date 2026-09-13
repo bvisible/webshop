@@ -393,3 +393,10 @@ WEBSHOP_CONTRAST_MIN=4.5 …                                          # seuil (3
 
 À lancer **sur le site cible** avant tout déploiement chez un client, anonyme suffit. La
 spec `11-contraste` (projet `invite`) fait la même chose sur l'instance de la suite.
+
+Le spec `13-boutons-du-site` (projet `client`) mesure les boutons de la boutique contre le
+bouton du site lui-même : un `<a class="u-btn u-btn--primary">` injecté dans la page de la
+boutique (la règle `:where(.u-btn)` du chrome y est aussi) sert de référence, et le bouton
+d'achat, ceux du panier et du tunnel doivent lui être identiques en forme (padding, rayon,
+police) et en couleur ; les boutons en contour sont comparés à `.u-btn--outline`. Il se
+saute de lui-même sur un site sans chrome Builder.
