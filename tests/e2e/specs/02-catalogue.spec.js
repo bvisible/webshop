@@ -6,6 +6,27 @@ const {test, expect} = require('@playwright/test');
 const {connecter, premierArticleAchetable, lireDevis} = require('../fixtures/boutique');
 
 test.describe('Catalogue', () => {
+	//// A product that carries a video (Website Item → Videos) wears a play mark on its
+	//// tile, and its gallery plays it in the lightbox — a hosted file through the
+	//// browser's own player. Skips when the shop under test has no such product.
+	test('un produit avec vidéo porte un badge et la lit dans la visionneuse', async ({page}) => {
+		await page.goto('/all-products');
+		await page.waitForLoadState('networkidle');
+		const tuile = page.locator('.wsp-card--grid:has(.wsp-card__play)').first();
+		test.skip((await tuile.count()) === 0, 'aucun produit avec vidéo sur cette boutique');
+		await tuile.locator('a[href*="/products/"]').first().click();
+		await page.waitForLoadState('networkidle');
+		const videoTile = page.locator('.wsp-gallery__tile--video').first();
+		await expect(videoTile, 'la galerie doit montrer une tuile vidéo').toBeVisible();
+		await expect(videoTile.locator('.wsp-gallery__play')).toBeVisible();
+		await videoTile.click();
+		const player = page.locator('.image-zoom-view .zoom-video');
+		await expect(player, 'la visionneuse doit contenir un lecteur').toBeVisible();
+		expect(await page.locator('.image-zoom-view').evaluate((e) => e.parentElement.tagName)).toBe('BODY');
+		await page.keyboard.press('Escape');
+		expect(await page.locator('.image-zoom-view .zoom-image-container').evaluate((e) => e.children.length), 'le lecteur doit être retiré à la fermeture').toBe(0);
+	});
+
 	test('la boutique liste des produits', async ({page}) => {
 		await page.goto('/all-products');
 		await page.waitForLoadState('networkidle');

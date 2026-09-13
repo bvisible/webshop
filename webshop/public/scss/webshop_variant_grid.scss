@@ -215,3 +215,58 @@
 		border-width: 0.3em;
 	}
 }
+
+// ---------------------------------------------------------------- the rows of chips
+/* //// Neoffice — the selector as one row per attribute (2026-09-13): text chips, or
+   picture chips when the attribute's variants carry their own photo (a colour). The
+   chosen chip is inked; one that no variant in stock can satisfy, given the other rows,
+   is struck; one that no variant has at all is not drawn. */
+.wsp-variants { margin: 0 0 4px; }
+.wsp-variants__row { margin: 0 0 14px; }
+.wsp-variants__label { font-size: 0.8rem; color: var(--wsh-muted); margin: 0 0 8px; letter-spacing: 0.02em; }
+.wsp-variants__label .wsp-variants__value { color: var(--wsh-text); font-weight: 700; margin-left: 4px; }
+.wsp-variants__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.wsp-variants__chip {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-width: 44px;
+	padding: 8px 12px;
+	border: 1px solid var(--wsh-line-strong);
+	border-radius: var(--wsh-radius);
+	background: var(--wsh-surface);
+	color: var(--wsh-text);
+	font-size: 0.85rem;
+	font-weight: 600;
+	line-height: 1.2;
+	cursor: pointer;
+	transition: border-color var(--wsh-motion), background var(--wsh-motion), color var(--wsh-motion), transform var(--wsh-motion);
+}
+.wsp-variants__chip:hover { border-color: var(--wsh-text); }
+.wsp-variants__chip:focus-visible { outline: 2px solid var(--wsh-primary); outline-offset: 2px; }
+.wsp-variants__chip.is-selected { background: var(--wsh-text); border-color: var(--wsh-text); color: var(--wsh-bg); }
+.wsp-variants__chip.is-unavailable { color: var(--wsh-faint); border-style: dashed; }
+.wsp-variants__chip.is-unavailable .wsp-variants__chip-text { text-decoration: line-through; }
+.wsp-variants__chip.is-unavailable.is-selected { background: var(--wsh-surface-muted); color: var(--wsh-muted); border-color: var(--wsh-text); border-style: solid; }
+.wsp-variants__chip.is-impossible { display: none; }
+/* picture chips: the photo, the name under it */
+.wsp-variants__chip--swatch {
+	flex-direction: column;
+	gap: 6px;
+	padding: 4px 4px 6px;
+	min-width: 72px;
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+.wsp-variants__chip--swatch img {
+	width: 64px;
+	height: 64px;
+	object-fit: cover;
+	border-radius: calc(var(--wsh-radius) - 2px);
+	background: var(--wsh-surface-muted);
+	display: block;
+}
+.wsp-variants__chip--swatch.is-unavailable img { opacity: 0.45; }

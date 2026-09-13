@@ -11,15 +11,15 @@
 	<div class="variant-grid-container" id="variant-grid-container" style="display: none;">
 		<div class="variant-grid-header mb-3">
 			<div class="d-flex align-items-center justify-content-between">
-				<h5 class="mb-0">{{ _('Select Variant') }}</h5>
+				<h5 class="mb-0">{{ _('Choose your options') }}</h5>
 				<span class="price-range text-primary font-weight-bold" style="display: none;"></span>
 			</div>
-			<p class="text-muted mb-0 small">{{ _('Click on a variant to see details') }}</p>
+			<p class="text-muted mb-0 small">{{ _('Pick a value on each row; the price and the stock follow') }}</p>
 		</div>
 		
-		<div class="variant-grid" id="variant-grid">
-			<!-- Variant cards will be dynamically added here -->
-		</div>
+		{# //// Neoffice — one row of chips per attribute, drawn by item_configure_grid.js
+		   (2026-09-13); the grid of one card per combination is gone. #}
+		<div class="wsp-variants" id="wsp-variants" aria-live="polite"></div>
 		
 		<div class="variant-grid-footer mt-3" style="display: none;">
 			<div class="selected-variant-info">

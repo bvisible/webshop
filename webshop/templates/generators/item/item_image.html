@@ -246,6 +246,16 @@ frappe.ready(function() {
 	}));
 	if (main) main.addEventListener('click', () => openZoom(current));
 	if (strip) strip.querySelectorAll('.wsp-gallery__slide').forEach(slide => slide.addEventListener('click', () => openZoom(parseInt(slide.dataset.index, 10) || 0)));
+	// //// Neoffice — the variant selector swaps the first picture for the chosen colour's
+	// //// (item_configure_grid.js, 2026-09-13); null puts the product's own picture back.
+	const firstPictures = [root.querySelector('.wsp-gallery__large .wsp-gallery__img'), main, root.querySelector('.wsp-gallery__single .wsp-gallery__img'), root.querySelector('.wsp-gallery__slide .wsp-gallery__img')].filter(Boolean);
+	const originalSources = firstPictures.map(el => el.getAttribute('src'));
+	window.wspGallery = Object.assign(window.wspGallery || {}, {
+		showImage(url) {
+			firstPictures.forEach((el, i) => { const next = url || originalSources[i]; if (el.getAttribute('src') !== next) el.setAttribute('src', next); });
+			if (photos.length) photos[0] = url || (media[0] && media[0].image) || photos[0];
+		}
+	});
 	if (zoom) {
 		zoom.querySelector('.close').addEventListener('click', closeZoom);
 		zoom.addEventListener('click', (e) => { if (e.target === zoom) closeZoom(); });

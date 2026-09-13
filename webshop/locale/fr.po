@@ -8174,3 +8174,9 @@ msgstr "Un fichier MP4 (H.264) ou WebM joint à ce site ; le garder court, c'est
 
 msgid "Shown in the gallery before the video plays. Empty: YouTube's own thumbnail, the first frame of a hosted file"
 msgstr "Affichée dans la galerie avant la lecture. Vide : la vignette de YouTube, la première image d'un fichier hébergé"
+
+msgid "Choose your options"
+msgstr "Choisissez vos options"
+
+msgid "Pick a value on each row; the price and the stock follow"
+msgstr "Choisissez une valeur sur chaque ligne ; le prix et le stock suivent"

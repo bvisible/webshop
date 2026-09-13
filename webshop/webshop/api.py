@@ -484,8 +484,20 @@ def get_all_variants_info(item_code):
 				"formatted": f"{format_currency_value(price_min, currency=currency)} - {format_currency_value(price_max, currency=currency)}"
 			}
 	
+	# //// Neoffice — the values of each attribute in the attribute's own order (S, M, L,
+	# //// XL — not alphabetical), for the rows of chips the page draws (2026-09-13).
+	attribute_values = {}
+	for attr in variant_attributes:
+		attribute_values[attr.attribute] = frappe.get_all(
+			"Item Attribute Value", filters={"parent": attr.attribute}, pluck="attribute_value", order_by="idx asc"
+		)
+		if frappe.db.get_value("Item Attribute", attr.attribute, "numeric_values"):
+			present = sorted({v["attributes"].get(attr.attribute) for v in variants_data if v["attributes"].get(attr.attribute)}, key=lambda x: float(x))
+			attribute_values[attr.attribute] = present
+
 	return {
 		"variants": variants_data,
+		"attribute_values": attribute_values,
 		"attributes": variant_attributes,
 		"price_range": price_range
 	}
