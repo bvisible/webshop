@@ -285,7 +285,7 @@ async function codeArticleDeLaFiche(page, route) {
 	//// its lines carry data-item-code too.
 	return page.evaluate(() => {
 		const e =
-			document.querySelector('.product-page-content .btn-add-to-cart[data-item-code]') ||
+			document.querySelector('.product-page-content .btn-add-to-cart[data-item-code]:not([data-item-code=""])') ||
 			document.querySelector('.product-page-content [data-item-code]') ||
 			document.querySelector('[data-item-code]');
 		return e ? e.getAttribute('data-item-code') : null;

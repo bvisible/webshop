@@ -54,8 +54,16 @@ test.describe('Variantes', () => {
 		const route = await premierModele(page);
 		test.skip(!route, 'aucun modèle à déclinaisons dans le catalogue');
 		await expect(page.locator('.wsp-variants__row').first()).toBeVisible({timeout: 15_000});
+		//// A chip is struck relative to the OTHER rows' choice: walk the first row's values
+		//// until one of them leaves a combination sold out.
+		const premiere = page.locator('.wsp-variants__row').first().locator('.wsp-variants__chip:not(.is-impossible)');
 		const barree = page.locator('.wsp-variants__chip.is-unavailable');
-		test.skip((await barree.count()) === 0, 'toutes les déclinaisons sont en stock ici');
+		let trouvee = (await barree.count()) > 0;
+		for (let i = 0; i < (await premiere.count()) && !trouvee; i++) {
+			await premiere.nth(i).click();
+			trouvee = (await barree.count()) > 0;
+		}
+		test.skip(!trouvee, 'toutes les déclinaisons sont en stock ici');
 		await expect(barree.first()).toBeVisible();
 		await expect(barree.first()).toHaveAttribute('title', /.+/);
 	});

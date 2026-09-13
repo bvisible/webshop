@@ -281,7 +281,12 @@ class ItemConfigureGrid {
 		if (!footer) return;
 		// the chosen variant's code on the button, for whoever reads it (the browser tests do)
 		const footerBtn = footer.querySelector('.btn-add-to-cart');
-		if (footerBtn) footerBtn.setAttribute('data-item-code', this.selected_variant ? this.selected_variant.item_code : '');
+		if (footerBtn) {
+			// no attribute at all while nothing is chosen: a code on the button means a
+			// purchasable article, and the browser tests read it that way
+			if (this.selected_variant) footerBtn.setAttribute('data-item-code', this.selected_variant.item_code);
+			else footerBtn.removeAttribute('data-item-code');
+		}
 
 		if (this.selected_variant) {
 			const attrs = this.variants_data.attributes;

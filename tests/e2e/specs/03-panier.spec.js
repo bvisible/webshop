@@ -66,7 +66,7 @@ async function sourcesDeLaFiche(page, route) {
 	const lu = await page.evaluate(() => ({
 		item_code:
 			(
-				document.querySelector('.product-page-content .btn-add-to-cart[data-item-code]') ||
+				document.querySelector('.product-page-content .btn-add-to-cart[data-item-code]:not([data-item-code=""])') ||
 				document.querySelector('.product-page-content [data-item-code]')
 			)?.getAttribute('data-item-code') || null,
 		entrepots: [
