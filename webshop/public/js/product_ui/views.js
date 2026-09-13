@@ -1374,6 +1374,9 @@ webshop.ProductView =  class {
 		} else {
 			$("#product-filters").append(section);
 		}
+		// the Condition facet (New / Second-hand / Refurbished) says the same thing twice
+		// once the toggle is there: it steps aside in the sidebar
+		$('input[data-filter-name="item_condition"]').closest('.filter-block').remove();
 	}
 
 	restore_discount_filter() {
