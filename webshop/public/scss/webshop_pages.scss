@@ -166,15 +166,6 @@
 }
 
 /* ---- from webshop/templates/pages/gift_cards.html (block 1) ---- */
-.gift-cards-container .btn-primary {
-	background: var(--wsh-text);
-	border: none;
-}
-
-.gift-cards-container .btn-primary:hover {
-	background: var(--wsh-text);
-}
-
 .gift-card-item {
 	transition: transform var(--wsh-motion), box-shadow var(--wsh-motion);
 	overflow: hidden;
@@ -291,15 +282,6 @@
 /* ---- from webshop/templates/pages/loyalty_points.html (block 1) ---- */
 .loyalty-points-container .badge-primary {
 	background-color: var(--wsh-text);
-}
-
-.loyalty-points-container .btn-primary {
-	background: var(--wsh-text);
-	border: none;
-}
-
-.loyalty-points-container .btn-primary:hover {
-	background: var(--wsh-text);
 }
 
 .loyalty-points-container .points-balance {

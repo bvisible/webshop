@@ -15,11 +15,16 @@
 // Naming: --wsh-<meaning>. Nothing is named after a colour: "muted", "line", "ok",
 // never "gray-600" or "green". The chrome decides what muted looks like.
 :root {
-	// brand
-	--wsh-primary: var(--primary-color, var(--primary, #171717));
-	--wsh-primary-hover: var(--primary-hover, var(--primary-dark, #040404));
-	--wsh-primary-soft: var(--primary-light, color-mix(in srgb, var(--wsh-primary) 12%, transparent));
-	--wsh-on-primary: var(--primary-text, #ffffff);
+	// brand — the page's action colour first. --btn-primary is the token the chrome fills
+	// with the colour its own buttons wear (Builder's button_colours, 2026-09-13: the primary
+	// when it reads on the page background, a deeper shade when it is pale, the secondary when
+	// the primary is the background itself) and the token frappe's own .btn-primary reads. On
+	// a site whose primary is its page background, the raw primary painted an invisible
+	// "add to cart" next to a readable header button. The soft tint follows the same colour.
+	--wsh-primary: var(--btn-primary, var(--primary-color, var(--primary, #171717)));
+	--wsh-primary-hover: var(--btn-primary-hover, var(--primary-hover, var(--primary-dark, #040404)));
+	--wsh-primary-soft: color-mix(in srgb, var(--wsh-primary) 12%, transparent);
+	--wsh-on-primary: var(--btn-primary-text, var(--primary-text, #ffffff));
 
 	// ink
 	--wsh-text: var(--text-color, var(--gray-900, #111827));

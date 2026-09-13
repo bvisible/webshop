@@ -209,16 +209,12 @@ body:has(.site-page-header) .product-header-block .like-action { margin: 0; }
 	font-weight: 600;
 	text-align: center;
 }
+/* the buy button in the site's own button shape (webshop_buttons.scss): it had a size of
+   its own, 12px 20px at 600, next to the site's 12px 24px at 500 (2026-09-13) */
 .wsp-product .wsp-buy .action-buttons .btn-add-to-cart {
+	@include wsh-action-button;
 	flex: 1 1 200px;
 	margin: 0 !important;
-	padding: 12px 20px;
-	font-weight: 600;
-	font-size: 0.95rem;
-	border-radius: var(--wsh-radius);
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
 }
 .wsp-product .wsp-buy .action-buttons .btn-view-in-cart { margin: 0 !important; }
 /* upstream stacks the row on a narrow screen (flex-direction: column); a flex-basis
@@ -227,7 +223,7 @@ body:has(.site-page-header) .product-header-block .like-action { margin: 0; }
 	.wsp-product .wsp-buy .action-buttons .btn-add-to-cart { flex: 0 0 auto; width: 100%; }
 	.wsp-product .wsp-buy .action-buttons .btn-inquiry { width: 100%; }
 }
-.wsp-product .wsp-buy .action-buttons .btn-inquiry { margin: 0; border-radius: var(--wsh-radius); }
+.wsp-product .wsp-buy .action-buttons .btn-inquiry { @include wsh-action-button; margin: 0; }
 .wsp-product .wsp-buy .item-cart .mt-6 { margin-top: 20px !important; }
 .wsp-product .wsp-buy .item-cart .mb-5 { margin-bottom: 8px !important; }
 

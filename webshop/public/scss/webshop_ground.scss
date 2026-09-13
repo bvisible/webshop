@@ -77,16 +77,7 @@ body.product-page {
 		color: var(--wsh-text);
 		&:hover, &:active, &:focus { background-color: var(--wsh-line); color: var(--wsh-text); }
 	}
-	.btn.btn-outline-primary {
-		color: var(--wsh-text);
-		border-color: var(--wsh-line-strong);
-		background-color: transparent;
-		&:hover, &:focus, &:active {
-			background-color: var(--wsh-primary);
-			border-color: var(--wsh-primary);
-			color: var(--wsh-on-primary);
-		}
-	}
+	/* the outline and the primary buttons: webshop_buttons.scss (the site's shape and colour) */
 	.nav-tabs .nav-link { color: var(--wsh-muted); }
 	.nav-tabs .nav-link:hover { color: var(--wsh-text); }
 	.nav-tabs .nav-link.active {

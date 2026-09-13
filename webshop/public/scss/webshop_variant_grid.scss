@@ -174,9 +174,10 @@
 				margin-bottom: 0;
 			}
 			
+			// the site's own button shape (webshop_buttons.scss): the chosen variant's "add to
+			// cart" is the page's call to action, not a small button of its own (2026-09-13)
 			.btn-add-to-cart {
-				padding: 0.375rem 1rem;
-				font-size: 0.875rem;
+				@include wsh-action-button;
 			}
 		}
 	}

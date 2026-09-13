@@ -449,8 +449,10 @@ body[data-path=update-profile] {
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
-			background-color: var(--btn-primary);
-			color: var(--neutral);
+			// //// Neoffice — the shop's tokens (2026-09-13): --btn-primary now carries the page's
+			// //// action colour, and --neutral (white) does not read on every action colour
+			background-color: var(--wsh-primary);
+			color: var(--wsh-on-primary);
 			--icon-stroke: currentColor;
 			--icon-fill-bg: var(--btn-primary);
 			white-space: nowrap;
