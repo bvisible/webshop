@@ -861,6 +861,14 @@ endpoint whose id travels in a redirect URL.
 > Read what a test asserts, not whether it is green — and read the *skipped*
 > count.
 
+> **A module that skips on an empty site is green by day and red by night.**
+> `test_product_page` reads `_published_item()` and skips when the site has no published
+> Website Item: the CI's fresh site has none, so the blocking step passed while the nightly
+> "Tests" run, which has data, executed them and failed three times over (#399, seen only at
+> night, 2026-09-13). Being in `ci.yml`'s blocking list is not enough: a module that needs a
+> published item must create it (`make_test_item()` and a Website Item) instead of skipping,
+> and a skip must be read as "not run", never as "passed".
+
 > **Ask the site for its fixtures, never assume them.** `webshop.webshop.tests.utils`
 > resolves the item group, price list, customer group and company at runtime.
 > The upstream tests hard-code "Products", "Standard Selling" and
