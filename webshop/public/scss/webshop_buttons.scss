@@ -12,7 +12,7 @@
 // What keeps its own size on purpose: the small buttons (.btn-sm, .btn-xs — chips, a
 // coupon's apply, a row's action), the pager (.btn-page, a state, not an action), the
 // quantity spinner's keys (.cart-btn, sized by their field), the catalogue's view toggle
-// (.btn-list-view / .btn-image-view — the active one wears .btn-primary as a state) and the
+// (.btn-list-view / .btn-grid-view — the active one wears .btn-primary as a state) and the
 // tile's quiet button (.wsp-card__cta — a tile is not a page, and its look is the tile's own).
 
 @mixin wsh-action-button {
@@ -32,14 +32,14 @@
 	box-shadow: none;
 	transition: background-color var(--wsh-motion), color var(--wsh-motion), border-color var(--wsh-motion), box-shadow var(--wsh-motion);
 	&:hover, &:focus { text-decoration: none; }
-	// frappe's .font-md utility pins 14px with !important, and the cart's and the checkout's
-	// buttons carry it: the size of a button is the system's, not the markup's
+	// the .font-md utility of webshop_cart.scss pins 14px with !important, and the cart's and
+	// the checkout's buttons carry it: the size of a button is the system's, not the markup's
 	&.font-md { font-size: 0.95rem !important; }
 }
 
 body.product-page {
 	// the shape: what a customer reads as "a button of this site"
-	.btn.btn-primary:not(.btn-sm):not(.btn-xs):not(.btn-page):not(.wsp-card__cta):not(.btn-list-view):not(.btn-image-view),
+	.btn.btn-primary:not(.btn-sm):not(.btn-xs):not(.btn-page):not(.wsp-card__cta):not(.btn-list-view):not(.btn-grid-view),
 	.btn.btn-secondary:not(.btn-sm):not(.btn-xs),
 	.btn.btn-outline-primary:not(.btn-sm):not(.btn-xs),
 	.btn.btn-default:not(.btn-sm):not(.btn-xs):not(.btn-page):not(.cart-btn),
