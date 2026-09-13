@@ -26,7 +26,9 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	# //// Neoffice — "filters in a drawer on every screen" (Webshop Settings, 2026-09-13):
 	# //// the page carries a class and the stylesheet turns the sidebar into the phone's
 	# //// drawer at every width; the products take the whole width.
-	if frappe.db.get_single_value("Webshop Settings", "filters_in_drawer"):
+	# //// read off the cached document: a site whose schema is a step behind (pulled, not yet
+	# //// migrated) must not answer 417 on its catalogue for a display option
+	if frappe.get_cached_doc("Webshop Settings").get("filters_in_drawer"):
 		context.body_class += " wsp-filters-drawer"
 	context.parents = [{"name": _("Home"), "route": "/"}]
 	context.listing_route = listing_route

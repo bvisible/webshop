@@ -50,7 +50,7 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		context.show_search = True
 		context.body_class = "product-page"
 		# //// Neoffice — filters in a drawer on every screen (see listing_context.py)
-		if frappe.db.get_single_value("Webshop Settings", "filters_in_drawer"):
+		if frappe.get_cached_doc("Webshop Settings").get("filters_in_drawer"):
 			context.body_class += " wsp-filters-drawer"
 		# //// Neoffice — the second-hand toggle of the sidebar shows when the shop publishes
 		# //// used units (views.js get_second_hand_filter_html, 2026-09-13).
