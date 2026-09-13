@@ -1198,6 +1198,7 @@ webshop.ProductView =  class {
 				me.update_infinite_scroll_status();
 			},
 			error: function() {
+				//// Neoffice — the state may have been reset by a filter change meanwhile
 				if (me.infinite_scroll_state) me.infinite_scroll_state.loading = false;
 				$('.infinite-scroll-spinner').hide();
 			}
@@ -1374,8 +1375,8 @@ webshop.ProductView =  class {
 		} else {
 			$("#product-filters").append(section);
 		}
-		// the Condition facet (New / Second-hand / Refurbished) says the same thing twice
-		// once the toggle is there: it steps aside in the sidebar
+		//// Neoffice — the Condition facet (New / Second-hand / Refurbished) says the same
+		//// thing twice once the toggle is there: it steps aside in the sidebar
 		$('input[data-filter-name="item_condition"]').closest('.filter-block').remove();
 	}
 
