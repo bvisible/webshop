@@ -113,11 +113,14 @@ test.describe('Fiche produit', () => {
 		const replis = page.locator('details.wsp-acc');
 		test.skip((await replis.count()) === 0, 'produit sans description ni caractéristiques');
 		const premier = replis.first();
-		await expect(premier).toHaveAttribute('open', '');
-		const ferme = page.locator('details.wsp-acc:not([open])').first();
-		if (await ferme.count()) {
+		await expect(premier).toHaveJSProperty('open', true);
+		//// Pin the fold by index: a `:not([open])` locator stops matching the fold the
+		//// moment it opens and silently moves on to the next closed one.
+		const fermes = await replis.evaluateAll((els) => els.map((e, i) => (e.open ? -1 : i)).filter((i) => i >= 0));
+		if (fermes.length) {
+			const ferme = replis.nth(fermes[0]);
 			await ferme.locator('summary').click();
-			await expect(ferme).toHaveAttribute('open', '');
+			await expect(ferme).toHaveJSProperty('open', true);
 		}
 	});
 
