@@ -152,9 +152,12 @@ def get_parent_item_groups(item_group_name, from_item=False):
 	else:
 		base_nav_page = {"name": _("All Products"), "route": "/all-products"}
 
-	if from_item and frappe.request.environ.get("HTTP_REFERER"):
+	# //// Neoffice — the referer is read only when there IS a request: get_context() called
+	# //// outside one (the product page tests do) died on "object is not bound" (#399).
+	request = getattr(frappe.local, "request", None)
+	if from_item and request and request.environ.get("HTTP_REFERER"):
 		# base page after 'Home' will vary on Item page
-		last_page = frappe.request.environ["HTTP_REFERER"].split("/")[-1].split("?")[0]
+		last_page = request.environ["HTTP_REFERER"].split("/")[-1].split("?")[0]  # //// Neoffice — see above
 		if last_page and last_page in ("shop-by-category", "all-products"):
 			base_nav_page_title = " ".join(last_page.split("-")).title()
 			base_nav_page = {"name": _(base_nav_page_title), "route": "/" + last_page}
