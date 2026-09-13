@@ -8183,3 +8183,9 @@ msgstr "Choisissez une valeur sur chaque ligne ; le prix et le stock suivent"
 
 msgid "Gift cards"
 msgstr "Cartes cadeaux"
+
+msgid "Show only second-hand items"
+msgstr "Afficher uniquement les occasions"
+
+msgid "Second-hand only"
+msgstr "Occasions uniquement"

@@ -847,6 +847,15 @@ class ProductQuery:
 				# Will be handled separately in add_stock_filter
 				continue
 
+			# //// Neoffice — the "second-hand only" toggle of the sidebar (2026-09-13): one
+			# //// key, resolved here to the conditions of utils/used_items.py, so the toggle,
+			# //// the chips and the /occasions page all mean the same thing.
+			if field == "second_hand":
+				from webshop.webshop.utils.used_items import SECOND_HAND_CONDITIONS
+
+				self.filters.append(["item_condition", "in", list(SECOND_HAND_CONDITIONS)])
+				continue
+
 			# Get tags
 			if field == "_user_tags":
 				if isinstance(values, list):

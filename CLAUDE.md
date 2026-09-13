@@ -340,7 +340,12 @@ Website Item mirrors them (`fetch_from` + `crud_events/item/update_website_item.
   `move_item_condition_section` relocates it on existing sites.
 - `/occasions` is `/all-products` with the Condition facet locked
   (`www/occasions`, `product_data_engine/listing_context.py`,
-  `window.locked_field_filters`). Webshop Settings accepts a **Select** as a
+  `window.locked_field_filters`). In the sidebar the used units are a **toggle next to
+  the discount one** (`views.js` `get_second_hand_filter_html`, 2026-09-13): the same
+  life as "discounted only" — a checkbox, a per-visitor preference in `localStorage`,
+  a chip — and one query key, `second_hand`, that the engine resolves to
+  `SECOND_HAND_CONDITIONS` in `build_fields_filters`, so both query paths agree. The
+  link to `/occasions` that stood at the top of the sidebar is gone. Webshop Settings accepts a **Select** as a
   filter field for this; the facet only renders once a published item is not
   New. Badges: `grid.js`, `list.js`, `product_carousel.html` — three copies,
   plus `bench build`.
@@ -1347,6 +1352,13 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) — **green, and it runs**:
 > creating the payment request". Nobody could pay. Fixed in
 > `webshop/setup/install.py`: **a patch that creates a field belongs in
 > `CHAMPS_A_CREER_A_L_INSTALLATION`.**
+
+> **`bind_price_filters` runs again after every filter change, so it must bind once.**
+> The slider's bounds follow the result set, and the rebind stacked a new set of
+> handlers with stale bounds on the same handles and inputs each time: after a few
+> filters a drag fought itself. Namespaced events (`.wspPrice`) are removed before
+> binding, the restored range is clamped to the current bounds, and the track is inset
+> by half a handle so the handles stay inside the sidebar (2026-09-13).
 
 > **A `/* … */` marker outside a `<style>` block prints on the page.** HTML has no
 > such comment: the browser draws it as text. Two `//// Neoffice` markers had been

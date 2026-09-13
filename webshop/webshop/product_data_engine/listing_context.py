@@ -54,7 +54,8 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	# //// A way into the second-hand page from the catalogue: the theme's menu
 	# //// is the shop's own, so the listing itself says when there is
 	# //// something used to see.
-	context.second_hand_count = count_second_hand() if listing_route == "/all-products" else 0
+	# //// (2026-09-13) on every listing: the toggle sits next to the discount one everywhere
+	context.second_hand_count = count_second_hand()
 	context.no_cache = 1
 
 	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart

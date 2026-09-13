@@ -59,6 +59,66 @@ test.describe('Catalogue', () => {
 	});
 });
 
+test.describe('Filtres', () => {
+	//// The second-hand toggle sits right after the discount one and works the same way:
+	//// a checkbox, a per-visitor preference, and only used units left in the listing.
+	test('le filtre des occasions suit celui des promotions et ne garde que les occasions', async ({page}) => {
+		await page.goto('/all-products');
+		await page.waitForLoadState('networkidle');
+		const toggle = page.locator('#second-hand-filters');
+		test.skip((await toggle.count()) === 0, 'aucune occasion publiée sur cette boutique');
+		const blocs = await page.locator('#product-filters .filter-block').evaluateAll((els) => els.map((e) => e.id));
+		expect(blocs.indexOf('second-hand-filters'), 'juste après le bloc des promotions').toBe(blocs.indexOf('discount-filters') + 1);
+		await page.locator('#showSecondHandOnly').check();
+		await page.waitForLoadState('networkidle');
+		await expect(page.locator('.active-filter-badge[data-filter-type="second_hand"]')).toBeVisible();
+		const cartes = page.locator('.wsp-card--grid');
+		await expect(cartes.first()).toBeVisible();
+		const total = await cartes.count();
+		const occasions = await page.locator('.wsp-card--grid:has(.wsp-card__badge--condition)').count();
+		expect(occasions, 'chaque tuile restante est une occasion').toBe(total);
+		//// The chip's cross clears the toggle.
+		await page.locator('.active-filter-badge[data-filter-type="second_hand"]').click();
+		await page.waitForLoadState('networkidle');
+		await expect(page.locator('#showSecondHandOnly')).not.toBeChecked();
+		await page.evaluate(() => localStorage.removeItem('second_hand_filter_checked'));
+	});
+
+	//// The price slider: a drag moves the handle, rewrites the input and filters the
+	//// listing; the handles stay inside the sidebar; a second drag after a filter still
+	//// obeys (the handlers used to stack up on every filter change).
+	test('le sélecteur de prix se traîne, reste dans la colonne et survit à un filtrage', async ({page}) => {
+		await page.goto('/all-products');
+		await page.waitForLoadState('networkidle');
+		const track = page.locator('#price-slider-track');
+		test.skip((await track.count()) === 0, 'pas de filtre de prix sur cette boutique');
+		const colonne = await page.locator('#product-filters').boundingBox();
+		const max = page.locator('#price-slider-max');
+		const boiteMax = await max.boundingBox();
+		expect(boiteMax.x + boiteMax.width, 'la poignée droite tient dans la colonne').toBeLessThanOrEqual(colonne.x + colonne.width + 1);
+		const piste = await track.boundingBox();
+		const avant = Number(await page.locator('#price-max').inputValue());
+		await max.hover();
+		await page.mouse.down();
+		await page.mouse.move(piste.x + piste.width * 0.5, piste.y + piste.height / 2, {steps: 8});
+		await page.mouse.up();
+		await page.waitForLoadState('networkidle');
+		const apres = Number(await page.locator('#price-max').inputValue());
+		expect(apres, 'le maximum a baissé').toBeLessThan(avant);
+		expect(page.url()).toContain('price_range');
+		//// A second drag, after the listing re-rendered: one handler, one movement.
+		const piste2 = await track.boundingBox();
+		const max2 = page.locator('#price-slider-max');
+		await max2.hover();
+		await page.mouse.down();
+		await page.mouse.move(piste2.x + piste2.width * 0.9, piste2.y + piste2.height / 2, {steps: 8});
+		await page.mouse.up();
+		await page.waitForLoadState('networkidle');
+		const encore = Number(await page.locator('#price-max').inputValue());
+		expect(encore, 'le maximum est remonté').toBeGreaterThan(apres);
+	});
+});
+
 test.describe('Fiche produit', () => {
 	test.beforeEach(async ({page}) => {
 		const article = await premierArticleAchetable(page);

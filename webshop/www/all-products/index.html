@@ -44,15 +44,9 @@
 					</button>
 				</div>
 			</div>
-			{# //// Neoffice — the second-hand page has no menu entry of its own
-			   (the header belongs to the theme): the catalogue points to it as
-			   soon as a used unit is published. #}
-			{% if second_hand_count %}
-				<a class="second-hand-link d-inline-flex align-items-center mb-4" href="/occasions">
-					<span class="condition-badge condition-badge--inline">{{ _("Second-hand") }}</span>
-					<span class="ml-2">{{ _("See the second-hand deals ({0})").format(second_hand_count) }}</span>
-				</a>
-			{% endif %}
+			{# //// Neoffice — the second-hand units are a toggle next to the discount one
+			   (views.js get_second_hand_filter_html, 2026-09-13); the link to /occasions
+			   that stood here is gone. #}
 			<!-- field filters -->
 			{% if field_filters %}
 				{{ _(field_filter_section(field_filters)) }}
@@ -127,6 +121,8 @@
 	window.product_settings = {{ product_settings|json }};
 	{# //// Neoffice — second-hand page: a facet the visitor cannot untick (views.js merges it into every query) #}
 	window.locked_field_filters = {{ (locked_field_filters or {})|json }};
+	{# //// Neoffice — how many used units the shop publishes: the toggle only shows then #}
+	window.second_hand_count = {{ second_hand_count or 0 }};
 
 	window.product_translations = {
 		"Search": {{ _("Search")|json }},
@@ -148,6 +144,10 @@
 		"Something went wrong. Please refresh or contact us.": {{ _("Something went wrong. Please refresh or contact us.")|json }},
 		"Discounts": {{ _("Discounts")|json }},
 		"Show only products with discount": {{ _("Show only products with discount")|json }},
+		{# //// Neoffice — the second-hand toggle (2026-09-13) #}
+		"Second-hand": {{ _("Second-hand")|json }},
+		"Show only second-hand items": {{ _("Show only second-hand items")|json }},
+		"Second-hand only": {{ _("Second-hand only")|json }},
 		"No more discounted products. Returning to first page.": {{ _("No more discounted products. Returning to first page.")|json }},
 		"On backorder": {{ _("On backorder")|json }},
 		"Out of stock": {{ _("Out of stock")|json }},

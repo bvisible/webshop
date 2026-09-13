@@ -49,6 +49,11 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 	def get_context(self, context):
 		context.show_search = True
 		context.body_class = "product-page"
+		# //// Neoffice — the second-hand toggle of the sidebar shows when the shop publishes
+		# //// used units (views.js get_second_hand_filter_html, 2026-09-13).
+		from webshop.webshop.utils.used_items import count_second_hand
+
+		context.second_hand_count = count_second_hand()
 		context.page_length = (
 			cint(frappe.db.get_single_value("Webshop Settings", "products_per_page")) or 6
 		)

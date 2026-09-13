@@ -140,6 +140,8 @@
 	window.product_settings = {{ product_settings|json }};
 	
 	// Store translations for JavaScript
+	{# //// Neoffice — the second-hand toggle only shows when the shop publishes used units #}
+	window.second_hand_count = {{ second_hand_count or 0 }};
 	window.product_translations = {
 		"New": {{ _("New")|json }},
 		"Refurbished": {{ _("Refurbished")|json }},
@@ -159,6 +161,10 @@
 		"Something went wrong. Please refresh or contact us.": {{ _("Something went wrong. Please refresh or contact us.")|json }},
 		"Discounts": {{ _("Discounts")|json }},
 		"Show only products with discount": {{ _("Show only products with discount")|json }},
+		{# //// Neoffice — the second-hand toggle (2026-09-13) #}
+		"Second-hand": {{ _("Second-hand")|json }},
+		"Show only second-hand items": {{ _("Show only second-hand items")|json }},
+		"Second-hand only": {{ _("Second-hand only")|json }},
 		"No more discounted products. Returning to first page.": {{ _("No more discounted products. Returning to first page.")|json }},
 		"On backorder": {{ _("On backorder")|json }},
 		"Out of stock": {{ _("Out of stock")|json }},

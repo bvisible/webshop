@@ -263,6 +263,16 @@ webshop.ProductView =  class {
 				</span>
 			`);
 		}
+		//// Neoffice — the second-hand toggle's chip (2026-09-13)
+		if (localStorage.getItem('second_hand_filter_checked') === 'true') {
+			hasActiveFilters = true;
+			$badges.append(`
+				<span class="badge badge-dark active-filter-badge" data-filter-type="second_hand" style="cursor: pointer;">
+					<i class="fa fa-recycle"></i> ${translations["Second-hand only"] || "Second-hand only"}
+					<i class="fa fa-times ml-1"></i>
+				</span>
+			`);
+		}
 
 		// Parse URL filters (field_filters, attribute_filters)
 		const urlParams = frappe.utils.get_query_params();
@@ -375,6 +385,13 @@ webshop.ProductView =  class {
 			$('input.discount-filter').prop('checked', false);
 			if (this.field_filters && this.field_filters['discount']) {
 				delete this.field_filters['discount'];
+			}
+		} else if (filterType === 'second_hand') {
+			//// Neoffice — the second-hand toggle's chip (2026-09-13)
+			localStorage.setItem('second_hand_filter_checked', 'false');
+			$('input.second-hand-filter').prop('checked', false);
+			if (this.field_filters && this.field_filters['second_hand']) {
+				delete this.field_filters['second_hand'];
 			}
 		} else if (filterType === 'field') {
 			// Remove field filter
@@ -705,6 +722,10 @@ webshop.ProductView =  class {
 		// For discount filter - always respect localStorage
 		if (saved_discount_preference === 'true') {
 			field_filters["discount"] = ["100"];
+		}
+		//// Neoffice — the second-hand toggle, a per-visitor preference like the two above
+		if (localStorage.getItem('second_hand_filter_checked') === 'true') {
+			field_filters["second_hand"] = ["1"];
 		}
 		
 		// Retrieve the price_range parameter from the URL
@@ -1309,6 +1330,46 @@ webshop.ProductView =  class {
 		html += `</div>`;
 
 		$("#discount-filters").append(html);
+		this.get_second_hand_filter_html();
+	}
+
+	//// Neoffice — the second-hand toggle (2026-09-13): the catalogue used to point at
+	//// /occasions through a link at the top of the sidebar; the shop asked for a filter
+	//// next to the discount one, working the same way — a checkbox, a per-visitor
+	//// preference, a chip. Drawn only when the shop has a used unit published, and not
+	//// on the second-hand page itself, where the condition is locked.
+	get_second_hand_filter_html() {
+		$("#second-hand-filters").remove();
+		if (!window.second_hand_count) return;
+		if (window.locked_field_filters && window.locked_field_filters.item_condition) return;
+		const translations = window.product_translations || {};
+		const section = `
+			<div id="second-hand-filters" class="mb-4 filter-block pb-5">
+				<div class="filter-label mb-3">${ translations["Second-hand"] || "Second-hand" }</div>
+				<div class="filter-options">
+					<div class="checkbox">
+						<label>
+							<input type="checkbox"
+								class="product-filter second-hand-filter"
+								id="showSecondHandOnly"
+								name="second_hand"
+								data-filter-name="second_hand"
+								data-filter-value="1"
+								style="width: 14px !important"
+							>
+							<span class="label-area" for="showSecondHandOnly">
+								${ translations["Show only second-hand items"] || "Show only second-hand items" } (${ window.second_hand_count })
+							</span>
+						</label>
+					</div>
+				</div>
+			</div>
+		`;
+		if ($("#discount-filters").length) {
+			$("#discount-filters").after(section);
+		} else {
+			$("#product-filters").append(section);
+		}
 	}
 
 	restore_discount_filter() {
@@ -1354,6 +1415,12 @@ webshop.ProductView =  class {
 			}
 			this.field_filters["discount"] = ["100"];
 		}
+		//// Neoffice — and the second-hand toggle (see get_second_hand_filter_html)
+		if (localStorage.getItem('second_hand_filter_checked') === 'true') {
+			$('#showSecondHandOnly').prop('checked', true);
+			this.field_filters = this.field_filters || {};
+			this.field_filters["second_hand"] = ["1"];
+		}
 	}
 
 	bind_discount_filter_action() {
@@ -1365,6 +1432,23 @@ webshop.ProductView =  class {
 			this.preloadDiscountResults();
 		}
 		
+		//// Neoffice — the second-hand toggle: same life as the discount one (2026-09-13)
+		$('.second-hand-filter').off('change.wspSecondHand').on('change.wspSecondHand', (e) => {
+			const is_checked = $(e.target).is(':checked');
+			localStorage.setItem('second_hand_filter_checked', is_checked ? 'true' : 'false');
+			if (is_checked && localStorage.getItem('stock_filter_checked') === null) {
+				localStorage.setItem('stock_filter_checked', 'false');
+			}
+			this.field_filters = this.field_filters || {};
+			if (is_checked) {
+				this.field_filters["second_hand"] = ["1"];
+			} else {
+				delete this.field_filters["second_hand"];
+			}
+			me.from_filters = true;
+			me.change_route_with_filters();
+		});
+
 		$('.discount-filter').on('change', (e) => {
 			const $checkbox = $(e.target);
 			const is_checked = $checkbox.is(':checked');
@@ -1695,6 +1779,13 @@ webshop.ProductView =  class {
 		const $selection = $('#price-slider-selection');
 		const $min_input = $('#price-min');
 		const $max_input = $('#price-max');
+
+		//// Neoffice — bound once: this method runs again after every filter change (the
+		//// bounds follow the result set), and each run stacked a new set of handlers on the
+		//// same handles and inputs, each with its own stale bounds — after a few filters a
+		//// drag fought itself and the inputs were rewritten by old closures (2026-09-13).
+		$min_handle.add($max_handle).off('.wspPrice');
+		$min_input.add($max_input).off('.wspPrice');
 		
 		// Function to convert a price value to a position on the slider (in percentage)
 		const priceToPosition = (price) => {
@@ -1734,7 +1825,7 @@ webshop.ProductView =  class {
 		let isDragging = false;
 		let currentHandle = null;
 		
-		$min_handle.add($max_handle).on('mousedown touchstart', function(e) {
+		$min_handle.add($max_handle).on('mousedown.wspPrice touchstart.wspPrice', function(e) {
 			e.preventDefault();
 			isDragging = true;
 			currentHandle = $(this).is($min_handle) ? 'min' : 'max';
@@ -1776,7 +1867,7 @@ webshop.ProductView =  class {
 		};
 		
 		// Handle changes in input fields
-		$min_input.on('input', function() {
+		$min_input.on('input.wspPrice', function() {
 			// Ensure the value is between 0 and current_max - 1
 			let value = parseInt($(this).val()) || min_price_value;
 			value = Math.max(0, Math.min(value, current_max - 1));
@@ -1784,7 +1875,7 @@ webshop.ProductView =  class {
 			updateSlider();
 		});
 		
-		$min_input.on('change', function() {
+		$min_input.on('change.wspPrice', function() {
 			// Ensure the value is between 0 and current_max - 1
 			let value = parseInt($(this).val()) || min_price_value;
 			value = Math.max(0, Math.min(value, current_max - 1));
@@ -1795,7 +1886,7 @@ webshop.ProductView =  class {
 			applyPriceFilter();
 		});
 		
-		$max_input.on('input', function() {
+		$max_input.on('input.wspPrice', function() {
 			// Ensure the value is between current_min + 1 and max_price_value
 			let value = parseInt($(this).val()) || max_price_value;
 			value = Math.min(max_price_value, Math.max(value, current_min + 1));
@@ -1803,7 +1894,7 @@ webshop.ProductView =  class {
 			updateSlider();
 		});
 		
-		$max_input.on('change', function() {
+		$max_input.on('change.wspPrice', function() {
 			// Ensure the value is between current_min + 1 and max_price_value
 			let value = parseInt($(this).val()) || max_price_value;
 			value = Math.min(max_price_value, Math.max(value, current_min + 1));
@@ -1855,12 +1946,14 @@ webshop.ProductView =  class {
 				try {
 					const price_range = JSON.parse(decodeURIComponent(price_range_param));
 					
+					//// Neoffice — clamped to the current bounds: after a filter the range of the
+					//// result set may no longer contain what the URL remembers (2026-09-13).
 					if (price_range.min !== undefined) {
-						current_min = parseInt(price_range.min);
+						current_min = Math.max(min_price_value, Math.min(parseInt(price_range.min), max_price_value - 1));
 					}
 					
 					if (price_range.max !== undefined) {
-						current_max = parseInt(price_range.max);
+						current_max = Math.min(max_price_value, Math.max(parseInt(price_range.max), current_min + 1));
 					}
 					
 					updateSlider();

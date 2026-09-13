@@ -12,7 +12,11 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 100%;
+    /* //// Neoffice — inset by half a handle: centred on 0 % and 100 % of a full-width
+       track, the handles overflowed the column and the right one was cut (2026-09-13) */
+    left: 10px;
+    right: 10px;
+    width: auto;
     height: 6px;
     background-color: var(--wsh-line);
     border-radius: var(--wsh-radius-sm);
