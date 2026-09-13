@@ -97,6 +97,11 @@ class ItemConfigureGrid {
 			const present = new Set(this.variants_data.variants.map(v => v.attributes[attribute]).filter(Boolean));
 			const values = (ordered[attribute] || []).filter(v => present.has(v));
 			present.forEach(v => { if (!values.includes(v)) values.push(v); });
+			// a row of numbers reads in numeric order whatever the attribute master says: a
+			// "Size" master that mixes S/M/L with board lengths listed 153, 159, 156 (2026-09-13)
+			if (values.length > 1 && values.every(v => /^\s*\d+([.,]\d+)?\s*$/.test(v))) {
+				values.sort((a, b) => parseFloat(String(a).replace(',', '.')) - parseFloat(String(b).replace(',', '.')));
+			}
 			return { attribute, values };
 		});
 	}
