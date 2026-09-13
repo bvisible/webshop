@@ -1833,6 +1833,7 @@ webshop.ProductView =  class {
 		let isDragging = false;
 		let currentHandle = null;
 		
+		//// Neoffice — bound under the .wspPrice namespace, unbound before each rebind (see above)
 		$min_handle.add($max_handle).on('mousedown.wspPrice touchstart.wspPrice', function(e) {
 			e.preventDefault();
 			isDragging = true;
@@ -1875,6 +1876,7 @@ webshop.ProductView =  class {
 		};
 		
 		// Handle changes in input fields
+		//// Neoffice — bound under the .wspPrice namespace, unbound before each rebind (see above)
 		$min_input.on('input.wspPrice', function() {
 			// Ensure the value is between 0 and current_max - 1
 			let value = parseInt($(this).val()) || min_price_value;
@@ -1883,6 +1885,7 @@ webshop.ProductView =  class {
 			updateSlider();
 		});
 		
+		//// Neoffice — bound under the .wspPrice namespace, unbound before each rebind (see above)
 		$min_input.on('change.wspPrice', function() {
 			// Ensure the value is between 0 and current_max - 1
 			let value = parseInt($(this).val()) || min_price_value;
@@ -1894,6 +1897,7 @@ webshop.ProductView =  class {
 			applyPriceFilter();
 		});
 		
+		//// Neoffice — bound under the .wspPrice namespace, unbound before each rebind (see above)
 		$max_input.on('input.wspPrice', function() {
 			// Ensure the value is between current_min + 1 and max_price_value
 			let value = parseInt($(this).val()) || max_price_value;
@@ -1902,6 +1906,7 @@ webshop.ProductView =  class {
 			updateSlider();
 		});
 		
+		//// Neoffice — bound under the .wspPrice namespace, unbound before each rebind (see above)
 		$max_input.on('change.wspPrice', function() {
 			// Ensure the value is between current_min + 1 and max_price_value
 			let value = parseInt($(this).val()) || max_price_value;
@@ -1961,6 +1966,7 @@ webshop.ProductView =  class {
 					}
 					
 					if (price_range.max !== undefined) {
+						//// Neoffice — clamped to the current bounds (see above)
 						current_max = Math.min(max_price_value, Math.max(parseInt(price_range.max), current_min + 1));
 					}
 					
