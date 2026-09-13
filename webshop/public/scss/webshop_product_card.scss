@@ -50,6 +50,11 @@
 		object-fit: contain;
 		object-position: center;
 		padding: 0;
+		/* //// Neoffice — upstream's .item-card-group-section .card-img keeps a 1rem margin
+		   and a 210px cap: the picture sat 16px right and down in its box, clipped on two
+		   sides, and read off-centre (2026-09-13) */
+		margin: 0;
+		max-height: none;
 		transition: transform var(--wsh-motion), opacity var(--wsh-motion);
 	}
 	&.wsp-card--cover .card-img,
@@ -58,9 +63,14 @@
 		position: absolute;
 		inset: 0;
 		opacity: 0;
+		/* its own ground: a contained picture leaves bands, and the first picture showed
+		   through them */
+		background: var(--wsh-surface-muted);
 	}
 	&:hover .wsp-card__image--hover { opacity: 1; }
-	&:hover .wsp-card__image:not(.wsp-card__image--hover) { transform: scale(1.03); }
+	/* the first picture steps aside when there is a second one; it only grows when alone */
+	&:hover .wsp-card__media:has(.wsp-card__image--hover) .wsp-card__image:not(.wsp-card__image--hover) { opacity: 0; transform: none; }
+	&:hover .wsp-card__media:not(:has(.wsp-card__image--hover)) .wsp-card__image { transform: scale(1.03); }
 	.card-img-top.no-image,
 	.wsp-card__placeholder {
 		position: absolute;
