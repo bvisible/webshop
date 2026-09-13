@@ -1219,6 +1219,76 @@ item group) — carry `brand` and `item_condition`.
 > price list (`Webshop Settings.price_list`) — the listing may price it through the
 > customer's list, the helpers here do not.
 
+### Product videos
+
+Website Item carries a `videos` table (`Website Item Video`: YouTube, Vimeo or a
+hosted file, a title, an optional poster). `utils/videos.py` turns a row into what
+the page needs — the platform id read off the address as the browser shows it, an
+embed URL (`youtube-nocookie.com`, Vimeo `dnt=1`) or the file's `src` and mime, a
+poster (the merchant's, else YouTube's own thumbnail, else a hosted file's first frame
+through `<video preload="metadata">`) — and `has_video`, a hidden Check mirrored in
+`validate`, is what the listing query, the recommendations and the carousel read to
+put a play mark on the tile. The gallery draws the videos after the photos, as tiles
+with a play badge; the lightbox creates the player only then, and empties its host
+on close so nothing keeps playing. `utils/test_videos.py` is in the CI's blocking list.
+
+> **The lightbox lives under `<body>`, moved there on init.** A sticky box is a stacking
+> context: the fixed overlay inside the sticky gallery column painted *under* the buy
+> column, sticky too and later in the DOM, and the player sat behind the price. Never
+> keep a full-screen layer inside the hero.
+
+> **A third party is reached only on the click.** The poster is a static image; the
+> iframe is created when the visitor presses play. A shop that would rather show no
+> YouTube thumbnail at load attaches a poster.
+
+### The variant selector
+
+`item_configure_grid.html` / `.js` draws one row of chips per attribute, in the
+template's order, the values in the attribute's own order (`get_all_variants_info`
+returns `attribute_values`; numeric attributes sort numerically). A chip is struck
+(`is-unavailable`, still clickable: the footer then says out of stock and hides the
+button) when no variant in stock satisfies it given the other rows, and absent
+(`is-impossible`) when no variant carries it. An attribute whose variants have their
+own picture (a colour) shows picture chips, and the gallery's first picture follows
+the choice through `window.wspGallery.showImage(url)` (`null` restores). The footer
+(price, stock, add to cart) is the old one, and **its button carries `data-item-code`
+only once a variant is chosen**: the browser-test fixture reads "a code on the buy
+button" as "a purchasable article", and a code posted empty at load made four
+catalogue tests open a template page. `12-variantes.spec.js` runs signed out.
+
+### Gift cards, seen from the shop
+
+The product `is_gift_card` shows amounts as chips (`.wsp-gift__chip`, Webshop
+Settings' `gift_card_amounts`, a custom amount when allowed); no unit line, no stock
+line, no delivery or return promise under it. The line reaches the cart with a
+pre-generated code in `gift_card_data`; the paid invoice (`create_gift_cards_from_invoice`)
+mints a `Coupon Code` of type Gift Card for the customer, valid `number_of_valid_months`,
+and sends `gift_card_notification`; the customer finds it on `/gift_cards` (linked from
+the account menu — `standard_portal_menu_items` — and from the cart's quiet links) and
+redeems it through the coupon field: the discount is the card's balance, and
+`process_gift_card_split` carries the remainder to a new card on the order. Measured
+on osiris on 2026-09-13, end to end. A gift-card line carries no stock source and no
+delivery estimate (`decorate_cart_line` skips it).
+
+> Two merchant decisions the code does not make: VAT on the sale of the card (the item's
+> tax template applies; a multi-purpose voucher is normally taxed at redemption) and
+> loyalty points earned on buying one.
+
+### Multi-warehouse on the product page
+
+When a product has several sources, the buy column offers one radio per source with
+its stock and its delivery estimate, and **the delivery promise follows the chosen
+source** (`data-promise="delay"` in `item_promises.html`, updated by
+`mw_sync_delivery_promise`); it falls back to Webshop Settings' text when the source
+carries no delay. The settings' "delivered in 2 to 4 days" under a supplier source
+saying ~15 days was a contradiction on one screen.
+
+> **The catalogue tile's picture is centred by the card's own rule, not upstream's.**
+> `.item-card-group-section .card-img` keeps a 1rem margin and a 210px cap: the picture
+> sat 16px right and down in its box, clipped on two sides. On hover the second picture
+> has its own ground and the first one fades: a contained picture leaves bands, and the
+> first picture showed through them.
+
 ### Testing with a non-desk account
 
 After any upstream merge, permission change or routing change, test with **three
