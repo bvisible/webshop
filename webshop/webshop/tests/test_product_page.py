@@ -6,6 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
+from webshop.webshop.doctype.website_item.test_website_item import create_regular_web_item
 from webshop.webshop.tests.utils import restore_webshop_settings, snapshot_webshop_settings
 from webshop.webshop.utils.promises import PROMISE_FIELDS
 
@@ -23,9 +24,11 @@ class TestProductPage(FrappeTestCase):
 
 	def _published_item(self):
 		name = frappe.db.get_value("Website Item", {"published": 1}, "name")
-		if not name:
-			self.skipTest("no published website item on this site")
-		return frappe.get_doc("Website Item", name)
+		if name:
+			return frappe.get_doc("Website Item", name)
+		# The per-push CI runs on a fresh site with no published item: make one, so these
+		# tests run on every push and not only in the nightly suite (#399).
+		return create_regular_web_item(web_args={"published": 1})
 
 	def _context(self, doc):
 		# A request's context carries the page route; set_metatags() builds the page URL from it.
