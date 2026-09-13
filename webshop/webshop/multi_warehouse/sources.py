@@ -339,6 +339,15 @@ def decorate_cart_line(line, settings=None):
 	"""Attach shopper-facing source metadata to a Quotation/Sales Order line."""
 	settings = settings or get_settings()
 	row = get_source_for_warehouse(line.get("warehouse"), settings)
+	# //// Neoffice — a gift card has no stock and no source: the cart, the order summary
+	# //// and the thank-you page printed "Store — delivery in ~3 days" under one (2026-09-13).
+	from webshop.webshop.shopping_cart.cart import is_gift_card_item
+
+	if line.get("item_code") and is_gift_card_item(line.get("item_code")):
+		line.warehouse_source_label = None
+		line.delivery_lead_days = None
+		line.estimated_delivery = None
+		return line
 	line.warehouse_source_label = get_source_label(line.get("warehouse"), settings)
 	if row:
 		line.delivery_lead_days = estimate_lead_days(row)
