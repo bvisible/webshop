@@ -254,6 +254,10 @@ async function premierArticleAchetable(page) {
 		//// badges its used items too, a page-wide count rejected every product whose
 		//// neighbours included one, and the whole suite skipped itself.
 		if (await page.locator('.product-condition, .wsp-buy .condition-badge, .condition-info').count()) continue;
+		//// Neither a template (its buy button waits for a choice of variant and the code
+		//// read above is the template's, off the wishlist heart) nor a gift card (no price
+		//// line, an amount to pick): the specs want an ordinary article.
+		if (await page.locator('.variant-selection-section, .btn-add-to-cart.is-gift-card').count()) continue;
 		return {route, item_code: code};
 	}
 	return null;
