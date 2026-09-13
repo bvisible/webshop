@@ -1264,7 +1264,9 @@ line, no delivery or return promise under it. The line reaches the cart with a
 pre-generated code in `gift_card_data`; the paid invoice (`create_gift_cards_from_invoice`)
 mints a `Coupon Code` of type Gift Card for the customer, valid `number_of_valid_months`,
 and sends `gift_card_notification`; the customer finds it on `/gift_cards` (linked from
-the account menu — `standard_portal_menu_items` — and from the cart's quiet links) and
+the account menu — `standard_portal_menu_items`, which `bench migrate` does **not** sync:
+`patches/add_gift_cards_portal_menu` runs Portal Settings' `sync_menu` for existing
+sites — and from the cart's quiet links) and
 redeems it through the coupon field: the discount is the card's balance, and
 `process_gift_card_split` carries the remainder to a new card on the order. Measured
 on osiris on 2026-09-13, end to end. A gift-card line carries no stock source and no

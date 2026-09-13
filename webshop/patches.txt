@@ -46,3 +46,4 @@ webshop.patches.seed_follow_up_email_templates
 webshop.patches.move_item_condition_section
 webshop.patches.rename_payment_method_customer_group
 webshop.patches.add_promise_fields_to_website_profile
+webshop.patches.add_gift_cards_portal_menu
