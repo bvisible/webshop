@@ -102,6 +102,8 @@ class ProductQuery:
 			# //// Neoffice — second-hand: the cards badge used and refurbished
 			# //// units, and the product page block needs the grade.
 			"item_condition",
+			# //// Neoffice — the tile badges a product that has a video (utils/videos.py, 2026-09-13).
+			"has_video",
 			# //// Neoffice — the tile prints the brand and turns the picture on hover
 			"brand",
 			"slideshow",

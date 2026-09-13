@@ -8133,3 +8133,44 @@ msgstr ""
 msgid "écrit…"
 msgstr ""
 
+msgid "Videos"
+msgstr "Vidéos"
+
+msgid "Video"
+msgstr "Vidéo"
+
+msgid "Video URL"
+msgstr "Adresse de la vidéo"
+
+msgid "Video File"
+msgstr "Fichier vidéo"
+
+msgid "Poster Image"
+msgstr "Image d'aperçu"
+
+msgid "Has Video"
+msgstr "A une vidéo"
+
+msgid "Hosted file"
+msgstr "Fichier hébergé"
+
+msgid "Play the video"
+msgstr "Lire la vidéo"
+
+msgid "{0} — video"
+msgstr "{0} — vidéo"
+
+msgid "Website Item Video"
+msgstr "Vidéo d'article du site"
+
+msgid "Played from the gallery: a YouTube or Vimeo address, or a file the shop hosts. The catalogue tile shows a play badge."
+msgstr "Lue depuis la galerie : une adresse YouTube ou Vimeo, ou un fichier hébergé par la boutique. La tuile du catalogue porte un badge de lecture."
+
+msgid "The page's address as copied from the browser (watch, youtu.be, shorts, vimeo.com/...)"
+msgstr "L'adresse de la page telle que copiée depuis le navigateur (watch, youtu.be, shorts, vimeo.com/...)"
+
+msgid "An MP4 (H.264) or WebM file attached to this site; keep it short, it is served by the shop itself"
+msgstr "Un fichier MP4 (H.264) ou WebM joint à ce site ; le garder court, c'est la boutique qui le sert"
+
+msgid "Shown in the gallery before the video plays. Empty: YouTube's own thumbnail, the first frame of a hosted file"
+msgstr "Affichée dans la galerie avant la lecture. Vide : la vignette de YouTube, la première image d'un fichier hébergé"

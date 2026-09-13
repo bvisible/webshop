@@ -9,23 +9,36 @@
 {%- elif doc.website_image -%}
 	{%- set _appended = photos.append({"image": doc.website_image, "alt": doc.website_image_alt or doc.item_name}) -%}
 {%- endif -%}
+{# //// Neoffice — the product's videos come after the photos (utils/videos.py, 2026-09-13):
+   a tile shows the poster with a play badge — a hosted file without poster shows its own
+   first frame — and the lightbox plays it; a third-party player only loads on that click. #}
+{%- for v in videos or [] -%}{%- set _appended = photos.append({"image": v.poster, "alt": v.title or _('{0} — video').format(_(doc.web_item_name)), "video": v}) -%}{%- endfor -%}
+{%- macro play_badge() -%}<span class="wsp-gallery__play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>{%- endmacro -%}
+{%- macro media_img(p, classes, loading="lazy", index=None) -%}
+	{%- if p.video and not p.image -%}
+	<video class="{{ classes }}" src="{{ p.video.src }}" muted playsinline preload="metadata" aria-label="{{ p.alt }}"{% if index is not none %} data-index="{{ index }}"{% endif %}></video>
+	{%- else -%}
+	<img class="{{ classes }}" src="{{ p.image }}" alt="{{ p.alt }}" loading="{{ loading }}" decoding="async"{% if index is not none %} data-index="{{ index }}"{% endif %}>
+	{%- endif -%}
+	{%- if p.video %}{{ play_badge() }}{% endif -%}
+{%- endmacro -%}
 {%- set layout = "mosaic" if photos | length >= 3 else ("rail" if photos | length == 2 else ("single" if photos else "empty")) -%}
-<div class="col-md-{{ 6 if slides else 4 }} product-image-wrapper wsp-gallery wsp-gallery--{{ layout }}" data-layout="{{ layout }}" data-fit="{{ shopping_cart.cart_settings.product_image_fit or 'Contain' }}" data-photos="{{ photos | map(attribute='image') | list | tojson | forceescape }}">
+<div class="col-md-{{ 6 if slides else 4 }} product-image-wrapper wsp-gallery wsp-gallery--{{ layout }}" data-layout="{{ layout }}" data-fit="{{ shopping_cart.cart_settings.product_image_fit or 'Contain' }}" data-photos="{{ photos | map(attribute='image') | list | tojson | forceescape }}" data-media="{{ photos | tojson | forceescape }}">
 	{%- if layout == "mosaic" %}
 	{# two large tiles, then the rest as small ones; every tile opens the zoom at its index #}
 	<div class="wsp-gallery__mosaic product-image">
 		<div class="wsp-gallery__large" role="list">
 			{%- for p in photos[:2] %}
-			<a class="wsp-gallery__tile wsp-gallery__tile--large" href="{{ p.image }}" data-index="{{ loop.index0 }}" role="listitem" aria-label="{{ _('Zoom') }}">
-				<img class="{{ 'website-image' if loop.first else '' }} wsp-gallery__img" src="{{ p.image }}" alt="{{ p.alt }}" loading="eager" decoding="async">
+			<a class="wsp-gallery__tile wsp-gallery__tile--large{% if p.video %} wsp-gallery__tile--video{% endif %}" href="{{ p.image or '#' }}" data-index="{{ loop.index0 }}" role="listitem" aria-label="{{ _('Play the video') if p.video else _('Zoom') }}">
+				{{ media_img(p, ('website-image ' if loop.first else '') ~ 'wsp-gallery__img', loading='eager') }}
 			</a>
 			{%- endfor %}
 		</div>
 		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top. #}
 		<div class="wsp-gallery__small" role="list">
 			{%- for p in photos[2:] %}
-			<a class="wsp-gallery__tile" href="{{ p.image }}" data-index="{{ loop.index0 + 2 }}" role="listitem" aria-label="{{ _('Zoom') }}">
-				<img class="wsp-gallery__img" src="{{ p.image }}" alt="{{ p.alt }}" loading="lazy" decoding="async">
+			<a class="wsp-gallery__tile{% if p.video %} wsp-gallery__tile--video{% endif %}" href="{{ p.image or '#' }}" data-index="{{ loop.index0 + 2 }}" role="listitem" aria-label="{{ _('Play the video') if p.video else _('Zoom') }}">
+				{{ media_img(p, 'wsp-gallery__img') }}
 			</a>
 			{%- endfor %}
 		</div>
@@ -34,7 +47,11 @@
 	<div class="wsp-gallery__rail d-none d-md-flex">
 		<div class="wsp-gallery__thumbs" role="list">
 			{%- for p in photos %}
+			{%- if p.video %}
+			<span class="wsp-gallery__thumb wsp-gallery__thumb--video" data-index="{{ loop.index0 }}" role="listitem" data-video="1">{{ media_img(p, 'wsp-gallery__thumb-img') }}</span>
+			{%- else %}
 			<img class="wsp-gallery__thumb {% if loop.first %}active{% endif %}" src="{{ p.image }}" alt="{{ p.alt }}" loading="lazy" decoding="async" data-index="{{ loop.index0 }}" role="listitem">
+			{%- endif %}
 			{%- endfor %}
 		</div>
 		<div class="product-image-container wsp-gallery__stage">
@@ -51,8 +68,8 @@
 	</div>
 	{%- elif layout == "single" %}
 	<div class="wsp-gallery__single product-image d-none d-md-block">
-		<a class="wsp-gallery__tile" href="{{ photos[0].image }}" data-index="0" aria-label="{{ _('Zoom') }}">
-			<img class="website-image wsp-gallery__img" src="{{ photos[0].image }}" alt="{{ photos[0].alt }}" data-index="0">
+		<a class="wsp-gallery__tile{% if photos[0].video %} wsp-gallery__tile--video{% endif %}" href="{{ photos[0].image or '#' }}" data-index="0" aria-label="{{ _('Play the video') if photos[0].video else _('Zoom') }}">
+			{{ media_img(photos[0], 'website-image wsp-gallery__img', loading='eager', index=0) }}
 		</a>
 	</div>
 	{%- else %}
@@ -67,8 +84,8 @@
 		{# .product-image on the track: the browser tests look for the visible product picture through it #}
 		<div class="wsp-gallery__track product-image">
 			{%- for p in photos %}
-			<div class="wsp-gallery__slide" data-index="{{ loop.index0 }}">
-				<img class="{{ 'website-image' if loop.first and layout == 'empty' else '' }} wsp-gallery__img" src="{{ p.image }}" alt="{{ p.alt }}" loading="{{ 'eager' if loop.first else 'lazy' }}" decoding="async">
+			<div class="wsp-gallery__slide{% if p.video %} wsp-gallery__slide--video{% endif %}" data-index="{{ loop.index0 }}">
+				{{ media_img(p, ('website-image ' if loop.first and layout == 'empty' else '') ~ 'wsp-gallery__img', loading=('eager' if loop.first else 'lazy')) }}
 			</div>
 			{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: - endfor #}
 			{%- endfor %}
@@ -105,7 +122,11 @@
 		<div class="zoom-thumbnails">
 			{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: - for p in photos #}
 			{%- for p in photos %}
-			<img class="zoom-thumbnail {% if loop.first %}active{% endif %}" src="{{ p.image }}" loading="lazy" decoding="async" alt="{{ p.alt }}" data-index="{{ loop.index0 }}">
+			{%- if p.video and not p.image %}
+			<span class="zoom-thumbnail zoom-thumbnail--video {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}" aria-label="{{ p.alt }}">{{ play_badge() }}</span>
+			{%- else %}
+			<img class="zoom-thumbnail {% if p.video %}zoom-thumbnail--video {% endif %}{% if loop.first %}active{% endif %}" src="{{ p.image }}" loading="lazy" decoding="async" alt="{{ p.alt }}" data-index="{{ loop.index0 }}">
+			{%- endif %}
 			{%- endfor %}
 		</div>
 		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: - endif #}
@@ -124,6 +145,11 @@ frappe.ready(function() {
 	let photos = [];
 	try { photos = JSON.parse(root.dataset.photos || '[]'); } catch (e) { photos = []; }
 	if (!photos.length) return;
+	// //// Neoffice — the media list carries each entry's video payload (utils/videos.py,
+	// //// 2026-09-13): the lightbox plays a video entry instead of showing a picture.
+	let media = [];
+	try { media = JSON.parse(root.dataset.media || '[]'); } catch (e) { media = []; }
+	const videoAt = (i) => (media[i] && media[i].video) || null;
 	let current = 0;
 
 	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: const main = root.querySelector('.wsp-gallery__main img'); #}
@@ -135,7 +161,11 @@ frappe.ready(function() {
 		if (main) { main.src = photos[current]; main.dataset.index = current; }
 		thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
 	}
-	thumbs.forEach(t => t.addEventListener('click', () => showRail(parseInt(t.dataset.index, 10))));
+	thumbs.forEach(t => t.addEventListener('click', () => {
+		const i = parseInt(t.dataset.index, 10);
+		if (videoAt(i)) { openZoom(i); return; } // a video plays in the lightbox, the main picture stays
+		showRail(i);
+	}));
 	root.querySelectorAll('.slideshow-btn.prev').forEach(b => b.addEventListener('click', () => showRail(current - 1)));
 	root.querySelectorAll('.slideshow-btn.next').forEach(b => b.addEventListener('click', () => showRail(current + 1)));
 
@@ -168,11 +198,31 @@ frappe.ready(function() {
 	let zoomIndex = 0;
 	function showZoom(index) {
 		zoomIndex = (index + photos.length) % photos.length;
-		zoomHost.innerHTML = '';
-		const img = document.createElement('img');
-		img.src = photos[zoomIndex];
-		img.alt = '';
-		zoomHost.appendChild(img);
+		zoomHost.innerHTML = ''; // also stops whatever was playing
+		const video = videoAt(zoomIndex);
+		if (video && video.kind === 'file') {
+			const player = document.createElement('video');
+			player.className = 'zoom-video';
+			player.src = video.src;
+			if (video.poster) player.poster = video.poster;
+			player.controls = true; player.autoplay = true; player.playsInline = true;
+			zoomHost.appendChild(player);
+		} else if (video) {
+			// YouTube (no-cookie) or Vimeo (do not track): the third party is only reached now
+			const frame = document.createElement('iframe');
+			frame.className = 'zoom-video';
+			frame.src = video.embed;
+			frame.title = video.title || '';
+			frame.allow = 'autoplay; fullscreen; picture-in-picture';
+			frame.allowFullscreen = true;
+			frame.referrerPolicy = 'strict-origin-when-cross-origin';
+			zoomHost.appendChild(frame);
+		} else {
+			const img = document.createElement('img');
+			img.src = photos[zoomIndex];
+			img.alt = '';
+			zoomHost.appendChild(img);
+		}
 		zoomThumbs.forEach((t, i) => t.classList.toggle('active', i === zoomIndex));
 	}
 	function openZoom(index) {
@@ -183,6 +233,7 @@ frappe.ready(function() {
 	}
 	function closeZoom() {
 		zoom.style.display = 'none';
+		zoomHost.innerHTML = ''; // a player left behind would keep playing
 		document.body.style.overflow = '';
 	}
 	root.querySelectorAll('.wsp-gallery__tile').forEach(tile => tile.addEventListener('click', (e) => {
@@ -190,7 +241,7 @@ frappe.ready(function() {
 		openZoom(parseInt(tile.dataset.index, 10) || 0);
 	}));
 	if (main) main.addEventListener('click', () => openZoom(current));
-	if (strip) strip.querySelectorAll('.wsp-gallery__slide img').forEach(img => img.addEventListener('click', () => openZoom(parseInt(img.parentElement.dataset.index, 10) || 0)));
+	if (strip) strip.querySelectorAll('.wsp-gallery__slide').forEach(slide => slide.addEventListener('click', () => openZoom(parseInt(slide.dataset.index, 10) || 0)));
 	if (zoom) {
 		zoom.querySelector('.close').addEventListener('click', closeZoom);
 		zoom.addEventListener('click', (e) => { if (e.target === zoom) closeZoom(); });

@@ -144,6 +144,24 @@
 	}
 	.cart-indicator.hidden { display: none; }
 
+	/* the play mark of a product that has a video: bottom left of the picture, quiet */
+	.wsp-card__play {
+		position: absolute;
+		left: 8px;
+		bottom: 8px;
+		z-index: 3;
+		width: 30px;
+		height: 30px;
+		border-radius: var(--wsh-radius-pill);
+		background: var(--wsh-overlay);
+		color: var(--wsh-on-ink);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		pointer-events: none;
+	}
+	.wsp-card__play svg { width: 14px; height: 14px; margin-left: 2px; }
+
 	/* the words */
 	.card-body,
 	.wsp-card__body {
@@ -264,6 +282,13 @@
 		.wsp-card__cta:focus-visible { opacity: 1; }
 	}
 }
+
+.wsp-card--list .wsp-card__play {
+	position: absolute; left: 6px; bottom: 6px; z-index: 3; width: 24px; height: 24px;
+	border-radius: var(--wsh-radius-pill); background: var(--wsh-overlay); color: var(--wsh-on-ink);
+	display: inline-flex; align-items: center; justify-content: center; pointer-events: none;
+}
+.wsp-card--list .wsp-card__play svg { width: 12px; height: 12px; margin-left: 1px; }
 
 // the catalogue's columns: four on a wide screen, two on a phone
 .wsp-card--grid {

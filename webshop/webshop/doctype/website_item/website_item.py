@@ -59,6 +59,11 @@ class WebsiteItem(WebsiteGenerator):
 		self.validate_duplicate_website_item()
 		self.validate_website_image()
 		self.make_thumbnail()
+		# //// Neoffice — product videos (utils/videos.py): the flag mirrors the playable rows
+		# //// of the `videos` table, so a listing badges the tile without a join (2026-09-13).
+		from webshop.webshop.utils.videos import has_playable_video
+
+		self.has_video = 1 if has_playable_video(self) else 0
 		self.publish_unpublish_desk_item(publish=True)
 
 		if not self.get("__islocal"):
@@ -322,6 +327,12 @@ class WebsiteItem(WebsiteGenerator):
 		if self.slideshow:
 			context.update(get_slideshow(self))
 
+		# //// Neoffice — the product's videos, drawn by the gallery after the photos
+		# //// (templates/generators/item/item_image.html; utils/videos.py, 2026-09-13).
+		from webshop.webshop.utils.videos import product_videos
+
+		context.videos = product_videos(self)
+
 		self.set_metatags(context)
 		self.set_shopping_cart_data(context)
 
@@ -394,7 +405,7 @@ class WebsiteItem(WebsiteGenerator):
 					},
 					# //// Neoffice — variant_of/item_group fetched so a variant can inherit its template's picture below (40952f3117)
 					# //// Neoffice — brand and condition too: the tile names the one and badges the other
-					fields=["item_code", "web_item_name", "route", "website_image", "variant_of", "item_group", "brand", "item_condition"],
+					fields=["item_code", "web_item_name", "route", "website_image", "variant_of", "item_group", "brand", "item_condition", "has_video"],
 					limit=4,
 					order_by="RAND()"
 				)
@@ -762,6 +773,7 @@ class WebsiteItem(WebsiteGenerator):
 				# //// Neoffice — the tile prints the brand and badges a used unit (2026-09-12)
 				wi.brand,
 				wi.item_condition,
+				wi.has_video,
 			)
 			.where((ri.parent == self.name) & (wi.published == 1))
 			.orderby(ri.idx)

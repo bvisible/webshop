@@ -18,6 +18,14 @@
 	  handlers), "wishlist" (the customer's list, with its remove cross).
 #}
 
+{#- //// Neoffice — a product with a video wears a play mark on its picture (Website Item
+    `has_video`, utils/videos.py, 2026-09-13): the badge, not the video — the tile stays light. -#}
+{%- macro play_mark(item) -%}
+	{%- if item.has_video -%}
+		<span class="wsp-card__play" title="{{ _('Video') }}" aria-label="{{ _('Video') }}"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+	{%- endif -%}
+{%- endmacro -%}
+
 {%- macro card_badges(item) -%}
 	{%- if item.discount_percent and item.discount_percent > 0 -%}
 		<div class="discount-badge wsp-card__badge wsp-card__badge--discount"><span>- {{ item.discount_percent | round | int }}%</span></div>
@@ -184,6 +192,7 @@
 <div class="row list-row w-100 mb-4 wsp-card wsp-card--list">
 	<div class="col-2 border text-center rounded list-image wsp-card__media" style="position: relative; overflow: hidden;">
 		{{ card_badges(item) }}
+		{{ play_mark(item) }}
 		{%- if image %}
 		<a class="product-link product-list-link wsp-card__link" href="/{{ route }}">
 			<img itemprop="image" class="website-image h-100 w-100 wsp-card__image" alt="{{ title | e }}" src="{{ image }}"{{ fit.list_img }}>
@@ -300,6 +309,7 @@
 	<div class="card text-left wsp-card__frame">
 		<div class="card-img-container wsp-card__media">
 			{{ card_badges(item) }}
+			{{ play_mark(item) }}
 			{%- if variant == "grid" and not item.has_variants %}
 			{%- if settings.enable_wishlist %}
 			{{ wishlist_icon(item) }}

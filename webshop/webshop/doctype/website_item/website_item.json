@@ -32,7 +32,9 @@
   "image_focus",
   "column_break_13",
   "slideshow",
+  "videos",
   "thumbnail",
+  "has_video",
   "stock_information_section",
   "website_warehouse",
   "column_break_24",
@@ -70,6 +72,13 @@
    "fieldtype": "Link",
    "label": "Slideshow",
    "options": "Website Slideshow"
+  },
+  {
+   "description": "Played from the gallery: a YouTube or Vimeo address, or a file the shop hosts. The catalogue tile shows a play badge.",
+   "fieldname": "videos",
+   "fieldtype": "Table",
+   "label": "Videos",
+   "options": "Website Item Video"
   },
   {
    "fieldname": "column_break_22",
@@ -267,6 +276,14 @@
    "fieldname": "thumbnail",
    "fieldtype": "Data",
    "label": "Thumbnail",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "has_video",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Has Video",
    "read_only": 1
   },
   {

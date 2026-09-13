@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "creation": "2026-09-13 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "source",
+  "url",
+  "file",
+  "title",
+  "poster"
+ ],
+ "fields": [
+  {
+   "default": "YouTube",
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Source",
+   "options": "YouTube\nVimeo\nHosted file",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.source != \"Hosted file\"",
+   "description": "The page's address as copied from the browser (watch, youtu.be, shorts, vimeo.com/...)",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Video URL",
+   "mandatory_depends_on": "eval:doc.source != \"Hosted file\""
+  },
+  {
+   "depends_on": "eval:doc.source == \"Hosted file\"",
+   "description": "An MP4 (H.264) or WebM file attached to this site; keep it short, it is served by the shop itself",
+   "fieldname": "file",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Video File",
+   "mandatory_depends_on": "eval:doc.source == \"Hosted file\""
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title"
+  },
+  {
+   "description": "Shown in the gallery before the video plays. Empty: YouTube's own thumbnail, the first frame of a hosted file",
+   "fieldname": "poster",
+   "fieldtype": "Attach Image",
+   "label": "Poster Image"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-13 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Website Item Video",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
