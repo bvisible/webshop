@@ -176,6 +176,7 @@
 						<div class="d-flex flex-wrap gap-2 gift-card-amounts wsp-gift__amounts">
 							{% set gift_card_amounts = frappe.get_all('Gift Card Amount', fields=['amount']) %}
 							{% for amount in gift_card_amounts | sort(attribute='amount') %}
+							{# //// Neoffice — a chip, not a card (see the note above) #}
 							<div class="form-check wsp-gift__chip {% if loop.first %}selected{% endif %}">
 								<input type="radio" 
 									class="form-check-input gift-card-amount-radio" 
@@ -191,6 +192,7 @@
 							{% endfor %}
 							
 							{% if frappe.db.get_single_value('Webshop Settings', 'enable_custom_amount') %}
+							{# //// Neoffice — the custom amount's chip #}
 							<div class="form-check wsp-gift__chip wsp-gift__chip--custom">
 								<input type="radio" 
 									class="form-check-input" 
