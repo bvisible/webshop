@@ -28,7 +28,8 @@ class TestProductPage(FrappeTestCase):
 		return frappe.get_doc("Website Item", name)
 
 	def _context(self, doc):
-		context = frappe._dict(metatags={}, shopping_cart=frappe._dict())
+		# A request's context carries the page route; set_metatags() builds the page URL from it.
+		context = frappe._dict(metatags={}, shopping_cart=frappe._dict(), route=doc.route)
 		doc.get_context(context)
 		return context
 
@@ -39,7 +40,8 @@ class TestProductPage(FrappeTestCase):
 		the whole page raised "object is not bound" in the nightly suite (2026-09-13).
 		"""
 		doc = self._published_item()
-		with patch.object(frappe.local, "request", None):
+		# create=True: outside a request, frappe.local has no "request" attribute to patch at all.
+		with patch.object(frappe.local, "request", None, create=True):
 			context = self._context(doc)
 		self.assertTrue(context.parents)
 		self.assertEqual(context.parents[0]["route"], "/")
