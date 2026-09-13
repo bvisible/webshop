@@ -122,61 +122,8 @@
 		justify-content: center;
 	}
 	
-	/* Price slider styles */
-	.price-range-slider {
-		position: relative;
-		height: 6px;
-		margin: 30px 0;
-	}
-	
-	.slider-track {
-		position: relative;
-		height: 6px;
-		width: 100%;
-		background-color: var(--wsh-line);
-		border-radius: var(--wsh-radius-sm);
-	}
-	
-	.slider-selection {
-		position: absolute;
-		height: 100%;
-		background-color: var(--wsh-muted);
-		border-radius: var(--wsh-radius-sm);
-	}
-	
-	.slider-handle {
-		position: absolute;
-		top: 50%;
-		width: 18px;
-		height: 18px;
-		background-color: var(--wsh-surface);
-		border: 2px solid var(--wsh-muted);
-		border-radius: 50%;
-		cursor: pointer;
-		transform: translate(-50%, -50%);
-		z-index: 2;
-	}
-	
-	.slider-handle:hover {
-		background-color: var(--wsh-surface-muted);
-	}
-	
-	.slider-handle:active {
-		background-color: var(--wsh-line);
-	}
-	
-	.price-input-container {
-		position: relative;
-		width: 45%;
-	}
-	
-	.price-input-container input {
-		text-align: right;
-	}
-	
-	.price-range-separator {
-		color: var(--wsh-muted);
-	}
+	/* //// Neoffice — the price slider's rules live in webshop_price_slider.scss (2026-09-13):
+	   this file carried a second copy, imported later, that silently won. */
 
 /* ---- from webshop/templates/includes/shop_sidebar_extras.html (block 1) ---- */
 	@media (min-width: 768px) {
@@ -195,8 +142,6 @@
 		#product-filters::-webkit-scrollbar-track { background: transparent; }
 		#product-filters::-webkit-scrollbar-thumb { background: var(--wsh-line-strong); border-radius: var(--wsh-radius-pill); }
 		#product-filters::-webkit-scrollbar-thumb:hover { background: var(--wsh-faint); }
-		/* price slider: round handles were clipped by the column's overflow */
-		#product-filters #price-slider-track { margin-left: 10px; margin-right: 10px; }
 	}
 	#active-filter-chips { display: none; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 	@media (min-width: 768px) { #active-filter-chips { order: -1; } }

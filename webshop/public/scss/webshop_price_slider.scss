@@ -1,75 +1,64 @@
-//// Neoffice — added file (no upstream equivalent). The two-handle price filter in
-//// the listing sidebar. Upstream filters on attributes and item groups only
-//// (6fea19b1fe, 2025-06-17).
-// Price Slider Styles
+// //// Neoffice — added file (no upstream equivalent). The two-handle price slider of the
+// sidebar and its two inputs (macros.html price_filter_section; views.js bind_price_filters).
+//
+// One set of rules, since 2026-09-13: this partial and webshop_catalogue.scss each carried
+// one, the catalogue's (imported later) silently won, and the two disagreed on the track's
+// position — the handles at 0 % and 100 % of a full-width track overflowed the column,
+// whose overflow-x is hidden, and the right one was cut. The slider is inset by half a
+// handle instead, so both handles stay inside whatever the column's width.
+
 .price-range-slider {
-    position: relative;
-    height: 40px;
-    margin-bottom: 20px;
+	position: relative;
+	height: 6px;
+	margin: 30px 10px;
 }
 
 .slider-track {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    /* //// Neoffice — inset by half a handle: centred on 0 % and 100 % of a full-width
-       track, the handles overflowed the column and the right one was cut (2026-09-13) */
-    left: 10px;
-    right: 10px;
-    width: auto;
-    height: 6px;
-    background-color: var(--wsh-line);
-    border-radius: var(--wsh-radius-sm);
-    cursor: pointer;
-}
-
-.slider-handle {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 20px;
-    height: 20px;
-    background-color: var(--wsh-primary);
-    border: 2px solid var(--wsh-surface);
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: var(--wsh-shadow-sm);
-    z-index: 2;
-    
-    &:hover {
-        background-color: var(--wsh-primary-hover);
-        transform: translate(-50%, -50%) scale(1.1);
-    }
-    
-    &:active {
-        box-shadow: var(--wsh-shadow);
-    }
+	position: relative;
+	height: 6px;
+	width: 100%;
+	background-color: var(--wsh-line);
+	border-radius: var(--wsh-radius-sm);
+	cursor: pointer;
 }
 
 .slider-selection {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 6px;
-    background-color: var(--wsh-primary);
-    border-radius: var(--wsh-radius-sm);
-    pointer-events: none;
+	position: absolute;
+	height: 100%;
+	background-color: var(--wsh-muted);
+	border-radius: var(--wsh-radius-sm);
 }
 
-.price-range-inputs {
-    margin-top: 10px;
-    
-    .price-input-container {
-        flex: 1;
-        
-        input {
-            text-align: center;
-        }
-    }
-    
-    .price-range-separator {
-        margin: 0 10px;
-        align-self: center;
-        color: var(--wsh-muted);
-    }
+.slider-handle {
+	position: absolute;
+	top: 50%;
+	width: 18px;
+	height: 18px;
+	background-color: var(--wsh-surface);
+	border: 2px solid var(--wsh-muted);
+	border-radius: 50%;
+	cursor: pointer;
+	transform: translate(-50%, -50%);
+	box-shadow: var(--wsh-shadow-sm);
+	z-index: 2;
+	transition: border-color var(--wsh-motion), background var(--wsh-motion);
 }
+
+.slider-handle:hover { border-color: var(--wsh-text); }
+.slider-handle:active { background-color: var(--wsh-surface-muted); border-color: var(--wsh-text); }
+
+.price-range-inputs {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.price-input-container {
+	position: relative;
+	width: 45%;
+}
+
+.price-input-container input { text-align: right; }
+
+.price-range-separator { color: var(--wsh-muted); }
