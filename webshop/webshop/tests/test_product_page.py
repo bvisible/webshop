@@ -1,6 +1,8 @@
 # //// Neoffice — added file (no upstream equivalent).
 """The product page's context: the promises it prints and the brand it introduces."""
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
@@ -29,6 +31,18 @@ class TestProductPage(FrappeTestCase):
 		context = frappe._dict(metatags={}, shopping_cart=frappe._dict())
 		doc.get_context(context)
 		return context
+
+	def test_the_page_renders_without_a_request(self):
+		"""A job, a test or the console renders the page with no HTTP request bound.
+
+		Upstream's breadcrumb builder read `frappe.request.environ` unconditionally, and
+		the whole page raised "object is not bound" in the nightly suite (2026-09-13).
+		"""
+		doc = self._published_item()
+		with patch.object(frappe.local, "request", None):
+			context = self._context(doc)
+		self.assertTrue(context.parents)
+		self.assertEqual(context.parents[0]["route"], "/")
 
 	def test_promises_follow_the_settings(self):
 		doc = self._published_item()
