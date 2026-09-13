@@ -1055,6 +1055,41 @@ first by the shop bundle and by every component bundle a Builder page can includ
 > Left as literals on purpose: Google's brand colours on the sign-in button, the
 > white glass buttons over photos, three status borders in the checkout and cart.
 
+> **`--wsh-primary` is the page's action colour, not the brand's primary.** It reads
+> `--btn-primary` first: the token the site chrome fills, since Builder 806e0c18
+> (2026-09-13), with what its own buttons wear — the primary when it reads on the page
+> background, a deeper shade of it when it is pale, the secondary when the primary *is*
+> the background, the text colour last (`header_footer.py::button_colours`) — and the
+> token frappe's own `.btn-primary` reads. `--wsh-on-primary` reads `--btn-primary-text`.
+> On a site whose primary is its page background, the raw primary painted an invisible
+> "add to cart" next to a readable header button. Without the chrome (a plain frappe
+> site, or one whose chrome predates the token), everything falls back to the primary,
+> which is what the shop drew before.
+
+### The shop's buttons (`webshop_buttons.scss`)
+
+The site chrome draws every button of a site through `:where(.u-btn)` — inline-flex,
+12px 24px, the site's radius, the body font at .95rem / 500, line-height 1 — and the
+shop drew its own (Frappe's 6px 16px at 14px, a 4px radius whatever the site, a buy
+button at 600), so a customer crossed a visible seam between a page and the shop of the
+same site. `webshop_buttons.scss` writes the shape once, as a mixin the product page and
+the variant footer include, gives every `.btn-primary` the action colour and its label,
+and draws `.btn-outline-primary` / `.btn-secondary` like the site's outline (transparent,
+the ink, a `currentColor` border, a 12 % tint under the cursor). Small buttons, the
+pager, the spinner keys, the catalogue's view toggle (whose active button wears
+`.btn-primary` as a state) and the tile's quiet button keep their own size.
+
+> **Measure the parity where the shop draws.** The chrome's `:where(.u-btn)` rule is on
+> the shop's pages too, so an `<a class="u-btn u-btn--primary">` injected into a shop
+> page is the reference, measured on the same page: `13-boutons-du-site.spec.js` compares
+> the buy button, the cart's and the checkout's buttons with it, and the outline buttons
+> with `.u-btn--outline`. Measured on osiris and on a client site on 2026-09-13: 41.2 px,
+> identical padding, radius, font and colours.
+
+> **`.font-md` pins 14px with `!important`** (`webshop_cart.scss`, upstream's) and the
+> cart's and the checkout's buttons carry it in their markup: the mixin overrides it on
+> the buttons it shapes — the size of a button is the system's, not the markup's.
+
 ### The ground under the shop's pages (`webshop_ground.scss`)
 
 Every page the shop renders carries `body.product-page` — upstream's name for the
