@@ -485,8 +485,9 @@ a.bundle-item-name:hover { color: var(--wsh-primary); }
 .wsp-product .wsp-gift__amounts { gap: 8px; }
 .wsp-product .wsp-gift__chip {
 	margin: 0;
-	padding: 0;
+	padding: 0 !important; /* bootstrap's .form-check pads for a checkbox that is hidden here */
 	min-height: 0;
+	line-height: 1.2;
 	border: 1px solid var(--wsh-line-strong);
 	border-radius: var(--wsh-radius);
 	background: var(--wsh-surface);
@@ -494,7 +495,7 @@ a.bundle-item-name:hover { color: var(--wsh-primary); }
 	cursor: pointer;
 	transition: border-color var(--wsh-motion), background var(--wsh-motion), color var(--wsh-motion);
 }
-.wsp-product .wsp-gift__chip .form-check-label { display: block; padding: 8px 14px; margin: 0; font-weight: 600; cursor: pointer; }
+.wsp-product .wsp-gift__chip .form-check-label { display: block; padding: 9px 14px; margin: 0; font-weight: 600; line-height: 1.2; cursor: pointer; }
 .wsp-product .wsp-gift__chip:hover { border-color: var(--wsh-text); }
 .wsp-product .wsp-gift__chip.selected { background: var(--wsh-text); border-color: var(--wsh-text); color: var(--wsh-bg); }
 .wsp-product .wsp-gift__amounts .custom-amount-input { flex: 0 0 100%; }

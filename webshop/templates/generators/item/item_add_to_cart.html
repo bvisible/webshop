@@ -65,7 +65,8 @@
 			{{ _("UOM") }} : {{ product_info.uom }}
 		{% endif %}
 
-		{% if cart_settings.show_stock_availability %}
+		{# //// Neoffice — no stock line under a gift card: it is never out of stock (2026-09-13). #}
+		{% if cart_settings.show_stock_availability and not doc.is_gift_card %}
 		<div class="mt-2">
 			{% if product_info.get("on_backorder") %}
 				<span class="no-stock out-of-stock" style="color: var(--primary-color);">
