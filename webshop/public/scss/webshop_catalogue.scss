@@ -233,6 +233,18 @@
 		aspect-ratio: 1 / 1;
 		margin: 0 !important;
 	}
+	/* //// Neoffice — and the page's edges are the grid's: the cards' column kept Bootstrap's
+	   15px padding with no row around it, and the search bar sat in a nested .container that
+	   re-centred itself with 7px margins (2026-09-14) */
+	.shop-by-category-content .item-card-group-section {
+		padding-left: 0;
+		padding-right: 0;
+	}
+	.shop-by-category-content .category-tabs > .container {
+		max-width: none;
+		margin-left: 0;
+		margin-right: 0;
+	}
 	/* //// Neoffice — styles of the search and sort bar added to this page (see index.js). */
 	.category-filter-section {
 		margin-bottom: 20px;
