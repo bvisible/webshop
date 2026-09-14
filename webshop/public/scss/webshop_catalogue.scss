@@ -328,3 +328,19 @@
 @media (max-width: 767px) {
 	.toolbar .wsp-quick-order-link { order: 3; width: 100%; justify-content: flex-end; }
 }
+
+/* //// Neoffice — the catalogue's tiles sit on the page's grid (2026-09-14): the tiles' row kept
+   Bootstrap's -15px margin while its columns only pad 6px (and the area 5px), so the first
+   picture started 4px outside the grid on both sides — 20px instead of the chrome's 24px on a
+   phone. The row's pull and the columns' gutter are one value now. */
+#products-grid-area.products-list {
+	--wsp-tile-gutter-half: 6px;
+	margin-left: calc(-1 * var(--wsp-tile-gutter-half));
+	margin-right: calc(-1 * var(--wsp-tile-gutter-half));
+	padding-left: 0;
+	padding-right: 0;
+}
+#products-grid-area.products-list > [class*="col-"] {
+	padding-left: var(--wsp-tile-gutter-half);
+	padding-right: var(--wsp-tile-gutter-half);
+}

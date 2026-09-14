@@ -1216,7 +1216,10 @@ of the pager) the tokens.
 > were upstream's 300px squares with a 30px margin in a wrapping row: on a narrower grid they fell
 > to two per row with a third of the width empty — the row is a filling grid now (auto-fill, 240px
 > minimum), and its search bar and card column take the grid's edges. The visual harness caught it
-> (`compare.py before after`: the page grew by 1440px); read its `height` column, not only pixels.
+> (`compare.py before after`: the page grew by 1440px); read its `height` column, not only pixels. The catalogue's
+> tile row kept Bootstrap's -15px pull while its columns padded 6px: the first picture started 4px
+> outside the grid (20px instead of 24 on a phone). The row's pull and the columns' gutter are one
+> variable now (`--wsp-tile-gutter-half` on `#products-grid-area`).
 
 > **The status shades follow the ground.** `--wsh-ok-strong` is
 > `color-mix(--wsh-ok 70%, --wsh-text)` and `--wsh-ok-soft` `color-mix(--wsh-ok 14%,
