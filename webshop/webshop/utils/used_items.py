@@ -74,7 +74,9 @@ def get_new_model(website_item):
 
 	reference = frappe.db.get_value(
 		"Website Item",
-		{"item_code": reference_item, "published": 1},
+		# a page without a route can neither be linked nor redirected to (the CI's fresh site
+		# gave one none, and a sold unit's page redirected to "/None")
+		{"item_code": reference_item, "published": 1, "route": ("is", "set")},
 		["name", "item_code", "route", "web_item_name", "website_image", "thumbnail", "website_warehouse"],
 		as_dict=True,
 	)

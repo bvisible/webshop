@@ -20,9 +20,18 @@ PORTAL = frappe._dict(
 )
 
 
+_real_get_cached_doc = frappe.get_cached_doc
+
+
+def portal_settings(doctype, *args, **kwargs):
+	"""Portal Settings from the fixture above; every other document is the real one (the hook
+	also reads Webshop Settings)."""
+	return PORTAL if doctype == "Portal Settings" else _real_get_cached_doc(doctype, *args, **kwargs)
+
+
 class TestAccountPages(FrappeTestCase):
 	def is_account(self, path):
-		with patch.object(utils.frappe, "get_cached_doc", return_value=PORTAL):
+		with patch.object(utils.frappe, "get_cached_doc", side_effect=portal_settings):
 			return utils.is_account_page(frappe._dict(path=path))
 
 	def test_the_portal_menu_and_frappe_s_own_account_pages(self):
@@ -31,7 +40,7 @@ class TestAccountPages(FrappeTestCase):
 
 	def test_the_address_asked_for_counts_not_only_the_page_that_answers(self):
 		# //// Neoffice — /orders is answered by Frappe's list page: the context says "list", the request "orders"
-		with patch.object(utils.frappe, "get_cached_doc", return_value=PORTAL), patch.object(
+		with patch.object(utils.frappe, "get_cached_doc", side_effect=portal_settings), patch.object(
 			utils.frappe.local, "path", "orders", create=True
 		):
 			self.assertTrue(utils.is_account_page(frappe._dict(path="list")))
@@ -42,11 +51,11 @@ class TestAccountPages(FrappeTestCase):
 
 	def test_the_class_is_added_once_and_never_replaces_the_page_s_own(self):
 		context = frappe._dict(path="orders", body_class="web-list")
-		with patch.object(utils.frappe, "get_cached_doc", return_value=PORTAL):
+		with patch.object(utils.frappe, "get_cached_doc", side_effect=portal_settings):
 			utils.update_website_context(context)
 			utils.update_website_context(context)
 		self.assertEqual(context.body_class.split(), ["web-list", "product-page"])
 		other = frappe._dict(path="all-products", body_class="product-page")
-		with patch.object(utils.frappe, "get_cached_doc", return_value=PORTAL):
+		with patch.object(utils.frappe, "get_cached_doc", side_effect=portal_settings):
 			utils.update_website_context(other)
 		self.assertEqual(other.body_class, "product-page")

@@ -197,6 +197,14 @@ class TestUsedItems(FrappeTestCase):
 
 	# --- sold means gone (2026-09-14) -------------------------------------------
 
+	def publish_with_route(self, source):
+		"""The new model's page, with a route: a fresh site's item group may give it none, and a
+		page without a route can neither be linked nor redirected to."""
+		name, _title = make_website_item(source)
+		if not frappe.db.get_value("Website Item", name, "route"):
+			frappe.db.set_value("Website Item", name, "route", "products/" + frappe.scrub(source.name).replace("_", "-"))
+		return name
+
 	def _issue(self, item_code, qty=1):
 		"""The unit leaves the shop's warehouse: a sale, seen from the stock ledger."""
 		from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
@@ -212,7 +220,7 @@ class TestUsedItems(FrappeTestCase):
 		if not self.warehouse:
 			self.fail("no leaf warehouse on this site")
 		source = self.make_source("Speaker", is_stock_item=1)
-		make_website_item(source)
+		self.publish_with_route(source)
 		result = used_items.create_used_unit(
 			source.name, price=50, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
 		)
@@ -256,7 +264,7 @@ class TestUsedItems(FrappeTestCase):
 		if not self.warehouse:
 			self.fail("no leaf warehouse on this site")
 		source = self.make_source("Camera", is_stock_item=1)
-		make_website_item(source)
+		self.publish_with_route(source)
 		first = used_items.create_used_unit(
 			source.name, price=80, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
 		)

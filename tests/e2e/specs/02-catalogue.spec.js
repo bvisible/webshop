@@ -7,6 +7,14 @@ const {connecter, premierArticleAchetable, lireDevis} = require('../fixtures/bou
 
 //// On a phone the filters live in a drawer behind the "Filters" button: open it before
 //// touching a filter. A no-op on a wide screen, where the column is always there.
+async function fermerLesFiltres(page) {
+	const fermer = page.locator('#closeFilterButton');
+	if (await fermer.isVisible()) {
+		await fermer.click();
+		await expect(page.locator('#product-filters')).toBeHidden();
+	}
+}
+
 async function ouvrirLesFiltres(page) {
 	const colonne = page.locator('#product-filters');
 	if (await colonne.isVisible()) return;
@@ -29,7 +37,7 @@ test.describe('Catalogue', () => {
 		await tuile.locator('a[href*="/products/"]').first().click();
 		await page.waitForLoadState('networkidle');
 		//// the gallery draws a layout for a wide screen and a strip for a phone, one of them hidden
-		const videoTile = page.locator('.wsp-gallery__tile--video').filter({visible: true}).first();
+		const videoTile = page.locator('.wsp-gallery__tile--video, .wsp-gallery__slide--video').filter({visible: true}).first();
 		await expect(videoTile, 'la galerie doit montrer une tuile vidéo').toBeVisible();
 		await expect(videoTile.locator('.wsp-gallery__play')).toBeVisible();
 		await videoTile.click();
@@ -92,7 +100,8 @@ test.describe('Filtres', () => {
 		const occasions = await page.locator('.wsp-card--grid:has(.wsp-card__badge--condition)').count();
 		expect(occasions, 'chaque tuile restante est une occasion').toBe(total);
 		//// The chip's cross clears the toggle.
-		//// the chip sits above the listing, outside the drawer
+		//// the chip sits above the listing, outside the drawer: on a phone, close the drawer first
+		await fermerLesFiltres(page);
 		await page.locator('.active-filter-badge[data-filter-type="second_hand"]').filter({visible: true}).first().click();
 		await page.waitForLoadState('networkidle');
 		await expect(page.locator('#showSecondHandOnly')).not.toBeChecked();
@@ -144,10 +153,29 @@ test.describe('Filtres', () => {
 		await expect(page.locator('.wsh-qo__input')).toBeVisible();
 	});
 
+	//// On any screen, the price slider's handles sit inside the filter column (or the drawer).
+	test('les poignées du sélecteur de prix restent dans la colonne des filtres', async ({page}) => {
+		await page.goto('/all-products');
+		await page.waitForLoadState('networkidle');
+		const track = page.locator('#price-slider-track');
+		test.skip((await track.count()) === 0, 'pas de filtre de prix sur cette boutique');
+		await ouvrirLesFiltres(page);
+		const colonne = await page.locator('#product-filters').boundingBox();
+		for (const poignee of ['#price-slider-min', '#price-slider-max']) {
+			const boite = await page.locator(poignee).boundingBox();
+			expect(boite.x, `${poignee} ne sort pas à gauche`).toBeGreaterThanOrEqual(colonne.x - 1);
+			expect(boite.x + boite.width, `${poignee} ne sort pas à droite`).toBeLessThanOrEqual(colonne.x + colonne.width + 1);
+		}
+	});
+
 	//// The price slider: a drag moves the handle, rewrites the input and filters the
 	//// listing; the handles stay inside the sidebar; a second drag after a filter still
 	//// obeys (the handlers used to stack up on every filter change).
-	test('le sélecteur de prix se traîne, reste dans la colonne et survit à un filtrage', async ({page}) => {
+	test('le sélecteur de prix se traîne, reste dans la colonne et survit à un filtrage', async ({page}, testInfo) => {
+		//// A drag of the mouse is not a finger: the handles listen to touch events on a phone,
+		//// which Playwright's mouse never sends. The containment is checked on a phone by the
+		//// test below; the drag, on a wide screen.
+		test.skip(Boolean(testInfo.project.use && testInfo.project.use.hasTouch), 'le glisser à la souris ne simule pas le doigt');
 		await page.goto('/all-products');
 		await page.waitForLoadState('networkidle');
 		const track = page.locator('#price-slider-track');
