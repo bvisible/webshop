@@ -101,6 +101,8 @@ def get_frequently_bought_together(item_code, limit=4):
         WHERE 
             fbt.item_code = %s
             AND wi.published = 1
+            -- //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+            AND wi.sold = 0
         ORDER BY fbt.frequency DESC
         LIMIT %s
     """, (item_code, limit), as_dict=True)

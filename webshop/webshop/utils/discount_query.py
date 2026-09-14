@@ -109,7 +109,8 @@ def get_discounted_items_query(price_list=None, company=None, customer_group=Non
 	current_time = nowtime()
 	
 	# Build WHERE conditions for Website Item filters
-	where_conditions = ["wi.published = 1"]
+	# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+	where_conditions = ["wi.published = 1", "wi.sold = 0"]
 	# //// Neoffice multi-site: scope to the current site
 	from webshop.webshop.multi_site import site_sql_predicate
 	_site_pred = site_sql_predicate("wi")
@@ -229,7 +230,8 @@ def get_discounted_items_count(price_list=None, company=None, customer_group=Non
 	current_date = nowdate()
 	
 	# Build WHERE conditions
-	where_conditions = ["wi.published = 1"]
+	# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+	where_conditions = ["wi.published = 1", "wi.sold = 0"]
 	# //// Neoffice multi-site: scope to the current site
 	from webshop.webshop.multi_site import site_sql_predicate
 	_site_pred = site_sql_predicate("wi")
@@ -354,7 +356,8 @@ def get_items_with_pricing_rule_discount(price_list=None, company=None, customer
 	INNER JOIN `tabItem` i ON wi.item_code = i.item_code
 	INNER JOIN `tabItem Price` ip ON i.name = ip.item_code
 	INNER JOIN `tabPricing Rule` pr ON {PRICING_RULE_TARGETS_ITEM}
-	WHERE wi.published = 1{_site_cond}
+	-- //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+	WHERE wi.published = 1 AND wi.sold = 0{_site_cond}
 		AND ip.price_list = %s
 		AND ip.selling = 1
 		AND pr.disable = 0

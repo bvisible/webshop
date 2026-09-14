@@ -131,7 +131,8 @@ WEBSITE_ITEM_FIELDS = [
 def sellable_website_item(item_code):
 	"""The published Website Item of item_code, visible on this site — or None."""
 	row = frappe.db.get_value(
-		"Website Item", {"item_code": item_code, "published": 1}, WEBSITE_ITEM_FIELDS, as_dict=True
+		# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+		"Website Item", {"item_code": item_code, "published": 1, "sold": 0}, WEBSITE_ITEM_FIELDS, as_dict=True
 	)
 	if not row:
 		return None
@@ -248,7 +249,8 @@ def search_references(query, limit=SEARCH_LIMIT):
 		seen.add(exact.website_item.item_code)
 
 	like = "%" + query.replace(" ", "%") + "%"
-	filters = {"published": 1}
+	# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+	filters = {"published": 1, "sold": 0}
 	excluded = excluded_item_names()
 	if excluded:
 		filters["name"] = ["not in", excluded]

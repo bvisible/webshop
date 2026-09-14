@@ -48,7 +48,8 @@ def get_product_data(search=None, start=0, limit=12):
 			description, web_long_description as website_description,
 			website_warehouse, ranking
 		FROM `tabWebsite Item`
-		WHERE published = 1
+		-- //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+		WHERE published = 1 AND sold = 0
 		"""
 
 	# //// Neoffice multi-site: scope the grid search to the current site
@@ -159,7 +160,8 @@ def product_search(query, limit=10, fuzzy_search=True):
 				ELSE 8
 			END as match_priority
 		FROM `tabWebsite Item`
-		WHERE published = 1
+		-- //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+		WHERE published = 1 AND sold = 0
 		{site_condition}
 		AND (
 			web_item_name LIKE %(search)s

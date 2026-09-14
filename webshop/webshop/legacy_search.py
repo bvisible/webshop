@@ -114,8 +114,9 @@ class ProductSearch(FullTextSearch):
 
 
 def get_all_published_items():
+	# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
 	return frappe.get_all(
-		"Website Item", filters={"variant_of": "", "published": 1}, pluck="item_code"
+		"Website Item", filters={"variant_of": "", "published": 1, "sold": 0}, pluck="item_code"
 	)
 
 

@@ -1035,7 +1035,8 @@ def get_discount_items_preview(limit=20, price_list=None):
 				AND ip_mrp.selling = 1
 				AND (ip_mrp.valid_from IS NULL OR ip_mrp.valid_from <= CURDATE())
 				AND (ip_mrp.valid_upto IS NULL OR ip_mrp.valid_upto >= CURDATE())
-			WHERE wi.published = 1{_site_cond}
+			-- //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+			WHERE wi.published = 1 AND wi.sold = 0{_site_cond}
 		)
 		SELECT * FROM discount_items
 		WHERE discount_percent > 0

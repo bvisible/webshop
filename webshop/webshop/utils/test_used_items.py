@@ -6,6 +6,9 @@ that survives a rollback is the Webshop Settings row this class may add to
 `filter_fields`, which tearDownClass removes again.
 """
 
+import importlib.util
+import re
+from pathlib import Path
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
@@ -300,6 +303,36 @@ class TestUsedItems(FrappeTestCase):
 		used_items.on_sales_order_change(order, "on_cancel")
 		self.assertEqual(frappe.db.get_value("Website Item", page, "sold"), 0)
 
+	def test_a_sold_unit_is_left_out_of_every_surface_that_offers_products(self):
+		"""The listing left sold units out from the start; the search, the quick order, the
+		carousels and the category cards did not (2026-09-14)."""
+		if not self.warehouse:
+			self.fail("no leaf warehouse on this site")
+		source = self.make_source("Turntable", is_stock_item=1)
+		self.publish_with_route(source)
+		result = used_items.create_used_unit(
+			source.name, price=50, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
+		)
+		page, unit = result["website_item"], result["item_code"]
+		self._issue(unit)
+		self.assertEqual(frappe.db.get_value("Website Item", page, "sold"), 1)
+
+		from webshop.templates.pages.product_search import get_product_data
+		from webshop.webshop.quick_order.api import sellable_website_item
+		from webshop.webshop.utils.product_carousel_helper import get_carousel_items
+
+		self.assertIsNone(sellable_website_item(unit))
+		self.assertNotIn(unit, [row.item_code for row in get_product_data(unit, 0, 50)])
+		group = frappe.db.get_value("Website Item", page, "item_group")
+		carousel = get_carousel_items(item_group=group, limit=100, use_cache=False) or []
+		self.assertNotIn(unit, [row.get("item_code") for row in carousel])
+
+		path = Path(__file__).resolve().parents[2] / "www" / "shop-by-category" / "index.py"
+		spec = importlib.util.spec_from_file_location("webshop_shop_by_category_sold", path)
+		module = importlib.util.module_from_spec(spec)
+		spec.loader.exec_module(module)
+		self.assertEqual(module._visible_item_filters().get("sold"), 0)
+
 	def test_the_new_model_and_the_siblings_are_seen_from_a_used_unit(self):
 		if not self.warehouse:
 			self.fail("no leaf warehouse on this site")
@@ -372,3 +405,48 @@ class TestUsedItems(FrappeTestCase):
 		if before is not None:
 			# some other second-hand unit was already published on this site
 			self.assertTrue([v for v in before if v and v != "New"])
+
+
+class TestEveryOfferReadsSold(FrappeTestCase):
+	"""Every query that offers Website Items to a shopper reads `sold` next to `published`. A
+	sold unit left the listing from the start and stayed in the search, the quick order, the
+	carousels, the recommendations, the facets' counts and the category cards (2026-09-14)."""
+
+	SOURCES = (
+		"webshop/product_data_engine/filters.py",
+		"templates/pages/product_search.py",
+		"webshop/legacy_search.py",
+		"webshop/quick_order/api.py",
+		"www/shop-by-category/index.py",
+		"webshop/utils/brand_carousel_helper.py",
+		"webshop/utils/product_carousel_helper.py",
+		"webshop/utils/frequently_bought_together.py",
+		"webshop/utils/discount_query.py",
+		"webshop/doctype/website_item/website_item.py",
+		"www/sitemap_products.py",
+	)
+	# queries on published that offer nothing to a shopper
+	NOT_OFFERS = (
+		# narrows a query whose own WHERE reads sold
+		'exact_match = frappe.db.exists("Website Item", {"item_code": cstr(search), "published": 1})',
+		# the pairs "bought together" computes; the query that shows them reads sold
+		"AND wi1.published = 1",
+		"AND wi2.published = 1",
+		# the parts of a bundle, listed on the bundle's own page
+		'_wi_filters = {"item_code": bundle_item.item_code, "published": 1}',
+	)
+
+	def test_every_query_offering_products_reads_sold(self):
+		app = Path(__file__).resolve().parents[2]
+		published = re.compile(r'published\s*(?:=|==)\s*1|"published":\s*1')
+		missing = []
+		for rel in self.SOURCES:
+			lines = (app / rel).read_text().splitlines()
+			# a comment saying "sold" is not a query reading it
+			code = [re.split(r"\s#\s|\s--\s", line)[0] if not line.strip().startswith(("#", "--")) else "" for line in lines]
+			for i, line in enumerate(lines):
+				if not published.search(code[i]) or line.strip() in self.NOT_OFFERS:
+					continue
+				if not any("sold" in near for near in code[max(0, i - 2) : i + 3]):
+					missing.append(f"{rel}:{i + 1}: {line.strip()}")
+		self.assertEqual(missing, [], "\n" + "\n".join(missing))

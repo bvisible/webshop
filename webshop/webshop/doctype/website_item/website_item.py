@@ -417,6 +417,7 @@ class WebsiteItem(WebsiteGenerator):
 				auto_items = frappe.get_all("Website Item",
 					filters={
 						"published": 1,
+						"sold": 0,  # //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
 						"item_group": self.item_group,
 						"name": _name_filter,
 						# //// Neoffice — never a variant: a template's page recommended its own sizes
@@ -804,7 +805,8 @@ class WebsiteItem(WebsiteGenerator):
 				wi.item_condition,
 				wi.has_video,
 			)
-			.where((ri.parent == self.name) & (wi.published == 1))
+			# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+			.where((ri.parent == self.name) & (wi.published == 1) & (wi.sold == 0))
 			.orderby(ri.idx)
 		)
 		# //// Neoffice multi-site: hide items restricted to other sites

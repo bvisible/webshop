@@ -90,7 +90,8 @@ def _visible_item_filters():
 	from webshop.webshop.multi_site import excluded_item_names
 	from webshop.webshop.product_data_engine.filters import gift_cards_hidden
 
-	filters = {"published": 1}
+	# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+	filters = {"published": 1, "sold": 0}
 	excluded = excluded_item_names()
 	if excluded:
 		filters["name"] = ["not in", excluded]

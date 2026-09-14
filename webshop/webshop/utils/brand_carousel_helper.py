@@ -46,7 +46,8 @@ def get_brands_with_product_count(limit: int = 20, sort_by: str = "brand_name",
             b.description,
             COUNT(DISTINCT wi.name) as product_count
         FROM `tabBrand` b
-        LEFT JOIN `tabWebsite Item` wi ON wi.brand = b.name AND wi.published = 1{_site_cond}
+        -- //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+        LEFT JOIN `tabWebsite Item` wi ON wi.brand = b.name AND wi.published = 1 AND wi.sold = 0{_site_cond}
         GROUP BY b.name, b.brand, b.image, b.description
         HAVING product_count > 0
     """
@@ -167,7 +168,8 @@ def get_featured_brands(brand_names: List[str], use_cache: bool = True,
             brand = brand_map[brand_name]
             
             # Get product count
-            count_filters = {"brand": brand_name, "published": 1}
+            # //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+            count_filters = {"brand": brand_name, "published": 1, "sold": 0}
             if _excluded:
                 count_filters["name"] = ["not in", _excluded]
             product_count = frappe.db.count(

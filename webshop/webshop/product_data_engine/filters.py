@@ -75,7 +75,8 @@ class ProductFiltersBuilder:
 		_excluded = excluded_item_names()
 
 		for df in fields:
-			item_filters, item_or_filters = {"published": 1}, []
+			# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+			item_filters, item_or_filters = {"published": 1, "sold": 0}, []
 			if _excluded:
 				item_filters["name"] = ["not in", _excluded]
 			# //// Neoffice — a hidden gift card must not leave a facet checkbox that
@@ -249,7 +250,8 @@ class ProductFiltersBuilder:
 			-- //// Neoffice — gift_cond drops gift cards from this count too, so a hidden
 			-- //// card does not inflate a category badge it will never show
 			-- //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine")
-			WHERE published = 1 AND item_group IN %(groups)s{site_cond}{gift_cond}
+			-- //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+			WHERE published = 1 AND sold = 0 AND item_group IN %(groups)s{site_cond}{gift_cond}
 			GROUP BY item_group
 		""", {"groups": [g.name for g in all_item_groups]}, as_dict=True)
 		
@@ -291,7 +293,8 @@ class ProductFiltersBuilder:
 				-- //// Neoffice — same gift_cond as the direct count above, so a rolled-up
 				-- //// total does not include gift cards the shop keeps hidden
 				-- //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine")
-				WHERE published = 1 AND item_group IN %(groups)s{site_cond}{gift_cond}
+				-- //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+				WHERE published = 1 AND sold = 0 AND item_group IN %(groups)s{site_cond}{gift_cond}
 			""", {"groups": all_groups}, as_dict=True)[0].count
 			
 			item_counts[item_group.name] = total_count
@@ -348,6 +351,7 @@ class ProductFiltersBuilder:
 		for brand in brand_values:
 			brand_filters = {
 				"published": 1,
+				"sold": 0,  # //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
 				"brand": brand
 			}
 			if _excluded:
@@ -476,7 +480,8 @@ class ProductFiltersBuilder:
 		if not self.item_group and not enable_price_filter:
 			return None
 
-		item_filters, item_or_filters = {"published": 1}, []
+		# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+		item_filters, item_or_filters = {"published": 1, "sold": 0}, []
 
 		# Apply item group filter if specified
 		if self.item_group:
@@ -564,7 +569,8 @@ class ProductFiltersBuilder:
 			default_price_list = effective_price_list()
 			
 			# Build the SQL query with all filters
-			sql_conditions = ["wi.published = 1", "wi.item_group IN %(groups)s", "ip.selling = 1"]
+			# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+			sql_conditions = ["wi.published = 1", "wi.sold = 0", "wi.item_group IN %(groups)s", "ip.selling = 1"]
 			# //// Neoffice multi-site: scope to the current site
 			from webshop.webshop.multi_site import site_sql_predicate
 			_site_pred = site_sql_predicate("wi")
@@ -589,7 +595,8 @@ class ProductFiltersBuilder:
 			
 			# First, get all item codes that match the current filters (without pagination)
 			# This ensures we get prices for ALL filtered products, not just the current page
-			item_sql_conditions = ["wi.published = 1", "wi.item_group IN %(groups)s"]
+			# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+			item_sql_conditions = ["wi.published = 1", "wi.sold = 0", "wi.item_group IN %(groups)s"]
 			# //// Neoffice multi-site: scope to the current site
 			from webshop.webshop.multi_site import site_sql_predicate
 			_site_pred = site_sql_predicate("wi")
@@ -691,7 +698,8 @@ class ProductFiltersBuilder:
 			default_price_list = effective_price_list()
 			
 			# Get all item codes that match the current filters (without pagination)
-			item_sql_conditions = ["wi.published = 1"]
+			# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+			item_sql_conditions = ["wi.published = 1", "wi.sold = 0"]
 			# //// Neoffice multi-site: scope to the current site
 			from webshop.webshop.multi_site import site_sql_predicate
 			_site_pred = site_sql_predicate("wi")
@@ -788,7 +796,8 @@ class ProductFiltersBuilder:
 		# If no price is found in the database, get prices without filters as fallback
 		if not price_range or not price_range[0].min_price or not price_range[0].max_price:
 			# Get prices for all products in this category without current filters
-			fallback_conditions = ["wi.published = 1"]
+			# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+			fallback_conditions = ["wi.published = 1", "wi.sold = 0"]
 			fallback_params = {}
 			
 			# Keep only item group filter for fallback
@@ -881,7 +890,8 @@ class ProductFiltersBuilder:
 		if not self.item_group and not frappe.db.get_single_value("Webshop Settings", "enable_tag_filters"):
 			return []
 
-		item_filters, item_or_filters = {"published": 1}, []
+		# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+		item_filters, item_or_filters = {"published": 1, "sold": 0}, []
 		# //// Neoffice multi-site: hide items restricted to other sites
 		from webshop.webshop.multi_site import excluded_item_names
 		_excluded = excluded_item_names()
@@ -980,7 +990,8 @@ def diagnose_item_group_filters():
 	item_groups_with_products = frappe.db.sql("""
 		SELECT DISTINCT item_group, COUNT(*) as product_count
 		FROM `tabWebsite Item`
-		WHERE published = 1 AND item_group IS NOT NULL
+		-- //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
+		WHERE published = 1 AND sold = 0 AND item_group IS NOT NULL
 		GROUP BY item_group
 		ORDER BY item_group
 	""", as_dict=True)

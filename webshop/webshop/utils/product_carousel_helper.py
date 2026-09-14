@@ -75,6 +75,7 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
     # carousel card and we get 8x "Alpine Parka" instead of one.
     conditions = [
         "wi.published = 1",
+        "wi.sold = 0",  # //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
         "(wi.variant_of IS NULL OR wi.variant_of = '')",
     ]
     # //// Neoffice multi-site: scope to the current site

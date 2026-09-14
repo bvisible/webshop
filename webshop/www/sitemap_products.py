@@ -34,7 +34,8 @@ def get_product_links(website_profile=None):
     try:
         # //// Neoffice multi-site: hide items restricted to other sites
         from webshop.webshop.multi_site import excluded_item_names
-        product_filters = {"published": 1}
+        # //// Neoffice — a sold used unit is out of the catalogue, and out of this sitemap too (2026-09-14)
+        product_filters = {"published": 1, "sold": 0}
         _excluded = excluded_item_names()
         if _excluded:
             product_filters["name"] = ["not in", _excluded]

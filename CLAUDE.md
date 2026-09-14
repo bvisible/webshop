@@ -368,7 +368,13 @@ Website Item mirrors them (`fetch_from` + `crud_events/item/update_website_item.
   stock before the sale and the unit stayed listed; the CI caught it) takes it out of
   every listing path (`ProductQuery.filters` carries `["sold", "=", 0]` next to `published`,
   and the hand-written SQL paths say `wi.sold = 0`), out of the sidebar's second-hand count and
-  out of the sitemap. Its page answers a **302** to the new model (a bookmark, a search result:
+  out of the sitemap, and out of every other surface that offers products: the search (grid and
+  legacy index), the quick order, the carousels, the product page's recommendations, "bought
+  together", the discount queries, the facets' counts, the category cards and the brand counts.
+  They had kept offering sold units, and their counts drifted by every unit the shop ever sold.
+  `TestEveryOfferReadsSold` reads those modules for a query on `published` that forgets `sold`.
+  A used unit shown without stock is one the shop cannot source, so the tile and the page print
+  "Sold" only when `sold` says so, "Out of stock" otherwise. Its page answers a **302** to the new model (a bookmark, a search result:
   the unit is gone, the product is not), temporary because a return puts the unit back on sale
   at the same address. `patches/mark_sold_used_units` gave the units published before the field
   their value once. **What "sold" reads is the unit's own stock**: nothing available in any
