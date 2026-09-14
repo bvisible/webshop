@@ -239,14 +239,16 @@ class TestUsedItems(FrappeTestCase):
 		self.assertNotIn(page, frappe.get_all("Website Item", filters={"published": 1, "sold": 0, "item_code": result["item_code"]}, pluck="name"))
 		self.assertGreaterEqual(count_second_hand(), 0)
 
-		# its page sends the visitor to the new model
+		# its page sends the visitor to the new model — the published page with a route, the one
+		# get_new_model links (a fresh site may hold a second, route-less page for the same item)
+		new_model_route = frappe.db.get_value(
+			"Website Item", {"item_code": source.name, "published": 1, "route": ("is", "set")}, "route"
+		)
+		self.assertTrue(new_model_route, "the new model has a published page with a route")
 		doc = frappe.get_doc("Website Item", page)
 		with self.assertRaises(frappe.Redirect):
 			doc.get_context(frappe._dict())
-		self.assertEqual(
-			frappe.local.flags.redirect_location,
-			"/" + frappe.db.get_value("Website Item", {"item_code": source.name}, "route"),
-		)
+		self.assertEqual(frappe.local.flags.redirect_location, "/" + new_model_route)
 		frappe.local.flags.redirect_location = None
 
 		# a return puts it back on sale
