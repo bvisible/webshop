@@ -151,14 +151,33 @@ def refresh_sold_flag(website_item_name):
 
 
 def on_stock_ledger_entry(doc, method=None):
-	"""Stock Ledger Entry on_submit: a used unit that just went out is withdrawn from the
-	catalogue, one that comes back (a return, a receipt) is listed again. Only second-hand
-	items are looked at, so the hook costs nothing on ordinary stock movements."""
+	"""Stock Ledger Entry on_submit: remembers the used units a voucher moves. Only
+	second-hand items are looked at, so the hook costs nothing on ordinary movements.
+
+	The flag cannot be computed here: ERPNext submits the ledger entry first and updates the
+	warehouse's Bin only afterwards (stock_ledger.make_sl_entries: make_entry, then
+	repost_current_voucher and update_bin_qty), so the stock read at this point is the one
+	BEFORE the movement — a unit just sold still read as in stock and stayed in the
+	catalogue (found by the CI, 2026-09-14). refresh_moved_used_units recomputes it once the
+	voucher is done."""
 	condition = frappe.get_cached_value("Item", doc.item_code, "item_condition")
 	if not is_second_hand(condition):
 		return
-	for name in frappe.get_all("Website Item", filters={"item_code": doc.item_code}, pluck="name"):
-		refresh_sold_flag(name)
+	frappe.flags.setdefault("webshop_used_units_moved", set()).add(doc.item_code)
+
+
+def refresh_moved_used_units(doc, method=None):
+	"""Every document's on_submit / on_cancel ("*" in hooks.py): once a voucher is done —
+	its ledger written and its bins updated — the used units it moved (a sale, a return, a
+	receipt) get their `sold` flag again. A ledger entry's own submit is skipped: its bin is
+	not updated yet. Returns at once when nothing second-hand moved."""
+	moved = frappe.flags.get("webshop_used_units_moved")
+	if not moved or doc.doctype == "Stock Ledger Entry":
+		return
+	frappe.flags.webshop_used_units_moved = set()
+	for item_code in moved:
+		for name in frappe.get_all("Website Item", filters={"item_code": item_code}, pluck="name"):
+			refresh_sold_flag(name)
 
 
 def get_used_units(item_code, limit=6):

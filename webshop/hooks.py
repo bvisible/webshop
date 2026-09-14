@@ -209,6 +209,14 @@ doc_events = {
 	"Stock Ledger Entry": {
 		"on_submit": ["webshop.webshop.utils.used_items.on_stock_ledger_entry"],
 	},
+	# //// Neoffice — second-hand (2026-09-14): the ledger entry's hook only remembers the used
+	# //// units a voucher moves, because ERPNext updates the bins after it; the voucher's own
+	# //// on_submit / on_cancel (any doctype that writes stock) recomputes their `sold` flag.
+	# //// Returns at once when nothing second-hand moved.
+	"*": {
+		"on_submit": ["webshop.webshop.utils.used_items.refresh_moved_used_units"],
+		"on_cancel": ["webshop.webshop.utils.used_items.refresh_moved_used_units"],
+	},
 	"Pricing Rule": {
 		"on_update": "webshop.webshop.crud_events.pricing_rule.invalidate_discount_cache.execute",
 		"after_insert": "webshop.webshop.crud_events.pricing_rule.invalidate_discount_cache.execute",

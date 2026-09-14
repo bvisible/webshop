@@ -361,8 +361,11 @@ Website Item mirrors them (`fetch_from` + `crud_events/item/update_website_item.
   An empty result clears the previous tiles.
 
 - **Sold means gone** (2026-09-14). A used unit is one of a kind, so `Website Item.sold`
-  (read-only, set on save and kept by the `Stock Ledger Entry` `on_submit` hook in
-  `utils/used_items.py`, which returns at once for anything not second-hand) takes it out of
+  (read-only, set on save and kept by the stock ledger: the `Stock Ledger Entry` `on_submit`
+  hook in `utils/used_items.py` remembers the used units a voucher moves, and a `"*"`
+  `on_submit`/`on_cancel` hook recomputes them once the voucher is done — ERPNext updates the
+  warehouse's Bin only AFTER the ledger entry's submit, so a flag computed in that hook read the
+  stock before the sale and the unit stayed listed; the CI caught it) takes it out of
   every listing path (`ProductQuery.filters` carries `["sold", "=", 0]` next to `published`,
   and the hand-written SQL paths say `wi.sold = 0`), out of the sidebar's second-hand count and
   out of the sitemap. Its page answers a **302** to the new model (a bookmark, a search result:

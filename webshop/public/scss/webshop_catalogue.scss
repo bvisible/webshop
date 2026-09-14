@@ -300,3 +300,8 @@
 	svg { flex-shrink: 0; }
 	&:hover, &:focus-visible { color: var(--wsh-text); text-decoration: underline; text-underline-offset: 3px; }
 }
+/* on a phone the toolbar stacks sort, views, then search (webshop_responsive.scss): the link
+   goes right under the search box, on its own line, at the end of it */
+@media (max-width: 767px) {
+	.toolbar .wsp-quick-order-link { order: 3; width: 100%; justify-content: flex-end; }
+}

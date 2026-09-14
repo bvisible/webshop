@@ -5,6 +5,18 @@
 const {test, expect} = require('@playwright/test');
 const {connecter, premierArticleAchetable, lireDevis} = require('../fixtures/boutique');
 
+//// On a phone the filters live in a drawer behind the "Filters" button: open it before
+//// touching a filter. A no-op on a wide screen, where the column is always there.
+async function ouvrirLesFiltres(page) {
+	const colonne = page.locator('#product-filters');
+	if (await colonne.isVisible()) return;
+	const bouton = page.locator('#filterButton');
+	if (await bouton.isVisible()) {
+		await bouton.click();
+		await expect(colonne).toBeVisible();
+	}
+}
+
 test.describe('Catalogue', () => {
 	//// A product that carries a video (Website Item → Videos) wears a play mark on its
 	//// tile, and its gallery plays it in the lightbox — a hosted file through the
@@ -16,7 +28,8 @@ test.describe('Catalogue', () => {
 		test.skip((await tuile.count()) === 0, 'aucun produit avec vidéo sur cette boutique');
 		await tuile.locator('a[href*="/products/"]').first().click();
 		await page.waitForLoadState('networkidle');
-		const videoTile = page.locator('.wsp-gallery__tile--video').first();
+		//// the gallery draws a layout for a wide screen and a strip for a phone, one of them hidden
+		const videoTile = page.locator('.wsp-gallery__tile--video').filter({visible: true}).first();
 		await expect(videoTile, 'la galerie doit montrer une tuile vidéo').toBeVisible();
 		await expect(videoTile.locator('.wsp-gallery__play')).toBeVisible();
 		await videoTile.click();
@@ -67,6 +80,7 @@ test.describe('Filtres', () => {
 		await page.waitForLoadState('networkidle');
 		const toggle = page.locator('#second-hand-filters');
 		test.skip((await toggle.count()) === 0, 'aucune occasion publiée sur cette boutique');
+		await ouvrirLesFiltres(page);
 		const blocs = await page.locator('#product-filters .filter-block').evaluateAll((els) => els.map((e) => e.id));
 		expect(blocs.indexOf('second-hand-filters'), 'juste après le bloc des promotions').toBe(blocs.indexOf('discount-filters') + 1);
 		await page.locator('#showSecondHandOnly').check();
@@ -78,7 +92,8 @@ test.describe('Filtres', () => {
 		const occasions = await page.locator('.wsp-card--grid:has(.wsp-card__badge--condition)').count();
 		expect(occasions, 'chaque tuile restante est une occasion').toBe(total);
 		//// The chip's cross clears the toggle.
-		await page.locator('.active-filter-badge[data-filter-type="second_hand"]').click();
+		//// the chip sits above the listing, outside the drawer
+		await page.locator('.active-filter-badge[data-filter-type="second_hand"]').filter({visible: true}).first().click();
 		await page.waitForLoadState('networkidle');
 		await expect(page.locator('#showSecondHandOnly')).not.toBeChecked();
 		await page.evaluate(() => sessionStorage.removeItem('second_hand_filter_checked'));
@@ -96,7 +111,9 @@ test.describe('Filtres', () => {
 		await expect(page.locator('#results-count-live')).toHaveText('');
 		const caseACocher = page.locator('#showDiscountOnly, #showSecondHandOnly').first();
 		test.skip((await caseACocher.count()) === 0, 'ni promotion ni occasion sur cette boutique');
+		await ouvrirLesFiltres(page);
 		await caseACocher.check();
+		await ouvrirLesFiltres(page);
 		await page.waitForLoadState('networkidle');
 		await expect(effacer).toBeVisible();
 		await expect(page.locator('#results-count-live')).toContainText(/\d/);
@@ -108,6 +125,7 @@ test.describe('Filtres', () => {
 		await expect(autre.locator('#product-filters .clear-filters')).toBeHidden();
 		await autre.close();
 		//// "Clear all" empties the toggles of this visit
+		await ouvrirLesFiltres(page);
 		await effacer.click();
 		await page.waitForLoadState('networkidle');
 		await expect(page.locator('#product-filters .clear-filters')).toBeHidden();
@@ -134,6 +152,7 @@ test.describe('Filtres', () => {
 		await page.waitForLoadState('networkidle');
 		const track = page.locator('#price-slider-track');
 		test.skip((await track.count()) === 0, 'pas de filtre de prix sur cette boutique');
+		await ouvrirLesFiltres(page);
 		const colonne = await page.locator('#product-filters').boundingBox();
 		const max = page.locator('#price-slider-max');
 		const boiteMax = await max.boundingBox();
@@ -145,6 +164,7 @@ test.describe('Filtres', () => {
 		await page.mouse.move(piste.x + piste.width * 0.5, piste.y + piste.height / 2, {steps: 8});
 		await page.mouse.up();
 		await page.waitForLoadState('networkidle');
+		await ouvrirLesFiltres(page);
 		const apres = Number(await page.locator('#price-max').inputValue());
 		expect(apres, 'le maximum a baissé').toBeLessThan(avant);
 		expect(page.url()).toContain('price_range');
