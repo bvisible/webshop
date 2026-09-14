@@ -350,6 +350,33 @@ Website Item mirrors them (`fetch_from` + `crud_events/item/update_website_item.
   New. Badges: `grid.js`, `list.js`, `product_carousel.html` — three copies,
   plus `bench build`.
 
+- **Sold means gone** (2026-09-14). A used unit is one of a kind, so `Website Item.sold`
+  (read-only, set on save and kept by the `Stock Ledger Entry` `on_submit` hook in
+  `utils/used_items.py`, which returns at once for anything not second-hand) takes it out of
+  every listing path (`ProductQuery.filters` carries `["sold", "=", 0]` next to `published`,
+  and the hand-written SQL paths say `wi.sold = 0`), out of the sidebar's second-hand count and
+  out of the sitemap. Its page answers a **302** to the new model (a bookmark, a search result:
+  the unit is gone, the product is not), temporary because a return puts the unit back on sale
+  at the same address. `patches/mark_sold_used_units` gave the units published before the field
+  their value once. Never unpublish for this: frappe's renderer 404s an unpublished page
+  before `get_context` can redirect, and the merchant would read "unpublished" as a mistake.
+- **The new model and its used copies see each other.** The new item's page lists its
+  in-stock used units right under the buy button (`get_used_units`; they sat after the offers,
+  where nobody saw them); a used unit's page shows the new model as a card — picture, price on
+  this site's list, stock, "See the new model" (`get_new_model`, on
+  `condition_info.reference`) — and the other used copies of the same model
+  (`get_sibling_units`). One Jinja macro, `used_unit_row`, draws every row; a price shows only
+  where the page shows its own (`price_info`, empty for a visitor on a shop that hides prices).
+- **A template's tile says "Discover"** (`Découvrir`), the merchant's word; "Explore" read
+  badly in French.
+- **The discount toggle counts too.** `listing_context.count_discounted()` keeps, five minutes
+  per site and price list, the result of `query.count_discounted_items()` — one COUNT with the
+  listing's own joins (the site's price list, a dearer list, the pricing rules) over the
+  standing conditions, the SQL the toggle already ran when ticked, now in
+  `ProductQuery._discounted_count_sql()` — and the Pricing Rule and Item Price hooks drop the
+  cache. A catalogue view never pays the join; the figure lags a price change by at most the
+  cache, and by nothing after a desk save.
+
 ### Cross-sell offers and the order bump
 
 `Cross Sell Offer`: "when the cart holds A (item, group or brand), propose B
