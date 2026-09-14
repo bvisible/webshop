@@ -86,9 +86,13 @@ class TestProductCard(FrappeTestCase):
 		self.assertIn('class="stock-badge out-of-stock"', gone)
 		self.assertIn(frappe._("Out of stock"), gone)
 		self.assertNotIn("btn-add-to-cart-list", gone)
-		sold = render_product_card(_item(in_stock=0, stock_qty=0, item_condition="Second-hand"), _settings(), "grid")
+		sold = render_product_card(_item(in_stock=0, stock_qty=0, item_condition="Second-hand", sold=1), _settings(), "grid")
 		self.assertIn(frappe._("Sold"), sold)
 		self.assertIn("condition-badge", sold)
+		# a used unit shown without stock is one the shop cannot source, not a sold one (2026-09-14)
+		unsourced = render_product_card(_item(in_stock=0, stock_qty=0, item_condition="Second-hand"), _settings(), "grid")
+		self.assertIn(frappe._("Out of stock"), unsourced)
+		self.assertNotIn(frappe._("Sold"), unsourced)
 
 	def test_discount_badge_and_struck_price(self):
 		html = render_product_card(

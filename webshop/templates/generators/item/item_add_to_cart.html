@@ -1,6 +1,7 @@
-{# //// Neoffice — a second-hand unit is one of a kind: once it is gone it is
-   sold, not "out of stock" waiting for a restock. #}
-{% set sold_out_label = _('Sold', None, 'second-hand unit') if doc.get('item_condition') in ('Second-hand', 'Refurbished') else _('Out of stock') %}
+{# //// Neoffice — "Sold" for a unit that IS sold (Website Item.sold, the unit's own stock). A sold
+   unit's page redirects to its new model when it has one; a used unit shown without stock is one
+   the shop cannot source, and it read "Vendu" while it was on hand (2026-09-14). #}
+{% set sold_out_label = _('Sold', None, 'second-hand unit') if doc.get('sold') else _('Out of stock') %}
 {% if shopping_cart and shopping_cart.cart_settings.enabled %}
 
 {% set cart_settings = shopping_cart.cart_settings %}

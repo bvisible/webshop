@@ -48,8 +48,10 @@
 	{%- if item.on_backorder -%}
 		{%- set stock_class, stock_text, stock_qty, tooltip = "on-backorder", _("On backorder"), "", _("On backorder") -%}
 	{%- elif not item.in_stock -%}
-		{#- a second-hand unit is one of a kind: gone means sold -#}
-		{%- set stock_text = _("Sold") if item.item_condition and item.item_condition != "New" else _("Out of stock") -%}
+		{#- //// Neoffice — "Sold" only for a unit that IS sold (Website Item.sold). A sold unit leaves the -#}
+		{#- //// listings, so a used unit still shown without stock is one the shop cannot source (no website -#}
+		{#- //// warehouse, a warehouse it does not expose): it read "Vendu" while on hand (2026-09-14). -#}
+		{%- set stock_text = _("Sold") if item.sold else _("Out of stock") -%}
 		{%- set stock_class, stock_qty, tooltip = "out-of-stock", "", stock_text -%}
 	{%- elif qty is not none and qty > 0 and qty <= 5 -%}
 		{%- set stock_class, stock_text, stock_qty = "low-stock", _("Low stock"), "(" ~ (qty | int) ~ ")" -%}
