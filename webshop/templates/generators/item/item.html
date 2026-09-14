@@ -24,7 +24,11 @@
 		<div class="product-page-content" itemscope itemtype="http://schema.org/Product">
 			<div class="product-header-block">
 				<div class="d-flex align-items-start justify-content-between">
-					<h1 class="product-title-main" itemprop="name">{{ _(doc.web_item_name) }}</h1>
+					{#- //// Neoffice — a site chrome whose page header prints the page's title as its h1 sets #}
+					{#- //// `band_prints_title`: this heading is hidden then (webshop_product_page.scss) and would #}
+					{#- //// be a second h1 in the page; it keeps its class and its microdata as a plain block. #}
+					{%- set _title_tag = "div" if band_prints_title else "h1" %}
+					<{{ _title_tag }} class="product-title-main" itemprop="name">{{ _(doc.web_item_name) }}</{{ _title_tag }}>
 					{% if shopping_cart.cart_settings.enable_wishlist %}
 						<div class="like-action-item-fp like-action {{ 'like-action-wished' if wished else '' }} ml-2"
 							{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: data-item-code=" doc.item_code " #}
@@ -252,6 +256,11 @@
 	{%- endif %}
 }
 </script>
+{#- //// Neoffice — the page's breadcrumb as JSON-LD follows `no_breadcrumbs`, as the visible #}
+{#- //// breadcrumb (includes/breadcrumbs.html) does: a site chrome that draws the trail in its #}
+{#- //// own page header sets the flag and writes its own BreadcrumbList, and a product page #}
+{#- //// carried two (2026-09-14). #}
+{%- if not no_breadcrumbs %}
 <script type="application/ld+json">
 {
 	"@context": "https://schema.org",
@@ -264,4 +273,5 @@
 	]
 }
 </script>
+{%- endif %}{#- //// Neoffice — end of the no_breadcrumbs guard above #}
 {% endblock %}
