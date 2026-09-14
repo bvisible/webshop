@@ -116,7 +116,8 @@ body:has(.for-login-with-email-link) .page-breadcrumbs {
 .xsell-card__price { font-size: 0.9rem; }
 // //// Neoffice — tokens (c4df010553, 2026-09-11): 
 .xsell-price { font-weight: 700; color: var(--wsh-text); }
-.xsell-old-price { color: var(--wsh-faint); margin-left: 4px; }
+/* //// Neoffice — muted, not faint: a struck price still has to be read (2.5:1 on white as faint, 2026-09-14) */
+.xsell-old-price { color: var(--wsh-muted); margin-left: 4px; }
 .xsell-badge {
 	// //// Neoffice — tokens (c4df010553, 2026-09-11): 
 	display: inline-block; padding: 1px 7px; border-radius: var(--wsh-radius-pill); font-size: 0.72rem; font-weight: 600;

@@ -517,7 +517,10 @@ class WebsiteItem(WebsiteGenerator):
 		# //// model shows its used units, a used unit shows the new model and its siblings.
 		if cint(self.get("sold")) and context.condition_info and context.condition_info.reference:
 			frappe.local.flags.redirect_location = "/" + context.condition_info.reference.route
-			raise frappe.Redirect
+			# temporary (302), not permanent: a returned unit comes back on sale at the same address
+			gone = frappe.Redirect()
+			gone.http_status_code = 302
+			raise gone
 		context.used_units = [] if is_second_hand(self.get("item_condition")) else get_used_units(self.item_code)
 		# //// Neoffice — second-hand (2026-09-14): a used unit's page lists the other used copies of its model
 		context.sibling_units = get_sibling_units(self) if is_second_hand(self.get("item_condition")) else []
