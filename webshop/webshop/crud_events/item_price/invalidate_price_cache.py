@@ -34,6 +34,10 @@ def invalidate_webshop_price_cache(item_code=None, price_list=None):
         item_code: Optional item code for logging
         price_list: Optional price list for logging
     """
+    # the figure next to the catalogue's discount toggle (listing_context, 2026-09-14)
+    from webshop.webshop.product_data_engine.listing_context import clear_discount_count
+
+    clear_discount_count()
     try:
         # Clear carousel cache (contains price info)
         from webshop.webshop.utils.carousel_cache import CarouselCacheManager

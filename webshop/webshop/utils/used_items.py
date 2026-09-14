@@ -58,19 +58,107 @@ def condition_info(website_item):
 		reference=None,
 	)
 
-	reference_item = website_item.get("condition_of_item")
-	if reference_item:
-		from webshop.webshop.multi_site import excluded_item_names
-
-		reference = frappe.db.get_value(
-			"Website Item",
-			{"item_code": reference_item, "published": 1},
-			["name", "route", "web_item_name"],
-			as_dict=True,
-		)
-		if reference and reference.name not in excluded_item_names():
-			info.reference = reference
+	info.reference = get_new_model(website_item)
 	return info
+
+
+def get_new_model(website_item):
+	"""The new model a used unit copies, as the unit's page shows it: name, route, picture,
+	price on this site's list, stock — or None when the new item has no published page here.
+	(2026-09-14: the page used to print a bare "See the new model" link; the merchant wants the
+	new product SEEN from the used one, as the used ones are seen from the new one.)"""
+	reference_item = website_item.get("condition_of_item")
+	if not reference_item:
+		return None
+	from webshop.webshop.multi_site import excluded_item_names
+
+	reference = frappe.db.get_value(
+		"Website Item",
+		{"item_code": reference_item, "published": 1},
+		["name", "item_code", "route", "web_item_name", "website_image", "thumbnail", "website_warehouse"],
+		as_dict=True,
+	)
+	if not reference or reference.name in excluded_item_names():
+		return None
+	_price_and_stock(reference)
+	return reference
+
+
+def get_sibling_units(website_item, limit=6):
+	"""The other used units of the same model still for sale, cheapest first: a customer
+	comparing two used copies should see both."""
+	reference_item = website_item.get("condition_of_item")
+	if not reference_item:
+		return []
+	return [u for u in get_used_units(reference_item, limit=limit + 1) if u.name != website_item.name][:limit]
+
+
+def _price_and_stock(row):
+	"""Price on this site's list and stock by the shop's own rule, written on the row."""
+	from erpnext.utilities.product import get_price
+
+	from webshop.webshop.multi_site import effective_price_list
+	from webshop.webshop.utils.product import get_web_item_qty_in_stock
+	from webshop.webshop.utils.utils import format_currency_value
+
+	settings = frappe.get_cached_doc("Webshop Settings")
+	stock = get_web_item_qty_in_stock(row.item_code, "website_warehouse", row.get("website_warehouse"))
+	row.in_stock = bool(stock and stock.in_stock)
+	price = get_price(row.item_code, effective_price_list(settings.price_list), settings.default_customer_group, settings.company)
+	row.price = flt(price.get("price_list_rate")) if price else 0
+	row.currency = price.get("currency") if price else None
+	row.formatted_price = format_currency_value(row.price, currency=row.currency) if row.price else None
+	return row
+
+
+def used_unit_in_stock(website_item) -> bool:
+	"""Whether a used unit can still be sold: the shop's own stock rule — every exposed
+	source when multi-warehouse is on, the item's website warehouse otherwise."""
+	from webshop.webshop.multi_warehouse.sources import get_aggregate_stock
+	from webshop.webshop.utils.product import get_web_item_qty_in_stock
+
+	settings = frappe.get_cached_doc("Webshop Settings")
+	stock = get_aggregate_stock(website_item.item_code, settings) if cint(settings.get("enable_multi_warehouse")) else None
+	if stock is None:
+		stock = get_web_item_qty_in_stock(website_item.item_code, "website_warehouse", website_item.get("website_warehouse"))
+	return bool(stock and stock.in_stock)
+
+
+def sold_flag(website_item) -> int:
+	"""1 when a used unit has nothing left to sell, 0 for everything else. A used unit is one
+	of a kind: sold means gone from the catalogue, not "out of stock" (2026-09-14)."""
+	if not is_second_hand(website_item.get("item_condition")):
+		return 0
+	return 0 if used_unit_in_stock(website_item) else 1
+
+
+def refresh_sold_flag(website_item_name):
+	"""Recompute `sold` on one Website Item from the stock and write it only when it changes;
+	clears the page's cache so the catalogue and the unit's page follow at once."""
+	from frappe.website.utils import clear_cache
+
+	row = frappe.db.get_value(
+		"Website Item", website_item_name, ["name", "item_code", "item_condition", "website_warehouse", "sold", "route"], as_dict=True
+	)
+	if not row:
+		return None
+	sold = sold_flag(row)
+	if cint(row.sold) != sold:
+		frappe.db.set_value("Website Item", row.name, "sold", sold, update_modified=False)
+		clear_cache(row.route)
+		clear_cache()
+	return sold
+
+
+def on_stock_ledger_entry(doc, method=None):
+	"""Stock Ledger Entry on_submit: a used unit that just went out is withdrawn from the
+	catalogue, one that comes back (a return, a receipt) is listed again. Only second-hand
+	items are looked at, so the hook costs nothing on ordinary stock movements."""
+	condition = frappe.get_cached_value("Item", doc.item_code, "item_condition")
+	if not is_second_hand(condition):
+		return
+	for name in frappe.get_all("Website Item", filters={"item_code": doc.item_code}, pluck="name"):
+		refresh_sold_flag(name)
 
 
 def get_used_units(item_code, limit=6):
@@ -86,6 +174,7 @@ def get_used_units(item_code, limit=6):
 		"Website Item",
 		filters={
 			"published": 1,
+			"sold": 0,
 			"condition_of_item": item_code,
 			"item_condition": ("in", SECOND_HAND_CONDITIONS),
 		},

@@ -195,6 +195,89 @@ class TestUsedItems(FrappeTestCase):
 			1,
 		)
 
+	# --- sold means gone (2026-09-14) -------------------------------------------
+
+	def _issue(self, item_code, qty=1):
+		"""The unit leaves the shop's warehouse: a sale, seen from the stock ledger."""
+		from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
+
+		return make_stock_entry(item_code=item_code, source=self.warehouse, qty=qty, do_not_save=False)
+
+	def _receive(self, item_code, qty=1, rate=10):
+		from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
+
+		return make_stock_entry(item_code=item_code, target=self.warehouse, qty=qty, basic_rate=rate, do_not_save=False)
+
+	def test_a_sold_unit_leaves_the_catalogue_and_comes_back_with_its_stock(self):
+		if not self.warehouse:
+			self.fail("no leaf warehouse on this site")
+		source = self.make_source("Speaker", is_stock_item=1)
+		make_website_item(source)
+		result = used_items.create_used_unit(
+			source.name, price=50, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
+		)
+		page = result["website_item"]
+		self.assertEqual(frappe.db.get_value("Website Item", page, "sold"), 0)
+		self.assertIn(result["item_code"], [u.item_code for u in used_items.get_used_units(source.name)])
+
+		# the unit is sold: the stock ledger withdraws it
+		self._issue(result["item_code"])
+		self.assertEqual(frappe.db.get_value("Website Item", page, "sold"), 1)
+		self.assertNotIn(result["item_code"], [u.item_code for u in used_items.get_used_units(source.name)])
+		from webshop.webshop.product_data_engine.listing_context import count_second_hand
+		from webshop.webshop.product_data_engine.query import ProductQuery
+
+		self.assertIn(["sold", "=", 0], ProductQuery().filters)
+		self.assertNotIn(page, frappe.get_all("Website Item", filters={"published": 1, "sold": 0, "item_code": result["item_code"]}, pluck="name"))
+		self.assertGreaterEqual(count_second_hand(), 0)
+
+		# its page sends the visitor to the new model
+		doc = frappe.get_doc("Website Item", page)
+		with self.assertRaises(frappe.Redirect):
+			doc.get_context(frappe._dict())
+		self.assertEqual(
+			frappe.local.flags.redirect_location,
+			"/" + frappe.db.get_value("Website Item", {"item_code": source.name}, "route"),
+		)
+		frappe.local.flags.redirect_location = None
+
+		# a return puts it back on sale
+		self._receive(result["item_code"])
+		self.assertEqual(frappe.db.get_value("Website Item", page, "sold"), 0)
+
+	def test_a_new_item_is_never_sold(self):
+		source = self.make_source("Kettle", is_stock_item=1)
+		name, _title = make_website_item(source)
+		self.assertEqual(frappe.db.get_value("Website Item", name, "sold"), 0)
+		# no stock at all, still listed: "sold" is a used unit's word
+		self.assertEqual(used_items.sold_flag(frappe.get_doc("Website Item", name)), 0)
+
+	def test_the_new_model_and_the_siblings_are_seen_from_a_used_unit(self):
+		if not self.warehouse:
+			self.fail("no leaf warehouse on this site")
+		source = self.make_source("Camera", is_stock_item=1)
+		make_website_item(source)
+		first = used_items.create_used_unit(
+			source.name, price=80, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
+		)
+		second = used_items.create_used_unit(
+			source.name, price=70, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
+		)
+		page = frappe.get_doc("Website Item", first["website_item"])
+
+		model = used_items.get_new_model(page)
+		self.assertEqual(model.item_code, source.name)
+		self.assertEqual(model.price, 100)
+		self.assertTrue(model.formatted_price)
+		self.assertEqual(model.route, frappe.db.get_value("Website Item", {"item_code": source.name}, "route"))
+		self.assertEqual(used_items.condition_info(page).reference.name, model.name)
+
+		siblings = used_items.get_sibling_units(page)
+		self.assertEqual([u.item_code for u in siblings], [second["item_code"]])
+		# the second unit sees the first one, and not itself
+		other = frappe.get_doc("Website Item", second["website_item"])
+		self.assertEqual([u.item_code for u in used_items.get_sibling_units(other)], [first["item_code"]])
+
 	def test_template_items_are_refused(self):
 		source = self.make_source("Template", is_stock_item=0)
 		# a template needs an attribute table to save; the guard only reads the flag

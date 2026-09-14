@@ -118,7 +118,7 @@
 	{%- elif item.has_variants or item.is_gift_card or guest_without_cart -%}
 		<a href="/{{ item.route or '#' }}">
 			<div class="btn btn-sm btn-explore-variants wsp-card__cta wsp-card__cta--explore {{ 'btn mb-0 mt-0' if variant == 'list' else '' }}">
-				{{ _("Explore") }}
+				{{ _("Discover") }}
 			</div>
 		</a>
 	{%- elif settings.enabled and (settings.allow_items_not_in_stock or item.in_stock) -%}
@@ -358,7 +358,7 @@
 			{{ price_block(item) }}
 			{%- endif %}
 			{%- if variant == "carousel" %}
-			<a href="/{{ route }}" class="btn btn-sm btn-explore-variants wsp-card__cta wsp-card__cta--explore">{{ _("Explore") }}</a>
+			<a href="/{{ route }}" class="btn btn-sm btn-explore-variants wsp-card__cta wsp-card__cta--explore">{{ _("Discover") }}</a>
 			{%- else %}
 			{{ primary_button(item, settings, "grid") }}
 			{%- endif %}

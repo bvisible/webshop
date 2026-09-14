@@ -62,6 +62,9 @@ class ProductQuery:
 
 		self.or_filters = []
 		self.filters = [["published", "=", 1]]
+		# //// Neoffice — second-hand (2026-09-14): a used unit with nothing left is `sold` and
+		# //// leaves every listing; the Stock Ledger Entry hook keeps the flag (utils/used_items.py)
+		self.filters.append(["sold", "=", 0])
 		# //// Neoffice multi-site: hide items restricted to other sites
 		# //// (empty child table = visible everywhere -> empty list = no-op).
 		from webshop.webshop.multi_site import excluded_item_names
@@ -456,6 +459,61 @@ class ProductQuery:
 			return ""
 		return f" AND {expression} <= {flt(threshold)}"
 
+	def _discounted_count_sql(self, where_clause):
+		"""COUNT of the items a discount filter would return under `where_clause` (the same
+		joins as the listing: the site's price list, a dearer other list, the pricing rules).
+		Placeholders: price_list twice, then the where clause's values."""
+		return f"""
+		SELECT COUNT(*)
+		FROM (
+			SELECT wi.name
+			FROM `tabWebsite Item` wi
+			LEFT JOIN `tabItem Price` ip ON wi.item_code = ip.item_code
+				AND ip.selling = 1
+				AND ip.price_list = %s
+			LEFT JOIN `tabItem Price` ip_mrp ON wi.item_code = ip_mrp.item_code
+				AND ip_mrp.selling = 1
+				AND ip_mrp.price_list != %s
+				AND ip_mrp.price_list_rate > COALESCE(ip.price_list_rate, 0)
+			LEFT JOIN (
+				SELECT
+					pri.item_code,
+					MAX(pr.discount_percentage) as discount_percentage
+				FROM `tabPricing Rule` pr
+				INNER JOIN `tabPricing Rule Item Code` pri ON pri.parent = pr.name
+				WHERE pr.disable = 0
+				AND pr.selling = 1
+				AND pr.discount_percentage > 0
+				AND (pr.valid_from IS NULL OR pr.valid_from <= CURDATE())
+				AND (pr.valid_upto IS NULL OR pr.valid_upto >= CURDATE())
+				GROUP BY pri.item_code
+			) pr ON wi.item_code = pr.item_code
+			{where_clause}
+			-- //// Neoffice — discount threshold applied in SQL (c3ba31203f): the filter label promised N percent and less, the query returned every discount
+			AND (pr.discount_percentage > 0 OR (ip_mrp.price_list_rate > 0 AND ip.price_list_rate > 0))
+			{self._discount_threshold_sql(DISCOUNT_PERCENT_EXPR)}
+		) as discounted_count
+		"""
+
+	def base_where_clause(self, prefix="wi."):
+		"""The listing's standing conditions (published, not sold, this site's items, no
+		hidden variants) as a WHERE clause and its values, for a query outside the engine."""
+		conditions, values = [], []
+		for filter_item in self.filters:
+			if not (isinstance(filter_item, list) and len(filter_item) >= 3):
+				continue
+			field, operator, value = filter_item[0], filter_item[1], filter_item[2]
+			if operator == "=":
+				conditions.append(f"{prefix}`{field}` = %s")
+				values.append(value)
+			elif operator in ("in", "not in") and isinstance(value, list) and value:
+				placeholders = ", ".join(["%s"] * len(value))
+				conditions.append(f"{prefix}`{field}` {'NOT IN' if operator == 'not in' else 'IN'} ({placeholders})")
+				values.extend(value)
+			elif operator == "is" and value == "not set":
+				conditions.append(f"{prefix}`{field}` IS NULL")
+		return (" WHERE " + " AND ".join(conditions)) if conditions else "", values
+
 	def query_items_with_discount_filter(self, start=0):
 		"""Query items that have active discounts using optimized SQL."""
 		# Use the new optimized method with caching
@@ -558,46 +616,17 @@ class ProductQuery:
 		
 		# Get count of discounted items
 		# //// Neoffice — same discount threshold applied to the count query, see _discount_threshold_sql() (c3ba312 "fix(shop): item group pages lost their own items, their secondary categories and the discount threshold").
-		count_sql = f"""
-		SELECT COUNT(*)
-		FROM (
-			SELECT wi.name
-			FROM `tabWebsite Item` wi
-			LEFT JOIN `tabItem Price` ip ON wi.item_code = ip.item_code 
-				AND ip.selling = 1 
-				AND ip.price_list = %s
-			LEFT JOIN `tabItem Price` ip_mrp ON wi.item_code = ip_mrp.item_code 
-				AND ip_mrp.selling = 1 
-				AND ip_mrp.price_list != %s
-				AND ip_mrp.price_list_rate > COALESCE(ip.price_list_rate, 0)
-			LEFT JOIN (
-				SELECT 
-					pri.item_code,
-					MAX(pr.discount_percentage) as discount_percentage
-				FROM `tabPricing Rule` pr
-				INNER JOIN `tabPricing Rule Item Code` pri ON pri.parent = pr.name
-				WHERE pr.disable = 0
-				AND pr.selling = 1
-				AND pr.discount_percentage > 0
-				AND (pr.valid_from IS NULL OR pr.valid_from <= CURDATE())
-				AND (pr.valid_upto IS NULL OR pr.valid_upto >= CURDATE())
-				GROUP BY pri.item_code
-			) pr ON wi.item_code = pr.item_code
-			{where_clause}
-			-- //// Neoffice — discount threshold applied in SQL (c3ba31203f): the filter label promised N percent and less, the query returned every discount
-			AND (pr.discount_percentage > 0 OR (ip_mrp.price_list_rate > 0 AND ip.price_list_rate > 0))
-			{self._discount_threshold_sql(DISCOUNT_PERCENT_EXPR)}
-		) as discounted_count
-		"""
-		
+		# //// Neoffice — the SQL moved to _discounted_count_sql() so the sidebar can count the
+		# //// same way (count_discounted_items, 2026-09-14)
+		count_sql = self._discounted_count_sql(where_clause)
 		count_values = [price_list, price_list]
 		count_values.extend(values)
 		count = frappe.db.sql(count_sql, count_values)[0][0]
-		
+
 		# Add additional item details
 		discount_list = []
 		cart_items = self.get_cart_items() if self.settings.enabled else []
-		
+				
 		for item in items:
 			# Format price info
 			if item.get("price_list_rate"):
@@ -1178,6 +1207,8 @@ class ProductQuery:
 			LEFT JOIN `tabItem` i ON wi.item_code = i.item_code
 			LEFT JOIN `tabBin` b ON wi.item_code = b.item_code AND b.warehouse = wi.website_warehouse
 			WHERE wi.published = 1
+			-- //// Neoffice — second-hand (2026-09-14): a sold used unit is out of every listing
+			AND wi.sold = 0
 			AND (
 				-- Non-stock items are always "in stock"
 				i.is_stock_item = 0
@@ -1417,7 +1448,8 @@ class ProductQuery:
 			return self.query_items_with_regular_discount_flow(start)
 		
 		# Build WHERE conditions for main query
-		conditions = ["wi.published = 1"]
+		# //// Neoffice — second-hand (2026-09-14): sold units out, as in self.filters
+		conditions = ["wi.published = 1", "wi.sold = 0"]
 		values = {}
 		
 		for filter_item in self.filters:
@@ -1675,3 +1707,18 @@ def mark_if_bookable(item) -> None:
 			frappe.local._neo_bookable_items = set()
 	if code in frappe.local._neo_bookable_items:
 		item["bookable"] = 1
+
+
+# //// Neoffice — added (2026-09-14): how many products of this site carry a discount right
+# //// now, for the figure next to the "discounted only" toggle. One COUNT with the listing's
+# //// own joins (the site's price list, a dearer list, the pricing rules) over the standing
+# //// conditions — the same query the toggle runs when ticked, without the page. It is read
+# //// through a short cache (listing_context.count_discounted): a figure that may lag a few
+# //// minutes, never a join on every catalogue view.
+def count_discounted_items():
+	engine = ProductQuery()
+	price_list = engine.settings.price_list
+	if not price_list:
+		return 0
+	where_clause, values = engine.base_where_clause()
+	return cint(frappe.db.sql(engine._discounted_count_sql(where_clause), [price_list, price_list, *values])[0][0])

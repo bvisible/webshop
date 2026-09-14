@@ -64,6 +64,11 @@ class WebsiteItem(WebsiteGenerator):
 		from webshop.webshop.utils.videos import has_playable_video
 
 		self.has_video = 1 if has_playable_video(self) else 0
+		# //// Neoffice — second-hand (2026-09-14): a used unit with nothing left is `sold`, out
+		# //// of the catalogue; the stock ledger keeps the flag afterwards (utils/used_items.py).
+		from webshop.webshop.utils.used_items import sold_flag
+
+		self.sold = sold_flag(self)
 		self.publish_unpublish_desk_item(publish=True)
 
 		if not self.get("__islocal"):
@@ -481,7 +486,13 @@ class WebsiteItem(WebsiteGenerator):
 		# //// Neoffice — second-hand: what the page says about a used unit, and
 		# //// the used units a new item has on offer. Both are None/empty on a
 		# //// shop that only sells new goods.
-		from webshop.webshop.utils.used_items import condition_info, condition_schema_url, get_used_units, is_second_hand
+		from webshop.webshop.utils.used_items import (
+			condition_info,
+			condition_schema_url,
+			get_sibling_units,
+			get_used_units,
+			is_second_hand,
+		)
 
 		# //// Neoffice — the review dialog draws itself in JS and its `__()` calls
 		# //// resolve against frappe._messages, which a portal page only holds if
@@ -501,7 +512,15 @@ class WebsiteItem(WebsiteGenerator):
 		}
 		context.condition_info = condition_info(self)
 		context.condition_schema_url = condition_schema_url(self.get("item_condition"))
+		# //// Neoffice — second-hand (2026-09-14): a sold unit's page sends the visitor to the new
+		# //// model (a bookmark, a search result: the unit is gone, the product is not); the new
+		# //// model shows its used units, a used unit shows the new model and its siblings.
+		if cint(self.get("sold")) and context.condition_info and context.condition_info.reference:
+			frappe.local.flags.redirect_location = "/" + context.condition_info.reference.route
+			raise frappe.Redirect
 		context.used_units = [] if is_second_hand(self.get("item_condition")) else get_used_units(self.item_code)
+		# //// Neoffice — second-hand (2026-09-14): a used unit's page lists the other used copies of its model
+		context.sibling_units = get_sibling_units(self) if is_second_hand(self.get("item_condition")) else []
 
 		context.frequently_bought_together = None
 		if settings and settings.enable_frequently_bought_together:

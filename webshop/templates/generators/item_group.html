@@ -142,6 +142,7 @@
 	// Store translations for JavaScript
 	{# //// Neoffice — the second-hand toggle only shows when the shop publishes used units #}
 	window.second_hand_count = {{ second_hand_count or 0 }};
+	window.discount_count = {{ discount_count or 0 }};
 	window.product_translations = {
 		"New": {{ _("New")|json }},
 		"Refurbished": {{ _("Refurbished")|json }},
@@ -171,7 +172,8 @@
 		"Low stock": {{ _("Low stock")|json }},
 		"In stock": {{ _("In stock")|json }},
 		"available": {{ _("available")|json }},
-		"Explore": {{ _("Explore")|json }},
+		{# //// Neoffice — "Discover", the merchant's word for a template's tile, was "Explore" (2026-09-14) #}
+	"Discover": {{ _("Discover")|json }},
 		"Add to Cart": {{ _("Add to Cart")|json }},
 		"Add to Quote": {{ _("Add to Quote")|json }},
 		"Go to Cart": {{ _("Go to Cart")|json }},

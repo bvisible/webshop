@@ -8195,3 +8195,12 @@ msgstr "Filtres dans un tiroir sur tous les écrans"
 
 msgid "Hide the filter sidebar on wide screens too: the products take the whole width and a Filters button opens the sidebar as a drawer, as on a phone."
 msgstr "Masquer la barre des filtres aussi sur grand écran : les produits prennent toute la largeur et un bouton Filtres ouvre la barre en tiroir, comme au téléphone."
+
+msgid "Discover"
+msgstr "Découvrir"
+
+msgid "Other second-hand units of this model"
+msgstr "Autres exemplaires d'occasion de ce modèle"
+
+msgid "The new model"
+msgstr "Le modèle neuf"

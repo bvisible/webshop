@@ -1325,8 +1325,9 @@ webshop.ProductView =  class {
 						data-filter-value="100"
 						style="width: 14px !important"
 					>
+						<!-- //// Neoffice — the figure next to the toggle, like the second-hand one (2026-09-14) -->
 						<span class="label-area" for="showDiscountOnly">
-							${ translations["Show only products with discount"] || "Show only products with discount" }
+							${ translations["Show only products with discount"] || "Show only products with discount" }${ window.discount_count ? " (" + window.discount_count + ")" : "" }
 						</span>
 					</label>
 				</div>

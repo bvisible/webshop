@@ -63,6 +63,8 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	# //// something used to see.
 	# //// (2026-09-13) on every listing: the toggle sits next to the discount one everywhere
 	context.second_hand_count = count_second_hand()
+	# //// (2026-09-14) the discounted count next to the discount toggle, from a short cache
+	context.discount_count = count_discounted()
 	context.no_cache = 1
 
 	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
@@ -76,14 +78,45 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 # //// the listing itself says when there is something used to see
 # //// (0227bfd0 "feat(occasion): une section État qui n'avale rien, expliquée, et un chemin depuis le catalogue").
 def count_second_hand():
-	"""Published second-hand units this site lists (sold ones included, as on /occasions)."""
+	"""Published second-hand units this site still sells (a sold unit left the catalogue)."""
 	from webshop.webshop.multi_site import excluded_item_names
 	from webshop.webshop.utils.used_items import SECOND_HAND_CONDITIONS
 
 	names = frappe.get_all(
 		"Website Item",
-		filters={"published": 1, "item_condition": ("in", SECOND_HAND_CONDITIONS)},
+		filters={"published": 1, "sold": 0, "item_condition": ("in", SECOND_HAND_CONDITIONS)},
 		pluck="name",
 	)
 	excluded = set(excluded_item_names())
 	return len([n for n in names if n not in excluded])
+
+
+# //// Neoffice — added (2026-09-14): the figure next to the "discounted only" toggle. The
+# //// count itself is one SQL over the listing's joins (query.count_discounted_items); here it
+# //// is kept for five minutes per site and price list, and dropped by the Pricing Rule and
+# //// Item Price hooks, so a catalogue view never pays the join and the figure never lags a
+# //// price change by more than the cache.
+DISCOUNT_COUNT_CACHE = "webshop:discount_count"
+DISCOUNT_COUNT_TTL = 300
+
+
+def count_discounted():
+	from webshop.webshop.multi_site import effective_price_list, get_current_profile_name
+	from webshop.webshop.product_data_engine.query import count_discounted_items
+
+	key = f"{DISCOUNT_COUNT_CACHE}:{get_current_profile_name() or ''}:{effective_price_list() or ''}"
+	cached = frappe.cache().get_value(key)
+	if cached is not None:
+		return cint(cached)
+	try:
+		count = count_discounted_items()
+	except Exception:
+		frappe.log_error("Discount count failed", frappe.get_traceback())
+		return 0
+	frappe.cache().set_value(key, count, expires_in_sec=DISCOUNT_COUNT_TTL)
+	return count
+
+
+def clear_discount_count():
+	"""Every site's and every price list's figure at once: a rule or a price changed."""
+	frappe.cache().delete_keys(DISCOUNT_COUNT_CACHE)

@@ -105,6 +105,8 @@ def get_published_doctype_pages(website_profile=None):
             
             # Special handling for Website Items to include only those with routes
             if doctype == "Website Item":
+                # //// Neoffice — second-hand (2026-09-14): a sold used unit's page only redirects to the new model
+                filters["sold"] = 0
                 docs = frappe.get_all(
                     doctype,
                     fields=["route", "name", "modified", "ranking"],

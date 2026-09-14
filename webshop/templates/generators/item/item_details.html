@@ -2,6 +2,23 @@
 {% set cart_settings = shopping_cart.cart_settings %}
 {% set product_info = shopping_cart.product_info %}
 {% set price_info = product_info.get('price') or {} %}
+{# //// Neoffice — second-hand (2026-09-14): one row for a used unit, drawn under the new #}
+{# //// model ("also available second-hand") and under a used unit (its siblings). A price #}
+{# //// shows only where the page shows its own (hidden for a visitor on some shops). #}
+{% macro used_unit_row(unit) -%}
+<a class="product-used-unit" href="/{{ unit.route }}">
+	{% if unit.thumbnail or unit.website_image %}
+	<img src="{{ unit.thumbnail or unit.website_image }}" alt="{{ unit.web_item_name }}" loading="lazy">
+	{% else %}
+	<span class="product-used-unit__abbr">{{ (unit.web_item_name or '?')[0] | upper }}</span>
+	{% endif %}
+	<span class="product-used-unit__body">
+		<span class="product-used-unit__name">{{ unit.web_item_name }}</span>
+		<span class="product-used-unit__meta">{{ _(unit.item_condition) }}{% if unit.condition_grade %} · {{ _(unit.condition_grade) }}{% endif %}</span>
+	</span>
+	{% if price_info and unit.formatted_price %}<span class="product-used-unit__price">{{ unit.formatted_price }}</span>{% endif %}
+</a>
+{%- endmacro %}
 {# //// Neoffice — the buy column, rebuilt on 2026-09-11 ("Modern"): brand and reference #}
 {# //// first, the condition of a used unit, then the price, stock, quantity and button #}
 {# //// (item_add_to_cart.html, whose controls the cart handlers read), the offers tied to #}
@@ -50,10 +67,39 @@
 		{% if condition_info.details %}
 		<p class="product-condition__details">{{ condition_info.details }}</p>
 		{% endif %}
-		{% if condition_info.reference %}
-		<a class="product-condition__reference" href="/{{ condition_info.reference.route }}">{{ _("See the new model") }}</a>
-		{% endif %}
 	</div>
+	{# //// Neoffice — second-hand (2026-09-14): the new model is SEEN from the used unit, as #}
+	{# //// the used units are seen from the new model — a card, not a bare link — and the #}
+	{# //// other used copies of the same model follow, so a customer compares in one place. #}
+	{% if condition_info.reference %}
+	{% set model = condition_info.reference %}
+	<a class="product-new-model" href="/{{ model.route }}">
+		{% if model.thumbnail or model.website_image %}
+		<img src="{{ model.thumbnail or model.website_image }}" alt="{{ model.web_item_name }}" loading="lazy">
+		{% else %}
+		<span class="product-new-model__abbr">{{ (model.web_item_name or '?')[0] | upper }}</span>
+		{% endif %}
+		{# //// Neoffice — second-hand (2026-09-14), see above: the new model's card #}
+		<span class="product-new-model__body">
+			<span class="product-new-model__label">{{ _("The new model") }}</span>
+			<span class="product-new-model__name">{{ model.web_item_name }}</span>
+			{% if model.in_stock %}<span class="product-new-model__stock">{{ _("In stock") }}</span>{% endif %}
+		</span>
+		{# //// Neoffice — second-hand (2026-09-14), see above: price and the way to the new model #}
+		<span class="product-new-model__side">
+			{% if price_info and model.formatted_price %}<span class="product-new-model__price">{{ model.formatted_price }}</span>{% endif %}
+			<span class="product-new-model__cta">{{ _("See the new model") }}</span>
+		</span>
+	</a>
+	{% endif %}
+	{# //// Neoffice — second-hand (2026-09-14), see above: the other used copies of the model #}
+	{% if sibling_units %}
+	<div class="product-used-units product-used-units--siblings">
+		<div class="product-used-units__title">{{ _("Other second-hand units of this model") }}</div>
+		{% for unit in sibling_units %}{{ used_unit_row(unit) }}{% endfor %}
+	</div>
+	{% endif %}
+	{# //// Neoffice — second-hand (2026-09-14): end of the used unit's block (condition, new model, siblings) #}
 	{% endif %}
 
 	{% if has_variants %}
@@ -64,29 +110,18 @@
 		{% include "templates/generators/item/item_add_to_cart.html" %}
 	{% endif %}
 
-	{# //// Neoffice — cross-sell offers whose trigger is this item (public/js/cross_sell.js) #}
-	<div class="cross-sell-offers" data-placement="product" data-item-code="{{ doc.item_code }}" data-autoload></div>
-
-	{# //// Neoffice — second-hand: the new item points at its used units. #}
+	{# //// Neoffice — second-hand: the new item points at its used units, right under the #}
+	{# //// button (2026-09-14: it sat after the offers, where nobody saw it). #}
 	{% if used_units %}
 	<div class="product-used-units">
+		{# //// Neoffice — second-hand (2026-09-14): the rows come from the macro at the top #}
 		<div class="product-used-units__title">{{ _("Also available second-hand") }}</div>
-		{% for unit in used_units %}
-		<a class="product-used-unit" href="/{{ unit.route }}">
-			{% if unit.thumbnail or unit.website_image %}
-			<img src="{{ unit.thumbnail or unit.website_image }}" alt="{{ unit.web_item_name }}" loading="lazy">
-			{% else %}
-			<span class="product-used-unit__abbr">{{ (unit.web_item_name or '?')[0] | upper }}</span>
-			{% endif %}
-			<span class="product-used-unit__body">
-				<span class="product-used-unit__name">{{ unit.web_item_name }}</span>
-				<span class="product-used-unit__meta">{{ _(unit.item_condition) }}{% if unit.condition_grade %} · {{ _(unit.condition_grade) }}{% endif %}</span>
-			</span>
-			{% if unit.formatted_price %}<span class="product-used-unit__price">{{ unit.formatted_price }}</span>{% endif %}
-		</a>
-		{% endfor %}
+		{% for unit in used_units %}{{ used_unit_row(unit) }}{% endfor %}
 	</div>
 	{% endif %}
+
+	{# //// Neoffice — cross-sell offers whose trigger is this item (public/js/cross_sell.js) #}
+	<div class="cross-sell-offers" data-placement="product" data-item-code="{{ doc.item_code }}" data-autoload></div>
 {# //// Neoffice — Modern product page (2026-09-11), see the note at the top: include "templates/generators/item/item_promises.html" #}
 
 	{# the shop's promises, then the trust items the shop typed (Webshop Settings) #}

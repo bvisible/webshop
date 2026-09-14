@@ -203,6 +203,12 @@ doc_events = {
 	"Payment Entry": {
 		"on_submit": ["webshop.webshop.shopping_cart.cart.check_gift_cards_from_payment"]
 	},
+	# //// Neoffice — second-hand (2026-09-14): a used unit is one of a kind, so the stock ledger
+	# //// decides whether it is still in the catalogue (Website Item.sold, utils/used_items.py).
+	# //// Only second-hand items are looked at; ordinary movements return at once.
+	"Stock Ledger Entry": {
+		"on_submit": ["webshop.webshop.utils.used_items.on_stock_ledger_entry"],
+	},
 	"Pricing Rule": {
 		"on_update": "webshop.webshop.crud_events.pricing_rule.invalidate_discount_cache.execute",
 		"after_insert": "webshop.webshop.crud_events.pricing_rule.invalidate_discount_cache.execute",
