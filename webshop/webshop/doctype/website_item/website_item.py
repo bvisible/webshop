@@ -309,6 +309,20 @@ class WebsiteItem(WebsiteGenerator):
 
 			return prestation_context(self, context)
 
+		# //// Neoffice — second-hand (2026-09-14): a sold unit's page sends the visitor to the new
+		# //// model (a bookmark, a search result: the unit is gone, the product is not), before any
+		# //// of the page is built. Temporary (302), because a return puts the unit back on sale at
+		# //// the same address.
+		if cint(self.get("sold")):
+			from webshop.webshop.utils.used_items import get_new_model
+
+			model = get_new_model(self)
+			if model:
+				frappe.local.flags.redirect_location = "/" + model.route
+				gone = frappe.Redirect()
+				gone.http_status_code = 302
+				raise gone
+
 		context.show_search = True
 		context.search_link = "/search"
 		context.body_class = "product-page"
@@ -512,15 +526,8 @@ class WebsiteItem(WebsiteGenerator):
 		}
 		context.condition_info = condition_info(self)
 		context.condition_schema_url = condition_schema_url(self.get("item_condition"))
-		# //// Neoffice — second-hand (2026-09-14): a sold unit's page sends the visitor to the new
-		# //// model (a bookmark, a search result: the unit is gone, the product is not); the new
-		# //// model shows its used units, a used unit shows the new model and its siblings.
-		if cint(self.get("sold")) and context.condition_info and context.condition_info.reference:
-			frappe.local.flags.redirect_location = "/" + context.condition_info.reference.route
-			# temporary (302), not permanent: a returned unit comes back on sale at the same address
-			gone = frappe.Redirect()
-			gone.http_status_code = 302
-			raise gone
+		# //// Neoffice — second-hand (2026-09-14): the new model shows its used units, a used unit
+		# //// shows the new model and its siblings (a sold unit redirected at the top of get_context).
 		context.used_units = [] if is_second_hand(self.get("item_condition")) else get_used_units(self.item_code)
 		# //// Neoffice — second-hand (2026-09-14): a used unit's page lists the other used copies of its model
 		context.sibling_units = get_sibling_units(self) if is_second_hand(self.get("item_condition")) else []

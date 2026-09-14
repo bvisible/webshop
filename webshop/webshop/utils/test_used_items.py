@@ -247,7 +247,7 @@ class TestUsedItems(FrappeTestCase):
 		self.assertTrue(new_model_route, "the new model has a published page with a route")
 		doc = frappe.get_doc("Website Item", page)
 		with self.assertRaises(frappe.Redirect):
-			doc.get_context(frappe._dict())
+			doc.get_context(frappe._dict(route=doc.route))
 		self.assertEqual(frappe.local.flags.redirect_location, "/" + new_model_route)
 		frappe.local.flags.redirect_location = None
 
