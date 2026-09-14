@@ -217,10 +217,21 @@
 	.category-slideshow {
 		margin-bottom: 2rem;
 	}
+	/* //// Neoffice — a grid that fills the page (2026-09-14): upstream's cards were 300px
+	   squares with a 30px margin each, in a wrapping row; once the page sat on a site's grid
+	   (webshop_ground.scss) a 1072px content box held two of them and left a third of the width
+	   empty. The row is a grid, and the cards keep upstream's square at the width it gives. */
+	.product-category-section.products-list {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+		gap: 32px;
+		margin: 24px 0 0;
+	}
 	.category-card {
-		height: 300px !important;
-		width: 300px !important;
-		margin: 30px !important;
+		width: auto !important;
+		height: auto !important;
+		aspect-ratio: 1 / 1;
+		margin: 0 !important;
 	}
 	/* //// Neoffice — styles of the search and sort bar added to this page (see index.js). */
 	.category-filter-section {
