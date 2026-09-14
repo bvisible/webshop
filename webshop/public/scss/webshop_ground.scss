@@ -87,6 +87,13 @@ body.product-page {
 :where(body.product-page) :is(.h1, .h2, .h3, .h4, .h5, .h6) { color: inherit; }
 :where(body.product-page) .table { color: inherit; background-color: transparent; }
 :where(body.product-page) .text-dark { color: var(--wsh-text) !important; }
+/* //// Neoffice — `.text-muted` is #7c7c7c with !important in Frappe's bundle, and a
+   `.badge-secondary` white on that same grey: 3.97:1 on a dark site, 4.17:1 on a light one,
+   the site's own muted ink nowhere (the catalogue's "Filtres actifs", its pager, the
+   active-filter reminders, 2026-09-14). The site's muted ink is its text at 60 %: 6.2:1 on
+   the dark reseller site, 4.6:1 on white. A badge filled with it writes with the ground. */
+:where(body.product-page) .text-muted { color: var(--wsh-muted) !important; }
+:where(body.product-page) .badge-secondary { background-color: var(--wsh-muted); color: var(--wsh-bg); }
 :where(body.product-page) .order-items { color: inherit; }
 /* Frappe's account page writes its headings and lines in --gray-900 and --gray-700 (light-ground
    greys no chrome redefines): the same floor, at the weight of its own rules */

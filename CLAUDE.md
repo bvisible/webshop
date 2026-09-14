@@ -1183,7 +1183,10 @@ of the pager) the tokens.
 
 > **Frappe's literal inks get a floor; Frappe's surface tokens follow the chrome** (2026-09-14).
 > Frappe's and ERPNext's bundles compile some inks from Bootstrap's light-ground variables:
-> every heading `#171717`, a `.table`'s text `#525252`, `.text-dark` `#383838 !important`, a
+> every heading `#171717`, a `.table`'s text `#525252`, `.text-dark` `#383838 !important`,
+> `.text-muted` `#7c7c7c !important` and `.badge-secondary` white on that grey (3.97:1 on a dark
+> site, 4.17:1 on a light one: the catalogue's "Filtres actifs", its pager, the toolbar's
+> active-filter badges; they now read the site's muted ink, its text at 60 %), a
 > white `.card`, ERPNext's `.order-items` gray-700, the account page's `--gray-900/700`. On a
 > dark site the cart line's name, "Résumé du paiement", the checkout's headings and the
 > summary's figures were dark on dark, the cart summary's labels white on a white card. The

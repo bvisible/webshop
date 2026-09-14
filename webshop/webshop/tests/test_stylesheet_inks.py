@@ -1,5 +1,6 @@
 # //// Neoffice — added file (no upstream equivalent).
-"""A block the shop paints with the text colour writes with the ground's colour.
+"""A block the shop paints with the text colour, or its muted or faint tint, writes with the
+ground's colour.
 
 `--wsh-text` follows the site: dark on a light site, light on a dark one. A chip, a badge
 or a tooltip painted with it therefore inverts with the site, and so must its ink: that is
@@ -14,7 +15,7 @@ import unittest
 from pathlib import Path
 
 STYLESHEETS = Path(__file__).resolve().parents[2] / "public" / "scss"
-TEXT_GROUND = re.compile(r"background(?:-color)?\s*:\s*var\(--wsh-text\)")
+TEXT_GROUND = re.compile(r"background(?:-color)?\s*:\s*var\(--wsh-(?:text|muted|faint)\)")
 INK = re.compile(r"(?:^|[;\s])color\s*:\s*([^;]+)")
 # components that carry a text or an icon: painting one without naming its ink leaves the
 # ink its framework gives it, which is white
