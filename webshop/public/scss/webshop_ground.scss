@@ -103,6 +103,36 @@ body.product-page {
 	--text-light: var(--wsh-faint);
 }
 
+/* The shop's page sits on the chrome's grid (2026-09-14). The site chrome lays its header,
+   footer and title band on --container-width with --container-padding (-tablet under 768px,
+   -phone under 576px, header_styles.html); the shop sat in Frappe's main.container (1290px
+   wide, 5rem of padding from xl), so its content started 50 to 90px right of the logo and of
+   the title just above it. The page's outer container reads the chrome's grid; a container
+   nested in it (the checkout nests a second page wrapper) adds no gutter of its own. Without
+   a chrome the fallbacks are Frappe's own values. */
+:where(body.product-page) .page-content-wrapper > main.container,
+:where(body.product-page) .item-breadcrumbs > .breadcrumb-container.container,
+/* an account page: Frappe's container holds the portal sidebar and the main column */
+:where(body.product-page) .container:has(> .row > .main-column) {
+	max-width: var(--container-width, 1290px);
+	padding-left: var(--container-padding, 5rem);
+	padding-right: var(--container-padding, 5rem);
+	@media (max-width: 768px) {
+		padding-left: var(--container-padding-tablet, 1.25rem);
+		padding-right: var(--container-padding-tablet, 1.25rem);
+	}
+	@media (max-width: 576px) {
+		padding-left: var(--container-padding-phone, 1.25rem);
+		padding-right: var(--container-padding-phone, 1.25rem);
+	}
+}
+:where(body.product-page) .page-content-wrapper .page-content-wrapper > main.container,
+:where(body.product-page) .main-column .page-content-wrapper > main.container {
+	max-width: none;
+	padding-left: 0;
+	padding-right: 0;
+}
+
 /* Frappe's controls draw with light-ground literals — gray-700 text in an input, a
    #f3f3f3 default button, an outline button in the primary colour (the page background
    itself on one site), tab links in gray: on the shop's pages they take the tokens. */

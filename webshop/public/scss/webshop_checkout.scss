@@ -12,7 +12,10 @@ body[data-path="checkout"] {
   }
 
   @media (max-width: 992px) {
-      .page-content-wrapper .container {
+      /* //// Neoffice — the checkout's own nested container only (2026-09-14): the page's outer
+         container now sits on the chrome's grid (webshop_ground.scss) and keeps its gutter,
+         aligned with the header, like every other page of the shop */
+      .checkout-page .container {
           padding-left: 0;
           padding-right: 0;
       }
