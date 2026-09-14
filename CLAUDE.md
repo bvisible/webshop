@@ -349,6 +349,16 @@ Website Item mirrors them (`fetch_from` + `crud_events/item/update_website_item.
   filter field for this; the facet only renders once a published item is not
   New. Badges: `grid.js`, `list.js`, `product_carousel.html` — three copies,
   plus `bench build`.
+- **The catalogue's toggles last for the visit** (2026-09-14). Discount, second-hand and stock
+  live in `sessionStorage` through `webshop.filter_store` (top of `views.js`): in localStorage a
+  toggle ticked once greeted every later visit with a filtered catalogue — on a shop with no
+  discounted product, an empty grid. A toggle the page does not offer is never on
+  (`window.discount_count` / `window.second_hand_count` at 0), and the discount toggle is not
+  drawn when no product is discounted. "Clear all" shows only under a filter and clears the
+  toggles too; the sidebar's "· N produits" is the listing's own figure (event
+  `webshop:listing-count` from `update_active_filters_display`), only under a filter — it ran a
+  query of its own that ignored the toggles and printed the whole catalogue's size at every load.
+  An empty result clears the previous tiles.
 
 - **Sold means gone** (2026-09-14). A used unit is one of a kind, so `Website Item.sold`
   (read-only, set on save and kept by the `Stock Ledger Entry` `on_submit` hook in
@@ -816,6 +826,11 @@ the cart is the state afterwards. A guest's batch goes through
 > `Customer.default_price_list` to the reseller list and never put it back, so
 > the informative run repriced three tests at 80 instead of 100.
 
+**The way in from the catalogue.** A quiet link next to the search box (`.wsp-quick-order-link`,
+`views.js` `prepare_search`), offered by `listing_context.quick_order_url()` to whoever may use
+the page — `quick_order_offered()`: require_shopper's rule without its side effect, since
+`get_party()` creates a customer for an account that has none and a page view must never do that.
+
 **The order as a spreadsheet.** `utils/order_export.py` → `download_order_xlsx`
 (GET, `doctype` + `name`): a bold header row, one line per item with code,
 name, the variants' attribute columns, barcode, quantity, unit, rate and
@@ -1152,6 +1167,35 @@ of the pager) the tokens.
 > tokens on the shop's. At equal specificity the chrome's inline sheet (in the body) comes
 > after the bundle (in `<head>`): the element in the selector (`div.page-content-wrapper`,
 > `section.site-page-header`) is what wins.
+
+> **Frappe's literal inks get a floor; Frappe's surface tokens follow the chrome** (2026-09-14).
+> Frappe's and ERPNext's bundles compile some inks from Bootstrap's light-ground variables:
+> every heading `#171717`, a `.table`'s text `#525252`, `.text-dark` `#383838 !important`, a
+> white `.card`, ERPNext's `.order-items` gray-700, the account page's `--gray-900/700`. On a
+> dark site the cart line's name, "Résumé du paiement", the checkout's headings and the
+> summary's figures were dark on dark, the cart summary's labels white on a white card. The
+> ground floors them behind `:where(body.product-page)` — the exact weight of the bundle's rule,
+> winning because the shop's bundle loads after Frappe's and ERPNext's, so any rule of the shop
+> (one class or more) still beats it — and points Frappe's surface tokens (`--fg-color`,
+> `--card-bg`, `--control-bg`, `--modal-bg`, `--popover-bg`, the avatar's) at the chrome's on the
+> body, so web forms, dialogs, toasts and the portal's cards follow. `--wsh-line-strong` is mixed
+> from the chrome's ink and ground: it read Frappe's `--gray-300`, a literal no chrome
+> redefines, and outlined the quantity box, the notes field and the upcoming checkout steps in
+> white. A heading inherits: it reads like the box it sits in.
+
+> **The customer's account pages are the shop's.** Frappe renders them (the portal menu's
+> routes — orders, invoices, addresses, gift cards… — and `/me`, `/update-password`), so they
+> never got the scope class: on a dark site they sat on Frappe's gray-50 with the chrome's light
+> ink on white cards and forms. `shopping_cart/utils.py::update_website_context` adds
+> `product-page` to them (`is_account_page`; the hook runs after the page's own `get_context`,
+> so it adds, never overwrites), and `--body-bg-color` is the chrome's ground.
+> `tests/test_account_pages.py` is in the CI's blocking list.
+
+> **Audit the cart full and the checkout step by step, signed in.** The audit said 0 on a dark
+> site whose merchant then found the cart and the checkout unreadable: it had only ever read
+> them as a visitor with an empty cart. `WEBSHOP_SID` + a filled cart +
+> `WEBSHOP_CONTRAST_REVEAL=.step-section` reads every step; `WEBSHOP_CSS_OVERRIDE=<file.css>`
+> audits a locally compiled stylesheet against the client's real chrome before it deploys.
 
 > **The status shades follow the ground.** `--wsh-ok-strong` is
 > `color-mix(--wsh-ok 70%, --wsh-text)` and `--wsh-ok-soft` `color-mix(--wsh-ok 14%,

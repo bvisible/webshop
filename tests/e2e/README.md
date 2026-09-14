@@ -394,6 +394,20 @@ WEBSHOP_CONTRAST_MIN=4.5 …                                          # seuil (3
 À lancer **sur le site cible** avant tout déploiement chez un client, anonyme suffit. La
 spec `11-contraste` (projet `invite`) fait la même chose sur l'instance de la suite.
 
+**Connecté, panier rempli, étape par étape.** Le 2026-09-14, l'audit disait 0 sur un site sombre
+dont le marchand a trouvé le panier et le tunnel illisibles : il ne les avait jamais lus qu'en
+visiteur, panier vide. Pour un site client : une session (`bench browse`), un article au panier,
+puis
+
+```bash
+WEBSHOP_SID=<sid> WEBSHOP_CONTRAST_REVEAL=.step-section WEBSHOP_E2E_URL=https://<site> \
+  node visual/contrast.mjs /cart /checkout /quick-order /me /orders /addresses
+```
+
+`WEBSHOP_CSS_OVERRIDE=<fichier.css>` sert une feuille compilée localement à la place du bundle
+de la boutique : un correctif de couleur s'audite sur le vrai chrome du client avant d'être
+déployé (compiler le bundle avec `sass`, chemins `webshop/public/scss` et `~/GitHub/frappe`).
+
 Le spec `13-boutons-du-site` (projet `client`) mesure les boutons de la boutique contre le
 bouton du site lui-même : un `<a class="u-btn u-btn--primary">` injecté dans la page de la
 boutique (la règle `:where(.u-btn)` du chrome y est aussi) sert de référence, et le bouton
