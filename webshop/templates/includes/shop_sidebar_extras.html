@@ -26,9 +26,11 @@
 	{# //// price and the attributes, and printed the whole catalogue's size next to "Filters" at #}
 	{# //// every load ("· 379 produits"), as if something were filtered. views.js announces #}
 	{# //// each result with the event webshop:listing-count. #}
+	{# //// Neoffice — one product, several products #}
+	const productWord = (window.product_translations && window.product_translations['product']) || 'produit';
 	function setCount(n, filtered) {
 		if (!counter) return;
-		counter.textContent = (filtered && typeof n === 'number') ? '· ' + n + ' ' + productsWord : '';
+		counter.textContent = (filtered && typeof n === 'number') ? '· ' + n + ' ' + (n === 1 ? productWord : productsWord) : '';
 	}
 	document.addEventListener('webshop:listing-count', function(e) {
 		const d = (e && e.detail) || {};

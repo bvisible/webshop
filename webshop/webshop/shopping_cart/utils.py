@@ -61,7 +61,9 @@ def update_website_context(context):
 
 
 # //// Neoffice — added (2026-09-14), see update_website_context.
-ACCOUNT_PAGES = ("me", "update-password", "update-profile", "third_party_apps")
+# //// Neoffice — "addresses" too: the shop's own address page (/my_addresses) and the checkout
+# //// send the customer to ERPNext's address web form, which a portal menu may not list
+ACCOUNT_PAGES = ("me", "update-password", "update-profile", "third_party_apps", "addresses")
 
 
 def is_account_page(context) -> bool:

@@ -45,6 +45,12 @@ class TestAccountPages(FrappeTestCase):
 		):
 			self.assertTrue(utils.is_account_page(frappe._dict(path="list")))
 
+	def test_the_address_form_is_an_account_page_even_off_the_menu(self):
+		# //// Neoffice — the shop's address page and the checkout lead to it; a portal menu may not list it
+		bare = frappe._dict(menu=[], custom_menu=[])
+		with patch.object(utils.frappe, "get_cached_doc", side_effect=lambda d, *a, **k: bare if d == "Portal Settings" else _real_get_cached_doc(d, *a, **k)):
+			self.assertTrue(utils.is_account_page(frappe._dict(path="addresses/new")))
+
 	def test_other_pages_are_not_account_pages(self):
 		for path in ("", "all-products", "ordersx", "issues", "login", "contact"):
 			self.assertFalse(self.is_account(path), path)

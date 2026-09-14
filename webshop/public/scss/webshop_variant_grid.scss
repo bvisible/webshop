@@ -253,7 +253,9 @@
 .wsp-variants__chip:hover { border-color: var(--wsh-text); }
 .wsp-variants__chip:focus-visible { outline: 2px solid var(--wsh-primary); outline-offset: 2px; }
 .wsp-variants__chip.is-selected { background: var(--wsh-text); border-color: var(--wsh-text); color: var(--wsh-bg); }
-.wsp-variants__chip.is-unavailable { color: var(--wsh-faint); border-style: dashed; }
+/* //// Neoffice — muted, not faint (2026-09-14): struck and dashed already say "sold out"; the
+   figure itself must still be read, and faint gave 2.2:1 on a light site */
+.wsp-variants__chip.is-unavailable { color: var(--wsh-muted); border-style: dashed; }
 .wsp-variants__chip.is-unavailable .wsp-variants__chip-text { text-decoration: line-through; }
 .wsp-variants__chip.is-unavailable.is-selected { background: var(--wsh-surface-muted); color: var(--wsh-muted); border-color: var(--wsh-text); border-style: solid; }
 .wsp-variants__chip.is-impossible { display: none; }
