@@ -17,6 +17,15 @@
 // Without paths it audits the public pages of pages.json (and the `auth` ones when a
 // session cookie is given). `WEBSHOP_CONTRAST_MIN` (default 3) is the ratio under which
 // an element is a finding; `--json` prints the findings as JSON instead of a table.
+//
+// //// Neoffice — two more knobs (2026-09-14), after a dark site's cart and checkout were
+// //// found broken by its merchant while this audit said 0: it had only ever read them as a
+// //// visitor with an empty cart.
+//   WEBSHOP_CONTRAST_REVEAL=<selector>  shows every match before reading (the checkout's
+//                                       hidden steps: ".step-section")
+//   WEBSHOP_CSS_OVERRIDE=<file.css>     serves this file instead of the shop's built
+//                                       bundle: a stylesheet compiled locally is audited
+//                                       against a client's real chrome before it deploys
 import { chromium } from "playwright";
 import fs from "node:fs";
 import path from "node:path";
@@ -148,6 +157,12 @@ if (isMain) {
 	const browser = await chromium.launch({ headless: true });
 	const context = await browser.newContext({ viewport: { width: 1400, height: 900 }, locale: "fr-CH" });
 	if (sid) await context.addCookies([{ name: "sid", value: sid, domain: new URL(base).hostname, path: "/" }]);
+	//// Neoffice — see WEBSHOP_CSS_OVERRIDE above
+	if (process.env.WEBSHOP_CSS_OVERRIDE) {
+		const css = fs.readFileSync(process.env.WEBSHOP_CSS_OVERRIDE, "utf8");
+		await context.route("**/assets/webshop/dist/css/webshop-web.bundle.*.css", (route) => route.fulfill({ status: 200, contentType: "text/css", body: css }));
+	}
+	const reveal = process.env.WEBSHOP_CONTRAST_REVEAL || "";
 	const tab = await context.newPage();
 	const report = [];
 	let failed = 0;
@@ -167,6 +182,8 @@ if (isMain) {
 			failed += 1;
 			continue;
 		}
+		//// Neoffice — see WEBSHOP_CONTRAST_REVEAL above
+		if (reveal) await tab.evaluate((sel) => document.querySelectorAll(sel).forEach((el) => { el.classList.add("active"); el.hidden = false; el.style.display = "block"; }), reveal);
 		const result = await auditContrast(tab, { minimum });
 		report.push({ name: target.name, path: target.path, status, url: tab.url(), ...result });
 		if (result.findings.length) failed += 1;
