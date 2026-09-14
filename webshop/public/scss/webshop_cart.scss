@@ -3,7 +3,9 @@
 :root {
 	--green-info: #38A160;
 	--product-bg-color: white;
-	--body-bg-color:  var(--gray-50);
+	// //// Neoffice — the chrome's ground, not Frappe's gray-50 (2026-09-14): the account pages
+	// //// (/me, the order list) sat on a near-white page on a dark site, their title light on light
+	--body-bg-color: var(--wsh-bg);
 }
 
 //// Neoffice — upstream paints only body.product-page. The same page background is

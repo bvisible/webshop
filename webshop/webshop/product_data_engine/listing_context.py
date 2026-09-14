@@ -65,6 +65,8 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	context.second_hand_count = count_second_hand()
 	# //// (2026-09-14) the discounted count next to the discount toggle, from a short cache
 	context.discount_count = count_discounted()
+	# //// (2026-09-14) a quiet way in to the quick order, next to the search box, for whoever may use it
+	context.quick_order_url = quick_order_url()
 	context.no_cache = 1
 
 	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
@@ -120,3 +122,15 @@ def count_discounted():
 def clear_discount_count():
 	"""Every site's and every price list's figure at once: a rule or a price changed."""
 	frappe.cache().delete_keys(DISCOUNT_COUNT_CACHE)
+
+
+
+# //// Neoffice — added (2026-09-14): the quick order is offered from the catalogue, next to the
+# //// search box, to whoever may fill a cart here (quick_order.api.quick_order_offered).
+def quick_order_url():
+	from webshop.webshop.quick_order.api import quick_order_offered
+
+	try:
+		return "/quick-order" if quick_order_offered() else ""
+	except Exception:
+		return ""

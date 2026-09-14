@@ -57,6 +57,10 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		from webshop.webshop.product_data_engine.listing_context import count_second_hand
 
 		context.second_hand_count = count_second_hand()
+		# //// Neoffice — the quick order offered next to the search box (2026-09-14)
+		from webshop.webshop.product_data_engine.listing_context import quick_order_url
+
+		context.quick_order_url = quick_order_url()
 		context.page_length = (
 			cint(frappe.db.get_single_value("Webshop Settings", "products_per_page")) or 6
 		)

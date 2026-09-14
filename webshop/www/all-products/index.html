@@ -38,7 +38,8 @@
 				{# //// Neoffice — "Clear All" keeps the current listing route (a category page reuses #}
 				{# //// this template), and the drawer gets a close button on mobile. #}
 				<div class="d-flex">
-					<a class="mb-4 clear-filters" href="{{ listing_route or '/all-products' }}">{{ _('Clear All') }}</a>
+					{# //// Neoffice — hidden until a filter is on (views.js update_active_filters_display, 2026-09-14) #}
+<a class="mb-4 clear-filters d-none" href="{{ listing_route or '/all-products' }}">{{ _('Clear All') }}</a>
 					<button id="closeFilterButton" class="close-filter-button d-md-none ml-3 mb-4">
 						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"/></svg>
 					</button>
@@ -124,6 +125,8 @@
 	{# //// Neoffice — how many used units the shop publishes: the toggle only shows then #}
 	window.second_hand_count = {{ second_hand_count or 0 }};
 	window.discount_count = {{ discount_count or 0 }};
+	{# //// Neoffice — the quick order offered next to the search box (2026-09-14) #}
+	window.quick_order_url = {{ (quick_order_url or "")|tojson }};
 
 	window.product_translations = {
 		"Search": {{ _("Search")|json }},
@@ -158,6 +161,8 @@
 		"available": {{ _("available")|json }},
 		{# //// Neoffice — "Discover", the merchant's word for a template's tile, was "Explore" (2026-09-14) #}
 	"Discover": {{ _("Discover")|json }},
+	"Quick order": {{ _("Quick order")|json }},
+	"Know your references? Order them by code, name or barcode.": {{ _("Know your references? Order them by code, name or barcode.")|json }},
 		"Add to Cart": {{ _("Add to Cart")|json }},
 		"Add to Quote": {{ _("Add to Quote")|json }},
 		"Go to Cart": {{ _("Go to Cart")|json }},

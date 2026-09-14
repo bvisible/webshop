@@ -286,3 +286,17 @@
 		}
 	}
 
+/* //// Neoffice — the quiet way in to the quick order, next to the search box (2026-09-14):
+   a muted link with a small bolt, underlined under the cursor; it never competes with the
+   search field it sits beside */
+.wsp-quick-order-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 0.85rem;
+	color: var(--wsh-muted);
+	white-space: nowrap;
+	text-decoration: none;
+	svg { flex-shrink: 0; }
+	&:hover, &:focus-visible { color: var(--wsh-text); text-decoration: underline; text-underline-offset: 3px; }
+}

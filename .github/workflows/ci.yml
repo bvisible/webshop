@@ -238,6 +238,7 @@ jobs:
             webshop.webshop.tests.test_product_page \
             webshop.webshop.utils.test_videos \
             webshop.webshop.product_data_engine.test_second_hand_toggle \
+            webshop.webshop.tests.test_account_pages \
             webshop.webshop.utils.test_store_hours \
             webshop.webshop.utils.test_holidays \
             webshop.webshop.assistant.test_assistant \

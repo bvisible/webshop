@@ -1,3 +1,34 @@
+//// Neoffice — the catalogue's toggles last for the visit, not for ever (2026-09-14). They
+//// lived in localStorage: a toggle ticked once greeted every later visit with a filtered
+//// catalogue, the "Clear all" of a filter nobody remembered and, on a shop without any
+//// discounted product, an empty grid. Session storage keeps them for the visit (a product
+//// page and back), a toggle the page does not offer (no discounted product, no used unit)
+//// is never on, and the old permanent copies are dropped.
+webshop.filter_store = {
+	keys: ["discount_filter_checked", "second_hand_filter_checked", "stock_filter_checked"],
+	offered(key) {
+		if (key === "discount_filter_checked") return window.discount_count !== 0;
+		if (key === "second_hand_filter_checked") return window.second_hand_count !== 0;
+		return true;
+	},
+	get(key) {
+		if (!this.offered(key)) return null;
+		try { return sessionStorage.getItem(key); } catch (e) { return null; }
+	},
+	set(key, value) {
+		try { sessionStorage.setItem(key, value); } catch (e) { /* storage blocked */ }
+	},
+	remove(key) {
+		try { sessionStorage.removeItem(key); } catch (e) { /* storage blocked */ }
+	},
+	clear() {
+		this.keys.forEach((key) => this.remove(key));
+	},
+};
+try {
+	webshop.filter_store.keys.forEach((key) => localStorage.removeItem(key));
+} catch (e) { /* storage blocked */ }
+
 webshop.ProductView =  class {
 	/* Options:
 		- View Type
@@ -28,10 +59,10 @@ webshop.ProductView =  class {
 		// Handle discount filter from URL
 		if (urlParams.get('discount') === 'true') {
 			// Set discount filter in localStorage when coming from URL
-			localStorage.setItem('discount_filter_checked', 'true');
+			webshop.filter_store.set('discount_filter_checked', 'true'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 			// Also ensure stock filter is set to false if not already set
-			if (localStorage.getItem('stock_filter_checked') === null) {
-				localStorage.setItem('stock_filter_checked', 'false');
+			if (webshop.filter_store.get('stock_filter_checked') === null) { //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
+				webshop.filter_store.set('stock_filter_checked', 'false'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 			}
 			// Remove the discount parameter from URL to avoid confusion
 			urlParams.delete('discount');
@@ -53,9 +84,9 @@ webshop.ProductView =  class {
 		}
 		
 		// Initialize stock filter preference if not set
-		if (localStorage.getItem('stock_filter_checked') === null && localStorage.getItem('discount_filter_checked') === 'true') {
+		if (webshop.filter_store.get('stock_filter_checked') === null && webshop.filter_store.get('discount_filter_checked') === 'true') { //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 			// If discount filter is active and stock filter has no preference, set it to false
-			localStorage.setItem('stock_filter_checked', 'false');
+			webshop.filter_store.set('stock_filter_checked', 'false'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 		}
 		
 		this.load_settings();
@@ -240,8 +271,8 @@ webshop.ProductView =  class {
 		const self = this;
 
 		// Check localStorage filters
-		const stockFilter = localStorage.getItem('stock_filter_checked') === 'true';
-		const discountFilter = localStorage.getItem('discount_filter_checked') === 'true';
+		const stockFilter = webshop.filter_store.get('stock_filter_checked') === 'true'; //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
+		const discountFilter = webshop.filter_store.get('discount_filter_checked') === 'true'; //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 		const translations = window.product_translations || {};
 
 		if (stockFilter) {
@@ -264,7 +295,7 @@ webshop.ProductView =  class {
 			`);
 		}
 		//// Neoffice — the second-hand toggle's chip (2026-09-13)
-		if (localStorage.getItem('second_hand_filter_checked') === 'true') {
+		if (webshop.filter_store.get('second_hand_filter_checked') === 'true') { //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 			hasActiveFilters = true;
 			$badges.append(`
 				<span class="badge badge-dark active-filter-badge" data-filter-type="second_hand" style="cursor: pointer;">
@@ -363,6 +394,12 @@ webshop.ProductView =  class {
 		} else {
 			$display.hide();
 		}
+		//// Neoffice — "Clear all" only when there is something to clear, and the sidebar's
+		//// counter only under a filter, with the listing's own figure (2026-09-14): both stood
+		//// there at every load ("· 379 produits  Tout effacer"), which read as if filters were on.
+		$('.clear-filters').toggleClass('d-none', !hasActiveFilters);
+		const count = (this.total_count != null ? this.total_count : this.product_count) || 0;
+		document.dispatchEvent(new CustomEvent('webshop:listing-count', { detail: { count: count, filtered: hasActiveFilters } }));
 	}
 
 	remove_active_filter($badge) {
@@ -372,7 +409,7 @@ webshop.ProductView =  class {
 
 		if (filterType === 'stock') {
 			// Remove stock filter
-			localStorage.setItem('stock_filter_checked', 'false');
+			webshop.filter_store.set('stock_filter_checked', 'false'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 			// The stock-filter class is ON the input itself, not a parent wrapper
 			$('input.stock-filter').prop('checked', false);
 			if (this.field_filters && this.field_filters['in_stock']) {
@@ -380,7 +417,7 @@ webshop.ProductView =  class {
 			}
 		} else if (filterType === 'discount') {
 			// Remove discount filter
-			localStorage.setItem('discount_filter_checked', 'false');
+			webshop.filter_store.set('discount_filter_checked', 'false'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 			// The discount-filter class is ON the input itself, not a parent wrapper
 			$('input.discount-filter').prop('checked', false);
 			if (this.field_filters && this.field_filters['discount']) {
@@ -388,7 +425,7 @@ webshop.ProductView =  class {
 			}
 		} else if (filterType === 'second_hand') {
 			//// Neoffice — the second-hand toggle's chip (2026-09-13)
-			localStorage.setItem('second_hand_filter_checked', 'false');
+			webshop.filter_store.set('second_hand_filter_checked', 'false'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 			$('input.second-hand-filter').prop('checked', false);
 			if (this.field_filters && this.field_filters['second_hand']) {
 				delete this.field_filters['second_hand'];
@@ -551,6 +588,12 @@ webshop.ProductView =  class {
 						// if result has no items or result is empty
 						//// Neoffice — hide the skeleton before showing the empty state.
 						me.hide_product_loader();
+						//// Neoffice — and the previous result's tiles go (2026-09-14): they stayed on
+						//// screen above "no products found", as if the filter had kept them.
+						$('#products-grid-area, #products-list-area').empty();
+						me.products = null;
+						me.product_count = 0;
+						me.total_count = 0;
 						me.render_no_products_section();
 					} else {
 						//// Neoffice — the results are stored on the view BEFORE rendering, because the
@@ -589,7 +632,7 @@ webshop.ProductView =  class {
 					//// filter was still applied.
 					} else {
 						// Always restore discount checkbox state from localStorage
-						const saved_discount_preference = localStorage.getItem('discount_filter_checked');
+						const saved_discount_preference = webshop.filter_store.get('discount_filter_checked'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 						if (saved_discount_preference !== null) {
 							$('#showDiscountOnly').prop('checked', saved_discount_preference === 'true');
 						}
@@ -704,8 +747,8 @@ webshop.ProductView =  class {
 		
 		// Always check localStorage for stock/discount filters
 		// These are managed separately from URL filters
-		const saved_stock_preference = localStorage.getItem('stock_filter_checked');
-		const saved_discount_preference = localStorage.getItem('discount_filter_checked');
+		const saved_stock_preference = webshop.filter_store.get('stock_filter_checked'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
+		const saved_discount_preference = webshop.filter_store.get('discount_filter_checked'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 		
 		// For stock filter
 		if (saved_stock_preference !== null) {
@@ -724,7 +767,7 @@ webshop.ProductView =  class {
 			field_filters["discount"] = ["100"];
 		}
 		//// Neoffice — the second-hand toggle, a per-visitor preference like the two above
-		if (localStorage.getItem('second_hand_filter_checked') === 'true') {
+		if (webshop.filter_store.get('second_hand_filter_checked') === 'true') { //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 			field_filters["second_hand"] = ["1"];
 		}
 		
@@ -813,7 +856,7 @@ webshop.ProductView =  class {
 		let total_pages = Math.ceil(total_count / page_length);
 		
 		// Check if discount filter is active
-		const saved_discount_preference = localStorage.getItem('discount_filter_checked');
+		const saved_discount_preference = webshop.filter_store.get('discount_filter_checked'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 		const discount_filter_active = saved_discount_preference === 'true';
 		
 		// If discount filter is active, handle special cases
@@ -975,6 +1018,21 @@ webshop.ProductView =  class {
 				</div>
 			</div>
 		`);
+		//// Neoffice — a quiet way in to the quick order, next to the search box (2026-09-14):
+		//// a customer who knows the references types them there and a grid per model opens.
+		//// Offered only to whoever may use it (listing_context.quick_order_url).
+		if (window.quick_order_url) {
+			const t = window.product_translations || {};
+			const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+			const label = t["Quick order"] || "Quick order";
+			const hint = t["Know your references? Order them by code, name or barcode."] || "Know your references? Order them by code, name or barcode.";
+			$(".toolbar").append(`
+				<a class="wsp-quick-order-link mb-2 mb-md-0 mr-md-3" href="${esc(window.quick_order_url)}" title="${esc(hint)}">
+					<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+					<span>${esc(label)}</span>
+				</a>
+			`);
+		}
 	}
 
 	render_view_toggler() {
@@ -1282,6 +1340,13 @@ webshop.ProductView =  class {
 	//// API, so it can be re-rendered without a round-trip (8ba1a7ab46, 2025-06-08).
 	get_discount_filter_html() {
 		$("#discount-filters").remove();
+		//// Neoffice — no discounted product, no toggle (2026-09-14): a filter that leads to an
+		//// empty grid is a promise with nothing behind it; the second-hand toggle already hides
+		//// the same way. window.discount_count is the cached figure of listing_context.
+		if (window.discount_count === 0) {
+			this.get_second_hand_filter_html();
+			return;
+		}
 		//// Neoffice — translated through window.product_translations (dd08553e88).
 		const translations = window.product_translations || {};
 
@@ -1415,7 +1480,7 @@ webshop.ProductView =  class {
 		}
 		
 		// Also check localStorage for the discount filter state
-		const saved_discount_preference = localStorage.getItem('discount_filter_checked');
+		const saved_discount_preference = webshop.filter_store.get('discount_filter_checked'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 		if (saved_discount_preference === 'true') {
 			$('#showDiscountOnly').prop('checked', true);
 			// If checkbox is checked via localStorage, also update field_filters
@@ -1425,7 +1490,7 @@ webshop.ProductView =  class {
 			this.field_filters["discount"] = ["100"];
 		}
 		//// Neoffice — and the second-hand toggle (see get_second_hand_filter_html)
-		if (localStorage.getItem('second_hand_filter_checked') === 'true') {
+		if (webshop.filter_store.get('second_hand_filter_checked') === 'true') { //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 			$('#showSecondHandOnly').prop('checked', true);
 			this.field_filters = this.field_filters || {};
 			this.field_filters["second_hand"] = ["1"];
@@ -1437,16 +1502,16 @@ webshop.ProductView =  class {
 		//// Neoffice — see above.
 		
 		// Preload discount results if discount filter was previously enabled
-		if (localStorage.getItem('discount_filter_checked') === 'true' && !this.preload_in_progress) {
+		if (webshop.filter_store.get('discount_filter_checked') === 'true' && !this.preload_in_progress) { //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 			this.preloadDiscountResults();
 		}
 		
 		//// Neoffice — the second-hand toggle: same life as the discount one (2026-09-13)
 		$('.second-hand-filter').off('change.wspSecondHand').on('change.wspSecondHand', (e) => {
 			const is_checked = $(e.target).is(':checked');
-			localStorage.setItem('second_hand_filter_checked', is_checked ? 'true' : 'false');
-			if (is_checked && localStorage.getItem('stock_filter_checked') === null) {
-				localStorage.setItem('stock_filter_checked', 'false');
+			webshop.filter_store.set('second_hand_filter_checked', is_checked ? 'true' : 'false'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
+			if (is_checked && webshop.filter_store.get('stock_filter_checked') === null) { //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
+				webshop.filter_store.set('stock_filter_checked', 'false'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 			}
 			this.field_filters = this.field_filters || {};
 			if (is_checked) {
@@ -1470,12 +1535,12 @@ webshop.ProductView =  class {
 			// Special handling for "Show only products with discount" checkbox
 			if ($checkbox.attr('id') === 'showDiscountOnly') {
 				// Save preference in localStorage like stock filter
-				localStorage.setItem('discount_filter_checked', is_checked ? 'true' : 'false');
+				webshop.filter_store.set('discount_filter_checked', is_checked ? 'true' : 'false'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 				
 				// If enabling discount filter and stock filter has no saved preference, save it as false
 				// This prevents the default stock filter from being applied on mobile
-				if (is_checked && localStorage.getItem('stock_filter_checked') === null) {
-					localStorage.setItem('stock_filter_checked', 'false');
+				if (is_checked && webshop.filter_store.get('stock_filter_checked') === null) { //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
+					webshop.filter_store.set('stock_filter_checked', 'false'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 				}
 				
 				// Force immediate update of filters
@@ -1553,6 +1618,9 @@ webshop.ProductView =  class {
 
 	bind_filters() {
 		let me = this;
+		//// Neoffice — "Clear all" clears the visit's toggles too (2026-09-14): it only loaded the
+		//// listing's bare route, and a stored toggle came straight back.
+		$(document).off('click.wspClearAll').on('click.wspClearAll', '.clear-filters', () => webshop.filter_store.clear());
 		this.field_filters = {};
 		this.attribute_filters = {};
 		//// Neoffice — tag filters (Webshop Settings.enable_tag_filters), which upstream
@@ -1566,7 +1634,7 @@ webshop.ProductView =  class {
 			// No filters in URL, check saved preferences
 			
 			// Stock filter
-			const saved_stock_preference = localStorage.getItem('stock_filter_checked');
+			const saved_stock_preference = webshop.filter_store.get('stock_filter_checked'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 			let should_apply_stock = false;
 			
 			if (saved_stock_preference !== null) {
@@ -1580,7 +1648,7 @@ webshop.ProductView =  class {
 			}
 			
 			// Discount filter
-			const saved_discount_preference = localStorage.getItem('discount_filter_checked');
+			const saved_discount_preference = webshop.filter_store.get('discount_filter_checked'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 			if (saved_discount_preference === 'true') {
 				this.field_filters["discount"] = ["100"];
 			}
@@ -1611,12 +1679,12 @@ webshop.ProductView =  class {
 				if (is_checked) {
 					this.field_filters["in_stock"] = ["1"];
 					// Save user preference
-					localStorage.setItem('stock_filter_checked', 'true');
+					webshop.filter_store.set('stock_filter_checked', 'true'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 				} else {
 					// When unchecked, remove the filter completely
 					delete this.field_filters["in_stock"];
 					// Save user preference
-					localStorage.setItem('stock_filter_checked', 'false');
+					webshop.filter_store.set('stock_filter_checked', 'false'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 				}
 				me.change_route_with_filters();
 				return;
@@ -2075,7 +2143,7 @@ webshop.ProductView =  class {
 		
 		// Always restore localStorage-managed filters regardless of URL filters
 		// Stock filter
-		const saved_stock_preference = localStorage.getItem('stock_filter_checked');
+		const saved_stock_preference = webshop.filter_store.get('stock_filter_checked'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 		if (saved_stock_preference !== null) {
 			const should_check_stock = saved_stock_preference === 'true';
 			if (should_check_stock) {
@@ -2098,7 +2166,7 @@ webshop.ProductView =  class {
 		}
 		
 		// Discount filter - only update checkbox state, not filters
-		const saved_discount_preference = localStorage.getItem('discount_filter_checked');
+		const saved_discount_preference = webshop.filter_store.get('discount_filter_checked'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 		if (saved_discount_preference !== null) {
 			const should_check_discount = saved_discount_preference === 'true';
 			$('#showDiscountOnly').prop('checked', should_check_discount);

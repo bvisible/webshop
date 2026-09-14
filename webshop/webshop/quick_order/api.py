@@ -91,6 +91,17 @@ def require_shopper():
 
 
 # //// Neoffice — added may_use_quick_order() (0928431668 "feat(quick-order): ouverte à tout le monde, et un bouton par grille"): lets templates/links check the new gate without raising
+# //// Neoffice — added (2026-09-14): the catalogue's way in to the quick order.
+def quick_order_offered(settings=None):
+	"""Whether the catalogue offers the quick order: to a signed-in visitor, and to an
+	anonymous one where the shop sells to visitors. require_shopper()'s rule without its
+	side effect — get_party() creates a customer for an account that has none, which a
+	page view must never do; the quick order page itself explains a missing account."""
+	if frappe.session.user == "Guest":
+		return guest_allowed(settings)
+	return True
+
+
 def may_use_quick_order():
 	"""True when require_shopper() would let the session in — for the links."""
 	try:

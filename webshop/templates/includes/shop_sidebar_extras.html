@@ -21,39 +21,19 @@
 		title.appendChild(counter);
 	}
 	const productsWord = (window.product_translations && window.product_translations['products']) || 'produits';
-	function setCount(n) {
-		if (counter && typeof n === 'number') counter.textContent = '· ' + n + ' ' + productsWord;
+	{# //// Neoffice — the listing's own figure, and only under a filter (2026-09-14): the counter #}
+	{# //// made a query of its own that ignored the discount, second-hand and stock toggles, the #}
+	{# //// price and the attributes, and printed the whole catalogue's size next to "Filters" at #}
+	{# //// every load ("· 379 produits"), as if something were filtered. views.js announces #}
+	{# //// each result with the event webshop:listing-count. #}
+	function setCount(n, filtered) {
+		if (!counter) return;
+		counter.textContent = (filtered && typeof n === 'number') ? '· ' + n + ' ' + productsWord : '';
 	}
-	// The listing bundle refreshes via a full-page XHR (no JSON to sniff), so the
-	// counter makes its own lightweight call to the filter API, debounced.
-	let countTimer = null;
-	function refreshCount() {
-		clearTimeout(countTimer);
-		countTimer = setTimeout(function() {
-			const field_filters = {};
-			pf.querySelectorAll('input.field-filter:checked').forEach(function(i) {
-				const k = i.dataset.filterName, v = i.dataset.filterValue;
-				if (!k || !v) return;
-				(field_filters[k] = field_filters[k] || []).push(v);
-			});
-			fetch('/api/method/webshop.webshop.api.get_product_filter_data', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-Frappe-CSRF-Token': (window.frappe && frappe.csrf_token) || ''
-				},
-				body: JSON.stringify({ query_args: { field_filters: field_filters, attribute_filters: {}, start: 0 } })
-			}).then(function(r) { return r.json(); }).then(function(d) {
-				const m = (d && d.message) || {};
-				const n = (typeof m.total_count === 'number') ? m.total_count : m.items_count;
-				if (typeof n === 'number') setCount(n);
-			}).catch(function() {});
-		}, 400);
-	}
-	pf.addEventListener('change', function(e) {
-		if (e.target && e.target.matches('input[type="checkbox"]')) refreshCount();
+	document.addEventListener('webshop:listing-count', function(e) {
+		const d = (e && e.detail) || {};
+		setCount(d.count, d.filtered);
 	});
-	setTimeout(refreshCount, 1200);
 
 	/* ---- active filter chips ---- */
 	const chipsBox = document.getElementById('active-filter-chips');

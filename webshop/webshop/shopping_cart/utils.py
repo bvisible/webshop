@@ -48,6 +48,38 @@ def update_website_context(context):
 	if frappe.db.get_single_value("Webshop Settings", "enable_wishlist"):
 		context["include_wishlist"] = True
 
+	# //// Neoffice — the customer's account pages are the shop's pages too (2026-09-14). Frappe
+	# //// renders them (the order list, the account card, the address web form), so they
+	# //// never got the shop's scope: on a dark site they sat on a near-white page with the
+	# //// chrome's light ink on Frappe's white cards and forms. They carry `product-page` now,
+	# //// the class the shop's ground and buttons hang on (webshop_ground.scss). This hook runs
+	# //// after the page's own get_context, so the class is added, never overwritten.
+	if is_account_page(context):
+		classes = (context.get("body_class") or "").split()
+		if "product-page" not in classes:
+			context["body_class"] = " ".join(classes + ["product-page"])
+
+
+# //// Neoffice — added (2026-09-14), see update_website_context.
+ACCOUNT_PAGES = ("me", "update-password", "update-profile", "third_party_apps")
+
+
+def is_account_page(context) -> bool:
+	"""A page of the customer's account area: a route of the portal menu (orders, invoices,
+	addresses, and what the shop adds — gift cards…) or one of Frappe's own account pages."""
+	path = str(context.get("path") or getattr(frappe.local, "path", "") or "").strip("/")
+	if not path:
+		return False
+	routes = set(ACCOUNT_PAGES)
+	try:
+		portal = frappe.get_cached_doc("Portal Settings")
+		for row in list(portal.get("menu") or []) + list(portal.get("custom_menu") or []):
+			if row.get("enabled") and row.get("route"):
+				routes.add(str(row.get("route")).strip("/"))
+	except Exception:
+		pass
+	return any(path == route or path.startswith(route + "/") for route in routes if route)
+
 
 def is_customer():
 	if frappe.session.user and frappe.session.user != "Guest":

@@ -37,7 +37,12 @@
 	--wsh-surface: var(--surface-color, var(--card-bg, #ffffff));
 	--wsh-surface-muted: var(--surface-muted, var(--gray-50, #f8f9fa));
 	--wsh-line: var(--border-color, var(--gray-200, #e5e7eb));
-	--wsh-line-strong: var(--gray-300, #d1d5db);
+	// //// Neoffice — mixed from the chrome's ink and ground (2026-09-14), like the lines the
+	// //// chrome defines itself: it read Frappe's --gray-300, a light-ground literal no chrome
+	// //// redefines, so a dark site drew near-white rules — the checkout's upcoming steps, the
+	// //// quantity box and the notes field of the cart outlined in white. 16 % of the ink sits
+	// //// within a few units of the old grey on white.
+	--wsh-line-strong: color-mix(in srgb, var(--wsh-text) 16%, var(--wsh-bg));
 	--wsh-line-light: var(--border-light, var(--gray-100, #f3f4f6));
 	--wsh-overlay: rgba(0, 0, 0, 0.5);
 

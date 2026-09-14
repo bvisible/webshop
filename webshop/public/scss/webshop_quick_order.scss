@@ -43,6 +43,10 @@
 	&__input {
 		width: 100%; font-size: 1.05rem; padding: 12px 14px;
 		border: 1px solid var(--wsh-line-strong) !important; border-radius: var(--wsh-radius-lg); background: var(--wsh-surface) !important;
+		/* //// Neoffice — the ink too (2026-09-14): a plain <input> keeps the browser's black text,
+		   black on black on a dark site */
+		color: var(--wsh-text);
+		&::placeholder { color: var(--wsh-faint); }
 		&:focus { outline: none; border-color: var(--wsh-primary) !important; box-shadow: 0 0 0 3px var(--wsh-primary-soft); }
 	}
 	&__suggestions {

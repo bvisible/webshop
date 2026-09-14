@@ -13,7 +13,7 @@ $(() => {
 			let stock_filter_default = false;
 			if (window.stock_filter_settings && window.stock_filter_settings.enabled) {
 				// Check if user has a saved preference
-				const saved_preference = localStorage.getItem('stock_filter_checked');
+				const saved_preference = webshop.filter_store.get('stock_filter_checked'); //// Neoffice — visit-scoped (webshop.filter_store, 2026-09-14)
 				if (saved_preference !== null) {
 					// Use saved preference
 					stock_filter_default = saved_preference === 'true';

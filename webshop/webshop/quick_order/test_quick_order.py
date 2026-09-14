@@ -284,6 +284,21 @@ class TestQuickOrder(FrappeTestCase):
 		# //// Neoffice — compared through _() rather than to a French fragment (86e3cd5c5a "i18n(quick-order): les libellés deviennent des msgid anglais"): the msgids are English now, and the CI runs in English while the fleet runs in French — a hard-coded fragment of either would fail on the other.
 		self.assertEqual(context.reason, _("No customer account is linked to your user."))
 
+	# //// Neoffice — added (2026-09-14): the catalogue offers the way in to the same visitors
+	# //// the page serves, and asking never creates a customer.
+	def test_the_catalogue_offers_the_quick_order_to_whoever_may_use_it(self):
+		frappe.set_user(PLAIN_USER)
+		self.assertTrue(api.quick_order_offered(self.settings))
+		frappe.set_user(USER)
+		api.get_party = lambda *args, **kwargs: self.fail("offering the link must not resolve a party")
+		self.assertTrue(api.quick_order_offered(self.settings), "a signed-in account is offered the page")
+		self.as_guest(with_cart=False)
+		self.assertFalse(api.quick_order_offered(self.settings))
+		self.as_guest(with_cart=True)
+		self.assertTrue(api.quick_order_offered(self.settings))
+		self.business_site()
+		self.assertFalse(api.quick_order_offered(self.settings), "never to a visitor of a site for professionals")
+
 	# --- search and resolution ------------------------------------------------------
 
 	def test_search_finds_the_model_by_code_name_and_barcode(self):

@@ -8204,3 +8204,6 @@ msgstr "Autres exemplaires d'occasion de ce modèle"
 
 msgid "The new model"
 msgstr "Le modèle neuf"
+
+msgid "Know your references? Order them by code, name or barcode."
+msgstr "Vous connaissez vos références ? Commandez-les par code, nom ou code-barres."

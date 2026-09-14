@@ -81,7 +81,49 @@ test.describe('Filtres', () => {
 		await page.locator('.active-filter-badge[data-filter-type="second_hand"]').click();
 		await page.waitForLoadState('networkidle');
 		await expect(page.locator('#showSecondHandOnly')).not.toBeChecked();
-		await page.evaluate(() => localStorage.removeItem('second_hand_filter_checked'));
+		await page.evaluate(() => sessionStorage.removeItem('second_hand_filter_checked'));
+	});
+
+	//// "Clear all" and the sidebar's counter only exist under a filter; "Clear all" clears
+	//// the toggles too, and a toggle lasts for the visit, not for the next one (2026-09-14).
+	test('« Tout effacer » n’apparaît qu’avec un filtre, efface aussi les cases, et une case ne survit pas à la visite', async ({page}) => {
+		await page.goto('/all-products');
+		await page.evaluate(() => sessionStorage.clear());
+		await page.reload();
+		await page.waitForLoadState('networkidle');
+		const effacer = page.locator('#product-filters .clear-filters');
+		await expect(effacer).toBeHidden();
+		await expect(page.locator('#results-count-live')).toHaveText('');
+		const caseACocher = page.locator('#showDiscountOnly, #showSecondHandOnly').first();
+		test.skip((await caseACocher.count()) === 0, 'ni promotion ni occasion sur cette boutique');
+		await caseACocher.check();
+		await page.waitForLoadState('networkidle');
+		await expect(effacer).toBeVisible();
+		await expect(page.locator('#results-count-live')).toContainText(/\d/);
+		//// a later visit (another tab) starts clean
+		const autre = await page.context().newPage();
+		await autre.goto('/all-products');
+		await autre.waitForLoadState('networkidle');
+		await expect(autre.locator('#showDiscountOnly, #showSecondHandOnly').first()).not.toBeChecked();
+		await expect(autre.locator('#product-filters .clear-filters')).toBeHidden();
+		await autre.close();
+		//// "Clear all" empties the toggles of this visit
+		await effacer.click();
+		await page.waitForLoadState('networkidle');
+		await expect(page.locator('#product-filters .clear-filters')).toBeHidden();
+		await expect(page.locator('#showDiscountOnly, #showSecondHandOnly').first()).not.toBeChecked();
+	});
+
+	//// The quick order is offered next to the search box to whoever may use it.
+	test('la commande rapide est proposée à côté de la recherche', async ({page}) => {
+		await page.goto('/all-products');
+		await page.waitForLoadState('networkidle');
+		const lien = page.locator('.toolbar .wsp-quick-order-link');
+		await expect(lien).toBeVisible();
+		await expect(lien).toHaveAttribute('href', '/quick-order');
+		await lien.click();
+		await page.waitForURL(/quick-order/);
+		await expect(page.locator('.wsh-qo__input')).toBeVisible();
 	});
 
 	//// The price slider: a drag moves the handle, rewrites the input and filters the

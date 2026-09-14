@@ -57,6 +57,52 @@ body.product-page .category-card {
 	--text-light: var(--wsh-faint);
 }
 
+/* Frappe's own surface tokens follow the chrome on the shop's pages (2026-09-14). Its
+   components — web forms, dialogs, the portal's lists, dropdowns, toasts, the account card —
+   paint with --fg-color, --card-bg, --control-bg, --modal-bg, which Frappe defines white for
+   every site and no chrome redefines: the address form of the account area and the account
+   card came out white under the chrome's light ink on a dark site. Set on the body, so a
+   dialog or a toast appended to it is covered too; on a light site nothing changes. */
+body.product-page {
+	--fg-color: var(--wsh-surface);
+	--card-bg: var(--wsh-surface);
+	--control-bg: var(--wsh-surface-muted);
+	--control-bg-on-gray: var(--wsh-surface-muted);
+	--modal-bg: var(--wsh-surface);
+	--popover-bg: var(--wsh-surface);
+	--avatar-frame-bg: var(--wsh-surface-muted);
+	--avatar-frame-color: var(--wsh-muted);
+}
+
+/* The floor under the inks Frappe's and ERPNext's bundles write as literals, compiled from
+   Bootstrap's light-ground variables: every heading #171717, a table's text #525252,
+   `.text-dark` #383838 with !important, a card white, ERPNext's order lines gray-700. On a
+   dark site they printed "Résumé du paiement", the checkout's headings, the cart line's name
+   and the order summary's figures dark on dark, and the cart summary's labels white on a
+   white card (2026-09-14). Written behind `:where(body.product-page)`, each rule weighs
+   exactly what the bundle's does and wins by coming later (the shop's bundle loads after
+   Frappe's and ERPNext's) — so every rule of the shop's own, one class or more, still
+   beats it. A heading inherits: it reads like the box it sits in. */
+:where(body.product-page) :is(h1, h2, h3, h4, h5, h6) { color: inherit; }
+:where(body.product-page) :is(.h1, .h2, .h3, .h4, .h5, .h6) { color: inherit; }
+:where(body.product-page) .table { color: inherit; background-color: transparent; }
+:where(body.product-page) .text-dark { color: var(--wsh-text) !important; }
+:where(body.product-page) .order-items { color: inherit; }
+/* Frappe's account page writes its headings and lines in --gray-900 and --gray-700 (light-ground
+   greys no chrome redefines): the same floor, at the weight of its own rules */
+:where(body.product-page) .my-account-header { color: var(--wsh-text); }
+:where(body.product-page) .account-info :is(.my-account-name, .my-account-item) { color: var(--wsh-text); }
+:where(body.product-page) .account-info .my-account-item-desc { color: var(--wsh-muted); }
+:where(body.product-page) .card {
+	background-color: var(--wsh-surface);
+	border-color: var(--wsh-line);
+	color: var(--wsh-text);
+	--text-color: var(--wsh-text);
+	--heading-color: var(--wsh-text);
+	--text-muted: var(--wsh-muted);
+	--text-light: var(--wsh-faint);
+}
+
 /* Frappe's controls draw with light-ground literals — gray-700 text in an input, a
    #f3f3f3 default button, an outline button in the primary colour (the page background
    itself on one site), tab links in gray: on the shop's pages they take the tokens. */

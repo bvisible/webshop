@@ -56,7 +56,8 @@ body[data-path="checkout"] {
           top: 15px;
           left: 50px;
           height: 2px;
-          background: var(--teal);
+          /* //// Neoffice — the action colour, not Bootstrap's teal (2026-09-14) */
+          background: var(--wsh-primary);
           z-index: 0;
           transition: width var(--wsh-motion);
         }
@@ -101,11 +102,16 @@ body[data-path="checkout"] {
         }
       }
 
+      /* //// Neoffice — the steps in the page's action colour and its label (2026-09-14): white
+         on Bootstrap's teal read at 2.1:1 on every site, and the upcoming steps were a light
+         grey disc under a light grey figure on a dark one. An upcoming step is outlined on
+         the page's surface, a reached one is filled. */
       .step-number {
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: var(--wsh-line-strong);
+        background: var(--wsh-surface);
+        border: 2px solid var(--wsh-line-strong);
         color: var(--wsh-muted);
         display: flex;
         align-items: center;
@@ -115,8 +121,9 @@ body[data-path="checkout"] {
         z-index: 1;
 
         &.active {
-          background: var(--teal);
-          color: var(--wsh-on-ink);
+          background: var(--wsh-primary);
+          border-color: var(--wsh-primary);
+          color: var(--wsh-on-primary);
         }
       }
 
@@ -666,11 +673,13 @@ body[data-path="thank_you"] {
       position: relative;
       z-index: 1;
 
+      /* //// Neoffice — outlined until reached, as in the block above (2026-09-14) */
       .step-number {
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: var(--wsh-line-strong);
+        background: var(--wsh-surface);
+        border: 2px solid var(--wsh-line-strong);
         color: var(--wsh-muted);
         display: flex;
         align-items: center;
@@ -681,6 +690,7 @@ body[data-path="thank_you"] {
 
         &.active {
           background: var(--wsh-primary);
+          border-color: var(--wsh-primary);
           color: var(--wsh-on-primary);
         }
       }
