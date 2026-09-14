@@ -67,8 +67,14 @@ ACCOUNT_PAGES = ("me", "update-password", "update-profile", "third_party_apps")
 def is_account_page(context) -> bool:
 	"""A page of the customer's account area: a route of the portal menu (orders, invoices,
 	addresses, and what the shop adds — gift cards…) or one of Frappe's own account pages."""
-	path = str(context.get("path") or getattr(frappe.local, "path", "") or "").strip("/")
-	if not path:
+	# //// Neoffice — the address asked for, not only the page that answers it: /orders is served
+	# //// by Frappe's list page, whose context says "list" (a route rule maps the portal's URL to it)
+	paths = {str(context.get("path") or "").strip("/"), str(getattr(frappe.local, "path", "") or "").strip("/")}
+	request = getattr(frappe.local, "request", None)
+	if request is not None:
+		paths.add(str(getattr(request, "path", "") or "").strip("/"))
+	paths.discard("")
+	if not paths:
 		return False
 	routes = set(ACCOUNT_PAGES)
 	try:
@@ -78,7 +84,8 @@ def is_account_page(context) -> bool:
 				routes.add(str(row.get("route")).strip("/"))
 	except Exception:
 		pass
-	return any(path == route or path.startswith(route + "/") for route in routes if route)
+	# //// Neoffice — any of the candidate paths (2026-09-14)
+	return any(path == route or path.startswith(route + "/") for path in paths for route in routes if route)
 
 
 def is_customer():

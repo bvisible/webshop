@@ -29,6 +29,13 @@ class TestAccountPages(FrappeTestCase):
 		for path in ("orders", "orders/SAL-ORD-0001", "/addresses", "addresses/new", "gift_cards", "me", "update-password"):
 			self.assertTrue(self.is_account(path), path)
 
+	def test_the_address_asked_for_counts_not_only_the_page_that_answers(self):
+		# //// Neoffice — /orders is answered by Frappe's list page: the context says "list", the request "orders"
+		with patch.object(utils.frappe, "get_cached_doc", return_value=PORTAL), patch.object(
+			utils.frappe.local, "path", "orders", create=True
+		):
+			self.assertTrue(utils.is_account_page(frappe._dict(path="list")))
+
 	def test_other_pages_are_not_account_pages(self):
 		for path in ("", "all-products", "ordersx", "issues", "login", "contact"):
 			self.assertFalse(self.is_account(path), path)
