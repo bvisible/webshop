@@ -1200,6 +1200,24 @@ of the pager) the tokens.
 > `WEBSHOP_CONTRAST_REVEAL=.step-section` reads every step; `WEBSHOP_CSS_OVERRIDE=<file.css>`
 > audits a locally compiled stylesheet against the client's real chrome before it deploys.
 
+> **The shop's pages sit on the chrome's grid** (2026-09-14). The chrome lays its header, footer
+> and title band on `--container-width` with `--container-padding` (`-tablet` under 768px,
+> `-phone` under 576px — the thresholds of `header_styles.html`); the shop sat in Frappe's
+> `main.container` (1290px, 5rem of padding from xl), so its content started 50 to 90px right of
+> the logo and of the title above it — more once a site set its own grid (1440 / 48). The ground
+> gives the page's outer container the chrome's grid: `main.container` under the page wrapper,
+> the product breadcrumbs' container, and on an account page Frappe's container holding the
+> portal sidebar (`:has(> .row > .main-column)`); a container nested in it — the checkout's
+> second page wrapper, an account page's main column — adds no gutter, and the checkout's
+> narrow-screen padding reset keeps to its nested container. Fallbacks are Frappe's values.
+> Measured with the stylesheet served locally against a client's two sites, then deployed on
+> osiris: the shop's content box equals the header's and the title band's to the pixel, at 1400,
+> 1680 and 700px (`preview_grid`-style probe: content box = rect ± padding). The category page's cards
+> were upstream's 300px squares with a 30px margin in a wrapping row: on a narrower grid they fell
+> to two per row with a third of the width empty — the row is a filling grid now (auto-fill, 240px
+> minimum), and its search bar and card column take the grid's edges. The visual harness caught it
+> (`compare.py before after`: the page grew by 1440px); read its `height` column, not only pixels.
+
 > **The status shades follow the ground.** `--wsh-ok-strong` is
 > `color-mix(--wsh-ok 70%, --wsh-text)` and `--wsh-ok-soft` `color-mix(--wsh-ok 14%,
 > --wsh-bg)` (same for warn and danger): the text shade lightens and the box darkens on
