@@ -49,3 +49,4 @@ webshop.patches.add_promise_fields_to_website_profile
 # //// Neoffice — the gift cards page in the account menu of existing sites (2026-09-13)
 webshop.patches.add_gift_cards_portal_menu
 webshop.patches.mark_sold_used_units
+webshop.patches.recompute_sold_used_units

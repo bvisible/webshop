@@ -178,8 +178,15 @@ doc_events = {
 			# //// that became an order stops being "abandoned".
 			"webshop.webshop.utils.follow_ups.enroll_from_sales_order",
 			"webshop.webshop.utils.abandoned_carts.mark_converted",
+			# //// Neoffice — second-hand: a used unit an order holds is sold (see on_cancel).
+			"webshop.webshop.utils.used_items.on_sales_order_change",
 		],
-		"on_cancel": ["webshop.webshop.utils.follow_ups.on_cancel"],
+		"on_cancel": [
+			"webshop.webshop.utils.follow_ups.on_cancel",
+			# //// Neoffice — second-hand: submitting and cancelling an order recompute
+			# //// Website Item.sold of the used units it holds (utils/used_items.py).
+			"webshop.webshop.utils.used_items.on_sales_order_change",
+		],
 	},
 	# //// Neoffice — multi-warehouse: ERPNext reserves the received goods for
 	# //// the customer order on its own (Stock Settings); this only writes the

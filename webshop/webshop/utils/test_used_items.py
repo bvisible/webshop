@@ -262,6 +262,44 @@ class TestUsedItems(FrappeTestCase):
 		# no stock at all, still listed: "sold" is a used unit's word
 		self.assertEqual(used_items.sold_flag(frappe.get_doc("Website Item", name)), 0)
 
+	def test_a_unit_on_hand_where_the_shop_does_not_look_is_not_sold(self):
+		"""On hand but not where the shop's stock rule looks (no website warehouse, or a
+		warehouse it does not expose) is out of stock on the page, not sold: the first version
+		hid such a unit and redirected its page (osiris, 2026-09-14)."""
+		if not self.warehouse:
+			self.fail("no leaf warehouse on this site")
+		source = self.make_source("Radio", is_stock_item=1)
+		self.publish_with_route(source)
+		result = used_items.create_used_unit(
+			source.name, price=50, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
+		)
+		page = result["website_item"]
+		frappe.db.set_value("Website Item", page, "website_warehouse", None)
+		self.assertEqual(used_items.refresh_sold_flag(page), 0)
+		self.assertEqual(frappe.db.get_value("Website Item", page, "sold"), 0)
+
+	def test_an_order_holding_the_unit_sells_it_and_its_cancellation_brings_it_back(self):
+		"""A unit an order reserves is sold when the order is placed, not when it ships."""
+		if not self.warehouse:
+			self.fail("no leaf warehouse on this site")
+		source = self.make_source("Amplifier", is_stock_item=1)
+		self.publish_with_route(source)
+		result = used_items.create_used_unit(
+			source.name, price=50, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
+		)
+		page, unit = result["website_item"], result["item_code"]
+		order = frappe._dict(doctype="Sales Order", items=[frappe._dict(item_code=unit)])
+		bin_name = frappe.db.get_value("Bin", {"item_code": unit, "warehouse": self.warehouse})
+		self.assertTrue(bin_name, "the unit's receipt made a bin")
+		# what Sales Order.on_submit leaves behind before its hooks run: the unit reserved
+		frappe.db.set_value("Bin", bin_name, "reserved_qty", 1)
+		used_items.on_sales_order_change(order, "on_submit")
+		self.assertEqual(frappe.db.get_value("Website Item", page, "sold"), 1)
+		# and what on_cancel leaves: the reservation released
+		frappe.db.set_value("Bin", bin_name, "reserved_qty", 0)
+		used_items.on_sales_order_change(order, "on_cancel")
+		self.assertEqual(frappe.db.get_value("Website Item", page, "sold"), 0)
+
 	def test_the_new_model_and_the_siblings_are_seen_from_a_used_unit(self):
 		if not self.warehouse:
 			self.fail("no leaf warehouse on this site")

@@ -371,7 +371,14 @@ Website Item mirrors them (`fetch_from` + `crud_events/item/update_website_item.
   out of the sitemap. Its page answers a **302** to the new model (a bookmark, a search result:
   the unit is gone, the product is not), temporary because a return puts the unit back on sale
   at the same address. `patches/mark_sold_used_units` gave the units published before the field
-  their value once. Never unpublish for this: frappe's renderer 404s an unpublished page
+  their value once. **What "sold" reads is the unit's own stock**: nothing available in any
+  warehouse, orders' reservations deducted (`used_unit_in_stock`). The first version asked the
+  shop's exposure rule (the multi-warehouse sources, or the website warehouse), and a unit on
+  hand where the shop does not look (45 pieces and no website warehouse, on osiris) read as
+  sold, left the catalogue and redirected its page; such a unit is out of stock on its page,
+  which the merchant sees. A `Sales Order` `on_submit`/`on_cancel` hook recomputes the units an
+  order holds, so a unit leaves the catalogue when it is ordered, not when it ships.
+  `patches/recompute_sold_used_units` applies the rule once to existing sites. Never unpublish for this: frappe's renderer 404s an unpublished page
   before `get_context` can redirect, and the merchant would read "unpublished" as a mistake.
 - **The new model and its used copies see each other.** The new item's page lists its
   in-stock used units right under the buy button (`get_used_units`; they sat after the offers,

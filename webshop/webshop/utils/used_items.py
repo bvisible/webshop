@@ -114,16 +114,24 @@ def _price_and_stock(row):
 
 
 def used_unit_in_stock(website_item) -> bool:
-	"""Whether a used unit can still be sold: the shop's own stock rule — every exposed
-	source when multi-warehouse is on, the item's website warehouse otherwise."""
-	from webshop.webshop.multi_warehouse.sources import get_aggregate_stock
-	from webshop.webshop.utils.product import get_web_item_qty_in_stock
+	"""Whether a used unit is still there to sell: a quantity on hand that no order reserves, in
+	any warehouse. A unit is one of a kind, so "sold" is what the stock says about the unit
+	itself, not what the shop's exposure rule can source (2026-09-14, second version).
 
-	settings = frappe.get_cached_doc("Webshop Settings")
-	stock = get_aggregate_stock(website_item.item_code, settings) if cint(settings.get("enable_multi_warehouse")) else None
-	if stock is None:
-		stock = get_web_item_qty_in_stock(website_item.item_code, "website_warehouse", website_item.get("website_warehouse"))
-	return bool(stock and stock.in_stock)
+	The first version asked the shop's own stock rule (the exposed sources, or the website
+	warehouse), and a unit received into a warehouse the shop does not expose, or published
+	without a website warehouse, read as sold: on osiris a unit with 45 on hand redirected to
+	its new model and vanished from the catalogue. Such a unit is out of stock on its page,
+	which the merchant sees and can fix; it is not gone. What orders reserve still counts as
+	gone: a unit an order holds is sold, and on_sales_order_change recomputes it at once."""
+	if not cint(frappe.get_cached_value("Item", website_item.item_code, "is_stock_item")):
+		return True
+	available = frappe.db.sql(
+		"""select sum(actual_qty - reserved_qty - reserved_qty_for_production - reserved_qty_for_sub_contract)
+		from `tabBin` where item_code = %s""",
+		website_item.item_code,
+	)[0][0]
+	return flt(available) > 0
 
 
 def sold_flag(website_item) -> int:
@@ -178,6 +186,20 @@ def refresh_moved_used_units(doc, method=None):
 		return
 	frappe.flags.webshop_used_units_moved = set()
 	for item_code in moved:
+		for name in frappe.get_all("Website Item", filters={"item_code": item_code}, pluck="name"):
+			refresh_sold_flag(name)
+
+
+def on_sales_order_change(doc, method=None):
+	"""Sales Order on_submit / on_cancel: an order reserves the unit it sells, and a unit an
+	order holds is sold. It leaves the catalogue when the order is placed, not when it ships,
+	and comes back if the order is cancelled. ERPNext updates the reserved quantity in the
+	order's own on_submit / on_cancel, which runs before the hooks, so the flag is recomputed
+	here directly. Only second-hand rows are looked at."""
+	codes = {row.get("item_code") for row in doc.get("items") or [] if row.get("item_code")}
+	for item_code in codes:
+		if not is_second_hand(frappe.get_cached_value("Item", item_code, "item_condition")):
+			continue
 		for name in frappe.get_all("Website Item", filters={"item_code": item_code}, pluck="name"):
 			refresh_sold_flag(name)
 
