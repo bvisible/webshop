@@ -236,7 +236,7 @@
         left: 10px;
         z-index: 10;
         background: var(--wsh-text);
-        color: var(--wsh-on-ink);
+        color: var(--wsh-bg); /* //// Neoffice — the ground's colour on the text colour: white read 1.09:1 on a dark site (test_stylesheet_inks, 2026-09-14) */
         padding: 4px 10px;
         border-radius: var(--wsh-radius-sm);
         font-size: 0.75rem;

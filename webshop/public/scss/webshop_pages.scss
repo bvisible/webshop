@@ -199,6 +199,7 @@
 /* //// Neoffice — scoped: .badge-dark is Bootstrap's, black is the gift-card page's choice. */
 .gift-cards-container .badge-dark {
 	background-color: var(--wsh-text);
+	color: var(--wsh-bg); /* //// Neoffice — Bootstrap's white vanished on the text colour of a dark site (2026-09-14) */
 }
 
 /* ---- from webshop/www/my_addresses.html (block 1) ---- */
@@ -282,6 +283,7 @@
 /* ---- from webshop/templates/pages/loyalty_points.html (block 1) ---- */
 .loyalty-points-container .badge-primary {
 	background-color: var(--wsh-text);
+	color: var(--wsh-bg); /* //// Neoffice — Bootstrap's white vanished on the text colour of a dark site (2026-09-14) */
 }
 
 .loyalty-points-container .points-balance {

@@ -26,6 +26,14 @@
 //   WEBSHOP_CSS_OVERRIDE=<file.css>     serves this file instead of the shop's built
 //                                       bundle: a stylesheet compiled locally is audited
 //                                       against a client's real chrome before it deploys
+// //// Neoffice — and a third (2026-09-14): a state that only exists after an interaction is
+// //// never read by an audit that only loads pages. The active-filter chip read 1.09:1 on a
+// //// dark site while this audit said 0 on the same listing: no filter was ever on.
+//   WEBSHOP_CONTRAST_CLICK=<sel>[||<sel>…]  clicks the first match of each selector (a
+//                                       visible one when there is one), in order, and lets
+//                                       the page settle before reading. A filtered listing
+//                                       is "#product-filters .field-filter"; a click that
+//                                       finds nothing fails the page.
 import { chromium } from "playwright";
 import fs from "node:fs";
 import path from "node:path";
@@ -163,6 +171,8 @@ if (isMain) {
 		await context.route("**/assets/webshop/dist/css/webshop-web.bundle.*.css", (route) => route.fulfill({ status: 200, contentType: "text/css", body: css }));
 	}
 	const reveal = process.env.WEBSHOP_CONTRAST_REVEAL || "";
+	//// Neoffice — see WEBSHOP_CONTRAST_CLICK above
+	const clicks = (process.env.WEBSHOP_CONTRAST_CLICK || "").split("||").map((s) => s.trim()).filter(Boolean);
 	const tab = await context.newPage();
 	const report = [];
 	let failed = 0;
@@ -182,11 +192,24 @@ if (isMain) {
 			failed += 1;
 			continue;
 		}
+		//// Neoffice — see WEBSHOP_CONTRAST_CLICK above. A click that finds nothing fails the
+		//// page: a state never shown would otherwise read as a state that passed.
+		const missed = [];
+		for (const selector of clicks) {
+			const hit = await tab.evaluate((sel) => {
+				const all = [...document.querySelectorAll(sel)];
+				const el = all.find((e) => e.getClientRects().length) || all[0];
+				if (el) el.click();
+				return Boolean(el);
+			}, selector);
+			if (!hit) missed.push(selector);
+			await tab.waitForTimeout(2500);
+		}
 		//// Neoffice — see WEBSHOP_CONTRAST_REVEAL above
 		if (reveal) await tab.evaluate((sel) => document.querySelectorAll(sel).forEach((el) => { el.classList.add("active"); el.hidden = false; el.style.display = "block"; }), reveal);
 		const result = await auditContrast(tab, { minimum });
-		report.push({ name: target.name, path: target.path, status, url: tab.url(), ...result });
-		if (result.findings.length) failed += 1;
+		report.push({ name: target.name, path: target.path, status, url: tab.url(), ...result, missed }); //// Neoffice — the clicks that found nothing
+		if (result.findings.length || missed.length) failed += 1; //// Neoffice — a missed click fails the page
 	}
 	await browser.close();
 	if (asJson) {
@@ -194,8 +217,9 @@ if (isMain) {
 	} else {
 		for (const r of report) {
 			if (r.error) { console.log(`✗ ${r.name}  ${r.error}`); continue; }
-			const verdict = r.findings.length ? "✗" : "✓";
+			const verdict = r.findings.length || r.missed.length ? "✗" : "✓"; //// Neoffice — a missed click fails the page
 			console.log(`${verdict} ${r.name}  ${r.checked} elements read, ${r.findings.length} under ${minimum}:1${r.url !== base + r.path ? "  (landed on " + r.url.replace(base, "") + ")" : ""}`);
+			if (r.missed.length) console.log(`    no match to click: ${r.missed.join(", ")}`); //// Neoffice — see WEBSHOP_CONTRAST_CLICK
 			for (const f of r.findings) console.log(`    ${String(f.ratio).padEnd(5)} ${f.fg} on ${f.bg}  ${JSON.stringify(f.text)}  ${f.path}`);
 		}
 	}

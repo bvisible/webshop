@@ -408,6 +408,20 @@ WEBSHOP_SID=<sid> WEBSHOP_CONTRAST_REVEAL=.step-section WEBSHOP_E2E_URL=https://
 de la boutique : un correctif de couleur s'audite sur le vrai chrome du client avant d'être
 déployé (compiler le bundle avec `sass`, chemins `webshop/public/scss` et `~/GitHub/frappe`).
 
+**Un état qui n'existe qu'après un clic.** Le même jour, la pastille du filtre actif lisait
+1,09:1 sur ce site sombre, et l'audit du catalogue disait 0 : aucun filtre n'y avait jamais été
+coché. `WEBSHOP_CONTRAST_CLICK` clique, dans l'ordre, la première correspondance de chaque
+sélecteur séparé par `||` (une visible s'il y en a), laisse la page se reposer, puis lit. Un clic
+qui ne trouve rien fait échouer la page : un état jamais montré passerait sinon pour un état
+réussi. Le filtre des promotions n'existe que si ce visiteur en a une (sur un site où seuls les
+clients ont des remises, il faut la session), et il disparaît quand le groupe choisi n'en
+contient aucune : on le clique en premier.
+
+```bash
+WEBSHOP_SID=<sid> WEBSHOP_CONTRAST_CLICK='#product-filters .discount-filter||#product-filters .field-filter' \
+  WEBSHOP_E2E_URL=https://<site> node visual/contrast.mjs /all-products
+```
+
 Le spec `13-boutons-du-site` (projet `client`) mesure les boutons de la boutique contre le
 bouton du site lui-même : un `<a class="u-btn u-btn--primary">` injecté dans la page de la
 boutique (la règle `:where(.u-btn)` du chrome y est aussi) sert de référence, et le bouton

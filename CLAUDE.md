@@ -1098,6 +1098,16 @@ first by the shop bundle and by every component bundle a Builder page can includ
 > `0 1px 2px rgba(0,0,0,.3)` is `--wsh-shadow-sm`, `0 16px 60px rgba(0,0,0,.08)` is
 > `--wsh-shadow-lg`. A flat chrome sets the shadows to `none` and the shop goes flat.
 
+> **A block painted with `--wsh-text` writes with `--wsh-bg`.** The text colour is dark on a
+> light site and light on a dark one, so the block inverts with the site and its ink must
+> too; the pager's current page and the active view toggle always did. The active-filter
+> chip, the second-hand badge, the loyalty tooltips, the disabled button's tooltip, the
+> video tile's play mark under the cursor and two Bootstrap badges wrote white on it, and
+> vanished on a dark site (1.09:1, 2026-09-14) while the audit said 0: the chip only exists
+> once a filter is on. `tests/test_stylesheet_inks.py` refuses the pair, and a badge, button,
+> chip or tooltip painted that way without naming its ink (Bootstrap's is white). A state
+> that needs a click is audited with `WEBSHOP_CONTRAST_CLICK` (e2e README).
+
 > **The opening-hours block keeps its own tokens, namespaced `--wsh-oh-*`** and
 > reading the shop's; its dark-scheme and footer variants are the block's own
 > design. Two token families sharing a name would silently shadow each other.

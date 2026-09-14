@@ -81,7 +81,7 @@
 }
 .wsp-gallery__play svg { width: 26px; height: 26px; margin-left: 3px; }
 .wsp-gallery__tile--video:hover .wsp-gallery__play,
-.wsp-gallery__slide--video:active .wsp-gallery__play { transform: scale(1.08); background: var(--wsh-text); }
+.wsp-gallery__slide--video:active .wsp-gallery__play { transform: scale(1.08); background: var(--wsh-text); color: var(--wsh-bg); } /* //// Neoffice — its icon is currentColor, white vanished on a dark site (2026-09-14) */
 .wsp-gallery__tile--video .wsp-gallery__img,
 .wsp-gallery__slide--video .wsp-gallery__img { cursor: pointer; }
 video.wsp-gallery__img { object-fit: cover; }

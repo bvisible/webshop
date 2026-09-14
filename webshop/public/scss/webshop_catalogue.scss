@@ -175,13 +175,15 @@
 	#active-filter-chips { display: none; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 	@media (min-width: 768px) { #active-filter-chips { order: -1; } }
 	#active-filter-chips.has-chips { display: flex; }
+	/* //// Neoffice — painted with the text colour, so it writes with the ground's: white on it
+	   read 1.09:1 on a dark site, where the text colour is light (test_stylesheet_inks, 2026-09-14). */
 	.afc-chip {
 		display: inline-flex; align-items: center; gap: 6px;
-		background: var(--wsh-text); color: var(--wsh-on-ink); border-radius: var(--wsh-radius-pill);
+		background: var(--wsh-text); color: var(--wsh-bg); border-radius: var(--wsh-radius-pill);
 		padding: 3px 10px; font-size: 0.75rem; line-height: 1.4; cursor: default;
 	}
 	.afc-chip button {
-		background: none; border: none; color: var(--wsh-on-ink); cursor: pointer;
+		background: none; border: none; color: inherit; cursor: pointer; /* //// Neoffice — the chip's own ink */
 		font-size: 0.9rem; line-height: 1; padding: 0; opacity: 0.75;
 	}
 	.afc-chip button:hover { opacity: 1; }

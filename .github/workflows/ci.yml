@@ -243,7 +243,8 @@ jobs:
             webshop.webshop.utils.test_holidays \
             webshop.webshop.assistant.test_assistant \
             webshop.webshop.shopping_cart.test_shop_rights \
-            webshop.webshop.quick_order.test_quick_order
+            webshop.webshop.quick_order.test_quick_order \
+            webshop.webshop.tests.test_stylesheet_inks
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || echec="$echec $m"
