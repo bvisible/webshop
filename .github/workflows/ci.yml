@@ -211,6 +211,47 @@ jobs:
       # //// built on ERPNext's own test fixtures; multi_warehouse builds masters
       # //// in setUpClass without committing them, so it only ever passed where a
       # //// previous run had left them behind.
+      # //// Neoffice — the blocking list above is hand-written, so a new test file runs nowhere
+      # //// until someone remembers to add it. That is not hypothetical: the three tests covering
+      # //// the carousel's brand filter were written, committed, and would never have run
+      # //// (2026-09-16). This step fails when a test module on disk is in neither list, so the
+      # //// next new file is caught by the pipeline rather than by luck.
+      #
+      # //// UNTRIAGED is a backlog, not a blessing: these modules predate the guard and nobody has
+      # //// checked whether they are red, upstream, or simply forgotten. Move one up into the
+      # //// blocking list as soon as it is known green — never add a new file here to go green.
+      - name: Every test module is either blocking or knowingly untriaged
+        run: |
+          python3 - <<'GUARD'
+          import pathlib, re, sys
+
+          UNTRIAGED = {
+              "webshop.webshop.doctype.webshopsi_settings.test_webshopsi_settings",
+              "webshop.webshop.doctype.website_item.test_website_item",
+              "webshop.webshop.multi_warehouse.test_multi_warehouse",
+              "webshop.webshop.product_data_engine.test_item_group_product_data_engine",
+              "webshop.webshop.product_data_engine.test_product_data_engine",
+              "webshop.webshop.shopping_cart.test_shopping_cart",
+              "webshop.webshop.utils.test_payment_methods",
+              "webshop.webshop.utils.test_variant_image",
+          }
+          ci = pathlib.Path(".github/workflows/ci.yml").read_text()
+          listed = set(re.findall(r"^\s+(webshop\.[A-Za-z0-9_.]+)\s*\\?\s*$", ci, re.M))
+          on_disk = {
+              str(p.with_suffix("")).replace("/", ".")
+              for p in pathlib.Path(".").rglob("test_*.py")
+              if "node_modules" not in p.parts
+          }
+          orphans = sorted(on_disk - listed - UNTRIAGED)
+          gone = sorted(m for m in listed | UNTRIAGED if m not in on_disk)
+          for m in orphans:
+              print(f"::error::{m} is a test module that no CI step runs — add it to the blocking list above")
+          for m in gone:
+              print(f"::error::{m} is named in the workflow but has no file — remove it")
+          print(f"{len(on_disk)} test modules, {len(listed)} blocking, {len(UNTRIAGED)} untriaged")
+          sys.exit(1 if orphans or gone else 0)
+          GUARD
+
       - name: Run Tests
         working-directory: /home/runner/frappe-bench
         run: |
@@ -244,7 +285,8 @@ jobs:
             webshop.webshop.assistant.test_assistant \
             webshop.webshop.shopping_cart.test_shop_rights \
             webshop.webshop.quick_order.test_quick_order \
-            webshop.webshop.tests.test_stylesheet_inks
+            webshop.webshop.tests.test_stylesheet_inks \
+            webshop.webshop.utils.test_product_carousel
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || echec="$echec $m"
