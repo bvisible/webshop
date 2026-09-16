@@ -52,7 +52,9 @@ def _format_carousel_item(item):
     
     return formatted_item
 
-def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
+# //// Neoffice — `brand` added to the signature (2026-09-16): this fast path took an item group
+# //// but no brand, so the default sort silently drew the whole shop. See the condition below.
+def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None, brand=None):
     """Optimized query for new arrivals carousel"""
     # Get settings
     settings = frappe.get_cached_doc("Webshop Settings")
@@ -99,6 +101,15 @@ def _get_new_arrivals_optimized(limit, item_group=None, exclude_items=None):
     if item_group:
         conditions.append("wi.item_group = %(item_group)s")
         params["item_group"] = item_group
+
+    # //// Neoffice — the brand filters here too (2026-09-16). This fast path is taken for the
+    # //// DEFAULT sort ("creation"), and it took item_group but never brand: a carousel asked for
+    # //// one brand drew the whole shop's newest articles instead, silently — the worst shape of
+    # //// wrong, since it draws products and only the wrong ones. Only the slow ProductQuery path
+    # //// honoured it, so the filter appeared to work whenever the author also changed the sort.
+    if brand:
+        conditions.append("wi.brand = %(brand)s")
+        params["brand"] = brand
 
     where_clause = " AND ".join(conditions)
     
@@ -210,7 +221,9 @@ def get_carousel_items(item_group=None, only_promotions=False, limit=20,
     
     # For new arrivals without promotions, use optimized direct query
     if sort_by in ["creation", "modified"] and not only_promotions and not search_term:
-        items = _get_new_arrivals_optimized(limit, item_group, exclude_items)
+        # //// Neoffice — the brand is handed to the fast path too (2026-09-16), so it is not lost
+        # //// for the DEFAULT sort; only the slow ProductQuery branch below honoured it before.
+        items = _get_new_arrivals_optimized(limit, item_group, exclude_items, brand)
     else:
         # For all other cases, use ProductQuery
         from webshop.webshop.product_data_engine.query import ProductQuery
