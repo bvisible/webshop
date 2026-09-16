@@ -55,6 +55,48 @@
         padding: 10px;
       }
 
+      /* //// Neoffice — the arrows had NO styles here (2026-09-16). The markup emits
+         //// <button class="carousel-btn left">, but only the PRODUCT carousel's stylesheet
+         //// positioned them, and this component loads its own. So both arrows rendered as bare
+         //// glyphs stacked at the left of the row, above and below the cards. Same shape as the
+         //// product carousel's, scoped to .brand-carousel so the two cannot drift apart again. */
+      .brand-carousel .carousel-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: var(--wsh-surface, #fff);
+        border: 1px solid var(--wsh-line, rgba(0, 0, 0, 0.12));
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 1.2em;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        box-shadow: var(--wsh-shadow, 0 2px 8px rgba(0, 0, 0, 0.12));
+        transition: all var(--wsh-motion, 0.2s ease);
+      }
+
+      .brand-carousel .carousel-btn:hover:not(:disabled) {
+        background-color: var(--wsh-surface-muted, #f5f5f5);
+      }
+
+      .brand-carousel .carousel-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.35;
+      }
+
+      .brand-carousel .carousel-btn.left {
+        left: 0;
+      }
+
+      .brand-carousel .carousel-btn.right {
+        right: 0;
+      }
+
       .brand-carousel .carousel-inner {
         display: flex;
         transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
