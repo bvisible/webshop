@@ -2,6 +2,14 @@
 {# //// product count, used on shop home pages (48e2708353, 2025-03-13; cached by #}
 {# //// 64566abecd). Brands whose image is private or missing are skipped — a private #}
 {# //// file URL renders as a broken image for an anonymous visitor. #}
+{#- //// Neoffice — a `brands` the caller did not mean (2026-09-16). Frappe exposes every key of a
+    page's data script into this context, so a page whose script sets data.brands = [{"name": …}]
+    silently takes over this component's input: the block below was skipped and the loop read rows
+    that carry no brand_name, so jinja raised UndefinedError and the WHOLE page answered 417. A
+    component must not take a page down over a name collision. Anything that is not a list of rows
+    carrying brand_name is not ours: we ignore it and fetch our own. -#}
+{%- set brands = brands if (brands and brands is iterable and brands is not string
+    and brands|selectattr("brand_name", "defined")|list|length == brands|length) else None -%}
 {% if not brands %}
     {# Get brands automatically if not provided #}
 

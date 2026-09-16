@@ -1,4 +1,9 @@
 {# //// Neoffice — added file (no upstream equivalent): the product carousel a Builder page can include. #}
+{#- //// Neoffice — same guard as the brands carousel (2026-09-16): a page data script that sets
+    data.website_items would take this input over and the loop would read rows without the keys the
+    cards need. Anything that is not a list of rows carrying item_code is not ours. -#}
+{%- set website_items = website_items if (website_items and website_items is iterable and website_items is not string
+    and website_items|selectattr("item_code", "defined")|list|length == website_items|length) else None -%}
 {% if not website_items %}
     {# Use the optimized carousel helper to get products with prices in one query #}
     {% set website_items = get_carousel_items(

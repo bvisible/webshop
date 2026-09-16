@@ -119,3 +119,35 @@ class TestBrandCarousel(unittest.TestCase):
 		second = get_top_brands(limit=5, use_cache=True, cache_ttl=60)
 
 		self.assertEqual(premier, second)
+
+
+# //// Neoffice ▼▼▼ — added tests (2026-09-16): the component defends its own input.
+class TestACallerVariableDoesNotTakeTheComponentOver(unittest.TestCase):
+	"""A page whose data script set `data.brands = [{"name": …}]` silently took this component's
+	input over: frappe exposes every key of a page's data into the template context, the component
+	skipped its own fetch, and the loop read rows carrying no brand_name — jinja raised
+	UndefinedError and the WHOLE page answered 417 on a live client site."""
+
+	TEMPLATE = "webshop/templates/includes/brand_carousel.html"
+
+	def render(self, **context):
+		return frappe.render_template(f'{{% include "{self.TEMPLATE}" %}}', context)
+
+	def test_rows_without_the_keys_the_cards_need_do_not_take_the_page_down(self):
+		# exactly the shape the page data script produced
+		foreign = [{"name": "_WSTEST One", "desc": "Vêtements"}, {"name": "_WSTEST Two", "desc": "Optique"}]
+		html = self.render(brands=foreign)
+		self.assertIn("brand-carousel", html)
+
+	def test_a_single_bad_row_is_enough_to_refuse_the_whole_list(self):
+		mixed = [{"brand_name": "_WSTEST One", "logo": "/files/one.png"}, {"name": "_WSTEST Two"}]
+		self.assertIn("brand-carousel", self.render(brands=mixed))
+
+	def test_a_string_or_a_number_is_not_a_list_of_brands(self):
+		for junk in ("a brand name", 3, {"brand_name": "not a list"}):
+			self.assertIn("brand-carousel", self.render(brands=junk))
+
+	def test_a_caller_that_really_passes_brands_is_still_honoured(self):
+		mine = [{"brand_name": "ZZ Test Brand", "logo": "/files/zz.png", "route": "all-products", "description": "", "product_count": 0}]
+		html = self.render(brands=mine)
+		self.assertIn("ZZ Test Brand", html)
