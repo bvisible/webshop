@@ -52,15 +52,21 @@ class TestCarouselFilters(unittest.TestCase):
 		frappe.db.rollback()
 
 	def query_for(self, **kwargs):
-		"""The SQL and the parameters the fast path runs, with every other query left alone."""
+		"""The SQL and the parameters the fast path runs, with every other query left alone.
+
+		//// The spy hands its arguments back EXACTLY as they came. Naming them (query, values=None)
+		//// looks harmless and is not: frappe.db.sql defaults values to (), so a caller that passes
+		//// none had None forwarded and pymysql answered "not all arguments converted during string
+		//// formatting" — from somewhere else entirely."""
 		real = frappe.db.sql
 		seen = []
 
-		def spy(query, values=None, *args, **kwargs_):
+		def spy(*args, **kwargs_):
+			query = args[0] if args else kwargs_.get("query", "")
 			if CAROUSEL_QUERY in str(query) and "ORDER BY wi.creation" in str(query):
-				seen.append((str(query), values))
+				seen.append((str(query), args[1] if len(args) > 1 else kwargs_.get("values")))
 				return []
-			return real(query, values, *args, **kwargs_)
+			return real(*args, **kwargs_)
 
 		with patch.object(frappe.db, "sql", side_effect=spy):
 			_get_new_arrivals_optimized(8, **kwargs)
