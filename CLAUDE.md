@@ -904,6 +904,16 @@ they are built on ERPNext's test fixtures (`_Test Company`,
 `_Test Price List India`, `_Test Tax 1 - _TC`). Run those on a dedicated test
 site; bending them to a real site would make them less faithful, not more useful.
 
+**The informative suite's 23 errors belong to four modules**, measured on 2026-09-16 on the run of
+`b5ef1c3f86` (358 tests, 23 errors, 39 skipped): `product_data_engine` 8, `multi_warehouse` 7,
+`website_item` 7, `shopping_cart` 1, and nothing else. The first three are the fixture-bound ones
+just named; `multi_warehouse` dies on `TypeError: get_price() got an unexpected keyword argument
+'warehouse'`, the keyword only the fork carries — so that gap costs seven errors here, not only the
+one test that skips itself. None of the four can join `ci.yml`'s blocking list while the CI runs
+stock ERPNext. Read that log for what it is: the full-app run prints failures only, so a module
+absent from it is not thereby green — it may have been skipped entirely — and a module green in the
+full run can still fail alone, without the data an earlier module left behind.
+
 The two modules that decide what a customer pays carry the most tests:
 `test_multi_site` (34) checks that the site's price list beats every caller's
 default, that a professional site refuses an anonymous cart, and that the SQL and
@@ -1086,7 +1096,11 @@ read. Usage and the reasons behind each choice are in `tests/e2e/README.md`.
 > **`bench run-tests` on `prod.local` is refused by the fleet's bench** (a guard from
 > incident #245: a fixture takes the default outgoing mail account). Osiris'
 > `subtest.local` has no webshop. A new test module runs in CI only — put it in
-> `ci.yml`'s blocking list, or it is never read.
+> `ci.yml`'s blocking list, or it is never read. Since `efcf65bd61` the workflow checks itself:
+> a step compares the `test_*.py` on disk with the modules the workflow names, and fails the
+> pipeline on a test file nothing runs, or on a module named for a file that is gone. It caught
+> nine unlisted modules the day it landed, one of them three tests that were false as well as
+> invisible.
 
 ### The shop's design tokens (`--wsh-*`)
 
