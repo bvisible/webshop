@@ -291,6 +291,23 @@ class TestQuiPeutConclureUnPaiement(unittest.TestCase):
 
 		self.assertTrue(_peut_conclure(self.demande.name))
 
+	def test_the_buyer_who_opened_the_request_may_conclude_it(self):
+		"""Back from their gateway, the buyer settles the request they created.
+
+		Case 3 below resolves a customer through the Contact whose `user` is the session's.
+		On a live shop it returned nothing for the buyers, and card payments there carry no
+		Payment Intent: replayed against that shop's data on 2026-09-22, the ten most recent
+		card payments would every one have been refused AFTER the money was taken. The party
+		is deliberately someone else here, so only ownership can carry this test.
+		"""
+		acheteur = _utilisateur_de_test("_wstest_buyer@example.com", ["Customer"])
+		frappe.db.set_value(
+			"Payment Request", self.demande.name, {"owner": acheteur, "party": "_WSTEST Someone Else"}
+		)
+		frappe.set_user(acheteur)
+
+		self.assertTrue(_peut_conclure(self.demande.name, argent_constate=False))
+
 	def test_a_signed_in_stranger_may_not_conclude(self):
 		"""Signed in, but not the buyer and not staff: the request is not theirs."""
 		utilisateur = _utilisateur_de_test("_wstest_stranger@example.com", ["Customer"])

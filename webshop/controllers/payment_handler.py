@@ -668,6 +668,16 @@ def _peut_conclure(payment_request_id: str, argent_constate: bool = True) -> boo
 	if user == "Guest":
 		return False
 
+	# 3a. the BUYER who opened this request: it was created in their own session.
+	# //// Neoffice — measured on a live shop (2026-09-22): case 3 below resolves a
+	# //// customer through the Contact whose `user` is the session's, and it returned
+	# //// nothing for that shop's buyers. Their card payments carry no Payment Intent
+	# //// either, so the ten most recent card payments would EVERY ONE have read "Not
+	# //// permitted" after the money had left the customer's account. Owning the request
+	# //// is the buyer's own signature, and a guest cannot reach this line.
+	if frappe.db.get_value("Payment Request", payment_request_id, "owner") == user:
+		return True
+
 	# 3. the BUYER, back from their gateway: this is their request.
 	# //// Neoffice — RULE #00 pass: local variables renamed from French to
 	# //// English "beneficiary", "customers"/"suppliers", and the log_error title
