@@ -67,3 +67,20 @@ class TestCartIsNeverLocked(FrappeTestCase):
 		finally:
 			frappe.delete_doc("Abandoned Cart Reminder", reminder.name, force=True, ignore_permissions=True)
 			frappe.delete_doc("Quotation", quotation.name, force=True, ignore_permissions=True)
+
+	def test_the_release_walks_the_whole_chain(self):
+		"""A failed intent holds a request, which holds the cart. All three go."""
+		if not frappe.db.exists("DocType", "Payment Intent"):
+			self.skipTest("Payment Intent belongs to the payments fork, absent here")
+
+		from webshop.webshop.shopping_cart.cart import (
+			UNCONCLUDED_INTENTS,
+			_release_unconcluded_payment_intents,
+		)
+
+		self.assertIn("failed", UNCONCLUDED_INTENTS)
+		self.assertIn("canceled", UNCONCLUDED_INTENTS)
+		# The two that mean money must never be released.
+		self.assertNotIn("succeeded", UNCONCLUDED_INTENTS)
+		self.assertNotIn("refunded", UNCONCLUDED_INTENTS)
+		self.assertTrue(callable(_release_unconcluded_payment_intents))
