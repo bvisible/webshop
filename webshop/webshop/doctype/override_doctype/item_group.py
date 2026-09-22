@@ -57,6 +57,13 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		from webshop.webshop.product_data_engine.listing_context import count_second_hand
 
 		context.second_hand_count = count_second_hand()
+		# //// Neoffice — and the discount toggle's own count (2026-09-22): the template reads
+		# //// `window.discount_count` here as on /all-products, and `views.js` draws no discount
+		# //// filter at all when it is 0. Only the listing context set it, so the facet had
+		# //// vanished from every category page while /all-products kept it.
+		from webshop.webshop.product_data_engine.listing_context import count_discounted
+
+		context.discount_count = count_discounted()
 		# //// Neoffice — the quick order offered next to the search box (2026-09-14)
 		from webshop.webshop.product_data_engine.listing_context import quick_order_url
 
