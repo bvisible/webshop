@@ -1011,10 +1011,10 @@ against test keys.
 ```bash
 cd tests/e2e && npm install && npx playwright install chromium
 npm test                # everything
-npm run test:client     # signed in, desktop
-npm run test:invite     # signed out (sign-in, account creation, what a visitor must not reach)
+npm run test:customer   # signed in, desktop
+npm run test:guest      # signed out (sign-in, account creation, what a visitor must not reach)
 npm run test:b2b        # the B2B tunnel, which has its own customer and its own page
-npm run test:paiement   # the Stripe scenarios
+npm run test:payment    # the Stripe scenarios
 npm run test:multisite  # both domains (B2C / B2B)
 ```
 
@@ -1171,7 +1171,7 @@ pager, the spinner keys, the catalogue's view toggle (whose active button wears
 
 > **Measure the parity where the shop draws.** The chrome's `:where(.u-btn)` rule is on
 > the shop's pages too, so an `<a class="u-btn u-btn--primary">` injected into a shop
-> page is the reference, measured on the same page: `13-boutons-du-site.spec.js` compares
+> page is the reference, measured on the same page: `13-site-buttons.spec.js` compares
 > the buy button, the cart's and the checkout's buttons with it, and the outline buttons
 > with `.u-btn--outline`. Measured on osiris and on a client site on 2026-09-13: 41.2 px,
 > identical padding, radius, font and colours.
@@ -1437,7 +1437,7 @@ the choice through `window.wspGallery.showImage(url)` (`null` restores). The foo
 (price, stock, add to cart) is the old one, and **its button carries `data-item-code`
 only once a variant is chosen**: the browser-test fixture reads "a code on the buy
 button" as "a purchasable article", and a code posted empty at load made four
-catalogue tests open a template page. `12-variantes.spec.js` runs signed out.
+catalogue tests open a template page. `12-variants.spec.js` runs signed out.
 
 ### Gift cards, seen from the shop
 
@@ -1484,7 +1484,7 @@ identities**, not one — Administrator passes everything by construction:
 3. **Admin / staff**
 
 For the Website User, probe the API from *their* session, not just the UI:
-anything other than a `403` on private data is a leak. `01-authentification.spec.js`
+anything other than a `403` on private data is a leak. `01-authentication.spec.js`
 does this for the anonymous case, and it is why the catalogue helpers read the
 shop pages instead of `frappe.client.get_list` — which correctly refuses them.
 

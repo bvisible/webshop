@@ -8,18 +8,18 @@
 
 const {expect} = require('@playwright/test');
 
-const CARTES = {
+const CARDS = {
 	//// Payment accepted immediately, without 3-D Secure.
-	acceptee: '4242424242424242',
+	accepted: '4242424242424242',
 	//// Generic issuer decline — the customer must see a message, not a frozen screen.
-	refusee: '4000000000000002',
+	declined: '4000000000000002',
 	//// Insufficient funds.
-	fondsInsuffisants: '4000000000009995',
+	insufficientFunds: '4000000000009995',
 };
 
 /** The payment method tile whose title mentions Stripe. */
-function tuileStripe(page) {
-	return page.locator('.payment-method-item').filter({hasText: /stripe/i }).first();
+function stripeTile(page) {
+	return page.locator('.payment-method-item').filter({hasText: /stripe/i}).first();
 }
 
 //// Select Stripe and fill the card form.
@@ -27,35 +27,35 @@ function tuileStripe(page) {
 //// The card fields live in an iframe served by Stripe: they are deliberately
 //// unreachable from the page's own JavaScript (that is the point of Elements),
 //// so they are driven through frameLocator.
-async function remplirCarte(page, numero, {nom = 'Test E2E', email = 'test.e2e@example.com'} = {}) {
-	const tuile = tuileStripe(page);
-	await expect(tuile, 'aucune méthode Stripe proposée').toHaveCount(1);
-	await tuile.click();
+async function fillCard(page, number, {name = 'Test E2E', email = 'test.e2e@example.com'} = {}) {
+	const tile = stripeTile(page);
+	await expect(tile, 'no Stripe method offered').toHaveCount(1);
+	await tile.click();
 
 	//// The form is mounted only after selection, and Stripe.js loads from its
 	//// CDN: wait for the field, not a fixed delay.
-	const porteur = tuile.locator('#cardholder-name');
-	await expect(porteur).toBeVisible({timeout: 30_000});
-	await porteur.fill(nom);
-	await tuile.locator('#cardholder-email').fill(email);
+	const holder = tile.locator('#cardholder-name');
+	await expect(holder).toBeVisible({timeout: 30_000});
+	await holder.fill(name);
+	await tile.locator('#cardholder-email').fill(email);
 
-	const cadre = tuile.frameLocator('[name="card-element"] iframe').first();
-	await cadre.locator('input[name="cardnumber"]').fill(numero);
-	await cadre.locator('input[name="exp-date"]').fill(dateFuture());
-	await cadre.locator('input[name="cvc"]').fill('123');
+	const frame = tile.frameLocator('[name="card-element"] iframe').first();
+	await frame.locator('input[name="cardnumber"]').fill(number);
+	await frame.locator('input[name="exp-date"]').fill(futureDate());
+	await frame.locator('input[name="cvc"]').fill('123');
 	//// Some configurations also require the postal code.
-	const postal = cadre.locator('input[name="postal"]');
-	if (await postal.count()) await postal.fill('1003');
+	const postcode = frame.locator('input[name="postal"]');
+	if (await postcode.count()) await postcode.fill('1003');
 
-	await accepterConditions(tuile);
-	return tuile;
+	await acceptTerms(tile);
+	return tile;
 }
 
 //// Tick the terms box.
 ////
 //// This used to click the LABEL, because the handler in checkout.js listened
 //// for "change click" on both the box and the label and flipped the box by
-//// hand: check() ticked it, the handler fired and untickd it, and "Payer"
+//// hand: check() ticked it, the handler fired and unticked it, and "Pay"
 //// stayed disabled. That double-flip made the box genuinely unreliable — for a
 //// customer too, not just for a test — and has been fixed in checkout.js, so
 //// the box is now a plain checkbox and check() is enough.
@@ -63,16 +63,16 @@ async function remplirCarte(page, numero, {nom = 'Test E2E', email = 'test.e2e@e
 //// Scoped to the Stripe tile, and matched by CLASS. The id used to be
 //// `terms-acceptance` on every method at once — five elements sharing one id,
 //// so each `<label for>` bound to the first box in the document and clicking
-//// Wallee's label ticked Facture's. The id is now keyed on the method
+//// one method's label ticked another's. The id is now keyed on the method
 //// (`terms-submit_wallee`); `.terms-acceptance` is what every tile has in
 //// common.
-async function accepterConditions(tuile) {
-	const cases = tuile.locator('.terms-acceptance');
-	if ((await cases.count()) === 0) return;
+async function acceptTerms(tile) {
+	const boxes = tile.locator('.terms-acceptance');
+	if ((await boxes.count()) === 0) return;
 
-	const boite = cases.first();
-	if (!(await boite.isChecked())) await boite.check();
-	await expect(boite, 'les conditions n’ont pas pu être acceptées').toBeChecked();
+	const box = boxes.first();
+	if (!(await box.isChecked())) await box.check();
+	await expect(box, 'the terms could not be accepted').toBeChecked();
 }
 
 //// Submit the Stripe form.
@@ -84,41 +84,41 @@ async function accepterConditions(tuile) {
 //// Pay button is never enabled, with the form still sitting there fully filled.
 //// Seen in test as a disabled button on a completed form; a customer would see
 //// exactly the same thing.
-async function validerPaiement(page, tuile) {
-	const bouton = tuile.locator('.btn-submit-payment:visible').first();
+async function submitPayment(page, tile) {
+	const button = tile.locator('.btn-submit-payment:visible').first();
 
 	//// Up to three attempts: the refresh can kick in again mid re-selection.
 	//// A real customer would also click again.
-	for (let essai = 1; essai <= 3; essai += 1) {
-		if (await bouton.isEnabled().catch(() => false)) break;
-		if (!(await tuile.evaluate((e) => e.classList.contains('selected')))) {
-			await tuile.click();
+	for (let attempt = 1; attempt <= 3; attempt += 1) {
+		if (await button.isEnabled().catch(() => false)) break;
+		if (!(await tile.evaluate((e) => e.classList.contains('selected')))) {
+			await tile.click();
 			await page.waitForTimeout(2000);
 		}
-		await accepterConditions(tuile);
+		await acceptTerms(tile);
 		await page.waitForTimeout(1500);
 	}
 
 	await expect(
-		bouton,
-		'le bouton « Payer » est resté verrouillé : la tuile a perdu sa sélection ' +
-			'pendant la saisie (rafraîchissement des méthodes de paiement)'
+		button,
+		'the "Pay" button stayed locked: the tile lost its selection while the card ' +
+			'was being typed (the payment methods refreshed)'
 	).toBeEnabled({timeout: 30_000});
-	await bouton.click();
+	await button.click();
 }
 
 /** MM/YY two years out — a card must not expire mid-suite. */
-function dateFuture() {
-	const d = new Date();
-	const annee = String((d.getFullYear() + 2) % 100).padStart(2, '0');
-	return `12${annee}`;
+function futureDate() {
+	const now = new Date();
+	const year = String((now.getFullYear() + 2) % 100).padStart(2, '0');
+	return `12${year}`;
 }
 
 module.exports = {
-	CARTES,
-	tuileStripe,
-	remplirCarte,
-	accepterConditions,
-	validerPaiement,
-	dateFuture,
+	CARDS,
+	stripeTile,
+	fillCard,
+	acceptTerms,
+	submitPayment,
+	futureDate,
 };

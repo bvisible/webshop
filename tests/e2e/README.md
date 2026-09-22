@@ -2,17 +2,16 @@
 <!-- //// what it needs, and what it leaves behind on the target site (d2a0754333 / -->
 <!-- //// 1c36a8f365 / 7698e3fc18, 2026-08-27). Upstream ships no browser test at all; -->
 <!-- //// these cover what an endpoint test cannot say — that the pages work in a browser. -->
-<!-- //// Written in French, like the rest of the operator-facing documentation. -->
-# Tests de bout en bout (Playwright)
+# End-to-end tests (Playwright)
 
-Tests navigateur de la boutique : connexion, création de compte, catalogue, fiche
-produit, panier (dont multi-entrepôts) et tunnel de commande complet.
+Browser tests for the shop: sign-in, account creation, catalogue, product page,
+cart (including multi-warehouse) and the complete checkout tunnel.
 
-Ils complètent la suite Python (`bench run-tests --app webshop`), qui couvre les
-endpoints. Ceux-ci couvrent ce que les endpoints ne peuvent pas dire : que les
-pages fonctionnent réellement dans un navigateur.
+They complement the Python suite (`bench run-tests --app webshop`), which covers
+the endpoints. These cover what the endpoints cannot say: that the pages actually
+work in a browser.
 
-## Installation
+## Install
 
 ```bash
 cd tests/e2e
@@ -22,292 +21,353 @@ npx playwright install chromium
 
 ## Configuration
 
-Les identifiants vivent **hors du dépôt**, dans `~/.config/webshop-e2e.env`
-(`chmod 600`). Les variables d'environnement ont la priorité, pour la CI.
+Credentials live **outside the repository**, in `~/.config/webshop-e2e.env`
+(`chmod 600`). Environment variables win, so CI can inject them.
 
 ```ini
 WEBSHOP_E2E_URL=https://osiris.neoffice.me
 WEBSHOP_E2E_USER=test.e2e@example.com
 WEBSHOP_E2E_PASSWORD=…
-# Optionnel — voir « Article multi-sources »
-WEBSHOP_E2E_MULTISOURCE_ROUTE=products/panier-garnis-annqp
+# Optional — see "Multi-source article"
+WEBSHOP_E2E_MULTISOURCE_ROUTE=products/…
 ```
 
-Le compte doit être un **Website User rattaché à un client** (`Portal User`),
-avec au moins deux adresses pour que le carnet d'adresses soit exercé. Poser son
-mot de passe :
+The account must be a **Website User attached to a customer** (`Portal User`),
+with at least two addresses so the address book is exercised. Set its password:
 
 ```bash
-ssh osiris "cd /home/neoffice/frappe-bench && bench --site prod.local set-password <email> '<motdepasse>'"
+ssh osiris "cd /home/neoffice/frappe-bench && bench --site prod.local set-password <email> '<password>'"
 ```
 
-## Lancer
+## Run
 
 ```bash
-npm test                  # tous les projets
-npm run test:client       # signé, bureau
-npm run test:invite       # déconnecté (connexion, création de compte, cloisonnement)
-npm run test:b2b          # le tunnel B2B
-npm run test:mobile       # catalogue + panier en Pixel 7
-npm run test:paiement     # les scénarios Stripe
-npm run test:multisite    # les deux domaines (B2C / B2B)
-npm test -- -g "carnet"   # par nom
-npm run ui                # mode interactif
-./node_modules/.bin/playwright show-trace test-results/…/trace.zip   # rejouer un échec
+npm test                   # every project
+npm run test:customer      # signed in, desktop
+npm run test:guest         # signed out (sign-in, account creation, what a visitor must not reach)
+npm run test:b2b           # the B2B tunnel
+npm run test:mobile        # catalogue + cart on a Pixel 7
+npm run test:payment       # the Stripe scenarios
+npm run test:multisite     # both domains (B2C / B2B)
+npm test -- -g "address"   # by name
+npm run ui                 # interactive mode
+./node_modules/.bin/playwright show-trace test-results/…/trace.zip   # replay a failure
 ```
 
-> [!warning] `npm test`, jamais `npx playwright test`
-> `npx` télécharge **sa propre** copie de Playwright. Deux versions dans la même
-> exécution et tous les specs refusent de se charger avec
-> « test.describe() called in a file imported by the configuration file » —
-> une erreur qui désigne votre spec et n'a rien à voir avec lui. Les scripts npm
-> ci-dessus utilisent le binaire local.
+> [!warning] `npm test`, never `npx playwright test`
+> `npx` downloads **its own** copy of Playwright. Two versions in one run and
+> every spec refuses to load with "test.describe() called in a file imported by
+> the configuration file" — an error that points at your spec and has nothing to
+> do with it. The npm scripts above use the local binary.
 
-## Organisation
+## Layout
 
-| Fichier | Projet | Couvre |
+| File | Project | Covers |
 |---|---|---|
-| `01-authentification.spec.js` | `invite` | Vérification d'e-mail, création de compte (refus **et** parcours réel), connexion, dialogue, cloisonnement d'un visiteur anonyme |
-| `02-catalogue.spec.js` | `client`, `mobile` | Liste des produits, fiche produit (titre unique, prix, image, avis vides), ajout au panier |
-| `03-panier.spec.js` | `client`, `mobile` | Lignes, quantités, suppression, et multi-entrepôts : deux sources = deux lignes |
-| `04-checkout.spec.js` | `client` | Les quatre étapes, carnet d'adresses, progression et retours, méthodes de paiement, cadence du sondage, stabilité |
-| `05-paiement-stripe.spec.js` | `client` | **Le paiement pour de vrai** : carte acceptée → commande, carte refusée, double-clic, conditions générales |
-| `06-checkout-b2b.spec.js` | `b2b` | Reconnaissance du client B2B, accès au tunnel, commande, cloisonnement |
-| `07-nouveau-client.spec.js` | `invite` | **Le parcours d'un premier acheteur** : inscription, activation par le lien reçu, saisie d'adresse, paiement |
-| `08-multi-site.spec.js` | `multi-site` | **Deux boutiques, deux domaines** : catalogue propre à chaque site, prix affiché = prix facturé, cloisonnement du site professionnel |
-| `09-demande-compte-pro.spec.js` | `multi-site` | **Demande de compte professionnel** : formulaire public, refus attendus, et ce qu'une approbation crée (client, compte, tarif du site) |
+| `01-authentication.spec.js` | `guest` | E-mail check, account creation (refusals **and** the real journey), sign-in, the dialog, what an anonymous visitor is walled off from |
+| `02-catalogue.spec.js` | `customer`, `mobile` | Product listing, product page (single heading, price, picture, empty reviews), adding to the cart |
+| `03-cart.spec.js` | `customer`, `mobile` | Lines, quantities, removal, and multi-warehouse: two sources = two lines |
+| `04-checkout.spec.js` | `customer` | The four steps, address book, moving forward and back, payment methods, polling cadence, stability |
+| `05-stripe-payment.spec.js` | `customer` | **Paying for real**: accepted card → order, declined card, double click, terms and conditions |
+| `06-checkout-b2b.spec.js` | `b2b` | Recognising the B2B customer, reaching the tunnel, ordering, partitioning |
+| `07-new-customer.spec.js` | `guest` | **A first-time buyer's journey**: signing up, activating through the link, typing an address, paying |
+| `08-multi-site.spec.js` | `multi-site` | **Two shops, two domains**: a catalogue of its own per site, price shown = price charged, partitioning of the professional site |
+| `09-business-account-request.spec.js` | `multi-site` | **Business account application**: public form, expected refusals, and what an approval creates (customer, account, the site's rate) |
+| `14-loyalty-points.spec.js` | `customer` | **Loyalty**: applied points cut the bill, the order spends them for good, removing them hands the bill back unspent |
+| `15-gift-card.spec.js` | `customer` | **Gift card**: it pays part of the basket, locks the loyalty block, and comes off unspent |
+| `16-account-lifecycle.spec.js` | `guest` | **An account's whole life**: created through the shop, deleted, and its address free again |
 
-Les helpers partagés sont dans `fixtures/boutique.js` et `fixtures/stripe.js`.
+Shared helpers live in `fixtures/shop.js`, `fixtures/payment.js`,
+`fixtures/stripe.js`, `fixtures/account.js`, `fixtures/activation.js`,
+`fixtures/loyalty.js` and `fixtures/sites.js`.
 
-## Limite connue : la suite complète est moins stable que ses parties
+## Known limit: the whole suite is less stable than its parts
 
-Lancés fichier par fichier, tous les specs passent. Sur une exécution complète
-(~10 min), deux ou trois tombent — et pas toujours les mêmes. Deux causes, aucune
-liée à ce qu'ils testent :
+Run file by file, every spec passes. On a complete run (~10 min), two or three
+fall over — and not always the same ones. Two causes, neither related to what
+they test:
 
-- **Le panier est partagé.** Un seul compte, un seul devis : un spec qui commande
-  ou vide le panier change le terrain du suivant. `beforeEach` remet ce qu'il
-  peut, pas tout.
-- **Le serveur cède sous la durée.** osiris tourne à ~130 Mo de RAM libre ; une
-  suite de dix minutes suffit à le faire répondre en HTML, en 404, ou pas du tout
-  (voir plus bas).
+- **The cart is shared.** One account, one quotation: a spec that orders or
+  empties the cart changes the ground under the next one. `beforeEach` puts back
+  what it can, not everything.
+- **The server gives way under the duration.** osiris runs at ~130 MB of free
+  RAM; a ten-minute suite is enough to make it answer in HTML, in 404, or not at
+  all (see below).
 
-En pratique : `npm test -- --retries=1`, et devant un échec, **rejouer le fichier
-seul** avant de conclure à une régression.
+In practice: `npm test -- --retries=1`, and in front of a failure, **replay the
+file on its own** before concluding there is a regression.
 
-## Ce qu'il faut savoir avant d'y toucher
+## What to know before touching this
 
-**Le serveur saturé ment sur la nature de sa panne.** Quand osiris est chargé,
-`/api/method/login` renvoie un **404** (pas un 429), `get_cart_quotation` renvoie
-du **HTML** avec un statut 200, et un paiement reste bloqué sur son spinner sans
-qu'aucune erreur ne soit loggée. Le même appel en curl répond correctement la
-seconde d'après. Avant de lire du code : `ssh osiris uptime` et `free -h`. Les
-helpers tolèrent un corps non-JSON plutôt que de mourir sur
-« Unexpected token '<' », et `global-setup` réessaie cinq fois.
+**A saturated server lies about the nature of its failure.** When osiris is
+loaded, `/api/method/login` answers **404** (not 429), `get_cart_quotation`
+answers **HTML** with a 200 status, and a payment stalls on its spinner with no
+error logged anywhere. The same call in curl answers correctly a second later.
+Before reading code: `ssh osiris uptime` and `free -h`. The helpers tolerate a
+non-JSON body rather than dying on "Unexpected token '<'", and `global-setup`
+retries five times.
 
-**Un test ignoré se lit comme un test réussi.** C'est le piège principal de cette
-suite. Un `test.skip()` conditionnel qui se déclenche pour une mauvaise raison
-laisse le récapitulatif au vert : une exécution a rapporté « 18 passed » alors
-que **23 tests étaient ignorés en silence**. Après chaque modification, vérifiez
-le nombre d'ignorés, pas seulement celui des échecs.
+**A skipped test reads exactly like a passing one.** That is this suite's main
+trap. A conditional `test.skip()` firing for the wrong reason leaves the summary
+green: one run reported "18 passed" while **23 tests were being skipped in
+silence**. After every change, read the skipped count, not only the failures.
 
-**Le thème rend le panier deux fois.** Le tableau de la page et un tiroir latéral
-(`#builder-cart-drawer`) portent les mêmes `data-item-code`. Ciblez toujours
-`.cart-table …`, sinon vous attrapez le tiroir, hors écran, et le test échoue sur
-« element is not visible » en accusant la page.
+**The theme renders the cart twice.** The page's table and a side drawer
+(`#builder-cart-drawer`) carry the same `data-item-code`. Always target
+`.cart-table …`, or you grab the drawer, off-screen, and the test fails on
+"element is not visible" while blaming the page.
 
-**Passez par HTTP, pas par le DOM.** `page.request` plutôt que `page.evaluate` +
-`frappe.call` : l'ajout au panier navigue sur certains thèmes, et un appel lancé
-juste avant meurt en « Execution context was destroyed ».
+**Go through HTTP, not through the DOM.** `page.request` rather than
+`page.evaluate` + `frappe.call`: adding to the cart navigates on some themes, and
+a call started just before dies with "Execution context was destroyed".
 
-**Un compte client ne peut pas lister les doctypes.** `frappe.client.get_list`
-renvoie un `403` à un Website User — c'est le comportement correct, et
-`01-authentification` le vérifie. Les helpers lisent donc le catalogue par les
-pages, comme un client.
+**A customer account cannot list doctypes.** `frappe.client.get_list` answers
+`403` to a Website User — which is the correct behaviour, and
+`01-authentication` checks it. The helpers therefore read the catalogue through
+the pages, like a customer.
 
-**La connexion est ouverte une seule fois** (`global-setup.js`) et partagée par
-`storageState`. Se reconnecter dans chaque spec déclenchait la limite de
-tentatives de Frappe et faisait échouer des tests sans rapport. Le projet
-`invite` tourne délibérément déconnecté.
+**Sign-in happens once** (`global-setup.js`) and is shared through
+`storageState`. Signing in again in every spec tripped Frappe's attempt limit and
+failed unrelated tests. The `guest` project deliberately runs signed out.
 
-**Les radios de livraison sont masqués** (`class="hide"`) : c'est le label stylé
-qui est cliquable. Utilisez `choisirLivraison()`.
+**The shipping radios are hidden** (`class="hide"`): the clickable thing is the
+styled label. Use `chooseShipping()`.
 
-**L'état du devis persiste d'un test à l'autre.** Le `beforeEach` du checkout
-remet l'adresse par défaut, sans quoi un test qui en choisit une autre en laisse
-hériter le suivant.
+**The quotation's state persists between tests.** The checkout's `beforeEach`
+puts the default address back, without which a test that picks another one leaves
+it for the next.
 
-## Paiement par carte (Stripe)
+## Card payment (Stripe)
 
-Les scénarios de `05-paiement-stripe.spec.js` vont **jusqu'au débit** : ils
-utilisent les numéros de test publics de Stripe
-([documentation](https://docs.stripe.com/testing)) contre une clé `pk_test_`.
+The scenarios in `05-stripe-payment.spec.js` go **all the way to the charge**:
+they use Stripe's public test numbers
+([documentation](https://docs.stripe.com/testing)) against a `pk_test_` key.
 
-| Carte | Effet |
+| Card | Effect |
 |---|---|
-| `4242 4242 4242 4242` | acceptée, sans 3-D Secure |
-| `4000 0000 0000 0002` | refusée par l'émetteur |
-| `4000 0000 0000 9995` | fonds insuffisants |
+| `4242 4242 4242 4242` | accepted, without 3-D Secure |
+| `4000 0000 0000 0002` | declined by the issuer |
+| `4000 0000 0000 9995` | insufficient funds |
 
-Ce ne sont **pas** de vraies cartes : aucun argent ne bouge, aucune banque n'est
-jointe. Ne mettez jamais un vrai numéro dans ces fichiers.
+These are **not** real cards: no money moves, no bank is reached. Never put a
+real number in these files.
 
-Le site doit être en **mode test** (`Stripe Settings` → clé publique `pk_test_…`
-et clé secrète `sk_test_…`). Un site en clés de production ferait de vrais
-débits : vérifiez avant de lancer.
+The site must be in **test mode** (`Stripe Settings` → public key `pk_test_…`,
+secret key `sk_test_…`). A site on production keys would make real charges: check
+before running.
 
-> [!danger] Ces tests laissent de vrais documents
-> Un paiement réussi crée une **Payment Request**, une **Sales Order** et une
-> **Payment Entry**, exactement comme une commande de client. C'est le prix d'un
-> test qui va jusqu'au bout — et la seule façon de prouver que la chaîne
-> fonctionne. Comptez-les avant de lancer la suite sur un site partagé.
+> [!danger] These tests leave real documents behind
+> A successful payment creates a **Payment Request**, a **Sales Order** and a
+> **Payment Entry**, exactly like a customer's order. That is the price of a test
+> that goes all the way — and the only way to prove the chain works. Count them
+> before running the suite on a shared site.
 
-### Défaut connu : la sélection de méthode se perd pendant la saisie
+### Known defect: the method selection is lost while the card is typed
 
-`_updateOrderSummary()` appelle `refreshPaymentMethods()` quand on est sur
-l'étape paiement, ce qui **re-rend toute la liste des méthodes**. Si cela tombe
-pendant que le client remplit sa carte, la tuile perd sa classe `selected` ; le
-gestionnaire des conditions générales, lié à
-`.payment-method-item.selected #terms-acceptance`, cesse alors de s'appliquer et
-le bouton « Payer » n'est jamais réactivé — devant un formulaire pourtant
-complet.
+`_updateOrderSummary()` calls `refreshPaymentMethods()` while on the payment
+step, which **re-renders the whole method list**. If that lands while the
+customer is filling in their card, the tile loses its `selected` class; the terms
+handler, bound to `.payment-method-item.selected #terms-acceptance`, then stops
+applying and the "Pay" button is never re-enabled — in front of a form that is
+nonetheless complete.
 
-`validerPaiement()` re-sélectionne la tuile jusqu'à trois fois pour contourner,
-mais **c'est un vrai défaut de l'application**, pas du test : un client vivrait
-la même chose. Corriger demande de décider ce que devient l'étiquette de montant
-du bouton lorsqu'on cesse de re-rendre — non fait ici.
+`submitPayment()` re-selects the tile up to three times to work around it, but
+**this is a real defect of the application**, not of the test: a customer would
+live through the same thing. Fixing it means deciding what becomes of the
+button's amount label once the re-rendering stops — not done here.
 
-## Demande de compte professionnel
+## Business account application
 
-Un site `b2b_only` refuse tout compte non approuvé : sans formulaire, un prospect
-n'a aucune porte. Le DocType `B2B Account Request`, l'endpoint public et la page
-`/compte-professionnel` vivent dans **neoffice_theme**, à côté de
-`Website Profile` et du gating.
+A `b2b_only` site refuses any account that is not approved: with no form, a
+prospect has no door at all. The `B2B Account Request` DocType, the public
+endpoint and the `/compte-professionnel` page live in **neoffice_theme**, next to
+`Website Profile` and the gating.
 
-Les tests d'approbation ont besoin d'un accès serveur
-(`WEBSHOP_E2E_SSH_HOST` / `WEBSHOP_E2E_SITE`), comme ceux d'activation. Sans lui,
-ils s'ignorent en le disant.
+The approval tests need server access (`WEBSHOP_E2E_SSH_HOST` /
+`WEBSHOP_E2E_SITE`), like the activation ones. Without it, they skip themselves
+and say so.
 
-> [!warning] Convention `www/` : tirets et underscores
-> `compte-professionnel.html` va avec `compte_professionnel.py`. Un tiret dans le
-> nom du `.py` et Frappe **ne charge pas le contrôleur** — sans erreur ni log :
-> la page s'affiche, mais son contexte est vide. Se lit dans les pages voisines
-> (`mes-reservations.html` ↔ `mes_reservations.py`).
+> [!warning] The `www/` convention: hyphens and underscores
+> `compte-professionnel.html` goes with `compte_professionnel.py`. A hyphen in
+> the `.py` name and Frappe **does not load the controller** — with no error and
+> no log: the page renders, but its context is empty. It can be read off the
+> neighbouring pages (`mes-reservations.html` ↔ `mes_reservations.py`).
 
-## Multi-site : deux boutiques sur un ERP
+## Multi-site: two shops on one ERP
 
-Un seul site Frappe sert plusieurs boutiques, une par domaine, décrites par le
-DocType `Website Profile` (app `neoffice_theme`) : accueil, liste de prix,
-sous-ensemble du catalogue et règles d'accès propres à chacune.
+A single Frappe site serves several shops, one per domain, described by the
+`Website Profile` DocType (app `neoffice_theme`): home page, price list,
+catalogue subset and access rules of its own for each.
 
 ```ini
 WEBSHOP_E2E_B2B_URL=https://osiris-b2b.neoffice.me
 ```
 
-Sans cette variable, les tests multi-site s'ignorent en le disant.
+Without this variable, the multi-site tests skip themselves and say so.
 
-Playwright fixe **un `baseURL` par projet** : les tests qui comparent deux
-domaines ouvrent donc des contextes explicites (`fixtures/sites.js`), au lieu de
-s'appuyer sur `baseURL`.
+Playwright pins **one `baseURL` per project**: the tests that compare two domains
+therefore open explicit contexts (`fixtures/sites.js`) instead of relying on
+`baseURL`.
 
-> [!note] Un site `b2b_only` n'a pas de panier anonyme
-> `update_cart` répond **403**, `/cart` redirige vers `/login`, et le bouton
-> d'ajout devient « Pour ajouter au panier, veuillez vous connecter ». Tout test
-> qui a besoin d'un panier sur ce domaine doit donc se connecter d'abord —
-> `connecterSurSite()` choisit le compte autorisé (le compte grand public est
-> refusé à la porte).
+> [!note] A `b2b_only` site has no anonymous cart
+> `update_cart` answers **403**, `/cart` redirects to `/login`, and the add
+> button becomes an invitation to sign in. Any test that needs a cart on that
+> domain must sign in first — `signInOnSite()` picks the account that is allowed
+> (the consumer account is refused at the door).
 
-> [!warning] Un article sans tarif sur le site n'affiche aucun bouton
-> Pas de prix, pas de bouton, pas même le CTA de connexion : la fiche masque son
-> bloc d'action entier. Sur osiris, 6 articles sur 310 ont un tarif « Vente B2B ».
-> Un test qui compare les boutons doit donc choisir un article **tarifé sur les
-> deux domaines**, sinon il compare deux pages vides.
+> [!warning] An article with no rate on the site shows no button at all
+> No price, no button, not even the sign-in call: the product page hides its
+> whole action block. On osiris, 6 articles out of 310 carry a reseller rate. A
+> test that compares buttons must therefore pick an article **priced on both
+> domains**, otherwise it compares two empty pages.
 
-> [!warning] Deux notions de « B2B » à ne pas confondre
-> - `Webshop Settings.b2b_customer_group` → quel **tunnel** (`/checkout_b2b`)
-> - `Website Profile.allowed_customer_groups` → qui peut **entrer sur le site**
+> [!warning] Two notions of "B2B" not to be confused
+> - `Webshop Settings.b2b_customer_group` → which **tunnel** (`/checkout_b2b`)
+> - `Website Profile.allowed_customer_groups` → who may **enter the site**
 >
-> Sur osiris elles divergent : un client peut être reconnu B2B par le webshop et
-> refusé à la connexion sur le domaine B2B. C'est de la configuration, mais la
-> confusion coûte du temps.
+> On osiris they diverge: a customer can be recognised as B2B by the webshop and
+> refused at sign-in on the B2B domain. It is configuration, but the confusion
+> costs time.
 
-La suite Python de neoffice_theme est complémentaire — infrastructure (accueil,
-robots, sitemap, isolation du cache) là où celle-ci couvre la boutique :
+neoffice_theme's Python suite is complementary — infrastructure (home page,
+robots, sitemap, cache isolation) where this one covers the shop:
 
 ```bash
 ssh osiris 'cd /home/neoffice/frappe-bench && \
   bench --site prod.local execute neoffice_theme.tests.multisite.e2e.run_all'
 ```
 
-Elle lit le mot de passe du compte de test dans `site_config.json`
-(`e2e_test_user_password`) : **si vous changez le mot de passe du compte
-Playwright, changez-le là aussi**, sinon son test de gating B2B échoue.
+It reads the test account's password from `site_config.json`
+(`e2e_test_user_password`): **if you change the Playwright account's password,
+change it there too**, or its B2B gating test fails.
 
-## Nouveau client : création et activation
+## New customer: creation and activation
 
-`07-nouveau-client.spec.js` suit un premier acheteur de bout en bout. Il a besoin
-d'activer un compte, ce qui demande un accès au serveur :
+`07-new-customer.spec.js` follows a first-time buyer end to end. It needs to
+activate an account, which requires server access:
 
 ```ini
 WEBSHOP_E2E_SSH_HOST=osiris
 WEBSHOP_E2E_SITE=prod.local
 ```
 
-Sans ces variables, les scénarios d'activation s'ignorent en le disant.
+Without these variables, the activation scenarios skip themselves and say so.
 
-> [!warning] Pourquoi pas simplement lire la boîte Yopmail ?
-> Parce que **rien ne part**. Le compte sortant par défaut de ce site est
-> `_Test Comm Account 1` (`test_comm@example.com`) et sa file d'envoi est en
-> erreur : aucun mail de bienvenue n'est jamais expédié. Une vraie boîte jetable
-> resterait vide indéfiniment.
+> [!warning] Why not simply read the Yopmail inbox?
+> Because **nothing goes out**. This site's default outgoing account is
+> `_Test Comm Account 1` (`test_comm@example.com`) and its queue is in error: no
+> welcome mail is ever sent. A real throwaway inbox would stay empty for ever.
 
-> [!danger] La clé d'activation n'est pas lisible en base
-> Frappe stocke le **hash SHA-256** de `reset_password_key` ; la valeur en clair
-> n'existe que dans l'e-mail. Lire la colonne et la mettre dans l'URL revient à
-> présenter `sha256(hash)` et produit toujours « ce lien a déjà été utilisé ou
-> est invalide ». Le helper forge donc une clé, stocke son hash et rend le clair
-> — exactement ce que fait Frappe en composant le mail.
+> [!danger] The activation key cannot be read from the database
+> Frappe stores the **SHA-256 hash** of `reset_password_key`; the clear-text
+> value exists only in the e-mail. Reading the column and putting it in the URL
+> hands the server `sha256(hash)` and always produces "this link has already been
+> used or is invalid". The helper therefore mints a key, stores its hash and
+> hands back the clear text — exactly what Frappe does when it composes the mail.
 
-> [!danger] Ne supprimez pas les comptes de test avec `force=True`
-> D'autres apps rattachent chaque nouvel utilisateur à leurs enregistrements
-> (Drive l'ajoute à une équipe, Activity Log en garde trace). Une suppression
-> forcée laisse ces lignes pointer vers rien, et Frappe lève ensuite un
-> `LinkValidationError` **depuis une app sans rapport** à l'activation du compte
-> suivant — 39 orphelines s'étaient accumulées avant qu'on trouve la cause. Le
-> helper **désactive** le compte ; purgez-les proprement depuis le desk.
+> [!danger] Never delete test accounts with `force=True`
+> Other apps attach every new user to their own records (Drive adds one to a
+> team, Activity Log keeps a trace). A forced deletion leaves those rows pointing
+> at nothing, and Frappe then raises a `LinkValidationError` **from an unrelated
+> app** on the next account's activation — 39 orphan rows had piled up before the
+> cause was found. `deleteAccount()` (fixtures/activation.js) deletes without
+> force: the quotation, the contact, the addresses and the customer when nothing
+> links them, then the User; an account that carries orders keeps its history and
+> is renamed out of the way so the address comes free. It refuses any address
+> that is not one of the suite's throwaways (`e2e.…@yopmail.com`).
 
-## Tunnel B2B
+## B2B tunnel
 
-`/checkout_b2b` (avec un souligné) est une page **unique** : société, adresse,
-livraison, « Passer la commande ». **Aucune étape de paiement** — un client B2B
-commande et est facturé selon les conditions de son compte. La preuve attendue
-n'est donc pas « a-t-il payé » mais « une commande a-t-elle été créée, et
-seulement pour qui y a droit ».
+`/checkout_b2b` (with an underscore) is a **single** page: company, address,
+shipping, "Place order". **No payment step** — a B2B customer orders and is
+billed on their account terms. The expected proof is therefore not "did they
+pay" but "was an order created, and only for whoever is entitled to it".
 
-Un client est B2B si son `customer_group` figure dans
-**Webshop Settings → B2B Customer Group**, et si `activate_b2b_checkout` est
-activé.
+A customer is B2B when their `customer_group` appears in
+**Webshop Settings → B2B Customer Group**, and `activate_b2b_checkout` is on.
 
-Le projet `b2b` a sa propre session (`WEBSHOP_E2E_B2B_USER`). Sans cette
-variable, les specs B2B s'ignorent — et se voient donc dans le décompte des
-ignorés.
+The `b2b` project has its own session (`WEBSHOP_E2E_B2B_USER`). Without that
+variable, the B2B specs skip themselves — and therefore show up in the skipped
+count.
 
-## Article multi-sources
+## Multi-source article
 
-Les tests multi-entrepôts ont besoin d'un article publié offrant au moins deux
-sources. La détection automatique ne parcourt que la première page du catalogue ;
-si l'article est plus loin, renseignez `WEBSHOP_E2E_MULTISOURCE_ROUTE`. Sans lui
-et sans détection, ces tests s'ignorent — et se voient donc dans le décompte des
-ignorés.
+The multi-warehouse tests need a published article offering at least two sources.
+The automatic detection only walks the first page of the catalogue; if the
+article sits further down, set `WEBSHOP_E2E_MULTISOURCE_ROUTE`. Without it and
+without detection, those tests skip themselves — and therefore show up in the
+skipped count.
 
-## Ce que ces tests laissent derrière eux
+## The money paths: loyalty and gift card
 
-**Comptes** — `01-authentification` crée un vrai compte à chaque exécution,
-préfixé `e2e.auto.<horodatage>@example.test`.
+Two specs added on 2026-09-22, because a client shop redeems points 177 times per
+90 days and holds 128 gift cards, and nothing here covered them. What they prove,
+and the others did not say:
 
-**Commandes** — chaque paiement Stripe réussi et chaque commande B2B laissent un
-devis validé, une commande client et, pour Stripe, une écriture de paiement. Pour
-les retrouver :
+- `14-loyalty-points.spec.js` — applied points cut the bill, the order **spends
+  them for good**, and they do not come back to the balance afterwards; removing
+  the points before ordering hands the original bill back **without** spending
+  them.
+- `15-gift-card.spec.js` — a customer's own card pays part of the basket,
+  **locks the loyalty block** while it is on (the two are exclusive), and
+  removing it hands the bill back without consuming the card, so the spec can run
+  every day on the same one.
+
+> **The loyalty and coupon blocks live inside step 4 of the tunnel**
+> (`#step-payment`), hidden before it. Reading them from a freshly loaded
+> `/checkout` finds nothing, and a spec written that way **skips itself in
+> silence** instead of failing — which is what happened on the first draft. The
+> loyalty balance is therefore read through the shop's own endpoint
+> (`loyaltyBalanceShown`, in `fixtures/payment.js`), which answers at any step;
+> only the applying goes through the screen.
+
+> **Wait on the quotation, never on the button.** Applying points or a coupon
+> re-renders the whole of step 4, so the button that says "applied" is destroyed
+> and rebuilt under the test — and it comes back BEFORE the document is saved.
+> `waitForQuotation` / `pressUntil` (`fixtures/payment.js`) poll the shop's own
+> document and press again when a click was eaten by the re-render.
+
+> **Buying earns points at the same moment redeeming spends them.** An order that
+> redeems 10 and earns 112 leaves the balance 102 higher than before: a test
+> asserting "the balance went down by what I spent" fails on a shop that works
+> perfectly. What proves the redemption is the ledger (`fixtures/loyalty.js`):
+> entries of exactly minus what was applied, tied to that order's invoice, still
+> there afterwards. And the checkout **rounds the offered balance down to the
+> nearest ten** (`get_loyalty_points_html`), so the block's figure and the
+> ledger's are two different numbers — never subtract one from the other.
+
+> **The order is placed without a gateway when the shop offers one**
+> (`orderWithoutGateway`): "on account" or "transfer before shipping" place a
+> real order without calling a provider. A shop whose tiles are all gateways —
+> osiris — falls back to Stripe's test card (`settleTheOrder`), because skipping
+> here would leave the only test that proves consumption reading as a pass.
+
+> **What the target instance needs**: a loyalty programme with at least ten
+> points on the test account, and an unused gift card in its name. On osiris both
+> exist. The gift-card spec consumes nothing; the loyalty one spends ten points
+> per run.
+
+## The payments suite lives in the `payments` repository
+
+`payments/payments/tests/e2e/playwright/` carries twenty Playwright tests **in
+Python**: TWINT, Stripe, Payrexx, Wallee, the invoice, switching provider
+mid-tunnel, the declined payment, re-checkout, account creation, the cart,
+loyalty and B2B. They target osiris by default. **No workflow runs them**
+(checked on 2026-09-22), and their virtual environment was dead: its interpreter
+had disappeared from the machine. Rebuilt the same day with Python 3.13. Before
+any update at a client's, those are the ones that answer "does TWINT hand back
+its QR, does Stripe answer".
+
+## What these tests leave behind
+
+**Accounts** — `01-authentication` creates a real account on every run, prefixed
+`e2e.auto.<timestamp>@example.test`. `07-new-customer` and
+`16-account-lifecycle` create `e2e.<label>.<timestamp>@yopmail.com` and delete
+them at the end of the file.
+
+**Orders** — every successful Stripe payment and every B2B order leaves a
+submitted quotation, a sales order and, for Stripe, a payment entry. To find
+them:
 
 ```bash
 ssh osiris 'cd /home/neoffice/frappe-bench/sites && ../env/bin/python -c "
@@ -320,111 +380,116 @@ for so in frappe.get_all(\"Sales Order\",
 "'
 ```
 
-Ne les supprimez pas à l'aveugle : une commande payée porte une écriture
-comptable. Annulez-les depuis le desk si nécessaire.
+Do not delete them blindly: a paid order carries an accounting entry. Cancel them
+from the desk if needed.
 
-**Suppression des comptes de test :**
+**Deleting the test accounts:**
 
 ```bash
 ssh osiris 'cd /home/neoffice/frappe-bench/sites && ../env/bin/python -c "
 import frappe
 frappe.init(site=\"prod.local\"); frappe.connect()
-for nom in frappe.get_all(\"User\", filters={\"email\": [\"like\", \"e2e.auto.%\"]}, pluck=\"name\"):
-    frappe.delete_doc(\"User\", nom, force=True, ignore_permissions=True)
+for name in frappe.get_all(\"User\", filters={\"email\": [\"like\", \"e2e.auto.%\"]}, pluck=\"name\"):
+    frappe.delete_doc(\"User\", name, ignore_permissions=True)
 frappe.db.commit()
 "'
 ```
 
-## Harnais visuel (`visual/`)
+## Visual harness (`visual/`)
 
-Captures du contenu de la boutique (l'élément `<main>` : l'en-tête, le bloc titre et le
-pied de page sont le chrome du site, qui change sans nous), desktop et mobile, des
-pages listées dans `visual/pages.json`, puis comparaison pixel à pixel entre deux jeux.
-Sert de garde-fou à tout chantier qui touche les gabarits ou les feuilles de style.
+Captures of the shop's content (the `<main>` element: the header, the title block
+and the footer are the site chrome, which changes without us), desktop and
+mobile, of the pages listed in `visual/pages.json`, then a pixel-by-pixel
+comparison between two sets. It is the guardrail of any work that touches the
+templates or the stylesheets.
 
-Ce que la capture fait pour être reproductible, mesuré le 2026-09-11 sur osiris :
-elle ne fait **pas défiler** la page (le défilement demande au catalogue ses lots
-suivants, et leur nombre à l'instant de la prise dépend de la charge du serveur —
-96, 120 ou 168 produits d'une prise à l'autre) ; elle réveille les images paresseuses
-en passant `loading=eager` et attend qu'elles soient chargées ; elle gèle transitions
-et animations (l'en-tête collant saisi en plein glissement comptait comme une
-différence). Deux captures du même build : 0,00 % sur chaque page.
+What the capture does to be reproducible, measured on 2026-09-11 on osiris: it
+does **not scroll** the page (scrolling asks the catalogue for its next batches,
+and how many arrive at the moment of the shot depends on the server's load — 96,
+120 or 168 products from one shot to the next); it wakes lazy images by setting
+`loading=eager` and waits for them to load; it freezes transitions and animations
+(a sticky header caught mid-slide counted as a difference). Two captures of the
+same build: 0.00 % on every page.
 
 ```bash
 export WEBSHOP_E2E_URL=https://<instance>
-export WEBSHOP_SID=<sid>          # bench --site <site> browse --user <client>, pour les pages connectées
+export WEBSHOP_SID=<sid>          # bench --site <site> browse --user <customer>, for signed-in pages
 npm run visual:capture -- baseline
-# … les changements …
+# … the changes …
 npm run visual:capture -- after
 npm run visual:compare -- baseline after --threshold 0.5
 ```
 
-Les captures vont dans `visual/shots/<label>/` (non versionné) ; les diffs dans
-`visual/shots/<after>/diff/`, pixels déplacés en rouge. `WEBSHOP_ONLY=cart,checkout`
-restreint la capture à quelques pages.
+Captures go to `visual/shots/<label>/` (not versioned); diffs to
+`visual/shots/<after>/diff/`, moved pixels in red. `WEBSHOP_ONLY=cart,checkout`
+restricts the capture to a few pages.
 
-Les pages de `pages.json` nomment des articles publiés sur l'instance de développement ;
-`product_mosaic` est une fiche à quatre photos (la galerie en mosaïque), `product_photos`
-une prestation à réserver (une autre page, celle du thème), `product_secondhand` une
-unité d'occasion, `product_variants` un modèle à déclinaisons.
+The pages in `pages.json` name articles published on the development instance;
+`product_mosaic` is a page with four photos (the mosaic gallery), `product_photos`
+a bookable service (another page, the theme's), `product_secondhand` a used unit,
+`product_variants` a template with variants.
 
-Le tableau de `compare.py` lit aussi le `summary.json` de chaque jeu : la colonne
-`items` donne le nombre de produits affichés, et une page dont seul ce nombre change
-(pixels communs identiques) est notée `items`, pas `MOVED` ; une capture faite sur une
-page en erreur (statut ≠ 200) est notée `INVALID` — elle ne prouve rien, la reprendre
-(`WEBSHOP_ONLY=<page>` avec le même label écrase la seule capture concernée, mais
-remplace le `summary.json` entier : garder une copie et la fusionner, ou tout reprendre).
+`compare.py`'s table also reads each set's `summary.json`: the `items` column
+gives the number of products shown, and a page where only that number changes
+(common pixels identical) is marked `items`, not `MOVED`; a capture taken on a
+page in error (status ≠ 200) is marked `INVALID` — it proves nothing, take it
+again (`WEBSHOP_ONLY=<page>` with the same label overwrites only the capture
+concerned, but replaces the whole `summary.json`: keep a copy and merge it, or
+take everything again).
 
-### Audit de contraste (`visual/contrast.mjs`)
+### Contrast audit (`visual/contrast.mjs`)
 
-La boutique dessine avec les jetons du chrome : ses couleurs n'existent qu'une fois un
-vrai site rendu, et une boutique parfaite sur un chrome clair a livré son titre en sombre
-sur sombre chez un revendeur (2026-09-11). L'audit parcourt chaque texte, champ, `<select>`,
-bouton et icône de `<main>` et de la bande de titre du chrome, compose le fond réel à
-travers les ancêtres (alpha compris, `color(srgb …)` de Chrome compris) et calcule le
-ratio WCAG ; tout ce qui passe sous le seuil est listé avec son chemin, et le code de
-sortie vaut 1 — de quoi verrouiller un déploiement.
+The shop draws with the chrome's tokens: its colours only exist once a real site
+renders them, and a shop that is perfect on a light chrome shipped its title dark
+on dark to a reseller (2026-09-11). The audit walks every text, field, `<select>`,
+button and icon of `<main>` and of the chrome's title band, composes the real
+background through the ancestors (alpha included, Chrome's `color(srgb …)`
+included) and computes the WCAG ratio; everything below the threshold is listed
+with its path, and the exit code is 1 — enough to gate a deploy.
 
 ```bash
-WEBSHOP_E2E_URL=https://<site> node visual/contrast.mjs /all-products /<une-fiche> /shop-by-category /wishlist
-WEBSHOP_E2E_URL=https://<site> node visual/contrast.mjs            # les pages publiques de pages.json (+ les `auth` avec WEBSHOP_SID)
-WEBSHOP_CONTRAST_MIN=4.5 …                                          # seuil (3 par défaut) ; --json pour la sortie brute
+WEBSHOP_E2E_URL=https://<site> node visual/contrast.mjs /all-products /<a-product> /shop-by-category /wishlist
+WEBSHOP_E2E_URL=https://<site> node visual/contrast.mjs            # the public pages of pages.json (+ the `auth` ones with WEBSHOP_SID)
+WEBSHOP_CONTRAST_MIN=4.5 …                                          # threshold (3 by default); --json for the raw output
 ```
 
-À lancer **sur le site cible** avant tout déploiement chez un client, anonyme suffit. La
-spec `11-contraste` (projet `invite`) fait la même chose sur l'instance de la suite.
+Run it **on the target site** before any deploy at a client's; anonymous is
+enough. The `11-contrast` spec (project `guest`) does the same thing on the
+suite's own instance.
 
-**Connecté, panier rempli, étape par étape.** Le 2026-09-14, l'audit disait 0 sur un site sombre
-dont le marchand a trouvé le panier et le tunnel illisibles : il ne les avait jamais lus qu'en
-visiteur, panier vide. Pour un site client : une session (`bench browse`), un article au panier,
-puis
+**Signed in, cart filled, step by step.** On 2026-09-14 the audit said 0 on a
+dark site whose merchant then found the cart and the checkout unreadable: it had
+only ever read them as a visitor with an empty cart. For a client's site: a
+session (`bench browse`), an item in the cart, then
 
 ```bash
 WEBSHOP_SID=<sid> WEBSHOP_CONTRAST_REVEAL=.step-section WEBSHOP_E2E_URL=https://<site> \
   node visual/contrast.mjs /cart /checkout /quick-order /me /orders /addresses
 ```
 
-`WEBSHOP_CSS_OVERRIDE=<fichier.css>` sert une feuille compilée localement à la place du bundle
-de la boutique : un correctif de couleur s'audite sur le vrai chrome du client avant d'être
-déployé (compiler le bundle avec `sass`, chemins `webshop/public/scss` et `~/GitHub/frappe`).
+`WEBSHOP_CSS_OVERRIDE=<file.css>` serves a locally compiled stylesheet in place
+of the shop's bundle: a colour fix can be audited against the client's real
+chrome before it is deployed (compile the bundle with `sass`, paths
+`webshop/public/scss` and `~/GitHub/frappe`).
 
-**Un état qui n'existe qu'après un clic.** Le même jour, la pastille du filtre actif lisait
-1,09:1 sur ce site sombre, et l'audit du catalogue disait 0 : aucun filtre n'y avait jamais été
-coché. `WEBSHOP_CONTRAST_CLICK` clique, dans l'ordre, la première correspondance de chaque
-sélecteur séparé par `||` (une visible s'il y en a), laisse la page se reposer, puis lit. Un clic
-qui ne trouve rien fait échouer la page : un état jamais montré passerait sinon pour un état
-réussi. Le filtre des promotions n'existe que si ce visiteur en a une (sur un site où seuls les
-clients ont des remises, il faut la session), et il disparaît quand le groupe choisi n'en
-contient aucune : on le clique en premier.
+**A state that only exists after a click.** The same day, the active-filter chip
+read 1.09:1 on that dark site, and the catalogue's audit said 0: no filter had
+ever been ticked there. `WEBSHOP_CONTRAST_CLICK` clicks, in order, the first
+match of each selector separated by `||` (a visible one if there is any), lets
+the page settle, then reads. A click that finds nothing fails the page: a state
+never shown would otherwise pass for a state that succeeded. The discount filter
+only exists if this visitor has one (on a site where only customers get
+discounts, the session is needed), and it disappears when the chosen group holds
+none: click it first.
 
 ```bash
 WEBSHOP_SID=<sid> WEBSHOP_CONTRAST_CLICK='#product-filters .discount-filter||#product-filters .field-filter' \
   WEBSHOP_E2E_URL=https://<site> node visual/contrast.mjs /all-products
 ```
 
-Le spec `13-boutons-du-site` (projet `client`) mesure les boutons de la boutique contre le
-bouton du site lui-même : un `<a class="u-btn u-btn--primary">` injecté dans la page de la
-boutique (la règle `:where(.u-btn)` du chrome y est aussi) sert de référence, et le bouton
-d'achat, ceux du panier et du tunnel doivent lui être identiques en forme (padding, rayon,
-police) et en couleur ; les boutons en contour sont comparés à `.u-btn--outline`. Il se
-saute de lui-même sur un site sans chrome Builder.
+The `13-site-buttons` spec (project `customer`) measures the shop's buttons
+against the site's own button: an `<a class="u-btn u-btn--primary">` injected into
+a shop page (the chrome's `:where(.u-btn)` rule applies there too) is the
+reference, and the buy button, the cart's and the tunnel's must be identical to it
+in shape (padding, radius, font) and in colour; the outline buttons are compared
+with `.u-btn--outline`. It skips itself on a site with no Builder chrome.

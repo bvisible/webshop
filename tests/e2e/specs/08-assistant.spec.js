@@ -1,9 +1,13 @@
 //// Neoffice — added file (shop assistant, no upstream equivalent).
-// The chat bubble, as a visitor and as a signed-in customer. The answers come
-// from the shop's real model, so the one exchange this spec makes allows the
-// model its time and asserts on what cannot vary: that an answer came, from
-// the assistant, in words.
-const { test, expect } = require('@playwright/test');
+//// The chat bubble, as a visitor and as a signed-in customer. The answers come
+//// from the shop's real model, so the one exchange this spec makes allows the
+//// model its time and asserts on what cannot vary: that an answer came, from
+//// the assistant, in words.
+////
+//// The greetings matched below are the shop's own UI text, which the fleet
+//// serves in French: the words have to be French for the assertion to mean
+//// anything. Everything else in this file is English.
+const {test, expect} = require('@playwright/test');
 
 async function assistantEnabled(page) {
 	const r = await page.request.get('/api/method/webshop.webshop.assistant.api.get_config');
@@ -12,21 +16,30 @@ async function assistantEnabled(page) {
 	return Boolean(body && body.message && body.message.enabled);
 }
 
-test.describe('Assistant de la boutique', () => {
-	test.beforeEach(async ({ page }) => {
-		test.skip(!(await assistantEnabled(page)), "l'assistant n'est pas activé sur cette boutique");
+test.describe('Shop assistant', () => {
+	test.beforeEach(async ({page}) => {
+		test.skip(!(await assistantEnabled(page)), 'the assistant is switched off on this shop');
 		await page.goto('/all-products');
 		await page.waitForLoadState('networkidle');
 		//// Neoffice — a conversation is resumed for 30 days, so without this the panel opens
 		//// on the previous run's turns and every count assertion below is off by that history.
-		await page.evaluate(() => new Promise((resolve) => {
-			frappe.call({ method: 'webshop.webshop.assistant.api.reset', type: 'POST', args: {}, callback: resolve, error: resolve });
-		}));
+		await page.evaluate(
+			() =>
+				new Promise((resolve) => {
+					frappe.call({
+						method: 'webshop.webshop.assistant.api.reset',
+						type: 'POST',
+						args: {},
+						callback: resolve,
+						error: resolve,
+					});
+				})
+		);
 		await page.reload();
 		await page.waitForLoadState('networkidle');
 	});
 
-	test('la pastille est là et s’ouvre sur un accueil', async ({ page }) => {
+	test('the bubble is there and opens on a greeting', async ({page}) => {
 		const bubble = page.locator('#wsh-assistant .wsh-assistant__bubble');
 		await expect(bubble).toBeVisible();
 		await bubble.click();
@@ -36,7 +49,7 @@ test.describe('Assistant de la boutique', () => {
 		await expect(panel.locator('.wsh-assistant__chip')).toHaveCount(4);
 	});
 
-	test('une question reçoit une réponse de l’assistant', async ({ page }) => {
+	test('a question gets an answer from the assistant', async ({page}) => {
 		test.setTimeout(120_000);
 		await page.locator('#wsh-assistant .wsh-assistant__bubble').click();
 		await page.locator('#wsh-assistant .wsh-assistant__input').fill('Quels sont vos horaires ?');
@@ -44,37 +57,48 @@ test.describe('Assistant de la boutique', () => {
 		await expect(page.locator('#wsh-assistant .wsh-assistant__msg--user')).toHaveCount(1);
 		//// The greeting is the first assistant bubble; the answer is the second.
 		const answer = page.locator('#wsh-assistant .wsh-assistant__msg--assistant').nth(1);
-		await expect(answer).toBeVisible({ timeout: 90_000 });
+		await expect(answer).toBeVisible({timeout: 90_000});
 		const text = (await answer.innerText()).trim();
-		expect(text.length, 'une réponse vide').toBeGreaterThan(10);
-		expect(text, 'la phrase de repli').not.toMatch(/Je n’arrive pas à répondre|Je n'arrive pas à répondre/);
+		expect(text.length, 'an empty answer').toBeGreaterThan(10);
+		expect(text, 'the fallback sentence').not.toMatch(
+			/Je n’arrive pas à répondre|Je n'arrive pas à répondre/
+		);
 	});
 
-	test('un visiteur non connecté n’a pas de prénom dans l’accueil', async ({ page, browserName }, testInfo) => {
-		test.skip(testInfo.project.name !== 'invite', 'projet visiteur seulement');
+	test('a signed-out visitor has no first name in the greeting', async ({page}, testInfo) => {
+		test.skip(testInfo.project.name !== 'guest', 'visitor project only');
 		await page.locator('#wsh-assistant .wsh-assistant__bubble').click();
-		const greeting = await page.locator('#wsh-assistant .wsh-assistant__msg--assistant').first().innerText();
+		const greeting = await page
+			.locator('#wsh-assistant .wsh-assistant__msg--assistant')
+			.first()
+			.innerText();
 		expect(greeting).toMatch(/^Bonjour !/);
 	});
 
-	test('le lien « Parler à l’équipe » ouvre un formulaire qui part sans le modèle', async ({ page }, testInfo) => {
+	test('the "talk to the team" link opens a form that goes out without the model', async ({page}, testInfo) => {
 		await page.locator('#wsh-assistant .wsh-assistant__bubble').click();
 		await page.locator('#wsh-assistant .wsh-assistant__team').click();
 		const card = page.locator('#wsh-assistant .wsh-assistant__leave');
 		await expect(card).toBeVisible();
 		await expect(card.locator('.wsh-assistant__leave-text')).toBeVisible();
-		//// A visitor has to say where to answer; a signed-in customer is written to at the session's address.
-		if (testInfo.project.name === 'invite') await expect(card.locator('.wsh-assistant__leave-email')).toHaveCount(1);
-		if (testInfo.project.name === 'client') await expect(card.locator('.wsh-assistant__leave-email')).toHaveCount(0);
+		//// A visitor has to say where to answer; a signed-in customer is written to
+		//// at the session's address.
+		if (testInfo.project.name === 'guest')
+			await expect(card.locator('.wsh-assistant__leave-email')).toHaveCount(1);
+		if (testInfo.project.name === 'customer')
+			await expect(card.locator('.wsh-assistant__leave-email')).toHaveCount(0);
 		//// Nothing is sent: the message would reach the real team of the target shop.
 		await card.locator('.wsh-assistant__leave-cancel').click();
 		await expect(card).toHaveCount(0);
 	});
 
-	test('un client connecté est salué par son prénom', async ({ page }, testInfo) => {
-		test.skip(testInfo.project.name !== 'client', 'projet client seulement');
+	test('a signed-in customer is greeted by their first name', async ({page}, testInfo) => {
+		test.skip(testInfo.project.name !== 'customer', 'customer project only');
 		await page.locator('#wsh-assistant .wsh-assistant__bubble').click();
-		const greeting = await page.locator('#wsh-assistant .wsh-assistant__msg--assistant').first().innerText();
+		const greeting = await page
+			.locator('#wsh-assistant .wsh-assistant__msg--assistant')
+			.first()
+			.innerText();
 		expect(greeting).toMatch(/^Bonjour \S+ !/);
 	});
 });

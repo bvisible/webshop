@@ -10,38 +10,45 @@
 const {test, expect} = require('@playwright/test');
 
 const PAGES = [
-	{nom: 'le catalogue', chemin: '/all-products'},
-	{nom: 'les catégories', chemin: '/shop-by-category'},
-	{nom: 'la liste de souhaits vide', chemin: '/wishlist'},
+	{name: 'the catalogue', path: '/all-products'},
+	{name: 'the categories', path: '/shop-by-category'},
+	{name: 'the empty wishlist', path: '/wishlist'},
 ];
 
-test.describe('Contraste', () => {
+test.describe('Contrast', () => {
 	let auditContrast;
 	test.beforeAll(async () => {
 		({auditContrast} = await import('../visual/contrast.mjs'));
 	});
 
-	for (const {nom, chemin} of PAGES) {
-		test(`${nom} se lit sur son fond`, async ({page}) => {
-			await page.goto(chemin);
+	for (const {name, path} of PAGES) {
+		test(`${name} reads on its own ground`, async ({page}) => {
+			await page.goto(path);
 			await page.waitForLoadState('networkidle');
 			const {checked, findings} = await auditContrast(page, {minimum: 3});
-			//// An empty wishlist has four things to read; what matters is the list of findings.
-			expect(checked, 'rien n\'a été lu sur la page').toBeGreaterThan(0);
-			expect(findings, findings.map((f) => `${f.ratio}:1 ${JSON.stringify(f.text)} — ${f.path}`).join('\n')).toEqual([]);
+			//// An empty wishlist has four things to read; what matters is the list
+			//// of findings.
+			expect(checked, 'nothing was read on the page').toBeGreaterThan(0);
+			expect(
+				findings,
+				findings.map((f) => `${f.ratio}:1 ${JSON.stringify(f.text)} — ${f.path}`).join('\n')
+			).toEqual([]);
 		});
 	}
 
-	test('la fiche produit se lit sur son fond', async ({page}) => {
+	test('the product page reads on its own ground', async ({page}) => {
 		await page.goto('/all-products');
 		await page.waitForLoadState('networkidle');
-		const lien = page.locator('.wsp-card--grid a[href*="/products/"]').first();
-		const route = await lien.getAttribute('href');
-		test.skip(!route, 'aucun produit dans le catalogue');
+		const link = page.locator('.wsp-card--grid a[href*="/products/"]').first();
+		const route = await link.getAttribute('href');
+		test.skip(!route, 'no product in the catalogue');
 		await page.goto(route);
 		await page.waitForLoadState('networkidle');
 		const {checked, findings} = await auditContrast(page, {minimum: 3});
-		expect(checked, 'rien n\'a été lu sur la fiche').toBeGreaterThan(10);
-		expect(findings, findings.map((f) => `${f.ratio}:1 ${JSON.stringify(f.text)} — ${f.path}`).join('\n')).toEqual([]);
+		expect(checked, 'nothing was read on the product page').toBeGreaterThan(10);
+		expect(
+			findings,
+			findings.map((f) => `${f.ratio}:1 ${JSON.stringify(f.text)} — ${f.path}`).join('\n')
+		).toEqual([]);
 	});
 });
