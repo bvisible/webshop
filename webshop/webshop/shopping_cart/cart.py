@@ -840,7 +840,15 @@ def process_gift_card_on_submit(doc, method=None):
 				excess_amount = gift_card_amount - used_amount
 				
 				# Prepare gift card data for processing
+				# //// Neoffice — the shape `process_gift_card_split` actually reads (2026-09-22).
+				# //// The function was defined TWICE in this file: the second definition wins in
+				# //// Python, and it refuses anything without `is_gift_card` and `gift_card_coupon`
+				# //// — so the split answered "Invalid gift card data" and did nothing, and a card
+				# //// worth more than the order lost its remainder. The dead first definition is
+				# //// gone; a test now refuses a name defined twice in a module.
 				gift_card_data = {
+					"is_gift_card": 1,
+					"gift_card_coupon": quotation.gift_card_coupon,
 					"coupon_code": quotation.gift_card_coupon,
 					"gift_card_amount": gift_card_amount,
 					"used_amount": used_amount,
@@ -852,194 +860,13 @@ def process_gift_card_on_submit(doc, method=None):
 	except Exception as e:
 		frappe.log_error(f"Gift Card Processing Error: {str(e)}", _("Error processing gift card for Sales Order {0}").format(doc.name))
 
+# //// Neoffice — a second `process_gift_card_split`, 187 lines, used to sit here and was
+# //// DEAD: Python keeps the last definition of a name, and the live one is further down
+# //// this file. The two read different data shapes, so the split silently did nothing
+# //// (2026-09-22). Removed rather than merged; `test_no_shadowed_definitions` now fails
+# //// the build on any module that binds a name twice.
 
-def process_gift_card_split(sales_order, gift_card_data):
-	"""
-	Process gift card split after sales order creation.
-	If the gift card amount is greater than the amount used:
-	1. Create a NEW gift card for the amount USED in the order
-	2. Update the ORIGINAL gift card to keep only the REMAINING amount
-	3. Update the sales_order to use the NEW gift card instead of the original
-	"""
-	try:
-		# Extract gift card data - try both new and old key names for compatibility
-		coupon_name = gift_card_data.get("gift_card_coupon") or gift_card_data.get("coupon_code")
-		gift_card_amount = flt(gift_card_data.get("gift_card_amount"))
-		used_amount = flt(gift_card_data.get("used_amount"))
-		excess_amount = flt(gift_card_data.get("excess_amount"))
-		
-		# If there's no excess amount, nothing to do
-		if not excess_amount or excess_amount <= 0:
-			return
-		
-		# Get the coupon details
-		coupon_doc = frappe.get_doc("Coupon Code", coupon_name)
-		
-		# Generate a new unique code
-		try:
-			# Try to import from POS module if available
-			from erpnext.selling.page.point_of_sale.point_of_sale import generate_gift_card_code
-			new_code = generate_gift_card_code()
-			# Make sure code is unique
-			while frappe.db.exists("Coupon Code", {"coupon_code": new_code}):
-				new_code = generate_gift_card_code()
-		except ImportError:
-			# If not available, generate a simple code
-			import random, string
-			letters = string.ascii_uppercase + string.digits
-			code_parts = [
-				''.join(random.choice(letters) for _ in range(4)),
-				''.join(random.choice(letters) for _ in range(4)),
-				''.join(random.choice(letters) for _ in range(4))
-			]
-			new_code = '-'.join(code_parts)
-			
-			# Make sure the code is unique
-			while frappe.db.exists("Coupon Code", {"coupon_code": new_code}):
-				code_parts = [
-					''.join(random.choice(letters) for _ in range(4)),
-					''.join(random.choice(letters) for _ in range(4)),
-					''.join(random.choice(letters) for _ in range(4))
-				]
-				new_code = '-'.join(code_parts)
-		
-		# Get customer info
-		customer_name = sales_order.customer
-		
-		# IMPORTANT: unlike our previous implementation, the NEW gift card carries the
-		# amount USED (not the excess), and the REMAINING amount stays on the original
-		# card.
-		
-		# Get or create pricing rule for the USED amount (not the excess amount)
-		pricing_rule_name = None
-		pricing_rule_filters = {
-			"apply_on": "Transaction",
-			"price_or_product_discount": "Price",
-			"is_cumulative": 1,
-			"valid_upto": "2999-12-31",
-			"selling": 1,
-			"buying": 0,
-			"coupon_code_based": 1,
-			"disable": 0,
-			"margin_type": "Amount",
-			"rate_or_discount": "Discount Amount",
-			"discount_amount": used_amount  # USED amount, not excess
-		}
-		
-		pricing_rule = frappe.db.exists("Pricing Rule", pricing_rule_filters)
-		
-		if not pricing_rule:
-			try:
-				pricing_rule = frappe.get_doc({
-					"doctype": "Pricing Rule",
-					"title": f"{_('Gift Card')} {used_amount:.2f}",
-					**pricing_rule_filters
-				})
-				
-				pricing_rule.insert(ignore_permissions=True)
-				pricing_rule_name = pricing_rule.name
-			except Exception as e:
-				frappe.log_error("Gift Card - Error Creating Pricing Rule", f"Error creating Pricing Rule: {str(e)}\nData: {pricing_rule_filters}")
-				return
-		else:
-			pricing_rule_name = pricing_rule
-		
-		# Create the new gift card with the USED amount (not excess)
-		new_coupon_name = _("Gift Card") + f" {format_currency_value(used_amount, currency=sales_order.currency)} - {customer_name or _('Customer')} - {new_code}"
-		
-		new_gift_card = frappe.get_doc({
-			"doctype": "Coupon Code",
-			"coupon_name": new_coupon_name,
-			"coupon_type": "Gift Card",
-			"coupon_code": new_code,
-			"pricing_rule": pricing_rule_name,
-			"valid_from": coupon_doc.valid_from,
-			"valid_upto": coupon_doc.valid_upto,
-			"maximum_use": 1,
-			"used": 1,  # Marked as used since it's already applied to this order
-			"customer": customer_name,
-			"gift_card_amount": used_amount,  # USED amount, not excess
-			"coupon_code_residual": coupon_doc.name,  # Link to original card
-			"description": _("Created from split of {0} in webshop. Used in order {1}. Original amount: {2}, Used: {3}, Remaining on original card: {4}").format(
-				coupon_doc.coupon_code,
-				sales_order.name,
-				format_currency_value(gift_card_amount, currency=sales_order.currency),
-				format_currency_value(used_amount, currency=sales_order.currency),
-				format_currency_value(excess_amount, currency=sales_order.currency)
-			)
-		})
-		
-		new_gift_card.insert(ignore_permissions=True)
-		new_gift_card.save(ignore_permissions=True)
-		
-		# Now update the original gift card to keep only the REMAINING amount
-		# Remember the old coupon code for the message
-		old_code = coupon_doc.coupon_code
-		
-		# Add a note about the split
-		if coupon_doc.description:
-			coupon_doc.description += f"\n\n{_('Amount adjusted on')} {frappe.utils.today()} : {format_currency_value(gift_card_amount, currency=sales_order.currency)} → {format_currency_value(excess_amount, currency=sales_order.currency)}. {_('Amount used')} ({format_currency_value(used_amount, currency=sales_order.currency)}) {_('transferred to new card')} {new_code} {_('for order')} {sales_order.name}."
-		else:
-			coupon_doc.description = f"{_('Amount adjusted on')} {frappe.utils.today()} : {format_currency_value(gift_card_amount, currency=sales_order.currency)} → {format_currency_value(excess_amount, currency=sales_order.currency)}. {_('Amount used')} ({format_currency_value(used_amount, currency=sales_order.currency)}) {_('transferred to new card')} {new_code} {_('for order')} {sales_order.name}."
-		
-		# Update gift card amount to REMAINING amount (not used amount)
-		coupon_doc.gift_card_amount = excess_amount
-		
-		# Original card is NOT marked as used since it still has value
-		coupon_doc.used = 0
-		
-		# Save the original gift card
-		coupon_doc.save(ignore_permissions=True)
-		
-		# We need to update the sales_order to use the NEW gift card instead of the original
-		# But we can't modify coupon_code after submission, so we'll use a custom field
-		# or add a comment to track this information
-		try:
-			# Try to update a custom field if it exists
-			if hasattr(sales_order, "gift_card_used"):
-				sales_order.gift_card_used = new_code
-				sales_order.db_update()
-			elif frappe.get_meta("Sales Order").has_field("gift_card_used"):
-				frappe.db.set_value("Sales Order", sales_order.name, "gift_card_used", new_code)
-		except Exception as e:
-			frappe.log_error(f"Error updating Sales Order with new gift card: {str(e)}", "Gift Card Split")
-		
-		# Add info to the sales order's comment to record the transaction
-		frappe.get_doc({
-			"doctype": "Comment",
-			"comment_type": "Info",
-			"reference_doctype": sales_order.doctype,
-			"reference_name": sales_order.name,
-			# //// Neoffice — the msgid is English (RULE #00); the French comes from
-			# //// webshop/locale/fr.po.
-			"content": _("Gift card {0} split: {1} used and transferred to the new gift card {2}. {3} left on the original card.").format(
-				old_code,
-				format_currency_value(used_amount, currency=sales_order.currency),
-				new_code,
-				format_currency_value(excess_amount, currency=sales_order.currency)
-			)
-		}).insert(ignore_permissions=True)
-		
-		# Show a message to the user about the split
-		frappe.msgprint(
-			# //// Neoffice — the msgid is English (RULE #00); the French comes from
-			# //// webshop/locale/fr.po.
-			_("Gift card {0} is worth {1}, more than the order total ({2}). A new gift card ({3}) was created for the amount used; the remaining {4} stays on the original card.").format(
-				old_code,
-				format_currency_value(gift_card_amount, currency=sales_order.currency),
-				format_currency_value(used_amount, currency=sales_order.currency),
-				new_code,
-				format_currency_value(excess_amount, currency=sales_order.currency)
-			),
-			# //// Neoffice — English msgid (RULE #00); the French is in webshop/locale/fr.po.
-			title=_("Gift Card Split")
-		)
-		
-	except Exception as e:
-		frappe.log_error(f"Gift Card Split Error: {str(e)}", _(
-			"Error while creating new gift card during split. Original: {0}, Amount: {1}").format(
-			coupon_name, gift_card_amount
-		))
+
 
 
 @frappe.whitelist()

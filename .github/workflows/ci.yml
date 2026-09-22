@@ -286,7 +286,8 @@ jobs:
             webshop.webshop.shopping_cart.test_shop_rights \
             webshop.webshop.quick_order.test_quick_order \
             webshop.webshop.tests.test_stylesheet_inks \
-            webshop.webshop.utils.test_product_carousel
+            webshop.webshop.utils.test_product_carousel \
+            webshop.webshop.tests.test_no_shadowed_definitions
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || echec="$echec $m"
