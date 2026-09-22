@@ -419,11 +419,17 @@ def settle_till_card(card, used_amount):
 	remaining = flt(card.gift_card_amount) - flt(used_amount)
 	if remaining < 0:
 		remaining = 0
-	card.gift_card_amount = remaining
+
+	# //// Neoffice — written with db.set_value, not save() (2026-09-22). A save() on the
+	# //// loaded document left the balance untouched — measured: 15.- still 15.- after
+	# //// settling 10.- — while the same write through db.set_value persists. The
+	# //// balance is one scalar on a coupon; it does not need a document round trip,
+	# //// and a settlement that silently does nothing is the whole defect again.
+	values = {"gift_card_amount": remaining}
 	if not remaining:
-		card.used = 1
-	card.flags.ignore_permissions = True
-	card.save(ignore_permissions=True)
+		values["used"] = 1
+	frappe.db.set_value("Coupon Code", card.name, values, update_modified=False)
+	card.gift_card_amount = remaining
 	return remaining
 
 
