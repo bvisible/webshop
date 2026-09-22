@@ -358,6 +358,44 @@ had disappeared from the machine. Rebuilt the same day with Python 3.13. Before
 any update at a client's, those are the ones that answer "does TWINT hand back
 its QR, does Stripe answer".
 
+## The gate before a client update (`preflight.mjs`)
+
+One command, two halves, because they cannot be the same check:
+
+```bash
+#### On an instance we own — everything, including the money paths
+PAYMENTS_E2E_DIR=~/GitHub/payments/payments/tests/e2e/playwright \
+PAYMENTS_E2E_PYTHON=~/GitHub/payments/.venv-e2e/bin/python \
+  node preflight.mjs --rehearsal https://osiris.neoffice.me
+
+#### On the client's live shop — read-only, before AND after the update
+node preflight.mjs --client https://<client> --snapshot before.json
+#### … deploy …
+node preflight.mjs --client https://<client> --baseline before.json
+```
+
+The rehearsal half runs the whole browser suite and the payments repository's
+Python suite (TWINT, Stripe, Payrexx, Wallee, the invoice): it places real
+orders, so it never points at a client.
+
+The client half only makes the GETs a visitor makes: the pages answer, the
+chrome is there (header, its search, footer, how many links), the catalogue
+lists products, a product page prices and offers its buy button, and every text
+reads on its ground.
+
+> **A regression is something that WAS there and is not any more.** The first
+> version asserted absolutes and cried wolf on the first site it met — "no search
+> field in the header", on a shop whose header never had one. Facts are recorded
+> with `--snapshot` before the update and compared with `--baseline` after; a
+> boolean that goes from true to false fails, and a count that loses more than a
+> fifth fails.
+
+> **An audit that reads nothing proves nothing.** The contrast audit reads
+> `<main>`, and a Builder home page keeps its content outside it: `/` answered
+> "0 elements read" and would have counted as clean. The home page is probed for
+> its chrome and audited by nobody; the shop's own pages, product page included,
+> are what the audit reads — and a page that reads nothing fails.
+
 ## What these tests leave behind
 
 **Accounts** — `01-authentication` creates a real account on every run, prefixed
