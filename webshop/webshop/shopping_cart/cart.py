@@ -374,6 +374,60 @@ def get_billing_addresses(party=None):
 from webshop.webshop.utils.address import street_line
 
 
+# //// Neoffice — added (2026-09-22). TWO families of gift card live on one instance,
+# //// and the shop only knew one of them:
+# ////
+# ////   issued by the till -> coupon_type "Promotional", pos_next_gift_card = 1
+# ////   issued by the shop -> coupon_type "Gift Card"
+# ////
+# //// A card bought at the counter and spent here was therefore read as an ordinary
+# //// promotional coupon: its discount came from its Pricing Rule, its BALANCE was
+# //// never read and never decremented, and `maximum_use` on those cards is 0 — no
+# //// cap at all. Measured end to end on the development instance: a 15.- card
+# //// granted its 15.- on a completed order, came back with 15.- still on it and
+# //// `used` still at 0, and was accepted again on the very next cart. Unlimited
+# //// reuse, real money. POSNext had the mirror defect on our cards (#646).
+# ////
+# //// The rule is POSNext's (`pos_next/api/gift_cards.py::is_gift_card`), COPIED on
+# //// purpose: webshop must hold on an instance without POSNext, exactly as it must
+# //// without erpnextswiss. Four lines are cheaper than a dependency.
+def is_gift_card_coupon(coupon):
+	"""Is this coupon a gift card — whichever side of the counter issued it?"""
+	if not coupon:
+		return False
+	read = coupon.get if hasattr(coupon, "get") else (lambda field: getattr(coupon, field, None))
+	return bool(read("coupon_type") == "Gift Card" or read("pos_next_gift_card"))
+
+
+def issued_by_the_till(coupon):
+	"""A till card carries its balance on itself and KEEPS ITS CODE when spent.
+
+	The shop's own cards are split at order time into a new card for the
+	remainder; the till decrements in place. A customer holding a printed card
+	must not be handed a different code by the website, so the two families are
+	settled the way their issuer settles them.
+	"""
+	read = coupon.get if hasattr(coupon, "get") else (lambda field: getattr(coupon, field, None))
+	return bool(read("pos_next_gift_card"))
+
+def settle_till_card(card, used_amount):
+	"""Take `used_amount` off a till card, in place, keeping its code.
+
+	Returns what is left. A card that reaches zero is marked used, so nothing
+	downstream offers it again.
+	"""
+	remaining = flt(card.gift_card_amount) - flt(used_amount)
+	if remaining < 0:
+		remaining = 0
+	card.gift_card_amount = remaining
+	if not remaining:
+		card.used = 1
+	card.flags.ignore_permissions = True
+	card.save(ignore_permissions=True)
+	return remaining
+
+
+
 # //// Neoffice — added helper (2026-09-22). `custom_house_number` belongs to the
 # //// Swiss address setup, not to ERPNext: a site without it has no such column, and
 # //// asking for one is an "Unknown column" that takes the address book down with it.
@@ -563,7 +617,19 @@ def place_order():
 		excess_amount = 0
 		
 		# Check if we have an excess amount that needs to be split
-		if gift_card_amount > used_amount and used_amount > 0:
+		# //// Neoffice — a till card is settled here and never split (2026-09-22): its
+		# //// balance goes down on itself and it keeps the code the customer holds on a
+		# //// printed card. Done BEFORE the excess test, so a card spent in full is
+		# //// decremented too — those cards carry `maximum_use = 0`, so nothing else
+		# //// would ever stop them being spent again. See is_gift_card_coupon().
+		if used_amount > 0:
+			card = frappe.get_doc("Coupon Code", coupon_data.get("gift_card_coupon"))
+			if issued_by_the_till(card):
+				settle_till_card(card, used_amount)
+				frappe.db.commit()
+				coupon_data["settled_in_place"] = True
+
+		if gift_card_amount > used_amount and used_amount > 0 and not coupon_data.get("settled_in_place"):
 			excess_amount = gift_card_amount - used_amount
 			gift_card_to_split = True
 			
@@ -3206,8 +3272,13 @@ def apply_coupon_code(applied_code, applied_referral_sales_partner):
     validate_coupon_code(coupon_name)
     quotation = _get_cart_quotation()
     
-    # Check if this is a gift card
-    is_gift_card = coupon_doc.coupon_type == "Gift Card" and hasattr(coupon_doc, "gift_card_amount")
+    # //// Neoffice — both families, and the balance is what decides (2026-09-22).
+    # //// This read `coupon_type == "Gift Card"` alone, so a card issued by the till
+    # //// fell through to the promotional branch below: its discount came from its
+    # //// Pricing Rule and its balance was never touched. See is_gift_card_coupon().
+    if is_gift_card_coupon(coupon_doc) and flt(coupon_doc.get("gift_card_amount")) <= 0:
+        frappe.throw(_("This gift card has no remaining balance"))
+    is_gift_card = is_gift_card_coupon(coupon_doc) and hasattr(coupon_doc, "gift_card_amount")
     
     # Store coupon information in custom fields but NOT in the coupon_code field
     # This avoids standard processing of the coupon
@@ -3815,6 +3886,21 @@ def process_gift_card_split(sales_order, coupon_data):
 			
 		# Get the original gift card
 		original_card = frappe.get_doc("Coupon Code", gift_card_coupon)
+
+		# //// Neoffice — a card issued by the till is settled the way the till settles
+		# //// it (2026-09-22): its balance goes down ON ITSELF and it keeps its code.
+		# //// Splitting it would hand the customer a code their printed card does not
+		# //// bear, and leave the one in their wallet claiming a balance it no longer
+		# //// has. Only the shop's own cards are split.
+		if issued_by_the_till(original_card):
+			remaining = settle_till_card(original_card, used_amount)
+			frappe.db.commit()
+			return {
+				"status": "success",
+				"settled_in_place": True,
+				"coupon": original_card.name,
+				"remaining": remaining,
+			}
 		if not original_card or original_card.coupon_type != "Gift Card":
 			return {"status": "error", "message": "Gift card not found or invalid type"}
 			
