@@ -378,28 +378,28 @@ class TestFollowUps(FrappeTestCase):
 		order.submit()
 		self.assertTrue(self.reminders(cart)[0].converted)
 
-	# //// Neoffice — added (077ee1cc03 "fix(cart): un panier rappelé par email pouvait ne plus jamais se vider"):
-	# covers _release_abandoned_cart_reminders, which frees a reminder-linked quotation before delete.
-	def test_an_emptied_cart_can_still_be_deleted_once_reminded(self):
-		"""The reminder links the cart; the cart must still be able to go.
+	# //// Neoffice — added (077ee1cc03 "fix(cart): un panier rappelé par email pouvait ne plus jamais se vider"),
+	# rewritten 2026-09-22: what it asserted was that the reminder BLOCKS the delete and that
+	# _release_abandoned_cart_reminders then frees it. The reminder no longer blocks at all —
+	# hooks.py declares it in `ignore_links_on_delete`, frappe's own answer for a trace with no
+	# value — so `assertRaises(LinkExistsError)` started failing, which is the CI doing its job.
+	# The guarantee is stronger now and the test says so: a reminded cart goes straight out, with
+	# no rescue to call. The dedicated module is tests/test_cart_is_never_locked.py.
+	def test_an_emptied_cart_goes_out_even_once_reminded(self):
+		"""The reminder links the cart, and the cart must still be able to go.
 
 		update_cart deletes the quotation when its last line is removed, and
 		Frappe refuses to delete a linked document: a customer who had received
 		a reminder got a 417 on the cross of their last line (osiris, 2026-09-07).
 		"""
-		from webshop.webshop.shopping_cart.cart import _release_abandoned_cart_reminders
-
 		self.enable_reminders()
 		cart = self.stale_cart(hours=2)
 		abandoned_carts.send_abandoned_cart_reminders()
 		self.assertEqual(len(self.reminders(cart)), 1)
-		with self.assertRaises(frappe.LinkExistsError):
-			frappe.get_doc("Quotation", cart.name).delete()
-		frappe.clear_messages()
-		_release_abandoned_cart_reminders(cart.name)
+
+		# No rescue, no release: the reminder simply does not hold it any more.
 		frappe.get_doc("Quotation", cart.name).delete()
 		self.assertFalse(frappe.db.exists("Quotation", cart.name))
-		self.assertEqual(self.reminders(cart), [])
 
 	def test_the_customer_who_unsubscribed_is_not_reminded(self):
 		self.enable_reminders()

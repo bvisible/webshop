@@ -43,7 +43,7 @@ class TestCartIsNeverLocked(FrappeTestCase):
 
 		from webshop.webshop.tests.utils import make_test_item
 
-		item = make_test_item()
+		item = make_test_item("_Test Cart Lock Item")
 		quotation = frappe.get_doc(
 			{
 				"doctype": "Quotation",
