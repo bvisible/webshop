@@ -292,6 +292,11 @@ jinja = {
         "webshop.webshop.utils.store_hours.opening_hours_css",
         # //// Neoffice — a component included in a Builder page carries its own
         # //// stylesheet, once per request (utils/assets.py). The carousels use it.
-        "webshop.webshop.utils.assets.webshop_component_css"
+        "webshop.webshop.utils.assets.webshop_component_css",
+        # //// Neoffice — street + house number composed by ONE rule (utils/address.py).
+        # //// The two templates that print an address did it inline, each with its own
+        # //// concatenation; erpnextswiss owns the rule and this delegates to it where
+        # //// that app is installed.
+        "webshop.webshop.utils.address.street_line"
 	]
 }

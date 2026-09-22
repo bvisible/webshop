@@ -371,6 +371,16 @@ def get_billing_addresses(party=None):
 	]
 
 
+from webshop.webshop.utils.address import street_line
+
+
+# //// Neoffice — added helper (2026-09-22). `custom_house_number` belongs to the
+# //// Swiss address setup, not to ERPNext: a site without it has no such column, and
+# //// asking for one is an "Unknown column" that takes the address book down with it.
+def _has_house_number():
+	return frappe.get_meta("Address").has_field("custom_house_number")
+
+
 # //// Neoffice — added endpoint. get_billing_addresses / get_shipping_addresses
 # //// filter strictly on address_type, so an address a customer created as
 # //// "Office" or "Personal" — perfectly ordinary in Frappe — belonged to
@@ -406,6 +416,17 @@ def get_customer_addresses():
 			"name", "address_title", "address_type",
 			"address_line1", "address_line2", "city", "state", "pincode", "country",
 			"phone", "email_id", "is_primary_address", "is_shipping_address",
+			# //// Neoffice — the house number, when this site has the field (2026-09-22).
+			# //// The address model is structured: address_line1 is the street ALONE, and
+			# //// this payload carried it without its number, so nothing reading it could
+			# //// write a complete address — the checkout's cards only escaped that because
+			# //// they print `display`, which the Address Template composes server-side.
+			# ////
+			# //// Asked for CONDITIONALLY: `custom_house_number` is a custom field of the
+			# //// Swiss setup. Naming it on a plain ERPNext — the CI, or a shop without
+			# //// that app — would answer "Unknown column" and take the whole address book
+			# //// down with it.
+			*(["custom_house_number"] if _has_house_number() else []),
 		],
 		order_by="is_primary_address desc, is_shipping_address desc, address_title asc",
 	)
@@ -419,6 +440,11 @@ def get_customer_addresses():
 				"address_type": row.address_type,
 				"display": get_address_display(frappe.get_doc("Address", row.name).as_dict()),
 				"address_line1": row.address_line1,
+				# //// Neoffice — the number and the composed line (2026-09-22): the street
+				# //// alone is not an address, and nothing reading this payload could add
+				# //// what it was not given.
+				"custom_house_number": row.get("custom_house_number"),
+				"street_line": street_line(row),
 				"address_line2": row.address_line2,
 				"city": row.city,
 				"state": row.state,

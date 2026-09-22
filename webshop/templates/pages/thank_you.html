@@ -70,7 +70,10 @@
                                       {% if doc.shipping_address_name %}
                                           {% set address = frappe.get_doc("Address", doc.shipping_address_name) %}
                                           <div class="address-details">
-                                              {{ address.address_line1 }}{% if address.custom_house_number %} {{ address.custom_house_number }}{% endif %}<br>
+                                              {# //// Neoffice — one rule for the street and its number
+                                                   (utils/address.py). This line composed them itself,
+                                                   as did /my_addresses, each with its own concatenation. #}
+                                              {{ street_line(address) }}<br>
                                               {% if address.address_line2 %}{{ address.address_line2 }}<br>{% endif %}
                                               {{ address.pincode }} {{ address.city }}<br>
                                               {{ address.country }}
