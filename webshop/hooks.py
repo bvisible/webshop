@@ -88,6 +88,24 @@ standard_portal_menu_items = [
 	{"title": "Gift Cards", "route": "/gift_cards", "reference_doctype": "Coupon Code", "role": "Customer"},
 ]
 
+# //// Neoffice — added (2026-09-22). A reminder about an abandoned cart is a trace,
+# //// not a value: it must never stop the cart it talks about from being deleted.
+# ////
+# //// Frappe refuses to delete a document another one links to, and `update_cart`
+# //// deletes the quotation when its last line goes — so a customer who had received
+# //// a reminder got a 417 on the cross of their last line and could never empty
+# //// their cart. That was patched once inside update_cart (b8160bb709), by deleting
+# //// the reminders in the rescue branch; but the guard only covered that one code
+# //// path, and only after a first failed delete. The hook is the framework's own
+# //// answer — `check_if_doc_is_linked` and `check_if_doc_is_dynamically_linked` both
+# //// skip these doctypes on a delete — and it is where frappe itself puts
+# //// Communication, ToDo, Activity Log, File and Version, for the same reason.
+# ////
+# //// Payment Request is deliberately NOT here: a request that was PAID means money
+# //// moved, and that link must keep holding. `_release_unsuccessful_payment_requests`
+# //// releases only the ones that never succeeded.
+ignore_links_on_delete = ["Abandoned Cart Reminder"]
+
 website_generators = ["Website Item", "Item Group"]
 
 override_doctype_class = {
