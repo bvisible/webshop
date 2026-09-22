@@ -962,6 +962,39 @@ def _release_abandoned_cart_reminders(quotation_name):
 		frappe.delete_doc("Abandoned Cart Reminder", name, ignore_permissions=True, force=True)
 
 
+# //// Neoffice — added helper (2026-09-22).
+# ////
+# //// A payment request that never succeeded cannot always be released either: the
+# //// payments app records each attempt as a Payment Intent, and an intent linking
+# //// the request stops it from being deleted. Measured on osiris — an abandoned
+# //// Wallee attempt left a `failed` intent, which held a Draft request, which held
+# //// the quotation, and the customer got a 417 on the cross of their last line.
+# //// The chain is only as releasable as its last link.
+# ////
+# //// Only the intents that CONCLUDED NOTHING go: requires_action, processing,
+# //// failed, canceled. `succeeded` and `refunded` are money, and money keeps
+# //// holding its documents.
+UNCONCLUDED_INTENTS = ("requires_action", "processing", "failed", "canceled")
+
+
+def _release_unconcluded_payment_intents(payment_request_name):
+	"""Drop the attempts recorded against a payment request that never succeeded."""
+	if not frappe.db.exists("DocType", "Payment Intent"):
+		return
+
+	intents = frappe.get_all(
+		"Payment Intent",
+		filters={
+			"reference_doctype": "Payment Request",
+			"reference_name": payment_request_name,
+			"status": ["in", UNCONCLUDED_INTENTS],
+		},
+		pluck="name",
+	)
+	for name in intents:
+		frappe.delete_doc("Payment Intent", name, ignore_permissions=True, force=True)
+
+
 def _release_unsuccessful_payment_requests(quotation_name):
 	requests = frappe.get_all(
 		"Payment Request",
@@ -977,6 +1010,7 @@ def _release_unsuccessful_payment_requests(quotation_name):
 	# //// named `demandes` / `demande`, renamed under RULE #00 with the function itself.
 	for request in requests:
 		try:
+			_release_unconcluded_payment_intents(request.name)
 			doc = frappe.get_doc("Payment Request", request.name)
 			doc.flags.ignore_permissions = True
 			if doc.docstatus == 1:
