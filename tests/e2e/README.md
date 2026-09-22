@@ -358,6 +358,31 @@ had disappeared from the machine. Rebuilt the same day with Python 3.13. Before
 any update at a client's, those are the ones that answer "does TWINT hand back
 its QR, does Stripe answer".
 
+> **It purges before every test, and the purge is not scoped to itself.**
+> `reset_test_env` cancels and deletes the test customer's Payment Entries,
+> Sales Orders, Payment Requests, Payment Intents and Quotations before each
+> test, for idempotence. Both suites share that customer on the development
+> instance, so a payments run **wipes what the browser suite left behind**:
+> after it, the server shows no trace of the orders this suite placed, and a
+> reading taken then proves nothing. Measured 2026-09-22 — a paid Payment
+> Request seen at 16:42 was gone by 17:33. Read the server BEFORE running the
+> other suite, or read the run's own log.
+
+> **Measured 2026-09-22 against the development instance: 19 passed, 1 failed,
+> 14 min.** Green: the invoice and its installment plans, Stripe (Elements
+> iframe, `/thank_you`, order created), TWINT (the overlay, its QR, the numeric
+> code, the `PI-` intent, the whole chain complete server-side), Payrexx (5
+> tests: hosted page, payment token, restricted tiles, the card tile inside the
+> checkout, the terms), switching provider mid-tunnel, the declined card,
+> loyalty, the signup, the cart, the profile, re-checkout and B2B. Wallee
+> answers too — transaction created, hosted page served, form submitted — and
+> what it answers is **"The authorization is declined"**: the suite pays with
+> Stripe's 4242 card, and Wallee's sandbox only accepts ITS own test cards. The
+> Simulation panel's "Use" shortcut, which used to inject one, has stopped
+> filling the form. Raising the wait to 180 s was tried first and proved
+> nothing. The helper now asserts the form is actually filled and reports the
+> decline, so the next run names the cause instead of timing out.
+
 ## The gate before a client update (`preflight.mjs`)
 
 One command, two halves, because they cannot be the same check:
