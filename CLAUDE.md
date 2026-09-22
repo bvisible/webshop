@@ -1455,6 +1455,31 @@ redeems it through the coupon field: the discount is the card's balance, and
 on osiris on 2026-09-13, end to end. A gift-card line carries no stock source and no
 delivery estimate (`decorate_cart_line` skips it).
 
+> **TWO families of gift card live on one instance, and both are spendable on both
+> sides.** The till issues `coupon_type = "Promotional"` with `pos_next_gift_card = 1`;
+> the shop issues `coupon_type = "Gift Card"`. Reading the type alone sent a till card
+> down the promotional branch — its discount came from its Pricing Rule and its BALANCE
+> was never decremented, and those cards carry `maximum_use = 0`, so nothing capped
+> them either: a 15.- card granted its 15.- on a completed order and was accepted again
+> on the next cart (measured 2026-09-22; POSNext had the mirror defect on ours, #646).
+> `is_gift_card_coupon()` reads both, a card with no balance is refused, and a till card
+> is **settled in place** — its balance goes down on itself and it keeps the code
+> printed on the customer's card, which is how the till settles it. Only the shop's own
+> cards are split. The rule is POSNext's, COPIED: webshop must hold without that app.
+
+> **`card.save()` did not persist the balance; `frappe.db.set_value` does.** A 15.- card
+> settled for 10.- came back with 15.- on it. A settlement that silently does nothing is
+> the defect it was written to close, so the balance is written directly.
+
+> **A gift card's document is named after a human label, not after its code**
+> ("Carte cadeau CHF 100.00 - <someone> - YMI2-RYUC-DGM3" for the code
+> `YMI2-RYUC-DGM3`). Every `coupon_code` field is a **Link**, so it carries the document
+> NAME: webshop writes names everywhere (`coupon_list[0].name`, `gift_card_coupon`) and
+> is safe, but anything that sends what a human typed dies on `LinkValidationError` —
+> which is what happened at the till (2026-09-22). Renaming the existing documents would
+> be worse than the disease; the rule is simply that **a code is resolved to a name
+> before it touches a Link**, and that a new card should be named after its own code.
+
 > Two merchant decisions the code does not make: VAT on the sale of the card (the item's
 > tax template applies; a multi-purpose voucher is normally taxed at redemption) and
 > loyalty points earned on buying one.
