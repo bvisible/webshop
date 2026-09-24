@@ -76,14 +76,18 @@ def get_brands_with_product_count(limit: int = 20, sort_by: str = "brand_name",
     
     # Format brands for carousel
     formatted_brands = []
+    # //// Neoffice — a brand links to its own page when it has one (#691 lot 2), else to the
+    # //// catalogue filtered on it, which robots.txt closes (brand_pages.brand_link).
+    from webshop.webshop.product_data_engine.brand_pages import brand_link, brand_page_routes
+
+    page_routes = brand_page_routes()
     for brand in brands_data:
-        # Create filter for the brand
-        brand_filter = '{"brand":["' + brand.brand_name + '"]}'
-        
+        # //// Neoffice — no brand filter built here any more: brand_link gives the address.
         formatted_brand = {
             "brand_name": brand.brand,  # This is the alias from SQL query
             "logo": brand.logo,
-            "route": f"all-products?field_filters={quote(brand_filter)}",
+            # //// Neoffice — see brand_link above.
+            "route": brand_link(brand.brand_name, page_routes),
             "description": brand.description or "",
             "product_count": brand.product_count
         }
@@ -163,6 +167,11 @@ def get_featured_brands(brand_names: List[str], use_cache: bool = True,
 
     # Format brands in the requested order
     formatted_brands = []
+    # //// Neoffice — a brand links to its own page when it has one (#691 lot 2): the pages are
+    # //// fetched once for the whole carousel (brand_pages.brand_link).
+    from webshop.webshop.product_data_engine.brand_pages import brand_link, brand_page_routes
+
+    page_routes = brand_page_routes()
     for brand_name in brand_names:
         if brand_name in brand_map:
             brand = brand_map[brand_name]
@@ -178,11 +187,12 @@ def get_featured_brands(brand_names: List[str], use_cache: bool = True,
             )
             
             if product_count > 0:
-                brand_filter = '{"brand":["' + brand_name + '"]}'
+                # //// Neoffice — no brand filter built here any more: brand_link gives the address.
                 formatted_brand = {
                     "brand_name": brand.brand,
                     "logo": brand.image,
-                    "route": f"all-products?field_filters={quote(brand_filter)}",
+                    # //// Neoffice — see brand_link above.
+                    "route": brand_link(brand_name, page_routes),
                     "description": brand.description or "",
                     "product_count": product_count
                 }

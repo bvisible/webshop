@@ -359,3 +359,28 @@
 	#product-listing > .wsp-ssr-listing:first-child,
 	#product-listing > .sub-category-container:first-child + .wsp-ssr-listing { padding-top: 42px; }
 }
+
+/* //// Neoffice — a brand page's intro (includes/brand_intro.html, #691 lot 2). The logo's box is
+   fixed, so neither the text beside it nor the listing below moves when it arrives. */
+.wsp-brand-intro {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	margin-bottom: 24px;
+}
+.wsp-brand-intro__logo {
+	flex: none;
+	width: 160px;
+	height: 64px;
+	object-fit: contain;
+	object-position: left center;
+}
+.wsp-brand-intro__text {
+	margin: 0;
+	max-width: 70ch;
+	color: var(--wsh-muted);
+	white-space: pre-line;
+}
+@media (max-width: 575px) {
+	.wsp-brand-intro { flex-direction: column; align-items: flex-start; gap: 12px; }
+}

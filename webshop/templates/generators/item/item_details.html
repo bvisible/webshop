@@ -35,7 +35,9 @@
 		{% if doc.brand %}
 		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top. #}
 		<span class="product-brand wsp-buy__brand">
-			<a href="/all-products?field_filters={{ {'brand':[doc.brand]}|tojson|urlencode }}" class="brand-link">
+			{#- //// Neoffice — the brand's own page when it has one (#691 lot 2), not the filtered
+			    catalogue robots.txt closes #}
+			<a href="{{ brand_page_routes().get(doc.brand) or '/all-products?field_filters=' ~ ({'brand':[doc.brand]}|tojson|urlencode) }}" class="brand-link">
 				{{ _(doc.brand) }}
 			</a>
 		</span>

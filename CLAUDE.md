@@ -938,6 +938,16 @@ defects in neoffice-maintenance#691.
   towards a child group that carries something this site shows: the script inserted them above
   its toolbar once the listing had loaded (70px of drop measured on osiris), and once more after
   every filter change — two rows of the same pills after one click.
+- **A brand has a page of its own, `/brands/<slug>`** (`product_data_engine/brand_pages.py`,
+  `www/brand`, the route in `hooks.py` `website_route_rules`): the catalogue with the brand locked,
+  as `/occasions` locks the condition, under the brand's logo and text, in `sitemap_brands.xml`.
+  Only a brand carrying something this site shows has one (the facets' scope); any other address
+  under `/brands/` does not exist. Every link to a brand used to open the filtered catalogue,
+  which robots.txt closes and which names the plain catalogue as its reference — a search for a
+  brand found no page of the shop. The product page, the brand carousel (template and helper)
+  and the category page's brand cards link the page through `brand_page_routes()` (a jinja
+  method, one query); a brand with no page keeps its old link. The slug is ASCII (`Café & Co` →
+  `cafe-co`); two names folding to one slug resolve to the first alphabetically.
 - **The skeleton's `<style>` gave the product areas their 10px margin**: skipping the skeleton
   lost it, and the grid rose 26px under the toolbar. `add_product_loader_styles()` injects the
   styles alone, on both paths.

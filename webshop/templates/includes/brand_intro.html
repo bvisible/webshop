@@ -1,0 +1,13 @@
+{#- //// Neoffice — added file (no upstream equivalent): a brand page's intro, its logo and its text
+    (www/brand, #691 lot 2). The logo's height is fixed by the stylesheet, so nothing moves when it
+    arrives; it is above the fold, hence not lazy. -#}
+{%- if brand and (brand.image or brand.description) %}
+<div class="wsp-brand-intro">
+	{%- if brand.image %}
+	<img class="wsp-brand-intro__logo" src="{{ brand.image | e }}" alt="{{ brand.name | e }}" decoding="async">
+	{%- endif %}
+	{%- if brand.description %}
+	<p class="wsp-brand-intro__text">{{ brand.description | e }}</p>
+	{%- endif %}
+</div>
+{%- endif %}

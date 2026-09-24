@@ -154,6 +154,29 @@ test.describe('The shop as a crawler reads it', () => {
 		expect(beyond.status, 'a page beyond the last one does not exist').toBe(404);
 	});
 
+	test('a brand has a page of its own, listed, linked and holding its products', async ({request}) => {
+		//// Every link to a brand opened the catalogue filtered on it, which robots.txt closes and
+		//// which names the plain catalogue as its reference: a search for a brand found no page of
+		//// the shop (#691 lot 2; product_data_engine/brand_pages.py, www/brand).
+		const index = await fetchRaw(request, '/sitemap.xml');
+		expect(index.body).toContain('sitemap_brands.xml');
+		const brands = await fetchRaw(request, '/sitemap_brands.xml');
+		expect(brands.status).toBe(200);
+		expect(brands.body, 'a brand is listed as its page').not.toContain('field_filters');
+		const url = firstLoc(brands.body);
+		test.skip(!url, 'no brand carries a product on this site');
+		expect(url).toMatch(/\/brands\/[a-z0-9-]+$/);
+
+		const page = await fetchRaw(request, url);
+		expect(page.status).toBe(200);
+		expect(page.body, 'its canonical is itself').toContain(`<link rel="canonical" href="${url}">`);
+		expect(page.body, 'its products are in its HTML').toContain('class="wsp-card__link"');
+		expect(metaContent(page.body, 'robots'), 'a brand page is indexable').toBeNull();
+
+		const missing = await fetchRaw(request, '/brands/no-such-brand-at-all');
+		expect(missing.status, 'a brand with no page does not exist').toBe(404);
+	});
+
 	test('a category names its sub-categories in its HTML, and each one answers', async ({request}) => {
 		//// A category's pills came from the script, inserted above its toolbar once the listing had
 		//// loaded (the whole listing moved down a row), and a pill could lead to a group holding

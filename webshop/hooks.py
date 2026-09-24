@@ -288,7 +288,9 @@ has_website_permission = {
 # ////   · jinja.methods: helpers our Builder-built templates call directly
 # ////     (cart drawer, carousels, wishlist) — upstream templates need none.
 website_route_rules = [
-	{"from_route": "/api/payment/callback", "to_route": "webshop.controllers.payment_handler.payment_callback"}
+	{"from_route": "/api/payment/callback", "to_route": "webshop.controllers.payment_handler.payment_callback"},
+	# //// Neoffice — a brand's page (#691 lot 2): /brands/<slug> renders www/brand with its slug.
+	{"from_route": "/brands/<brand_slug>", "to_route": "brand"},
 ]
 
 page_renderer = [
@@ -321,5 +323,8 @@ jinja = {
         # //// Neoffice — absolute addresses on the domain of the site being browsed, for the
         # //// breadcrumb's JSON-LD (2026-09-24, #691): get_url answers the instance's host_name.
         "webshop.webshop.seo.site.webshop_site_url",
+        # //// Neoffice — {brand: "/brands/<slug>"} for the brands that have a page (#691 lot 2):
+        # //// the product page, the brand carousel and the category page link a brand there.
+        "webshop.webshop.product_data_engine.brand_pages.brand_page_routes",
 	]
 }

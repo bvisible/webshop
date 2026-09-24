@@ -282,6 +282,14 @@ def get_category_records(categories):
 				rows = [row for row in rows if row.name in carried]
 				for row in rows:
 					row.count = carried[row.name]
+			# //// Neoffice — a brand card leads to the brand's page (#691 lot 2). It had no address
+			# //// in its HTML (href="#"): the click opened the filtered catalogue, a crawler nothing.
+			if doctype == "Brand":
+				from webshop.webshop.product_data_engine.brand_pages import brand_page_routes
+
+				routes = brand_page_routes()
+				for row in rows:
+					row.route = routes.get(row.name)
 			categorical_data[category] = rows
 
 	return categorical_data

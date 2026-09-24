@@ -1,0 +1,15 @@
+{% extends "www/all-products/index.html" %}
+{# //// Neoffice — added file (no upstream equivalent). A brand's page IS the product listing: same
+   template, same script, the brand facet locked (www/brand/index.py), under the brand's logo and
+   text. Frappe attaches a page's own index.js only when its template defines no script block, so
+   the listing script is pulled in here, as /occasions does. #}
+{% block title %}{{ html_title or title }}{% endblock %}
+
+{% block page_content %}
+{% include "templates/includes/brand_intro.html" %}
+{{ super() }}
+{% endblock %}
+
+{% block script %}
+<script>{% include "www/all-products/index.js" %}</script>
+{% endblock %}

@@ -36,7 +36,7 @@ SHOP_LISTINGS = ("all-products", "shop-by-category", "occasions")
 
 def index_entries():
 	"""The sitemaps the index lists, on the domain of the site being browsed."""
-	names = ["sitemap_pages.xml", "sitemap_products.xml", "sitemap_categories.xml"]
+	names = ["sitemap_pages.xml", "sitemap_products.xml", "sitemap_categories.xml", "sitemap_brands.xml"]
 	if frappe.db.table_exists("Blog Post") and frappe.db.exists("Blog Post", {"published": 1}):
 		names.append("sitemap_blog.xml")
 	return [{"loc": _loc(name)} for name in names]
@@ -166,6 +166,30 @@ def _category_links(website_profile=None):
 	return links
 
 
+def brand_links():
+	return _brand_links(get_current_profile_name())[:SITEMAP_LIMIT]
+
+
+@redis_cache(ttl=CACHE_TTL)
+def _brand_links(website_profile=None):
+	"""The brand pages of this site (lot 2): the brands carrying something it shows, the rule of
+	product_data_engine/brand_pages.py, which is also what makes such a page exist."""
+	from webshop.webshop.product_data_engine.brand_pages import brand_route, offered_brands
+
+	brands = offered_brands()
+	if not brands:
+		return []
+	links = []
+	for brand in frappe.get_all(
+		"Brand", filters={"name": ["in", list(brands)]}, fields=["name", "modified", "image"], order_by="name asc"
+	):
+		link = {"loc": _loc(brand_route(brand.name)), "lastmod": _day(brand.modified)}
+		if brand.image:
+			link["images"] = [{"loc": _file_loc(brand.image)}]
+		links.append(link)
+	return links
+
+
 def page_links():
 	return _page_links(get_current_profile_name())[:SITEMAP_LIMIT]
 
@@ -268,5 +292,5 @@ def clear_caches():
 	`clear_cache()` that deletes them all. Deleting the bare function name, as the button did,
 	matched no key: the button never cleared anything.
 	"""
-	for function in (_product_links, _category_links, _page_links):
+	for function in (_product_links, _category_links, _brand_links, _page_links):
 		function.clear_cache()

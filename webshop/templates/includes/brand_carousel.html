@@ -22,6 +22,9 @@
 
     {# Transform the data and add product count #}
     {% set transformed_brands = [] %}
+    {#- //// Neoffice — a brand links to its own page when it has one (#691 lot 2), else to the
+        catalogue filtered on it, which robots.txt closes: the pages, fetched once. -#}
+    {% set brand_routes = brand_page_routes() %}
     {% for b in all_brands %}
         {# Skip brands without image if hide_without_image is set, or with private images #}
         {% set skip_brand = false %}
@@ -37,15 +40,17 @@
                 {% set product_count = frappe.db.count("Website Item", {"brand": b.name, "published": 1}) %}
             {% endif %}
             {% if product_count > 0 or not carousel_sort_by == "product_count" %}
+                {#- //// Neoffice — the route: see brand_routes above (a comment cannot sit inside the tag) -#}
                 {% set brand_item = {
+                    "route": (brand_routes[b.name][1:] if b.name in brand_routes else "all-products?field_filters=" + brand_filter.replace(' ', '%20').replace('"', '%22')),
                     "brand_name": b.brand,
                     "logo": b.image,
-                    "route": "all-products?field_filters=" + brand_filter.replace(' ', '%20').replace('"', '%22'),
                     "description": b.description or "",
                     "product_count": product_count,
                     "_name": b.name
                 } %}
-                {% set _ = transformed_brands.append(brand_item) %}
+                {#- //// Neoffice — never `_`: a set of `_` shadows the translation function (CLAUDE.md). -#}
+                {% set _appended = transformed_brands.append(brand_item) %}
             {% endif %}
         {% endif %}
     {% endfor %}

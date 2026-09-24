@@ -277,9 +277,8 @@ class TestSitemaps(FrappeTestCase):
 		from webshop.www import sitemap
 
 		locs = [entry["loc"] for entry in sitemap.get_context(frappe._dict())["sitemaps"]]
-		for name in ("sitemap_pages.xml", "sitemap_products.xml", "sitemap_categories.xml"):
+		for name in ("sitemap_pages.xml", "sitemap_products.xml", "sitemap_categories.xml", "sitemap_brands.xml"):
 			self.assertTrue(any(loc.endswith("/" + name) for loc in locs), name)
-		self.assertFalse(any(loc.endswith("/sitemap_brands.xml") for loc in locs))
 
 	def test_products_are_listed(self):
 		route = frappe.db.get_value("Website Item", self.web_item, "route")
@@ -295,10 +294,24 @@ class TestSitemaps(FrappeTestCase):
 		self.assertTrue(carrying)
 		self.assertTrue(any(loc.endswith(carrying.strip("/")) for loc in locs), (carrying, locs))
 
-	def test_brand_filters_are_not_pages(self):
+	def test_a_brand_is_listed_as_its_page_never_as_a_filter(self):
+		"""The brands sitemap listed the catalogue filtered on each brand of the instance, which is
+		not a page; it stayed empty until the brands had pages of their own (lot 2)."""
 		from webshop.www import sitemap_brands
 
-		self.assertEqual(sitemap_brands.get_context(frappe._dict())["links"], [])
+		sitemaps._brand_links.clear_cache()
+		self.addCleanup(sitemaps._brand_links.clear_cache)
+		modified = frappe.utils.get_datetime("2026-09-24 10:00:00")
+		brands = [frappe._dict(name="Café & Co", modified=modified, image="/files/cafe.png")]
+		with (
+			patch("webshop.webshop.product_data_engine.brand_pages.offered_brands", return_value={"Café & Co": 2}),
+			patch("frappe.get_all", return_value=brands),
+		):
+			links = sitemap_brands.get_context(frappe._dict())["links"]
+		self.assertEqual(len(links), 1)
+		self.assertTrue(links[0]["loc"].endswith("/brands/cafe-co"), links)
+		self.assertNotIn("field_filters", links[0]["loc"])
+		self.assertTrue(links[0]["images"][0]["loc"].endswith("/files/cafe.png"))
 
 
 class TestRouteRedirects(FrappeTestCase):
