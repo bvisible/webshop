@@ -8406,3 +8406,35 @@ msgstr "Servie à la racine de chaque site, dans un fichier portant son nom : le
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js
 msgid "Brand pages"
 msgstr "Pages de marque"
+
+#: webshop/webshop/seo/llms.py
+msgid "Online shop"
+msgstr "Boutique en ligne"
+
+#: webshop/webshop/seo/llms.py
+msgid "{0}: an online shop, {1} products in {2} categories."
+msgstr "{0} : une boutique en ligne, {1} produits dans {2} catégories."
+
+#: webshop/webshop/seo/llms.py
+msgid "Brands"
+msgstr "Marques"
+
+#: webshop/webshop/seo/llms.py
+msgid "Returns"
+msgstr "Retours"
+
+#: webshop/webshop/seo/llms.py
+msgid "{0} days"
+msgstr "{0} jours"
+
+#: webshop/webshop/seo/llms.py
+msgid "Store hours"
+msgstr "Horaires d'ouverture"
+
+#: webshop/webshop/seo/llms.py
+msgid "Delivery and returns"
+msgstr "Livraison et retours"
+
+#: webshop/webshop/seo/llms.py
+msgid "Contact"
+msgstr "Contact"

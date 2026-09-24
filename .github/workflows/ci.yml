@@ -297,7 +297,8 @@ jobs:
             webshop.webshop.tests.test_public_settings \
             webshop.webshop.seo.feeds.test_google_feed \
             webshop.webshop.product_data_engine.test_brand_pages \
-            webshop.webshop.seo.test_indexnow
+            webshop.webshop.seo.test_indexnow \
+            webshop.webshop.seo.test_llms
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || echec="$echec $m"

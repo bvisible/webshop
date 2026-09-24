@@ -971,6 +971,16 @@ defects in neoffice-maintenance#691.
   drawn when the switch is ticked (Webshop Settings, Advanced tab). **Off by default**: an instance
   never starts calling a third party because it migrated. Google does not take part; stock changes
   are not sent yet.
+- **`/llms.txt`** (`seo/llms.py`, lot 4): a short Markdown card of the site for language models
+  (llmstxt.org) — its name, its first-level categories and brand pages with their addresses, its
+  delivery and return promises, store hours and contact, the sitemap under `## Optional` (the
+  format's own section name, left untranslated). **Never a price**: a price copied into an answer
+  outlives the next change. None on a business-only site. Google says it does not use the file;
+  nothing is expected of it (study, note 05).
+- **A background job starts in English**, whatever the site speaks: `background_jobs.py` sets no
+  language. Text a job writes for a person goes through `frappe.set_user_lang(user)` first, and
+  `frappe.local.lang` is given back in a `finally` (`seo/feeds/google.py::generate_feeds`: the
+  feed's report came back in English on a French site).
 - **`frappe.set_user()` inside a web request spoils the session of whoever made it.** It sets
   `session.sid` to the user's name and empties `session.data` on the live object, which the
   request writes back to the cache when it ends. The feed's button therefore queues a job

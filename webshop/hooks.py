@@ -306,6 +306,8 @@ page_renderer = [
 	"webshop.webshop.seo.feeds.google.FeedRenderer",
 	# //// Neoffice — the IndexNow key at each site's root, /<key>.txt (#691 lot 4)
 	"webshop.webshop.seo.indexnow.KeyRenderer",
+	# //// Neoffice — /llms.txt, the shop's card for language models (#691 lot 4)
+	"webshop.webshop.seo.llms.LlmsTxtRenderer",
 ]
 
 jinja = {

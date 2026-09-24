@@ -8324,3 +8324,35 @@ msgstr ""
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js
 msgid "Brand pages"
 msgstr ""
+
+#: webshop/webshop/seo/llms.py
+msgid "Online shop"
+msgstr ""
+
+#: webshop/webshop/seo/llms.py
+msgid "{0}: an online shop, {1} products in {2} categories."
+msgstr ""
+
+#: webshop/webshop/seo/llms.py
+msgid "Brands"
+msgstr ""
+
+#: webshop/webshop/seo/llms.py
+msgid "Returns"
+msgstr ""
+
+#: webshop/webshop/seo/llms.py
+msgid "{0} days"
+msgstr ""
+
+#: webshop/webshop/seo/llms.py
+msgid "Store hours"
+msgstr ""
+
+#: webshop/webshop/seo/llms.py
+msgid "Delivery and returns"
+msgstr ""
+
+#: webshop/webshop/seo/llms.py
+msgid "Contact"
+msgstr ""
