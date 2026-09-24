@@ -16,14 +16,11 @@ from webshop.webshop.utils.utils import format_currency_value
 # //// selected nothing — worse than showing the product, because the reader thinks
 # //// the shop has one and the filter is broken. Same switch as the catalogue,
 # //// `enable_gift_cards` on Webshop Settings.
+# //// (2026-09-24) its SQL twin, gift_card_sql_condition, went with the facets' hand-written
+# //// counts: they read ProductFiltersBuilder.scope() now.
 def gift_cards_hidden():
 	"""True when the shop's gift cards must not appear anywhere on the storefront."""
 	return not cint(frappe.db.get_single_value("Webshop Settings", "enable_gift_cards"))
-
-
-def gift_card_sql_condition(table="`tabWebsite Item`"):
-	"""The AND fragment that drops gift cards, or "" when they are on sale."""
-	return f" AND IFNULL({table}.is_gift_card, 0) = 0" if gift_cards_hidden() else ""
 
 
 # //// Neoffice — the rule that decides whether a Select facet is worth drawing, pulled
@@ -43,7 +40,7 @@ def select_facet_is_useful(fieldname, values):
 
 
 class ProductFiltersBuilder:
-	def __init__(self, item_group=None):
+	def __init__(self, item_group=None, locked_field_filters=None):  # //// Neoffice — locks, see below
 		# //// Neoffice — upstream reads the filter configuration from the Item Group when there
 		# //// is one, and from Webshop Settings otherwise, so two categories offered different
 		# //// facets on the same shop. The shop's own configuration wins everywhere
@@ -52,10 +49,35 @@ class ProductFiltersBuilder:
 		# This ensures consistent filter display across all pages
 		self.doc = frappe.get_doc("Webshop Settings")
 		self.item_group = item_group
+		# //// Neoffice — the listing's locked facets (a brand's page, /occasions: {fieldname:
+		# //// [values]}, listing_context.build_listing_context): every facet counts inside them,
+		# //// and a locked one is not offered at all — the visitor cannot untick it (2026-09-24).
+		self.locked_field_filters = locked_field_filters or {}
+		self._scope = None
+
+	# //// Neoffice — added (2026-09-24, neoffice-maintenance#737): the Website Items the listing next to the facets shows.
+	# //// Each facet built its own copy of that rule and none of them held: on a brand's page the
+	# //// categories counted the whole catalogue ("Location de matériel 251" beside a grid of two
+	# //// products), the brand facet counted the variants the grid hides (14 for a brand showing
+	# //// 2), and a category page offered brands from its own level only while its grid lists its
+	# //// sub-categories too. A tick on such a facet led to an empty grid, or to fewer products
+	# //// than it promised.
+	def scope(self):
+		"""(filters, or_filters) of what the listing shows, as fresh copies: the catalogue's scope
+		and the locked facets (catalogue_scope.visible_item_filters), and on a category page the
+		category as its grid reads it (ProductQuery.item_group_or_filters)."""
+		if self._scope is None:
+			from webshop.webshop.product_data_engine.catalogue_scope import visible_item_filters
+			from webshop.webshop.product_data_engine.query import ProductQuery
+
+			self._scope = (
+				visible_item_filters(self.locked_field_filters),
+				ProductQuery.item_group_or_filters(self.item_group) if self.item_group else [],
+			)
+		filters, or_filters = self._scope
+		return dict(filters), [list(condition) for condition in or_filters]
 
 	def get_field_filters(self):
-		from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
-
 # //// Neoffice — see above.
 
 		if not self.doc.enable_field_filters:
@@ -63,6 +85,9 @@ class ProductFiltersBuilder:
 
 		fields, filter_data = [], []
 		filter_fields = [row.fieldname for row in self.doc.filter_fields]  # fields in settings
+		# //// Neoffice — a locked facet is not offered (see __init__); build_listing_context used to
+		# //// build it, count it, then drop it
+		filter_fields = [field for field in filter_fields if field not in self.locked_field_filters]
 
 		# filter valid field filters i.e. those that exist in Website Item
 		web_item_meta = frappe.get_meta("Website Item", cached=True)
@@ -70,20 +95,13 @@ class ProductFiltersBuilder:
 			web_item_meta.get_field(field) for field in filter_fields if web_item_meta.has_field(field)
 		]
 
-		# //// Neoffice multi-site: hide items restricted to other sites
-		from webshop.webshop.multi_site import excluded_item_names
-		_excluded = excluded_item_names()
-
 		for df in fields:
-			# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
-			item_filters, item_or_filters = {"published": 1, "sold": 0}, []
-			if _excluded:
-				item_filters["name"] = ["not in", _excluded]
-			# //// Neoffice — a hidden gift card must not leave a facet checkbox that
-			# //// selects nothing (5100ecbe6d "fix(boutique): la case « cartes cadeaux »
-			# //// retire enfin la carte de la vitrine").
-			if gift_cards_hidden():
-				item_filters["is_gift_card"] = 0
+			# //// Neoffice — every facet reads the listing's own scope (scope() above): published,
+			# //// not sold, this site's, hidden gift cards and hidden variants out, the locked
+			# //// facets, and on a category page the category WITH its sub-categories — the grid
+			# //// always descends (query.py item_group_or_filters), upstream's facets only when the
+			# //// group ticks `include_descendants`, and its Select facets ignored the category.
+			item_filters, item_or_filters = self.scope()
 			# //// Neoffice — second-hand: a Select field has no linked doctype;
 			# //// its facet is the set of values the published items carry.
 			link_doctype_values = (
@@ -91,42 +109,21 @@ class ProductFiltersBuilder:
 			)
 
 			if df.fieldtype == "Select":
-				if frappe.db.get_single_value("Webshop Settings", "hide_variants"):
-					item_filters["variant_of"] = ["is", "not set"]
+				# //// Neoffice — the hidden variants and the category are in the scope above
 				values = [
 					v
 					for v in frappe.get_all(
 						"Website Item",
 						fields=[df.fieldname],
 						filters=item_filters,
+						or_filters=item_or_filters,  # //// Neoffice — the category (scope())
 						distinct="True",
 						pluck=df.fieldname,
 					)
 					if v
 				]
 			elif df.fieldtype == "Link":
-				if self.item_group:
-					include_child = frappe.db.get_value("Item Group", self.item_group, "include_descendants")
-					if include_child:
-						include_groups = get_child_groups_for_website(self.item_group, include_self=True)
-						include_groups = [x.name for x in include_groups]
-						item_or_filters.extend(
-							[
-								["item_group", "in", include_groups],
-								["Website Item Group", "item_group", "=", self.item_group],  # consider website item groups
-							]
-						)
-					else:
-						item_or_filters.extend(
-							[
-								["item_group", "=", self.item_group],
-								["Website Item Group", "item_group", "=", self.item_group],  # consider website item groups
-							]
-						)
-
-				# exclude variants if mentioned in settings
-				if frappe.db.get_single_value("Webshop Settings", "hide_variants"):
-					item_filters["variant_of"] = ["is", "not set"]
+				# //// Neoffice — the category and the hidden variants are in the scope above
 
 				# Get link field values attached to published items
 				item_values = frappe.get_all(
@@ -205,10 +202,7 @@ class ProductFiltersBuilder:
 		
 	def get_hierarchical_item_groups(self, item_group_values):
 		"""Get categories with their hierarchical structure parent-child"""
-		# //// Neoffice multi-site: scope to the current site
-		from webshop.webshop.multi_site import site_sql_condition
-		site_cond = site_sql_condition("`tabWebsite Item`")
-		gift_cond = gift_card_sql_condition()
+		# //// Neoffice — the site and gift-card conditions it built here are in scope() now
 		# Get all categories with their parent/child information
 		all_item_groups = frappe.get_all(
 			"Item Group",
@@ -219,86 +213,14 @@ class ProductFiltersBuilder:
 			},
 			order_by="lft asc"
 		)
-		
-		
-		
-		# Get the number of products for each category (including children)
-		item_counts = {}
-		
-		# First, get direct counts
-		# //// Neoffice — gift_cond drops gift cards from the category counts too, so a
-		# //// hidden card does not inflate a category badge it will never appear in
-		# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
-		# //// Neoffice — see the marker above: the WHERE clause below carries gift_cond
-		# //// Neoffice — see the block marker above: gift card filter
-		# //// Neoffice — pointer can go no closer: the WHERE clause is inside this f-string
-		# //// Neoffice — pointer: the WHERE clause three lines down carries {gift_cond}
-		# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
-		# //// Neoffice — pointer can go no closer still: {gift_cond} sits inside the
-		# //// SELECT below, past what a Python comment can reach from outside the string
-		# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
-		# //// Neoffice — pointer can go no closer: the WHERE clause three lines down
-		# //// carries {gift_cond} (5100ecbe6d).
-		# //// Neoffice — pointer, tightest legal spot: the WHERE clause of the SELECT
-		# //// opened right below carries {gift_cond} so gift cards do not inflate this
-		# //// direct count; the clause itself is inside the f-string and cannot carry
-		# //// its own comment (5100ecbe6d "fix(boutique): la case « cartes cadeaux »
-		# //// retire enfin la carte de la vitrine").
-		direct_counts = frappe.db.sql(f"""
-			SELECT item_group, COUNT(*) as count
-			FROM `tabWebsite Item`
-			-- //// Neoffice — gift_cond drops gift cards from this count too, so a hidden
-			-- //// card does not inflate a category badge it will never show
-			-- //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine")
-			-- //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
-			WHERE published = 1 AND sold = 0 AND item_group IN %(groups)s{site_cond}{gift_cond}
-			GROUP BY item_group
-		""", {"groups": [g.name for g in all_item_groups]}, as_dict=True)
-		
-		direct_count_map = {d.item_group: d.count for d in direct_counts}
-		
-		# Calculate total counts including children
-		for item_group in all_item_groups:
-			# Get all descendant groups
-			descendants = frappe.db.sql("""
-				SELECT name FROM `tabItem Group`
-				WHERE lft > %s AND rgt < %s
-				AND show_in_website = 1
-			""", (item_group.lft, item_group.rgt), pluck="name")
-			
-			# Count products in this group and all descendants
-			all_groups = [item_group.name] + list(descendants)
-			# //// Neoffice — same gift_cond as the direct count above, applied to the
-			# //// rolled-up total so a category with only gift cards does not show a
-			# //// count with nothing to show for it
-			# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
-			# //// Neoffice — see the marker above: the WHERE clause below carries gift_cond
-			# //// Neoffice — see the block marker above: gift card filter
-			# //// Neoffice — pointer can go no closer: the WHERE clause is inside this f-string
-			# //// Neoffice — pointer: the WHERE clause three lines down carries {gift_cond}
-			# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
-			# //// Neoffice — pointer can go no closer still: {gift_cond} sits inside the
-			# //// SELECT below, same rolled-up-total rule as the direct count above
-			# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
-			# //// Neoffice — pointer can go no closer: the WHERE clause three lines down
-			# //// carries {gift_cond} (5100ecbe6d).
-			# //// Neoffice — pointer, tightest legal spot: the WHERE clause of the SELECT
-			# //// opened right below carries {gift_cond}, same rolled-up-total rule as the
-			# //// direct count above; the clause itself is inside the f-string and cannot
-			# //// carry its own comment (5100ecbe6d "fix(boutique): la case « cartes
-			# //// cadeaux » retire enfin la carte de la vitrine").
-			total_count = frappe.db.sql(f"""
-				SELECT COUNT(*) as count
-				FROM `tabWebsite Item`
-				-- //// Neoffice — same gift_cond as the direct count above, so a rolled-up
-				-- //// total does not include gift cards the shop keeps hidden
-				-- //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine")
-				-- //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
-				WHERE published = 1 AND sold = 0 AND item_group IN %(groups)s{site_cond}{gift_cond}
-			""", {"groups": all_groups}, as_dict=True)[0].count
-			
-			item_counts[item_group.name] = total_count
-		
+
+		# //// Neoffice — each group counts what a tick on it lists (query.build_fields_filters:
+		# //// the group and its sub-categories shown on the website), inside the listing's scope
+		# //// (scope() above: gift cards, sold units, hidden variants, other sites' items, the
+		# //// locked facets and the category page all out). Two queries, where it ran two per
+		# //// group over the whole catalogue whatever the page (2026-09-24).
+		item_counts = self.item_group_counts(all_item_groups)
+
 		# Build the hierarchical structure
 		root_groups = []
 		group_children = {}
@@ -339,43 +261,55 @@ class ProductFiltersBuilder:
 		
 		return hierarchical_groups
 
+	# //// Neoffice — added (2026-09-24), see get_hierarchical_item_groups.
+	def item_group_counts(self, groups):
+		"""{group: the listing's items in it and in its sub-categories shown on the website}."""
+		filters, or_filters = self.scope()
+		direct = {
+			row.item_group: row.total
+			for row in frappe.get_all(
+				"Website Item",
+				fields=["item_group", "count(name) as total"],
+				filters=filters,
+				or_filters=or_filters,
+				group_by="item_group",
+			)
+			if row.item_group
+		}
+		if not direct:
+			return {}
+		shown = frappe.get_all(
+			"Item Group", filters={"show_in_website": 1, "name": ["in", list(direct)]}, fields=["name", "lft"]
+		)
+		return {
+			group.name: direct.get(group.name, 0)
+			+ sum(direct[row.name] for row in shown if group.lft < row.lft < group.rgt)
+			for group in groups
+		}
+
 	def get_brands_with_counts(self, brand_values):
 		"""Get brands with their product counts"""
-		brands_with_counts = []
-		
-		# //// Neoffice multi-site: hide items restricted to other sites
-		from webshop.webshop.multi_site import excluded_item_names
-		_excluded = excluded_item_names()
-
-		# Get the number of products for each brand
-		for brand in brand_values:
-			brand_filters = {
-				"published": 1,
-				"sold": 0,  # //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
-				"brand": brand
-			}
-			if _excluded:
-				brand_filters["name"] = ["not in", _excluded]
-			# //// Neoffice — same reasoning as the field filters above: a brand facet must
-			# //// not offer a checkbox for a gift card the shop keeps hidden
-			# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
-			if gift_cards_hidden():
-				brand_filters["is_gift_card"] = 0
-			count = frappe.db.count(
+		# //// Neoffice — counted inside the listing's scope (scope() above), in one query: it ran
+		# //// one count per brand over the whole catalogue, the variants a shop hides included —
+		# //// 14 beside a brand whose grid shows 2 (2026-09-24).
+		filters, or_filters = self.scope()
+		filters["brand"] = ["in", list(brand_values)]
+		counts = {
+			row.brand: row.total
+			for row in frappe.get_all(
 				"Website Item",
-				filters=brand_filters
+				fields=["brand", "count(name) as total"],  # //// Neoffice — one grouped count
+				filters=filters,
+				or_filters=or_filters,
+				group_by="brand",
 			)
-			
-			# Create brand data with count
-			brand_data = {
-				"name": brand,
-				"count": count
-			}
-			brands_with_counts.append(brand_data)
-		
+		}
+		# //// Neoffice — a brand the scope does not carry counts 0
+		brands_with_counts = [{"name": brand, "count": counts.get(brand, 0)} for brand in brand_values]
+
 		# Sort brands alphabetically
 		brands_with_counts.sort(key=lambda x: x["name"].lower() if x["name"] else "")
-		
+
 		return brands_with_counts
 
 	def get_filtered_link_doctype_records(self, field):
@@ -420,9 +354,22 @@ class ProductFiltersBuilder:
 		if not attributes:
 			return []
 
+		# //// Neoffice — the values the listing's own items carry (scope() above), not every value
+		# //// of every variant of the instance, published or not: a value no product of the page
+		# //// carries led to an empty grid (2026-09-24). The attribute filter finds Website Items
+		# //// by their item code (query.query_items_with_attributes), so the scope is read the same way.
+		filters, or_filters = self.scope()
+		item_codes = frappe.get_all("Website Item", filters=filters, or_filters=or_filters, pluck="item_code")
+		if not item_codes:
+			return []
+
 		result = frappe.get_all(
 			"Item Variant Attribute",
-			filters={"attribute": ["in", attributes], "attribute_value": ["is", "set"]},
+			filters={
+				"attribute": ["in", attributes],
+				"attribute_value": ["is", "set"],
+				"parent": ["in", item_codes],  # //// Neoffice — the listing's own items
+			},
 			fields=["attribute", "attribute_value"],
 			distinct=True,
 		)
@@ -467,6 +414,44 @@ class ProductFiltersBuilder:
 
 		return discount_filters
 
+	# //// Neoffice — added (2026-09-24): the slider's two queries read the brand, the stock, the
+	# //// discount and the category, nothing else. On /occasions, under the condition or the
+	# //// collection facet, the second-hand toggle or a tag, the slider spanned the whole catalogue
+	# //// and its ends led to an empty grid; a gift card the shop hides stretched it too.
+	PRICE_FILTER_OWN_KEYS = ("brand", "item_group", "in_stock", "discount")
+
+	def price_scope_conditions(self, field_filters):
+		"""SQL conditions on `wi` and their named values, for what the grid filters on and the
+		price slider's own conditions do not handle."""
+		conditions, params = [], {}
+		if gift_cards_hidden():
+			conditions.append("IFNULL(wi.is_gift_card, 0) = 0")
+		meta = frappe.get_meta("Website Item", cached=True)
+		for index, (fieldname, values) in enumerate(sorted((field_filters or {}).items())):
+			values = values if isinstance(values, (list, tuple, set)) else [values]
+			values = [value for value in values if value not in (None, "")]
+			if not values or fieldname in self.PRICE_FILTER_OWN_KEYS:
+				continue
+			key = f"scope_{index}"
+			if fieldname == "second_hand":
+				from webshop.webshop.utils.used_items import SECOND_HAND_CONDITIONS
+
+				conditions.append(f"wi.item_condition IN %({key})s")
+				params[key] = list(SECOND_HAND_CONDITIONS)
+			elif fieldname == "_user_tags":
+				# the grid's rule (query.build_fields_filters): any of the ticked tags
+				likes = []
+				for position, tag in enumerate(values):
+					likes.append(f"wi._user_tags LIKE %({key}_{position})s")
+					params[f"{key}_{position}"] = f"%{tag}%"
+				conditions.append("(" + " OR ".join(likes) + ")")
+			else:
+				df = meta.get_field(fieldname)
+				if df and df.fieldtype in ("Link", "Select", "Data"):
+					conditions.append(f"wi.`{df.fieldname}` IN %({key})s")
+					params[key] = list(values)
+		return conditions, params
+
 	def get_price_filters(self, field_filters=None, attribute_filters=None, filtered_items=None):
 		"""Get price ranges for filtering products by price.
 		
@@ -480,44 +465,12 @@ class ProductFiltersBuilder:
 		if not self.item_group and not enable_price_filter:
 			return None
 
-		# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
-		item_filters, item_or_filters = {"published": 1, "sold": 0}, []
+		# //// Neoffice — the listing's locked facets bound the slider like a ticked one: nobody
+		# //// sends them at the page's first render (2026-09-24). A block of filters that nothing
+		# //// read (item_filters, item_or_filters, additional_conditions) stood here: the queries
+		# //// below build their own conditions.
+		field_filters = {**(field_filters or {}), **self.locked_field_filters}
 
-		# Apply item group filter if specified
-		if self.item_group:
-			from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
-			include_child = frappe.db.get_value("Item Group", self.item_group, "include_descendants")
-			if include_child:
-				include_groups = get_child_groups_for_website(self.item_group, include_self=True)
-				include_groups = [x.name for x in include_groups]
-				item_or_filters.extend(
-					[
-						["item_group", "in", include_groups],
-						["Website Item Group", "item_group", "=", self.item_group],  # consider website item groups
-					]
-				)
-			else:
-				item_or_filters.extend(
-					[
-						["item_group", "=", self.item_group],
-						["Website Item Group", "item_group", "=", self.item_group],  # consider website item groups
-					]
-				)
-
-		# Exclude variants if mentioned in settings
-		if frappe.db.get_single_value("Webshop Settings", "hide_variants"):
-			item_filters["variant_of"] = ["is", "not set"]
-
-		# Apply additional field filters if provided
-		additional_conditions = []
-		if field_filters:
-			# Handle brand filter
-			if field_filters.get("brand"):
-				brands = field_filters["brand"]
-				if isinstance(brands, list) and brands:
-					placeholders = ", ".join(["%s"] * len(brands))
-					additional_conditions.append(f"wi.brand IN ({placeholders})")
-		
 		# Apply attribute filters if provided
 		item_codes_with_attributes = None
 		if attribute_filters:
@@ -648,6 +601,12 @@ class ProductFiltersBuilder:
 						"max_value": 0
 					}]
 			
+			# //// Neoffice — what the grid filters on and the conditions above do not read
+			# //// (price_scope_conditions below, 2026-09-24)
+			scope_conditions, scope_params = self.price_scope_conditions(field_filters)
+			item_sql_conditions += scope_conditions
+			item_sql_params.update(scope_params)
+
 			# Get all item codes matching the filters
 			item_where_clause = " AND ".join(item_sql_conditions)
 			filtered_item_codes = frappe.db.sql_list(f"""
@@ -751,6 +710,12 @@ class ProductFiltersBuilder:
 						"max_value": 0
 					}]
 			
+			# //// Neoffice — what the grid filters on and the conditions above do not read
+			# //// (price_scope_conditions below, 2026-09-24)
+			scope_conditions, scope_params = self.price_scope_conditions(field_filters)
+			item_sql_conditions += scope_conditions
+			item_sql_params.update(scope_params)
+
 			# Get all item codes matching the filters
 			item_where_clause = " AND ".join(item_sql_conditions)
 			filtered_item_codes = frappe.db.sql_list(f"""
@@ -890,38 +855,9 @@ class ProductFiltersBuilder:
 		if not self.item_group and not frappe.db.get_single_value("Webshop Settings", "enable_tag_filters"):
 			return []
 
-		# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
-		item_filters, item_or_filters = {"published": 1, "sold": 0}, []
-		# //// Neoffice multi-site: hide items restricted to other sites
-		from webshop.webshop.multi_site import excluded_item_names
-		_excluded = excluded_item_names()
-		if _excluded:
-			item_filters["name"] = ["not in", _excluded]
-
-		# Apply item group filter if specified
-		if self.item_group:
-			from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
-			include_child = frappe.db.get_value("Item Group", self.item_group, "include_descendants")
-			if include_child:
-				include_groups = get_child_groups_for_website(self.item_group, include_self=True)
-				include_groups = [x.name for x in include_groups]
-				item_or_filters.extend(
-					[
-						["item_group", "in", include_groups],
-						["Website Item Group", "item_group", "=", self.item_group],  # consider website item groups
-					]
-				)
-			else:
-				item_or_filters.extend(
-					[
-						["item_group", "=", self.item_group],
-						["Website Item Group", "item_group", "=", self.item_group],  # consider website item groups
-					]
-				)
-
-		# Exclude variants if mentioned in settings
-		if frappe.db.get_single_value("Webshop Settings", "hide_variants"):
-			item_filters["variant_of"] = ["is", "not set"]
+		# //// Neoffice — the tags of the listing's own items (scope() above, 2026-09-24): it read the
+		# //// whole catalogue on a brand's page and on /occasions, and a category's own level only
+		item_filters, item_or_filters = self.scope()
 
 		# Get all website items with tags
 		website_items = frappe.get_all(

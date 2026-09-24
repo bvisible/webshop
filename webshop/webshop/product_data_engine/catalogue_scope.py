@@ -6,12 +6,13 @@
 import frappe
 
 
-def visible_item_filters():
+def visible_item_filters(locked_field_filters=None):
 	"""Website Item filters for what the catalogue can show on the site being browsed.
 
 	Published, not sold, visible on this site, gift cards out when the shop does not sell
-	them, variants out when the shop hides them — `ProductFiltersBuilder.get_field_filters`
-	builds every facet from exactly this.
+	them, variants out when the shop hides them — and, on a listing that locks some of its
+	facets (a brand's page, /occasions: `{fieldname: [values]}`), only what they allow.
+	`ProductFiltersBuilder.scope` builds every facet from exactly this.
 	"""
 	from webshop.webshop.multi_site import excluded_item_names
 	from webshop.webshop.product_data_engine.filters import gift_cards_hidden
@@ -24,6 +25,8 @@ def visible_item_filters():
 		filters["is_gift_card"] = 0
 	if frappe.db.get_single_value("Webshop Settings", "hide_variants"):
 		filters["variant_of"] = ["is", "not set"]
+	for fieldname, values in (locked_field_filters or {}).items():
+		filters[fieldname] = ["in", list(values) if isinstance(values, (list, tuple, set)) else [values]]
 	return filters
 
 

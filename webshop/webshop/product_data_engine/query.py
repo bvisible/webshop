@@ -60,7 +60,10 @@ class ProductQuery:
 		self.settings.price_list = effective_price_list(self.settings.price_list)
 		self.page_length = self.settings.products_per_page or 20
 
-		self.or_filters = []
+		# //// Neoffice — OR GROUPS, ANDed together (where_conditions below): the category's legs
+		# //// and the ticked tags are two groups. They shared upstream's one `or_filters` list with
+		# //// a one-word search, so a search inside a category returned the union of both.
+		self.or_groups = []
 		self.filters = [["published", "=", 1]]
 		# //// Neoffice — second-hand (2026-09-14): a used unit with nothing left is `sold` and
 		# //// leaves every listing; the Stock Ledger Entry hook keeps the flag (utils/used_items.py)
@@ -116,9 +119,10 @@ class ProductQuery:
 		# //// search term kept for the match-priority ordering, and the sort order
 		# //// (2591df1013, 2025-12-14; bfbe33fc4d, 2025-12-15).
 		self._total_count_cache = None
-		# For multi-word search with custom SQL
-		self._search_sql_condition = None
-		self._search_values = []
+		# //// Neoffice — the search, kept as words and fields and rendered by where_conditions
+		# //// with each query's own table alias (a bare `item_code` is ambiguous next to Item Price)
+		self._search_words = []
+		self._search_fields = []
 		# Store search term for match priority ordering
 		self._search_term = None
 
@@ -225,85 +229,20 @@ class ProductQuery:
 		"""Build a query to fetch Website Items based on field filters."""
 		# Get total count using get_all with limit 0 for better performance
 		# Cache the count for the same filters to avoid repeated queries
-		count_filters = self.filters.copy()
-		
-		# Create a cache key based on filters
-		cache_key = frappe.utils.cstr(count_filters) + frappe.utils.cstr(self.or_filters)
-		
+		# //// Neoffice — the key covers everything the WHERE reads (where_conditions below)
+		cache_key = frappe.utils.cstr(
+			[self.filters, self.or_groups, self._search_words, self._search_fields]
+		)
+
 		if self._total_count_cache and self._total_count_cache.get('key') == cache_key:
 			count = self._total_count_cache.get('count')
 		else:
-			# Build SQL query for counting with proper handling of filters and or_filters
-			conditions = []
-			values = []
-			
-			# Handle regular filters
-			if count_filters:
-				for filter_item in count_filters:
-					if isinstance(filter_item, list) and len(filter_item) >= 3:
-						field, operator, value = filter_item[0], filter_item[1], filter_item[2]
-						if operator == "=":
-							conditions.append(f"`{field}` = %s")
-							values.append(value)
-						elif operator == "in":
-							if isinstance(value, list):
-								placeholders = ", ".join(["%s"] * len(value))
-								conditions.append(f"`{field}` IN ({placeholders})")
-								values.extend(value)
-						elif operator == "not in":
-							# //// Neoffice multi-site: items restricted to other sites
-							if isinstance(value, list) and value:
-								placeholders = ", ".join(["%s"] * len(value))
-								conditions.append(f"`{field}` NOT IN ({placeholders})")
-								values.extend(value)
-						elif operator == "is":
-							if value == "not set":
-								conditions.append(f"`{field}` IS NULL")
-			
-			# Handle or_filters
-			or_conditions = []
-			if self.or_filters:
-				for or_filter in self.or_filters:
-					if isinstance(or_filter, list) and len(or_filter) >= 3:
-						field, operator, value = or_filter[0], or_filter[1], or_filter[2]
-						if operator == "like":
-							# Check if field contains LOWER() function call
-							if field.startswith("LOWER("):
-								or_conditions.append(f"{field} LIKE %s")
-							else:
-								or_conditions.append(f"`{field}` LIKE %s")
-							values.append(value)
-						elif operator == "=":
-							or_conditions.append(f"`{field}` = %s")
-							values.append(value)
-						elif operator == "in":
-							if isinstance(value, list):
-								placeholders = ", ".join(["%s"] * len(value))
-								or_conditions.append(f"`{field}` IN ({placeholders})")
-								values.extend(value)
+			# //// Neoffice — the one rendering of the listing's conditions (where_conditions);
+			# //// this count wrote its own, and the other paths theirs.
+			where_clause, values = self.base_where_clause()
 
-			# Build final WHERE clause
-			where_clause = ""
-			if conditions:
-				where_clause = " WHERE " + " AND ".join(conditions)
-
-			# Handle multi-word search with custom SQL condition
-			if self._search_sql_condition:
-				search_clause = f"({self._search_sql_condition})"
-				values.extend(self._search_values)
-				if where_clause:
-					where_clause += " AND " + search_clause
-				else:
-					where_clause = " WHERE " + search_clause
-			elif or_conditions:
-				or_clause = " (" + " OR ".join(or_conditions) + ")"
-				if where_clause:
-					where_clause += " AND " + or_clause
-				else:
-					where_clause = " WHERE " + or_clause
-			
 			# Execute count query
-			count_sql = f"SELECT COUNT(*) FROM `tabWebsite Item`{where_clause}"
+			count_sql = f"SELECT COUNT(*) FROM `tabWebsite Item` wi{where_clause}"  # //// Neoffice — aliased
 			count = frappe.db.sql(count_sql, values)[0][0]
 			self._total_count_cache = {'key': cache_key, 'count': count}
 			
@@ -337,21 +276,10 @@ class ProductQuery:
 		page_length = self.page_length
 		effective_start = start
 
-		# If we have a search term, use custom SQL to support match priority ordering
-		if self._search_term:
-			items = self._query_items_with_custom_search(
-				page_length, effective_start, order_by
-			)
-		else:
-			items = frappe.db.get_all(
-				"Website Item",
-				fields=self.fields,
-				filters=self.filters,
-				or_filters=self.or_filters,
-				limit_page_length=page_length,
-				limit_start=effective_start,
-				order_by=order_by,
-			)
+		# //// Neoffice — one SQL for every listing without a price sort or a discount tick, search
+		# //// or not (it only adds the match priority): the ORM call it replaces could read one
+		# //// OR group, and a category page with a ticked tag has two.
+		items = self._query_items_with_custom_search(page_length, effective_start, order_by)
 
 		return items, count
 
@@ -369,8 +297,7 @@ class ProductQuery:
 		# Build field list
 		field_list = ", ".join([f"`{field}`" for field in self.fields])
 
-		# Build WHERE conditions from self.filters
-		conditions = []
+		# //// Neoffice — the conditions come from where_conditions below
 		values = []
 
 		# Add match priority values first (they come before WHERE clause values)
@@ -378,42 +305,11 @@ class ProductQuery:
 		if priority_sql:
 			values.extend(priority_values)
 
-		for filter_item in self.filters:
-			if isinstance(filter_item, list) and len(filter_item) >= 3:
-				field, operator, value = filter_item[0], filter_item[1], filter_item[2]
-				if operator == "=":
-					conditions.append(f"`{field}` = %s")
-					values.append(value)
-				elif operator == "in":
-					if isinstance(value, list):
-						placeholders = ", ".join(["%s"] * len(value))
-						conditions.append(f"`{field}` IN ({placeholders})")
-						values.extend(value)
-				elif operator == "not in":
-					# //// Neoffice multi-site: items restricted to other sites
-					if isinstance(value, list) and value:
-						placeholders = ", ".join(["%s"] * len(value))
-						conditions.append(f"`{field}` NOT IN ({placeholders})")
-						values.extend(value)
-				elif operator == "is":
-					if value == "not set":
-						conditions.append(f"`{field}` IS NULL")
-
-		# Add the custom search condition (for multi-word search)
-		if self._search_sql_condition:
-			conditions.append(f"({self._search_sql_condition})")
-			values.extend(self._search_values)
-		# Handle single-word search with or_filters
-		elif self.or_filters:
-			or_conditions = []
-			for or_filter in self.or_filters:
-				if isinstance(or_filter, list) and len(or_filter) >= 3:
-					field, operator, value = or_filter[0], or_filter[1], or_filter[2]
-					if operator == "like":
-						or_conditions.append(f"`{field}` LIKE %s")
-						values.append(value)
-			if or_conditions:
-				conditions.append(f"({' OR '.join(or_conditions)})")
+		# //// Neoffice — the WHERE is where_conditions' (no alias: one table). It rendered the
+		# //// filters and then EITHER the search OR the one-word search's legs, and dropped
+		# //// whatever else sat in the OR list: a category's legs, the tags.
+		conditions, where_values = self.where_conditions(prefix="")
+		values.extend(where_values)
 
 		# Build WHERE clause
 		where_clause = " AND ".join(conditions) if conditions else "1=1"
@@ -496,23 +392,80 @@ class ProductQuery:
 		"""
 
 	def base_where_clause(self, prefix="wi."):
-		"""The listing's standing conditions (published, not sold, this site's items, no
-		hidden variants) as a WHERE clause and its values, for a query outside the engine."""
-		conditions, values = [], []
-		for filter_item in self.filters:
-			if not (isinstance(filter_item, list) and len(filter_item) >= 3):
-				continue
-			field, operator, value = filter_item[0], filter_item[1], filter_item[2]
-			if operator == "=":
-				conditions.append(f"{prefix}`{field}` = %s")
-				values.append(value)
-			elif operator in ("in", "not in") and isinstance(value, list) and value:
-				placeholders = ", ".join(["%s"] * len(value))
-				conditions.append(f"{prefix}`{field}` {'NOT IN' if operator == 'not in' else 'IN'} ({placeholders})")
-				values.extend(value)
-			elif operator == "is" and value == "not set":
-				conditions.append(f"{prefix}`{field}` IS NULL")
+		"""The listing's conditions (where_conditions) as a WHERE clause and its values."""
+		conditions, values = self.where_conditions(prefix)
 		return (" WHERE " + " AND ".join(conditions)) if conditions else "", values
+
+	# //// Neoffice — added (2026-09-24, neoffice-maintenance#737): the listing's WHERE, rendered in ONE place. Each SQL path
+	# //// (the count, the page, the price sort, the discount, the sidebar's discount count)
+	# //// rendered its own share of the filters, and none rendered all of them. Measured on
+	# //// osiris: sorted by price, a category of 12 products listed the whole catalogue (305),
+	# //// and a two-word search too; ticked "discounted", a category or a search listed every
+	# //// discounted product of the shop; a Table MultiSelect facet was dropped by every path but
+	# //// the ORM one, "not set" read NULL where the ORM reads NULL or "", and an empty IN list
+	# //// wrote `IN ()`. Every path now reads this, with its own table alias.
+	def where_conditions(self, prefix="wi."):
+		"""(conditions to join with AND, their positional values in order): every filter, each
+		OR group as one parenthesised alternative (the category, the ticked tags), and every word
+		of the search, found in any of the searched fields."""
+		conditions, values = [], []
+		# //// the AND filters, then each OR group, then every word of the search
+		for condition in self.filters:
+			rendered = self._condition_sql(condition, prefix)
+			if rendered:
+				conditions.append(rendered[0])
+				values.extend(rendered[1])
+		for group in self.or_groups:
+			alternatives = [rendered for rendered in (self._condition_sql(c, prefix) for c in group) if rendered]
+			if alternatives:
+				conditions.append("(" + " OR ".join(sql for sql, _ in alternatives) + ")")
+				for _, alternative_values in alternatives:
+					values.extend(alternative_values)
+		for word in self._search_words:
+			if not self._search_fields:
+				conditions.append("1=0")
+				continue
+			# //// the word, in any of the searched fields
+			conditions.append(
+				"(" + " OR ".join(f"LOWER({prefix}`{field}`) LIKE %s" for field in self._search_fields) + ")"
+			)
+			values.extend([f"%{word}%"] * len(self._search_fields))
+		return conditions, values
+
+	@staticmethod
+	def _condition_sql(condition, prefix):
+		"""(sql, values) for one engine filter, or None when it filters nothing. A filter is
+		[field, operator, value], or [child doctype, field, operator, value] for a Table
+		MultiSelect facet (build_fields_filters). Only a real column is ever rendered: a key
+		that is not one is ignored, as the ORM refused it."""
+		if not isinstance(condition, (list, tuple)) or len(condition) < 3:
+			return None
+		child = None
+		if len(condition) >= 4:
+			child, field, operator, value = condition[:4]
+		else:
+			field, operator, value = condition[:3]
+		if not _is_column(child or "Website Item", field):
+			return None
+		operator = str(operator).lower()
+		column = f"`{field}`" if child else f"{prefix}`{field}`"
+		if operator in ("in", "not in"):
+			value = list(value) if isinstance(value, (list, tuple, set)) else [value]
+			if not value:
+				# nothing is IN an empty list; everything is NOT IN it (the ORM's reading)
+				return ("1=0", []) if operator == "in" else None
+			sql = f"{column} {operator.upper()} ({', '.join(['%s'] * len(value))})"
+		elif operator in ("=", "!=", "like", "not like", ">", "<", ">=", "<="):
+			sql, value = f"{column} {operator.upper()} %s", [value]
+		elif operator == "is":
+			# the ORM's reading of "set" / "not set": NULL and the empty string are both unset
+			sql = f"IFNULL({column}, '') {'!=' if value == 'set' else '='} ''"
+			value = []
+		else:
+			return None
+		if child:
+			return f"{prefix}`name` IN (SELECT parent FROM `tab{child}` WHERE {sql})", value
+		return sql, value
 
 	def query_items_with_discount_filter(self, start=0):
 		"""Query items that have active discounts using optimized SQL."""
@@ -697,54 +650,11 @@ class ProductQuery:
 		from webshop.webshop.multi_site import effective_price_list
 
 		price_list = effective_price_list()
-		
-		# Build WHERE conditions
-		conditions = []
-		values = []
-		
-		# Add filters
-		for filter_item in self.filters:
-			if isinstance(filter_item, list) and len(filter_item) >= 3:
-				field, operator, value = filter_item[0], filter_item[1], filter_item[2]
-				
-				if operator == "=":
-					conditions.append(f"wi.`{field}` = %s")
-					values.append(value)
-				elif operator == "in" and isinstance(value, list):
-					placeholders = ", ".join(["%s"] * len(value))
-					conditions.append(f"wi.`{field}` IN ({placeholders})")
-					values.extend(value)
-				elif operator == "not in" and isinstance(value, list) and value:
-					# //// Neoffice multi-site: items restricted to other sites
-					placeholders = ", ".join(["%s"] * len(value))
-					conditions.append(f"wi.`{field}` NOT IN ({placeholders})")
-					values.extend(value)
-				elif operator == "is":
-					if value == "not set":
-						conditions.append(f"wi.`{field}` IS NULL")
-		
-		# Add or_filters (for search)
-		or_conditions = []
-		if self.or_filters:
-			for or_filter in self.or_filters:
-				if isinstance(or_filter, list) and len(or_filter) >= 3:
-					field, operator, value = or_filter[0], or_filter[1], or_filter[2]
-					
-					if operator == "like":
-						or_conditions.append(f"wi.`{field}` LIKE %s")
-						values.append(value)
-					elif operator == "=":
-						or_conditions.append(f"wi.`{field}` = %s")
-						values.append(value)
-		
-		# Build final WHERE clause
-		where_parts = []
-		if conditions:
-			where_parts.append(" AND ".join(conditions))
-		if or_conditions:
-			where_parts.append("(" + " OR ".join(or_conditions) + ")")
-		
-		where_clause = " WHERE " + " AND ".join(where_parts) if where_parts else ""
+
+		# //// Neoffice — the WHERE is where_conditions' (see there): this one dropped the
+		# //// category's legs and every search of more than one word, so a category sorted by
+		# //// price listed the whole catalogue.
+		where_clause, values = self.base_where_clause("wi.")
 		
 		# If discount filter is active, use optimized query
 		if self.filter_with_discount and price_list:
@@ -893,9 +803,9 @@ class ProductQuery:
 					for tag in values:
 						# Tags can be stored with or without leading comma
 						tag_filters.append(["_user_tags", "like", f"%{tag}%"])
-					
-					# Add tag filters to OR filters
-					self.or_filters.extend(tag_filters)
+
+					# //// Neoffice — the tags are their own OR group (see or_groups in __init__)
+					self.or_groups.append(tag_filters)
 				continue
 
 			# Special handling for item_group field
@@ -956,6 +866,17 @@ class ProductQuery:
 
 	def build_item_group_filters(self, item_group):
 		"Add filters for Item group page and include Website Item Groups."
+		# //// Neoffice — the rule is item_group_or_filters() below, which the sidebar's facets
+		# //// read too (filters.py ProductFiltersBuilder.scope): they count what the grid lists.
+		# //// Its own OR group (see or_groups in __init__).
+		self.or_groups.append(self.item_group_or_filters(item_group))
+
+	# //// Neoffice — moved out of build_item_group_filters (2026-09-24), unchanged, so that the
+	# //// facets of a category page descend exactly as its grid does.
+	@staticmethod
+	def item_group_or_filters(item_group):
+		"""The OR filters of a category page: the group and its sub-categories shown on the
+		website, or a product published into it as a secondary category."""
 		from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
 
 		# //// Neoffice — an Item Group page ALWAYS lists the items of its
@@ -1003,7 +924,7 @@ class ProductQuery:
 		if secondary:
 			item_group_filters.append(["name", "in", sorted(set(secondary))])
 
-		self.or_filters.extend(item_group_filters)
+		return item_group_filters  # //// Neoffice — returned, see build_item_group_filters
 
 	def build_search_filters(self, search_term):
 		# //// Neoffice — the search is rewritten below. ▼▼▼ Upstream builds one LIKE per field
@@ -1061,42 +982,13 @@ class ProductQuery:
 		if not words:
 			return
 
-		# For single word search, use simple LIKE
-		# Note: MariaDB/MySQL LIKE is case-insensitive by default with utf8 collations
-		if len(words) == 1:
-			search = "%{}%".format(words[0])
-			for field in search_fields:
-				self.or_filters.append([field, "like", search])
-		else:
-			# For multi-word search, we need ALL words to match in ANY of the fields
-			# This is done by building a custom SQL condition stored in _search_sql_condition
-			# The condition will be: (field1 LIKE %word1% OR field2 LIKE %word1% ...) AND (field1 LIKE %word2% OR ...)
-			self._build_multiword_search_condition(words, search_fields)
-
-	def _build_multiword_search_condition(self, words, search_fields):
-		"""Build SQL condition for multi-word search where ALL words must match.
-
-		Args:
-			words (list): List of search words (already lowercased)
-			search_fields (set): Fields to search in
-		"""
-		# Store the condition for use in query methods
-		# Each word must be found in at least one field
-		word_conditions = []
-		self._search_values = []
-
-		for word in words:
-			field_conditions = []
-			search_pattern = f"%{word}%"
-			for field in search_fields:
-				field_conditions.append(f"LOWER(`{field}`) LIKE %s")
-				self._search_values.append(search_pattern)
-
-			# This word must match at least one field
-			word_conditions.append(f"({' OR '.join(field_conditions)})")
-
-		# ALL words must match (AND between word conditions)
-		self._search_sql_condition = " AND ".join(word_conditions)
+		# //// Neoffice — every word must be found, in any of the fields: (field1 LIKE %word1% OR
+		# //// field2 LIKE %word1% …) AND (field1 LIKE %word2% OR …). Kept as words and fields and
+		# //// rendered by where_conditions, one word or several alike: a one-word search used to
+		# //// be legs of the shared OR list, a longer one a ready-made SQL string without a table
+		# //// alias, and the price sort and the discount paths rendered neither.
+		self._search_words = words
+		self._search_fields = sorted(field for field in search_fields if _is_column("Website Item", field))
 
 	def _get_match_priority_sql(self, table_alias=""):
 		"""Generate SQL CASE WHEN clause for search match priority.
@@ -1447,47 +1339,22 @@ class ProductQuery:
 			# Fallback to regular query if no price list
 			return self.query_items_with_regular_discount_flow(start)
 		
-		# Build WHERE conditions for main query
-		# //// Neoffice — second-hand (2026-09-14): sold units out, as in self.filters
-		conditions = ["wi.published = 1", "wi.sold = 0"]
-		values = {}
-		
-		for filter_item in self.filters:
-			if isinstance(filter_item, list) and len(filter_item) >= 3:
-				field, operator, value = filter_item[0], filter_item[1], filter_item[2]
-				if field == "published":
-					continue
-				
-				if operator == "=":
-					param_name = f"{field}_val"
-					conditions.append(f"wi.`{field}` = %({param_name})s")
-					values[param_name] = value
-				elif operator == "in" and isinstance(value, list):
-					param_names = []
-					for i, v in enumerate(value):
-						param_name = f"{field}_val_{i}"
-						param_names.append(f"%({param_name})s")
-						values[param_name] = v
-					conditions.append(f"wi.`{field}` IN ({', '.join(param_names)})")
-				elif operator == "not in" and isinstance(value, list) and value:
-					# //// Neoffice multi-site: items restricted to other sites
-					param_names = []
-					for i_ni, v in enumerate(value):
-						param_name = f"ni_{field}_val_{i_ni}"
-						param_names.append(f"%({param_name})s")
-						values[param_name] = v
-					conditions.append(f"wi.`{field}` NOT IN ({', '.join(param_names)})")
-				elif operator == "is":
-					if value == "not set":
-						conditions.append(f"wi.`{field}` IS NULL")
-		
-		where_clause = " AND ".join(conditions)
+		# //// Neoffice — the WHERE is where_conditions' (see there): this one read the filters
+		# //// alone, so a ticked "discounted" listed the whole shop's discounted products on a
+		# //// category page or under a search. Positional values now, in the order the SQL reads
+		# //// them: the price list twice (the two joins), the WHERE, then the page.
+		conditions, where_values = self.where_conditions("wi.")
+		where_clause = " AND ".join(conditions) or "1=1"
 		
 		# Build field list
 		field_list = ", ".join([f"wi.`{field}`" for field in self.fields])
 		
 		# Use CTE to pre-filter items with discounts
 		# //// Neoffice — applies the selected discount threshold here too (c3ba312 "fix(shop): item group pages lost their own items, their secondary categories and the discount threshold"); see _discount_threshold_sql().
+		# //// What the f-string inserts is built by the code, never by the caller: the fields of
+		# //// self.fields, the WHERE of where_conditions (real columns only, every value a
+		# //// placeholder), a float threshold and a fixed ORDER BY.
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-sql-format-injection
 		sql = f"""
 		WITH discounted_items AS (
 			SELECT DISTINCT 
@@ -1518,12 +1385,14 @@ class ProductQuery:
 				COALESCE(ip_mrp.price_list_rate, 0) as mrp
 			FROM `tabWebsite Item` wi
 			LEFT JOIN `tabItem Price` ip ON ip.item_code = wi.item_code 
-				AND ip.price_list = %(price_list)s
+				-- //// Neoffice — positional placeholders, in the order the values list them
+				AND ip.price_list = %s
 				AND ip.selling = 1
 				AND (ip.valid_from IS NULL OR ip.valid_from <= CURDATE())
 				AND (ip.valid_upto IS NULL OR ip.valid_upto >= CURDATE())
 			LEFT JOIN `tabItem Price` ip_mrp ON ip_mrp.item_code = wi.item_code
-				AND ip_mrp.price_list != %(price_list)s
+				-- //// Neoffice — positional, see above
+				AND ip_mrp.price_list != %s
 				AND ip_mrp.selling = 1
 				AND ip_mrp.price_list_rate > COALESCE(ip.price_list_rate, 0)
 				AND (ip_mrp.valid_from IS NULL OR ip_mrp.valid_from <= CURDATE())
@@ -1541,15 +1410,13 @@ class ProductQuery:
 		FROM `tabWebsite Item` wi
 		INNER JOIN discounted_items di ON di.name = wi.name
 		ORDER BY {self._get_discount_order_by()}
-		LIMIT %(limit)s OFFSET %(offset)s
+		-- //// Neoffice — positional, see above
+		LIMIT %s OFFSET %s
 		"""
 		
 		# Add values for the query
-		values.update({
-			'price_list': price_list,
-			'limit': self.page_length,
-			'offset': start
-		})
+		# //// Neoffice — positional (see the WHERE above)
+		values = [price_list, price_list, *where_values, self.page_length, start]
 		
 		items = frappe.db.sql(sql, values, as_dict=True)
 		
@@ -1583,12 +1450,14 @@ class ProductQuery:
 				) as discount_percent
 			FROM `tabWebsite Item` wi
 			LEFT JOIN `tabItem Price` ip ON ip.item_code = wi.item_code 
-				AND ip.price_list = %(price_list)s
+				-- //// Neoffice — positional placeholders, in the order the values list them
+				AND ip.price_list = %s
 				AND ip.selling = 1
 				AND (ip.valid_from IS NULL OR ip.valid_from <= CURDATE())
 				AND (ip.valid_upto IS NULL OR ip.valid_upto >= CURDATE())
 			LEFT JOIN `tabItem Price` ip_mrp ON ip_mrp.item_code = wi.item_code
-				AND ip_mrp.price_list != %(price_list)s
+				-- //// Neoffice — positional, see above
+				AND ip_mrp.price_list != %s
 				AND ip_mrp.selling = 1
 				AND ip_mrp.price_list_rate > COALESCE(ip.price_list_rate, 0)
 				AND (ip_mrp.valid_from IS NULL OR ip_mrp.valid_from <= CURDATE())
@@ -1600,7 +1469,8 @@ class ProductQuery:
 		SELECT COUNT(DISTINCT name) FROM discounted_items
 		"""
 		
-		count_values = {k: v for k, v in values.items() if k not in ['limit', 'offset']}
+		# //// Neoffice — positional (see the WHERE above): the price list twice, then the WHERE
+		count_values = [price_list, price_list, *where_values]
 		count = frappe.db.sql(count_sql, count_values)[0][0]
 		
 		# Process items (add formatted prices, stock info, etc.)
@@ -1715,10 +1585,32 @@ def mark_if_bookable(item) -> None:
 # //// conditions — the same query the toggle runs when ticked, without the page. It is read
 # //// through a short cache (listing_context.count_discounted): a figure that may lag a few
 # //// minutes, never a join on every catalogue view.
-def count_discounted_items():
+# //// Neoffice — added (2026-09-24), see ProductQuery._condition_sql.
+def _is_column(doctype, fieldname):
+	"""Is `fieldname` a column of `doctype`'s table?"""
+	from frappe.model import data_fieldtypes, default_fields, optional_fields
+
+	if not isinstance(fieldname, str) or not fieldname or fieldname == "doctype":
+		return False
+	if fieldname in default_fields or fieldname in optional_fields:
+		return True
+	try:
+		df = frappe.get_meta(doctype, cached=True).get_field(fieldname)
+	except frappe.DoesNotExistError:
+		return False
+	return bool(df and df.fieldtype in data_fieldtypes)
+
+
+def count_discounted_items(locked_field_filters=None, item_group=None):
 	engine = ProductQuery()
 	price_list = engine.settings.price_list
 	if not price_list:
 		return 0
+	# //// Neoffice — within the listing's locked facets and category (2026-09-24): the toggle
+	# //// of a category page counted the whole catalogue's discounted products
+	if locked_field_filters:
+		engine.build_fields_filters(locked_field_filters)
+	if item_group:
+		engine.build_item_group_filters(item_group)
 	where_clause, values = engine.base_where_clause()
 	return cint(frappe.db.sql(engine._discounted_count_sql(where_clause), [price_list, price_list, *values])[0][0])
