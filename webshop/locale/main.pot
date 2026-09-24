@@ -8356,3 +8356,16 @@ msgstr ""
 #: webshop/webshop/seo/llms.py
 msgid "Contact"
 msgstr ""
+
+#: webshop/webshop/seo/llms.py
+msgid "one product"
+msgstr ""
+
+#: webshop/webshop/seo/llms.py
+msgid "{0} products"
+msgstr ""
+
+#: webshop/webshop/seo/llms.py
+msgctxt "A label and its value, as in Returns: 30 days"
+msgid "{0}: {1}"
+msgstr ""

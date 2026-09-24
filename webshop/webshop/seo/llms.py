@@ -41,7 +41,7 @@ def llms_txt() -> str | None:
 		]
 	if categories:
 		lines.append(f"## {_('Categories')}")
-		lines += [f"- [{group}]({site_url('/' + route)}): {count} {_('products')}" for group, route, count in categories]
+		lines += [f"- [{group}]({site_url('/' + route)}): {products(count)}" for group, route, count in categories]
 		lines.append("")
 	brands = offered_brands()
 	routes = brand_page_routes() if brands else {}
@@ -54,9 +54,9 @@ def llms_txt() -> str | None:
 	settings = frappe.get_cached_doc("Webshop Settings")
 	shopping = []
 	if settings.get("delivery_delay"):
-		shopping.append(f"- {_('Delivery')}: {one_line(settings.delivery_delay)}")
+		shopping.append("- " + labelled(_("Delivery"), one_line(settings.delivery_delay)))
 	if cint(settings.get("return_days")) > 0:
-		shopping.append(f"- {_('Returns')}: " + _("{0} days").format(cint(settings.return_days)))
+		shopping.append("- " + labelled(_("Returns"), _("{0} days").format(cint(settings.return_days))))
 	if settings.get("store_hours"):
 		shopping.append(f"- [{_('Store hours')}]({site_url('/store-hours')})")
 	if shopping:
@@ -70,23 +70,39 @@ def llms_txt() -> str | None:
 	return "\n".join(lines)
 
 
+def products(count: int) -> str:
+	return _("one product") if count == 1 else _("{0} products").format(count)
+
+
+def labelled(label: str, value: str) -> str:
+	"""A label and its value as the language writes them: "Returns: 30 days", "Retours : 30 jours"."""
+	return _("{0}: {1}", context="A label and its value, as in Returns: 30 days").format(label, value)
+
+
 def top_categories() -> list[tuple[str, str, int]]:
 	"""(group, route, how many products it holds) for the first level of the tree that carries
-	something this site shows, fullest first."""
+	something this site shows, fullest first; one level lower when a single group holds it all
+	(a shop whose tree is "All > Products > …")."""
 	from webshop.webshop.product_data_engine.catalogue_scope import groups_carrying_items
 
 	carried = groups_carrying_items()
 	if not carried:
 		return []
+	# the root of the tree is not a category, and rarely shown on the website: never take the
+	# first carried group for it (the categories listed were the children of "Products")
+	root = frappe.db.get_value("Item Group", {"lft": 1}, "name")
 	groups = frappe.get_all(
-		"Item Group",
-		filters={"name": ["in", list(carried)]},
-		fields=["name", "route", "parent_item_group", "lft"],
+		"Item Group", filters={"name": ["in", list(carried)]}, fields=["name", "route", "parent_item_group"]
 	)
-	root = min(groups, key=lambda group: group.lft).name if groups else None
-	first_level = [g for g in groups if g.parent_item_group == root and (g.route or "").strip("/")]
+
+	def children(parent):
+		return [g for g in groups if g.parent_item_group == parent and (g.route or "").strip("/")]
+
+	level = children(root)
+	if len(level) == 1 and children(level[0].name):
+		level = children(level[0].name)
 	return sorted(
-		((g.name, g.route.strip("/"), carried[g.name]) for g in first_level), key=lambda row: (-row[2], row[0])
+		((g.name, g.route.strip("/"), carried[g.name]) for g in level), key=lambda row: (-row[2], row[0])
 	)[:MAX_CATEGORIES]
 
 

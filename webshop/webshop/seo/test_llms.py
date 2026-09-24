@@ -56,19 +56,36 @@ class TestCard(FrappeTestCase):
 	def test_a_site_serving_business_accounts_only_has_none(self):
 		self.assertIsNone(self.card(business_only=True))
 
-	def test_the_first_level_of_the_tree_fullest_first(self):
-		groups = [
-			frappe._dict(name="All", route="", parent_item_group="", lft=1),
-			frappe._dict(name="Shoes", route="shop/shoes", parent_item_group="All", lft=2),
-			frappe._dict(name="Trail", route="shop/shoes/trail", parent_item_group="Shoes", lft=3),
-			frappe._dict(name="Bags", route="shop/bags", parent_item_group="All", lft=6),
-		]
-		carried = {"All": 15, "Shoes": 12, "Trail": 7, "Bags": 3}
+	def tree(self, groups, carried):
 		with (
 			patch("webshop.webshop.product_data_engine.catalogue_scope.groups_carrying_items", return_value=carried),
-			patch("frappe.get_all", return_value=groups),
+			patch("frappe.db.get_value", return_value="All"),
+			patch("frappe.get_all", return_value=[frappe._dict(zip(("name", "route", "parent_item_group"), g)) for g in groups]),
 		):
-			self.assertEqual(llms.top_categories(), [("Shoes", "shop/shoes", 12), ("Bags", "shop/bags", 3)])
+			return llms.top_categories()
+
+	def test_the_first_level_under_the_true_root_fullest_first(self):
+		"""On osiris the root is not shown on the website, and the first carried group ("Products")
+		was taken for it: the card listed Products' children and left its siblings out."""
+		groups = [
+			("Products", "products", "All"),
+			("Shoes", "products/shoes", "Products"),
+			("Courses", "courses", "All"),
+			("Rentals", "rentals", "All"),
+		]
+		carried = {"Products": 12, "Shoes": 7, "Courses": 10, "Rentals": 251}
+		self.assertEqual(
+			self.tree(groups, carried),
+			[("Rentals", "rentals", 251), ("Products", "products", 12), ("Courses", "courses", 10)],
+		)
+
+	def test_one_level_lower_when_a_single_group_holds_it_all(self):
+		groups = [("Products", "products", "All"), ("Shoes", "products/shoes", "Products"), ("Bags", "products/bags", "Products")]
+		carried = {"Products": 15, "Shoes": 12, "Bags": 3}
+		self.assertEqual(self.tree(groups, carried), [("Shoes", "products/shoes", 12), ("Bags", "products/bags", 3)])
+
+	def test_one_product_is_singular(self):
+		self.assertNotIn("1 products", llms.products(1))
 
 
 class TestRoute(FrappeTestCase):
