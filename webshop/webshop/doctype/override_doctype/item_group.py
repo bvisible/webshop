@@ -152,12 +152,14 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		# //// Neoffice — the heading stays the category's own name; the browser tab gets the
 		# //// shop name after it (Website Settings' app name, skipped when it is Frappe's
 		# //// default). See the note in get_context above.
-		_site_name = frappe.db.get_single_value("Website Settings", "app_name")
+		from webshop.webshop.seo.site import shop_name
+
 		_base_title = self.website_title or self.name
 		context.title = _base_title
-		context.html_title = (
-			_base_title + " | " + _site_name if _site_name and _site_name != "Frappe" else _base_title
-		)
+		# //// Neoffice — the site's one name (seo/site.py shop_name: the chrome's, per site),
+		# //// the one the home page declares to Google (2026-09-24, #691).
+		_site_name = shop_name()
+		context.html_title = _base_title + " | " + _site_name if _site_name else _base_title
 		context.name = self.name
 		context.item_group_name = self.item_group_name
 

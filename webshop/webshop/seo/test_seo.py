@@ -151,6 +151,19 @@ class TestSiteName(FrappeTestCase):
 			doc.set_metatags(context)
 		self.assertEqual(context.metatags.get("og:site_name"), "A Shop")
 
+	def test_the_site_chrome_names_the_site_before_website_settings(self):
+		"""The home page declares its WebSite under the chrome's name (builder's site graph): the
+		pages of the shop announce the same one, per site (2026-09-24)."""
+		from webshop.webshop.seo import site
+
+		with patch.object(site, "chrome_site_name", return_value="Atelier Nord"):
+			self.assertEqual(site.shop_name(), "Atelier Nord")
+		with patch.object(site, "chrome_site_name", return_value=""):
+			with patch.object(site, "app_name", return_value="Maison Test"):
+				self.assertEqual(site.shop_name(), "Maison Test")
+			with patch.object(site, "app_name", return_value="ERPNext"):
+				self.assertEqual(site.shop_name(), "")
+
 	def test_a_site_never_named_announces_nothing(self):
 		doc = frappe.get_doc({"doctype": "Website Item", "item_code": ITEM, "web_item_name": ITEM, "description": ""})
 		context = frappe._dict(route="products/x", website_image=None)

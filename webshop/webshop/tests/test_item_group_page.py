@@ -40,8 +40,12 @@ class TestItemGroupPage(FrappeTestCase):
 		self.assertEqual(context.title, expected)
 		self.assertNotIn(" | ", context.title)
 
-		shop = frappe.db.get_single_value("Website Settings", "app_name")
-		if shop and shop != "Frappe":
+		# //// Neoffice — the suffix is the site's one name (seo/site.py shop_name), the name the
+		# //// home page declares to Google, since 2026-09-24 (#691).
+		from webshop.webshop.seo.site import shop_name
+
+		shop = shop_name()
+		if shop:
 			self.assertEqual(context.html_title, f"{expected} | {shop}")
 		else:
 			self.assertEqual(context.html_title, expected)

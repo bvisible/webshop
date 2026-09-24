@@ -502,12 +502,13 @@ class WebsiteItem(WebsiteGenerator):
 		# //// feeds to the {% block title %} — SEO keeps its suffix, the page
 		# //// shows the product name.
 		context.title = _meta_title
-		_site_name = frappe.db.get_single_value("Website Settings", "app_name")
-		context.html_title = (
-			_meta_title + " | " + _site_name
-			if _site_name and _site_name != "Frappe"
-			else _meta_title
-		)
+		# //// Neoffice — the site's one name (seo/site.py shop_name: the chrome's, per site),
+		# //// not Website Settings' app name: the home page declares the former to Google
+		# //// (2026-09-24, #691). Frappe's and ERPNext's default names are no name.
+		from webshop.webshop.seo.site import shop_name
+
+		_site_name = shop_name()
+		context.html_title = _meta_title + " | " + _site_name if _site_name else _meta_title
 
 		# //// Neoffice — second-hand: what the page says about a used unit, and
 		# //// the used units a new item has on offer. Both are None/empty on a

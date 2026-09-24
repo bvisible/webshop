@@ -7,14 +7,36 @@ FRAMEWORK_NAMES = {"frappe", "erpnext"}
 
 
 def shop_name() -> str:
-	"""The shop's name, as its `<title>` suffix already prints it (Website Settings' app name).
+	"""The name of the site being served, the one every page announces: og:site_name, the
+	title suffix, the seller of every offer, the listings' descriptions.
 
 	Upstream's `WebsiteItem.set_metatags` wrote `og:site_name = "ERPNext"` on every product
-	page, so a link shared on a social network announced ERPNext instead of the shop.
+	page, so a link shared on a social network announced ERPNext instead of the shop. Then the
+	home page declared its WebSite under the site chrome's name while these pages announced
+	Website Settings' (2026-09-24): Google reads them together to choose the name it prints, so
+	the chrome's name comes first, per site, and Website Settings' only without a chrome.
 	Empty when the site was never named: no tag beats a wrong one.
 	"""
-	name = (frappe.db.get_single_value("Website Settings", "app_name") or "").strip()
+	name = chrome_site_name() or app_name()
 	return "" if name.lower() in FRAMEWORK_NAMES else name
+
+
+def app_name() -> str:
+	return (frappe.db.get_single_value("Website Settings", "app_name") or "").strip()
+
+
+def chrome_site_name() -> str:
+	"""The name the site chrome gives the site being served (builder's display_name: the name
+	of its home page's WebSite). Empty without builder, or with a builder older than it."""
+	if "builder" not in frappe.get_installed_apps():
+		return ""
+	try:
+		from builder.hf_utils.header_footer import get_header_footer_config
+		from builder.site_graph import display_name
+	except ImportError:
+		return ""
+	config = get_header_footer_config()
+	return display_name(config) if config else ""
 
 
 def webshop_site_url(path="") -> str:
