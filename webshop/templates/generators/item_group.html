@@ -51,7 +51,8 @@
 	</div>
 	<div class="row">
 		<div id="product-listing" class="col-12 order-2 col-md-9 order-md-2 item-card-group-section">
-			<!-- Products Rendered in all-products/index.js-->
+			{#- //// Neoffice — the first page, rendered on the server (#691 lot 2); the script takes over #}
+			{% include "templates/includes/listing_ssr.html" %}
 		</div>
 
 		<div class="col-12 order-1 col-md-3 order-md-1">
@@ -310,5 +311,6 @@
 
 {% block head_include %}
 {{ super() }}
-<link rel="canonical" href="{{ frappe.utils.get_url(doc.route) }}">
+{#- //// Neoffice — a page of the category is its own reference (listing_canonical, #691 lot 2) #}
+<link rel="canonical" href="{{ canonical_url or frappe.utils.get_url(doc.route) }}">
 {% endblock %}

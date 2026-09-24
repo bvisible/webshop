@@ -170,6 +170,14 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 
 		# Check and merge guest cart if needed
 		check_and_merge_guest_cart()
+		# //// Neoffice — the first page on the server, once the cart is the visitor's own: the
+		# //// cards and page links a crawler reads without JavaScript, and each page its own
+		# //// canonical address (#691 lot 2, D14; listing_context.server_listing).
+		from webshop.webshop.product_data_engine.listing_context import server_listing
+		from webshop.webshop.seo.meta import listing_canonical
+
+		context.listing_ssr = server_listing("/" + self.route, item_group=self.name)
+		context.canonical_url = listing_canonical("/" + self.route)
 
 		return context
 

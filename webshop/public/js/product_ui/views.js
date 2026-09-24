@@ -128,6 +128,10 @@ webshop.ProductView =  class {
 		// Don't empty products_section immediately - keep existing products visible during loading
 		// Only empty on initial load (when there are no products yet)
 		const hasExistingProducts = $('#products-grid-area').length || $('#products-list-area').length;
+		//// Neoffice — the first page rendered on the server (listing_ssr.html, #691 lot 2) is kept
+		//// through the initial emptying and stays on screen, under the toolbar, until the script's
+		//// own first result replaces it (drop_ssr_listing): no skeleton over cards already there.
+		const ssr_listing = hasExistingProducts ? $() : this.products_section.children('.wsp-ssr-listing').detach();
 
 		if (!hasExistingProducts) {
 			// Initial load - empty the section
@@ -147,8 +151,25 @@ webshop.ProductView =  class {
 		if (!hasExistingProducts) {
 			this.prepare_toolbar();
 		}
+		//// Neoffice — see ssr_listing above.
+		if (ssr_listing.length) {
+			this.products_section.append(ssr_listing);
+			this.ssr_listing = ssr_listing;
+		}
 
 		this.get_item_filter_data(from_filters);
+	}
+
+	//// Neoffice — added (#691 lot 2): the server's first page leaves when the script's first
+	//// result arrives, and the view the visitor prefers shows (show_product_loader, which
+	//// usually shows it, stood aside while the server's cards were on screen).
+	drop_ssr_listing() {
+		if (!this.ssr_listing) return;
+		this.ssr_listing.remove();
+		this.ssr_listing = null;
+		const isGridView = this.preference === "Grid View";
+		$('#products-grid-area').toggleClass('hidden', !isGridView);
+		$('#products-list-area').toggleClass('hidden', isGridView);
 	}
 
 	//// Neoffice — added. The listing is also the search results page on our shops
@@ -554,6 +575,8 @@ webshop.ProductView =  class {
 				query_args: args
 			},
 			callback: function(result) {
+				//// Neoffice — the script's result replaces the server's first page (#691 lot 2)
+				me.drop_ssr_listing();
 				if (!result || result.exc || !result.message || result.message.exc) {
 					//// Neoffice — the loader must be hidden on the error path too, or a failed query
 					//// left the skeleton spinning for ever.
@@ -881,6 +904,14 @@ webshop.ProductView =  class {
 			}
 		}
 		
+		//// Neoffice — the pages are links (#691 lot 2): a crawler follows an <a href>, never a
+		//// button, and the pager was the only way to the catalogue's other pages. The address is
+		//// the one bind_paging_action went to: the URL's own parameters and the page's start.
+		const page_href = (page_start) => {
+			const query_string = this.get_query_string({...query_params, start: page_start});
+			return query_string ? `${window.location.pathname}?${query_string}` : window.location.pathname;
+		};
+
 		let paging_html = `
 			<div class="row product-paging-area mt-5">
 				<div class="col-12 text-center">
@@ -890,11 +921,8 @@ webshop.ProductView =  class {
 		//// Neoffice — previous button (see the block above).
 		// Previous button (except for first page)
 		if (current_page > 1) {
-			//// Neoffice — page buttons carry their data-start (see the block above).
-			paging_html += `
-				<button class="btn btn-default btn-prev" data-start="${(current_page - 2) * page_length}">
-					<svg class="es-icon icon-xs"><use href="#icon-left"></use></svg>
-				</button>`;
+			//// Neoffice — page buttons carry their data-start (see the block above); a link since #691 lot 2 (page_href)
+			paging_html += `<a class="btn btn-default btn-prev" rel="prev" href="${page_href((current_page - 2) * page_length)}" data-start="${(current_page - 2) * page_length}"><svg class="es-icon icon-xs"><use href="#icon-left"></use></svg></a>`;
 		//// Neoffice — see the block above.
 		}
 
@@ -913,9 +941,8 @@ webshop.ProductView =  class {
 
 		// First page and ellipsis if needed
 		if (start_page > 1) {
-			//// Neoffice — first page + ellipsis (see the block above).
-			paging_html += `
-				<button class="btn btn-default btn-page" data-start="0">1</button>`;
+			//// Neoffice — first page + ellipsis (see the block above); a link since #691 lot 2 (page_href)
+			paging_html += `<a class="btn btn-default btn-page" href="${page_href(0)}" data-start="0">1</a>`;
 			if (start_page > 2) {
 				paging_html += `<span class="btn btn-default disabled">...</span>`;
 			}
@@ -925,11 +952,10 @@ webshop.ProductView =  class {
 		for (let i = start_page; i <= end_page; i++) {
 			let is_current = i === current_page;
 			let page_start = (i - 1) * page_length;
-			paging_html += `
-				<button class="btn btn-default btn-page ${is_current ? 'btn-primary' : ''}" 
-					data-start="${page_start}" ${is_current ? 'disabled' : ''}>
-					${i}
-				</button>`;
+			//// Neoffice — the current page is no link (see page_href above)
+			paging_html += is_current
+				? `<span class="btn btn-default btn-page btn-primary" aria-current="page">${i}</span>`
+				: `<a class="btn btn-default btn-page" href="${page_href(page_start)}" data-start="${page_start}">${i}</a>`;
 		}
 
 		//// Neoffice — last page + ellipsis (see the block above).
@@ -938,19 +964,15 @@ webshop.ProductView =  class {
 			if (end_page < total_pages - 1) {
 				paging_html += `<span class="btn btn-default disabled">...</span>`;
 			}
-			paging_html += `
-				<button class="btn btn-default btn-page" data-start="${(total_pages - 1) * page_length}">
-					${total_pages}
-				</button>`;
+			//// Neoffice — the last page, a link since #691 lot 2 (page_href)
+			paging_html += `<a class="btn btn-default btn-page" href="${page_href((total_pages - 1) * page_length)}" data-start="${(total_pages - 1) * page_length}">${total_pages}</a>`;
 		}
 
 		//// Neoffice — next button (see the block above).
 		// Next button (except for last page)
 		if (current_page < total_pages) {
-			paging_html += `
-				<button class="btn btn-default btn-next" data-start="${current_page * page_length}">
-					<svg class="es-icon icon-xs"><use href="#icon-right"></use></svg>
-				</button>`;
+			//// Neoffice — a link since #691 lot 2 (page_href)
+			paging_html += `<a class="btn btn-default btn-next" rel="next" href="${page_href(current_page * page_length)}" data-start="${current_page * page_length}"><svg class="es-icon icon-xs"><use href="#icon-right"></use></svg></a>`;
 		}
 //// Neoffice — the pager is only rendered when there is more than one page, and the
 //// counter says how many products the filters left (see the block above).
@@ -1102,6 +1124,9 @@ webshop.ProductView =  class {
 		$('.btn-prev, .btn-next, .btn-page').on('click', function(e) {
 			const $btn = $(this);
 			const start = $btn.data('start');
+			//// Neoffice — the pages are links now (#691 lot 2); the current one carries no start
+			if (start === undefined) return;
+			e.preventDefault();
 
 			let query_params = frappe.utils.get_query_params();
 			query_params.start = start;
@@ -1132,11 +1157,16 @@ webshop.ProductView =  class {
 			};
 		}
 
+		//// Neoffice — the next batch starts after the page the visitor landed on (#691 lot 2):
+		//// with the pages linked, a visit can begin at ?start=24, and the next batch asked for 12,
+		//// offering the products already on screen again.
+		const landed_on = cint((frappe.utils.get_query_params() || {}).start || 0);
 		// Update start position based on currently loaded products
-		this.infinite_scroll_state.start = current_loaded;
+		this.infinite_scroll_state.start = landed_on + current_loaded;
 
 		// Check if all products are loaded
-		if (current_loaded >= total_count) {
+		//// Neoffice — counted from the page the visit landed on (see landed_on above)
+		if (landed_on + current_loaded >= total_count) {
 			this.infinite_scroll_state.all_loaded = true;
 		}
 
@@ -2310,6 +2340,17 @@ webshop.ProductView =  class {
 	show_product_loader() {
 		// Determine view type from user preference
 		const isGridView = this.preference === "Grid View";
+		//// Neoffice — the server's cards are on screen (#691 lot 2): the areas are prepared,
+		//// hidden, and no skeleton is drawn over the products (drop_ssr_listing shows the view).
+		if (this.ssr_listing) {
+			if (!$('#products-grid-area').length) {
+				this.products_section.append(`
+					<div id="products-list-area" class="row products-list mt-6 ml-2 hidden"></div>
+					<div id="products-grid-area" class="row products-list mt-minus-1 hidden"></div>
+				`);
+			}
+			return;
+		}
 
 		// Always use skeleton loading - provides better visual feedback than overlay spinner
 

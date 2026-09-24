@@ -3,7 +3,7 @@
 # //// reference (neoffice-maintenance#691).
 import frappe
 from frappe import _
-from frappe.utils import comma_and
+from frappe.utils import cint, comma_and
 
 from webshop.webshop.multi_site import site_url
 from webshop.webshop.seo.site import shop_name
@@ -146,5 +146,16 @@ def listing_metatags(context, title, route, locked_field_filters=None):
 		if image:
 			metatags["image"] = image
 	context.metatags = metatags
-	# Filters, sorting, paging and searches all show the same catalogue: one reference address.
-	context.canonical_url = site_url(route)
+	context.canonical_url = listing_canonical(route)
+
+
+def listing_canonical(route) -> str:
+	"""A listing's reference address. Filters and searches show the same catalogue: the plain
+	listing. A page of it is its own reference (`?start=`, since lot 2 links the pages): Google
+	asks each page of a series to be canonical to itself, not to the first, or the products of
+	the other pages are never reached."""
+	form = frappe.form_dict
+	start = cint(form.get("start"))
+	if start > 0 and not any(form.get(key) for key in (*LISTING_PARAMETERS, "price_range")):
+		return site_url(f"{route}?start={start}")
+	return site_url(route)
