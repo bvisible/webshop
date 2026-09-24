@@ -239,13 +239,18 @@ class TestSitemaps(FrappeTestCase):
 					}
 				).insert(ignore_permissions=True)
 		# the fixture groups of a fresh site are not shown on the website: this one is
+		cls.original_group = frappe.db.get_value("Website Item", cls.web_item, "item_group")
 		frappe.db.set_value("Website Item", cls.web_item, {"published": 1, "item_group": CARRYING_GROUP})
 		frappe.db.commit()
 		sitemaps.clear_caches()
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.db.set_value("Website Item", cls.web_item, "item_group", leaf_item_group())
+		# Back to the group it had. leaf_item_group() answers the leaf modified last, which here
+		# is one of the two groups deleted just below: the item was left published in a group
+		# that no longer exists, and the next module reading "the last published item" died on
+		# it (test_product_page, the fleet's Tests workflow, 2026-09-24).
+		frappe.db.set_value("Website Item", cls.web_item, "item_group", cls.original_group or leaf_item_group())
 		for group in (EMPTY_GROUP, CARRYING_GROUP):
 			if frappe.db.exists("Item Group", group):
 				frappe.delete_doc("Item Group", group, force=True, ignore_permissions=True)
