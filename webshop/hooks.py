@@ -68,7 +68,9 @@ scheduler_events = {
 	"daily": [
 		# //// Neoffice — nightly purge of old shop-assistant conversations, except the escalated ones (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
 		"webshop.webshop.assistant.api.purge_old_conversations",
-		"webshop.webshop.utils.frequently_bought_together.calculate_frequently_bought_together"
+		"webshop.webshop.utils.frequently_bought_together.calculate_frequently_bought_together",
+		# //// Neoffice — each site's Google Merchant Center feed, written for Google's daily fetch (#691 lot 3)
+		"webshop.webshop.seo.feeds.google.generate_feeds",
 	],
 	# //// Neoffice — abandoned carts: one look per hour at the carts left behind
 	"hourly": ["webshop.webshop.utils.abandoned_carts.send_abandoned_cart_reminders"],
@@ -290,7 +292,9 @@ website_route_rules = [
 ]
 
 page_renderer = [
-	"webshop.webshop.page_renderers.maintenance_renderer.MaintenancePageRenderer"
+	"webshop.webshop.page_renderers.maintenance_renderer.MaintenancePageRenderer",
+	# //// Neoffice — each site's Google Merchant Center feed, /feeds/google.xml (#691 lot 3)
+	"webshop.webshop.seo.feeds.google.FeedRenderer",
 ]
 
 jinja = {

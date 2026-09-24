@@ -36,6 +36,10 @@ class WebshopSettings(Document):
 		# //// same item is rejected. Done here so activating the feature is
 		# //// self-contained instead of relying on a fleet-wide patch.
 		self.validate_multi_warehouse()
+		# //// Neoffice — the Google Shopping feed's address carries a token (seo/feeds/google.py,
+		# //// #691 lot 3): drawn once, when the feed is switched on, and kept.
+		if self.get("enable_google_feed") and not self.get("google_feed_token"):
+			self.google_feed_token = frappe.generate_hash(length=24)
 
 		# Cascade-disable the options
 		if not self.enabled:
