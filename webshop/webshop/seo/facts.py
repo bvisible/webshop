@@ -132,6 +132,13 @@ def offer_facts(doc, context, url: str, availability: str) -> frappe._dict | Non
 		return None
 	if doc.get("is_gift_card"):
 		return None
+	# A model's page prints no price: its buy column is the variant selector, which prices a
+	# variant once one is chosen (item_details.html). Declaring the cheapest variant's price
+	# here was the mismatch Google refuses — measured on osiris, a polo's page offering 39.00
+	# in its JSON-LD and nowhere in its HTML (2026-09-24). The variants' own offers belong in
+	# a ProductGroup (decision D-1 of the SEO plan).
+	if doc.get("has_variants"):
+		return None
 	# item_add_to_cart.html prints price_list_rate × conversion_factor as THE price
 	amount = flt(price.get("price_list_rate")) * flt(price.get("conversion_factor") or 1)
 	if amount <= 0:

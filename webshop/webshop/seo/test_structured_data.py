@@ -75,6 +75,8 @@ class TestOffer(FrappeTestCase):
 		self.assertIsNone(_offer({"price_list_rate": 0, "currency": "CHF"}))
 		# a gift card's page offers amounts to choose, not the item's price
 		self.assertIsNone(_offer(price, is_gift_card=1))
+		# a model's page shows the variant selector, not a price
+		self.assertIsNone(_offer(price, has_variants=1))
 
 	def test_a_struck_price_only_when_the_page_strikes_it(self):
 		sale = {"price_list_rate": 90, "currency": "CHF", "mrp": 100, "formatted_mrp": "CHF 100.00"}
