@@ -22,6 +22,14 @@ frappe.ui.form.on('Website Item', {
 		frm.add_custom_button(__("Webshop Settings"), function() {
 			frappe.set_route("Form", "Webshop Settings");
 		}, __("View"));
+
+		//// Neoffice — what Google Shopping gets of this product, and what would make its listing
+		//// better: the report Catalogue Ready for Google, on this item (#691 lot 6)
+		if (!frm.is_new()) {
+			frm.add_custom_button(__("Google Shopping"), function() {
+				frappe.set_route("query-report", "Catalogue Ready for Google", { website_item: frm.doc.name });
+			}, __("View"));
+		}
 	},
 
 	copy_from_item_group: (frm) => {

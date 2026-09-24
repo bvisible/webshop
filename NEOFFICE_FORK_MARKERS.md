@@ -231,6 +231,7 @@ French shop.
 - `webshop/webshop/doctype/store_opening_hours/store_opening_hours.json` — new child table (`weekday`, `opens`, `closes`), one row per opening range (two for a day with a lunch break) — no upstream equivalent (afaa23b6d8 "feat(magasin): les horaires d'ouverture, saisis dans les réglages et affichés partout")
 - `webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.json` — new report (by day or by customer, with the estimated cost) that the assistant service is billed from — no upstream equivalent (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
 - `webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.json` — new report: the visits AI assistants sent (by referrer host or utm_source, from Web Page View), by assistant, page or day — the measure of the GEO work, neoffice-maintenance#691 lot 4 — no upstream equivalent
+- `webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.json` — new prepared report: every published product of a site as the Google feed sees it (sent, or left out and why) with what would make its listing better — neoffice-maintenance#691 lot 6 — no upstream equivalent
 
 ---
 
@@ -272,6 +273,7 @@ webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
 webshop/webshop/doctype/website_item/website_item.json
 webshop/webshop/doctype/website_item_video/website_item_video.json
 webshop/webshop/doctype/website_item_warehouse_source/website_item_warehouse_source.json
+webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.json
 webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.json
 webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.json
 webshop/webshop/workspace/webshop/webshop.json

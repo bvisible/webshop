@@ -8471,3 +8471,83 @@ msgstr "Jour"
 #: webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.py
 msgid "View tracking is off in Website Settings: no visit is recorded, from an assistant or from anyone else."
 msgstr "Le suivi des vues est désactivé dans Paramètres du site web : aucune visite n'est enregistrée, qu'elle vienne d'un assistant ou de quelqu'un d'autre."
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "no GTIN or MPN: Google shows a branded product less often without one"
+msgstr "aucun GTIN ni MPN : sans cela, Google montre moins souvent un article de marque"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "no brand"
+msgstr "aucune marque"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "a description under {0} characters"
+msgstr "une description de moins de {0} caractères"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "a name longer than {0} characters, cut in the feed"
+msgstr "un nom de plus de {0} caractères, tronqué dans le flux"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "a single picture: add other views"
+msgstr "une seule photo : ajoutez d'autres vues"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "a main picture under {0} px"
+msgstr "une photo principale de moins de {0} px"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "no Google product category on its item group"
+msgstr "aucune catégorie de produit Google sur son groupe d'articles"
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "This site"
+msgstr "Ce site"
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "This report runs in the background: open it from its page."
+msgstr "Ce rapport s'exécute en arrière-plan : ouvrez-le depuis sa page."
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "This site has no feed: {0}."
+msgstr "Ce site n'a pas de flux : {0}."
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Sent to Google"
+msgstr "Envoyé à Google"
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Left out"
+msgstr "Écarté"
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "With suggestions"
+msgstr "Avec suggestions"
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Why left out"
+msgstr "Pourquoi écarté"
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "To show it at its best"
+msgstr "Pour le présenter au mieux"
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Price sent"
+msgstr "Prix envoyé"
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Availability sent"
+msgstr "Disponibilité envoyée"
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Pictures"
+msgstr "Photos"
+
+#: webshop/webshop/workspace/webshop/webshop.json
+msgid "Search engines and AI"
+msgstr "Moteurs de recherche et IA"
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.json
+msgid "Catalogue Ready for Google"
+msgstr "Catalogue prêt pour Google"

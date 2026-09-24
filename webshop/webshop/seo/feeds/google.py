@@ -66,6 +66,50 @@ def reason_label(reason: str) -> str:
 	}.get(reason, reason)
 
 
+# What would make a sent item's listing better (the report Catalogue Ready for Google, lot 6).
+# Google's own thresholds: a description is worth 500 characters and more; 150 is where a listing
+# starts to say something. A picture should be 800 px on each side.
+SHORT_DESCRIPTION = 150
+GOOD_PICTURE = 800
+
+
+def entry_warnings(entry: dict, doc, first_picture: str | None = None) -> list[str]:
+	"""What the feed's item lacks to be shown at its best, as codes (warning_label)."""
+	from webshop.webshop.utils.renditions import picture_size
+
+	warnings = []
+	if entry.get("identifier_exists") == "no":
+		warnings.append("no_identifier")
+	if not entry.get("brand"):
+		warnings.append("no_brand")
+	description = (entry.get("description") or "").strip()
+	if len(description) < SHORT_DESCRIPTION or description == (entry.get("title") or "").strip():
+		warnings.append("short_description")
+	if len(doc.get("web_item_name") or "") > MAX_TITLE:
+		warnings.append("title_cut")
+	if not entry.get("additional_image_link"):
+		warnings.append("one_picture")
+	size = picture_size(first_picture) if first_picture else None
+	if size and min(size) < GOOD_PICTURE:
+		warnings.append("small_picture")
+	if not entry.get("google_product_category"):
+		warnings.append("no_category")
+	return warnings
+
+
+def warning_label(code: str) -> str:
+	"""What would make the listing better, as the report says it."""
+	return {
+		"no_identifier": _("no GTIN or MPN: Google shows a branded product less often without one"),
+		"no_brand": _("no brand"),
+		"short_description": _("a description under {0} characters").format(SHORT_DESCRIPTION),
+		"title_cut": _("a name longer than {0} characters, cut in the feed").format(MAX_TITLE),
+		"one_picture": _("a single picture: add other views"),
+		"small_picture": _("a main picture under {0} px").format(GOOD_PICTURE),
+		"no_category": _("no Google product category on its item group"),
+	}.get(code, code)
+
+
 # ---------------------------------------------------------------------------------------------
 # The sites
 
