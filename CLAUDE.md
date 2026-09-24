@@ -986,8 +986,13 @@ defects in neoffice-maintenance#691.
 - **The pictures seen first load first** (lot 5): a listing's first page loads its first row at
   once (`attach_cards(eager=FIRST_ROW)` in `api.get_product_filter_data`), its first picture with
   `fetchpriority="high"`; the product page announces its first picture in the head
-  (`<link rel="preload">`), since in the body it comes after some 320 kB of Frappe's inline icon
-  sprites (`frappe/templates/base.html`, a fork change for later). Every other picture stays lazy.
+  (`<link rel="preload">`). Every other picture stays lazy.
+- **Frappe's icon sprites are fetched, not printed** (frappe `6196fd2c5a`, lot 5): `base.html`
+  included 117 + 203 kB of SVG sprites inline at the top of every website page. It now fetches
+  them as the desk already did (`www/app.html`), under the build's version (`build_version`, which
+  `base_template_page.py` now gives every page, a product page included), into a hidden
+  `#all-symbols`. Pages went from 452–523 kB to 133–204 kB on osiris, icons unchanged in the
+  visual harness. A crawler reads the page's own content first.
 - **A background job starts in English**, whatever the site speaks: `background_jobs.py` sets no
   language. Text a job writes for a person goes through `frappe.set_user_lang(user)` first, and
   `frappe.local.lang` is given back in a `finally` (`seo/feeds/google.py::generate_feeds`: the
