@@ -8220,6 +8220,7 @@ msgstr "{0} : {1} produits."
 msgid "{0}: {1} products, including {2}."
 msgstr "{0} : {1} produits, dont {2}."
 
+msgctxt "Shop name in a page description"
 msgid "{0} at {1}"
 msgstr "{0} chez {1}"
 

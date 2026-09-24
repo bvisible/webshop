@@ -8138,6 +8138,7 @@ msgstr ""
 msgid "{0}: {1} products, including {2}."
 msgstr ""
 
+msgctxt "Shop name in a page description"
 msgid "{0} at {1}"
 msgstr ""
 

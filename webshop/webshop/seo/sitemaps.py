@@ -30,6 +30,9 @@ CACHE_TTL = 6 * 60 * 60
 # Builder pages that are pieces of the site chrome, not pages of their own.
 CHROME_KEYWORDS = ("footer", "navbar", "header", "navigation", "menu")
 
+# The shop's listing pages (webshop/www), listed when they have something to show.
+SHOP_LISTINGS = ("all-products", "shop-by-category", "occasions")
+
 
 def index_entries():
 	"""The sitemaps the index lists, on the domain of the site being browsed."""
@@ -183,21 +186,28 @@ def _page_links(website_profile=None):
 			link["images"] = [{"loc": _file_loc(image)}]
 		links[loc] = link
 
-	for page in _builder_pages(website_profile):
-		add(page.route, page.modified, page.meta_image)
-
-	for page in frappe.get_all(
-		"Web Page", filters={"published": 1}, fields=["route", "modified", "meta_image"]
-	):
-		if page.route:
+	try:
+		for page in _builder_pages(website_profile):
 			add(page.route, page.modified, page.meta_image)
+	except Exception:
+		# One source that fails must not take the whole sitemap down (it answered 500).
+		frappe.log_error("Sitemap: Builder pages skipped", frappe.get_traceback())
 
-	from frappe.website.router import get_pages
+	try:
+		for page in frappe.get_all(
+			"Web Page", filters={"published": 1}, fields=["route", "modified", "meta_image"]
+		):
+			if page.route:
+				add(page.route, page.modified, page.meta_image)
+	except Exception:
+		frappe.log_error("Sitemap: Web Pages skipped", frappe.get_traceback())
 
-	for route, page in get_pages().items():
-		if not page.get("sitemap") or not _listing_has_products(route):
-			continue
-		add(route)
+	# The shop's own listings, named rather than discovered: frappe.website.router.get_pages()
+	# walks every app's www folder, and one unreadable file anywhere in them (macOS "._" files
+	# copied onto a server, osiris 2026-09-24) makes it raise, and this sitemap with it.
+	for route in SHOP_LISTINGS:
+		if _listing_has_products(route):
+			add(route)
 
 	for doctype, route, field in (("Contact Us Settings", "contact", "heading"), ("About Us Settings", "about", "page_title")):
 		try:

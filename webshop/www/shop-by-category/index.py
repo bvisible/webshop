@@ -27,7 +27,8 @@ def get_context(context):
 	_total, _brands = catalogue_summary()
 	if _total:
 		_name = shop_name()
-		_subject = _("{0} at {1}").format(context.title, _name) if _name else context.title
+		# //// Neoffice — the context keeps suite's "{0} à {1}" (a time) away from this string.
+		_subject = _("{0} at {1}", context="Shop name in a page description").format(context.title, _name) if _name else context.title
 		context.metatags = frappe._dict(context.get("metatags") or {})
 		context.metatags["description"] = summary_description(_subject, _total, _brands)
 

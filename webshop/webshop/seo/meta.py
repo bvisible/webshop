@@ -135,7 +135,9 @@ def first_product_image(item_groups=None, extra_filters=None):
 def listing_metatags(context, title, route, locked_field_filters=None):
 	"""Description, picture and canonical address of a product listing (/all-products, /occasions)."""
 	name = shop_name()
-	subject = _("{0} at {1}").format(title, name) if name else title
+	# The context keeps this string apart from another app's "{0} at {1}" (a time: "à"), which
+	# Frappe's merged catalogue would otherwise lend it: "Tous les produits à <boutique>".
+	subject = _("{0} at {1}", context="Shop name in a page description").format(title, name) if name else title
 	total, brands = catalogue_summary(extra_filters=locked_field_filters)
 	metatags = frappe._dict(context.get("metatags") or {})
 	if total:
