@@ -124,6 +124,36 @@ test.describe('The shop as a crawler reads it', () => {
 		expect(metaContent(searched.body, 'robots')).toBe('noindex, follow');
 	});
 
+	test('a listing carries its first products and real links to its other pages', async ({request}) => {
+		//// A category, /all-products and /occasions held no product and no page link in their HTML:
+		//// the script drew every card and the pager was made of buttons, so a crawler that runs no
+		//// JavaScript found an empty shop (#691 lot 2, D14; includes/listing_ssr.html).
+		const cards = (html) => [
+			...new Set([...html.matchAll(/<a href="([^"]+)" class="wsp-card__link"/g)].map((m) => m[1])),
+		];
+		const serverListing = (html) => html.split('class="wsp-ssr-listing"')[1] || '';
+
+		const first = await fetchRaw(request, '/all-products');
+		expect(first.status).toBe(200);
+		const pageOne = cards(serverListing(first.body));
+		expect(pageOne.length, 'products in the HTML of /all-products').toBeGreaterThan(0);
+
+		const next = serverListing(first.body).match(/href="([^"]+\?start=\d+)" rel="next"/);
+		if (next) {
+			const second = await fetchRaw(request, next[1].replace(/&amp;/g, '&'));
+			expect(second.status).toBe(200);
+			expect(second.body, 'a page of a series is its own canonical').toMatch(
+				/<link rel="canonical" href="https?:\/\/[^"]+\?start=\d+">/
+			);
+			const pageTwo = cards(serverListing(second.body));
+			expect(pageTwo.length, 'products on page 2').toBeGreaterThan(0);
+			expect(pageTwo.filter((url) => pageOne.includes(url)), 'page 2 shows other products').toHaveLength(0);
+		}
+
+		const beyond = await fetchRaw(request, '/all-products?start=999999');
+		expect(beyond.status, 'a page beyond the last one does not exist').toBe(404);
+	});
+
 	test('every page names one icon Google reads, and /favicon.ico answers it', async ({request}) => {
 		//// Google prints a site's icon next to its name and reads ICO, PNG, GIF, JPEG, BMP, PPM
 		//// or TIFF, never an SVG. A Builder page named Neoffice's SVG while the shop's pages of the

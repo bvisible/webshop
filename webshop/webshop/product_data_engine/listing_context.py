@@ -78,6 +78,16 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
 
 	check_and_merge_guest_cart()
+	# //// Neoffice — the first page on the server, once the cart is the visitor's own (a card says
+	# //// "in cart"): see server_listing below (#691 lot 2). A page beyond the last one answers 404
+	# //// through the page's own status: frappe renders a PageDoesNotExistError raised during the
+	# //// render at the request's status, 200 (serve.handle_exception), a soft 404.
+	try:
+		context.listing_ssr = server_listing(listing_route, locked_field_filters=locked_field_filters)
+	except frappe.PageDoesNotExistError:
+		context.listing_ssr = None
+		context.http_status_code = 404
+		context.metatags["robots"] = "noindex, follow"
 	return context
 
 
@@ -140,3 +150,78 @@ def quick_order_url():
 		return "/quick-order" if quick_order_offered() else ""
 	except Exception:
 		return ""
+
+
+# //// Neoffice — added (2026-09-24, neoffice-maintenance#691 lot 2, D14): the first page of a
+# //// listing, rendered on the server. The grid was drawn by the script alone: a crawler that runs
+# //// no JavaScript (every AI crawler, and Googlebot before it renders) found no product on a
+# //// category, on /all-products or on /occasions, and no link to their other pages — the pager
+# //// was made of buttons. The page now carries the cards and real <a href> page links
+# //// (templates/includes/listing_ssr.html); the script keeps them on screen until its own first
+# //// result replaces them (views.js, drop_ssr_listing).
+PAGER_WINDOW = 7
+# what the listing asks the API when it narrows the catalogue: such a listing stays the script's
+NARROWING_PARAMETERS = ("search", "field_filters", "attribute_filters", "price_range")
+
+
+def server_listing(route, item_group=None, locked_field_filters=None):
+	"""The products a listing shows first, as the script's first query finds them for a visitor
+	with no preference of their own (views.js get_query_filters): the locked filters, the stock
+	toggle when the shop ticks it by default, the shop's default sort, the page `?start=` asks
+	for. None for a searched or filtered listing. A page beyond the last one does not exist."""
+	form = frappe.form_dict
+	if any(form.get(key) for key in NARROWING_PARAMETERS):
+		return None
+	settings = frappe.get_cached_doc("Webshop Settings")
+	page_length = cint(settings.get("products_per_page")) or 20
+	start = max(cint(form.get("start")), 0)
+	field_filters = {key: list(values) for key, values in (locked_field_filters or {}).items()}
+	if settings.get("enable_stock_filter") and settings.get("stock_filter_default_checked"):
+		field_filters["in_stock"] = ["1"]
+	from webshop.webshop.api import get_product_filter_data
+
+	result = get_product_filter_data(
+		{
+			"field_filters": field_filters,
+			"attribute_filters": {},
+			"start": start,
+			"item_group": item_group,
+			"sort_order": settings.get("default_product_sort") or "relevance",
+		}
+	)
+	cards = [item.get("card_html") for item in result.get("items") or [] if item.get("card_html")]
+	if start and not cards:
+		raise frappe.PageDoesNotExistError
+	total = cint(result.get("total_count")) or len(cards)
+	return frappe._dict(cards=cards, start=start, total=total, pager=pager(route, start, page_length, total))
+
+
+def pager(route, start, page_length, total):
+	"""Links to the listing's pages, in the script's own window (views.js add_paging_section):
+	previous, the first, seven around the current one, the last, next. None for one page."""
+	pages = -(-total // page_length) if page_length > 0 else 0
+	if pages <= 1:
+		return None
+	current = min(start // page_length + 1, pages)
+
+	def href(page):
+		return route if page == 1 else f"{route}?start={(page - 1) * page_length}"
+
+	last = min(pages, max(1, current - PAGER_WINDOW // 2) + PAGER_WINDOW - 1)
+	first = max(1, last - PAGER_WINDOW + 1)
+	links = []
+	if current > 1:
+		links.append(frappe._dict(label="‹", href=href(current - 1), rel="prev", aria=_("Previous")))
+	if first > 1:
+		links.append(frappe._dict(label="1", href=href(1)))
+		if first > 2:
+			links.append(frappe._dict(gap=True))
+	for page in range(first, last + 1):
+		links.append(frappe._dict(label=str(page), href=href(page), current=page == current))
+	if last < pages:
+		if last < pages - 1:
+			links.append(frappe._dict(gap=True))
+		links.append(frappe._dict(label=str(pages), href=href(pages)))
+	if current < pages:
+		links.append(frappe._dict(label="›", href=href(current + 1), rel="next", aria=_("Next")))
+	return frappe._dict(links=links, current=current, pages=pages)

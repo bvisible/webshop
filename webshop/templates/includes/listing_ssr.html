@@ -1,0 +1,41 @@
+{#- //// Neoffice — added file (no upstream equivalent): the first page of a listing, rendered on the
+    server (product_data_engine/listing_context.py server_listing; 2026-09-24, neoffice-maintenance#691
+    lot 2, D14). A crawler that runs no JavaScript found no product and no page link on a listing.
+    The cards are the API's own (utils/product_card.py); the page links are real links. The script
+    keeps all of it on screen until its own first result replaces it (views.js drop_ssr_listing).
+    No .btn-prev/.btn-next here: an old handler of the listing templates binds those at page load
+    and would send ?start=undefined. The look is the script's pager (.btn-page, the same icons). -#}
+{%- if listing_ssr and listing_ssr.cards %}
+<div class="wsp-ssr-listing">
+	{#- no mt-minus-1: the script's grid gets a 10px top margin from its loader styles; here the
+	    reserved toolbar space (webshop_catalogue.scss) puts the cards where the script's will be #}
+	<div class="row products-list">
+		{%- for card in listing_ssr.cards %}
+		{{ card }}
+		{%- endfor %}
+	</div>
+	{%- if listing_ssr.pager %}
+	<nav class="row product-paging-area mt-5 wsp-ssr-pager" aria-label="{{ _('Pages') }}">
+		<div class="col-12 text-center">
+			<div class="btn-group">
+				{%- for link in listing_ssr.pager.links %}
+				{%- if link.gap %}
+				<span class="btn btn-default disabled">…</span>
+				{%- elif link.current %}
+				<span class="btn btn-default btn-page btn-primary" aria-current="page">{{ link.label }}</span>
+				{%- elif link.rel %}
+				<a class="btn btn-default btn-page" href="{{ link.href }}" rel="{{ link.rel }}" aria-label="{{ link.aria }}"><svg class="es-icon icon-xs"><use href="#icon-{{ 'left' if link.rel == 'prev' else 'right' }}"></use></svg></a>
+				{%- else %}
+				<a class="btn btn-default btn-page" href="{{ link.href }}">{{ link.label }}</a>
+				{%- endif %}
+				{%- endfor %}
+			</div>
+			<div class="mt-3 text-muted">
+				{{ _("Page {0} of {1}").format(listing_ssr.pager.current, listing_ssr.pager.pages) }}
+				<i>({{ listing_ssr.total }} {{ _("products") }})</i>
+			</div>
+		</div>
+	</nav>
+	{%- endif %}
+</div>
+{%- endif %}
