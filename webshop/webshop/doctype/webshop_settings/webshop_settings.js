@@ -854,3 +854,32 @@ function fill_store_holiday_help(frm) {
 		)} ${__("Fetched from openholidaysapi.org; nothing is called while a visitor loads a page.")}</p>`;
 	help.refresh_input();
 }
+
+//// Neoffice — the Google Shopping tab (#691 lot 3): write every site's feed now, instead of
+//// waiting for the night, and read what went and what did not (seo/feeds/google.py).
+frappe.ui.form.on("Webshop Settings", {
+	refresh(frm) {
+		if (!frm.doc.enable_google_feed || frm.is_dirty()) return;
+		frm.add_custom_button(
+			__("Write the Google Shopping feed now"),
+			() => {
+				frappe.dom.freeze(__("Writing the feed…"));
+				frappe.call({
+					method: "webshop.webshop.seo.feeds.google.generate_now",
+					callback(r) {
+						frappe.dom.unfreeze();
+						frm.reload_doc();
+						frappe.msgprint({
+							title: __("Google Shopping feed"),
+							message: `<pre style="white-space: pre-wrap">${frappe.utils.escape_html(r.message || "")}</pre>`,
+						});
+					},
+					error() {
+						frappe.dom.unfreeze();
+					},
+				});
+			},
+			__("Google Shopping")
+		);
+	},
+});

@@ -325,6 +325,8 @@ CHAMPS_A_CREER_A_L_INSTALLATION = [
 	# //// Neoffice — the shop's promises on Website Profile (a per-site override of Webshop
 	# //// Settings); a patch that creates a field belongs here, install-app skips patches.txt.
 	"add_promise_fields_to_website_profile",
+	# //// Neoffice — the Google Shopping fields of Item Group (#691 lot 3)
+	"add_google_shopping_fields",
 ]
 
 

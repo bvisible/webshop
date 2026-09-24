@@ -166,6 +166,16 @@
   "column_break_follow_up",
   "follow_up_status",
   "follow_up_note",
+  "tab_google_shopping",
+  "google_feed_section",
+  "enable_google_feed",
+  "google_feed_include_second_hand",
+  "google_feed_column",
+  "google_feed_token",
+  "google_feed_attribute_map",
+  "google_feed_report_section",
+  "google_feed_generated_on",
+  "google_feed_report",
   "tab_advanced",
   "sitemap_section",
   "sitemap_info",
@@ -573,6 +583,68 @@
    "fieldtype": "HTML",
    "label": "",
    "options": "<p>Which purchase, how many days later, which template: <a href=\"/app/purchase-follow-up\">Purchase Follow-up</a>. Emails go out every morning at 08:15; what a customer received shows in the customer's timeline and in <a href=\"/app/purchase-follow-up-entry\">Purchase Follow-up Entry</a>.</p>"
+  },
+  {
+   "fieldname": "tab_google_shopping",
+   "fieldtype": "Tab Break",
+   "label": "Google Shopping"
+  },
+  {
+   "description": "Each site's product feed for Google Merchant Center, written every night and served at /feeds/google.xml?token=… on the site's domain. A site that hides its prices from visitors, or serves business accounts only, has none.",
+   "fieldname": "google_feed_section",
+   "fieldtype": "Section Break",
+   "label": "Product Feed"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_google_feed",
+   "fieldtype": "Check",
+   "label": "Enable the Google Shopping Feed"
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_google_feed",
+   "fieldname": "google_feed_include_second_hand",
+   "fieldtype": "Check",
+   "label": "Send Second-hand Units"
+  },
+  {
+   "fieldname": "google_feed_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "enable_google_feed",
+   "description": "Part of the feed's address: whoever does not know it gets nothing.",
+   "fieldname": "google_feed_token",
+   "fieldtype": "Data",
+   "label": "Feed Token",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "enable_google_feed",
+   "description": "One per line, \"attribute = color\": color, size, material, pattern, gender or age_group. The common names (Couleur, Taille, Farbe, Size…) are recognised without it.",
+   "fieldname": "google_feed_attribute_map",
+   "fieldtype": "Small Text",
+   "label": "Variant Attributes"
+  },
+  {
+   "depends_on": "enable_google_feed",
+   "fieldname": "google_feed_report_section",
+   "fieldtype": "Section Break",
+   "label": "Last Feed"
+  },
+  {
+   "fieldname": "google_feed_generated_on",
+   "fieldtype": "Datetime",
+   "label": "Written On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "google_feed_report",
+   "fieldtype": "Small Text",
+   "label": "Report",
+   "read_only": 1
   },
   {
    "fieldname": "tab_advanced",
@@ -1341,7 +1413,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-05 09:40:00.000000",
+ "modified": "2026-09-24 18:20:50.036388",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

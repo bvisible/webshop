@@ -294,7 +294,8 @@ jobs:
             webshop.webshop.seo.test_seo \
             webshop.webshop.seo.test_structured_data \
             webshop.webshop.seo.test_listing_ssr \
-            webshop.webshop.tests.test_public_settings
+            webshop.webshop.tests.test_public_settings \
+            webshop.webshop.seo.feeds.test_google_feed
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || echec="$echec $m"

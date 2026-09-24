@@ -14,6 +14,7 @@
   "variant_of",
   "published",
   "sold",
+  "exclude_from_google_shopping",
   "is_gift_card",
   "column_break_3",
   "item_code",
@@ -150,6 +151,13 @@
    "fieldtype": "Check",
    "label": "Sold",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Keeps this product out of the Google Merchant Center feed.",
+   "fieldname": "exclude_from_google_shopping",
+   "fieldtype": "Check",
+   "label": "Exclude from Google Shopping"
   },
   {
    "default": "0",
@@ -446,7 +454,7 @@
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2026-09-14 01:30:00.000000",
+ "modified": "2026-09-24 18:20:34.638683",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Website Item",
