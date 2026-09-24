@@ -4,7 +4,8 @@
 //// compares a feed with. Every assertion pins a defect measured on 2026-09-24
 //// (neoffice-maintenance#691): a second Product in microdata carrying the prices of
 //// other products, og:site_name "ERPNext", a robots.txt with no sitemap, a sitemap
-//// with no product, listings with no canonical, a search page answering 417.
+//// with no product, listings with no canonical, a search page answering 417, an SVG icon
+//// Google cannot read and a /favicon.ico answering 404 (the icon is builder's, site_icon.py).
 
 const {test, expect} = require('@playwright/test');
 
@@ -121,6 +122,34 @@ test.describe('The shop as a crawler reads it', () => {
 		}
 		const searched = await fetchRaw(request, '/all-products?search=a');
 		expect(metaContent(searched.body, 'robots')).toBe('noindex, follow');
+	});
+
+	test('every page names one icon Google reads, and /favicon.ico answers it', async ({request}) => {
+		//// Google prints a site's icon next to its name and reads ICO, PNG, GIF, JPEG, BMP, PPM
+		//// or TIFF, never an SVG. A Builder page named Neoffice's SVG while the shop's pages of the
+		//// same domain named another icon (D27), and /favicon.ico, which browsers and crawlers ask
+		//// for whatever a page says, answered 404 (D28).
+		const paths = ['/', '/all-products'];
+		const product = firstLoc((await fetchRaw(request, '/sitemap_products.xml')).body);
+		if (product) paths.push(product.replace(/^https?:\/\/[^/]+/, ''));
+
+		const named = new Set();
+		for (const path of paths) {
+			const page = await fetchRaw(request, path);
+			const links = [...page.body.matchAll(/<link\b[^>]*\brel="(?:shortcut )?icon"[^>]*>/g)].map((m) => m[0]);
+			expect(links.length, `${path} names an icon`).toBeGreaterThan(0);
+			for (const link of links) {
+				expect(link, `${path}: an SVG icon is invisible to Google`).not.toMatch(/image\/svg\+xml|\.svg(["?])/);
+				named.add(link.match(/href="([^"]+)"/)[1].replace(/&amp;/g, '&').replace(/^https?:\/\/[^/]+/, ''));
+			}
+		}
+		expect([...named], 'one icon for the whole domain').toHaveLength(1);
+
+		for (const url of [...named, '/favicon.ico']) {
+			const icon = await request.get(url, {headers: {'User-Agent': CRAWLER}});
+			expect(icon.status(), url).toBe(200);
+			expect(icon.headers()['content-type'], url).toMatch(/^image\/(png|x-icon|vnd\.microsoft\.icon|gif|jpeg|bmp)/);
+		}
 	});
 
 	test('private pages are not indexed, and the dead search page redirects', async ({request}) => {
