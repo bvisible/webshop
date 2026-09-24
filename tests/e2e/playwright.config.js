@@ -65,8 +65,9 @@ module.exports = defineConfig({
 			//// way a visitor of a client's shop sees them.
 			//// Neoffice — 16-account-lifecycle added: it creates an account through the
 			//// dialog, which is a visitor's path, and deletes it afterwards.
+			//// Neoffice — 17-seo-crawler-view added: a crawler has no session either.
 			testMatch:
-				/(01-authentication|07-new-customer|08-assistant|10-quick-order|11-contrast|12-variants|16-account-lifecycle)\.spec\.js/,
+				/(01-authentication|07-new-customer|08-assistant|10-quick-order|11-contrast|12-variants|16-account-lifecycle|17-seo-crawler-view)\.spec\.js/,
 			use: {...devices['Desktop Chrome']},
 		},
 		{
@@ -77,7 +78,7 @@ module.exports = defineConfig({
 			//// its own customer): leaving them here made eleven specs fail for the
 			//// sole reason that the session wasn't the right one.
 			testIgnore:
-				/(01-authentication|06-checkout-b2b|07-new-customer|08-multi-site|09-business-account-request|16-account-lifecycle)\.spec\.js/,
+				/(01-authentication|06-checkout-b2b|07-new-customer|08-multi-site|09-business-account-request|16-account-lifecycle|17-seo-crawler-view)\.spec\.js/,
 			use: {...devices['Desktop Chrome'], storageState: SESSION},
 		},
 		{

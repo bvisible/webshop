@@ -250,7 +250,9 @@
 	{#- //// Neoffice — plain text with its paragraphs (jsonld_description, see above, #691) #}
 	"description": {{ (jsonld_description or "") | tojson }},
 	"url": {{ frappe.utils.get_url(doc.route) | tojson }}
-	{%- if _price.get('price_list_rate') %},
+	{#- //// Neoffice — no offer for a gift card: its page shows amounts to choose, not this price, #}
+	{#- //// and structured data must describe what the page shows (2026-09-24, #691). #}
+	{%- if _price.get('price_list_rate') and not doc.is_gift_card %},
 	"offers": {
 		"@type": "Offer",
 		"url": {{ frappe.utils.get_url(doc.route) | tojson }},
