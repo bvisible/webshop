@@ -8389,3 +8389,83 @@ msgstr ""
 #: webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.py
 msgid "View tracking is off in Website Settings: no visit is recorded, from an assistant or from anyone else."
 msgstr ""
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "no GTIN or MPN: Google shows a branded product less often without one"
+msgstr ""
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "no brand"
+msgstr ""
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "a description under {0} characters"
+msgstr ""
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "a name longer than {0} characters, cut in the feed"
+msgstr ""
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "a single picture: add other views"
+msgstr ""
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "a main picture under {0} px"
+msgstr ""
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "no Google product category on its item group"
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "This site"
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "This report runs in the background: open it from its page."
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "This site has no feed: {0}."
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Sent to Google"
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Left out"
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "With suggestions"
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Why left out"
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "To show it at its best"
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Price sent"
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Availability sent"
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Pictures"
+msgstr ""
+
+#: webshop/webshop/workspace/webshop/webshop.json
+msgid "Search engines and AI"
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.json
+msgid "Catalogue Ready for Google"
+msgstr ""

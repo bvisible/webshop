@@ -1042,6 +1042,14 @@ defects in neoffice-maintenance#691.
 - **`ci.yml` cannot run on a working branch by hand**: it installs the frappe branch named like
   the ref (`github.base_ref || github.ref_name`), so a `workflow_dispatch` on `seo/…` dies at
   the install. Open a draft pull request against `version-15` instead.
+- **What Google gets, product by product** (lot 6): the prepared report `Catalogue Ready for
+  Google` runs the feed's own rules (`item_entry`, as a visitor of each site) and says, for every
+  published product, whether it is sent, why not, and what would make its listing better
+  (`entry_warnings`: GTIN or MPN, brand, description, pictures, Google category).
+  - It runs as a background job: `serving()` switches the user, which a web request must never do,
+    and `execute()` refuses to run inside one.
+  - Website Item's *View → Google Shopping* opens it on that product. The workspace's "Search
+    engines and AI" card links it with the AI visits report.
 - `tests/e2e/specs/17-seo-crawler-view.spec.js` reads the pages with no JavaScript, the way AI
   crawlers and Google Shopping's checks do.
 
