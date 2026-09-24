@@ -160,7 +160,7 @@ class TestProductGraph(FrappeTestCase):
 		)
 
 	def graph(self, policies=None, name="Atelier Test", **overrides):
-		policies = frappe._dict(returns=False, shipping=False, **(policies or {}))
+		policies = frappe._dict({"returns": False, "shipping": False, **(policies or {})})
 		with patch("webshop.webshop.seo.jsonld.site_policies", return_value=policies), patch(
 			"webshop.webshop.seo.site.shop_name", return_value=name
 		):
