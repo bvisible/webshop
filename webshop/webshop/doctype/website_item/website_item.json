@@ -60,6 +60,8 @@
   "set_meta_tags",
   "seo_title",
   "seo_description",
+  "seo_ai_assisted",
+  "seo_ai_assisted_on",
   "seo_preview",
   "column_break_22",
   "website_item_groups",
@@ -443,6 +445,20 @@
    "fieldtype": "Small Text",
    "label": "Description for search engines",
    "description": "About 160 characters show in Google's results. Empty: the start of the product's description."
+  },
+  {
+   "fieldname": "seo_ai_assisted",
+   "fieldtype": "Check",
+   "label": "Written with AI assistance",
+   "read_only": 1,
+   "description": "Set when a proposal from Nora filled these fields: the merchant decides, the document remembers."
+  },
+  {
+   "fieldname": "seo_ai_assisted_on",
+   "fieldtype": "Datetime",
+   "label": "Written with AI assistance on",
+   "read_only": 1,
+   "depends_on": "seo_ai_assisted"
   },
   {
    "fieldname": "seo_preview",

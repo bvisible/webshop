@@ -1049,6 +1049,11 @@ defects in neoffice-maintenance#691.
     and description are computed. The page prints it, the preview reads it (`seo_preview`), and
     what the merchant wrote wins.
   - Frappe's Website Route Meta (the upstream "Set Meta Tags" button) still applies last.
+  - **Nora proposes, the merchant decides** (`seo/suggestions.py`). The model gets the page's facts
+    only: name, brand, group, text, characteristics, and a few product names for a category or a
+    brand. Without the product names it guessed that "Salles" sold room equipment; they are rooms
+    to rent. The form fills the fields only when asked, and the document then records
+    `seo_ai_assisted` and its date.
 - **What Google gets, product by product** (lot 6): the prepared report `Catalogue Ready for
   Google` runs the feed's own rules (`item_entry`, as a visitor of each site) and says, for every
   published product, whether it is sent, why not, and what would make its listing better

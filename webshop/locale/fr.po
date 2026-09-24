@@ -8591,3 +8591,43 @@ msgstr "Rien d'écrit : voici ce que la page affiche par elle-même"
 #: webshop/webshop/seo/page_meta.py
 msgid "No preview for {0}"
 msgstr "Pas d'aperçu pour {0}"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Written with AI assistance"
+msgstr "Rédigé avec l'aide de l'IA"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Written with AI assistance on"
+msgstr "Rédigé avec l'aide de l'IA le"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Set when a proposal from Nora filled these fields: the merchant decides, the document remembers."
+msgstr "Coché quand une proposition de Nora a rempli ces champs : le commerçant décide, le document s'en souvient."
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Propose with Nora"
+msgstr "Proposer avec Nora"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Nora's proposal"
+msgstr "Proposition de Nora"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Use this proposal"
+msgstr "Utiliser cette proposition"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Nora is writing…"
+msgstr "Nora rédige…"
+
+#: webshop/webshop/seo/suggestions.py
+msgid "Nora gave no usable proposal. Try again."
+msgstr "Nora n'a fourni aucune proposition utilisable. Réessayez."
+
+#: webshop/public/js/override/seo_preview.js
+msgid "The fields are filled: read them, then save."
+msgstr "Les champs sont remplis : relisez-les, puis enregistrez."
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Nora only uses what the page says: check every word before saving."
+msgstr "Nora ne se base que sur ce que la page affiche : vérifiez chaque mot avant d'enregistrer."
