@@ -326,8 +326,9 @@
 			{%- endif %}
 			<a href="/{{ route }}" class="wsp-card__link">
 				{%- if image %}
-				{#- //// Neoffice — itemprop removed (#691, see price_block). #}
-				<img class="card-img wsp-card__image" src="{{ image }}" alt="{{ title | e }}" loading="lazy" decoding="async"{% if cover and item.image_focus %} style="object-position: {{ focus_map.get(item.image_focus) or 'center center' }};"{% endif %}>
+				{#- //// Neoffice — itemprop removed (#691, see price_block). The first row of a listing's
+				    first page loads at once, its first picture first (attach_cards, #691 lot 5). #}
+				<img class="card-img wsp-card__image" src="{{ image }}" alt="{{ title | e }}" loading="{{ 'eager' if item.eager else 'lazy' }}"{% if item.eager == 'first' %} fetchpriority="high"{% endif %} decoding="async"{% if cover and item.image_focus %} style="object-position: {{ focus_map.get(item.image_focus) or 'center center' }};"{% endif %}>
 				{%- if item.hover_image %}
 				<img class="wsp-card__image wsp-card__image--hover" src="{{ item.hover_image }}" alt="" loading="lazy" decoding="async" aria-hidden="true">
 				{%- endif %}

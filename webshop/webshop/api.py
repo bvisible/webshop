@@ -17,6 +17,9 @@ from webshop.webshop.doctype.override_doctype.item_group import get_child_groups
 from webshop.webshop.utils.discount_query import get_discounted_items_query, get_items_with_pricing_rule_discount
 from webshop.webshop.utils.import_gift_cards import import_gift_cards_from_excel, get_gift_card_import_template
 
+# //// Neoffice — the cards of a listing's first row: four wide on a large screen (#691 lot 5)
+FIRST_ROW = 4
+
 
 # //// Neoffice — reviewed for guests (frappe's semgrep rule guest-whitelisted-method): it lists
 # //// the catalogue a visitor browses, and its settings are public_settings() (#711). The type
@@ -164,7 +167,8 @@ def get_product_filter_data(query_args: str | dict | None = None):
 	from webshop.webshop.doctype.webshop_settings.webshop_settings import public_settings
 	from webshop.webshop.utils.product_card import attach_cards
 
-	attach_cards(result.get("items"), engine.settings)
+	# //// Neoffice — a listing's first row loads at once on its first page (#691 lot 5)
+	attach_cards(result.get("items"), engine.settings, eager=0 if start else FIRST_ROW)
 
 	return {
 		# //// Neoffice — the payload carries both counts (this page, and the whole result set)

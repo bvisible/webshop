@@ -51,6 +51,19 @@ def _settings(**overrides):
 
 
 class TestProductCard(FrappeTestCase):
+	def test_the_first_row_of_a_first_page_loads_at_once_its_first_picture_first(self):
+		"""Every card was lazy: the pictures a visitor sees first waited for the browser to lay the
+		page out (a listing's LCP). #691 lot 5."""
+		items = [_item(item_code=f"ITEM-{i}", name=f"WEB-{i}") for i in range(6)]
+		attach_cards(items, _settings(), eager=4)
+		loading = [re.search(r'loading="(\w+)"', item.card_html).group(1) for item in items]
+		self.assertEqual(loading, ["eager"] * 4 + ["lazy"] * 2)
+		self.assertIn('fetchpriority="high"', items[0].card_html)
+		self.assertNotIn("fetchpriority", items[1].card_html)
+		# any other page, or a caller that says nothing: lazy, as before
+		attach_cards(items, _settings())
+		self.assertTrue(all('loading="lazy"' in item.card_html for item in items))
+
 	def test_grid_carries_every_hook_the_handlers_read(self):
 		html = render_product_card(_item(), _settings(), "grid")
 		self.assertIn('class="col-6 col-md-4 col-xl-3 item-card wsp-card wsp-card--grid"', html)

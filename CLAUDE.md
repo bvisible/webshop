@@ -983,6 +983,11 @@ defects in neoffice-maintenance#691.
   the links it gives. It reads Web Page View, which Frappe fills only once view tracking is on in
   Website Settings (off by default, per instance): the report says so instead of showing an
   empty table as if nobody came.
+- **The pictures seen first load first** (lot 5): a listing's first page loads its first row at
+  once (`attach_cards(eager=FIRST_ROW)` in `api.get_product_filter_data`), its first picture with
+  `fetchpriority="high"`; the product page announces its first picture in the head
+  (`<link rel="preload">`), since in the body it comes after some 320 kB of Frappe's inline icon
+  sprites (`frappe/templates/base.html`, a fork change for later). Every other picture stays lazy.
 - **A background job starts in English**, whatever the site speaks: `background_jobs.py` sets no
   language. Text a job writes for a person goes through `frappe.set_user_lang(user)` first, and
   `frappe.local.lang` is given back in a `finally` (`seo/feeds/google.py::generate_feeds`: the

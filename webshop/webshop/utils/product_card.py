@@ -24,12 +24,17 @@ def render_product_card(item, settings, variant="grid", cart_settings=None):
 	return module.product_card(item, settings, variant=variant, cart_settings=cart_settings)
 
 
-def attach_cards(items, settings):
-	"""Give every item of a listing its grid and list tiles, in place."""
+def attach_cards(items, settings, eager=0):
+	"""Give every item of a listing its grid and list tiles, in place.
+
+	The first `eager` pictures load at once, the very first ahead of everything (a listing's
+	first page, its first row): they are what the visitor sees first (the LCP), and lazy
+	loading only delayed them. #691 lot 5."""
 	hover = second_pictures(items)
-	for item in items or []:
+	for index, item in enumerate(items or []):
 		if item.get("item_code") in hover:
 			item["hover_image"] = hover[item["item_code"]]
+		item["eager"] = ("first" if index == 0 else 1) if index < eager else 0
 		item["card_html"] = render_product_card(item, settings, "grid")
 		item["list_html"] = render_product_card(item, settings, "list")
 	return items

@@ -14,11 +14,13 @@
    first frame — and the lightbox plays it; a third-party player only loads on that click. #}
 {%- for v in videos or [] -%}{%- set _appended = photos.append({"image": v.poster, "alt": v.title or _('{0} — video').format(_(doc.web_item_name)), "video": v}) -%}{%- endfor -%}
 {%- macro play_badge() -%}<span class="wsp-gallery__play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>{%- endmacro -%}
-{%- macro media_img(p, classes, loading="lazy", index=None) -%}
+{#- //// Neoffice — the first picture is fetched ahead of everything (priority): the page's LCP (#691 lot 5) -#}
+{%- macro media_img(p, classes, loading="lazy", index=None, priority=False) -%}
 	{%- if p.video and not p.image -%}
 	<video class="{{ classes }}" src="{{ p.video.src }}" muted playsinline preload="metadata" aria-label="{{ p.alt }}"{% if index is not none %} data-index="{{ index }}"{% endif %}></video>
 	{%- else -%}
-	<img class="{{ classes }}" src="{{ p.image }}" alt="{{ p.alt }}" loading="{{ loading }}" decoding="async"{% if index is not none %} data-index="{{ index }}"{% endif %}>
+	{#- //// Neoffice — fetchpriority on the first picture, see the macro's note -#}
+	<img class="{{ classes }}" src="{{ p.image }}" alt="{{ p.alt }}" loading="{{ loading }}"{% if priority %} fetchpriority="high"{% endif %} decoding="async"{% if index is not none %} data-index="{{ index }}"{% endif %}>
 	{%- endif -%}
 	{%- if p.video %}{{ play_badge() }}{% endif -%}
 {%- endmacro -%}
@@ -32,7 +34,7 @@
 			{%- for p in photos[:2] %}
 			{# //// Neoffice — a video tile wears the play badge (media_img) #}
 			<a class="wsp-gallery__tile wsp-gallery__tile--large{% if p.video %} wsp-gallery__tile--video{% endif %}" href="{{ p.image or '#' }}" data-index="{{ loop.index0 }}" role="listitem" aria-label="{{ _('Play the video') if p.video else _('Zoom') }}">
-				{{ media_img(p, ('website-image ' if loop.first else '') ~ 'wsp-gallery__img', loading='eager') }}
+				{{ media_img(p, ('website-image ' if loop.first else '') ~ 'wsp-gallery__img', loading='eager', priority=loop.first) }}
 			</a>
 			{%- endfor %}
 		</div>
@@ -60,7 +62,8 @@
 		</div>
 		<div class="product-image-container wsp-gallery__stage">
 			<div class="product-image wsp-gallery__main">
-				<img class="website-image wsp-gallery__img" src="{{ photos[0].image }}" alt="{{ photos[0].alt }}" data-index="0">
+				{#- //// Neoffice — fetched first, see media_img #}
+				<img class="website-image wsp-gallery__img" src="{{ photos[0].image }}" alt="{{ photos[0].alt }}" fetchpriority="high" data-index="0">
 			</div>
 			<div class="slideshow-navigation">
 				{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: ‹ #}
@@ -74,7 +77,7 @@
 	<div class="wsp-gallery__single product-image d-none d-md-block">
 		{# //// Neoffice — the single picture may be a video too #}
 		<a class="wsp-gallery__tile{% if photos[0].video %} wsp-gallery__tile--video{% endif %}" href="{{ photos[0].image or '#' }}" data-index="0" aria-label="{{ _('Play the video') if photos[0].video else _('Zoom') }}">
-			{{ media_img(photos[0], 'website-image wsp-gallery__img', loading='eager', index=0) }}
+			{{ media_img(photos[0], 'website-image wsp-gallery__img', loading='eager', index=0, priority=True) }}
 		</a>
 	</div>
 	{%- else %}
@@ -91,7 +94,7 @@
 			{%- for p in photos %}
 			{# //// Neoffice — a video slide on the phone strip #}
 			<div class="wsp-gallery__slide{% if p.video %} wsp-gallery__slide--video{% endif %}" data-index="{{ loop.index0 }}">
-				{{ media_img(p, ('website-image ' if loop.first and layout == 'empty' else '') ~ 'wsp-gallery__img', loading=('eager' if loop.first else 'lazy')) }}
+				{{ media_img(p, ('website-image ' if loop.first and layout == 'empty' else '') ~ 'wsp-gallery__img', loading=('eager' if loop.first else 'lazy'), priority=loop.first) }}
 			</div>
 			{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: - endfor #}
 			{%- endfor %}

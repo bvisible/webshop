@@ -228,6 +228,12 @@
 {% block head_include %}
 {{ super() }}
 <link rel="canonical" href="{{ frappe.utils.get_url(doc.route) }}">
+{#- //// Neoffice — the first picture is announced in the head: in the body it comes after some
+    320 kB of inline icon sprites, which the browser parses first (#691 lot 5, the page's LCP) #}
+{%- set _first_picture = (slides[0].image if slides else doc.website_image) %}
+{%- if _first_picture %}
+<link rel="preload" as="image" href="{{ _first_picture }}" fetchpriority="high">
+{%- endif %}
 {#- //// Neoffice — the Product graph is built in Python from what the page computed (seo/facts.py, #}
 {#- //// seo/jsonld.py; WebsiteItem.get_context sets product_jsonld; 2026-09-24, #691 lot 1): the #}
 {#- //// inline block had one picture, no identifier, no rating and no struck price. #}
