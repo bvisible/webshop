@@ -132,6 +132,9 @@ webshop.ProductView =  class {
 		//// through the initial emptying and stays on screen, under the toolbar, until the script's
 		//// own first result replaces it (drop_ssr_listing): no skeleton over cards already there.
 		const ssr_listing = hasExistingProducts ? $() : this.products_section.children('.wsp-ssr-listing').detach();
+		//// Neoffice — the sub-category pills drawn with the page (includes/sub_categories.html,
+		//// #691 lot 2) are kept too, and go back in first place, above the toolbar.
+		const sub_categories = hasExistingProducts ? $() : this.products_section.children('.sub-category-container').detach();
 
 		if (!hasExistingProducts) {
 			// Initial load - empty the section
@@ -149,6 +152,8 @@ webshop.ProductView =  class {
 
 		// Only prepare toolbar on initial load
 		if (!hasExistingProducts) {
+			//// Neoffice — see sub_categories above.
+			this.products_section.append(sub_categories);
 			this.prepare_toolbar();
 		}
 		//// Neoffice — see ssr_listing above.
@@ -2274,6 +2279,9 @@ webshop.ProductView =  class {
 	}
 
 	render_item_sub_categories(categories) {
+		//// Neoffice — drawn once. The page brings them (includes/sub_categories.html, #691 lot 2),
+		//// and this ran on every result: each filter change added one more row of the same pills.
+		if ($("#product-listing").children(".sub-category-container").length) return;
 		if (categories && categories.length) {
 			let sub_group_html = `
 				<div class="sub-category-container scroll-categories">

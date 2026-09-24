@@ -1,0 +1,11 @@
+{#- //// Neoffice — added file (no upstream equivalent): a category's sub-category pills, drawn with
+    the page (listing_context.sub_categories, #691 lot 2). views.js used to insert them above its
+    toolbar once its first result arrived, pushing the listing down a row, and again after every
+    filter change. Same markup as render_item_sub_categories, which now leaves these in place. -#}
+{%- if sub_categories %}
+<div class="sub-category-container scroll-categories">
+	{%- for category in sub_categories %}
+	<a href="/{{ category.route | e }}"><div class="category-pill">{{ category.name | e }}</div></a>
+	{%- endfor %}
+</div>
+{%- endif %}

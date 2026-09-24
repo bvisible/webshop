@@ -929,7 +929,12 @@ defects in neoffice-maintenance#691.
   made of links too. Each page of a series is its own canonical. Beyond the last page a `www`
   listing answers 404 through `context.http_status_code`: frappe renders a
   `PageDoesNotExistError` raised during a render at the request's status, 200 (a soft 404,
-  `serve.handle_exception`; fixed in the `frappe` fork for the other pages).
+  `serve.handle_exception`; fixed in the `frappe` fork for the other pages). A category's
+  sub-category pills come with the page too (`includes/sub_categories.html`,
+  `listing_context.sub_categories`, which the listing API answers with as well), and only
+  towards a child group that carries something this site shows: the script inserted them above
+  its toolbar once the listing had loaded (70px of drop measured on osiris), and once more after
+  every filter change — two rows of the same pills after one click.
 - **The skeleton's `<style>` gave the product areas their 10px margin**: skipping the skeleton
   lost it, and the grid rose 26px under the toolbar. `add_product_loader_styles()` injects the
   styles alone, on both paths.

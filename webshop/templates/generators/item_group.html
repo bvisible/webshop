@@ -51,7 +51,9 @@
 	</div>
 	<div class="row">
 		<div id="product-listing" class="col-12 order-2 col-md-9 order-md-2 item-card-group-section">
-			{#- //// Neoffice — the first page, rendered on the server (#691 lot 2); the script takes over #}
+			{#- //// Neoffice — the sub-category pills, then the first page, rendered on the server (#691
+			    lot 2); the script keeps the pills above its toolbar and takes over the listing #}
+			{% include "templates/includes/sub_categories.html" %}
 			{% include "templates/includes/listing_ssr.html" %}
 		</div>
 

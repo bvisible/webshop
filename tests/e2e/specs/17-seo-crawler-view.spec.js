@@ -154,6 +154,31 @@ test.describe('The shop as a crawler reads it', () => {
 		expect(beyond.status, 'a page beyond the last one does not exist').toBe(404);
 	});
 
+	test('a category names its sub-categories in its HTML, and each one answers', async ({request}) => {
+		//// A category's pills came from the script, inserted above its toolbar once the listing had
+		//// loaded (the whole listing moved down a row), and a pill could lead to a group holding
+		//// nothing on this site (#691 lot 2; includes/sub_categories.html).
+		const categories = await fetchRaw(request, '/sitemap_categories.xml');
+		const urls = [...categories.body.matchAll(/<loc>([^<]+)<\/loc>/g)]
+			.map((match) => match[1].replace(/&amp;/g, '&'))
+			.slice(0, 20);
+		let pills = [];
+		for (const url of urls) {
+			const block = (await fetchRaw(request, url)).body.split('class="sub-category-container')[1];
+			if (!block) continue;
+			pills = [...block.split('</a>\n</div>')[0].matchAll(/<a href="([^"]+)"><div class="category-pill">/g)].map(
+				(match) => match[1]
+			);
+			if (pills.length) break;
+		}
+		test.skip(!pills.length, 'no category of this site has sub-categories');
+		for (const href of pills) {
+			const page = await fetchRaw(request, href);
+			expect(page.status, href).toBe(200);
+			expect(page.body, `${href} is a category page`).toContain('id="product-listing"');
+		}
+	});
+
 	test('every page names one icon Google reads, and /favicon.ico answers it', async ({request}) => {
 		//// Google prints a site's icon next to its name and reads ICO, PNG, GIF, JPEG, BMP, PPM
 		//// or TIFF, never an SVG. A Builder page named Neoffice's SVG while the shop's pages of the

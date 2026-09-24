@@ -122,9 +122,11 @@ def get_product_filter_data(query_args: str | dict | None = None):
 	# //// returns that key. Every item group page therefore shipped an empty
 	# //// list and product_ui/views.js render_item_sub_categories() was dead
 	# //// code: no sub-category navigation on any shop of the fleet.
-	sub_categories = []
-	if item_group:
-		sub_categories = get_child_groups_for_website(item_group, immediate=True)
+	# //// Neoffice — only the child groups that carry something this site shows, the same answer
+	# //// the category page draws with its HTML (listing_context.sub_categories, #691 lot 2).
+	from webshop.webshop.product_data_engine.listing_context import sub_categories as offered_sub_categories
+
+	sub_categories = offered_sub_categories(item_group)
 
 	engine = ProductQuery()
 	# //// Neoffice — the discount filter is applied inside the query rather than after it:

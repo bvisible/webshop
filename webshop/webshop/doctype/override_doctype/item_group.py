@@ -178,6 +178,11 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 
 		context.listing_ssr = server_listing("/" + self.route, item_group=self.name)
 		context.canonical_url = listing_canonical("/" + self.route)
+		# //// Neoffice — the sub-category pills come with the page, above where the script puts its
+		# //// toolbar, instead of being inserted over the listing once it has loaded (#691 lot 2).
+		from webshop.webshop.product_data_engine.listing_context import sub_categories
+
+		context.sub_categories = sub_categories(self.name)
 
 		return context
 

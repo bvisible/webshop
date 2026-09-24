@@ -196,6 +196,25 @@ def server_listing(route, item_group=None, locked_field_filters=None):
 	return frappe._dict(cards=cards, start=start, total=total, pager=pager(route, start, page_length, total))
 
 
+# //// Neoffice — added (#691 lot 2): a category's sub-category pills, one answer for the page the
+# //// server renders (includes/sub_categories.html) and for the listing API. The script used to
+# //// insert them above its toolbar when its first result arrived, pushing the whole listing down
+# //// a row (70px measured on osiris), and again after every filter change: one row more each time.
+def sub_categories(item_group):
+	"""The child groups a category offers as links: shown on the website, and carrying something
+	this site can show. A pill promises a page of products behind it, like a card of
+	/shop-by-category: a group holding nothing here (only gift cards the shop does not sell,
+	only another site's items) is not offered."""
+	from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
+	from webshop.webshop.product_data_engine.catalogue_scope import groups_carrying_items
+
+	children = get_child_groups_for_website(item_group, immediate=True) if item_group else []
+	if not children:
+		return []
+	carried = groups_carrying_items()
+	return [child for child in children if carried.get(child.name)]
+
+
 def pager(route, start, page_length, total):
 	"""Links to the listing's pages, in the script's own window (views.js add_paging_section):
 	previous, the first, seven around the current one, the last, next. None for one page."""

@@ -136,6 +136,36 @@ class TestTemplate(FrappeTestCase):
 		self.assertEqual(self.render(frappe._dict(cards=[], total=0, pager=None)).strip(), "")
 
 
+class TestSubCategories(FrappeTestCase):
+	"""A category's pills come with its HTML, above the listing, and only towards a group that holds
+	something this site shows. The script inserted them once the listing had loaded, pushing it down
+	a row, and once more after every filter change."""
+
+	GROUPS = "webshop.webshop.doctype.override_doctype.item_group.get_child_groups_for_website"
+	CARRIED = "webshop.webshop.product_data_engine.catalogue_scope.groups_carrying_items"
+
+	def test_only_the_child_groups_that_carry_something_here(self):
+		children = [frappe._dict(name=name, route=f"shop/{name.lower()}") for name in ("Boots", "Gift cards", "Socks")]
+		with patch(self.GROUPS, return_value=children), patch(self.CARRIED, return_value={"Boots": 3, "Socks": 1}):
+			offered = listing_context.sub_categories("Shoes")
+		self.assertEqual([group.name for group in offered], ["Boots", "Socks"])
+
+	def test_no_child_group_costs_no_count(self):
+		with patch(self.CARRIED) as carried:
+			self.assertEqual(listing_context.sub_categories(None), [])
+			with patch(self.GROUPS, return_value=[]):
+				self.assertEqual(listing_context.sub_categories("Shoes"), [])
+		carried.assert_not_called()
+
+	def test_the_pills_are_links_above_the_listing(self):
+		fragment = (TEMPLATE.parent / "sub_categories.html").read_text()
+		html = frappe.render_template(fragment, {"sub_categories": [frappe._dict(name="Boots & co", route="shop/boots")]})
+		self.assertIn('<a href="/shop/boots"><div class="category-pill">Boots &amp; co</div></a>', html)
+		self.assertEqual(frappe.render_template(fragment, {"sub_categories": []}).strip(), "")
+		page = (TEMPLATE.parents[1] / "generators" / "item_group.html").read_text()
+		self.assertLess(page.index("includes/sub_categories.html"), page.index("includes/listing_ssr.html"))
+
+
 class TestBeyondTheLastPage(FrappeTestCase):
 	def test_a_www_listing_answers_404_itself(self):
 		"""frappe renders a PageDoesNotExistError raised during a render at the request's own

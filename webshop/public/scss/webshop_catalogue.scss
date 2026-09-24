@@ -352,7 +352,10 @@
 }
 /* //// Neoffice — the toolbar the script adds above the server's first page is reserved on a wide
    screen, where it is one row (32px and its 10px margin, measured on osiris): the cards do not
-   jump down when it arrives. A phone stacks it to a height that varies: nothing reserved there. */
+   jump down when it arrives. A phone stacks it to a height that varies: nothing reserved there.
+   A category's sub-category pills come first, with the page (includes/sub_categories.html), and
+   the toolbar goes between them and the cards: the room is kept after the pills too. */
 @media (min-width: 768px) {
-	#product-listing > .wsp-ssr-listing:first-child { padding-top: 42px; }
+	#product-listing > .wsp-ssr-listing:first-child,
+	#product-listing > .sub-category-container:first-child + .wsp-ssr-listing { padding-top: 42px; }
 }

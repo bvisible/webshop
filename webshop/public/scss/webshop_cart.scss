@@ -803,6 +803,10 @@ body[data-path=update-profile] {
 }
 
 .scroll-categories {
+	// //// Neoffice — the pills the server draws (includes/sub_categories.html, #691 lot 2) carry no
+	// //// inline style; the script's own markup still does.
+	a { text-decoration: none; }
+
 	.category-pill {
 		display: inline-block;
 		width: fit-content;
