@@ -475,20 +475,21 @@ class WebsiteItem(WebsiteGenerator):
 		
 		# SEO: rich meta tags (frappe's meta_block renders title/description/og/twitter)
 		# //// Neoffice — text with its paragraphs and a cut at a word (seo/text.py), not strip_html
-		# //// and a hard [:158] that stopped mid-word (2026-09-24, #691).
-		from webshop.webshop.seo.text import one_line
+		# //// and a hard [:158] that stopped mid-word (2026-09-24, #691). The title and description
+		# //// come from seo/page_meta.py, which the desk's preview reads too: what the merchant wrote
+		# //// in the Search engines section wins (2026-09-25, #691 lot 6).
+		from webshop.webshop.seo.page_meta import product_meta
 
-		_excerpt = one_line(self.web_long_description or self.description or "", 158) or self.web_item_name
+		_meta = product_meta(self)
 		_meta_image = self.website_image or ""
 		if _meta_image and not _meta_image.startswith("http"):
 			_meta_image = frappe.utils.get_url(_meta_image)
-		_meta_title = self.web_item_name
-		if self.get("brand"):
-			_meta_title = f"{self.web_item_name} - {self.brand}"
+		# //// Neoffice — the name-and-brand title and the excerpt it computed here moved to
+		# //// page_meta.product_meta (see above)
 		metatags = frappe._dict(context.get("metatags") or {})
 		metatags.update({
-			"title": _meta_title,
-			"description": _excerpt,
+			"title": _meta.title,  # //// Neoffice — the merchant's, or the page's own
+			"description": _meta.description,
 			"og:type": "product",
 		})
 		if _meta_image:
@@ -501,14 +502,12 @@ class WebsiteItem(WebsiteGenerator):
 		# //// suffixed variant moves to context.html_title, which item.html
 		# //// feeds to the {% block title %} — SEO keeps its suffix, the page
 		# //// shows the product name.
-		context.title = _meta_title
+		context.title = _meta.heading
 		# //// Neoffice — the site's one name (seo/site.py shop_name: the chrome's, per site),
 		# //// not Website Settings' app name: the home page declares the former to Google
-		# //// (2026-09-24, #691). Frappe's and ERPNext's default names are no name.
-		from webshop.webshop.seo.site import shop_name
-
-		_site_name = shop_name()
-		context.html_title = _meta_title + " | " + _site_name if _site_name else _meta_title
+		# //// (2026-09-24, #691). Frappe's and ERPNext's default names are no name. Joined by
+		# //// page_meta.with_shop_name, unless the merchant's own title already names the shop.
+		context.html_title = _meta.html_title
 
 		# //// Neoffice — second-hand: what the page says about a used unit, and
 		# //// the used units a new item has on offer. Both are None/empty on a

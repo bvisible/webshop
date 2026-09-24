@@ -140,8 +140,11 @@ doctype_js = {
 	# //// the Item Group and Brand forms (8c29208cca, 2026-09-03 "offres croisées
 	# //// et order bump, portés par une Pricing Rule générée"), and the gift-card
 	# //// Coupon Code form gets its own script (23c0ae97d9, 2025-02-11).
-	"Item Group": "public/js/override/cross_sell_trigger.js",
-	"Brand": "public/js/override/cross_sell_trigger.js",
+	# //// Neoffice — and the Search engines fields' Google preview (seo_preview.js, #691 lot 6),
+	# //// on these two and on Website Item
+	"Item Group": ["public/js/override/cross_sell_trigger.js", "public/js/override/seo_preview.js"],
+	"Brand": ["public/js/override/cross_sell_trigger.js", "public/js/override/seo_preview.js"],
+	"Website Item": "public/js/override/seo_preview.js",
 	"Homepage": "public/js/override/homepage.js",
 	"Coupon Code": "public/js/coupon_code.js",
 	# //// Neoffice — added: "Payment received" on a request the shop raised for a

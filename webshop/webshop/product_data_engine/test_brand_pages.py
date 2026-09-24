@@ -72,7 +72,7 @@ class TestPage(FrappeTestCase):
 		with (
 			patch.object(page, "brand_of_slug", return_value="Café & Co"),
 			patch.object(page, "build_listing_context", side_effect=listing),
-			patch.object(page, "shop_name", return_value="Atelier"),
+			patch("webshop.webshop.seo.site.shop_name", return_value="Atelier"),
 			patch("frappe.db.get_value", return_value=record),
 		):
 			context = page.get_context(frappe._dict())

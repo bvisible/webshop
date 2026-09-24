@@ -8469,3 +8469,43 @@ msgstr ""
 #: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.json
 msgid "Catalogue Ready for Google"
 msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Title for search engines"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Description for search engines"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Google preview"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "About 60 characters show in Google's results. Empty: the product's name and brand."
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "About 160 characters show in Google's results. Empty: the start of the product's description."
+msgstr ""
+
+#: webshop/patches/add_seo_fields.py
+msgid "About 60 characters show in Google's results. Empty: the page's own title."
+msgstr ""
+
+#: webshop/patches/add_seo_fields.py
+msgid "About 160 characters show in Google's results. Empty: the page's own description."
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "No page on the site yet"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Nothing written: this is what the page says on its own"
+msgstr ""
+
+#: webshop/webshop/seo/page_meta.py
+msgid "No preview for {0}"
+msgstr ""

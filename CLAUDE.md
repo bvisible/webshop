@@ -1042,6 +1042,13 @@ defects in neoffice-maintenance#691.
 - **`ci.yml` cannot run on a working branch by hand**: it installs the frappe branch named like
   the ref (`github.base_ref || github.ref_name`), so a `workflow_dispatch` on `seo/…` dies at
   the install. Open a draft pull request against `version-15` instead.
+- **The merchant's own title and description** (lot 6): Website Item, Item Group and Brand carry
+  `seo_title` and `seo_description`, the "Search engines" fields.
+  - `public/js/override/seo_preview.js` draws their preview of the Google result.
+  - `seo/page_meta.py` is the one place a product's, a category's and a brand's title, tab title
+    and description are computed. The page prints it, the preview reads it (`seo_preview`), and
+    what the merchant wrote wins.
+  - Frappe's Website Route Meta (the upstream "Set Meta Tags" button) still applies last.
 - **What Google gets, product by product** (lot 6): the prepared report `Catalogue Ready for
   Google` runs the feed's own rules (`item_entry`, as a visitor of each site) and says, for every
   published product, whether it is sent, why not, and what would make its listing better

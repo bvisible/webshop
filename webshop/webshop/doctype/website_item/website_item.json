@@ -58,6 +58,9 @@
   "section_break_6",
   "ranking",
   "set_meta_tags",
+  "seo_title",
+  "seo_description",
+  "seo_preview",
   "column_break_22",
   "website_item_groups",
   "advanced_display_section",
@@ -430,6 +433,23 @@
    "label": "Set Meta Tags"
   },
   {
+   "fieldname": "seo_title",
+   "fieldtype": "Data",
+   "label": "Title for search engines",
+   "description": "About 60 characters show in Google's results. Empty: the product's name and brand."
+  },
+  {
+   "fieldname": "seo_description",
+   "fieldtype": "Small Text",
+   "label": "Description for search engines",
+   "description": "About 160 characters show in Google's results. Empty: the start of the product's description."
+  },
+  {
+   "fieldname": "seo_preview",
+   "fieldtype": "HTML",
+   "label": "Google preview"
+  },
+  {
    "description": "List this Item in multiple groups on the website.",
    "fieldname": "website_item_groups",
    "fieldtype": "Table",
@@ -454,7 +474,7 @@
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2026-09-24 18:20:34.638683",
+ "modified": "2026-09-25 00:30:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Website Item",
