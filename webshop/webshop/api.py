@@ -18,8 +18,11 @@ from webshop.webshop.utils.discount_query import get_discounted_items_query, get
 from webshop.webshop.utils.import_gift_cards import import_gift_cards_from_excel, get_gift_card_import_template
 
 
-@frappe.whitelist(allow_guest=True)
-def get_product_filter_data(query_args=None):
+# //// Neoffice — reviewed for guests (frappe's semgrep rule guest-whitelisted-method): it lists
+# //// the catalogue a visitor browses, and its settings are public_settings() (#711). The type
+# //// hint is what frappe checks a whitelisted argument against: the script sends JSON text.
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
+def get_product_filter_data(query_args: str | dict | None = None):
 	"""
 	Returns filtered products and discount filters.
 

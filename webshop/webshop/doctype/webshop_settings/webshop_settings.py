@@ -147,10 +147,11 @@ class WebshopSettings(Document):
 						alert=True,
 					)
 
-	def after_save(self):
-		# //// Neoffice — the currency-symbol cache is dropped when the settings change, or a
-		# //// shop kept printing "CHF" for an hour after turning the setting off (0134ef756e,
-		# //// 2025-07-03).
+	# //// Neoffice — the currency-symbol cache is dropped when the settings change, or a
+	# //// shop kept printing "CHF" for an hour after turning the setting off (0134ef756e,
+	# //// 2025-07-03). The method was named after_save, a hook Frappe never calls, so the
+	# //// cache was never dropped until on_update (frappe's semgrep rules, 2026-09-24).
+	def on_update(self):
 		# Clear currency symbol cache when settings change
 		frappe.cache().delete_value("webshop_hide_currency_symbol")
 	
@@ -473,7 +474,9 @@ def validate_cart_settings(doc=None, method=None):
 # //// allow_guest), the category order tree of the settings form (cdc2a139cf /
 # //// f1d92302aa, 2025-12-15) and the sitemap regeneration button (bb199f2e1f /
 # //// 53e16ab3d0, 2026-01-07). ▲▲▲
-@frappe.whitelist(allow_guest=True)
+# //// Neoffice — reviewed for guests (frappe's semgrep rule guest-whitelisted-method): over
+# //// HTTP it answers public_settings() only, the fields a page's script reads (#711).
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
 def get_shopping_cart_settings():
     settings = frappe.get_cached_doc("Webshop Settings")
     settings_dict = settings.as_dict()

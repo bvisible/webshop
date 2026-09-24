@@ -163,6 +163,53 @@ class TestRoute(FrappeTestCase):
 		self.assertEqual(response.get_data(), b"<rss/>")
 		self.assertEqual(self.render("guess").status_code, 404)
 		self.assertEqual(self.render("s3cret", enabled=0).status_code, 404)
+		# the token is compared in constant time, on bytes: a non-ASCII guess is a 404, not a 500
+		self.assertEqual(self.render("sécret").status_code, 404)
+
+
+class TestSiteKey(FrappeTestCase):
+	def test_a_profile_s_name_never_leads_the_file_out_of_its_folder(self):
+		self.assertEqual(google.site_key("Boutique B2C"), "boutique_b2c")
+		for name in ("../../etc/passwd", "a/../../b", "..", "/"):
+			with self.subTest(name=name):
+				key = google.site_key(name)
+				self.assertRegex(key, r"^[a-z0-9_]+$")
+				folder = os.path.realpath(frappe.get_site_path("private", "feeds"))
+				self.assertEqual(os.path.dirname(os.path.realpath(google.feed_path(key))), folder)
+
+
+class TestNeverInsideARequest(FrappeTestCase):
+	"""frappe.set_user rewrites the session object it runs in: inside a web request, the live
+	session of whoever pressed the button (its sid became the user's name, its data was emptied)."""
+
+	def test_serving_refuses_a_web_request(self):
+		frappe.local.session_obj = object()
+		self.addCleanup(delattr, frappe.local, "session_obj")
+		with self.assertRaises(RuntimeError), google.serving(frappe._dict(key="default", profile=None)):
+			pass
+
+	def test_the_button_queues_a_job_and_computes_nothing(self):
+		with (
+			patch("frappe.only_for"),
+			patch("frappe.enqueue") as enqueue,
+			patch.object(google, "generate_feeds") as generate,
+		):
+			google.generate_now()
+		generate.assert_not_called()
+		self.assertEqual(enqueue.call_args.args[0], "webshop.webshop.seo.feeds.google.generate_feeds")
+		self.assertEqual(enqueue.call_args.kwargs["notify"], frappe.session.user)
+
+	def test_the_job_sends_its_report_to_whoever_pressed(self):
+		settings = frappe._dict(enable_google_feed=1, google_feed_token="s3cret")
+		with (
+			patch("frappe.get_single", return_value=settings),
+			patch.object(google, "feed_sites", return_value=[]),
+			patch("frappe.db.set_single_value"),
+			patch("frappe.publish_realtime") as publish,
+		):
+			google.generate_feeds(notify="someone@example.com")
+			google.generate_feeds()
+		publish.assert_called_once_with(google.FEED_DONE_EVENT, "", user="someone@example.com", after_commit=True)
 
 
 def _on_the_erpnext_fork() -> bool:

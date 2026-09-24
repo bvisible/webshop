@@ -76,6 +76,17 @@ class TestWebshopSettings(unittest.TestCase):
 		self.assertNotIn(("Website Item", "WEB-ITM-GIFT", "is_gift_card", 0), calls)
 		self.assertIn(("Website Item", "WEB-ITM-GIFT", "is_gift_card", 1), calls)
 
+	# //// Neoffice — the currency-symbol cache is dropped on save. The method doing it was named
+	# //// after_save, a hook Frappe never calls, from 2025-07-03 until frappe's semgrep rules
+	# //// flagged it (2026-09-24): a shop that changed the setting kept the old display for an hour.
+	def test_saving_drops_the_currency_symbol_cache(self):
+		from webshop.webshop.doctype.webshop_settings.webshop_settings import WebshopSettings
+
+		frappe.cache().set_value("webshop_hide_currency_symbol", "Yes")
+		settings = WebshopSettings({"doctype": "Webshop Settings", "name": "Webshop Settings"})
+		settings.on_update()  # the hook Document.save() runs once the row is written
+		self.assertIsNone(frappe.cache().get_value("webshop_hide_currency_symbol"))
+
 	def test_changing_the_gift_card_template_moves_the_flag(self):
 		from unittest.mock import MagicMock, patch
 

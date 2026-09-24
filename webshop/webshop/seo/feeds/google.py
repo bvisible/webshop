@@ -13,7 +13,9 @@ Nothing is computed while Google fetches. A nightly job and the button of Websho
 each site's file; the route (FeedRenderer) serves it, behind the settings' token.
 """
 
+import hmac
 import os
+import re
 from contextlib import contextmanager
 from xml.sax.saxutils import escape
 
@@ -26,6 +28,7 @@ from werkzeug.wrappers import Response
 from webshop.webshop.seo.availability import BACK_ORDER, IN_STOCK, OUT_OF_STOCK
 
 FEED_ROUTE = "feeds/google.xml"
+FEED_DONE_EVENT = "webshop_google_feed_done"
 GOOGLE_NAMESPACE = "http://base.google.com/ns/1.0"
 MAX_ADDITIONAL_IMAGES = 10
 MAX_ID = 50
@@ -81,15 +84,27 @@ def feed_sites() -> list[frappe._dict]:
 	for profile in profiles.values():
 		if not profile.get("primary_domain"):
 			continue
-		sites.append(frappe._dict(key=frappe.scrub(profile["name"]), profile=profile))
+		sites.append(frappe._dict(key=site_key(profile["name"]), profile=profile))
 	if not sites:
 		sites.append(frappe._dict(key="default", profile=None))
 	return sites
 
 
+def site_key(name: str) -> str:
+	"""A Website Profile's name as a file name: lowercase letters, digits and underscores, so no
+	name can lead the feed's path out of its folder (frappe.scrub keeps "/" and "..")."""
+	return re.sub(r"[^a-z0-9_]+", "_", frappe.scrub(name)).strip("_") or "site"
+
+
 @contextmanager
 def serving(site):
-	"""Compute as if a visitor with no account browsed `site`: its profile, its price list."""
+	"""Compute as if a visitor with no account browsed `site`: its profile, its price list.
+
+	In a job, a test or the console only. frappe.set_user rewrites the session object it runs in
+	(its sid becomes the user's name, its data is emptied), and in a web request that object is the
+	live session of whoever made the request, written back to the cache when the request ends."""
+	if getattr(frappe.local, "session_obj", None):
+		raise RuntimeError("seo.feeds.google.serving() switches the user: never inside a web request")
 	saved = (
 		getattr(frappe.local, "website_profile", None),
 		getattr(frappe.local, "website_profile_doc", None),
@@ -98,12 +113,13 @@ def serving(site):
 	profile = site.profile
 	frappe.local.website_profile = profile["name"] if profile else None
 	frappe.local.website_profile_doc = profile
-	frappe.set_user("Guest")
+	# the guard above keeps both switches out of web requests
+	frappe.set_user("Guest")  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-setuser
 	try:
 		yield
 	finally:
 		frappe.local.website_profile, frappe.local.website_profile_doc = saved[0], saved[1]
-		frappe.set_user(saved[2])
+		frappe.set_user(saved[2])  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-setuser
 
 
 def site_refusal(settings) -> str | None:
@@ -363,14 +379,16 @@ def write_feed(site) -> frappe._dict:
 		return report
 	os.makedirs(os.path.dirname(path), exist_ok=True)
 	partial = f"{path}.partial"
-	with open(partial, "w", encoding="utf-8") as handle:
+	# the path is feed_path(): private/feeds/google-<site_key>.xml, no caller-given part
+	with open(partial, "w", encoding="utf-8") as handle:  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		handle.write(xml)
 	os.replace(partial, path)
 	return report
 
 
-def generate_feeds():
-	"""Every site's feed (the nightly job, and the button of Webshop Settings)."""
+def generate_feeds(notify: str | None = None):
+	"""Every site's feed: the nightly job, and the job the button of Webshop Settings queues,
+	which then tells the user who pressed it (`notify`) that the report is there."""
 	settings = frappe.get_single("Webshop Settings")
 	if not cint(settings.get("enable_google_feed")):
 		return []
@@ -380,11 +398,14 @@ def generate_feeds():
 			reports.append(write_feed(site))
 		except Exception:
 			frappe.log_error(f"Google feed: site {site.key} failed", frappe.get_traceback())
+	report = describe(reports, settings)
 	frappe.db.set_single_value(
 		"Webshop Settings",
-		{"google_feed_generated_on": now_datetime(), "google_feed_report": describe(reports, settings)},
+		{"google_feed_generated_on": now_datetime(), "google_feed_report": report},
 		update_modified=False,
 	)
+	if notify:
+		frappe.publish_realtime(FEED_DONE_EVENT, report, user=notify, after_commit=True)
 	return reports
 
 
@@ -404,10 +425,16 @@ def describe(reports, settings) -> str:
 
 @frappe.whitelist()
 def generate_now():
-	"""Webshop Settings' button."""
+	"""Webshop Settings' button. A worker writes the feeds, never this request: pricing as a
+	visitor switches the user (serving), which would spoil the session of whoever pressed it."""
 	frappe.only_for(("System Manager", "Website Manager"))
-	generate_feeds()
-	return frappe.db.get_single_value("Webshop Settings", "google_feed_report")
+	frappe.enqueue(
+		"webshop.webshop.seo.feeds.google.generate_feeds",
+		queue="long",
+		job_id="webshop-google-feed",
+		deduplicate=True,
+		notify=frappe.session.user,
+	)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -424,7 +451,8 @@ class FeedRenderer(BaseRenderer):
 	def render(self):
 		settings = frappe.get_cached_doc("Webshop Settings")
 		token = settings.get("google_feed_token") or ""
-		if not cint(settings.get("enable_google_feed")) or not token or frappe.form_dict.get("token") != token:
+		sent = str(frappe.form_dict.get("token") or "")
+		if not cint(settings.get("enable_google_feed")) or not token or not hmac.compare_digest(sent.encode(), token.encode()):
 			return Response(status=404)
 		site = next(
 			(site for site in feed_sites() if not site.profile or site.profile["name"] == getattr(frappe.local, "website_profile", None)),
@@ -433,7 +461,8 @@ class FeedRenderer(BaseRenderer):
 		path = feed_path(site.key) if site else None
 		if not path or not os.path.exists(path):
 			return Response(status=404)
-		with open(path, "rb") as handle:
+		# the path is feed_path() of the site being served: nothing in the request names it
+		with open(path, "rb") as handle:  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 			response = Response(handle.read(), mimetype="application/xml")
 		response.charset = "utf-8"
 		response.headers["Cache-Control"] = "private, max-age=3600"
