@@ -156,6 +156,7 @@ def get_product_filter_data(query_args=None):
 
 	# //// Neoffice — each item carries its tiles, rendered here by the one card macro
 	# //// (utils/product_card.py); grid.js and list.js only append them.
+	from webshop.webshop.doctype.webshop_settings.webshop_settings import public_settings
 	from webshop.webshop.utils.product_card import attach_cards
 
 	attach_cards(result.get("items"), engine.settings)
@@ -165,7 +166,9 @@ def get_product_filter_data(query_args=None):
 		# //// so the pager and the "N of M" counter agree.
 		"items": result.get("items"),
 		"filters": filters,
-		"settings": engine.settings,
+		# //// Neoffice — the display switches the listing script reads, not the whole settings
+		# //// document, which carried the assistant's endpoint and internal addresses (#711)
+		"settings": public_settings(engine.settings),
 		# //// Neoffice — added, to the end of the file. ▼▼▼ Endpoints upstream has no
 		# //// equivalent for: prices for the search dropdown (48e2708353, 2025-03-13), the
 		# //// customer's addresses for the checkout address book (3dc2779c0d, 2026-08-26),

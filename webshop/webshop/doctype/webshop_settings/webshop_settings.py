@@ -521,7 +521,55 @@ def get_shopping_cart_settings():
         for key in PROMISE_FIELDS:
             if profile.get(key) not in (None, "", 0):
                 settings_dict[key] = profile[key]
+    # //// Neoffice — over HTTP a visitor reads the fields a page's script needs, not the whole
+    # //// document (neoffice-maintenance#711): see public_settings below.
+    if called_over_http(SETTINGS_METHOD):
+        return public_settings(settings_dict)
     return settings_dict
+
+
+# //// Neoffice — added (2026-09-24, neoffice-maintenance#711): what a visitor may read of the
+# //// settings. get_shopping_cart_settings (allow_guest) and the listing API handed the whole
+# //// document to anyone: the assistant's model endpoint, its Raven channel and support address,
+# //// its token price and knowledge text, the reminders' settings. A page's script reads display
+# //// switches (views.js: default_view_type, products_per_page, enable_infinite_scroll;
+# //// shopping_cart.js: enable_guest_cart); Python callers keep the document.
+SETTINGS_METHOD = "webshop.webshop.doctype.webshop_settings.webshop_settings.get_shopping_cart_settings"
+PUBLIC_SETTINGS = (
+    "enabled",
+    "show_price",
+    "hide_price_for_guest",
+    "show_stock_availability",
+    "show_quantity_in_website",
+    "allow_items_not_in_stock",
+    "enable_guest_cart",
+    "enable_checkout",
+    "enable_wishlist",
+    "enable_reviews",
+    "enable_recommendations",
+    "enable_variants",
+    "enable_field_filters",
+    "enable_attribute_filters",
+    "default_view_type",
+    "default_product_sort",
+    "products_per_page",
+    "enable_infinite_scroll",
+)
+
+
+def public_settings(settings) -> dict:
+    """The settings a page's script may read, and nothing else."""
+    return {key: settings.get(key) for key in PUBLIC_SETTINGS}
+
+
+def called_over_http(method: str) -> bool:
+    """Whether the request being served IS the HTTP call of `method` (/api/method/, the old
+    ?cmd=, /api/v2/method/), not a Python caller inside another request."""
+    if (frappe.local.form_dict or {}).get("cmd") == method:
+        return True
+    request = getattr(frappe.local, "request", None)
+    path = (getattr(request, "path", None) or "").rstrip("/")
+    return path.endswith("/" + method)
 
 @frappe.whitelist(allow_guest=True)
 def is_cart_enabled():
