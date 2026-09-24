@@ -875,11 +875,33 @@ defects in neoffice-maintenance#691.
   products; the tiles' `itemprop`s attached to the page's product. `seo/test_seo.py` fails on
   any `itemscope`/`itemprop` in the templates or `views.js`. The breadcrumb's JSON-LD is
   printed by `includes/breadcrumbs.html` itself, from the trail it shows.
+- **The product graph is built in Python from what the page computed** (`seo/facts.py` →
+  `seo/jsonld.py` → `context.product_jsonld`, printed once by `item.html`): the price the buy
+  column prints (× `conversion_factor`), the struck price only when `formatted_mrp` is printed,
+  a sale's dates in ISO 8601 with the site's offset, the gallery's pictures, a GTIN only when its
+  check digit is right and it is the item's own unit, a `sku` without whitespace, the reviews
+  block's rating and reviews, the characteristics, the videos Google can describe. The feed
+  (lot 3) reads the same facts. A failure is logged and costs the markup, never the page.
+- **Declare only what the page shows.** A gift card's page shows amounts to choose, and a
+  model's page shows the variant selector: neither prints a price, so neither gets an offer —
+  a polo's page offered 39.00 in its markup and nowhere in its HTML (2026-09-24). The variants'
+  offers belong in a `ProductGroup`, which waits for decision D-1 of the plan.
 - **Availability comes from `seo/availability.py`, never from `product_info.in_stock`**, which
   `get_product_info_for_website` only fills when the shop DISPLAYS its stock: a shop hiding it
-  told Google everything was out of stock. A model is available when one variant is; a shop
-  that takes orders beyond its stock is `BackOrder`. A gift card gets no offer: its page shows
-  amounts to choose, not a price.
+  told Google everything was out of stock. A shop that takes orders beyond its stock is
+  `BackOrder`.
+- **The site's identity is the chrome's, declared once on the home page.** builder's
+  `site_graph.py` prints the `WebSite` and the `Organization` there and calls the
+  `site_organization` hook: `jsonld.site_organization` makes it an `OnlineStore` (legal name,
+  a Swiss UID as `vatID`), declares the return window and the free delivery the product page
+  promises (`site_policies`, only in the company's country), and returns the physical store as
+  a `Store` node (the Store tab's address, hours and closures). Every offer points at those
+  policies by `@id`, only when the home page declares them. `seo/site.py::shop_name()` asks the
+  chrome for the site's name first (builder's `display_name`), so og:site_name, the title
+  suffix and the seller say what the home page says, per site.
+- **The site's icon is builder's too** (`site_icon.py`): the icon somebody chose, else a PNG
+  drawn from the chrome's mark or the site's initial, served at `/site-icon.png?v=<key>` and
+  `/favicon.ico`; every website page names it, the desk keeps its own.
 - **`/sitemap.xml` is the index** (pages, products, categories, blog); the lists are built in
   `seo/sitemaps.py` with the catalogue's own scope (`product_data_engine/catalogue_scope.py`,
   shared with `/shop-by-category`). No brand URLs until real brand pages exist; no
