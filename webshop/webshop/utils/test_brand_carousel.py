@@ -14,7 +14,6 @@ TestCase, and reported "Ran 0 tests" as if the carousel were covered.
 """
 
 import unittest
-from urllib.parse import quote
 
 import frappe
 
@@ -34,18 +33,18 @@ class TestBrandCarousel(unittest.TestCase):
 		cls.item_group = leaf_item_group()
 		# Two brands, unevenly stocked, so ordering by product count is testable:
 		# Alpha carries two published items, Beta one.
-		cls.marques = {f"{PREFIX} Alpha": 2, f"{PREFIX} Beta": 1}
-		cls.articles = []
+		cls.brands = {f"{PREFIX} Alpha": 2, f"{PREFIX} Beta": 1}
+		cls.items = []
 
-		for marque, nombre in cls.marques.items():
-			if not frappe.db.exists("Brand", marque):
+		for brand, count in cls.brands.items():
+			if not frappe.db.exists("Brand", brand):
 				frappe.get_doc(
-					{"doctype": "Brand", "brand": marque, "description": "carousel test"}
+					{"doctype": "Brand", "brand": brand, "description": "carousel test"}
 				).insert(ignore_permissions=True)
 
-			for i in range(nombre):
-				code = f"{marque} Item {i}"
-				make_test_item(code, brand=marque)
+			for i in range(count):
+				code = f"{brand} Item {i}"
+				make_test_item(code, brand=brand)
 				if not frappe.db.exists("Website Item", {"item_code": code}):
 					frappe.get_doc(
 						{
@@ -53,72 +52,73 @@ class TestBrandCarousel(unittest.TestCase):
 							"item_code": code,
 							"web_item_name": code,
 							"item_group": cls.item_group,
-							"brand": marque,
+							"brand": brand,
 							"published": 1,
 							"route": f"products/{code.lower().replace(' ', '-')}",
 						}
 					).insert(ignore_permissions=True)
-				cls.articles.append(code)
+				cls.items.append(code)
 
 	@classmethod
 	def tearDownClass(cls):
-		for code in cls.articles:
-			nom = frappe.db.get_value("Website Item", {"item_code": code}, "name")
-			if nom:
-				frappe.delete_doc("Website Item", nom, force=True, ignore_permissions=True)
+		for code in cls.items:
+			name = frappe.db.get_value("Website Item", {"item_code": code}, "name")
+			if name:
+				frappe.delete_doc("Website Item", name, force=True, ignore_permissions=True)
 			if frappe.db.exists("Item", code):
 				frappe.delete_doc("Item", code, force=True, ignore_permissions=True)
-		for marque in cls.marques:
-			if frappe.db.exists("Brand", marque):
-				frappe.delete_doc("Brand", marque, force=True, ignore_permissions=True)
+		for brand in cls.brands:
+			if frappe.db.exists("Brand", brand):
+				frappe.delete_doc("Brand", brand, force=True, ignore_permissions=True)
 		frappe.db.commit()
 
-	def _notres(self, marques):
-		return {b["brand_name"]: b for b in marques if b["brand_name"] in self.marques}
+	def _ours(self, brands):
+		return {b["brand_name"]: b for b in brands if b["brand_name"] in self.brands}
 
 	def test_brands_carry_their_published_product_count(self):
-		nos_marques = self._notres(get_brands_with_product_count(limit=500))
+		our_brands = self._ours(get_brands_with_product_count(limit=500))
 
-		self.assertEqual(len(nos_marques), 2)
-		self.assertEqual(nos_marques[f"{PREFIX} Alpha"]["product_count"], 2)
-		self.assertEqual(nos_marques[f"{PREFIX} Beta"]["product_count"], 1)
+		self.assertEqual(len(our_brands), 2)
+		self.assertEqual(our_brands[f"{PREFIX} Alpha"]["product_count"], 2)
+		self.assertEqual(our_brands[f"{PREFIX} Beta"]["product_count"], 1)
 
 	def test_unpublished_items_are_not_counted(self):
 		code = f"{PREFIX} Beta Item 0"
-		nom = frappe.db.get_value("Website Item", {"item_code": code}, "name")
-		frappe.db.set_value("Website Item", nom, "published", 0)
-		self.addCleanup(frappe.db.set_value, "Website Item", nom, "published", 1)
+		name = frappe.db.get_value("Website Item", {"item_code": code}, "name")
+		frappe.db.set_value("Website Item", name, "published", 0)
+		self.addCleanup(frappe.db.set_value, "Website Item", name, "published", 1)
 
-		nos_marques = self._notres(get_brands_with_product_count(limit=500))
+		our_brands = self._ours(get_brands_with_product_count(limit=500))
 
 		# A brand left with nothing published drops out entirely (HAVING > 0).
-		self.assertNotIn(f"{PREFIX} Beta", nos_marques)
-		self.assertEqual(nos_marques[f"{PREFIX} Alpha"]["product_count"], 2)
+		self.assertNotIn(f"{PREFIX} Beta", our_brands)
+		self.assertEqual(our_brands[f"{PREFIX} Alpha"]["product_count"], 2)
 
 	def test_sorting_by_product_count_puts_the_fuller_brand_first(self):
-		marques = [
+		brands = [
 			b["brand_name"]
 			for b in get_brands_with_product_count(limit=500, sort_by="product_count")
-			if b["brand_name"] in self.marques
+			if b["brand_name"] in self.brands
 		]
 
-		self.assertEqual(marques, [f"{PREFIX} Alpha", f"{PREFIX} Beta"])
+		self.assertEqual(brands, [f"{PREFIX} Alpha", f"{PREFIX} Beta"])
 
-	def test_route_filters_the_listing_on_that_brand(self):
-		marque = self._notres(get_brands_with_product_count(limit=500))[f"{PREFIX} Alpha"]
+	def test_a_brand_links_to_its_own_page(self):
+		"""A brand carrying a published item has a page, /brands/<slug> (#691 lot 2): the carousel
+		links it there, no longer to the catalogue filtered on it, which robots.txt closes."""
+		brand = self._ours(get_brands_with_product_count(limit=500))[f"{PREFIX} Alpha"]
 
-		attendu = quote('{"brand":["' + f"{PREFIX} Alpha" + '"]}')
-		self.assertEqual(marque["route"], f"all-products?field_filters={attendu}")
+		self.assertEqual(brand["route"], "brands/wstest-brand-alpha")
 
 	def test_limit_is_honoured(self):
 		self.assertLessEqual(len(get_brands_with_product_count(limit=1)), 1)
 
 	def test_top_brands_reads_through_the_cache_twice(self):
 		"""Second call must agree with the first — the cache is keyed per site."""
-		premier = get_top_brands(limit=5, use_cache=True, cache_ttl=60)
+		first = get_top_brands(limit=5, use_cache=True, cache_ttl=60)
 		second = get_top_brands(limit=5, use_cache=True, cache_ttl=60)
 
-		self.assertEqual(premier, second)
+		self.assertEqual(first, second)
 
 
 # //// Neoffice ▼▼▼ — added tests (2026-09-16): the component defends its own input.
