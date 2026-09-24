@@ -40,6 +40,10 @@ class WebshopSettings(Document):
 		# //// #691 lot 3): drawn once, when the feed is switched on, and kept.
 		if self.get("enable_google_feed") and not self.get("google_feed_token"):
 			self.google_feed_token = frappe.generate_hash(length=24)
+		# //// Neoffice — the IndexNow key (seo/indexnow.py, #691 lot 4): drawn once, when the
+		# //// notifications are switched on, and kept; the engines read it at each site's root.
+		if self.get("enable_indexnow") and not self.get("indexnow_key"):
+			self.indexnow_key = frappe.generate_hash(length=32)
 
 		# Cascade-disable the options
 		if not self.enabled:

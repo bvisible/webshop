@@ -8378,3 +8378,27 @@ msgstr "Écriture du flux…"
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js
 msgid "Google Shopping feed"
 msgstr "Flux Google Shopping"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Search Engine Notifications"
+msgstr "Notifications aux moteurs de recherche"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "IndexNow tells Bing, Yandex, Seznam, Naver and a few other engines which product pages changed, instead of waiting for their next visit. Google does not take part."
+msgstr "IndexNow indique à Bing, Yandex, Seznam, Naver et quelques autres moteurs de recherche quelles fiches produit ont changé, au lieu d'attendre leur prochaine visite. Google n'y participe pas."
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Notify Search Engines of Changes"
+msgstr "Notifier les moteurs de recherche des changements"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Every ten minutes, the pages of the products published, withdrawn or repriced since the last run are sent, for each site open to search engines."
+msgstr "Toutes les dix minutes, les fiches produit publiées, retirées ou dont le prix a changé depuis la dernière exécution sont envoyées, pour chaque site ouvert aux moteurs de recherche."
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "IndexNow Key"
+msgstr "Clé IndexNow"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Served at the root of every site, in a file named after it: the engines read it before trusting a notification."
+msgstr "Servie à la racine de chaque site, dans un fichier portant son nom : les moteurs de recherche la lisent avant de faire confiance à une notification."

@@ -8296,3 +8296,27 @@ msgstr ""
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js
 msgid "Google Shopping feed"
 msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Search Engine Notifications"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "IndexNow tells Bing, Yandex, Seznam, Naver and a few other engines which product pages changed, instead of waiting for their next visit. Google does not take part."
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Notify Search Engines of Changes"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Every ten minutes, the pages of the products published, withdrawn or repriced since the last run are sent, for each site open to search engines."
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "IndexNow Key"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Served at the root of every site, in a file named after it: the engines read it before trusting a notification."
+msgstr ""

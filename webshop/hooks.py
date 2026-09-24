@@ -75,7 +75,11 @@ scheduler_events = {
 	# //// Neoffice — abandoned carts: one look per hour at the carts left behind
 	"hourly": ["webshop.webshop.utils.abandoned_carts.send_abandoned_cart_reminders"],
 	# //// Neoffice — purchase follow-ups go out in the morning, not at midnight
-	"cron": {"15 8 * * *": ["webshop.webshop.utils.follow_ups.send_due_follow_ups"]},
+	# //// Neoffice — every ten minutes, what IndexNow should hear of (seo/indexnow.py, #691 lot 4)
+	"cron": {
+		"15 8 * * *": ["webshop.webshop.utils.follow_ups.send_due_follow_ups"],
+		"*/10 * * * *": ["webshop.webshop.seo.indexnow.submit_queue"],
+	},
 	# //// Neoffice — the store's public holidays: one look a month is enough to
 	# //// have next year's in the list well before December, and a provider that is
 	# //// down simply leaves the list alone until the next run.
@@ -153,7 +157,9 @@ doc_events = {
 	# //// Neoffice — a product or a category whose route changes leaves a 301 behind it
 	# //// (2026-09-24, #691, D26): Frappe keeps no history of routes, the old address died.
 	"Website Item": {
-		"on_update": ["webshop.webshop.seo.redirects.remember_old_route"],
+		# //// Neoffice — and IndexNow hears of it (seo/indexnow.py, #691 lot 4), when switched on
+		"on_update": ["webshop.webshop.seo.redirects.remember_old_route", "webshop.webshop.seo.indexnow.queue_website_item"],
+		"on_trash": ["webshop.webshop.seo.indexnow.queue_website_item"],
 	},
 	"Item Group": {
 		"on_update": ["webshop.webshop.seo.redirects.remember_old_route"],
@@ -266,9 +272,10 @@ doc_events = {
 		"on_trash": "webshop.webshop.crud_events.pricing_rule.invalidate_discount_cache.execute",
 	},
 	"Item Price": {
-		"on_update": "webshop.webshop.crud_events.item_price.invalidate_price_cache.execute",
-		"after_insert": "webshop.webshop.crud_events.item_price.invalidate_price_cache.execute",
-		"on_trash": "webshop.webshop.crud_events.item_price.invalidate_price_cache.execute",
+		# //// Neoffice — a selling price changed: IndexNow hears of the pages (seo/indexnow.py, #691 lot 4)
+		"on_update": ["webshop.webshop.crud_events.item_price.invalidate_price_cache.execute", "webshop.webshop.seo.indexnow.queue_item_price"],
+		"after_insert": ["webshop.webshop.crud_events.item_price.invalidate_price_cache.execute", "webshop.webshop.seo.indexnow.queue_item_price"],
+		"on_trash": ["webshop.webshop.crud_events.item_price.invalidate_price_cache.execute", "webshop.webshop.seo.indexnow.queue_item_price"],
 	},
 }
 
@@ -297,6 +304,8 @@ page_renderer = [
 	"webshop.webshop.page_renderers.maintenance_renderer.MaintenancePageRenderer",
 	# //// Neoffice — each site's Google Merchant Center feed, /feeds/google.xml (#691 lot 3)
 	"webshop.webshop.seo.feeds.google.FeedRenderer",
+	# //// Neoffice — the IndexNow key at each site's root, /<key>.txt (#691 lot 4)
+	"webshop.webshop.seo.indexnow.KeyRenderer",
 ]
 
 jinja = {

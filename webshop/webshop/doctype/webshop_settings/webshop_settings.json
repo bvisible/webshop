@@ -182,6 +182,10 @@
   "column_break_sitemap",
   "sitemap_last_generated",
   "regenerate_sitemap",
+  "indexnow_section",
+  "enable_indexnow",
+  "column_break_indexnow",
+  "indexnow_key",
   "maintenance_mode_section",
   "maintenance_website",
   "maintenance_webshop",
@@ -1248,6 +1252,32 @@
    "options": "regenerate_sitemap"
   },
   {
+   "description": "IndexNow tells Bing, Yandex, Seznam, Naver and a few other engines which product pages changed, instead of waiting for their next visit. Google does not take part.",
+   "fieldname": "indexnow_section",
+   "fieldtype": "Section Break",
+   "label": "Search Engine Notifications"
+  },
+  {
+   "default": "0",
+   "description": "Every ten minutes, the pages of the products published, withdrawn or repriced since the last run are sent, for each site open to search engines.",
+   "fieldname": "enable_indexnow",
+   "fieldtype": "Check",
+   "label": "Notify Search Engines of Changes"
+  },
+  {
+   "fieldname": "column_break_indexnow",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "enable_indexnow",
+   "description": "Served at the root of every site, in a file named after it: the engines read it before trusting a notification.",
+   "fieldname": "indexnow_key",
+   "fieldtype": "Data",
+   "label": "IndexNow Key",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "maintenance_mode_section",
    "fieldtype": "Section Break",
    "label": "Maintenance Mode"
@@ -1413,7 +1443,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-24 18:20:50.036388",
+ "modified": "2026-09-24 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

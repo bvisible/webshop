@@ -963,6 +963,14 @@ defects in neoffice-maintenance#691.
   the page and refuses an item over a cent. A model's variants are the items, tied by
   `item_group_id`; gift cards, services, excluded items and groups are left out and counted in
   the report. A site that hides its prices or sells only to businesses has no feed.
+- **IndexNow** (`seo/indexnow.py`, lot 4): Bing, Yandex, Seznam, Naver, Yep and a few others hear
+  of a product page that changed — a Website Item saved while published, withdrawn, renamed (the
+  old address too), a selling Item Price saved or deleted — through a Redis set drained every ten
+  minutes (cron), one request per site open to search engines; a business-only site is left out,
+  as robots.txt closes it. The key is served at each site's root (`KeyRenderer`, `/<key>.txt`) and
+  drawn when the switch is ticked (Webshop Settings, Advanced tab). **Off by default**: an instance
+  never starts calling a third party because it migrated. Google does not take part; stock changes
+  are not sent yet.
 - **`frappe.set_user()` inside a web request spoils the session of whoever made it.** It sets
   `session.sid` to the user's name and empties `session.data` on the live object, which the
   request writes back to the cache when it ends. The feed's button therefore queues a job
