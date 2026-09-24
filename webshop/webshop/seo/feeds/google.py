@@ -392,13 +392,20 @@ def generate_feeds(notify: str | None = None):
 	settings = frappe.get_single("Webshop Settings")
 	if not cint(settings.get("enable_google_feed")):
 		return []
-	reports = []
-	for site in feed_sites():
-		try:
-			reports.append(write_feed(site))
-		except Exception:
-			frappe.log_error(f"Google feed: site {site.key} failed", frappe.get_traceback())
-	report = describe(reports, settings)
+	# The report is read by a person, in their language: a worker starts in English whatever the
+	# site speaks (the button's report came back in English on osiris, 2026-09-24).
+	previous_lang = frappe.local.lang
+	frappe.set_user_lang(notify or frappe.session.user)
+	try:
+		reports = []
+		for site in feed_sites():
+			try:
+				reports.append(write_feed(site))
+			except Exception:
+				frappe.log_error(f"Google feed: site {site.key} failed", frappe.get_traceback())
+		report = describe(reports, settings)
+	finally:
+		frappe.local.lang = previous_lang
 	frappe.db.set_single_value(
 		"Webshop Settings",
 		{"google_feed_generated_on": now_datetime(), "google_feed_report": report},

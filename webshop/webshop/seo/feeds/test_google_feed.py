@@ -206,10 +206,15 @@ class TestNeverInsideARequest(FrappeTestCase):
 			patch.object(google, "feed_sites", return_value=[]),
 			patch("frappe.db.set_single_value"),
 			patch("frappe.publish_realtime") as publish,
+			patch("frappe.set_user_lang") as set_user_lang,
 		):
 			google.generate_feeds(notify="someone@example.com")
 			google.generate_feeds()
 		publish.assert_called_once_with(google.FEED_DONE_EVENT, "", user="someone@example.com", after_commit=True)
+		# the report speaks the language of whoever reads it, not the worker's English
+		self.assertEqual(
+			[c.args[0] for c in set_user_lang.call_args_list], ["someone@example.com", frappe.session.user]
+		)
 
 
 def _on_the_erpnext_fork() -> bool:
