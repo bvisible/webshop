@@ -14,11 +14,15 @@ asks this module for the shop's share of it (`site_organization`).
 import re
 
 import frappe
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, getdate, nowdate
 
 SCHEMA = "https://schema.org/"
 # The Swiss business identification number, as the registry writes it (with or without "TVA").
 SWISS_UID = re.compile(r"^CHE-\d{3}\.\d{3}\.\d{3}( (TVA|MWST|IVA|VAT))?$")
+# "1950 Sion", "CH-1950 Sion", "75001 Paris": a postcode then the locality.
+POSTCODE_LINE = re.compile(r"^(?:[A-Z]{1,2}-)?(\d{4,5})\s+(.+)$")
+# A year of closures at most: holidays are fetched a year ahead.
+MAX_CLOSURES = 40
 
 
 def product_graph(facts: frappe._dict) -> dict:
@@ -167,15 +171,16 @@ def site_policies(settings=None) -> frappe._dict:
 	)
 
 
-def site_organization(organization: dict) -> None:
+def site_organization(organization: dict) -> list[dict] | None:
 	"""builder's `site_organization` hook: the shop's share of the Organization the site chrome
 	declares on the home page (builder/site_graph.py). An organisation that sells here is an
-	OnlineStore, and its offers point at the policies below by @id (offer_node)."""
+	OnlineStore, and its offers point at the policies below by @id (offer_node). Returns the
+	shop's physical store as a node of its own, when it states its hours and its address."""
 	from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
 
 	settings = get_shopping_cart_settings()
 	if not settings.get("enabled"):
-		return
+		return None
 	organization["@type"] = "OnlineStore"
 	company = settings.get("company")
 	if company:
@@ -209,6 +214,79 @@ def site_organization(organization: dict) -> None:
 				"shippingRate": {"@type": "MonetaryAmount", "value": 0, "currency": currency},
 			},
 		}
+	store = store_node(organization, country)
+	return [store] if store else None
+
+
+def store_node(organization: dict, country: str = "") -> dict | None:
+	"""The shop's store, as the opening-hours block shows it (utils/store_hours.py): its address,
+	its weekly hours and the days it closes, holidays included. Only when the shop states both
+	its hours and its address: a store Google cannot place is not one."""
+	from webshop.webshop.multi_site import site_url
+	from webshop.webshop.utils.store_hours import WEEKDAYS, get_settings, schedule
+
+	settings = get_settings()
+	address = (settings.get("store_address") or "").strip()
+	sched = schedule(settings)
+	if not sched.configured or not address:
+		return None
+	node = {
+		"@type": "Store",
+		"@id": site_url("/#store"),
+		"name": organization.get("name"),
+		"url": site_url("/store-hours"),
+		"parentOrganization": {"@id": organization.get("@id")},
+		"address": postal_address(address, country),
+		"openingHoursSpecification": [
+			{
+				"@type": "OpeningHoursSpecification",
+				"dayOfWeek": SCHEMA + WEEKDAYS[day],
+				"opens": opens.strftime("%H:%M"),
+				"closes": closes.strftime("%H:%M"),
+			}
+			for day, periods in sorted(sched.periods.items())
+			for opens, closes in periods
+		],
+	}
+	for field, key in (("store_phone", "telephone"), ("store_email", "email")):
+		value = (settings.get(field) or "").strip()
+		if value:
+			node[key] = value
+	# a closed day, as Google reads one: opens and closes at 00:00 between two dates
+	today = getdate(nowdate())
+	closures = [c for c in sched.closures if c.to_date >= today and (c.from_date - today).days <= 366]
+	if closures:
+		node["specialOpeningHoursSpecification"] = [
+			{
+				"@type": "OpeningHoursSpecification",
+				"validFrom": str(c.from_date),
+				"validThrough": str(c.to_date),
+				"opens": "00:00",
+				"closes": "00:00",
+			}
+			for c in sorted(closures, key=lambda c: c.from_date)[:MAX_CLOSURES]
+		]
+	return node
+
+
+def postal_address(text: str, country: str = "") -> dict:
+	"""A store address typed as a customer reads it ("Rue du Rhône 12, 1950 Sion") as a
+	PostalAddress: the line carrying the postcode gives the postcode and the locality, the lines
+	before it the street."""
+	lines = [line.strip(" ,") for line in re.split(r"[\n,]", text) if line.strip(" ,")]
+	address = {"@type": "PostalAddress"}
+	street = lines
+	for index, line in enumerate(lines):
+		match = POSTCODE_LINE.match(line)
+		if match:
+			address["postalCode"], address["addressLocality"] = match.group(1), match.group(2).strip()
+			street = lines[:index]
+			break
+	if street:
+		address["streetAddress"] = ", ".join(street)
+	if country:
+		address["addressCountry"] = country
+	return address
 
 
 def shop_country(settings) -> str:

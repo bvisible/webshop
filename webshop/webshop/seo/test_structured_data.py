@@ -265,3 +265,74 @@ class TestSiteOrganization(FrappeTestCase):
 		self.assertEqual(self.organization({})["vatID"], "CHE-123.456.789 TVA")
 		self.assertEqual(self.organization({})["legalName"], "Atelier Test SA")
 		self.assertNotIn("vatID", self.organization({}, company=("Atelier Test SA", "12-3456789")))
+
+
+class TestStore(FrappeTestCase):
+	"""The shop's physical store on the home page's graph: what the opening-hours block shows."""
+
+	def settings(self, **values):
+		from datetime import time
+
+		return frappe._dict(
+			{
+				"store_address": "Rue du Rhône 12\n1950 Sion",
+				"store_phone": "+41 27 000 00 00",
+				"store_hours": [
+					frappe._dict(weekday="Monday", opens=time(9), closes=time(12)),
+					frappe._dict(weekday="Monday", opens=time(13, 30), closes=time(18)),
+					frappe._dict(weekday="Saturday", opens=time(9), closes=time(16)),
+				],
+				"store_closures": [
+					frappe._dict(from_date=add_days(nowdate(), 10), to_date=add_days(nowdate(), 12), label="Inventory"),
+					frappe._dict(from_date=add_days(nowdate(), -20), to_date=add_days(nowdate(), -18), label="Gone"),
+				],
+				**values,
+			}
+		)
+
+	def store(self, settings):
+		organization = {"@id": "https://shop.test/#organization", "name": "Atelier Test"}
+		with (
+			patch("webshop.webshop.utils.store_hours.get_settings", return_value=settings),
+			patch("webshop.webshop.utils.holidays.holiday_closures", return_value=[]),
+		):
+			return jsonld.store_node(organization, "CH")
+
+	def test_the_store_with_its_week_and_its_coming_closures(self):
+		store = self.store(self.settings())
+		self.assertEqual(store["@type"], "Store")
+		self.assertEqual(store["parentOrganization"], {"@id": "https://shop.test/#organization"})
+		self.assertEqual(
+			store["address"],
+			{
+				"@type": "PostalAddress",
+				"postalCode": "1950",
+				"addressLocality": "Sion",
+				"streetAddress": "Rue du Rhône 12",
+				"addressCountry": "CH",
+			},
+		)
+		hours = [(h["dayOfWeek"].rsplit("/", 1)[1], h["opens"], h["closes"]) for h in store["openingHoursSpecification"]]
+		self.assertEqual(hours, [("Monday", "09:00", "12:00"), ("Monday", "13:30", "18:00"), ("Saturday", "09:00", "16:00")])
+		closed = store["specialOpeningHoursSpecification"]
+		# only the closure still to come, as a day opening and closing at 00:00
+		self.assertEqual(len(closed), 1)
+		self.assertEqual((closed[0]["validFrom"], closed[0]["opens"], closed[0]["closes"]), (add_days(nowdate(), 10), "00:00", "00:00"))
+		self.assertEqual(store["telephone"], "+41 27 000 00 00")
+
+	def test_no_store_without_hours_or_address(self):
+		self.assertIsNone(self.store(self.settings(store_address="")))
+		self.assertIsNone(self.store(self.settings(store_hours=[])))
+
+	def test_an_address_typed_on_one_line(self):
+		self.assertEqual(
+			jsonld.postal_address("Grand-Rue 3, CH-1204 Genève", "CH"),
+			{
+				"@type": "PostalAddress",
+				"postalCode": "1204",
+				"addressLocality": "Genève",
+				"streetAddress": "Grand-Rue 3",
+				"addressCountry": "CH",
+			},
+		)
+		self.assertEqual(jsonld.postal_address("Halle 4"), {"@type": "PostalAddress", "streetAddress": "Halle 4"})
