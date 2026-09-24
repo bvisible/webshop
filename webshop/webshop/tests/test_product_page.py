@@ -89,17 +89,19 @@ class TestProductPage(FrappeTestCase):
 	def test_the_breadcrumb_json_ld_steps_aside_for_the_chrome(self):
 		"""A site chrome that draws the trail in its own page header sets `no_breadcrumbs` and
 		writes its own BreadcrumbList. The visible breadcrumb already stepped aside; the JSON-LD
-		did not, and a product page carried two (2026-09-14)."""
-		source = (Path(__file__).resolve().parents[2] / "templates" / "generators" / "item" / "item.html").read_text()
-		start = source.index("{%- if not no_breadcrumbs %}")
-		end = source.index("{%- endif %}", start) + len("{%- endif %}")
-		snippet = source[start:end]
-		self.assertIn('"BreadcrumbList"', snippet)
-		doc = frappe._dict(web_item_name="Trail shoe", route="products/trail-shoe")
+		did not, and a product page carried two (2026-09-14).
+
+		//// Neoffice — since 2026-09-24 (#691) the JSON-LD is printed by the breadcrumb include
+		//// itself, from the trail the visitor sees: item.html used to write a second one from
+		//// another trail, next to the include's microdata."""
+		source = (Path(__file__).resolve().parents[2] / "templates" / "includes" / "breadcrumbs.html").read_text()
 		parents = [{"route": "/", "label": "Home"}, {"route": "/all-products", "label": "Shop"}]
-		self.assertEqual(frappe.render_template(snippet, {"no_breadcrumbs": 1, "parents": parents, "doc": doc}).strip(), "")
-		html = frappe.render_template(snippet, {"no_breadcrumbs": 0, "parents": parents, "doc": doc})
-		data = json.loads(html.split(">", 1)[1].rsplit("</script>", 1)[0])
+		context = {"parents": parents, "title": "Trail shoe", "url_prefix": ""}
+		self.assertEqual(frappe.render_template(source, {**context, "no_breadcrumbs": 1}).strip(), "")
+		html = frappe.render_template(source, {**context, "no_breadcrumbs": 0})
+		self.assertNotIn("itemscope", html)
+		data = json.loads(html.split('<script type="application/ld+json">', 1)[1].rsplit("</script>", 1)[0])
+		self.assertEqual(data["@type"], "BreadcrumbList")
 		self.assertEqual([element["position"] for element in data["itemListElement"]], [1, 2, 3])
 		self.assertEqual(data["itemListElement"][-1]["name"], "Trail shoe")
 
@@ -113,8 +115,9 @@ class TestProductPage(FrappeTestCase):
 		snippet = source[start:end]
 		doc = frappe._dict(web_item_name="Trail shoe")
 		under_the_band = frappe.render_template(snippet, {"band_prints_title": 1, "doc": doc}).strip()
-		self.assertTrue(under_the_band.startswith('<div class="product-title-main" itemprop="name">'), under_the_band)
+		# //// Neoffice — no itemprop since 2026-09-24: no microdata left on the page (#691).
+		self.assertTrue(under_the_band.startswith('<div class="product-title-main">'), under_the_band)
 		on_its_own = frappe.render_template(snippet, {"doc": doc}).strip()
-		self.assertTrue(on_its_own.startswith('<h1 class="product-title-main" itemprop="name">'), on_its_own)
+		self.assertTrue(on_its_own.startswith('<h1 class="product-title-main">'), on_its_own)
 		self.assertTrue(on_its_own.endswith("</h1>"), on_its_own)
 

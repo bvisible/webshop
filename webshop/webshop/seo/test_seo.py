@@ -20,6 +20,7 @@ from webshop.webshop.tests.utils import leaf_item_group, make_test_item, root_it
 
 ITEM = "_WSTEST SEO product"
 EMPTY_GROUP = "_WSTEST SEO empty group"
+CARRYING_GROUP = "_WSTEST SEO carrying group"
 
 
 def _robots_blocks(robots_txt, url):
@@ -214,23 +215,27 @@ class TestSitemaps(FrappeTestCase):
 			doc.flags.ignore_permissions = True
 			doc.insert()
 			cls.web_item = doc.name
-		frappe.db.set_value("Website Item", cls.web_item, "published", 1)
-		if not frappe.db.exists("Item Group", EMPTY_GROUP):
-			frappe.get_doc(
-				{
-					"doctype": "Item Group",
-					"item_group_name": EMPTY_GROUP,
-					"parent_item_group": root_item_group(),
-					"show_in_website": 1,
-				}
-			).insert(ignore_permissions=True)
+		for group in (EMPTY_GROUP, CARRYING_GROUP):
+			if not frappe.db.exists("Item Group", group):
+				frappe.get_doc(
+					{
+						"doctype": "Item Group",
+						"item_group_name": group,
+						"parent_item_group": root_item_group(),
+						"show_in_website": 1,
+					}
+				).insert(ignore_permissions=True)
+		# the fixture groups of a fresh site are not shown on the website: this one is
+		frappe.db.set_value("Website Item", cls.web_item, {"published": 1, "item_group": CARRYING_GROUP})
 		frappe.db.commit()
 		sitemaps.clear_caches()
 
 	@classmethod
 	def tearDownClass(cls):
-		if frappe.db.exists("Item Group", EMPTY_GROUP):
-			frappe.delete_doc("Item Group", EMPTY_GROUP, force=True, ignore_permissions=True)
+		frappe.db.set_value("Website Item", cls.web_item, "item_group", leaf_item_group())
+		for group in (EMPTY_GROUP, CARRYING_GROUP):
+			if frappe.db.exists("Item Group", group):
+				frappe.delete_doc("Item Group", group, force=True, ignore_permissions=True)
 		frappe.db.commit()
 		sitemaps.clear_caches()
 		super().tearDownClass()
@@ -253,9 +258,9 @@ class TestSitemaps(FrappeTestCase):
 		route = frappe.db.get_value("Item Group", EMPTY_GROUP, "route")
 		locs = [link["loc"] for link in sitemaps.category_links()]
 		self.assertFalse(any(route and loc.endswith(route.strip("/")) for loc in locs))
-		carrying = frappe.db.get_value("Item Group", leaf_item_group(), "route")
-		if carrying:
-			self.assertTrue(any(loc.endswith(carrying.strip("/")) for loc in locs))
+		carrying = frappe.db.get_value("Item Group", CARRYING_GROUP, "route")
+		self.assertTrue(carrying)
+		self.assertTrue(any(loc.endswith(carrying.strip("/")) for loc in locs), (carrying, locs))
 
 	def test_brand_filters_are_not_pages(self):
 		from webshop.www import sitemap_brands
@@ -267,6 +272,11 @@ class TestRouteRedirects(FrappeTestCase):
 	def _redirect_of(self, path):
 		from frappe.website.path_resolver import resolve_redirect
 
+		# Frappe's resolve_redirect does `redirects = frappe.get_hooks(...)` then `redirects +=
+		# frappe.get_all(...)`: it extends the hooks list, which is cached for the request, so
+		# within ONE request every call stacks the rules it read in front of the next call's.
+		# A page view makes one call; a test making several starts from a fresh request cache.
+		frappe.local.cache.clear()
 		frappe.flags.redirect_location = None
 		try:
 			resolve_redirect(path)
@@ -324,7 +334,7 @@ class _request_path:
 
 	def __enter__(self):
 		self.previous = getattr(frappe.local, "request", None)
-		frappe.local.request = SimpleNamespace(path=self.path)
+		frappe.local.request = SimpleNamespace(path=self.path, host="shop.test", headers={})
 
 	def __exit__(self, *exc):
 		frappe.local.request = self.previous
