@@ -7,7 +7,9 @@
     and would send ?start=undefined. The look is the script's pager (.btn-page, the same icons). -#}
 {%- if listing_ssr and listing_ssr.cards %}
 <div class="wsp-ssr-listing">
-	<div class="row products-list mt-minus-1">
+	{#- no mt-minus-1: the script's grid gets a 10px top margin from its loader styles; here the
+	    reserved toolbar space (webshop_catalogue.scss) puts the cards where the script's will be #}
+	<div class="row products-list">
 		{%- for card in listing_ssr.cards %}
 		{{ card }}
 		{%- endfor %}

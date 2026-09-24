@@ -2349,6 +2349,7 @@ webshop.ProductView =  class {
 					<div id="products-grid-area" class="row products-list mt-minus-1 hidden"></div>
 				`);
 			}
+			this.add_product_loader_styles();
 			return;
 		}
 
@@ -2433,6 +2434,13 @@ webshop.ProductView =  class {
 		// Add skeletons directly to the existing container
 		targetContainer.html(skeletonItems);
 		
+		this.add_product_loader_styles();
+	}
+
+	//// Neoffice — the loader's styles on their own (#691 lot 2): they also give the product areas
+	//// their 10px top margin, which the server's first page needs as much as the skeleton does —
+	//// without them the grid slid 26px up under the toolbar.
+	add_product_loader_styles() {
 		// Add CSS if not already added
 		if (!$('#skeleton-loader-styles').length) {
 			$('head').append(`
