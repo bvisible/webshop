@@ -73,6 +73,11 @@ for (const page of config.pages) {
 				}
 				const settle = images.filter((i) => !i.complete).map((i) => new Promise((done) => { i.addEventListener("load", done, { once: true }); i.addEventListener("error", done, { once: true }); }));
 				await Promise.race([Promise.all(settle), new Promise((done) => setTimeout(done, 8000))]);
+				// Pin every picture to the copy it shows (#691 lot 5). Capturing an element taller than
+				// the window enlarges what the browser lays out, and a srcset may then pick another copy
+				// that is not loaded when the shot is taken: the tile came out empty, on a page that a
+				// visitor sees whole.
+				for (const img of images) if (img.srcset && img.currentSrc) img.srcset = img.currentSrc;
 			});
 			await tab.waitForTimeout(600);
 			// the shop's own content is <main>; the site header, the theme's title block and the

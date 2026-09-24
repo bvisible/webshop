@@ -1247,6 +1247,14 @@ read. Usage and the reasons behind each choice are in `tests/e2e/README.md`.
 > and every page "changed" by 30 %. A page captured on a 502 is `INVALID`, not
 > compared. Read the `items` column before reading `MOVED`.
 
+> **A picture with a `srcset` is pinned to the copy it shows before the capture**
+> (`capture.mjs`, 2026-09-25). Capturing `<main>`, taller than the window, makes the
+> browser lay out a larger area and pick other copies, which were not loaded when the
+> shot was taken: the gallery's tiles came out empty on a page a visitor sees whole.
+> And a tab the browser considers hidden (Claude in Chrome's, `visibilityState:
+> hidden`) never starts a lazy image: force `loading = "eager"` before concluding that
+> a picture does not load.
+
 > **No `<style>` lives in a template any more** (lot 0a, 2026-09-11). Page styles
 > are partials of the shop bundle (`public/scss/webshop_*.scss`); a component a
 > Builder page can include (product carousel, brand carousel, opening hours) has its
@@ -1605,6 +1613,34 @@ on close so nothing keeps playing. `utils/test_videos.py` is in the CI's blockin
 > **A third party is reached only on the click.** The poster is a static image; the
 > iframe is created when the visitor presses play. A shop that would rather show no
 > YouTube thumbnail at load attaches a poster.
+
+### The pictures' WebP copies (`utils/renditions.py`, #691 lot 5)
+
+Every public raster picture of the catalogue has WebP copies at 400, 800, 1200 and 1600 px,
+never wider than the picture, under `/files/wsr/<file name>.<width>w.webp`:
+
+- **Written in advance** by a job when a Website Item is saved (`on_website_item_update`), and
+  once for the whole catalogue by the patch `make_picture_copies`.
+- **Written on first request** when nobody has written a copy yet (`RenditionRenderer`). nginx
+  serves a file that exists and hands Frappe the rest, so from then on nginx serves the copy.
+- **Given to an `<img>`** by `webshop_picture(url, layout)`, a Jinja method: its `srcset`, the
+  `sizes` of its layout (`SIZES`) and the picture's width and height.
+- **The `src` stays the original**, for crawlers, old browsers and the structured data.
+- **Never copied:** SVG, GIF (it may be animated), external addresses and private files.
+- **Measured on osiris:** 24.3 MB of originals against 1.71 MB of 400 px copies; a product's
+  main picture weighs 49 KB instead of 647 KB.
+
+> **A script that swaps an `<img>`'s `src` swaps its `srcset` too**: with a srcset set, the
+> browser ignores a new src. The gallery's rail and `wspGallery.showImage` do; a new script must.
+
+> **The head's preload offers the same copies at the same sizes as the first picture**
+> (`imagesrcset`/`imagesizes`), and the gallery's desktop tile and the phone slide use one
+> `sizes`: both are fetched at once, one of them hidden, and two sizes would mean two downloads.
+
+> **A phone photograph is stored on its side and says so in its EXIF**: its displayed width is
+> its stored height. `picture_size` reads the orientation from the header, `make_rendition`
+> turns the picture before resizing it, and a JPEG is decoded at a fraction of its size when the
+> copy is much smaller (`draft`): 0.23 s for osiris' heaviest picture.
 
 ### The variant selector
 

@@ -500,6 +500,10 @@ again (`WEBSHOP_ONLY=<page>` with the same label overwrites only the capture
 concerned, but replaces the whole `summary.json`: keep a copy and merge it, or
 take everything again).
 
+A picture with a `srcset` is pinned to the copy it shows before the capture:
+capturing `<main>`, taller than the window, made the browser pick other copies that
+were not loaded yet, and gallery tiles came out empty (2026-09-25).
+
 ### Contrast audit (`visual/contrast.mjs`)
 
 The shop draws with the chrome's tokens: its colours only exist once a real site
