@@ -8238,3 +8238,143 @@ msgstr "Articles de blog"
 
 msgid "The sitemaps are generated automatically and kept for 6 hours:"
 msgstr "Les sitemaps sont générés automatiquement et conservés pendant 6 heures :"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "Google Shopping"
+msgstr "Google Shopping"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Product Feed"
+msgstr "Flux de produits"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Each site's product feed for Google Merchant Center, written every night and served at /feeds/google.xml?token=… on the site's domain. A site that hides its prices from visitors, or serves business accounts only, has none."
+msgstr "Le flux de produits de chaque site pour Google Merchant Center, écrit chaque nuit et servi à l'adresse /feeds/google.xml?token=… sur le domaine du site. Un site qui masque ses prix aux visiteurs, ou qui ne sert que des comptes professionnels, n'en a aucun."
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Enable the Google Shopping Feed"
+msgstr "Activer le flux Google Shopping"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Send Second-hand Units"
+msgstr "Envoyer les occasions"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Feed Token"
+msgstr "Jeton du flux"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Part of the feed's address: whoever does not know it gets nothing."
+msgstr "Fait partie de l'adresse du flux : quiconque ne le connaît pas n'obtient rien."
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Variant Attributes"
+msgstr "Attributs de variante"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "One per line, \"attribute = color\": color, size, material, pattern, gender or age_group. The common names (Couleur, Taille, Farbe, Size…) are recognised without it."
+msgstr "Un par ligne, « attribut = color » : color, size, material, pattern, gender ou age_group. Les noms courants (Couleur, Taille, Farbe, Size…) sont reconnus sans rien indiquer."
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Last Feed"
+msgstr "Dernier flux"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Written On"
+msgstr "Écrit le"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Report"
+msgstr "Rapport"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Exclude from Google Shopping"
+msgstr "Exclure de Google Shopping"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Keeps this product out of the Google Merchant Center feed."
+msgstr "Exclut cet article du flux Google Merchant Center."
+
+#: webshop/patches/add_google_shopping_fields.py
+msgid "Keeps this group and every group below it out of the Google Merchant Center feed."
+msgstr "Exclut du flux Google Merchant Center ce groupe d'articles et tous les groupes en dessous."
+
+#: webshop/patches/add_google_shopping_fields.py
+msgid "Google Product Category"
+msgstr "Catégorie de produit Google"
+
+#: webshop/patches/add_google_shopping_fields.py
+msgid "Its number or its path in Google's taxonomy. Groups below inherit it."
+msgstr "Son numéro ou son chemin dans la taxonomie Google. Les groupes en dessous en héritent."
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "a model: its published variants are the items"
+msgstr "un modèle : ses variantes publiées sont les articles"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "a gift card"
+msgstr "une carte cadeau"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "a bookable service"
+msgstr "une prestation réservable"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "a second-hand unit, not sent"
+msgstr "une occasion, non envoyée"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "excluded by the merchant (the item or its group)"
+msgstr "exclu par le marchand (l'article ou son groupe)"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "no price shown to a visitor"
+msgstr "aucun prix affiché à un visiteur"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "no picture"
+msgstr "aucune image"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "an item code longer than 50 characters"
+msgstr "un code article de plus de 50 caractères"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "an error, see the Error Log"
+msgstr "une erreur, voir le journal des erreurs"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "the shopping cart is disabled"
+msgstr "le panier est désactivé"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "prices are hidden from visitors"
+msgstr "les prix sont masqués aux visiteurs"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "the site serves business accounts only"
+msgstr "le site ne sert que des comptes professionnels"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "No feed: {0}"
+msgstr "Aucun flux : {0}"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "{0} products sent"
+msgstr "{0} produits envoyés"
+
+#: webshop/webshop/seo/feeds/google.py
+msgid "{0} left out: {1}"
+msgstr "{0} laissés de côté : {1}"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js
+msgid "Write the Google Shopping feed now"
+msgstr "Écrire le flux Google Shopping maintenant"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js
+msgid "Writing the feed…"
+msgstr "Écriture du flux…"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js
+msgid "Google Shopping feed"
+msgstr "Flux Google Shopping"
