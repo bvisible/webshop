@@ -115,6 +115,21 @@ class TestNoindex(FrappeTestCase):
 			meta.update_website_context(context)
 			self.assertEqual(context.metatags.get("robots"), "noindex, follow")
 
+	def test_a_listing_narrowed_by_price_is_not_indexed_nor_crawled(self):
+		"""The price range was missing from two of the three copies of this list: such a listing
+		was neither closed in robots.txt nor `noindex` (2026-09-24)."""
+		with _request_path("/all-products"), _form_dict(price_range='{"min": 10, "max": 50}'):
+			context = frappe._dict(metatags=frappe._dict())
+			meta.update_website_context(context)
+			self.assertEqual(context.metatags.get("robots"), "noindex, follow")
+		self.assertTrue(_robots_blocks(robots.default_robots_txt(), '/all-products?price_range={"min":10}'))
+
+	def test_one_list_of_narrowing_parameters(self):
+		from webshop.webshop.product_data_engine import listing_context
+
+		self.assertIs(robots.LISTING_PARAMETERS, meta.LISTING_PARAMETERS)
+		self.assertIs(listing_context.LISTING_PARAMETERS, meta.LISTING_PARAMETERS)
+
 
 class TestNoMicrodata(FrappeTestCase):
 	"""One structured-data graph per page, in JSON-LD: no microdata left in the shop.

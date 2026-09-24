@@ -16,6 +16,7 @@ Rules that matter here:
 """
 
 from webshop.webshop.multi_site import site_url
+from webshop.webshop.seo.meta import LISTING_PARAMETERS  # filter or search a listing: the same products
 
 PRIVATE_PATHS = (
 	"/app$",
@@ -45,9 +46,6 @@ PRIVATE_PATHS = (
 	"/search$",
 	"/search?",
 )
-
-# Query parameters that only filter or search a listing: the same products, again.
-LISTING_PARAMETERS = ("field_filters", "attribute_filters", "search")
 
 
 def default_robots_txt() -> str:

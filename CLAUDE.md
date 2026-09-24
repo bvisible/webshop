@@ -913,7 +913,10 @@ defects in neoffice-maintenance#691.
   `/cartes-cadeaux`; `/api/` stays open while the category grids load through it.
 - **noindex, canonical, descriptions**: `seo/meta.py` — private pages and searched or filtered
   listings are `noindex, follow`; the listings name one canonical; a category without text says
-  what it holds. Generic strings get a translation `context`: `suite` translates "{0} at {1}"
+  what it holds. What narrows a listing (search, facets, price range) is one tuple,
+  `seo.meta.LISTING_PARAMETERS`, read by robots.txt, the `noindex`, the canonical and the
+  server's first page: three copies had drifted, and a listing narrowed by price was neither
+  closed nor `noindex`. Generic strings get a translation `context`: `suite` translates "{0} at {1}"
   as a time, and Frappe's merged catalogue lent it to ours.
 - **A route change leaves a 301** (`seo/redirects.py`, `doc_events` of Website Item and Item
   Group), written straight into `Website Route Redirect` rows: `WebsiteSettings.save()` would

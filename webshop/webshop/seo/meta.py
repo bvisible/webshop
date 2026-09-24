@@ -30,8 +30,12 @@ NOINDEX_ROUTES = {
 	"order",
 }
 NOINDEX_PREFIXES = ("orders/", "invoices/", "quotations/", "order/")
-# A listing narrowed by a search or a facet: the same products as the plain listing.
-LISTING_PARAMETERS = ("search", "field_filters", "attribute_filters")
+# A listing narrowed by a search, a facet or a price range: the same products as the plain
+# listing. The one list of them: robots.txt closes these (seo/robots.py), such a page is
+# `noindex` and names the plain listing as its reference (listing_canonical), and the server
+# leaves it to the script (listing_context.server_listing). Three copies had drifted: a listing
+# narrowed by price was neither closed nor `noindex` (2026-09-24).
+LISTING_PARAMETERS = ("search", "field_filters", "attribute_filters", "price_range")
 
 
 def update_website_context(context):
@@ -156,6 +160,6 @@ def listing_canonical(route) -> str:
 	the other pages are never reached."""
 	form = frappe.form_dict
 	start = cint(form.get("start"))
-	if start > 0 and not any(form.get(key) for key in (*LISTING_PARAMETERS, "price_range")):
+	if start > 0 and not any(form.get(key) for key in LISTING_PARAMETERS):
 		return site_url(f"{route}?start={start}")
 	return site_url(route)

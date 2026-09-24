@@ -7,6 +7,7 @@ from frappe import _
 from frappe.utils import cint
 
 from webshop.webshop.product_data_engine.filters import ProductFiltersBuilder
+from webshop.webshop.seo.meta import LISTING_PARAMETERS
 
 
 def build_listing_context(context, title, locked_field_filters=None, listing_route="/all-products"):
@@ -160,8 +161,6 @@ def quick_order_url():
 # //// (templates/includes/listing_ssr.html); the script keeps them on screen until its own first
 # //// result replaces them (views.js, drop_ssr_listing).
 PAGER_WINDOW = 7
-# what the listing asks the API when it narrows the catalogue: such a listing stays the script's
-NARROWING_PARAMETERS = ("search", "field_filters", "attribute_filters", "price_range")
 
 
 def server_listing(route, item_group=None, locked_field_filters=None):
@@ -170,7 +169,8 @@ def server_listing(route, item_group=None, locked_field_filters=None):
 	toggle when the shop ticks it by default, the shop's default sort, the page `?start=` asks
 	for. None for a searched or filtered listing. A page beyond the last one does not exist."""
 	form = frappe.form_dict
-	if any(form.get(key) for key in NARROWING_PARAMETERS):
+	# a searched or filtered listing stays the script's (seo.meta.LISTING_PARAMETERS)
+	if any(form.get(key) for key in LISTING_PARAMETERS):
 		return None
 	settings = frappe.get_cached_doc("Webshop Settings")
 	page_length = cint(settings.get("products_per_page")) or 20
