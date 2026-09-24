@@ -8551,3 +8551,43 @@ msgstr "Moteurs de recherche et IA"
 #: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.json
 msgid "Catalogue Ready for Google"
 msgstr "Catalogue prêt pour Google"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Title for search engines"
+msgstr "Titre pour les moteurs de recherche"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Description for search engines"
+msgstr "Description pour les moteurs de recherche"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Google preview"
+msgstr "Aperçu Google"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "About 60 characters show in Google's results. Empty: the product's name and brand."
+msgstr "Environ 60 caractères s'affichent dans les résultats Google. Vide : le nom et la marque du produit."
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "About 160 characters show in Google's results. Empty: the start of the product's description."
+msgstr "Environ 160 caractères s'affichent dans les résultats Google. Vide : le début de la description du produit."
+
+#: webshop/patches/add_seo_fields.py
+msgid "About 60 characters show in Google's results. Empty: the page's own title."
+msgstr "Environ 60 caractères s'affichent dans les résultats Google. Vide : le titre propre de la page."
+
+#: webshop/patches/add_seo_fields.py
+msgid "About 160 characters show in Google's results. Empty: the page's own description."
+msgstr "Environ 160 caractères s'affichent dans les résultats Google. Vide : la description propre de la page."
+
+#: webshop/public/js/override/seo_preview.js
+msgid "No page on the site yet"
+msgstr "Pas encore de page sur le site"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Nothing written: this is what the page says on its own"
+msgstr "Rien d'écrit : voici ce que la page affiche par elle-même"
+
+#: webshop/webshop/seo/page_meta.py
+msgid "No preview for {0}"
+msgstr "Pas d'aperçu pour {0}"

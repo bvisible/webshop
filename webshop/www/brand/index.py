@@ -7,12 +7,9 @@ import frappe
 
 from webshop.webshop.product_data_engine.brand_pages import brand_of_slug, brand_route
 from webshop.webshop.product_data_engine.listing_context import build_listing_context
-from webshop.webshop.seo.site import shop_name
-from webshop.webshop.seo.text import one_line
+from webshop.webshop.seo.page_meta import brand_meta
 
 no_cache = 1
-# Google cuts a longer description in its results
-DESCRIPTION_LIMIT = 160
 
 
 def get_context(context):
@@ -24,11 +21,13 @@ def get_context(context):
 	)
 	record = frappe.db.get_value("Brand", brand, ["image", "description"], as_dict=True) or frappe._dict()
 	context.brand = frappe._dict(name=brand, image=record.image, description=(record.description or "").strip())
-	# the heading and the breadcrumb say the brand; the browser tab and Google's title add the shop
-	name = shop_name()
-	context.html_title = f"{brand} | {name}" if name else brand
-	if context.brand.description:
-		context.metatags["description"] = one_line(context.brand.description, DESCRIPTION_LIMIT)
+	# the heading and the breadcrumb say the brand; the browser tab and Google's title add the shop.
+	# What the merchant wrote in the Search engines fields wins (seo/page_meta.py, #691 lot 6).
+	meta = brand_meta(brand)
+	context.html_title = meta.html_title
+	context.metatags["title"] = meta.title
+	if meta.description:
+		context.metatags["description"] = meta.description
 	if record.image:
 		context.metatags["image"] = record.image
 	return context

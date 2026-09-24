@@ -83,24 +83,18 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		# //// "Chaussures - <shop>", and the page had no picture to share. It now says what it
 		# //// holds, from the catalogue's own scope ("Chaussures : 12 produits, dont Trailhead,
 		# //// Salomon et Hoka."), and shows the group's picture or its first product's.
-		from webshop.webshop.seo.meta import (
-			catalogue_summary,
-			first_product_image,
-			subtree_groups,
-			summary_description,
-		)
-		from webshop.webshop.seo.text import one_line
+		from webshop.webshop.seo.meta import first_product_image, subtree_groups
+		from webshop.webshop.seo.page_meta import item_group_meta
 
+		# //// Neoffice — title and description from seo/page_meta.py, which the desk's preview
+		# //// reads too: what the merchant wrote in the Search engines fields wins (#691 lot 6)
+		_meta = item_group_meta(self)
 		_groups = subtree_groups(self.name)
-		_cat_desc = one_line(self.get("description") or "", 158)
-		if not _cat_desc:
-			_total, _brands = catalogue_summary(_groups)
-			_cat_desc = summary_description(self.get("website_title") or self.name, _total, _brands) if _total else ""
 		metatags = frappe._dict(context.get("metatags") or {})
 		# //// Neoffice — the description only when there is one, and a picture (see above, #691).
-		metatags["title"] = self.name
-		if _cat_desc:
-			metatags["description"] = _cat_desc
+		metatags["title"] = _meta.title
+		if _meta.description:
+			metatags["description"] = _meta.description
 		_image = self.get("image") or first_product_image(_groups)
 		if _image:
 			metatags["image"] = _image
@@ -153,14 +147,11 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		# //// Neoffice — the heading stays the category's own name; the browser tab gets the
 		# //// shop name after it (Website Settings' app name, skipped when it is Frappe's
 		# //// default). See the note in get_context above.
-		from webshop.webshop.seo.site import shop_name
-
-		_base_title = self.website_title or self.name
-		context.title = _base_title
+		context.title = _meta.heading
 		# //// Neoffice — the site's one name (seo/site.py shop_name: the chrome's, per site),
-		# //// the one the home page declares to Google (2026-09-24, #691).
-		_site_name = shop_name()
-		context.html_title = _base_title + " | " + _site_name if _site_name else _base_title
+		# //// the one the home page declares to Google (2026-09-24, #691), after the merchant's
+		# //// own title when there is one (page_meta.with_shop_name)
+		context.html_title = _meta.html_title
 		context.name = self.name
 		context.item_group_name = self.item_group_name
 

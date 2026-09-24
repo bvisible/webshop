@@ -327,6 +327,8 @@ CHAMPS_A_CREER_A_L_INSTALLATION = [
 	"add_promise_fields_to_website_profile",
 	# //// Neoffice — the Google Shopping fields of Item Group (#691 lot 3)
 	"add_google_shopping_fields",
+	# //// Neoffice — the Search engines fields of Item Group and Brand (#691 lot 6)
+	"add_seo_fields",
 ]
 
 

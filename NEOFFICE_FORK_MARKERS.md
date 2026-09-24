@@ -58,7 +58,9 @@ Custom Fields if we ever want to shrink the divergence.
   `condition_details` (second-hand goods, the /occasions page);
   `image_focus` + `section_break_qjfe` (per-item image focus point, so a cover-fit
   card does not cut a face); `warehouse_sources_mode`,
-  `additional_warehouse_sources` (multi-warehouse override).
+  `additional_warehouse_sources` (multi-warehouse override); `seo_title`,
+  `seo_description`, `seo_preview` in the "Search and SEO" section (the page's title and
+  description for search engines, seo/page_meta.py, #691 lot 6, 2026-09-25).
 - removed: `column_break_27`, `column_break_11` — layout only, dropped when the
   sections above were inserted.
 - `field_order` re-shuffled accordingly.
