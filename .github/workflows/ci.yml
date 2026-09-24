@@ -256,7 +256,7 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: |
           bench --site test_site set-config allow_tests true
-          echec=""
+          failed=""
           for m in \
             webshop.controllers.test_payment_handler \
             webshop.webshop.doctype.item_review.test_item_review \
@@ -297,16 +297,17 @@ jobs:
             webshop.webshop.tests.test_public_settings \
             webshop.webshop.seo.feeds.test_google_feed \
             webshop.webshop.product_data_engine.test_brand_pages \
+            webshop.webshop.product_data_engine.test_listing_scope \
             webshop.webshop.seo.test_indexnow \
             webshop.webshop.seo.test_llms \
             webshop.webshop.seo.test_ai_referrals
           do
             echo "::group::$m"
-            bench --site test_site run-tests --module $m || echec="$echec $m"
+            bench --site test_site run-tests --module $m || failed="$failed $m"
             echo "::endgroup::"
           done
-          if [ -n "$echec" ]; then
-            echo "::error::modules en échec:$echec"
+          if [ -n "$failed" ]; then
+            echo "::error::failed modules:$failed"
             exit 1
           fi
         env:

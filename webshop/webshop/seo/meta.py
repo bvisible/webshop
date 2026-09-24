@@ -82,13 +82,11 @@ def catalogue_summary(item_groups=None, extra_filters=None):
 	"""(how many visible products, their three most frequent brands) in `item_groups`."""
 	from webshop.webshop.product_data_engine.catalogue_scope import visible_item_filters
 
-	filters = visible_item_filters()
+	filters = visible_item_filters(extra_filters)
 	if item_groups is not None:
 		if not item_groups:
 			return 0, []
 		filters["item_group"] = ["in", list(item_groups)]
-	for fieldname, values in (extra_filters or {}).items():
-		filters[fieldname] = ["in", list(values)]
 	rows = frappe.get_all(
 		"Website Item", fields=["brand", "count(name) as total"], filters=filters, group_by="brand"
 	)
@@ -122,14 +120,12 @@ def first_product_image(item_groups=None, extra_filters=None):
 	"""The picture of the first visible product, for a page that has none of its own."""
 	from webshop.webshop.product_data_engine.catalogue_scope import visible_item_filters
 
-	filters = visible_item_filters()
+	filters = visible_item_filters(extra_filters)
 	filters["website_image"] = ["is", "set"]
 	if item_groups is not None:
 		if not item_groups:
 			return None
 		filters["item_group"] = ["in", list(item_groups)]
-	for fieldname, values in (extra_filters or {}).items():
-		filters[fieldname] = ["in", list(values)]
 	image = frappe.get_all(
 		"Website Item", filters=filters, pluck="website_image", order_by="ranking desc, modified desc", limit=1
 	)

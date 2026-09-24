@@ -2,6 +2,8 @@
 # //// context, shared by /all-products and /occasions: one place builds the
 # //// facets, the price filters, the settings the listing script reads.
 
+import hashlib
+
 import frappe
 from frappe import _
 from frappe.utils import cint
@@ -35,11 +37,10 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	context.listing_route = listing_route
 	context.locked_field_filters = locked_field_filters or {}
 
-	filter_engine = ProductFiltersBuilder()
-	field_filters = filter_engine.get_field_filters()
-	if locked_field_filters:
-		field_filters = [f for f in field_filters if f[0].fieldname not in locked_field_filters]
-	context.field_filters = field_filters
+	# //// (2026-09-24) the facets count inside the locked ones, and do not offer them
+	# //// (ProductFiltersBuilder.scope)
+	filter_engine = ProductFiltersBuilder(locked_field_filters=locked_field_filters)
+	context.field_filters = filter_engine.get_field_filters()
 	context.attribute_filters = filter_engine.get_attribute_filters()
 
 	if frappe.db.get_single_value("Webshop Settings", "enable_tag_filters"):
@@ -63,9 +64,10 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	# //// is the shop's own, so the listing itself says when there is
 	# //// something used to see.
 	# //// (2026-09-13) on every listing: the toggle sits next to the discount one everywhere
-	context.second_hand_count = count_second_hand()
+	# //// (2026-09-24) counted inside the locked facets, like every facet of the page
+	context.second_hand_count = count_second_hand(locked_field_filters)
 	# //// (2026-09-14) the discounted count next to the discount toggle, from a short cache
-	context.discount_count = count_discounted()
+	context.discount_count = count_discounted(locked_field_filters)
 	# //// (2026-09-14) a quiet way in to the quick order, next to the search box, for whoever may use it
 	context.quick_order_url = quick_order_url()
 	context.no_cache = 1
@@ -96,18 +98,18 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 # //// /occasions has no menu entry of its own (the menu is the theme's), so
 # //// the listing itself says when there is something used to see
 # //// (0227bfd0 "feat(occasion): une section État qui n'avale rien, expliquée, et un chemin depuis le catalogue").
-def count_second_hand():
-	"""Published second-hand units this site still sells (a sold unit left the catalogue)."""
-	from webshop.webshop.multi_site import excluded_item_names
+def count_second_hand(locked_field_filters=None, item_group=None):
+	"""Published second-hand units this site still sells (a sold unit left the catalogue), within
+	a listing's locked facets and category when given (2026-09-24: a brand's page and a category
+	offered "second-hand (2)" for units they do not list)."""
+	from webshop.webshop.product_data_engine.catalogue_scope import visible_item_filters
+	from webshop.webshop.product_data_engine.query import ProductQuery
 	from webshop.webshop.utils.used_items import SECOND_HAND_CONDITIONS
 
-	names = frappe.get_all(
-		"Website Item",
-		filters={"published": 1, "sold": 0, "item_condition": ("in", SECOND_HAND_CONDITIONS)},
-		pluck="name",
-	)
-	excluded = set(excluded_item_names())
-	return len([n for n in names if n not in excluded])
+	filters = visible_item_filters(locked_field_filters)
+	filters["item_condition"] = ["in", list(SECOND_HAND_CONDITIONS)]
+	or_filters = ProductQuery.item_group_or_filters(item_group) if item_group else []
+	return len(frappe.get_all("Website Item", filters=filters, or_filters=or_filters, pluck="name"))
 
 
 # //// Neoffice — added (2026-09-14): the figure next to the "discounted only" toggle. The
@@ -119,16 +121,24 @@ DISCOUNT_COUNT_CACHE = "webshop:discount_count"
 DISCOUNT_COUNT_TTL = 300
 
 
-def count_discounted():
+def count_discounted(locked_field_filters=None, item_group=None):
+	"""Products this site sells at a discount now, within a listing's locked facets and category
+	when given (2026-09-24: the toggle read "(6)" on a category holding none, and its tick
+	emptied the grid)."""
 	from webshop.webshop.multi_site import effective_price_list, get_current_profile_name
 	from webshop.webshop.product_data_engine.query import count_discounted_items
 
-	key = f"{DISCOUNT_COUNT_CACHE}:{get_current_profile_name() or ''}:{effective_price_list() or ''}"
+	# one figure per listing: frappe.generate_hash ignores its text on v15, hence a digest
+	scope = frappe.as_json({"item_group": item_group, "locked": locked_field_filters or {}}, indent=None)
+	key = (
+		f"{DISCOUNT_COUNT_CACHE}:{get_current_profile_name() or ''}:{effective_price_list() or ''}:"
+		+ hashlib.sha256(scope.encode()).hexdigest()[:12]
+	)
 	cached = frappe.cache().get_value(key)
 	if cached is not None:
 		return cint(cached)
 	try:
-		count = count_discounted_items()
+		count = count_discounted_items(locked_field_filters=locked_field_filters, item_group=item_group)
 	except Exception:
 		frappe.log_error("Discount count failed", frappe.get_traceback())
 		return 0
