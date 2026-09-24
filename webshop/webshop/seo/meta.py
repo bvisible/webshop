@@ -143,6 +143,10 @@ def listing_metatags(context, title, route, locked_field_filters=None):
 	# Frappe's merged catalogue would otherwise lend it: "Tous les produits à <boutique>".
 	subject = _("{0} at {1}", context="Shop name in a page description").format(title, name) if name else title
 	total, brands = catalogue_summary(extra_filters=locked_field_filters)
+	# a listing locked on a brand (/brands/<slug>) does not name it again: "Canon: 2 products,
+	# including Canon" read on the brand's own page
+	locked_brands = set((locked_field_filters or {}).get("brand") or [])
+	brands = [brand for brand in brands if brand not in locked_brands]
 	metatags = frappe._dict(context.get("metatags") or {})
 	if total:
 		metatags["description"] = summary_description(subject, total, brands)

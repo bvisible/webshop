@@ -82,6 +82,20 @@ class TestPage(FrappeTestCase):
 		self.assertEqual(context.metatags["description"], "Torréfacteur depuis 1920.")
 		self.assertEqual(context.metatags["image"], "/files/cafe.png")
 
+	def test_the_description_does_not_name_the_brand_twice(self):
+		"""Measured on osiris: "Canon chez <shop> : 2 produits, dont Canon." on Canon's own page."""
+		from webshop.webshop.seo import meta
+
+		context = frappe._dict(metatags={})
+		with (
+			patch.object(meta, "catalogue_summary", return_value=(2, ["Canon"])),
+			patch.object(meta, "first_product_image", return_value=None),
+			patch.object(meta, "shop_name", return_value="Atelier"),
+			patch.object(meta, "listing_canonical", return_value="https://shop.test/brands/canon"),
+		):
+			meta.listing_metatags(context, "Canon", "/brands/canon", {"brand": ["Canon"]})
+		self.assertEqual(context.metatags["description"].count("Canon"), 1, context.metatags["description"])
+
 	def test_the_intro_prints_the_logo_and_the_text_escaped(self):
 		fragment = (APP / "templates" / "includes" / "brand_intro.html").read_text()
 		brand = frappe._dict(name="Café & Co", image="/files/cafe.png", description="Grains <torréfiés>")
