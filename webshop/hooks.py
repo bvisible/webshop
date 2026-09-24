@@ -58,6 +58,11 @@ update_website_context = [
 	"webshop.webshop.seo.meta.update_website_context",
 ]
 
+# //// Neoffice — SEO (2026-09-24, #691 lot 1): the shop's share of the Organization that the site
+# //// chrome declares on the home page (builder/site_graph.py): an OnlineStore, its return window
+# //// and its free delivery, which every offer of the product pages points at by @id.
+site_organization = ["webshop.webshop.seo.jsonld.site_organization"]
+
 # Scheduled Tasks
 scheduler_events = {
 	"daily": [

@@ -11,10 +11,14 @@ Google wants them declared once, on the organisation, and each offer pointing at
 asks this module for the shop's share of it (`site_organization`).
 """
 
+import re
+
 import frappe
 from frappe.utils import cint, flt
 
 SCHEMA = "https://schema.org/"
+# The Swiss business identification number, as the registry writes it (with or without "TVA").
+SWISS_UID = re.compile(r"^CHE-\d{3}\.\d{3}\.\d{3}( (TVA|MWST|IVA|VAT))?$")
 
 
 def product_graph(facts: frappe._dict) -> dict:
@@ -151,9 +155,71 @@ def site_policies(settings=None) -> frappe._dict:
 		from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
 
 		settings = get_shopping_cart_settings()
+	# a policy applies somewhere: without the shop's country, nothing can be declared, and an
+	# offer must not point at a policy the home page does not declare
+	country = shop_country(settings)
 	return frappe._dict(
-		returns=cint(settings.get("return_days")) > 0,
-		shipping=flt(settings.get("free_shipping_from")) > 0,
+		country=country,
+		returns=bool(country) and cint(settings.get("return_days")) > 0,
+		shipping=bool(country) and flt(settings.get("free_shipping_from")) > 0,
 		return_days=cint(settings.get("return_days")),
 		free_shipping_from=flt(settings.get("free_shipping_from")),
 	)
+
+
+def site_organization(organization: dict) -> None:
+	"""builder's `site_organization` hook: the shop's share of the Organization the site chrome
+	declares on the home page (builder/site_graph.py). An organisation that sells here is an
+	OnlineStore, and its offers point at the policies below by @id (offer_node)."""
+	from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
+
+	settings = get_shopping_cart_settings()
+	if not settings.get("enabled"):
+		return
+	organization["@type"] = "OnlineStore"
+	company = settings.get("company")
+	if company:
+		legal_name, tax_id = frappe.get_cached_value("Company", company, ["company_name", "tax_id"]) or ("", "")
+		if legal_name and legal_name != organization.get("name"):
+			organization.setdefault("legalName", legal_name)
+		# only a Swiss UID, a public registry number, is published as the organisation's VAT id
+		if tax_id and SWISS_UID.match(tax_id.strip()):
+			organization["vatID"] = tax_id.strip()
+	policies = site_policies(settings)
+	country = policies.country
+	if policies.returns:
+		organization["hasMerchantReturnPolicy"] = {
+			"@type": "MerchantReturnPolicy",
+			"@id": policy_id("returns"),
+			"applicableCountry": country,
+			"returnPolicyCountry": country,
+			"returnPolicyCategory": SCHEMA + "MerchantReturnFiniteReturnWindow",
+			"merchantReturnDays": policies.return_days,
+		}
+	if policies.shipping:
+		currency = shop_currency(settings)
+		organization["hasShippingService"] = {
+			"@type": "ShippingService",
+			"@id": policy_id("shipping"),
+			"shippingConditions": {
+				"@type": "ShippingConditions",
+				"shippingDestination": {"@type": "DefinedRegion", "addressCountry": country},
+				# free from this amount: what the product page promises, and all it promises
+				"orderValue": {"@type": "MonetaryAmount", "minValue": policies.free_shipping_from, "currency": currency},
+				"shippingRate": {"@type": "MonetaryAmount", "value": 0, "currency": currency},
+			},
+		}
+
+
+def shop_country(settings) -> str:
+	"""ISO 3166 code of the shop's company country: where its policies apply."""
+	company = settings.get("company")
+	country = company and frappe.get_cached_value("Company", company, "country")
+	code = country and frappe.get_cached_value("Country", country, "code")
+	return (code or "").upper()
+
+
+def shop_currency(settings) -> str:
+	price_list = settings.get("price_list")
+	currency = price_list and frappe.get_cached_value("Price List", price_list, "currency")
+	return currency or frappe.defaults.get_global_default("currency") or ""

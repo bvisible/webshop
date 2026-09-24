@@ -214,3 +214,54 @@ class TestProductPageTemplate(FrappeTestCase):
 		body = html.split('<script type="application/ld+json">', 1)[1].rsplit("</script>", 1)[0]
 		self.assertEqual(json.loads(body), graph)
 		self.assertEqual(source.count("application/ld+json"), 1)
+
+
+class TestSiteOrganization(FrappeTestCase):
+	"""The shop's share of the Organization the site chrome declares on the home page."""
+
+	def organization(self, settings, country="CH", company=("Atelier Test SA", "CHE-123.456.789 TVA")):
+		organization = {"@type": "Organization", "name": "Atelier Test"}
+		real_get_cached_value = frappe.get_cached_value
+
+		def get_cached_value(doctype, name, fieldname="name", *args, **kwargs):
+			if doctype == "Company":
+				return company
+			return real_get_cached_value(doctype, name, fieldname, *args, **kwargs)
+
+		with (
+			patch(
+				"webshop.webshop.doctype.webshop_settings.webshop_settings.get_shopping_cart_settings",
+				return_value=frappe._dict({"enabled": 1, "company": "Atelier Test SA", **settings}),
+			),
+			patch("webshop.webshop.seo.jsonld.shop_country", return_value=country),
+			patch("webshop.webshop.seo.jsonld.shop_currency", return_value="CHF"),
+			patch("webshop.webshop.seo.jsonld.frappe.get_cached_value", side_effect=get_cached_value),
+		):
+			jsonld.site_organization(organization)
+		return organization
+
+	def test_a_site_that_sells_is_an_online_store_with_its_policies(self):
+		organization = self.organization({"return_days": 30, "free_shipping_from": 100})
+		self.assertEqual(organization["@type"], "OnlineStore")
+		returns = organization["hasMerchantReturnPolicy"]
+		self.assertEqual(returns["@id"], jsonld.policy_id("returns"))
+		self.assertEqual((returns["applicableCountry"], returns["merchantReturnDays"]), ("CH", 30))
+		self.assertEqual(returns["returnPolicyCategory"], jsonld.SCHEMA + "MerchantReturnFiniteReturnWindow")
+		conditions = organization["hasShippingService"]["shippingConditions"]
+		self.assertEqual(organization["hasShippingService"]["@id"], jsonld.policy_id("shipping"))
+		self.assertEqual(conditions["orderValue"]["minValue"], 100)
+		self.assertEqual((conditions["shippingRate"]["value"], conditions["shippingRate"]["currency"]), (0, "CHF"))
+		self.assertEqual(conditions["shippingDestination"]["addressCountry"], "CH")
+
+	def test_nothing_is_declared_that_the_shop_does_not_state(self):
+		organization = self.organization({"return_days": 0, "free_shipping_from": 0})
+		self.assertNotIn("hasMerchantReturnPolicy", organization)
+		self.assertNotIn("hasShippingService", organization)
+		self.assertNotIn("hasMerchantReturnPolicy", self.organization({"return_days": 30}, country=""))
+		# a site that does not sell is left as the chrome declared it
+		self.assertEqual(self.organization({"enabled": 0, "return_days": 30})["@type"], "Organization")
+
+	def test_only_a_swiss_uid_is_published_as_the_vat_id(self):
+		self.assertEqual(self.organization({})["vatID"], "CHE-123.456.789 TVA")
+		self.assertEqual(self.organization({})["legalName"], "Atelier Test SA")
+		self.assertNotIn("vatID", self.organization({}, company=("Atelier Test SA", "12-3456789")))
