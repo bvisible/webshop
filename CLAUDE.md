@@ -549,6 +549,37 @@ test at all until 2026-09-10.
 > restores the server's order (each card remembers its index): it used to re-insert
 > the cards in their CURRENT order, so A-Z was a one-way door.
 
+### One scope for a listing (2026-09-24, neoffice-maintenance#737)
+
+**Every SQL path of the grid reads `ProductQuery.where_conditions`, and every facet reads
+`ProductFiltersBuilder.scope()`.** Each path used to write its own WHERE clause and none rendered
+all the filters: sorted by price, a category of 12 products listed the whole catalogue (306), and a
+two-word search too; the discount tick dropped the category and the search; a category's OR leg
+shared one OR list with a one-word search and the tags, so a search inside a category returned their
+union, and a two-word one raised. The facets each built their own copy of the scope: a brand's page
+offered the whole catalogue's categories, counted over the whole shop, and the brand facet counted
+the variants the grid hides.
+
+- A new SQL path renders `where_conditions(prefix)` with its own table alias — never its own loop
+  over `self.filters`. OR groups live in `self.or_groups` (one list per group, the groups ANDed);
+  the search is `_search_words` × `_search_fields`, rendered with the query's alias (a bare
+  `item_code` is ambiguous next to `tabItem Price`). Only real columns are rendered (`_is_column`),
+  `not set` reads NULL and `""` as the ORM does, an empty `IN` list selects nothing.
+- A new facet starts from `scope()`: the catalogue's scope with the listing's locked facets
+  (`catalogue_scope.visible_item_filters(locks)`) and, on a category page, the category as its
+  grid reads it (`ProductQuery.item_group_or_filters`, which descends whatever
+  `include_descendants` says). A locked facet is not offered. The price slider reads the locks and
+  every plain field the grid filters on (`price_scope_conditions`); the second-hand and discount
+  toggles count inside the locks and the category (`count_second_hand`, `count_discounted`, one
+  cached figure per listing).
+- `test_listing_scope.py` holds the invariant on a small catalogue: every sort order lists the same
+  products, and every facet counts what its tick lists, variants shown and hidden. Measure a change
+  the same way on a real site: compare the first pages' item codes (a hash per listing, sort and
+  page) before and after — they must match wherever there was no defect.
+
+> **`frappe.generate_hash(txt)` ignores `txt` on v15**: it returns a random token. A cache key
+> built from it is new at every call, so the cache never hits. Hash with `hashlib`.
+
 ### Paying without a gateway, and who is offered what
 
 A payment method row (`Webshop Payment Method`, the `payment_methods` table of
