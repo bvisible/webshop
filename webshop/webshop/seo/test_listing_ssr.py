@@ -134,3 +134,22 @@ class TestTemplate(FrappeTestCase):
 	def test_nothing_without_cards(self):
 		self.assertEqual(self.render(None).strip(), "")
 		self.assertEqual(self.render(frappe._dict(cards=[], total=0, pager=None)).strip(), "")
+
+
+class TestBeyondTheLastPage(FrappeTestCase):
+	def test_a_www_listing_answers_404_itself(self):
+		"""frappe renders a PageDoesNotExistError raised during a render at the request's own
+		status, 200 (serve.handle_exception): the listing sets its status instead."""
+		context = frappe._dict(metatags={})
+		with (
+			_FormDict(start="999999"),
+			patch(
+				"webshop.webshop.product_data_engine.listing_context.server_listing",
+				side_effect=frappe.PageDoesNotExistError,
+			),
+			patch("webshop.webshop.shopping_cart.guest_cart.check_and_merge_guest_cart"),
+		):
+			listing_context.build_listing_context(context, "All Products")
+		self.assertEqual(context.http_status_code, 404)
+		self.assertIsNone(context.listing_ssr)
+		self.assertEqual(context.metatags.get("robots"), "noindex, follow")

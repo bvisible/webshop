@@ -79,8 +79,15 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 
 	check_and_merge_guest_cart()
 	# //// Neoffice — the first page on the server, once the cart is the visitor's own (a card says
-	# //// "in cart"): see server_listing below (#691 lot 2).
-	context.listing_ssr = server_listing(listing_route, locked_field_filters=locked_field_filters)
+	# //// "in cart"): see server_listing below (#691 lot 2). A page beyond the last one answers 404
+	# //// through the page's own status: frappe renders a PageDoesNotExistError raised during the
+	# //// render at the request's status, 200 (serve.handle_exception), a soft 404.
+	try:
+		context.listing_ssr = server_listing(listing_route, locked_field_filters=locked_field_filters)
+	except frappe.PageDoesNotExistError:
+		context.listing_ssr = None
+		context.http_status_code = 404
+		context.metatags["robots"] = "noindex, follow"
 	return context
 
 
