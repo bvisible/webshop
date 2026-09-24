@@ -84,6 +84,17 @@ test.describe('The shop as a crawler reads it', () => {
 			expect(shown, `${url}: the JSON-LD price ${offer.price} appears on the page`).toContain(
 				Number(offer.price)
 			);
+			//// A struck price is declared only when the page strikes it (seo/facts.py, lot 1).
+			const struck = offer.priceSpecification;
+			if (struck) {
+				expect(struck.priceType, url).toBe('https://schema.org/StrikethroughPrice');
+				expect(Number(struck.price), url).toBeGreaterThan(Number(offer.price));
+				expect(page.body, `${url}: the struck price is struck on the page`).toMatch(/<s>[^<]*\d/);
+				expect(shown, `${url}: the struck price ${struck.price} appears on the page`).toContain(
+					Number(struck.price)
+				);
+			}
+			expect(offer.priceType, `${url}: the active price carries no priceType`).toBeUndefined();
 			expect((productNodes[0].description || '').length, url).toBeLessThanOrEqual(5000);
 		}
 	});

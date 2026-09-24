@@ -538,15 +538,22 @@ class WebsiteItem(WebsiteGenerator):
 		}
 		context.condition_info = condition_info(self)
 		context.condition_schema_url = condition_schema_url(self.get("item_condition"))
-		# //// Neoffice — the JSON-LD's description and availability (2026-09-24, #691, D5/D7): text
-		# //// with its paragraphs, and the shop's stock rule whatever the page displays — a shop
-		# //// hiding its stock, an item on backorder and a model whose variants hold the stock
-		# //// all told Google "OutOfStock".
-		from webshop.webshop.seo.availability import schema_availability
-		from webshop.webshop.seo.text import html_to_text
+		# //// Neoffice — the page's structured data, built from what the page itself computed
+		# //// (seo/facts.py, seo/jsonld.py; 2026-09-24, #691 lot 1). item.html used to write the
+		# //// JSON-LD inline: one picture, no identifier, no rating, no struck price, the stock
+		# //// the page happened to display ("OutOfStock" on a shop hiding its stock, D5), and a
+		# //// description glued into one line and cut mid-word (D7).
+		from webshop.webshop.seo.facts import product_facts
+		from webshop.webshop.seo.jsonld import product_graph
 
-		context.jsonld_description = html_to_text(self.web_long_description or self.description or "", 5000)
-		context.jsonld_availability = schema_availability(self.item_code, context.shopping_cart.cart_settings)
+		# A description of the page must never cost the page: logged, and the page renders
+		# without its structured data.
+		try:
+			context.product_facts = product_facts(self, context)
+			context.product_jsonld = product_graph(context.product_facts)
+		except Exception:
+			frappe.log_error(f"Product structured data failed: {self.name}", frappe.get_traceback())
+			context.product_jsonld = None
 		# //// Neoffice — second-hand (2026-09-14): the new model shows its used units, a used unit
 		# //// shows the new model and its siblings (a sold unit redirected at the top of get_context).
 		context.used_units = [] if is_second_hand(self.get("item_condition")) else get_used_units(self.item_code)

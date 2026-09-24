@@ -228,44 +228,12 @@
 {% block head_include %}
 {{ super() }}
 <link rel="canonical" href="{{ frappe.utils.get_url(doc.route) }}">
-{%- set _pi = shopping_cart.product_info or {} %}
-{%- set _price = _pi.get('price') or {} %}
-{#- //// Neoffice — 2026-09-24 (#691): the description is plain text with its paragraphs, cut at #}
-{#- //// a word (strip_html glued them and a hard [:500] cut mid-word, D7); the availability #}
-{#- //// comes from the shop's stock rule, not from what the page chooses to display: a shop #}
-{#- //// hiding its stock, an item on backorder and a model with variants all read #}
-{#- //// "OutOfStock" (D5). Both are set by WebsiteItem.get_context. #}
-<script type="application/ld+json">
-{
-	"@context": "https://schema.org",
-	"@type": "Product",
-	"name": {{ doc.web_item_name | tojson }},
-	"sku": {{ doc.item_code | tojson }},
-	{%- if doc.brand %}
-	"brand": {"@type": "Brand", "name": {{ doc.brand | tojson }}},
-	{%- endif %}
-	{%- if doc.website_image %}
-	"image": [{{ frappe.utils.get_url(doc.website_image) | tojson }}],
-	{%- endif %}
-	{#- //// Neoffice — plain text with its paragraphs (jsonld_description, see above, #691) #}
-	"description": {{ (jsonld_description or "") | tojson }},
-	"url": {{ frappe.utils.get_url(doc.route) | tojson }}
-	{#- //// Neoffice — no offer for a gift card: its page shows amounts to choose, not this price, #}
-	{#- //// and structured data must describe what the page shows (2026-09-24, #691). #}
-	{%- if _price.get('price_list_rate') and not doc.is_gift_card %},
-	"offers": {
-		"@type": "Offer",
-		"url": {{ frappe.utils.get_url(doc.route) | tojson }},
-		"priceCurrency": {{ (_price.get('currency') or 'CHF') | tojson }},
-		"price": {{ _price.get('price_list_rate') | tojson }},
-		{#- //// Neoffice — the shop's stock rule, not what the page displays (jsonld_availability, see above, #691) #}
-		"availability": {{ (jsonld_availability or 'https://schema.org/OutOfStock') | tojson }},
-		{#- //// Neoffice — second-hand: Google requires the true condition on a used or refurbished listing #}
-		"itemCondition": {{ condition_schema_url | tojson }}
-	}
-	{%- endif %}
-}
-</script>
+{#- //// Neoffice — the Product graph is built in Python from what the page computed (seo/facts.py, #}
+{#- //// seo/jsonld.py; WebsiteItem.get_context sets product_jsonld; 2026-09-24, #691 lot 1): the #}
+{#- //// inline block had one picture, no identifier, no rating and no struck price. #}
+{%- if product_jsonld %}
+<script type="application/ld+json">{{ product_jsonld | tojson }}</script>
+{%- endif %}
 {#- //// Neoffice — the page's BreadcrumbList is printed by includes/breadcrumbs.html since #}
 {#- //// 2026-09-24, from the trail the visitor sees: this block wrote a second one here, from #}
 {#- //// another trail, next to the microdata of the include (#691). #}
