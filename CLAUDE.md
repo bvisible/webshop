@@ -863,6 +863,44 @@ to the Single) and `tests/e2e/specs/10-quick-order.spec.js` (`b2b` types,
 reloads and sends; `client` is served; `invite` fills a guest cart where the
 shop sells to visitors, and is sent to sign in elsewhere).
 
+### What search engines, feeds and AI crawlers read (`webshop/webshop/seo/`)
+
+One package says what the shop tells the outside world, so a page, its structured data
+and (lot 3) a Merchant Center feed can never say two different things about a product.
+The study, the rules and the plan live in Obsidian (`Neoffice/SEO-GEO-Shopping/`), the
+defects in neoffice-maintenance#691.
+
+- **One JSON-LD graph per page, no microdata anywhere.** The product page carried a second
+  Product in microdata, named "Code article:", holding the names and prices of the recommended
+  products; the tiles' `itemprop`s attached to the page's product. `seo/test_seo.py` fails on
+  any `itemscope`/`itemprop` in the templates or `views.js`. The breadcrumb's JSON-LD is
+  printed by `includes/breadcrumbs.html` itself, from the trail it shows.
+- **Availability comes from `seo/availability.py`, never from `product_info.in_stock`**, which
+  `get_product_info_for_website` only fills when the shop DISPLAYS its stock: a shop hiding it
+  told Google everything was out of stock. A model is available when one variant is; a shop
+  that takes orders beyond its stock is `BackOrder`. A gift card gets no offer: its page shows
+  amounts to choose, not a price.
+- **`/sitemap.xml` is the index** (pages, products, categories, blog); the lists are built in
+  `seo/sitemaps.py` with the catalogue's own scope (`product_data_engine/catalogue_scope.py`,
+  shared with `/shop-by-category`). No brand URLs until real brand pages exist; no
+  `changefreq`/`priority`; `lastmod` only when true. The pages sitemap names the shop's
+  listings instead of calling `frappe.website.router.get_pages()`, which dies on any non-UTF-8
+  file in any app's `www` folder (macOS `._*` files, osiris 2026-09-24).
+- **robots.txt**: `seo/robots.py` fills it when nobody wrote one (the `update_website_context`
+  hook in `seo/meta.py`). Paths are anchored (`/cart$`, `/cart?`), or `/cart` would close
+  `/cartes-cadeaux`; `/api/` stays open while the category grids load through it.
+- **noindex, canonical, descriptions**: `seo/meta.py` — private pages and searched or filtered
+  listings are `noindex, follow`; the listings name one canonical; a category without text says
+  what it holds. Generic strings get a translation `context`: `suite` translates "{0} at {1}"
+  as a time, and Frappe's merged catalogue lent it to ours.
+- **A route change leaves a 301** (`seo/redirects.py`, `doc_events` of Website Item and Item
+  Group), written straight into `Website Route Redirect` rows: `WebsiteSettings.save()` would
+  validate the whole document and could refuse a product's save for an unrelated setting.
+  Frappe's `resolve_redirect` extends the hooks list it gets from `get_hooks` (cached for the
+  request), so a test resolving twice in one request clears `frappe.local.cache` in between.
+- `tests/e2e/specs/17-seo-crawler-view.spec.js` reads the pages with no JavaScript, the way AI
+  crawlers and Google Shopping's checks do.
+
 ## Integration Points
 
 ### ERPNext Dependencies
