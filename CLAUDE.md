@@ -920,6 +920,45 @@ defects in neoffice-maintenance#691.
   validate the whole document and could refuse a product's save for an unrelated setting.
   Frappe's `resolve_redirect` extends the hooks list it gets from `get_hooks` (cached for the
   request), so a test resolving twice in one request clears `frappe.local.cache` in between.
+- **A listing's first page is in its HTML** (lot 2): `server_listing` in
+  `product_data_engine/listing_context.py` asks the listing API for the page the script's first
+  request finds for a visitor with no preference (locked filters, default stock toggle, default
+  sort, `?start=`), and `includes/listing_ssr.html` prints its cards and a pager of real links.
+  A searched or filtered listing stays the script's. `views.js` keeps the server's cards on screen
+  until its first result replaces them — no skeleton over them, no jump — and its own pager is
+  made of links too. Each page of a series is its own canonical. Beyond the last page a `www`
+  listing answers 404 through `context.http_status_code`: frappe renders a
+  `PageDoesNotExistError` raised during a render at the request's status, 200 (a soft 404,
+  `serve.handle_exception`; fixed in the `frappe` fork for the other pages).
+- **The skeleton's `<style>` gave the product areas their 10px margin**: skipping the skeleton
+  lost it, and the grid rose 26px under the toolbar. `add_product_loader_styles()` injects the
+  styles alone, on both paths.
+- **A visitor reads the settings' display switches, never the document** (neoffice-maintenance
+  #711): `get_shopping_cart_settings` (allow_guest) and the listing API answered all of Webshop
+  Settings — the assistant's model endpoint, its Raven channel, its token price. Over HTTP both
+  answer `public_settings()`; a switch a page's script must read goes into `PUBLIC_SETTINGS`
+  (`webshop_settings.py`), and Python callers keep the whole document.
+- **The Google Merchant Center feed** (lot 3, `seo/feeds/google.py`): one RSS file per site,
+  written by a nightly job and by the button of the settings' Google Shopping tab, served at
+  `/feeds/google.xml?token=…` (404 without the switch, the token and a file). It reads the page's
+  facts, priced as a visitor with no account (`serving()`), because Google compares the feed with
+  the page and refuses an item over a cent. A model's variants are the items, tied by
+  `item_group_id`; gift cards, services, excluded items and groups are left out and counted in
+  the report. A site that hides its prices or sells only to businesses has no feed.
+- **`frappe.set_user()` inside a web request spoils the session of whoever made it.** It sets
+  `session.sid` to the user's name and empties `session.data` on the live object, which the
+  request writes back to the cache when it ends. The feed's button therefore queues a job
+  (`generate_now` → `generate_feeds(notify=user)`, which sends the report over realtime), and
+  `serving()` raises where `frappe.local.session_obj` exists — only an HTTP request has one.
+- **A pull request runs a third check, "Frappe Linter"** (`semgroup-rules.yml`, frappe's
+  semgrep rules, only on the lines a PR changes). Read it with the other two: it was red on two
+  PRs while the tests were green, and it had found the two defects above plus a controller
+  method named `after_save`, a hook Frappe never calls. A reviewed finding carries
+  `# nosemgrep: <rule id>` with the review written next to it. Replay it locally with
+  `uvx semgrep scan --config <frappe/semgrep-rules>/rules --baseline-commit origin/version-15`.
+- **`ci.yml` cannot run on a working branch by hand**: it installs the frappe branch named like
+  the ref (`github.base_ref || github.ref_name`), so a `workflow_dispatch` on `seo/…` dies at
+  the install. Open a draft pull request against `version-15` instead.
 - `tests/e2e/specs/17-seo-crawler-view.spec.js` reads the pages with no JavaScript, the way AI
   crawlers and Google Shopping's checks do.
 
