@@ -172,6 +172,13 @@
 	{%- endif -%}
 {%- endmacro -%}
 
+{#- //// Neoffice — a picture's WebP copies, its layout's sizes, its width and height (utils/renditions.py,
+    #691 lot 5): a card drew a 6429 px, 3.5 MB photograph in a 300 px box. The src stays the original. -#}
+{%- macro picture_attrs(url, layout) -%}
+{%- set pic = webshop_picture(url, layout) -%}
+{%- if pic.srcset %} srcset="{{ pic.srcset }}" sizes="{{ pic.sizes }}"{% endif %}{% if pic.width %} width="{{ pic.width }}" height="{{ pic.height }}"{% endif -%}
+{%- endmacro -%}
+
 {%- macro product_card(item, settings, variant="grid", cart_settings=None) -%}
 {%- set raw_title = item.web_item_name or item.item_name or item.item_code or item.name or "" -%}
 {%- set cut = {"grid": 90, "wishlist": 90, "list": 200}.get(variant) -%}
@@ -200,7 +207,8 @@
 		{%- if image %}
 		<a class="product-link product-list-link wsp-card__link" href="/{{ route }}">
 			{#- //// Neoffice — itemprop removed (#691, see price_block). #}
-			<img class="website-image h-100 w-100 wsp-card__image" alt="{{ title | e }}" src="{{ image }}"{{ fit.list_img }}>
+			{#- //// Neoffice — its WebP copies (picture_attrs) #}
+			<img class="website-image h-100 w-100 wsp-card__image" alt="{{ title | e }}" src="{{ image }}"{{ picture_attrs(image, "list") }}{{ fit.list_img }}>
 		</a>
 		{%- else %}
 		<a class="product-link product-list-link wsp-card__link" href="/{{ route }}" style="text-decoration: none">
@@ -262,7 +270,8 @@
 			<a href="/{{ route }}" class="wsp-card__link" style="text-decoration: none;">
 				{%- if image %}
 				{#- //// Neoffice — itemprop removed (#691, see price_block). #}
-				<img class="card-img wsp-card__image" src="{{ image }}" alt="{{ title | e }}">
+				{#- //// Neoffice — its WebP copies (picture_attrs) #}
+				<img class="card-img wsp-card__image" src="{{ image }}"{{ picture_attrs(image, "wishlist") }} alt="{{ title | e }}">
 				{%- else %}
 				<div class="card-img-top no-image wsp-card__placeholder">
 					{{ frappe.utils.get_abbr(title) }}
@@ -328,9 +337,10 @@
 				{%- if image %}
 				{#- //// Neoffice — itemprop removed (#691, see price_block). The first row of a listing's
 				    first page loads at once, its first picture first (attach_cards, #691 lot 5). #}
-				<img class="card-img wsp-card__image" src="{{ image }}" alt="{{ title | e }}" loading="{{ 'eager' if item.eager else 'lazy' }}"{% if item.eager == 'first' %} fetchpriority="high"{% endif %} decoding="async"{% if cover and item.image_focus %} style="object-position: {{ focus_map.get(item.image_focus) or 'center center' }};"{% endif %}>
+				{#- //// Neoffice — its WebP copies (picture_attrs), the hover picture's too #}
+				<img class="card-img wsp-card__image" src="{{ image }}"{{ picture_attrs(image, variant) }} alt="{{ title | e }}" loading="{{ 'eager' if item.eager else 'lazy' }}"{% if item.eager == 'first' %} fetchpriority="high"{% endif %} decoding="async"{% if cover and item.image_focus %} style="object-position: {{ focus_map.get(item.image_focus) or 'center center' }};"{% endif %}>
 				{%- if item.hover_image %}
-				<img class="wsp-card__image wsp-card__image--hover" src="{{ item.hover_image }}" alt="" loading="lazy" decoding="async" aria-hidden="true">
+				<img class="wsp-card__image wsp-card__image--hover" src="{{ item.hover_image }}"{{ picture_attrs(item.hover_image, variant) }} alt="" loading="lazy" decoding="async" aria-hidden="true">
 				{%- endif %}
 				{%- else %}
 				<div class="card-img-top no-image wsp-card__placeholder">

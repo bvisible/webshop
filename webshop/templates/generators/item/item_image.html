@@ -15,18 +15,29 @@
 {%- for v in videos or [] -%}{%- set _appended = photos.append({"image": v.poster, "alt": v.title or _('{0} — video').format(_(doc.web_item_name)), "video": v}) -%}{%- endfor -%}
 {%- macro play_badge() -%}<span class="wsp-gallery__play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>{%- endmacro -%}
 {#- //// Neoffice — the first picture is fetched ahead of everything (priority): the page's LCP (#691 lot 5) -#}
-{%- macro media_img(p, classes, loading="lazy", index=None, priority=False) -%}
+{#- //// Neoffice — a picture's WebP copies and the sizes of the place it sits in (utils/renditions.py,
+    #691 lot 5): the gallery drew 4000 px photographs; the src stays the original, the zoom's too -#}
+{%- macro picture_attrs(url, layout) -%}
+{%- set pic = webshop_picture(url, layout) -%}
+{%- if pic.srcset %} srcset="{{ pic.srcset }}" sizes="{{ pic.sizes }}"{% endif %}{% if pic.width %} width="{{ pic.width }}" height="{{ pic.height }}"{% endif -%}
+{%- endmacro -%}
+{%- macro media_img(p, classes, loading="lazy", index=None, priority=False, layout="gallery") -%}
 	{%- if p.video and not p.image -%}
 	<video class="{{ classes }}" src="{{ p.video.src }}" muted playsinline preload="metadata" aria-label="{{ p.alt }}"{% if index is not none %} data-index="{{ index }}"{% endif %}></video>
 	{%- else -%}
 	{#- //// Neoffice — fetchpriority on the first picture, see the macro's note -#}
-	<img class="{{ classes }}" src="{{ p.image }}" alt="{{ p.alt }}" loading="{{ loading }}"{% if priority %} fetchpriority="high"{% endif %} decoding="async"{% if index is not none %} data-index="{{ index }}"{% endif %}>
+	<img class="{{ classes }}" src="{{ p.image }}"{{ picture_attrs(p.image, layout) }} alt="{{ p.alt }}" loading="{{ loading }}"{% if priority %} fetchpriority="high"{% endif %} decoding="async"{% if index is not none %} data-index="{{ index }}"{% endif %}>
 	{%- endif -%}
 	{%- if p.video %}{{ play_badge() }}{% endif -%}
 {%- endmacro -%}
 {%- set layout = "mosaic" if photos | length >= 3 else ("rail" if photos | length == 2 else ("single" if photos else "empty")) -%}
+{#- //// Neoffice — the first picture's sizes, the same on the phone strip's first slide: both are
+    fetched at once (one of them hidden), and the same sizes make them one download (#691 lot 5) -#}
+{%- set first_layout = "gallery_large" if layout == "mosaic" else "gallery" -%}
+{%- set srcsets = [] -%}
+{%- for p in photos -%}{%- set _appended = srcsets.append(webshop_picture(p.image, "gallery").srcset) -%}{%- endfor -%}
 {# //// Neoffice — data-media carries each entry's video payload for the lightbox (2026-09-13) #}
-<div class="col-md-{{ 6 if slides else 4 }} product-image-wrapper wsp-gallery wsp-gallery--{{ layout }}" data-layout="{{ layout }}" data-fit="{{ shopping_cart.cart_settings.product_image_fit or 'Contain' }}" data-photos="{{ photos | map(attribute='image') | list | tojson | forceescape }}" data-media="{{ photos | tojson | forceescape }}">
+<div class="col-md-{{ 6 if slides else 4 }} product-image-wrapper wsp-gallery wsp-gallery--{{ layout }}" data-layout="{{ layout }}" data-fit="{{ shopping_cart.cart_settings.product_image_fit or 'Contain' }}" data-photos="{{ photos | map(attribute='image') | list | tojson | forceescape }}" data-media="{{ photos | tojson | forceescape }}" data-srcsets="{{ srcsets | tojson | forceescape }}">
 	{%- if layout == "mosaic" %}
 	{# two large tiles, then the rest as small ones; every tile opens the zoom at its index #}
 	<div class="wsp-gallery__mosaic product-image">
@@ -34,7 +45,7 @@
 			{%- for p in photos[:2] %}
 			{# //// Neoffice — a video tile wears the play badge (media_img) #}
 			<a class="wsp-gallery__tile wsp-gallery__tile--large{% if p.video %} wsp-gallery__tile--video{% endif %}" href="{{ p.image or '#' }}" data-index="{{ loop.index0 }}" role="listitem" aria-label="{{ _('Play the video') if p.video else _('Zoom') }}">
-				{{ media_img(p, ('website-image ' if loop.first else '') ~ 'wsp-gallery__img', loading='eager', priority=loop.first) }}
+				{{ media_img(p, ('website-image ' if loop.first else '') ~ 'wsp-gallery__img', loading='eager', priority=loop.first, layout='gallery_large') }}
 			</a>
 			{%- endfor %}
 		</div>
@@ -42,7 +53,8 @@
 		<div class="wsp-gallery__small" role="list">
 			{%- for p in photos[2:] %}
 			<a class="wsp-gallery__tile{% if p.video %} wsp-gallery__tile--video{% endif %}" href="{{ p.image or '#' }}" data-index="{{ loop.index0 + 2 }}" role="listitem" aria-label="{{ _('Play the video') if p.video else _('Zoom') }}">
-				{{ media_img(p, 'wsp-gallery__img') }}
+				{#- //// Neoffice — the small tiles' copies (#691 lot 5) #}
+				{{ media_img(p, 'wsp-gallery__img', layout='gallery_small') }}
 			</a>
 			{%- endfor %}
 		</div>
@@ -53,9 +65,10 @@
 			{%- for p in photos %}
 			{# //// Neoffice — a video thumb opens the player (script below) #}
 			{%- if p.video %}
-			<span class="wsp-gallery__thumb wsp-gallery__thumb--video" data-index="{{ loop.index0 }}" role="listitem" data-video="1">{{ media_img(p, 'wsp-gallery__thumb-img') }}</span>
+			<span class="wsp-gallery__thumb wsp-gallery__thumb--video" data-index="{{ loop.index0 }}" role="listitem" data-video="1">{{ media_img(p, 'wsp-gallery__thumb-img', layout='thumb') }}</span>
 			{%- else %}
-			<img class="wsp-gallery__thumb {% if loop.first %}active{% endif %}" src="{{ p.image }}" alt="{{ p.alt }}" loading="lazy" decoding="async" data-index="{{ loop.index0 }}" role="listitem">
+			{#- //// Neoffice — the thumbnails' copies (#691 lot 5) #}
+			<img class="wsp-gallery__thumb {% if loop.first %}active{% endif %}" src="{{ p.image }}"{{ picture_attrs(p.image, 'thumb') }} alt="{{ p.alt }}" loading="lazy" decoding="async" data-index="{{ loop.index0 }}" role="listitem">
 			{# //// Neoffice — video entries in the phone strip and the lightbox (2026-09-13) #}
 			{%- endif %}
 			{%- endfor %}
@@ -63,7 +76,7 @@
 		<div class="product-image-container wsp-gallery__stage">
 			<div class="product-image wsp-gallery__main">
 				{#- //// Neoffice — fetched first, see media_img #}
-				<img class="website-image wsp-gallery__img" src="{{ photos[0].image }}" alt="{{ photos[0].alt }}" fetchpriority="high" data-index="0">
+				<img class="website-image wsp-gallery__img" src="{{ photos[0].image }}"{{ picture_attrs(photos[0].image, 'gallery') }} alt="{{ photos[0].alt }}" fetchpriority="high" data-index="0">
 			</div>
 			<div class="slideshow-navigation">
 				{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: ‹ #}
@@ -94,7 +107,7 @@
 			{%- for p in photos %}
 			{# //// Neoffice — a video slide on the phone strip #}
 			<div class="wsp-gallery__slide{% if p.video %} wsp-gallery__slide--video{% endif %}" data-index="{{ loop.index0 }}">
-				{{ media_img(p, ('website-image ' if loop.first and layout == 'empty' else '') ~ 'wsp-gallery__img', loading=('eager' if loop.first else 'lazy'), priority=loop.first) }}
+				{{ media_img(p, ('website-image ' if loop.first and layout == 'empty' else '') ~ 'wsp-gallery__img', loading=('eager' if loop.first else 'lazy'), priority=loop.first, layout=(first_layout if loop.first else 'gallery')) }}
 			</div>
 			{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: - endfor #}
 			{%- endfor %}
@@ -134,7 +147,8 @@
 			{%- if p.video and not p.image %}
 			<span class="zoom-thumbnail zoom-thumbnail--video {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}" aria-label="{{ p.alt }}">{{ play_badge() }}</span>
 			{%- else %}
-			<img class="zoom-thumbnail {% if p.video %}zoom-thumbnail--video {% endif %}{% if loop.first %}active{% endif %}" src="{{ p.image }}" loading="lazy" decoding="async" alt="{{ p.alt }}" data-index="{{ loop.index0 }}">
+			{#- //// Neoffice — the zoom's thumbnails take a small copy: they fetched every original (#691 lot 5) #}
+			<img class="zoom-thumbnail {% if p.video %}zoom-thumbnail--video {% endif %}{% if loop.first %}active{% endif %}" src="{{ p.image }}"{{ picture_attrs(p.image, 'thumb') }} loading="lazy" decoding="async" alt="{{ p.alt }}" data-index="{{ loop.index0 }}">
 			{%- endif %}
 			{%- endfor %}
 		</div>
@@ -160,6 +174,9 @@ frappe.ready(function() {
 	try { media = JSON.parse(root.dataset.media || '[]'); } catch (e) { media = []; }
 	const videoAt = (i) => (media[i] && media[i].video) || null;
 	let current = 0;
+	// //// Neoffice — each picture's WebP copies, aligned with photos (#691 lot 5)
+	let srcsets = [];
+	try { srcsets = JSON.parse(root.dataset.srcsets || '[]'); } catch (e) { srcsets = []; }
 
 	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: const main = root.querySelector('.wsp-gallery__main img'); #}
 	// --- the rail: thumbnails switch the main picture ---
@@ -167,7 +184,8 @@ frappe.ready(function() {
 	const thumbs = root.querySelectorAll('.wsp-gallery__thumb');
 	function showRail(index) {
 		current = (index + photos.length) % photos.length;
-		if (main) { main.src = photos[current]; main.dataset.index = current; }
+		// //// Neoffice — the srcset goes with the src: with one set, the browser ignores a new src (#691 lot 5)
+		if (main) { main.srcset = srcsets[current] || ''; main.src = photos[current]; main.dataset.index = current; }
 		thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
 	}
 	// //// Neoffice — a video thumb opens the lightbox instead of switching the main picture
@@ -262,9 +280,12 @@ frappe.ready(function() {
 	// //// (item_configure_grid.js, 2026-09-13); null puts the product's own picture back.
 	const firstPictures = [root.querySelector('.wsp-gallery__large .wsp-gallery__img'), main, root.querySelector('.wsp-gallery__single .wsp-gallery__img'), root.querySelector('.wsp-gallery__slide .wsp-gallery__img')].filter(Boolean);
 	const originalSources = firstPictures.map(el => el.getAttribute('src'));
+	// //// Neoffice — and their srcsets: a variant's picture is shown as it is, the product's comes back with its copies
+	const originalSrcsets = firstPictures.map(el => el.getAttribute('srcset') || '');
 	window.wspGallery = Object.assign(window.wspGallery || {}, {
 		showImage(url) {
-			firstPictures.forEach((el, i) => { const next = url || originalSources[i]; if (el.getAttribute('src') !== next) el.setAttribute('src', next); });
+			// //// Neoffice — the srcset follows the src (see originalSrcsets)
+			firstPictures.forEach((el, i) => { const next = url || originalSources[i]; const nextSet = url ? '' : originalSrcsets[i]; if ((el.getAttribute('srcset') || '') !== nextSet) { if (nextSet) el.setAttribute('srcset', nextSet); else el.removeAttribute('srcset'); } if (el.getAttribute('src') !== next) el.setAttribute('src', next); });
 			if (photos.length) photos[0] = url || (media[0] && media[0].image) || photos[0];
 		}
 	});

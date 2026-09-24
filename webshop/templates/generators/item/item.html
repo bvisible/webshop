@@ -232,7 +232,12 @@
     320 kB of inline icon sprites, which the browser parses first (#691 lot 5, the page's LCP) #}
 {%- set _first_picture = (slides[0].image if slides else doc.website_image) %}
 {%- if _first_picture %}
-<link rel="preload" as="image" href="{{ _first_picture }}" fetchpriority="high">
+{#- //// Neoffice — with the WebP copies the gallery's first picture offers, at the same sizes
+    (item_image.html, first_layout): a preload of the original alone fetched a file the page then
+    did not use (#691 lot 5) #}
+{%- set _photo_count = (slides | length if slides else 1) + (videos or []) | length %}
+{%- set _hero = webshop_picture(_first_picture, "gallery_large" if _photo_count >= 3 else "gallery") %}
+<link rel="preload" as="image" href="{{ _first_picture }}"{% if _hero.srcset %} imagesrcset="{{ _hero.srcset }}" imagesizes="{{ _hero.sizes }}"{% endif %} fetchpriority="high">
 {%- endif %}
 {#- //// Neoffice — the Product graph is built in Python from what the page computed (seo/facts.py, #}
 {#- //// seo/jsonld.py; WebsiteItem.get_context sets product_jsonld; 2026-09-24, #691 lot 1): the #}
