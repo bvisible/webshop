@@ -298,7 +298,8 @@ jobs:
             webshop.webshop.seo.feeds.test_google_feed \
             webshop.webshop.product_data_engine.test_brand_pages \
             webshop.webshop.seo.test_indexnow \
-            webshop.webshop.seo.test_llms
+            webshop.webshop.seo.test_llms \
+            webshop.webshop.seo.test_ai_referrals
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || echec="$echec $m"

@@ -977,6 +977,12 @@ defects in neoffice-maintenance#691.
   format's own section name, left untranslated). **Never a price**: a price copied into an answer
   outlives the next change. None on a business-only site. Google says it does not use the file;
   nothing is expected of it (study, note 05).
+- **Visits from AI assistants** (`seo/ai_referrals.py`, report `Visits From AI Assistants`, lot
+  4): a visit belongs to an assistant by its referrer's host (chatgpt.com, perplexity.ai,
+  gemini.google.com, copilot.microsoft.com, claude.ai…) or its `utm_source`, which ChatGPT adds to
+  the links it gives. It reads Web Page View, which Frappe fills only once view tracking is on in
+  Website Settings (off by default, per instance): the report says so instead of showing an
+  empty table as if nobody came.
 - **A background job starts in English**, whatever the site speaks: `background_jobs.py` sets no
   language. Text a job writes for a person goes through `frappe.set_user_lang(user)` first, and
   `frappe.local.lang` is given back in a `finally` (`seo/feeds/google.py::generate_feeds`: the

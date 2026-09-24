@@ -8369,3 +8369,23 @@ msgstr ""
 msgctxt "A label and its value, as in Returns: 30 days"
 msgid "{0}: {1}"
 msgstr ""
+
+#: webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.json
+msgid "Visits From AI Assistants"
+msgstr ""
+
+#: webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.py
+msgid "Visits"
+msgstr ""
+
+#: webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.py
+msgid "Visitors"
+msgstr ""
+
+#: webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.py
+msgid "Day"
+msgstr ""
+
+#: webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.py
+msgid "View tracking is off in Website Settings: no visit is recorded, from an assistant or from anyone else."
+msgstr ""
