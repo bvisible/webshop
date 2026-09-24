@@ -72,7 +72,51 @@ webshop.seo.preview = webshop.seo.preview || {
 						own ? "" : " · " + __("Nothing written: this is what the page says on its own")
 					}
 				</div>
-			</div>`);
+			</div>
+			${frm.perm && frm.perm[0] && frm.perm[0].write ? `<button type="button" class="btn btn-xs btn-default wsp-seo-suggest" style="margin-top: 8px;">${__("Propose with Nora")}</button>` : ""}`);
+		field.$wrapper.find(".wsp-seo-suggest").on("click", () => this.suggest(frm));
+	},
+
+	// Nora proposes, the merchant decides: nothing reaches the fields unless asked, and the
+	// document then remembers that its words were written with AI assistance
+	suggest(frm) {
+		frappe.call({
+			method: "webshop.webshop.seo.suggestions.suggest",
+			args: { doctype: frm.doctype, name: frm.doc.name },
+			freeze: true,
+			freeze_message: __("Nora is writing…"),
+			callback: (r) => {
+				const proposal = r.message;
+				if (!proposal) return;
+				const esc = frappe.utils.escape_html;
+				const dialog = new frappe.ui.Dialog({
+					title: __("Nora's proposal"),
+					fields: [
+						{
+							fieldtype: "HTML",
+							fieldname: "proposal",
+							options: `
+								<div style="font-size: 16px; color: #1a0dab;">${esc(proposal.title)}</div>
+								<div class="small text-muted">${proposal.title.length} / 60</div>
+								<div style="margin-top: 8px;">${esc(proposal.description)}</div>
+								<div class="small text-muted">${proposal.description.length} / 160</div>
+								<p class="small text-muted" style="margin-top: 12px;">${__("Nora only uses what the page says: check every word before saving.")}</p>`,
+						},
+					],
+					primary_action_label: __("Use this proposal"),
+					primary_action: () => {
+						frm.set_value("seo_title", proposal.title);
+						frm.set_value("seo_description", proposal.description);
+						frm.set_value("seo_ai_assisted", 1);
+						frm.set_value("seo_ai_assisted_on", frappe.datetime.now_datetime());
+						dialog.hide();
+						frappe.show_alert({ message: __("The fields are filled: read them, then save."), indicator: "blue" });
+						this.draw(frm);
+					},
+				});
+				dialog.show();
+			},
+		});
 	},
 };
 

@@ -8,6 +8,7 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 TITLE_HELP = "About 60 characters show in Google's results. Empty: the page's own title."
 DESCRIPTION_HELP = "About 160 characters show in Google's results. Empty: the page's own description."
+AI_HELP = "Set when a proposal from Nora filled these fields: the merchant decides, the document remembers."
 
 
 def fields(after):
@@ -27,10 +28,26 @@ def fields(after):
 			"insert_after": "seo_title",
 		},
 		{
+			"fieldname": "seo_ai_assisted",
+			"fieldtype": "Check",
+			"label": "Written with AI assistance",
+			"description": AI_HELP,
+			"read_only": 1,
+			"insert_after": "seo_description",
+		},
+		{
+			"fieldname": "seo_ai_assisted_on",
+			"fieldtype": "Datetime",
+			"label": "Written with AI assistance on",
+			"read_only": 1,
+			"depends_on": "seo_ai_assisted",
+			"insert_after": "seo_ai_assisted",
+		},
+		{
 			"fieldname": "seo_preview",
 			"fieldtype": "HTML",
 			"label": "Google preview",
-			"insert_after": "seo_description",
+			"insert_after": "seo_ai_assisted_on",
 		},
 	]
 

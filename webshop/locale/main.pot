@@ -8509,3 +8509,43 @@ msgstr ""
 #: webshop/webshop/seo/page_meta.py
 msgid "No preview for {0}"
 msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Written with AI assistance"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Written with AI assistance on"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Set when a proposal from Nora filled these fields: the merchant decides, the document remembers."
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Propose with Nora"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Nora's proposal"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Use this proposal"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Nora is writing…"
+msgstr ""
+
+#: webshop/webshop/seo/suggestions.py
+msgid "Nora gave no usable proposal. Try again."
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "The fields are filled: read them, then save."
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Nora only uses what the page says: check every word before saving."
+msgstr ""
