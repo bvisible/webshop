@@ -8402,3 +8402,7 @@ msgstr "Clé IndexNow"
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Served at the root of every site, in a file named after it: the engines read it before trusting a notification."
 msgstr "Servie à la racine de chaque site, dans un fichier portant son nom : les moteurs de recherche la lisent avant de faire confiance à une notification."
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js
+msgid "Brand pages"
+msgstr "Pages de marque"

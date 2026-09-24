@@ -46,12 +46,14 @@ frappe.ui.form.on("Webshop Settings", {
 		if (frm.fields_dict.sitemap_info) {
 			const domain = window.location.origin;
 			//// Neoffice — /sitemap.xml IS the index since 2026-09-24 (it listed no product), and
-			//// the brands sitemap is empty until the shop has real brand pages. The labels go
-			//// through __(): this text replaced the translated field options in English.
+			//// the brands sitemap lists the brand pages since they exist (/brands/<slug>, #691
+			//// lot 2). The labels go through __(): this text replaced the translated field
+			//// options in English.
 			const rows = [
 				['sitemap.xml', __('Sitemap index: the address to give search engines')],
 				['sitemap_products.xml', __('Products')],
 				['sitemap_categories.xml', __('Categories that hold products')],
+				['sitemap_brands.xml', __('Brand pages')], //// Neoffice — the brand pages (#691 lot 2)
 				['sitemap_pages.xml', __('Pages')],
 				['sitemap_blog.xml', __('Blog posts')],
 			];

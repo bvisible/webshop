@@ -8320,3 +8320,7 @@ msgstr ""
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Served at the root of every site, in a file named after it: the engines read it before trusting a notification."
 msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js
+msgid "Brand pages"
+msgstr ""
