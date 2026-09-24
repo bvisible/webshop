@@ -5,6 +5,7 @@ refuses an item whose feed and page disagree, and suspends an account that keeps
 
 import os
 import tempfile
+import unittest
 import xml.etree.ElementTree as ElementTree
 from unittest.mock import patch
 
@@ -164,6 +165,20 @@ class TestRoute(FrappeTestCase):
 		self.assertEqual(self.render("s3cret", enabled=0).status_code, 404)
 
 
+def _on_the_erpnext_fork() -> bool:
+	"""get_product_info_for_website passes `warehouse=` to get_price, a keyword only the
+	bvisible/erpnext fork knows: on a stock ERPNext (ci.yml) the page itself cannot price."""
+	import inspect
+
+	from erpnext.utilities.product import get_price
+
+	return "warehouse" in inspect.signature(get_price).parameters
+
+
+@unittest.skipUnless(
+	_on_the_erpnext_fork(),
+	"prices through get_price(warehouse=), the fork's: runs in the fleet's Tests workflow, on the forks",
+)
 class TestParityWithThePage(FrappeTestCase):
 	"""On a real item of the test site: the feed's price is the one the page shows a visitor."""
 
