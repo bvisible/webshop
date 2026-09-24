@@ -298,6 +298,7 @@ jobs:
             webshop.webshop.seo.feeds.test_google_feed \
             webshop.webshop.product_data_engine.test_brand_pages \
             webshop.webshop.product_data_engine.test_listing_scope \
+            webshop.webshop.utils.test_renditions \
             webshop.webshop.seo.test_indexnow \
             webshop.webshop.seo.test_llms \
             webshop.webshop.seo.test_ai_referrals

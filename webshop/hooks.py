@@ -157,9 +157,18 @@ doc_events = {
 	# //// Neoffice — a product or a category whose route changes leaves a 301 behind it
 	# //// (2026-09-24, #691, D26): Frappe keeps no history of routes, the old address died.
 	"Website Item": {
-		# //// Neoffice — and IndexNow hears of it (seo/indexnow.py, #691 lot 4), when switched on
-		"on_update": ["webshop.webshop.seo.redirects.remember_old_route", "webshop.webshop.seo.indexnow.queue_website_item"],
+		# //// Neoffice — and IndexNow hears of it (seo/indexnow.py, #691 lot 4), when switched on;
+		# //// its pictures get their WebP copies in the background (utils/renditions.py, lot 5)
+		"on_update": [
+			"webshop.webshop.seo.redirects.remember_old_route",
+			"webshop.webshop.seo.indexnow.queue_website_item",
+			"webshop.webshop.utils.renditions.on_website_item_update",
+		],
 		"on_trash": ["webshop.webshop.seo.indexnow.queue_website_item"],
+	},
+	# //// Neoffice — a deleted picture takes its WebP copies with it (utils/renditions.py, #691 lot 5)
+	"File": {
+		"on_trash": ["webshop.webshop.utils.renditions.on_file_trash"],
 	},
 	"Item Group": {
 		"on_update": ["webshop.webshop.seo.redirects.remember_old_route"],
@@ -308,6 +317,8 @@ page_renderer = [
 	"webshop.webshop.seo.indexnow.KeyRenderer",
 	# //// Neoffice — /llms.txt, the shop's card for language models (#691 lot 4)
 	"webshop.webshop.seo.llms.LlmsTxtRenderer",
+	# //// Neoffice — a picture's WebP copy nobody has written yet, /files/wsr/… (#691 lot 5)
+	"webshop.webshop.utils.renditions.RenditionRenderer",
 ]
 
 jinja = {
@@ -334,6 +345,8 @@ jinja = {
         # //// Neoffice — absolute addresses on the domain of the site being browsed, for the
         # //// breadcrumb's JSON-LD (2026-09-24, #691): get_url answers the instance's host_name.
         "webshop.webshop.seo.site.webshop_site_url",
+        # //// Neoffice — srcset, sizes, width and height of a picture (utils/renditions.py, #691 lot 5)
+        "webshop.webshop.utils.renditions.webshop_picture",
         # //// Neoffice — {brand: "/brands/<slug>"} for the brands that have a page (#691 lot 2):
         # //// the product page, the brand carousel and the category page link a brand there.
         "webshop.webshop.product_data_engine.brand_pages.brand_page_routes",

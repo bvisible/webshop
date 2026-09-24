@@ -52,3 +52,5 @@ webshop.patches.mark_sold_used_units
 webshop.patches.recompute_sold_used_units
 # //// Neoffice — the Google Shopping fields of Item Group (2026-09-24, #691 lot 3)
 webshop.patches.add_google_shopping_fields
+# //// Neoffice — the WebP copies of the catalogue's pictures, once, in the background (2026-09-25, #691 lot 5)
+webshop.patches.make_picture_copies
