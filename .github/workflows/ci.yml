@@ -290,7 +290,8 @@ jobs:
             webshop.webshop.tests.test_no_shadowed_definitions \
             webshop.webshop.tests.test_cart_is_never_locked \
             webshop.webshop.utils.test_address \
-            webshop.webshop.tests.test_gift_card_families
+            webshop.webshop.tests.test_gift_card_families \
+            webshop.webshop.seo.test_seo
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || echec="$echec $m"

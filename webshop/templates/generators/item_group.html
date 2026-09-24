@@ -30,7 +30,8 @@
 {% endblock %}
 
 {% block page_content %}
-<div class="item-group-content" itemscope itemtype="http://schema.org/Product"
+{#- //// Neoffice — no itemscope: a category page is not a Product (#691, D4). #}
+<div class="item-group-content"
 	data-item-group="{{ name }}">
 	<div class="item-group-slideshow">
 		{% if slideshow %} <!-- slideshow -->
@@ -44,7 +45,8 @@
 		{% endif %}
 
 		{% if description %} <!-- description -->
-		<div class="item-group-description text-muted mb-5" itemprop="description">{{ description or ""}}</div>
+		{#- //// Neoffice — itemprop removed with the container's itemscope (#691). #}
+		<div class="item-group-description text-muted mb-5">{{ description or ""}}</div>
 		{% endif %}
 	</div>
 	<div class="row">

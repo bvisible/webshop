@@ -323,6 +323,14 @@ class WebsiteItem(WebsiteGenerator):
 				gone.http_status_code = 302
 				raise gone
 
+		# //// Neoffice — multi-site (2026-09-24, #691, D25): an item reserved to another site of
+		# //// the instance was hidden from this site's listings and search, but its page still
+		# //// answered 200 here, with a canonical pointing at this domain. It does not exist here.
+		from webshop.webshop.multi_site import excluded_item_names
+
+		if self.name in (excluded_item_names() or []):
+			raise frappe.PageDoesNotExistError
+
 		context.show_search = True
 		context.search_link = "/search"
 		context.body_class = "product-page"
@@ -466,8 +474,11 @@ class WebsiteItem(WebsiteGenerator):
 				context.recommended_items = auto_items
 		
 		# SEO: rich meta tags (frappe's meta_block renders title/description/og/twitter)
-		_desc_source = frappe.utils.strip_html(self.web_long_description or self.description or "") or self.web_item_name
-		_excerpt = " ".join((_desc_source or "").split())[:158]
+		# //// Neoffice — text with its paragraphs and a cut at a word (seo/text.py), not strip_html
+		# //// and a hard [:158] that stopped mid-word (2026-09-24, #691).
+		from webshop.webshop.seo.text import one_line
+
+		_excerpt = one_line(self.web_long_description or self.description or "", 158) or self.web_item_name
 		_meta_image = self.website_image or ""
 		if _meta_image and not _meta_image.startswith("http"):
 			_meta_image = frappe.utils.get_url(_meta_image)
@@ -527,6 +538,15 @@ class WebsiteItem(WebsiteGenerator):
 		}
 		context.condition_info = condition_info(self)
 		context.condition_schema_url = condition_schema_url(self.get("item_condition"))
+		# //// Neoffice — the JSON-LD's description and availability (2026-09-24, #691, D5/D7): text
+		# //// with its paragraphs, and the shop's stock rule whatever the page displays — a shop
+		# //// hiding its stock, an item on backorder and a model whose variants hold the stock
+		# //// all told Google "OutOfStock".
+		from webshop.webshop.seo.availability import schema_availability
+		from webshop.webshop.seo.text import html_to_text
+
+		context.jsonld_description = html_to_text(self.web_long_description or self.description or "", 5000)
+		context.jsonld_availability = schema_availability(self.item_code, context.shopping_cart.cart_settings)
 		# //// Neoffice — second-hand (2026-09-14): the new model shows its used units, a used unit
 		# //// shows the new model and its siblings (a sold unit redirected at the top of get_context).
 		context.used_units = [] if is_second_hand(self.get("item_condition")) else get_used_units(self.item_code)
@@ -733,7 +753,14 @@ class WebsiteItem(WebsiteGenerator):
 		context.metatags.title = self.web_item_name or self.item_name or self.item_code
 
 		context.metatags["og:type"] = "product"
-		context.metatags["og:site_name"] = "ERPNext"
+		# //// Neoffice — upstream hard-codes "ERPNext": every product page shared on a social
+		# //// network announced ERPNext instead of the shop (2026-09-24, #691, D1). The shop's own
+		# //// name, as its <title> suffix prints it; no tag when the site was never named.
+		from webshop.webshop.seo.site import shop_name
+
+		site_name = shop_name()
+		if site_name:
+			context.metatags["og:site_name"] = site_name
 
 	def set_shopping_cart_data(self, context):
 		from webshop.webshop.shopping_cart.product_info import (

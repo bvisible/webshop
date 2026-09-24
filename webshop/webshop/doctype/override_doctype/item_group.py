@@ -78,9 +78,31 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		# //// Neoffice — SEO on category pages: real meta description, canonical and JSON-LD;
 		# //// upstream renders a bare title (ed337ce4a3, 2026-07-06).
 		# SEO: meta tags for category pages
-		_cat_desc = frappe.utils.strip_html(self.get("description") or "") or ("%s - %s" % (self.name, frappe.db.get_single_value("Website Settings", "app_name") or ""))
+		# //// Neoffice — 2026-09-24 (#691, D16): a group with no description of its own read
+		# //// "Chaussures - <shop>", and the page had no picture to share. It now says what it
+		# //// holds, from the catalogue's own scope ("Chaussures : 12 produits, dont Trailhead,
+		# //// Salomon et Hoka."), and shows the group's picture or its first product's.
+		from webshop.webshop.seo.meta import (
+			catalogue_summary,
+			first_product_image,
+			subtree_groups,
+			summary_description,
+		)
+		from webshop.webshop.seo.text import one_line
+
+		_groups = subtree_groups(self.name)
+		_cat_desc = one_line(self.get("description") or "", 158)
+		if not _cat_desc:
+			_total, _brands = catalogue_summary(_groups)
+			_cat_desc = summary_description(self.get("website_title") or self.name, _total, _brands) if _total else ""
 		metatags = frappe._dict(context.get("metatags") or {})
-		metatags.update({"title": self.name, "description": " ".join(_cat_desc.split())[:158]})
+		# //// Neoffice — the description only when there is one, and a picture (see above, #691).
+		metatags["title"] = self.name
+		if _cat_desc:
+			metatags["description"] = _cat_desc
+		_image = self.get("image") or first_product_image(_groups)
+		if _image:
+			metatags["image"] = _image
 		context.metatags = metatags
 		# //// Neoffice — the shop name is a <title> matter, never a heading one: context.title
 		# //// is what the site chrome prints as the H1 and as the last breadcrumb, so suffixing

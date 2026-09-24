@@ -8207,3 +8207,33 @@ msgstr "Le modèle neuf"
 
 msgid "Know your references? Order them by code, name or barcode."
 msgstr "Vous connaissez vos références ? Commandez-les par code, nom ou code-barres."
+
+msgid "Terms and Conditions of Sale"
+msgstr "Conditions générales de vente"
+
+msgid "{0}: one product."
+msgstr "{0} : un produit."
+
+msgid "{0}: {1} products."
+msgstr "{0} : {1} produits."
+
+msgid "{0}: {1} products, including {2}."
+msgstr "{0} : {1} produits, dont {2}."
+
+msgid "{0} at {1}"
+msgstr "{0} chez {1}"
+
+msgid "Sitemap index: the address to give search engines"
+msgstr "Index du sitemap : l'adresse à donner aux moteurs de recherche"
+
+msgid "Categories that hold products"
+msgstr "Catégories contenant des produits"
+
+msgid "Pages"
+msgstr "Pages"
+
+msgid "Blog posts"
+msgstr "Articles de blog"
+
+msgid "The sitemaps are generated automatically and kept for 6 hours:"
+msgstr "Les sitemaps sont générés automatiquement et conservés pendant 6 heures :"

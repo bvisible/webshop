@@ -39,22 +39,26 @@ frappe.ui.form.on("Webshop Settings", {
 		//// together with "Enable Attribute Filters" (0c15976673, 2025-11-30). ▲▲▲
 		// Add sitemap view button
 		frm.add_custom_button(__('View Sitemap'), function() {
-			window.open('/sitemap_index.xml', '_blank');
+			window.open('/sitemap.xml', '_blank'); //// Neoffice — /sitemap.xml is the index since 2026-09-24
 		}, __('Sitemap'));
 		
 		// Update sitemap info with actual domain
 		if (frm.fields_dict.sitemap_info) {
 			const domain = window.location.origin;
-			frm.set_df_property('sitemap_info', 'options', 
-				`<p>The sitemap is automatically generated and cached for 6 hours. You can access it at:</p>
-				<ul>
-					<li><a href="${domain}/sitemap_index.xml" target="_blank">${domain}/sitemap_index.xml</a> - Main sitemap index</li>
-					<li><a href="${domain}/sitemap.xml" target="_blank">${domain}/sitemap.xml</a> - All content</li>
-					<li><a href="${domain}/sitemap_products.xml" target="_blank">${domain}/sitemap_products.xml</a> - Products only</li>
-					<li><a href="${domain}/sitemap_categories.xml" target="_blank">${domain}/sitemap_categories.xml</a> - Categories only</li>
-					<li><a href="${domain}/sitemap_brands.xml" target="_blank">${domain}/sitemap_brands.xml</a> - Brands only</li>
-					<li><a href="${domain}/sitemap_blog.xml" target="_blank">${domain}/sitemap_blog.xml</a> - Blog posts only</li>
-					<li><a href="${domain}/sitemap_pages.xml" target="_blank">${domain}/sitemap_pages.xml</a> - Pages only</li>
+			//// Neoffice — /sitemap.xml IS the index since 2026-09-24 (it listed no product), and
+			//// the brands sitemap is empty until the shop has real brand pages. The labels go
+			//// through __(): this text replaced the translated field options in English.
+			const rows = [
+				['sitemap.xml', __('Sitemap index: the address to give search engines')],
+				['sitemap_products.xml', __('Products')],
+				['sitemap_categories.xml', __('Categories that hold products')],
+				['sitemap_pages.xml', __('Pages')],
+				['sitemap_blog.xml', __('Blog posts')],
+			];
+			frm.set_df_property('sitemap_info', 'options',
+				`<p>${__('The sitemaps are generated automatically and kept for 6 hours:')}</p>
+				<ul>${rows.map(([path, label]) =>
+					`<li><a href="${domain}/${path}" target="_blank">${domain}/${path}</a> — ${label}</li>`).join('')}
 				</ul>`
 			);
 		}

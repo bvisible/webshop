@@ -19,13 +19,17 @@ from frappe import _
 
 
 def get_context(context):
-	context.body_class = "product-page"  # //// Neoffice — the shop's ground (webshop_ground.scss)
-	# //// Neoffice — themes print context.title as the visible page heading
-	# //// and as the last breadcrumb, and Frappe defaults it to the route
-	# //// name — untranslated. A French shop read "product-search" on screen while
-	# //// its browser tab said the translated title.
-	context.title = _("Product Search")
-	context.show_search = True
+	# //// Neoffice — 2026-09-24 (#691, D18): this page included ERPNext's
+	# //// templates/includes/product_list.js, whose `{{ ${message} }}` Jinja cannot parse, so it
+	# //// answered 417 to every visitor — and the category pages' search pointed at it. The
+	# //// shop's search results are /all-products?search=…: a permanent redirect there, the
+	# //// query kept (`search`, or `q` from Frappe's navbar search form). The whitelisted
+	# //// search endpoints below stay: the search box's dropdown calls them.
+	from urllib.parse import urlencode
+
+	query = (frappe.form_dict.get("search") or frappe.form_dict.get("q") or "").strip()
+	frappe.local.flags.redirect_location = "/all-products" + ("?" + urlencode({"search": query}) if query else "")
+	raise frappe.Redirect(301)
 
 
 @frappe.whitelist(allow_guest=True)

@@ -18,6 +18,18 @@ def get_context(context):
 	# //// Same fix as build_listing_context() already carries for /all-products.
 	context.title = _("Category and Brands")
 	context.parents = [{"name": _("Home"), "route": "/"}]
+	# //// Neoffice — the page had no canonical and no description (2026-09-24, #691, D15).
+	from webshop.webshop.multi_site import site_url
+	from webshop.webshop.seo.meta import catalogue_summary, summary_description
+	from webshop.webshop.seo.site import shop_name
+
+	context.canonical_url = site_url("shop-by-category")
+	_total, _brands = catalogue_summary()
+	if _total:
+		_name = shop_name()
+		_subject = _("{0} at {1}").format(context.title, _name) if _name else context.title
+		context.metatags = frappe._dict(context.get("metatags") or {})
+		context.metatags["description"] = summary_description(_subject, _total, _brands)
 
 	settings = frappe.get_cached_doc("Webshop Settings")
 	context.categories_enabled = settings.enable_field_filters
@@ -87,19 +99,12 @@ def _visible_item_filters():
 	variants out when the shop hides them — `ProductFiltersBuilder.get_field_filters`
 	builds every facet from exactly this.
 	"""
-	from webshop.webshop.multi_site import excluded_item_names
-	from webshop.webshop.product_data_engine.filters import gift_cards_hidden
+	# //// Neoffice — the body moved to product_data_engine/catalogue_scope.py (2026-09-24): the
+	# //// sitemaps and the SEO descriptions need the same scope, and a second copy is how the
+	# //// page and the facets drifted apart before. A sold used unit stays out (2026-09-14).
+	from webshop.webshop.product_data_engine.catalogue_scope import visible_item_filters
 
-	# //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
-	filters = {"published": 1, "sold": 0}
-	excluded = excluded_item_names()
-	if excluded:
-		filters["name"] = ["not in", excluded]
-	if gift_cards_hidden():
-		filters["is_gift_card"] = 0
-	if frappe.db.get_single_value("Webshop Settings", "hide_variants"):
-		filters["variant_of"] = ["is", "not set"]
-	return filters
+	return visible_item_filters()
 
 
 # //// Neoffice — added with the Select branch above.

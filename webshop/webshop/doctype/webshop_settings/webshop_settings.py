@@ -417,30 +417,15 @@ class WebshopSettings(Document):
 		"""Clear sitemap cache and regenerate all sitemaps"""
 		from frappe.utils import now_datetime
 
-		# List of cache keys to clear
-		cache_keys = [
-			"webshop.www.sitemap.get_published_doctype_pages",
-			"webshop.www.sitemap.get_builder_pages",
-			"webshop.www.sitemap.get_web_pages",
-			"webshop.www.sitemap_products.get_product_links",
-			"webshop.www.sitemap_categories.get_category_links",
-			"webshop.www.sitemap_brands.get_brand_links",
-			"webshop.www.sitemap_blog.get_blog_links",
-			"webshop.www.sitemap_pages.get_builder_page_links",
-			"webshop.www.sitemap_pages.get_web_page_links"
-		]
+		# //// Neoffice — the sitemaps are built and cached in webshop/webshop/seo/sitemaps.py
+		# //// since 2026-09-24. The list of cache keys this deleted matched no key at all:
+		# //// redis_cache stores "<function>::<arguments>", and only its clear_cache()
+		# //// removes them — the button had never cleared anything.
+		from webshop.webshop.seo.sitemaps import clear_caches
 
-		# //// Neoffice — every cache the shop builds (prices, discounts, facets, carousels,
-		# //// sitemaps) is dropped when the settings change; upstream clears none of them
-		# //// (84d621a387, 2025-06-23; e7a63e7680, 2025-12-02).
-		# Clear each cache using frappe.cache()
-		cache = frappe.cache()
-		for key in cache_keys:
-			try:
-				cache.delete_key(key)
-			except Exception:
-				pass
-		
+		clear_caches()
+		# //// Neoffice — the loop over bare cache key names that stood here is gone (see above).
+
 		# Update last generated timestamp
 		self.db_set("sitemap_last_generated", now_datetime())
 		

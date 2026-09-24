@@ -53,6 +53,9 @@ update_website_context = [
 	# //// page's context, not only the /maintenance route, otherwise a visitor
 	# //// already deep in the shop kept browsing it while it was closed.
 	"webshop.webshop.maintenance_context.inject_maintenance_css",
+	# //// Neoffice — SEO (2026-09-24, #691): a default robots.txt when nobody wrote one (Frappe
+	# //// served an empty file), and "noindex" on the pages a searcher has nothing to do with.
+	"webshop.webshop.seo.meta.update_website_context",
 ]
 
 # Scheduled Tasks
@@ -140,6 +143,14 @@ doctype_js = {
 }
 
 doc_events = {
+	# //// Neoffice — a product or a category whose route changes leaves a 301 behind it
+	# //// (2026-09-24, #691, D26): Frappe keeps no history of routes, the old address died.
+	"Website Item": {
+		"on_update": ["webshop.webshop.seo.redirects.remember_old_route"],
+	},
+	"Item Group": {
+		"on_update": ["webshop.webshop.seo.redirects.remember_old_route"],
+	},
 	"Item": {
 		"on_update": [
 			"webshop.webshop.crud_events.item.update_website_item.execute",
@@ -297,6 +308,9 @@ jinja = {
         # //// The two templates that print an address did it inline, each with its own
         # //// concatenation; erpnextswiss owns the rule and this delegates to it where
         # //// that app is installed.
-        "webshop.webshop.utils.address.street_line"
+        "webshop.webshop.utils.address.street_line",
+        # //// Neoffice — absolute addresses on the domain of the site being browsed, for the
+        # //// breadcrumb's JSON-LD (2026-09-24, #691): get_url answers the instance's host_name.
+        "webshop.webshop.seo.site.webshop_site_url",
 	]
 }

@@ -3,25 +3,25 @@
 {# //// offers a way back to the listing (55f4170700, 2025-12-14). "All Products" and #}
 {# //// "Shop by Category" are filtered out of the parents because the "Shop" link #}
 {# //// already stands for them (d3fc1ecebb / 23a082f118). #}
+{# //// Its structured data is the JSON-LD printed below, built from the very trail the #}
+{# //// visitor sees (2026-09-24, #691): the microdata it carried came on top of a second #}
+{# //// BreadcrumbList in JSON-LD that item.html wrote from a DIFFERENT trail. #}
 {%- if not no_breadcrumbs -%}
+{%- set crumbs = namespace(items=[]) -%}
 <div class="breadcrumb-container container">
 	<nav aria-label="breadcrumb">
-		<ol class="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
+		<ol class="breadcrumb">
 			{# Home link #}
-			<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item">
-				<a itemprop="item" href="/">
-					<span itemprop="name">{{ _("Home") }}</span>
-					<meta itemprop="position" content="1" />
-				</a>
+			<li class="breadcrumb-item">
+				<a href="/">{{ _("Home") }}</a>
 			</li>
+			{%- set crumbs.items = crumbs.items + [{"name": _("Home"), "item": webshop_site_url("")}] -%}
 
 			{# Shop link - always present in webshop pages #}
-			<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item">
-				<a itemprop="item" href="/all-products">
-					<span itemprop="name">{{ _("Shop") }}</span>
-					<meta itemprop="position" content="2" />
-				</a>
+			<li class="breadcrumb-item">
+				<a href="/all-products">{{ _("Shop") }}</a>
 			</li>
+			{%- set crumbs.items = crumbs.items + [{"name": _("Shop"), "item": webshop_site_url("all-products")}] -%}
 
 			{# Additional parents (excluding Home and All Products since we already have Shop link) #}
 			{%- if parents -%}
@@ -31,29 +31,36 @@
 				{%- for parent in parents -%}
 					{%- set parent_title = parent.title or parent.label or parent.name or '' -%}
 					{%- if parent.route not in excluded_routes and parent_title not in excluded_titles -%}
-						{%- set _ = filtered_parents.append(parent) -%}
+						{%- set _appended = filtered_parents.append(parent) -%}
 					{%- endif -%}
 				{%- endfor -%}
 				{%- for parent in filtered_parents[-2:] %}
-				<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item">
-					<a itemprop="item" href="{{ url_prefix }}{{ parent.route | abs_url }}">
-						<span itemprop="name">{{ parent.title or parent.label or parent.name or "" }}</span>
-						<meta itemprop="position" content="{{ loop.index + 2 }}" />
-					</a>
+				<li class="breadcrumb-item">
+					<a href="{{ url_prefix }}{{ parent.route | abs_url }}">{{ parent.title or parent.label or parent.name or "" }}</a>
 				</li>
+				{%- set crumbs.items = crumbs.items + [{"name": parent.title or parent.label or parent.name or "", "item": webshop_site_url((parent.route or "").strip("/"))}] -%}
 				{% endfor -%}
 			{%- endif -%}
 
 			{# Current page (if not the all-products page itself) #}
 			{%- if title and title != _("All Products") -%}
-			<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item active" aria-current="page">
-				<span itemprop="item">
-					<span itemprop="name">{{ _(title) }}</span>
-					<meta itemprop="position" content="{{ (filtered_parents|length if filtered_parents is defined else 0) + 3 }}"/>
-				</span>
+			<li class="breadcrumb-item active" aria-current="page">
+				<span>{{ _(title) }}</span>
 			</li>
+			{%- set crumbs.items = crumbs.items + [{"name": _(title)}] -%}
 			{%- endif -%}
 		</ol>
 	</nav>
 </div>
+<script type="application/ld+json">
+{
+	"@context": "https://schema.org",
+	"@type": "BreadcrumbList",
+	"itemListElement": [
+		{%- for crumb in crumbs.items %}
+		{"@type": "ListItem", "position": {{ loop.index }}, "name": {{ crumb.name | tojson }}{% if crumb.item %}, "item": {{ crumb.item | tojson }}{% endif %}}{{ "," if not loop.last }}
+		{%- endfor %}
+	]
+}
+</script>
 {%- endif -%}

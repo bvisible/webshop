@@ -177,12 +177,11 @@ webshop.ProductView =  class {
 		if ($breadcrumbList.length && !$breadcrumbList.hasClass('search-updated')) {
 			// Add search breadcrumb item at the end
 			const position = $breadcrumbList.find('li').length + 1;
+			//// Neoffice — plain markup: the breadcrumb's structured data is the JSON-LD that
+			//// breadcrumbs.html prints (#691); microdata added in the browser only confused it.
 			$breadcrumbList.append(`
-				<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item active" aria-current="page">
-					<span itemprop="item">
-						<span itemprop="name">${searchText}</span>
-						<meta itemprop="position" content="${position}"/>
-					</span>
+				<li class="breadcrumb-item active" aria-current="page">
+					<span>${searchText}</span>
 				</li>
 			`);
 			$breadcrumbList.addClass('search-updated');
@@ -702,8 +701,9 @@ webshop.ProductView =  class {
 		let top_margin = view == "list" ? "mt-2" : "mt-minus-1";
 		//// Neoffice — upstream emits a <br> before the product area; dropped with the
 		//// toolbar rework.
+		//// Neoffice — no itemscope on the grid: a list of products is not "a Product" (#691, D4).
 		return this.products_section.append(`
-			<div id="products-${view}-area" class="row products-list ${ top_margin } ${ left_margin }" itemscope itemtype="https://schema.org/Product"></div>
+			<div id="products-${view}-area" class="row products-list ${ top_margin } ${ left_margin }"></div>
 		`);
 	}
 
@@ -2315,9 +2315,10 @@ webshop.ProductView =  class {
 
 		// First ensure the containers exist (only on initial load)
 		if (!$('#products-grid-area').length) {
+			//// Neoffice — no itemscope on the grid and the list: a list of products is not "a Product" (#691, D4).
 			this.products_section.append(`
-				<div id="products-list-area" class="row products-list mt-6 ml-2 ${!isGridView ? '' : 'hidden'}" itemscope itemtype="https://schema.org/Product"></div>
-				<div id="products-grid-area" class="row products-list mt-minus-1 ${isGridView ? '' : 'hidden'}" itemscope itemtype="https://schema.org/Product"></div>
+				<div id="products-list-area" class="row products-list mt-6 ml-2 ${!isGridView ? '' : 'hidden'}"></div>
+				<div id="products-grid-area" class="row products-list mt-minus-1 ${isGridView ? '' : 'hidden'}"></div>
 			`);
 		}
 

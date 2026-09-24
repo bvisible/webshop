@@ -7,6 +7,14 @@
 {# //// searched ("Search: …") instead of the fixed "All Products" (d579b1c02a, #}
 {# //// 2025-12-14). #}
 {% block title %}{{ title }}{% endblock %}
+{# //// Neoffice — one reference address for the listing, whatever its filters, search or page #}
+{# //// (2026-09-24, #691, D15); set by build_listing_context. /occasions inherits it. #}
+{% block head_include %}
+{{ super() }}
+{%- if canonical_url %}
+<link rel="canonical" href="{{ canonical_url }}">
+{%- endif %}
+{% endblock %}
 {% block header %}
 {# //// Neoffice — the heading becomes the sticky filter bar on mobile: the filter button #}
 {# //// has to stay reachable while scrolling a long listing (48db60993c / 669f0cfd48, #}

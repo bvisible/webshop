@@ -8126,3 +8126,32 @@ msgstr ""
 msgid "écrit…"
 msgstr ""
 
+msgid "Terms and Conditions of Sale"
+msgstr ""
+
+msgid "{0}: one product."
+msgstr ""
+
+msgid "{0}: {1} products."
+msgstr ""
+
+msgid "{0}: {1} products, including {2}."
+msgstr ""
+
+msgid "{0} at {1}"
+msgstr ""
+
+msgid "Sitemap index: the address to give search engines"
+msgstr ""
+
+msgid "Categories that hold products"
+msgstr ""
+
+msgid "Pages"
+msgstr ""
+
+msgid "Blog posts"
+msgstr ""
+
+msgid "The sitemaps are generated automatically and kept for 6 hours:"
+msgstr ""

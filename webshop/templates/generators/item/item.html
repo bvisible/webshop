@@ -21,14 +21,16 @@
 {% block page_content %}
 <div class="product-container item-main wsp-product">
 	<div class="item-content">
-		<div class="product-page-content" itemscope itemtype="http://schema.org/Product">
+		{#- //// Neoffice — no itemscope: the page's structured data is one JSON-LD graph since 2026-09-24 (#691, D2-D4): this microdata made a second, polluted Product #}
+		<div class="product-page-content">
 			<div class="product-header-block">
 				<div class="d-flex align-items-start justify-content-between">
 					{#- //// Neoffice — a site chrome whose page header prints the page's title as its h1 sets #}
 					{#- //// `band_prints_title`: this heading is hidden then (webshop_product_page.scss) and would #}
 					{#- //// be a second h1 in the page; it keeps its class and its microdata as a plain block. #}
 					{%- set _title_tag = "div" if band_prints_title else "h1" %}
-					<{{ _title_tag }} class="product-title-main" itemprop="name">{{ _(doc.web_item_name) }}</{{ _title_tag }}>
+					{#- //// Neoffice — itemprop removed, see the product container above (#691). #}
+					<{{ _title_tag }} class="product-title-main">{{ _(doc.web_item_name) }}</{{ _title_tag }}>
 					{% if shopping_cart.cart_settings.enable_wishlist %}
 						<div class="like-action-item-fp like-action {{ 'like-action-wished' if wished else '' }} ml-2"
 							{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: data-item-code=" doc.item_code " #}
@@ -228,7 +230,11 @@
 <link rel="canonical" href="{{ frappe.utils.get_url(doc.route) }}">
 {%- set _pi = shopping_cart.product_info or {} %}
 {%- set _price = _pi.get('price') or {} %}
-{%- set _jsonld_desc = frappe.utils.strip_html(doc.web_long_description or doc.description or '')[:500] %}
+{#- //// Neoffice — 2026-09-24 (#691): the description is plain text with its paragraphs, cut at #}
+{#- //// a word (strip_html glued them and a hard [:500] cut mid-word, D7); the availability #}
+{#- //// comes from the shop's stock rule, not from what the page chooses to display: a shop #}
+{#- //// hiding its stock, an item on backorder and a model with variants all read #}
+{#- //// "OutOfStock" (D5). Both are set by WebsiteItem.get_context. #}
 <script type="application/ld+json">
 {
 	"@context": "https://schema.org",
@@ -241,7 +247,8 @@
 	{%- if doc.website_image %}
 	"image": [{{ frappe.utils.get_url(doc.website_image) | tojson }}],
 	{%- endif %}
-	"description": {{ _jsonld_desc | tojson }},
+	{#- //// Neoffice — plain text with its paragraphs (jsonld_description, see above, #691) #}
+	"description": {{ (jsonld_description or "") | tojson }},
 	"url": {{ frappe.utils.get_url(doc.route) | tojson }}
 	{%- if _price.get('price_list_rate') %},
 	"offers": {
@@ -249,29 +256,15 @@
 		"url": {{ frappe.utils.get_url(doc.route) | tojson }},
 		"priceCurrency": {{ (_price.get('currency') or 'CHF') | tojson }},
 		"price": {{ _price.get('price_list_rate') | tojson }},
-		"availability": {{ ('https://schema.org/InStock' if _pi.get('in_stock') else 'https://schema.org/OutOfStock') | tojson }},
+		{#- //// Neoffice — the shop's stock rule, not what the page displays (jsonld_availability, see above, #691) #}
+		"availability": {{ (jsonld_availability or 'https://schema.org/OutOfStock') | tojson }},
 		{#- //// Neoffice — second-hand: Google requires the true condition on a used or refurbished listing #}
 		"itemCondition": {{ condition_schema_url | tojson }}
 	}
 	{%- endif %}
 }
 </script>
-{#- //// Neoffice — the page's breadcrumb as JSON-LD follows `no_breadcrumbs`, as the visible #}
-{#- //// breadcrumb (includes/breadcrumbs.html) does: a site chrome that draws the trail in its #}
-{#- //// own page header sets the flag and writes its own BreadcrumbList, and a product page #}
-{#- //// carried two (2026-09-14). #}
-{%- if not no_breadcrumbs %}
-<script type="application/ld+json">
-{
-	"@context": "https://schema.org",
-	"@type": "BreadcrumbList",
-	"itemListElement": [
-		{%- for p in parents or [] %}
-		{"@type": "ListItem", "position": {{ loop.index }}, "name": {{ (p.label or p.title or p.name) | tojson }}, "item": {{ frappe.utils.get_url(p.route or '') | tojson }}},
-		{%- endfor %}
-		{"@type": "ListItem", "position": {{ (parents | len) + 1 }}, "name": {{ doc.web_item_name | tojson }}, "item": {{ frappe.utils.get_url(doc.route) | tojson }}}
-	]
-}
-</script>
-{%- endif %}{#- //// Neoffice — end of the no_breadcrumbs guard above #}
+{#- //// Neoffice — the page's BreadcrumbList is printed by includes/breadcrumbs.html since #}
+{#- //// 2026-09-24, from the trail the visitor sees: this block wrote a second one here, from #}
+{#- //// another trail, next to the microdata of the include (#691). #}
 {% endblock %}

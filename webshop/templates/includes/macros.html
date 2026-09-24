@@ -80,9 +80,11 @@
 {% macro product_image(website_image, css_class="product-image", alt="", no_border=False) %}
 	<div class="{{ 'border' if not no_border else ''}} text-center rounded {{ css_class }}" style="overflow: hidden;">
 		{% if website_image %}
-			<img itemprop="image" class="website-image h-100 w-100" alt="{{ _(alt) }}" src="{{ frappe.utils.quoted(website_image) | abs_url }}">
+			{#- //// Neoffice — itemprop removed (#691): no microdata anywhere in the shop; the pages' structured data is JSON-LD. #}
+			<img class="website-image h-100 w-100" alt="{{ _(alt) }}" src="{{ frappe.utils.quoted(website_image) | abs_url }}">
 		{% else %}
-			<div itemprop="image" class="card-img-top no-image-item">
+			{#- //// Neoffice — itemprop removed (#691): no microdata anywhere in the shop; the pages' structured data is JSON-LD. #}
+			<div class="card-img-top no-image-item">
 				{{ frappe.utils.get_abbr(alt) or "NA" }}
 			</div>
 		{% endif %}
@@ -96,7 +98,8 @@
 		{%- endif %}
 		{% if website_image -%}
 			<a href="{{ frappe.utils.quoted(website_image) }}">
-				<img itemprop="image" src="{{ frappe.utils.quoted(website_image) | abs_url }}"
+				{#- //// Neoffice — itemprop removed (#691): no microdata anywhere in the shop; the pages' structured data is JSON-LD. #}
+				<img src="{{ frappe.utils.quoted(website_image) | abs_url }}"
 					class="img-responsive img-thumbnail sidebar-image" style="min-height:100%; min-width:100%;">
 			</a>
 		{%- endif %}
@@ -118,9 +121,11 @@
 			{# //// lines up (48e2708353, 2025-03-13). #}
 			<div class="card h-100 border-0 justify-content-between">
 				{% if card.image %}
-				<img itemprop="image" class="card-img-top h-75" src="{{ card.image }}" loading="lazy" alt="{{ _(card.title) }}"></img>
+				{#- //// Neoffice — itemprop removed (#691): no microdata anywhere in the shop; the pages' structured data is JSON-LD. #}
+				<img class="card-img-top h-75" src="{{ card.image }}" loading="lazy" alt="{{ _(card.title) }}"></img>
 				{% endif %}
-				<div itemprop="image" class="card-body">
+				{#- //// Neoffice — itemprop removed (#691): no microdata anywhere in the shop; the pages' structured data is JSON-LD. #}
+				<div class="card-body">
 					<h5 class="card-title">{{ _(card.title) }}</h5>
 					<p class="card-subtitle mb-2 text-muted">{{ _(card.subtitle) or '' }}</p>
 					{# //// Neoffice — the card text goes through _() so a shop in French does not print an #}

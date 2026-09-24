@@ -27,10 +27,8 @@
 {# //// Upstream prints a title, a code, a description and the cart form in one column. #}
 <div class="col-md-8 product-details wsp-buy {{ width_class }}">
 	<!-- title, wishlist and breadcrumbs render above (item.html) -->
-	<div itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
-	</div>
-	<div itemprop="review" itemscope itemtype="https://schema.org/Review">
-	</div>
+	{#- //// Neoffice — two EMPTY microdata items stood here, an AggregateRating and a Review with #}
+	{#- //// no value: Google reported them as errors of the page's product (#691, D2). #}
 
 	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top. #}
 	<p class="product-code wsp-buy__meta">
@@ -47,8 +45,9 @@
 		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: _(doc.item_group) #}
 		<span class="product-item-group">{{ _(doc.item_group) }}</span>
 		<span class="product-separator">·</span>
-		<span class="product-item-code" itemprop="name">{{ _("Item Code") }}:</span>
-		<span itemprop="name">{{ _(doc.item_code) }}</span>
+		{#- //// Neoffice — itemprop="name" removed: the product was named "Code article:" in its microdata (#691). #}
+		<span class="product-item-code">{{ _("Item Code") }}:</span>
+		<span>{{ _(doc.item_code) }}</span>
 	</p>
 
 	{# //// Neoffice — second-hand: a used or refurbished unit says so before the price, #}
@@ -166,7 +165,8 @@
 		{% if _has_desc %}
 		<details class="wsp-acc" open>
 			<summary class="wsp-acc__head">{{ _("Description") }}</summary>
-			<div class="wsp-acc__body buybox-description product-description product-long-description" itemprop="description" data-clamp="320">
+			{#- //// Neoffice — itemprop removed (#691): the description is in the JSON-LD. #}
+			<div class="wsp-acc__body buybox-description product-description product-long-description" data-clamp="320">
 				{{ _(_texte) | safe }}
 			</div>
 		</details>

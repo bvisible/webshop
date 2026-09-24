@@ -5,6 +5,11 @@
 
 {% block head_include %}
 {# //// Neoffice — styles moved to webshop/public/scss/webshop_catalogue.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
+{# //// Neoffice — the page's reference address (2026-09-24, #691, D15), set by get_context. #}
+{{ super() }}
+{%- if canonical_url %}
+<link rel="canonical" href="{{ canonical_url }}">
+{%- endif %}
 {% endblock %}
 
 {% block script %}

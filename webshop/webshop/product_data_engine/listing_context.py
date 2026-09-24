@@ -68,6 +68,12 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	# //// (2026-09-14) a quiet way in to the quick order, next to the search box, for whoever may use it
 	context.quick_order_url = quick_order_url()
 	context.no_cache = 1
+	# //// Neoffice — 2026-09-24 (#691, D15): the listings had no canonical and no description,
+	# //// and every search, facet and page of them answered as a page of its own. They now say
+	# //// what they hold and name one reference address (webshop/webshop/seo/meta.py).
+	from webshop.webshop.seo.meta import listing_metatags
+
+	listing_metatags(context, title, listing_route, locked_field_filters)
 
 	from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
 

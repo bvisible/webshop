@@ -79,7 +79,9 @@
     chosen on its page. -#}
 {%- macro price_block(item) -%}
 	{%- if not item.is_gift_card -%}
-	<div class="product-price wsp-card__price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
+	{#- //// Neoffice — no microdata on a tile (#691, D2): inside a product page, the tiles of the #}
+	{#- //// recommendations lent their names and prices to the page's own product. #}
+	<div class="product-price wsp-card__price">
 		{%- if item.get("price_info") -%}
 			{% if course_offer_count is defined and course_offer_count(item.get("item_code")) > 1 %}<small class="text-muted">{{ _("from") }}</small> {% endif %}{{ webshop_fmt_money(item.price_info.get("price_list_rate", 0), currency=item.price_info.get("currency")) }}
 		{%- elif item.price and item.currency -%}
@@ -197,7 +199,8 @@
 		{{ play_mark(item) }}
 		{%- if image %}
 		<a class="product-link product-list-link wsp-card__link" href="/{{ route }}">
-			<img itemprop="image" class="website-image h-100 w-100 wsp-card__image" alt="{{ title | e }}" src="{{ image }}"{{ fit.list_img }}>
+			{#- //// Neoffice — itemprop removed (#691, see price_block). #}
+			<img class="website-image h-100 w-100 wsp-card__image" alt="{{ title | e }}" src="{{ image }}"{{ fit.list_img }}>
 		</a>
 		{%- else %}
 		<a class="product-link product-list-link wsp-card__link" href="/{{ route }}" style="text-decoration: none">
@@ -258,9 +261,10 @@
 		<div class="card-img-container wsp-card__media">
 			<a href="/{{ route }}" class="wsp-card__link" style="text-decoration: none;">
 				{%- if image %}
-				<img itemprop="image" class="card-img wsp-card__image" src="{{ image }}" alt="{{ title | e }}">
+				{#- //// Neoffice — itemprop removed (#691, see price_block). #}
+				<img class="card-img wsp-card__image" src="{{ image }}" alt="{{ title | e }}">
 				{%- else %}
-				<div itemprop="image" class="card-img-top no-image wsp-card__placeholder">
+				<div class="card-img-top no-image wsp-card__placeholder">
 					{{ frappe.utils.get_abbr(title) }}
 				</div>
 				{%- endif %}
@@ -322,7 +326,8 @@
 			{%- endif %}
 			<a href="/{{ route }}" class="wsp-card__link">
 				{%- if image %}
-				<img itemprop="image" class="card-img wsp-card__image" src="{{ image }}" alt="{{ title | e }}" loading="lazy" decoding="async"{% if cover and item.image_focus %} style="object-position: {{ focus_map.get(item.image_focus) or 'center center' }};"{% endif %}>
+				{#- //// Neoffice — itemprop removed (#691, see price_block). #}
+				<img class="card-img wsp-card__image" src="{{ image }}" alt="{{ title | e }}" loading="lazy" decoding="async"{% if cover and item.image_focus %} style="object-position: {{ focus_map.get(item.image_focus) or 'center center' }};"{% endif %}>
 				{%- if item.hover_image %}
 				<img class="wsp-card__image wsp-card__image--hover" src="{{ item.hover_image }}" alt="" loading="lazy" decoding="async" aria-hidden="true">
 				{%- endif %}
@@ -338,10 +343,12 @@
 			<div class="wsp-card__head"><span class="wsp-card__brand">{{ item.brand | e }}</span></div>
 			{%- endif %}
 			<a href="/{{ route }}" class="wsp-card__title-link">
-				<div class="product-title wsp-card__title" itemprop="name">{{ title | e }}</div>
+				{#- //// Neoffice — itemprop removed (#691, see price_block). #}
+				<div class="product-title wsp-card__title">{{ title | e }}</div>
 			</a>
 			<div class="product-category-stock wsp-card__meta">
-				<div class="product-category wsp-card__category" itemprop="name">{{ item.item_group | e if item.item_group else "" }}</div>
+				{#- //// Neoffice — itemprop removed (#691): a category is not the product's name. #}
+				<div class="product-category wsp-card__category">{{ item.item_group | e if item.item_group else "" }}</div>
 				{%- if variant == "grid" and settings.show_stock_availability and not item.has_variants %}
 				{{ stock_info(item) }}
 				{%- endif %}

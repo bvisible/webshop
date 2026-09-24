@@ -395,7 +395,8 @@
 						</div>
 
 						{% if cgv_terms %}
-						<h5 id="terms-title" class="mb-3">{{ _( cgv_tc_name or _("Conditions Générales de Vente") ) }}</h5>
+						{#- //// Neoffice — English source string (RULE #00): the French one was a msgid (2026-09-24). #}
+						<h5 id="terms-title" class="mb-3">{{ _( cgv_tc_name or _("Terms and Conditions of Sale") ) }}</h5>
 							<div class="t-and-c-container frappe-card p-5 mb-4">
 								<div class="terms-preview">
 									<div class="ql-editor read-mode terms-content"></div>

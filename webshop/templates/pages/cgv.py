@@ -18,15 +18,17 @@ def get_context(context):
         cgv_doc = frappe.get_doc("Terms and Conditions", webshop_settings.checkout_cgv)
         
         context.update({
-            "title": cgv_doc.title or _("Conditions Générales de Vente"),
+            # //// Neoffice — English source string (RULE #00): the French one was a msgid (2026-09-24).
+            "title": cgv_doc.title or _("Terms and Conditions of Sale"),
             "cgv_title": cgv_doc.title,
             "cgv_content": cgv_doc.terms,
             "show_cgv": True
         })
     else:
         context.update({
-            "title": _("Conditions Générales de Vente"),
-            "cgv_title": _("Conditions Générales de Vente"),
+            # //// Neoffice — English source strings (RULE #00), see above.
+            "title": _("Terms and Conditions of Sale"),
+            "cgv_title": _("Terms and Conditions of Sale"),
             "cgv_content": None,
             "show_cgv": False
         })

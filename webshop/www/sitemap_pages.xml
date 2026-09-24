@@ -10,7 +10,10 @@
 	{%- for link in links %}
 	<url>
 		<loc>{{ link.loc }}</loc>
+		{#- //// Neoffice — printed only when known: a lastmod that is not true makes Google ignore them all (2026-09-24) #}
+		{%- if link.lastmod %}
 		<lastmod>{{ link.lastmod }}</lastmod>
+		{%- endif %}
 		{%- if link.changefreq %}
 		<changefreq>{{ link.changefreq }}</changefreq>
 		{%- endif %}
