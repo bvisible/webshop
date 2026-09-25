@@ -298,6 +298,47 @@ frappe.ready(function() {
             $input.parent().css('position', 'relative');
             $input.after($dropdown);
 
+            //// Neoffice — a combobox for the keyboard and the accessibility tree (#691 lot 4): the
+            //// suggestions were divs only a mouse could pick. The field says whether its list is open,
+            //// the list and its entries say what they are, and the arrows, Enter and Escape work.
+            //// show/hide are wrapped on this dropdown only, so every search path keeps them in sync.
+            const listId = `${prefix}-address-suggestions`;
+            $dropdown.attr({ id: listId, role: 'listbox' });
+            $input.attr({ role: 'combobox', 'aria-autocomplete': 'list', 'aria-expanded': 'false', 'aria-controls': listId });
+            const showList = $dropdown.show.bind($dropdown);
+            const hideList = $dropdown.hide.bind($dropdown);
+            $dropdown.show = (...args) => {
+                $dropdown.children('.address-autocomplete-item').each((index, item) => {
+                    item.setAttribute('role', 'option');
+                    item.id = `${listId}-${index}`;
+                    item.setAttribute('aria-selected', 'false');
+                });
+                $input.attr('aria-expanded', 'true');
+                return showList(...args);
+            };
+            $dropdown.hide = (...args) => {
+                $input.attr('aria-expanded', 'false').removeAttr('aria-activedescendant');
+                return hideList(...args);
+            };
+            $input.on('keydown', (e) => {
+                const $items = $dropdown.children('.address-autocomplete-item');
+                if (!$dropdown.is(':visible') || !$items.length) return;
+                let index = $items.index($items.filter('[aria-selected="true"]'));
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    index = e.key === 'ArrowDown' ? Math.min(index + 1, $items.length - 1) : Math.max(index - 1, 0);
+                    $items.attr('aria-selected', 'false').css('backgroundColor', '');
+                    const $active = $items.eq(index).attr('aria-selected', 'true').css('backgroundColor', 'var(--control-bg, #f5f7fa)');
+                    $input.attr('aria-activedescendant', $active.attr('id'));
+                    $active[0].scrollIntoView({ block: 'nearest' });
+                } else if (e.key === 'Enter' && index >= 0) {
+                    e.preventDefault();
+                    $items.eq(index).trigger('mousedown');
+                } else if (e.key === 'Escape') {
+                    $dropdown.hide();
+                }
+            });
+
             let debounceTimer;
 
             // Input event for search
