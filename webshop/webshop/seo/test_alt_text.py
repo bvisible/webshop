@@ -140,6 +140,10 @@ class TestKeepingThem(FrappeTestCase):
 		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 		super().tearDownClass()
 
+	def tearDown(self):
+		# the visitor's test leaves its user behind otherwise, and the next test writes as Guest
+		frappe.set_user("Administrator")
+
 	@staticmethod
 	def _purge():
 		for name in frappe.get_all("Website Item", filters={"item_code": ITEM}, pluck="name"):
