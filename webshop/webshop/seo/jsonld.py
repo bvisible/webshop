@@ -23,6 +23,9 @@ SWISS_UID = re.compile(r"^CHE-\d{3}\.\d{3}\.\d{3}( (TVA|MWST|IVA|VAT))?$")
 POSTCODE_LINE = re.compile(r"^(?:[A-Z]{1,2}-)?(\d{4,5})\s+(.+)$")
 # A year of closures at most: holidays are fetched a year ahead.
 MAX_CLOSURES = 40
+# A ProductGroup reads the shop's seller once for all its variants, and "no seller" is an answer:
+# offer_node reads it itself only when it was not handed one.
+_UNREAD = object()
 
 
 def product_graph(facts: frappe._dict) -> dict:
@@ -113,7 +116,7 @@ def product_group_graph(group: frappe._dict) -> dict:
 	return node
 
 
-def variant_node(variant: frappe._dict, seller=None, policies=None) -> dict:
+def variant_node(variant: frappe._dict, seller=_UNREAD, policies=None) -> dict:
 	"""One variant of a ProductGroup: a Product more precisely named than the model, its
 	attributes as schema.org properties (color, size...), its offer."""
 	node = {"@type": "Product", "name": variant.name, "sku": variant.sku}
@@ -130,7 +133,7 @@ def variant_node(variant: frappe._dict, seller=None, policies=None) -> dict:
 	return node
 
 
-def offer_node(offer: frappe._dict, seller=None, policies=None) -> dict:
+def offer_node(offer: frappe._dict, seller=_UNREAD, policies=None) -> dict:
 	node = {
 		"@type": "Offer",
 		"url": offer.url,
@@ -152,7 +155,7 @@ def offer_node(offer: frappe._dict, seller=None, policies=None) -> dict:
 			node["validFrom"] = offer.valid_from
 		if offer.valid_until:
 			node["priceValidUntil"] = offer.valid_until
-	seller = seller or seller_node()
+	seller = seller_node() if seller is _UNREAD else seller
 	if seller:
 		node["seller"] = seller
 	policies = policies or site_policies()

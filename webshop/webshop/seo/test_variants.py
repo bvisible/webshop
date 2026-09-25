@@ -108,7 +108,11 @@ class TestTheGroupGraph(FrappeTestCase):
 		self.assertEqual((seller_calls, policy_calls), (1, 1))
 
 	def test_a_page_without_a_group_keeps_its_product(self):
-		node, _seller, _policies = self.graph(None)
+		with (
+			patch.object(jsonld, "seller_node", return_value=None),
+			patch.object(jsonld, "site_policies", return_value=NO_POLICIES),
+		):
+			node = jsonld.product_graph(frappe._dict(group=None, url="https://shop.test/mug", name="Mug"))
 		self.assertEqual(node["@type"], "Product")
 
 
@@ -231,6 +235,25 @@ def _purge():
 			frappe.delete_doc("Item Attribute", attribute, force=True, ignore_permissions=True)
 
 
+def _list_price(item_code, price_list, customer_group=None, company=None, qty=1, party=None, warehouse=None):
+	"""get_price as the fleet's ERPNext fork answers without a pricing rule: the list rate. The CI's
+	stock ERPNext knows no `warehouse` keyword, and reads `mrp` unset for a priced item without a
+	rule (CLAUDE.md, "The quick order"): the page and the pricing it calls are what is tested here."""
+	found = frappe.db.get_value(
+		"Item Price",
+		{"item_code": item_code, "price_list": price_list, "selling": 1},
+		["price_list_rate", "currency"],
+		as_dict=True,
+	)
+	if not found:
+		return None
+	return frappe._dict(
+		price_list_rate=found.price_list_rate,
+		currency=found.currency,
+		formatted_price=frappe.utils.fmt_money(found.price_list_rate, currency=found.currency),
+	)
+
+
 def _publish(item_code):
 	from webshop.webshop.doctype.website_item.website_item import make_website_item
 
@@ -303,7 +326,8 @@ class TestAModelPage(FrappeTestCase):
 					"selling": 1,
 				}
 			).insert(ignore_permissions=True)
-		frappe.db.commit()
+		# class fixtures survive FrappeTestCase's rollback only committed (CLAUDE.md, Testing Strategy)
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 		frappe.local.shopping_cart_settings = None
 		frappe.clear_cache(doctype="Webshop Settings")
 
@@ -311,7 +335,8 @@ class TestAModelPage(FrappeTestCase):
 	def tearDownClass(cls):
 		frappe.set_user("Administrator")
 		_purge()
-		frappe.db.commit()
+		# class fixtures survive FrappeTestCase's rollback only committed (CLAUDE.md, Testing Strategy)
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 		restore_webshop_settings({**cls.snapshot, **cls.written})
 		super().tearDownClass()
 
@@ -321,14 +346,22 @@ class TestAModelPage(FrappeTestCase):
 		clear_variant_prices()
 		frappe.local.webshop_model_views = {}
 		frappe.local.shopping_cart_settings = None
+		self.prices = [
+			patch("webshop.webshop.shopping_cart.product_info.get_price", side_effect=_list_price),
+			patch("erpnext.utilities.product.get_price", side_effect=_list_price),
+		]
+		for price in self.prices:
+			price.start()
 
 	def tearDown(self):
+		for price in self.prices:
+			price.stop()
 		frappe.set_user("Administrator")
 
 	def settings(self, **changes):
 		from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
 
-		settings = frappe._dict(get_shopping_cart_settings().as_dict())
+		settings = frappe._dict(get_shopping_cart_settings())
 		settings.update(changes)
 		return settings
 
