@@ -35,8 +35,18 @@ def chrome_site_name() -> str:
 		from builder.site_graph import display_name
 	except ImportError:
 		return ""
-	config = get_header_footer_config()
-	return display_name(config) if config else ""
+	# the chrome's configuration is a document with child tables: read once per request and per
+	# site, not once per title, description and breadcrumb that names it (#691 lot 5). Per site:
+	# the feed's job serves every site of the instance in one process (seo/feeds/google.py serving)
+	names = getattr(frappe.local, "webshop_chrome_site_names", None)
+	if names is None:
+		# frappe.local's own storage, which each request starts afresh (never its __dict__)
+		names = frappe.local.webshop_chrome_site_names = {}
+	profile = getattr(frappe.local, "website_profile", None)
+	if profile not in names:
+		config = get_header_footer_config()
+		names[profile] = display_name(config) if config else ""
+	return names[profile]
 
 
 def webshop_site_url(path="") -> str:

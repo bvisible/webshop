@@ -2279,8 +2279,11 @@ def _set_price_list(cart_settings, quotation=None):
 
 	# Check if default customer price list exists
 	if not selling_price_list and party_name and frappe.db.exists("Customer", party_name):
+		# //// Neoffice — the cached document: a listing asks this once per card, and the whole
+		# //// Customer with its child tables was read from the database twelve times a page
+		# //// (#691 lot 5, 2026-09-25). A saved Customer leaves the cache.
 		selling_price_list = get_default_price_list(
-			frappe.get_doc("Customer", party_name)
+			frappe.get_cached_doc("Customer", party_name)
 		)
 
 	# Check default price list in shopping cart

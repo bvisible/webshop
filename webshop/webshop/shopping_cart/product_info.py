@@ -90,19 +90,21 @@ def get_product_info_for_website(item_code, skip_quotation_creation=False):
 	stock_status = None
 
 	if cart_settings.show_stock_availability:
-		on_backorder = frappe.get_cached_value(
-			"Website Item", {"item_code": item_code}, "on_backorder"
-		)
+		# //// Neoffice — one column, not the document: get_cached_value with filters cannot cache,
+		# //// and loaded the whole Website Item and its child tables for each card (#691 lot 5)
+		on_backorder = frappe.db.get_value("Website Item", {"item_code": item_code}, "on_backorder")
 		if on_backorder:
 			stock_status = frappe._dict({"on_backorder": True})
 		else:
 			stock_status = get_web_item_qty_in_stock(item_code, "website_warehouse")
 
+	# //// Neoffice — both units in one query (#691 lot 5)
+	units = frappe.db.get_value("Item", item_code, ["stock_uom", "sales_uom"], as_dict=True) or frappe._dict()
 	product_info = {
 		"price": price,
 		"qty": 0,
-		"uom": frappe.db.get_value("Item", item_code, "stock_uom"),
-		"sales_uom": frappe.db.get_value("Item", item_code, "sales_uom"),
+		"uom": units.stock_uom,  # //// Neoffice — the units read above, in one query
+		"sales_uom": units.sales_uom,
 	}
 
 	if stock_status:
