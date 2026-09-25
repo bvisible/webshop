@@ -629,6 +629,15 @@ token stops a double click becoming two orders.
 > existed in `fr.po` all along, nothing could read them. `checkout.html` seeds
 > `window.webshop_checkout_labels`, and `checkout.js` reads them through `say()`.
 
+> **Precisely: on a website page `__()` resolves a CURATED LIST, nothing else.** The
+> Neoffice theme injects into the page's `frappe.boot.__messages` the translations of
+> `WEBSHOP_JS_STRINGS` (`neoffice_theme/website_translations.py`, about a hundred strings of
+> `auth_dialog.js` and `checkout.js`). A string the list does not name stays English
+> whatever `fr.po` says: the sign-in dialog's new close button read "Close" on a French
+> shop (2026-09-25). **A `__()` string added to the shop's website scripts must also be added
+> to that list** (neoffice-theme #33 for "Close"), or be seeded server-side like
+> `webshop_checkout_labels`. A shop without the theme translates none of them.
+
 > **A custom button added from a server callback does not survive.** `refresh`
 > runs several times while a form settles and each run rebuilds the action bar, so
 > a button added when a late callback returns is wiped by the next redraw — it
@@ -643,6 +652,31 @@ token stops a double click becoming two orders.
 > added is the retention sentence (read off the order's state, so it never claims a
 > hold that is not happening) and the same bill **on the order itself**, built by the
 > payment request's own builder so both documents print an identical bill.
+
+### The checkout, read by a browsing agent (2026-09-25, #691 lot 4)
+
+AI agents and assistive technology read the page's accessibility tree; the checkout was
+audited for them (PRs #17, #18, #21). What must stay true:
+
+- **The information form posts** (`method="post"`): a GET put names, email and address in the
+  URL for a visitor, whose page never initialises. A visitor's page is `inert` behind the
+  forced sign-in dialog; the sign-in dialog is a `role="dialog"` that makes the page behind it
+  inert, and Escape or a click on the backdrop closes it when the sign-in is not forced.
+- **Every contact and address field carries its autofill token**, and `required` says exactly
+  what the step validates in `checkout.js` — no more, no less (`.shipping-required` for the
+  four shipping fields the step checks).
+- **The shipping and payment choices are real radios, transparent and laid OVER their control**
+  (inline styles in `checkout.js`, the page script has no build step). `hide` took them out of
+  the tree; shown with the page's rules they grew each card by 24px; under Bootstrap's
+  `z-index: -1` a click on the radio itself — the one an agent finds — chose nothing.
+- **Each payment tile keeps its own ids.** Upstream overwrote them with one id per gateway type:
+  three Payrexx accounts shared their ids and one tile's terms label ticked another's box.
+  `frappe.call` sends `context` as a JSON string, which `get_payment_template` ignores: the ids
+  come from the account (`context_ids`), else one per account.
+- **A document named over HTTP must be the caller's** (`_refuse_foreign_reference`, #747):
+  `get_payment_template` and `get_payment_methods` are open to visitors and `_document_to_pay`
+  checks nothing, by design (the booking module checks `_may_pay` and calls them from Python).
+  The check runs before each endpoint's `try`, which would log a refusal as an error.
 
 ### Where the features live on the desk
 
