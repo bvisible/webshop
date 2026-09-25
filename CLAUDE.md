@@ -706,8 +706,10 @@ Until the link is clicked, the User carries `email_confirmation_pending`.
   customer (impersonation, `bench browse`) come with their own session, and prove nothing.
 - **Payment on account waits** (`utils/payment_methods.rows_for_group`): it ships before the money
   is in. Card and transfer-before-shipping are unaffected.
-- `create_account` is limited to 20 accounts an hour per address (`rate_limit`) and honours
-  frappe's `max_signups_allowed_per_hour`. It no longer returns the exception's text to the
+- `create_account` creates at most 20 accounts an hour per address (`SIGN_UPS_PER_HOUR`, a
+  counter of the accounts actually created: frappe's `rate_limit` counted every call, and the
+  browser suite's refusals used the allowance up in an afternoon) and honours frappe's
+  `max_signups_allowed_per_hour`. It no longer returns the exception's text to the
   visitor. The dialog reloads the page signed in and shows the server's notice after the
   reload (`sessionStorage`), because a website page resolves no new `__()` string.
 

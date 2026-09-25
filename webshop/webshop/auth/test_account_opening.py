@@ -89,6 +89,26 @@ class TestCreateAccount(FrappeTestCase):
 		self.assertNotIn("signed_in", answer)
 		open_account.assert_not_called()
 
+	def test_only_accounts_created_count_against_the_limit(self):
+		key = api._sign_ups_key()
+		frappe.cache().delete_value(key)
+		try:
+			# a refusal (a missing name) costs nothing
+			with patch.object(frappe.local, "form_dict", frappe._dict(email=EMAIL, first_name="", last_name="")):
+				self.assertEqual(api.create_account()["reason_code"], "missing_fields")
+			self.assertEqual(api._sign_ups_so_far(), 0)
+			# an account created counts one
+			with patch.object(confirmation, "opens_at_once", return_value=False):
+				self.assertEqual(api.create_account()["message"], "success")
+			self.assertEqual(api._sign_ups_so_far(), 1)
+			# at the limit, nothing more is created from this address
+			_drop_user()
+			frappe.cache().set_value(key, api.SIGN_UPS_PER_HOUR, expires_in_sec=60)
+			self.assertEqual(api.create_account()["reason_code"], "too_many_signups")
+			self.assertFalse(frappe.db.exists("User", EMAIL))
+		finally:
+			frappe.cache().delete_value(key)
+
 	def test_an_error_says_nothing_of_its_cause(self):
 		with (
 			patch.object(api.frappe, "get_doc", side_effect=RuntimeError("SMTP host secret.example")),
