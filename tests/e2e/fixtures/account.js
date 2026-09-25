@@ -18,6 +18,9 @@ const throwawayAddress = (label = 'account') => `e2e.${label}.${Date.now()}@yopm
 //// Open the dialog on an address and answer what the shop knows about it.
 //// 'known' when it asks for a password, 'unknown' when it asks for a name.
 async function askTheDialog(page, email) {
+	//// As a visitor: an account created through the dialog is signed in at once (decision D-9,
+	//// #691), and a signed-in page answers "you are already logged in" instead of asking.
+	await page.context().clearCookies();
 	await page.goto('/all-products');
 	await page.waitForLoadState('domcontentloaded');
 	//// Wait for frappe itself, not just for the DOM: the dialog is opened through

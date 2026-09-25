@@ -34,10 +34,12 @@ async function fillCard(page, number, {name = 'Test E2E', email = 'test.e2e@exam
 
 	//// The form is mounted only after selection, and Stripe.js loads from its
 	//// CDN: wait for the field, not a fixed delay.
-	const holder = tile.locator('#cardholder-name');
+	//// Each tile carries its own ids since #747 (`cardholder-name-<submit id>`): three accounts of
+	//// one gateway shared theirs, and one tile's label ticked another's box.
+	const holder = tile.locator('[id^="cardholder-name"]');
 	await expect(holder).toBeVisible({timeout: 30_000});
 	await holder.fill(name);
-	await tile.locator('#cardholder-email').fill(email);
+	await tile.locator('[id^="cardholder-email"]').fill(email);
 
 	const frame = tile.frameLocator('[name="card-element"] iframe').first();
 	await frame.locator('input[name="cardnumber"]').fill(number);
