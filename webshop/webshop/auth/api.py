@@ -5,14 +5,28 @@
 # //// 2026-04-08 "handle existing users in shop create_account (WI-00297)").
 import frappe
 from frappe import _
-from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, validate_email_address
 from frappe.utils.oauth import get_oauth2_authorize_url
 
 # //// Neoffice — accounts one address may create in an hour (#691 D-9): each sends a welcome
 # //// email, and nothing limited them. Generous enough for a shop's own counter, where every
-# //// customer signs up from the same connection.
+# //// customer signs up from the same connection. Only accounts actually created count: frappe's
+# //// rate_limit counted every call, so a typo, a missing name or an address already known used
+# //// the allowance up (the browser suite did in one afternoon, 2026-09-25).
 SIGN_UPS_PER_HOUR = 20
+
+
+def _sign_ups_key():
+    return f"webshop:sign_ups:{getattr(frappe.local, 'request_ip', None) or 'unknown'}"
+
+
+def _sign_ups_so_far():
+    return cint(frappe.cache().get_value(_sign_ups_key(), expires=True))
+
+
+def _count_sign_up():
+    # an hour after the last account created from this address, the count starts again
+    frappe.cache().set_value(_sign_ups_key(), _sign_ups_so_far() + 1, expires_in_sec=60 * 60)
 
 @frappe.whitelist(allow_guest=True)
 def check_email(email):
@@ -36,9 +50,9 @@ def check_email(email):
 # //// Neoffice — reviewed for guests (frappe's semgrep rule guest-whitelisted-method, #691 D-9,
 # //// 2026-09-25): it creates a Website User with the Customer role and nothing else, refuses an
 # //// address any User already holds, and opens the account at once only for an address the shop
-# //// does not know (auth/confirmation.py). Limited per address and per hour, like frappe's own sign-up.
+# //// does not know (auth/confirmation.py). Limited per address and per hour (SIGN_UPS_PER_HOUR), and
+# //// by frappe's own ceiling on sign-ups.
 @frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
-@rate_limit(limit=SIGN_UPS_PER_HOUR, seconds=60 * 60)
 def create_account():
     try:
         email = (frappe.form_dict.get('email') or "").strip().lower()
@@ -63,9 +77,10 @@ def create_account():
             }
 
         # //// Neoffice — frappe's own ceiling on sign-ups, which its sign_up() applies and this
-        # //// endpoint skipped (System Settings, 300 an hour by default)
+        # //// endpoint skipped (System Settings, 300 an hour by default), and this address's own
+        # //// allowance (SIGN_UPS_PER_HOUR)
         ceiling = cint(frappe.db.get_single_value("System Settings", "max_signups_allowed_per_hour")) or 300
-        if frappe.db.get_creation_count("User", 60) >= ceiling:
+        if _sign_ups_so_far() >= SIGN_UPS_PER_HOUR or frappe.db.get_creation_count("User", 60) >= ceiling:
             frappe.local.response.http_status_code = 429
             return {
                 "message": "error",
@@ -116,6 +131,7 @@ def create_account():
 
         try:
             user.insert(ignore_permissions=True)
+            _count_sign_up()  # //// Neoffice — see SIGN_UPS_PER_HOUR
         except frappe.DuplicateEntryError:
             # Race condition: a parallel request created the account between
             # our existence check and the insert. Report cleanly instead of
