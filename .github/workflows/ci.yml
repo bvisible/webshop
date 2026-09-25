@@ -295,6 +295,7 @@ jobs:
             webshop.webshop.seo.test_structured_data \
             webshop.webshop.seo.test_listing_ssr \
             webshop.webshop.tests.test_public_settings \
+            webshop.webshop.tests.test_payment_references \
             webshop.webshop.seo.feeds.test_google_feed \
             webshop.webshop.product_data_engine.test_brand_pages \
             webshop.webshop.product_data_engine.test_listing_scope \
