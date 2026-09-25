@@ -18,8 +18,11 @@ from webshop.webshop.utils.product import (get_non_stock_item_status, get_web_it
 from webshop.webshop.shopping_cart.cart import get_party
 
 
-@frappe.whitelist(allow_guest=True)
-def get_product_info_for_website(item_code, skip_quotation_creation=False):
+# //// Neoffice — reviewed for guests (frappe's semgrep rule guest-whitelisted-method, #691 lot 5):
+# //// what a product page shows anyone — its price, stock and units as the shop displays them. The
+# //// arguments are typed, as the rule asks: frappe then refuses a value of another type.
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
+def get_product_info_for_website(item_code: str, skip_quotation_creation: bool = False):
 	"""
 	Get product price / stock info for website
 	"""
