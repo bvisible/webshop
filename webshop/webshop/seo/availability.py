@@ -68,3 +68,91 @@ def _in_stock(item_code) -> bool:
 	if len(sources) > 1:
 		return sum(flt(source.stock_qty) for source in sources) > 0
 	return bool(status.in_stock)
+
+
+def bulk_availability(item_codes, cart_settings=None) -> dict[str, frappe._dict]:
+	"""schema_availability for the variants of one model at once, with the quantity the shop may
+	promise: {item code: {availability, qty}}; qty is None for an item the shop does not count
+	(not a stock item, on backorder). Same rules as schema_availability, in fewer queries: the
+	variant selector and the model page's ProductGroup ask for a dozen variants on every render.
+
+	A variant without a website warehouse of its own counts in its model's, as
+	get_web_item_qty_in_stock resolves it: the caller asked for it once, and a caller who forgot
+	read every variant out of stock (the CI caught it, 2026-09-25)."""
+	from webshop.webshop.multi_warehouse import sources as mw_sources
+	from webshop.webshop.utils.product import get_non_stock_item_status, get_web_items_qty_in_stock
+
+	codes = list(dict.fromkeys(code for code in item_codes or [] if code))
+	if not codes:
+		return {}
+	if cart_settings is None:
+		from webshop.webshop.doctype.webshop_settings.webshop_settings import (
+			get_shopping_cart_settings,
+		)
+
+		cart_settings = get_shopping_cart_settings()
+	web_items = {
+		row.item_code: row
+		for row in frappe.get_all(
+			"Website Item",
+			filters={"item_code": ["in", codes]},
+			fields=["item_code", "on_backorder", "website_warehouse"],
+		)
+	}
+	items = {
+		row.name: row
+		for row in frappe.get_all("Item", filters={"name": ["in", codes]}, fields=["name", "is_stock_item", "variant_of"])
+	}
+	stock_items = {code for code, row in items.items() if row.is_stock_item}
+	models = list({row.variant_of for row in items.values() if row.variant_of})
+	model_warehouses = (
+		dict(
+			frappe.get_all(
+				"Website Item",
+				filters={"item_code": ["in", models]},
+				fields=["item_code", "website_warehouse"],
+				as_list=True,
+			)
+		)
+		if models
+		else {}
+	)
+	found, qty = {}, {}
+	counted = []
+	for code in codes:
+		if cint((web_items.get(code) or {}).get("on_backorder")):
+			found[code] = BACK_ORDER
+		elif code not in stock_items:
+			found[code] = IN_STOCK if get_non_stock_item_status(code, "website_warehouse") else None
+		else:
+			counted.append(code)
+	if mw_sources.is_enabled(cart_settings):
+		# a model sold from several sources: each variant by the single rule, which sums them
+		for code in counted:
+			sources = mw_sources.get_item_warehouse_sources(code, cart_settings)
+			if len(sources) > 1:
+				qty[code] = sum(flt(source.stock_qty) for source in sources)
+	by_warehouse = {}
+	for code in counted:
+		if code in qty:
+			continue
+		warehouse = (web_items.get(code) or {}).get("website_warehouse") or model_warehouses.get(
+			(items.get(code) or {}).get("variant_of")
+		)
+		by_warehouse.setdefault(warehouse, []).append(code)
+	for warehouse, group in by_warehouse.items():
+		# no warehouse at all: nothing counted, as get_web_item_qty_in_stock answers
+		levels = get_web_items_qty_in_stock(group, warehouse) if warehouse else {}
+		for code in group:
+			qty[code] = flt(levels.get(code))
+	for code in counted:
+		found[code] = IN_STOCK if qty.get(code, 0) > 0 else None
+	# The shop takes orders beyond its stock: an empty shelf is a delay, not a refusal.
+	beyond = cint(cart_settings.get("allow_items_not_in_stock"))
+	return {
+		code: frappe._dict(
+			availability=found[code] or (BACK_ORDER if beyond else OUT_OF_STOCK),
+			qty=qty.get(code),
+		)
+		for code in codes
+	}

@@ -32,6 +32,12 @@ def product_facts(doc, context) -> frappe._dict:
 
 	cart_settings = context.shopping_cart.cart_settings
 	url = site_url(doc.route)
+	# A model's page, and each of its variants' pages, declare the model's ProductGroup
+	# (seo/variants.py, decision D-1): the page's graph is the group, and nothing else is read.
+	model = context.get("group_model")
+	group = group_facts(doc, context, model) if model else None
+	if group:
+		return frappe._dict(url=url, group=group)
 	return frappe._dict(
 		url=url,
 		name=doc.web_item_name,
@@ -80,24 +86,39 @@ def category_path(item_group: str | None) -> str:
 
 def product_identifiers(item_code: str) -> dict:
 	"""GTIN (only one whose check digit is right) and manufacturer part number, from the item."""
-	identifiers = {}
-	stock_uom = frappe.db.get_value("Item", item_code, "stock_uom")
+	return bulk_identifiers([item_code]).get(item_code) or {}
+
+
+def bulk_identifiers(item_codes) -> dict[str, dict]:
+	"""product_identifiers of several items (a model's variants) in two queries."""
+	codes = list(dict.fromkeys(code for code in item_codes or [] if code))
+	if not codes:
+		return {}
+	items = {
+		row.name: row
+		for row in frappe.get_all(
+			"Item", filters={"name": ["in", codes]}, fields=["name", "stock_uom", "default_manufacturer_part_no"]
+		)
+	}
+	found = {code: {} for code in codes}
 	for row in frappe.get_all(
 		"Item Barcode",
-		filters={"parent": item_code, "parenttype": "Item"},
-		fields=["barcode", "uom"],
-		order_by="idx asc",
+		filters={"parent": ["in", codes], "parenttype": "Item"},
+		fields=["parent", "barcode", "uom"],
+		order_by="parent asc, idx asc",
 	):
+		item = items.get(row.parent)
 		# a barcode of another unit (a carton of twelve) is not this product's
-		if row.uom and row.uom != stock_uom:
+		if not item or (row.uom and row.uom != item.stock_uom):
 			continue
 		code = (row.barcode or "").strip()
 		if valid_gtin(code):
-			identifiers.setdefault(GTIN_PROPERTIES[len(code)], code)
-	mpn = (frappe.db.get_value("Item", item_code, "default_manufacturer_part_no") or "").strip()
-	if mpn:
-		identifiers["mpn"] = mpn
-	return identifiers
+			found[row.parent].setdefault(GTIN_PROPERTIES[len(code)], code)
+	for code, item in items.items():
+		mpn = (item.default_manufacturer_part_no or "").strip()
+		if mpn:
+			found[code]["mpn"] = mpn
+	return found
 
 
 def valid_gtin(code: str) -> bool:
@@ -162,6 +183,110 @@ def offer_facts(doc, context, url: str, availability: str) -> frappe._dict | Non
 		until = _schema_datetime(price.get("valid_upto"))
 		# a date gone by makes Google drop the listing: only a sale still running has an end
 		if until and getdate(price.get("valid_upto")) >= getdate(now_datetime()):
+			offer.valid_until = until
+	return offer
+
+
+def group_facts(doc, context, model_code) -> frappe._dict | None:
+	"""The ProductGroup of a model's page, which its variants' pages declare too (Google asks for
+	the same markup on duplicates). It holds the model's name, text, pictures and reviews, and one
+	product per variant the page sells. Each variant carries the offer this visitor sees on
+	choosing it: the selector's footer, or the page opened on `?variant=`, which the server prints."""
+	from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
+
+	from webshop.webshop.multi_site import site_url
+	from webshop.webshop.seo.feeds.google import attribute_map
+	from webshop.webshop.seo.variants import (
+		model_page_name,
+		offered_variants,
+		schema_attributes,
+		variant_label,
+		variant_link,
+	)
+	from webshop.webshop.utils.used_items import condition_schema_url
+
+	cart_settings = context.shopping_cart.cart_settings
+	if doc.item_code == model_code:
+		model, model_context, rows = doc, context, context.get("model_variants")
+	else:
+		name = model_page_name(model_code)
+		if not name:
+			return None
+		model = frappe.get_doc("Website Item", name)
+		# the model page's own pictures and reviews: a variant's page shows its own
+		model_context = frappe._dict(shopping_cart=context.shopping_cart)
+		if model.slideshow:
+			model_context.update(get_slideshow(model))
+		if cart_settings.get("enable_reviews"):
+			from webshop.webshop.doctype.item_review.item_review import get_item_reviews
+
+			model_context.update(get_item_reviews(model.name))
+		rows = None
+	if rows is None:
+		rows = offered_variants(model_code, cart_settings)
+	if not rows:
+		return None
+	url = site_url(model.route)
+	images = [absolute_url(image) for image in gallery_images(model, model_context)]
+	mapping = attribute_map(cart_settings)
+	identifiers = bulk_identifiers([row.item_code for row in rows])
+	variants, varies_by = [], []
+	for row in rows:
+		properties, others = schema_attributes(row.choices, mapping)
+		varies_by.extend(name for name in properties if name not in varies_by)
+		condition = condition_schema_url(row.condition or model.get("item_condition"))
+		variants.append(
+			frappe._dict(
+				name=variant_label(model.web_item_name, row.choices),
+				sku=schema_sku(row.item_code),
+				identifiers=identifiers.get(row.item_code) or {},
+				# a variant without a picture shows the model's (utils/variant_image.py)
+				image=absolute_url(row.image) if row.image else (images[0] if images else None),
+				properties=properties,
+				others=others,
+				offer=variant_offer(row, variant_link(url, row.item_code), condition),
+			)
+		)
+	return frappe._dict(
+		url=url,
+		group_id=schema_sku(model_code),
+		name=model.web_item_name,
+		brand=model.brand or "",
+		description=html_to_text(model.web_long_description or model.description or "", 5000),
+		images=images,
+		category=category_path(model.item_group),
+		properties=specifications(model),
+		varies_by=varies_by,
+		variants=variants,
+		rating=rating_facts(model_context),
+		reviews=review_facts(model_context),
+		videos=video_facts(model),
+	)
+
+
+def variant_offer(row, url: str, condition: str) -> frappe._dict | None:
+	"""A variant's offer as the selector's footer prints it once the variant is chosen: its price,
+	struck through above the list price a rule lowered. None when the page shows no price."""
+	price = row.price
+	if not price or flt(price.price) <= 0:
+		return None
+	offer = frappe._dict(
+		url=url,
+		price=flt(price.price, 2),
+		currency=price.currency or "",
+		availability=row.availability,
+		condition=condition,
+		struck_price=None,
+		valid_from=None,
+		valid_until=None,
+	)
+	struck = flt(price.mrp)
+	if struck > offer.price:
+		offer.struck_price = flt(struck, 2)
+		offer.valid_from = _schema_datetime(price.valid_from)
+		until = _schema_datetime(price.valid_upto)
+		# a date gone by makes Google drop the listing: only a sale still running has an end
+		if until and getdate(price.valid_upto) >= getdate(now_datetime()):
 			offer.valid_until = until
 	return offer
 

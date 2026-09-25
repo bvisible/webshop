@@ -23,10 +23,16 @@ SWISS_UID = re.compile(r"^CHE-\d{3}\.\d{3}\.\d{3}( (TVA|MWST|IVA|VAT))?$")
 POSTCODE_LINE = re.compile(r"^(?:[A-Z]{1,2}-)?(\d{4,5})\s+(.+)$")
 # A year of closures at most: holidays are fetched a year ahead.
 MAX_CLOSURES = 40
+# A ProductGroup reads the shop's seller once for all its variants, and "no seller" is an answer:
+# offer_node reads it itself only when it was not handed one.
+_UNREAD = object()
 
 
 def product_graph(facts: frappe._dict) -> dict:
-	"""The product page's graph: the Product, its Offer, its rating, reviews and videos."""
+	"""The product page's graph: the Product, its Offer, its rating, reviews and videos; or, on a
+	model's page and its variants' pages, the model's ProductGroup (product_group_graph)."""
+	if facts.group:
+		return product_group_graph(facts.group)
 	node = {
 		"@context": "https://schema.org",
 		"@type": "Product",
@@ -66,7 +72,68 @@ def product_graph(facts: frappe._dict) -> dict:
 	return node
 
 
-def offer_node(offer: frappe._dict) -> dict:
+def product_group_graph(group: frappe._dict) -> dict:
+	"""A model's page: one ProductGroup, one Product per variant with its own offer (Google's
+	single-page variant markup, 2024-02-20). The markup does not change with the variant chosen:
+	each variant's offer names the page opened on it (`?variant=`), and the group names the page."""
+	node = {
+		"@context": "https://schema.org",
+		"@type": "ProductGroup",
+		"@id": group.url + "#product",
+		"name": group.name,
+		"url": group.url,
+		"productGroupID": group.group_id,
+	}
+	if group.brand:
+		node["brand"] = {"@type": "Brand", "name": group.brand}
+	if group.description:
+		node["description"] = group.description
+	if group.images:
+		node["image"] = group.images
+	if group.category:
+		node["category"] = group.category
+	if group.properties:
+		node["additionalProperty"] = [
+			{"@type": "PropertyValue", "name": name, "value": value} for name, value in group.properties
+		]
+	if group.varies_by:
+		node["variesBy"] = [SCHEMA + name for name in group.varies_by]
+	# the shop's seller and policies, read once for every variant's offer
+	seller, policies = seller_node(), site_policies()
+	node["hasVariant"] = [variant_node(variant, seller, policies) for variant in group.variants]
+	if group.rating:
+		node["aggregateRating"] = {
+			"@type": "AggregateRating",
+			"ratingValue": group.rating.value,
+			"reviewCount": group.rating.count,
+			"bestRating": 5,
+			"worstRating": 1,
+		}
+	if group.reviews:
+		node["review"] = [review_node(review) for review in group.reviews]
+	if group.videos:
+		node["subjectOf"] = [video_node(video) for video in group.videos]
+	return node
+
+
+def variant_node(variant: frappe._dict, seller=_UNREAD, policies=None) -> dict:
+	"""One variant of a ProductGroup: a Product more precisely named than the model, its
+	attributes as schema.org properties (color, size...), its offer."""
+	node = {"@type": "Product", "name": variant.name, "sku": variant.sku}
+	node.update(variant.identifiers or {})
+	if variant.image:
+		node["image"] = variant.image
+	node.update(variant.properties or {})
+	if variant.others:
+		node["additionalProperty"] = [
+			{"@type": "PropertyValue", "name": name, "value": value} for name, value in variant.others
+		]
+	if variant.offer:
+		node["offers"] = offer_node(variant.offer, seller, policies)
+	return node
+
+
+def offer_node(offer: frappe._dict, seller=_UNREAD, policies=None) -> dict:
 	node = {
 		"@type": "Offer",
 		"url": offer.url,
@@ -88,10 +155,10 @@ def offer_node(offer: frappe._dict) -> dict:
 			node["validFrom"] = offer.valid_from
 		if offer.valid_until:
 			node["priceValidUntil"] = offer.valid_until
-	seller = seller_node()
+	seller = seller_node() if seller is _UNREAD else seller
 	if seller:
 		node["seller"] = seller
-	policies = site_policies()
+	policies = policies or site_policies()
 	if policies.returns:
 		node["hasMerchantReturnPolicy"] = {"@id": policy_id("returns")}
 	if policies.shipping:

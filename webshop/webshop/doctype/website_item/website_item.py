@@ -364,6 +364,24 @@ class WebsiteItem(WebsiteGenerator):
 		self.set_shopping_cart_data(context)
 
 		settings = context.shopping_cart.cart_settings
+		# //// Neoffice — a model and its variants are one page for search engines (seo/variants.py,
+		# //// decision D-1 of the SEO plan, #691, 2026-09-25). The model's page is canonical and
+		# //// declares a ProductGroup; `?variant=` opens it on one variant, printed by the server. A
+		# //// variant's own page stays for the carts and emails that link it, and names the model's.
+		from webshop.webshop.seo.variants import PARAMETER, chosen_variant, group_model, offered_variants
+
+		context.group_model = group_model(self, settings)
+		context.canonical_url = frappe.utils.get_url(self.route)
+		if context.group_model == self.item_code:
+			context.model_variants = offered_variants(self.item_code, settings)
+			context.chosen_variant = chosen_variant(
+				context.model_variants, frappe.form_dict.get(PARAMETER), settings
+			)
+			if context.chosen_variant and context.chosen_variant.image:
+				context.variant_picture = context.chosen_variant.image
+		elif context.group_model:
+			model_route = frappe.db.get_value("Website Item", {"item_code": context.group_model}, "route")
+			context.canonical_url = frappe.utils.get_url(model_route)
 		# //// Neoffice — what the page promises under the buy button (utils/promises.py),
 		# //// and the brand's own text for the "About <brand>" fold of the buy column.
 		from webshop.webshop.utils.promises import shopping_promises

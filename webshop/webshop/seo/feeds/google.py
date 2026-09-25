@@ -40,8 +40,12 @@ CONDITION = {"New": "new", "Refurbished": "refurbished", "Second-hand": "used"}
 # The names shops give their variant attributes, in the fleet's languages, by Google attribute.
 # A shop's own names go in Webshop Settings (google_feed_attribute_map).
 ATTRIBUTE_NAMES = {
-	"color": ("color", "colour", "couleur", "farbe", "colore", "coloris"),
-	"size": ("size", "taille", "grösse", "grosse", "größe", "taglia", "pointure"),
+	# plurals too: a shop names the attribute after its list of values ("Couleurs", measured on osiris)
+	"color": ("color", "colour", "couleur", "farbe", "colore", "coloris", "colors", "colours", "couleurs", "farben", "colori"),
+	"size": (
+		"size", "taille", "grösse", "grosse", "größe", "taglia", "pointure",
+		"sizes", "tailles", "grössen", "größen", "taglie", "pointures",
+	),
 	"material": ("material", "matière", "matiere", "materiale", "stoff"),
 	"pattern": ("pattern", "motif", "muster", "motivo"),
 	"gender": ("gender", "genre", "geschlecht", "sexe"),
@@ -260,10 +264,12 @@ def item_entry(doc, settings, excluded, mapping) -> tuple[dict | None, str | Non
 		gallery_images,
 		offer_facts,
 		product_identifiers,
+		variant_offer,
 	)
 	from webshop.webshop.seo.text import html_to_text
+	from webshop.webshop.seo.variants import model_view, variant_link
 	from webshop.webshop.shopping_cart.product_info import get_product_info_for_website
-	from webshop.webshop.utils.used_items import is_second_hand
+	from webshop.webshop.utils.used_items import condition_schema_url, is_second_hand
 
 	if doc.get("has_variants"):
 		return None, "model"
@@ -278,15 +284,28 @@ def item_entry(doc, settings, excluded, mapping) -> tuple[dict | None, str | Non
 	if len(doc.item_code) > MAX_ID:
 		return None, "id_too_long"
 
-	url = site_url(doc.route)
-	context = frappe._dict(shopping_cart=get_product_info_for_website(doc.item_code, skip_quotation_creation=True))
-	if doc.slideshow:
-		context.update(get_slideshow(doc))
-	availability = schema_availability(doc.item_code, context.shopping_cart.cart_settings)
-	offer = offer_facts(doc, context, url, availability)
+	# A variant sold on its model's page is sent as that page opened on it (seo/variants.py, decision
+	# D-1): its address, and what the page prints there. Its own page is not the canonical one, and
+	# Google compares the feed with the page it links.
+	view = model_view(doc.variant_of, settings) if doc.get("variant_of") else None
+	row = view.rows.get(doc.item_code) if view else None
+	if row:
+		url = variant_link(view.url, doc.item_code)
+		availability = row.availability
+		offer = variant_offer(row, url, condition_schema_url(row.condition or view.item_condition))
+		# the page shows the variant's picture first, the model's gallery after it (item_image.html)
+		images = [absolute_url(row.image)] + view.images[1:] if row.image else list(view.images)
+	else:
+		url = site_url(doc.route)
+		context = frappe._dict(shopping_cart=get_product_info_for_website(doc.item_code, skip_quotation_creation=True))
+		if doc.slideshow:
+			context.update(get_slideshow(doc))
+		availability = schema_availability(doc.item_code, context.shopping_cart.cart_settings)
+		offer = offer_facts(doc, context, url, availability)
+		images = [absolute_url(image) for image in gallery_images(doc, context)]
 	if not offer:
 		return None, "no_price"
-	images = [absolute_url(image) for image in gallery_images(doc, context)]
+	images = list(dict.fromkeys(images))
 	if not images:
 		return None, "no_image"
 
@@ -330,6 +349,8 @@ def item_entry(doc, settings, excluded, mapping) -> tuple[dict | None, str | Non
 		entry["identifier_exists"] = "no"
 	if doc.get("variant_of"):
 		entry["item_group_id"] = doc.variant_of
+	if row:
+		entry["canonical_link"] = view.url
 	entry.update(variant_attributes(doc.item_code, mapping))
 	product_type = category_path(doc.item_group)
 	if product_type:

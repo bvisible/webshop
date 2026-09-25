@@ -980,10 +980,28 @@ defects in neoffice-maintenance#691.
   check digit is right and it is the item's own unit, a `sku` without whitespace, the reviews
   block's rating and reviews, the characteristics, the videos Google can describe. The feed
   (lot 3) reads the same facts. A failure is logged and costs the markup, never the page.
-- **Declare only what the page shows.** A gift card's page shows amounts to choose, and a
-  model's page shows the variant selector: neither prints a price, so neither gets an offer —
-  a polo's page offered 39.00 in its markup and nowhere in its HTML (2026-09-24). The variants'
-  offers belong in a `ProductGroup`, which waits for decision D-1 of the plan.
+- **Declare only what the page shows.** A gift card's page shows amounts to choose: no offer.
+  A model's page shows the variant selector, and declares a `ProductGroup` (next point).
+- **A model and its variants are one page, one `ProductGroup`** (`seo/variants.py`, decision D-1,
+  2026-09-25).
+  - The model's page is canonical, and each variant is a `Product` whose offer names
+    `model?variant=<code>`.
+  - On that address the server prints the variant's name, price, stock, button code and picture,
+    and the selector selects it. The markup stays the same whichever variant is chosen.
+  - A variant's own page stays online, because carts and emails link it. It names the model's
+    page as canonical, carries the same group, and leaves the sitemap.
+  - The feed links `model?variant=` with `canonical_link`.
+  - One reading of the variants feeds the selector (`get_all_variants_info`, now
+    `variants.selector_data`), the group and the feed. Before, the selector priced every variant
+    on the shop's list for everyone: prices hidden from visitors leaked there, and a customer
+    with a list of their own read one price and paid another.
+  - The prices come from `product_info.variant_prices`, the cached computation the model's
+    "from" price uses. Availability comes from `availability.bulk_availability`, the single rule
+    in fewer queries. It finds a variant's warehouse in its model; the CI's parity test caught a
+    copy that did not.
+  - With `enable_variants` off, nothing changes.
+  - A `frappe._dict` row cannot carry a `values` key: `row.values` is `dict.values`. The attribute
+    values are `choices`.
 - **Availability comes from `seo/availability.py`, never from `product_info.in_stock`**, which
   `get_product_info_for_website` only fills when the shop DISPLAYS its stock: a shop hiding it
   told Google everything was out of stock. A shop that takes orders beyond its stock is
