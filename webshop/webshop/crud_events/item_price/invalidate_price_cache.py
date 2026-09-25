@@ -23,6 +23,11 @@ def execute(doc, method=None):
     if not doc.selling:
         return
 
+    # the templates' kept variant prices (product_info._variant_prices, #691 lot 5)
+    from webshop.webshop.shopping_cart.product_info import clear_variant_prices
+
+    clear_variant_prices()
+
     invalidate_webshop_price_cache(doc.item_code, doc.price_list)
 
 

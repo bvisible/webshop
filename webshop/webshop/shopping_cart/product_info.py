@@ -216,56 +216,12 @@ def get_template_price_from_variants(item_code, price_list, customer_group, comp
 	if not price_list:
 		return {}
 
-	# Get all variants with their base prices
-	variants = frappe.db.sql(
-		"""
-		SELECT
-			i.name as item_code,
-			ip.price_list_rate,
-			ip.currency
-		FROM `tabItem` i
-		INNER JOIN `tabItem Price` ip ON i.name = ip.item_code
-		WHERE i.variant_of = %s
-			AND ip.selling = 1
-			AND ip.price_list = %s
-			AND ip.price_list_rate > 0
-		""",
-		(item_code, price_list),
-		as_dict=True,
-	)
-
-	if not variants:
+	# //// Neoffice — the variants' prices are computed once and kept a few minutes (#691 lot 5):
+	# //// see _variant_prices below
+	found = _variant_prices(item_code, price_list, customer_group, company, qty, party, warehouse)
+	if not found:
 		return {}
-
-	# Get prices with Pricing Rules applied for each variant
-	prices_with_discount = []
-	mrp_prices = []
-	currency = variants[0].currency
-
-	for variant in variants:
-		# Get variant's website_warehouse if not provided
-		variant_warehouse = warehouse
-		if not variant_warehouse:
-			variant_warehouse = frappe.db.get_value(
-				"Website Item", {"item_code": variant.item_code}, "website_warehouse"
-			)
-		variant_price = get_price(
-			variant.item_code,
-			price_list,
-			customer_group,
-			company,
-			qty=qty,
-			party=party,
-			warehouse=variant_warehouse,
-		)
-		if variant_price and variant_price.get("price_list_rate"):
-			prices_with_discount.append(flt(variant_price.get("price_list_rate")))
-			# Track MRP (original price before discount) if available
-			if variant_price.get("formatted_mrp"):
-				mrp_prices.append(flt(variant.price_list_rate))
-
-	if not prices_with_discount:
-		return {}
+	prices_with_discount, mrp_prices, currency = found.prices, found.mrp_prices, found.currency  # //// Neoffice — see above
 
 	min_price = min(prices_with_discount)
 	max_price = max(prices_with_discount)
@@ -306,3 +262,97 @@ def get_template_price_from_variants(item_code, price_list, customer_group, comp
 	) if not frappe.db.get_default("hide_currency_symbol") else ""
 
 	return price_obj
+
+
+# //// Neoffice — added (#691 lot 5, 2026-09-25): what a template's variants cost, kept a few minutes.
+VARIANT_PRICES_CACHE = "webshop:variant_prices"
+VARIANT_PRICES_TTL = 300
+
+
+def _variant_prices(item_code, price_list, customer_group, company, qty=1, party=None, warehouse=None):
+	"""The selling price of each priced variant of a template after pricing rules, the list price
+	of those a rule lowered, and the currency; None when no variant is priced on this list.
+
+	Pricing a variant runs ERPNext's pricing rules, four to six queries each: a listing showing
+	four templates priced seventeen variants per render, about 40 % of it. The answer is kept
+	VARIANT_PRICES_TTL seconds for this template, list, group, company, customer, warehouse and
+	day, and dropped as soon as a selling price or a selling pricing rule changes
+	(clear_variant_prices, crud_events). Only numbers are kept: the page formats them in the
+	visitor's language."""
+	import hashlib
+
+	# ERPNext reads the party's name, and only as a customer: both are in the key
+	party_key = (party.get("doctype"), party.get("name")) if party else None
+	scope = [item_code, price_list, customer_group, company, qty, party_key, warehouse, frappe.utils.nowdate()]
+	key = f"{VARIANT_PRICES_CACHE}:{item_code}:" + hashlib.sha256(frappe.as_json(scope).encode()).hexdigest()[:16]
+	cached = frappe.cache().get_value(key)
+	if cached is not None:
+		return frappe._dict(cached) if cached else None
+
+	variants = _priced_variants(item_code, price_list)
+
+	if not variants:
+		return _remember(key, None)
+
+	# Get prices with Pricing Rules applied for each variant
+	prices_with_discount = []
+	mrp_prices = []
+	currency = variants[0].currency
+
+	for variant in variants:
+		# Get variant's website_warehouse if not provided
+		variant_warehouse = warehouse
+		if not variant_warehouse:
+			variant_warehouse = frappe.db.get_value(
+				"Website Item", {"item_code": variant.item_code}, "website_warehouse"
+			)
+		variant_price = get_price(
+			variant.item_code,
+			price_list,
+			customer_group,
+			company,
+			qty=qty,
+			party=party,
+			warehouse=variant_warehouse,
+		)
+		if variant_price and variant_price.get("price_list_rate"):
+			prices_with_discount.append(flt(variant_price.get("price_list_rate")))
+			# Track MRP (original price before discount) if available
+			if variant_price.get("formatted_mrp"):
+				mrp_prices.append(flt(variant.price_list_rate))
+
+	if not prices_with_discount:
+		return _remember(key, None)
+	return _remember(key, frappe._dict(prices=prices_with_discount, mrp_prices=mrp_prices, currency=currency))
+
+
+def _priced_variants(item_code, price_list):
+	"""A template's variants with a selling price on this list, and that price."""
+	return frappe.db.sql(
+		"""
+		SELECT
+			i.name as item_code,
+			ip.price_list_rate,
+			ip.currency
+		FROM `tabItem` i
+		INNER JOIN `tabItem Price` ip ON i.name = ip.item_code
+		WHERE i.variant_of = %s
+			AND ip.selling = 1
+			AND ip.price_list = %s
+			AND ip.price_list_rate > 0
+		""",
+		(item_code, price_list),
+		as_dict=True,
+	)
+
+
+def _remember(key, found):
+	# an empty answer is kept too (as {}): a template without priced variants asks once
+	frappe.cache().set_value(key, found or {}, expires_in_sec=VARIANT_PRICES_TTL)
+	return found
+
+
+def clear_variant_prices():
+	"""Every template's kept prices, on every list: a selling price or pricing rule changed."""
+	frappe.cache().delete_keys(VARIANT_PRICES_CACHE)
+

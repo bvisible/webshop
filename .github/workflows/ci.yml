@@ -299,6 +299,7 @@ jobs:
             webshop.webshop.seo.feeds.test_google_feed \
             webshop.webshop.product_data_engine.test_brand_pages \
             webshop.webshop.product_data_engine.test_listing_scope \
+            webshop.webshop.shopping_cart.test_variant_prices \
             webshop.webshop.utils.test_renditions \
             webshop.webshop.report.catalogue_ready_for_google.test_catalogue_ready_for_google \
             webshop.webshop.seo.test_page_meta \

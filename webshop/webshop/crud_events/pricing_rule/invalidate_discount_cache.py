@@ -20,6 +20,12 @@ def execute(doc, method=None):
     if not doc.selling:
         return
 
+    # the templates' kept variant prices (product_info._variant_prices): any selling rule may
+    # change them, a Rate rule included, which the test below lets through (#691 lot 5)
+    from webshop.webshop.shopping_cart.product_info import clear_variant_prices
+
+    clear_variant_prices()
+
     # Only process if it affects webshop (coupon-based or discount-based)
     if not (doc.coupon_code_based or doc.discount_percentage or doc.discount_amount):
         return
