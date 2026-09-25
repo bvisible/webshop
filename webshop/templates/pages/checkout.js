@@ -308,9 +308,12 @@ frappe.ready(function() {
             const showList = $dropdown.show.bind($dropdown);
             const hideList = $dropdown.hide.bind($dropdown);
             $dropdown.show = (...args) => {
-                $dropdown.children('.address-autocomplete-item').each((index, item) => {
+                //// Neoffice — never put the word "index" (nor "next") between curly braces in a page
+                //// script: frappe's TemplatePage replaces that placeholder in the served HTML with a
+                //// table of contents, script included, and the options' ids read "…-$<ol></ol>"
+                $dropdown.children('.address-autocomplete-item').each((position, item) => {
                     item.setAttribute('role', 'option');
-                    item.id = `${listId}-${index}`;
+                    item.id = `${listId}-${position}`;
                     item.setAttribute('aria-selected', 'false');
                 });
                 $input.attr('aria-expanded', 'true');

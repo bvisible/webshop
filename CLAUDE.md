@@ -678,6 +678,12 @@ audited for them (PRs #17, #18, #21). What must stay true:
   checks nothing, by design (the booking module checks `_may_pay` and calls them from Python).
   The check runs before each endpoint's `try`, which would log a refusal as an error.
 
+> **Never write `{index}` or `{next}` in a page's template or script.** Frappe's TemplatePage
+> replaces those two placeholders in the served HTML (a table of contents, a "next" link, for its
+> documentation pages), inline scripts included: a template literal `${index}` in `checkout.js`
+> reached the browser as `$<ol></ol>`, and the address options' ids with it (2026-09-25). Name
+> the variable otherwise; a comment spelling the placeholder out breaks the script the same way.
+
 ### Where the features live on the desk
 
 The workspace `Webshop` (`webshop/webshop/workspace/webshop/`) sits next to
