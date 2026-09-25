@@ -137,12 +137,65 @@ webshop.seo.preview = webshop.seo.preview || {
 	},
 };
 
+// The product page's description: Nora proposes, the merchant decides, and the document remembers
+// that its words were written with AI assistance (description_ai_assisted, #691 lot 6). A product the page says too little
+// about gets no proposal: the server refuses rather than let a model invent.
+webshop.seo.description = webshop.seo.description || {
+	draw(frm) {
+		const field = frm.fields_dict.web_long_description;
+		if (!field || frm.is_new() || !(frm.perm && frm.perm[0] && frm.perm[0].write)) return;
+		field.$wrapper.find(".wsp-describe").remove();
+		$(`<button type="button" class="btn btn-xs btn-default wsp-describe" style="margin-top: 8px;">${__("Propose a description with Nora")}</button>`)
+			.appendTo(field.$wrapper)
+			.on("click", () => this.suggest(frm));
+	},
+
+	suggest(frm) {
+		frappe.call({
+			method: "webshop.webshop.seo.suggestions.describe",
+			args: { name: frm.doc.name },
+			freeze: true,
+			freeze_message: __("Nora is writing…"),
+			callback: (r) => {
+				const proposal = r.message;
+				if (!proposal) return;
+				// the server sends escaped paragraphs in <p>: nothing else reaches the dialog
+				const current = (frm.doc.web_long_description || "").replace(/<[^>]*>/g, "").trim();
+				const dialog = new frappe.ui.Dialog({
+					title: __("Nora's description"),
+					fields: [
+						{
+							fieldtype: "HTML",
+							fieldname: "proposal",
+							options: `
+								<div class="wsp-describe-proposal" style="max-width: 620px;">${proposal.html}</div>
+								<div class="small text-muted" style="margin-top: 8px;">${__("{0} words", [proposal.words])}</div>
+								${current ? `<p class="small text-warning" style="margin-top: 8px;">${__("It replaces the current description.")}</p>` : ""}
+								<p class="small text-muted" style="margin-top: 12px;">${__("Nora only uses what the page says: check every word before saving.")}</p>`,
+						},
+					],
+					primary_action_label: __("Use this description"),
+					primary_action: () => {
+						frm.set_value("web_long_description", proposal.html);
+						// the feed declares it to Google Shopping (seo/feeds/google.py structured_description)
+						frm.set_value("description_ai_assisted", 1);
+						dialog.hide();
+						frappe.show_alert({ message: __("The fields are filled: read them, then save."), indicator: "blue" });
+					},
+				});
+				dialog.show();
+			},
+		});
+	},
+};
+
 if (!webshop.seo.preview.registered) {
 	webshop.seo.preview.registered = true;
 	for (const doctype of ["Website Item", "Item Group", "Brand"]) {
 		frappe.ui.form.on(doctype, {
 			refresh(frm) {
 				webshop.seo.preview.load(frm);
+				if (frm.doctype === "Website Item") webshop.seo.description.draw(frm);
 			},
 			seo_title(frm) {
 				webshop.seo.preview.draw(frm);

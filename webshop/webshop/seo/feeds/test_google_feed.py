@@ -110,6 +110,23 @@ class TestItemEntry(FrappeTestCase):
 		entry, _reason = _entry(_doc())
 		self.assertEqual(entry["identifier_exists"], "no")
 
+	def test_a_description_written_with_ai_assistance_is_declared(self):
+		"""Merchant Center asks that generated text come as structured_description (#691 lot 6)."""
+		written = _doc(web_long_description="<p>A trail shoe for rocky paths.</p>", description_ai_assisted=1)
+		entry, _reason = _entry(written)
+		self.assertEqual(
+			entry["structured_description"],
+			{"digital_source_type": "trained_algorithmic_media", "content": "A trail shoe for rocky paths."},
+		)
+		self.assertEqual(entry["description"], "A trail shoe for rocky paths.")
+		for doc in (
+			_doc(web_long_description="<p>A trail shoe for rocky paths.</p>"),
+			# the flag without the text: the feed sends the name, which nobody generated
+			_doc(web_long_description="", description_ai_assisted=1),
+		):
+			with self.subTest(doc=doc.get("description_ai_assisted")):
+				self.assertNotIn("structured_description", _entry(doc)[0])
+
 
 class TestXml(FrappeTestCase):
 	def test_a_well_formed_feed_in_google_s_namespace(self):
@@ -124,6 +141,16 @@ class TestXml(FrappeTestCase):
 		self.assertEqual(item.find(G + "title").text, "Tee <XL>")
 		self.assertEqual(len(item.findall(G + "additional_image_link")), 2)
 		self.assertEqual(root.find("channel/title").text, "Atelier & Co")
+
+	def test_a_group_of_sub_attributes_is_nested(self):
+		xml = google.render_xml(
+			[{"id": "A", "structured_description": {"digital_source_type": "trained_algorithmic_media", "content": "Tee & co"}}],
+			"Atelier",
+			"https://shop.test/",
+		)
+		group = ElementTree.fromstring(xml.encode()).find("channel/item/" + G + "structured_description")
+		self.assertEqual(group.find(G + "digital_source_type").text, "trained_algorithmic_media")
+		self.assertEqual(group.find(G + "content").text, "Tee & co")
 
 
 class TestSites(FrappeTestCase):

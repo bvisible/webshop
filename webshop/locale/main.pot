@@ -8569,3 +8569,35 @@ msgstr ""
 #: webshop/templates/includes/coupon_form.html:0
 msgid "Enter Coupon Code"
 msgstr ""
+
+#: webshop/public/js/override/seo_preview.js:0
+msgid "Propose a description with Nora"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js:0
+msgid "Nora's description"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js:0
+msgid "{0} words"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js:0
+msgid "It replaces the current description."
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js:0
+msgid "Use this description"
+msgstr ""
+
+#: webshop/webshop/seo/suggestions.py:0
+msgid "This page says too little about the product to describe it without inventing: add its brand, its characteristics or a few words of description first."
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Description written with AI assistance"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Set when Nora's proposal filled the description: Google Shopping is told so (structured_description, trained_algorithmic_media)."
+msgstr ""
