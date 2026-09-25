@@ -691,6 +691,11 @@ frappe.ready(function() {
 
             });
 
+            //// Neoffice — a field flagged empty (aria-invalid, below) stops saying so once it is filled (#691 lot 4)
+            $(document).on('input change', '#address-form [aria-invalid="true"]', (e) => {
+                if (e.target.value) e.target.removeAttribute('aria-invalid');
+            });
+
             // Bind events using event delegation
             $(document).on('click', '.next-step', async (e) => {
                 e.preventDefault(); // Prevent form submission
@@ -728,7 +733,9 @@ frappe.ready(function() {
                     }
 
                     if (missingFields.length > 0) {
-                        if (firstMissing) firstMissing.trigger('focus');  //// Neoffice — see above
+                        //// Neoffice — the error dialog holds the focus while it is open: the first
+                        //// empty field gets it back when the dialog closes (#691 lot 4)
+                        if (firstMissing) $(document).one('hidden.bs.modal', () => firstMissing.trigger('focus'));
                         frappe.throw(__('Please fill in the following required fields: {0}', [missingFields.join(', ')]));
                         return;
                     }
@@ -756,7 +763,7 @@ frappe.ready(function() {
                         }
 
                         if (missingFields.length > 0) {
-                            if (firstMissing) firstMissing.trigger('focus');  //// Neoffice — see above
+                            if (firstMissing) $(document).one('hidden.bs.modal', () => firstMissing.trigger('focus'));  //// Neoffice — see above
                             frappe.throw(__('Please fill in the following required fields: {0}', [missingFields.join(', ')]));
                             return;
                         }
@@ -1748,7 +1755,8 @@ frappe.ready(function() {
                                     <input type="radio" 
                                            id="shipping_method_${method.name}" 
                                            name="shipping_method" 
-                                           class="custom-control-input"${/* //// Neoffice — no "hide" (display:none): the radio stays in the accessibility tree, custom-control-input still hides it visually (#691 lot 4) */ ''}
+                                           class="custom-control-input"${/* //// Neoffice — no "hide" (display:none): the radio stays in the accessibility tree (#691 lot 4). Transparent and laid OVER its control (inline, the page has no build step): shown, a rule of the page made it relative and each card grew 24px, and under the card (Bootstrap's z-index -1) a click on the radio itself, the one an agent finds, missed it */ ''}
+                                           style="position:absolute; top:0; left:0; width:100%; height:100%; margin:0; opacity:0; z-index:1; cursor:pointer;"
                                            value="${method.name}"
                                            data-rate="${method.rate}"
                                            ${methods.length === 1 || method.name === this.currentShippingMethod ? 'checked' : ''}>
@@ -2702,11 +2710,12 @@ frappe.ready(function() {
                                     const methodHtml = `
                                         <div class="payment-method-item frappe-card p-5 mb-3" data-method-id="${cleanId}">
                                             <div class="payment-method-header d-flex align-items-center justify-content-between">
-                                                <div class="payment-method-title">
+                                                <div class="payment-method-title" style="position: relative;">${/* //// Neoffice — the radio below covers the title (see the shipping radios) */ ''}
                                                     <input type="radio" 
                                                            id="method_${cleanId}" 
                                                            name="payment_method" 
-                                                           class="custom-control-input"${/* //// Neoffice — see the shipping radios: no "hide", the choice is a radio a keyboard, a screen reader or an agent can reach (#691 lot 4) */ ''}
+                                                           class="custom-control-input"${/* //// Neoffice — see the shipping radios: no "hide", the choice is a radio a keyboard, a screen reader or an agent can reach, laid over the title (#691 lot 4) */ ''}
+                                                           style="position:absolute; top:0; left:0; width:100%; height:100%; margin:0; opacity:0; z-index:1; cursor:pointer;"
                                                            value="${method.id}"
                                                            data-rate="${method.rate}"
                                                            ${this.paymentMethods.length === 1 || method.id === this.currentMethod ? 'checked' : ''}>
