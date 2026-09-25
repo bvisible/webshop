@@ -8711,3 +8711,63 @@ msgstr "Adresse e-mail pas encore confirmée"
 #: webshop/patches/add_email_confirmation_field.py
 msgid "Opened in the shop and signed in at once; the link of the welcome email confirms the address."
 msgstr "Ouvert dans la boutique et connecté immédiatement ; le lien de l'e-mail de bienvenue confirme l'adresse."
+
+#: webshop/webshop/seo/alt_text.py
+msgid "This product has no picture to describe."
+msgstr "Ce produit n'a aucune photo à décrire."
+
+#: webshop/public/js/override/seo_preview.js
+msgid "No model that sees pictures is available on this site."
+msgstr "Aucun modèle capable de voir les photos n'est disponible sur ce site."
+
+#: webshop/public/js/override/seo_preview.js
+msgid "This picture could not be read."
+msgstr "Cette photo n'a pas pu être lue."
+
+#: webshop/public/js/override/seo_preview.js
+msgid "The description failed: try again later."
+msgstr "La description a échoué : réessayez plus tard."
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Describe the pictures with Nora"
+msgstr "Décrire les photos avec Nora"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Save the item first: the descriptions are written to the saved item."
+msgstr "Enregistrez d'abord le produit : les descriptions sont écrites sur le produit enregistré."
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Nora is looking at the picture…"
+msgstr "Nora regarde la photo…"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Nora's picture descriptions"
+msgstr "Descriptions des photos par Nora"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Each sentence is read aloud to those who cannot see the picture: check it against the picture before keeping it. An empty box keeps the current description."
+msgstr "Chaque phrase est lue à voix haute aux personnes qui ne peuvent pas voir la photo : comparez-la à la photo avant de la conserver. Un champ vide conserve la description actuelle."
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Use these descriptions"
+msgstr "Utiliser ces descriptions"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "{0} descriptions kept."
+msgstr "{0} descriptions conservées."
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Picture descriptions written with AI assistance"
+msgstr "Descriptions des photos rédigées avec l'aide de l'IA"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Set when Nora's proposals filled the pictures' descriptions: the merchant read and kept each one."
+msgstr "Coché quand les propositions de Nora ont rempli les descriptions des photos : le commerçant les a lues et conservées."
+
+#: webshop/patches/add_picture_alt_field.py
+msgid "Picture description"
+msgstr "Description de la photo"
+
+#: webshop/patches/add_picture_alt_field.py
+msgid "What someone who cannot see the picture needs to know: read aloud by screen readers, shown when the picture fails to load, read by search engines."
+msgstr "Ce qu'une personne qui ne peut pas voir la photo doit savoir : lu à voix haute par les lecteurs d'écran, affiché quand la photo ne se charge pas, lu par les moteurs de recherche."

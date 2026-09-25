@@ -1139,6 +1139,20 @@ defects in neoffice-maintenance#691.
     brand. Without the product names it guessed that "Salles" sold room equipment; they are rooms
     to rent. The form fills the fields only when asked, and the document then records
     `seo_ai_assisted` and its date.
+- **What the pictures show, for those who cannot see them** (`seo/alt_text.py`, decision D-11,
+  2026-09-25). The merchant presses "Describe the pictures with Nora" on a Website Item. A
+  background job asks builder's `describe_image` (Nora Vision first) for one sentence per picture,
+  and each proposal reaches the form's dialog as it comes (realtime). The first call wakes the
+  model up (~20 s), the next take 1 to 3 s. The merchant corrects and keeps.
+  - What is kept goes to `website_image_alt` (140 characters, cut at a word) and to each slide's
+    `image_alt` (a custom field of Website Slideshow Item). The gallery reads `image_alt` before
+    the slide's heading, which is a caption. `alt_ai_assisted` records the AI assistance, never
+    the model.
+  - The pictures are read from the item on the server, never from an address the browser sends:
+    `describe_image` reads private files and fetches any URL it is given. A site without builder,
+    or without a model that sees images, hides the button (`available`) or says so once
+    (`no_vision_model` stops the batch).
+  - Measured on osiris: five photos of a demo shoe, described in French in 34 s.
 - **What Google gets, product by product** (lot 6): the prepared report `Catalogue Ready for
   Google` runs the feed's own rules (`item_entry`, as a visitor of each site) and says, for every
   published product, whether it is sent, why not, and what would make its listing better

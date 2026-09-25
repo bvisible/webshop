@@ -58,3 +58,5 @@ webshop.patches.make_picture_copies
 webshop.patches.add_seo_fields
 # //// Neoffice — the User field of an account opened before its address is confirmed (2026-09-25, #691 D-9)
 webshop.patches.add_email_confirmation_field
+# //// Neoffice — the description of each slideshow picture (2026-09-25, #691 D-11)
+webshop.patches.add_picture_alt_field
