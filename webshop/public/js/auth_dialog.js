@@ -118,13 +118,16 @@ frappe.showLoginDialog = function(opts) {
     }
 
     // Create dialog HTML
+    //// Neoffice — a dialog for assistive technology and browsing agents: its role, a title, named
+    //// buttons, autofill tokens, the password toggle as a keyboard button, the page behind inert
+    //// (below), Escape and a click on the backdrop to close when the sign-in is not forced (#691 lot 4).
     const dialogHTML = `
         <div class="login-dialog-overlay">
-            <div class="login-dialog">
+            <div class="login-dialog" role="dialog" aria-modal="true" aria-labelledby="login-dialog-title">
                 <div class="login-dialog-header">
                     <div class="welcome-header d-flex justify-content-between">
-                        <h3><span class="wave-emoji">👋</span> ${__('Hello')} <span class="user-name"></span></h3>
-                        ${!forceLogin ? '<button class="close-btn">&times;</button>' : ''}
+                        <h3 id="login-dialog-title"><span class="wave-emoji" aria-hidden="true">👋</span> ${__('Hello')} <span class="user-name"></span></h3>
+                        ${!forceLogin ? `<button type="button" class="close-btn" aria-label="${__('Close')}">&times;</button>` : ''}
                     </div>
                 </div>
                 <p class="welcome-text">${__('Enter your email address to sign in or create an account')}</p>
@@ -132,15 +135,15 @@ frappe.showLoginDialog = function(opts) {
                     <div class="form-group slide-in">
                         <label for="login_email">${__('Email')}</label>
                         <div class="email-field">
-                            <input type="email" id="login_email" class="form-control" 
+                            <input type="email" id="login_email" class="form-control" autocomplete="email"
                                 placeholder="${__('jane@example.com')}" required>
-                            <button class="btn-verify-email">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <button type="button" class="btn-verify-email" aria-label="${__('Continue')}">
+                                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M13.75 6.75L19.25 12L13.75 17.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                     <path d="M19 12H4.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </button>
-                            <svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                            <svg class="field-icon email-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path d="M2 6.12119V12.0606C2 12.35 2.115 12.6274 2.31967 12.832C2.52433 13.0367 2.80165 13.1517 3.09091 13.1517H12.9091C13.1984 13.1517 13.4757 13.0367 13.6804 12.832C13.885 12.6274 14 12.35 14 12.0606V6.12119M14 6.06058V4.42421C14 4.13488 13.885 3.85741 13.6804 3.65282C13.4757 3.44823 13.1984 3.3333 12.9091 3.3333H3.09091C2.80165 3.3333 2.52433 3.44823 2.31967 3.65282C2.115 3.85741 2 4.13488 2 4.42421V6.06058L8 8.66664L14 6.06058Z" stroke="currentColor" stroke-width="1.5"/>
                             </svg>
@@ -149,13 +152,13 @@ frappe.showLoginDialog = function(opts) {
                     <div class="form-group password-section slide-in" style="display: none;">
                         <label for="login_password">${__('Password')}</label>
                         <div class="password-field">
-                            <input type="password" id="login_password" class="form-control" 
+                            <input type="password" id="login_password" class="form-control" autocomplete="current-password"
                                 placeholder="•••••">
-                            <svg class="field-icon password-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                            <svg class="field-icon password-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path d="M4.5 7.5V5.5C4.5 4.30653 5.30653 3.5 6.5 3.5H9.5C10.6935 3.5 11.5 4.30653 11.5 5.5V7.5M6.5 9.5L8 11M8 11L9.5 12.5M8 11L9.5 9.5M8 11L6.5 12.5M4 7.5H12C12.5523 7.5 13 7.94772 13 8.5V13.5C13 14.0523 12.5523 14.5 12 14.5H4C3.44772 14.5 3 14.0523 3 13.5V8.5C3 7.94772 3.44772 7.5 4 7.5Z" stroke="currentColor" stroke-width="1.5"/>
                             </svg>
-                            <span toggle="#login_password" class="toggle-password text-muted">${__('Show')}</span>
+                            <span toggle="#login_password" class="toggle-password text-muted" role="button" tabindex="0" aria-controls="login_password">${__('Show')}</span>
                         </div>
                         <p class="forgot-password-message">
                             <a href="/login#forgot">${__('Forgot Password?')}</a>
@@ -164,16 +167,16 @@ frappe.showLoginDialog = function(opts) {
                     <div class="form-group fullname-section slide-in" style="display: none;">
                         <div class="form-group">
                             <label for="first_name">${__('First Name')}</label>
-                            <input type="text" id="first_name" class="form-control" required>
+                            <input type="text" id="first_name" class="form-control" autocomplete="given-name" required>
                         </div>
                         <div class="form-group">
                             <label for="last_name">${__('Last Name')}</label>
-                            <input type="text" id="last_name" class="form-control" required>
+                            <input type="text" id="last_name" class="form-control" autocomplete="family-name" required>
                         </div>
                     </div>
                 </div>
                 <div class="login-dialog-footer slide-in" style="display: none;">
-                    <button class="btn btn-primary btn-submit">${__('Continue')}</button>
+                    <button type="button" class="btn btn-primary btn-submit">${__('Continue')}</button>
                 </div>
                 <div class="social-logins slide-in" style="display: none;">
                     <div class="social-login-buttons">
@@ -473,6 +476,15 @@ frappe.showLoginDialog = function(opts) {
     dialogContainer.innerHTML = dialogHTML;
     document.body.appendChild(dialogContainer);
 
+    //// Neoffice — the page behind a modal is inert while it is open: the keyboard, a screen reader
+    //// and an agent reading the accessibility tree reached the page under the overlay (#691 lot 4).
+    //// Frappe's own dialogs and toasts stay live: a message shown during the sign-in must be closable.
+    const madeInert = [...document.body.children].filter(
+        (el) => el !== dialogContainer && !el.inert && !['SCRIPT', 'STYLE', 'LINK'].includes(el.tagName)
+            && !el.matches('.modal, .modal-backdrop, #alert-container, [role="dialog"], [aria-modal]')
+    );
+    madeInert.forEach((el) => { el.inert = true; });
+
     // Get elements
     const dialog = dialogContainer.querySelector('.login-dialog-overlay');
     const dialogBox = dialog.querySelector('.login-dialog');
@@ -548,6 +560,8 @@ frappe.showLoginDialog = function(opts) {
 
     // Handle closing
     function closeDialog() {
+        madeInert.forEach((el) => { el.inert = false; });
+        document.removeEventListener('keydown', closeOnEscape);
         clearInterval(waveInterval);
         dialog.classList.remove('show');
         dialogBox.classList.remove('show');
@@ -566,14 +580,19 @@ frappe.showLoginDialog = function(opts) {
     }
 
     // If forceLogin is true, prevent closing by clicking overlay
-    const overlay = dialog.querySelector('.login-dialog-overlay');
-    if (!forceLogin && overlay) {
-        overlay.addEventListener('click', function(e) {
-            if (e.target === overlay) {
+    //// Neoffice — `dialog` IS the overlay: looking for an overlay inside it found nothing, so a
+    //// click on the backdrop never closed the dialog. Escape closes it too (#691 lot 4).
+    if (!forceLogin) {
+        dialog.addEventListener('click', function(e) {
+            if (e.target === dialog) {
                 closeDialog();
             }
         });
     }
+    function closeOnEscape(e) {
+        if (e.key === 'Escape' && !forceLogin) closeDialog();
+    }
+    document.addEventListener('keydown', closeOnEscape);
 
     // Toggle password visibility
     if (togglePassword && passwordInput) {
@@ -581,6 +600,13 @@ frappe.showLoginDialog = function(opts) {
             const type = passwordInput.type === 'password' ? 'text' : 'password';
             passwordInput.type = type;
             togglePassword.textContent = type === 'password' ? __('Show') : __('Hide');
+        });
+        //// Neoffice — a role="button": Enter and Space press it (#691 lot 4)
+        togglePassword.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                togglePassword.click();
+            }
         });
     }
 
