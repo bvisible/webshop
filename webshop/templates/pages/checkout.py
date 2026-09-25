@@ -887,9 +887,36 @@ def _settlement_notice(settlement):
 	return None
 
 
-@frappe.whitelist(allow_guest=True)
-def get_payment_methods(reference_doctype=None, reference_docname=None):
+# //// Neoffice — added (#691 lot 4): the document a browser names must be the browser's own.
+def _refuse_foreign_reference(method, reference_doctype, reference_docname):
+	"""A document named over HTTP is paid only by whoever may see it.
+
+	`_document_to_pay` checks nothing, by design: the booking module calls these endpoints from
+	Python, after its own check (`_may_pay`). Over HTTP nobody checked, and a visitor who named an
+	invoice got its payment form, number and amount included. The shop's own page never names a
+	document (it pays its cart), so only a direct call is refused."""
+	if not (reference_doctype and reference_docname):
+		return
+	from webshop.webshop.doctype.webshop_settings.webshop_settings import (
+		called_over_http,
+	)
+
+	if not called_over_http(method):
+		return
+	doc = frappe.get_doc(reference_doctype, reference_docname)
+	if not (doc.has_permission("read") or frappe.has_website_permission(doc)):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+
+# //// Neoffice — reviewed for guests (frappe's semgrep rule guest-whitelisted-method): the shop's
+# //// payment tiles for the session's cart; a document named over HTTP must be the caller's
+# //// (_refuse_foreign_reference). Arguments typed, as the rule asks.
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
+def get_payment_methods(reference_doctype: str | None = None, reference_docname: str | None = None):
 	"""Get payment methods configured in Webshop Settings"""
+	_refuse_foreign_reference(  # //// Neoffice — before the try below, which would log the refusal as an error
+		"webshop.templates.pages.checkout.get_payment_methods", reference_doctype, reference_docname
+	)
 	try:
 		# 1. Get payment methods from Webshop Settings
 		settings = frappe.get_doc("Webshop Settings")
@@ -1389,9 +1416,18 @@ def _intent_binding(kind: str):
 	return None
 
 
-@frappe.whitelist(allow_guest=True)
-def get_payment_template(payment_gateway_account, context=None):
+# //// Neoffice — reviewed for guests, see get_payment_methods: a document named in `context` must be
+# //// the caller's (_refuse_foreign_reference). A form-encoded call's context is a JSON string, which
+# //// the body below ignores; a JSON body delivers it as a dict. Arguments typed, as the rule asks.
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
+def get_payment_template(payment_gateway_account: str, context: dict | str | None = None):
 	"""Load the HTML template for a payment gateway"""
+	if isinstance(context, dict):  # //// Neoffice — see above: checked before the try, which logs what it catches
+		_refuse_foreign_reference(
+			"webshop.templates.pages.checkout.get_payment_template",
+			context.get("reference_doctype"),
+			context.get("reference_docname"),
+		)
 	try:		
 		if not payment_gateway_account:
 			return {
@@ -1452,11 +1488,12 @@ def get_payment_template(payment_gateway_account, context=None):
 			"amount": (context.get("amount")
 				or (quotation_doc.get("rounded_total") or quotation_doc.get("grand_total") if quotation_doc else 0)),
 			"quotation_id": context.get("quotation_id") or (quotation_doc.name if quotation_doc else ""),
-			# //// Neoffice — the tile's own id: the account's (context_ids above), else the one the page
-			# //// sent (checkout.js: submit-<tile>). Upstream overwrote it with one id per gateway TYPE, so
-			# //// two accounts of one gateway shared their ids — the second tile's terms label ticked the
-			# //// first tile's box, and its pay button was bound to the first (#691 lot 4).
-			"submit_id": context.get("submit_id") or f"submit_{gateway_info['type'].lower().replace(' ', '_')}",
+			# //// Neoffice — the tile's own id: the account's (context_ids above) or a Python caller's,
+			# //// else one per account. Upstream overwrote it with one id per gateway TYPE, so two accounts
+			# //// of one gateway shared their ids — the second tile's terms label ticked the first tile's
+			# //// box, and its pay button was bound to the first (#691 lot 4).
+			"submit_id": context.get("submit_id")
+			or f"submit_{gateway_info['type'].lower().replace(' ', '_')}_{frappe.scrub(payment_gateway_account)}",
 			"reference_doctype": context.get("reference_doctype") or "Quotation",
 			"reference_docname": context.get("reference_docname") or (quotation_doc.name if quotation_doc else ""),
 			"description": (context.get("description")
