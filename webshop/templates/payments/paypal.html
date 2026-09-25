@@ -5,12 +5,14 @@
 <div class="payment-form" id="{{ payment_form_id }}">
     <div class="form-row row">
         <div class="col-md-6 mb-3">
-            <label for="cardholder-name">{{ _("Cardholder Name") }}</label>
-            <input type="text" id="cardholder-name" name="cardholder-name" class="form-control mr-3 w-100 font-md" placeholder="{{ _('John Doe') }}"/>
+            {# //// Neoffice — ids of this tile, and autofill tokens: one fixed cardholder id in every tile
+               //// left the later tiles' fields unlabelled, named by their placeholder (#691 lot 4) #}
+            <label for="cardholder-name-{{ submit_id }}">{{ _("Cardholder Name") }}</label>
+            <input type="text" id="cardholder-name-{{ submit_id }}" autocomplete="cc-name" name="cardholder-name" class="form-control mr-3 w-100 font-md" placeholder="{{ _('John Doe') }}"/>
         </div>
         <div class="col-md-6 mb-3">
-            <label for="cardholder-email">{{ _("Cardholder Email") }}</label>
-            <input type="email" id="cardholder-email" name="cardholder-email" class="form-control mr-3 w-100 font-md" placeholder="{{ _('john@doe.com') }}"/>
+            <label for="cardholder-email-{{ submit_id }}">{{ _("Cardholder Email") }}</label>{# //// Neoffice — see above #}
+            <input type="email" id="cardholder-email-{{ submit_id }}" autocomplete="email" name="cardholder-email" class="form-control mr-3 w-100 font-md" placeholder="{{ _('john@doe.com') }}"/>
         </div>
     </div>
     <div class="outcome text-center mb-4">

@@ -713,13 +713,22 @@ frappe.ready(function() {
                     };
 
                     let missingFields = [];
+                    //// Neoffice — each empty field says so (aria-invalid) and the first takes the
+                    //// focus: the popup named them, and nothing on the form did (#691 lot 4).
+                    let firstMissing = null;
                     for (let [field, label] of Object.entries(requiredFields)) {
-                        if (!$(`#${field}`).val()) {
+                        const $field = $(`#${field}`);
+                        if (!$field.val()) {
                             missingFields.push(label);
+                            $field.attr('aria-invalid', 'true');  //// Neoffice — see above
+                            firstMissing = firstMissing || $field;
+                        } else {
+                            $field.removeAttr('aria-invalid');  //// Neoffice — see above
                         }
                     }
 
                     if (missingFields.length > 0) {
+                        if (firstMissing) firstMissing.trigger('focus');  //// Neoffice — see above
                         frappe.throw(__('Please fill in the following required fields: {0}', [missingFields.join(', ')]));
                         return;
                     }
@@ -734,13 +743,20 @@ frappe.ready(function() {
                         };
 
                         missingFields = [];
+                        firstMissing = null;  //// Neoffice — see aria-invalid above
                         for (let [field, label] of Object.entries(shippingFields)) {
-                            if (!$(`#${field}`).val()) {
+                            const $field = $(`#${field}`);  //// Neoffice — see aria-invalid above
+                            if (!$field.val()) {
                                 missingFields.push(label);
+                                $field.attr('aria-invalid', 'true');  //// Neoffice — see above
+                                firstMissing = firstMissing || $field;
+                            } else {
+                                $field.removeAttr('aria-invalid');  //// Neoffice — see above
                             }
                         }
 
                         if (missingFields.length > 0) {
+                            if (firstMissing) firstMissing.trigger('focus');  //// Neoffice — see above
                             frappe.throw(__('Please fill in the following required fields: {0}', [missingFields.join(', ')]));
                             return;
                         }
