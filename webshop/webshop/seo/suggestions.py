@@ -15,11 +15,14 @@ import re
 import frappe
 from frappe import _
 
-from webshop.webshop.seo import page_meta
+from webshop.webshop.seo import page_meta, site
 from webshop.webshop.seo.text import html_to_text, one_line
 
 LANGUAGES = {"fr": "français", "de": "allemand", "it": "italien", "en": "anglais", "es": "espagnol"}
 TITLE_LIMIT = 60
+# the fewest characters a proposed title gets, however long the shop's name: the product has to be
+# named, and Google cuts a long title at its end, where the page puts the shop's name
+TITLE_FLOOR = 30
 DESCRIPTION_LIMIT = 155
 FACT_LIMIT = 1200
 
@@ -37,6 +40,15 @@ SYSTEM = (
 )
 
 
+def title_room(shop: str) -> int:
+	"""What the page leaves the title once it adds " | <shop>" (page_meta.with_shop_name). The model
+	was given the whole budget, so a proposal fitted in the dialog and overflowed on the page: 42
+	characters proposed, 61 printed (osiris, 2026-09-25)."""
+	if not shop:
+		return TITLE_LIMIT
+	return max(TITLE_LIMIT - len(f" | {shop}"), TITLE_FLOOR)
+
+
 def site_language() -> str:
 	code = (frappe.get_system_settings("language") or "fr").split("-")[0]
 	return LANGUAGES.get(code, "français")
@@ -44,8 +56,6 @@ def site_language() -> str:
 
 def facts(doctype, doc) -> str:
 	"""What the model may use, as lines."""
-	from webshop.webshop.seo import site
-
 	lines = []
 	if doctype == "Website Item":
 		lines.append("Page : fiche d'un produit")
@@ -110,7 +120,7 @@ def product_names(filters, limit=8) -> list[str]:
 
 def parse(content: str):
 	"""The model's JSON object, or None: it may wrap it in a code fence or a sentence."""
-	found = re.search(r"\{.*\}", content or "", re.S)
+	found = re.search(r"\{.*\}", content or "", re.DOTALL)
 	if not found:
 		return None
 	try:
@@ -132,7 +142,9 @@ def suggest(doctype: str, name: str):
 	from webshop.webshop.assistant import llm
 
 	doc = frappe.get_doc(doctype, name)
-	system = SYSTEM.format(title=TITLE_LIMIT, description=DESCRIPTION_LIMIT, language=site_language())
+	shop = site.shop_name()
+	room = title_room(shop)
+	system = SYSTEM.format(title=room, description=DESCRIPTION_LIMIT, language=site_language())
 	answer = llm.complete(
 		[{"role": "system", "content": system}, {"role": "user", "content": facts(doctype, doc)}],
 		temperature=0.3,
@@ -141,9 +153,12 @@ def suggest(doctype: str, name: str):
 	proposal = parse(answer.content)
 	if not proposal:
 		frappe.throw(_("Nora gave no usable proposal. Try again."))
+	# a model that overshoots is cut at a word, a little beyond the limit: the counters say it
+	title = one_line(proposal.title, room + 10)
 	return {
-		# a model that overshoots is cut at a word, a little beyond the limit: the counters say it
-		"title": one_line(proposal.title, TITLE_LIMIT + 10),
+		"title": title,
 		"description": one_line(proposal.description, DESCRIPTION_LIMIT + 45),
+		# what the page will print, the shop's name included: the dialog shows and counts this one
+		"page_title": page_meta.with_shop_name(title, shop),
 		"model": answer.model,
 	}

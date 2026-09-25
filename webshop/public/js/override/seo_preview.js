@@ -57,19 +57,26 @@ webshop.seo.preview = webshop.seo.preview || {
 		const title = own_title || d.title || "";
 		const tab = d.shop && !title.toLowerCase().includes(d.shop.toLowerCase()) ? `${title} | ${d.shop}` : title;
 		const description = own_description || d.description || "";
-		const cut = (text, budget) => (text.length > budget ? text.slice(0, budget - 1).trimEnd() + "…" : text);
-		const count = (text, budget) =>
-			`<span class="${text.length > budget ? "text-danger" : "text-muted"}">${text.length} / ${budget}</span>`;
 		const own = own_title || own_description;
 		field.$wrapper.html(`
-			${this.result(d.url || __("No page on the site yet"), cut(tab, title_budget + 10), cut(description, description_budget))}
+			${this.result(d.url || __("No page on the site yet"), this.cut(tab, title_budget + 10), this.cut(description, description_budget))}
 			<div class="small text-muted" style="margin-top: 8px; max-width: 620px;">
-				${__("Title")} ${count(tab, title_budget)} · ${__("Description")} ${count(description, description_budget)}${
+				${this.counters(tab, description, title_budget, description_budget)}${
 					own ? "" : " · " + __("Nothing written: this is what the page says on its own")
 				}
 			</div>
 			${frm.perm && frm.perm[0] && frm.perm[0].write ? `<button type="button" class="btn btn-xs btn-default wsp-seo-suggest" style="margin-top: 8px;">${__("Propose with Nora")}</button>` : ""}`);
 		field.$wrapper.find(".wsp-seo-suggest").on("click", () => this.suggest(frm));
+	},
+
+	cut(text, budget) {
+		return text.length > budget ? text.slice(0, budget - 1).trimEnd() + "…" : text;
+	},
+
+	counters(title, description, title_budget, description_budget) {
+		const count = (text, budget) =>
+			`<span class="${text.length > budget ? "text-danger" : "text-muted"}">${text.length} / ${budget}</span>`;
+		return `${__("Title")} ${count(title, title_budget)} · ${__("Description")} ${count(description, description_budget)}`;
 	},
 
 	// A result as Google's page draws it: its white and its colours whatever the desk's theme — the
@@ -95,6 +102,12 @@ webshop.seo.preview = webshop.seo.preview || {
 			callback: (r) => {
 				const proposal = r.message;
 				if (!proposal) return;
+				const d = this.defaults[this.key(frm)] || {};
+				const title_budget = d.title_budget || 60;
+				const description_budget = d.description_budget || 160;
+				// shown and counted as the page will print it, the shop's name included: the proposal
+				// alone fitted here and overflowed on the page
+				const page_title = proposal.page_title || proposal.title;
 				const dialog = new frappe.ui.Dialog({
 					title: __("Nora's proposal"),
 					fields: [
@@ -102,8 +115,8 @@ webshop.seo.preview = webshop.seo.preview || {
 							fieldtype: "HTML",
 							fieldname: "proposal",
 							options: `
-								${this.result(this.defaults[this.key(frm)]?.url || "", proposal.title, proposal.description)}
-								<div class="small text-muted" style="margin-top: 8px;">${__("Title")} ${proposal.title.length} / 60 · ${__("Description")} ${proposal.description.length} / 160</div>
+								${this.result(d.url || "", this.cut(page_title, title_budget + 10), this.cut(proposal.description, description_budget))}
+								<div class="small text-muted" style="margin-top: 8px;">${this.counters(page_title, proposal.description, title_budget, description_budget)}</div>
 								<p class="small text-muted" style="margin-top: 12px;">${__("Nora only uses what the page says: check every word before saving.")}</p>`,
 						},
 					],
