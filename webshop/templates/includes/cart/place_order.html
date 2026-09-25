@@ -8,14 +8,17 @@
 			{# //// (3bc2d836f1, 2025-02-11; 48e2708353, 2025-03-13). Upstream's button is kept for #}
 			{# //// shops that do not enable the checkout page. #}
 			{% if cart_settings.enable_checkout_page %}
+				{# //// Neoffice — links, not buttons that navigate from an onclick: an agent, a screen #}
+				{# //// reader and a middle click see where they lead (#691 lot 4). #}
 				{% if cart_settings.activate_b2b_checkout and is_b2b_customer %}
-					<button class="btn btn-primary btn-checkout-b2b font-md w-100" type="button" onclick="window.location.href='/checkout_b2b'">
+					<a class="btn btn-primary btn-checkout-b2b font-md w-100" href="/checkout_b2b">
 						{{ _("Proceed to Checkout") }}
-					</button>
+					</a>{# //// Neoffice — see above #}
 				{% else %}
-					<button class="btn btn-primary btn-checkout font-md w-100" type="button" onclick="window.location.href='/checkout'">
+					{# //// Neoffice — see above: a link #}
+					<a class="btn btn-primary btn-checkout font-md w-100" href="/checkout">
 						{{ _("Proceed to Checkout") }}
-					</button>
+					</a>{# //// Neoffice — see above #}
 				{% endif %}
 			{% else %}
 				<button class="btn btn-primary btn-place-order font-md w-100" type="button">
