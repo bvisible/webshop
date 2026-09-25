@@ -5,8 +5,14 @@
 # //// 2026-04-08 "handle existing users in shop create_account (WI-00297)").
 import frappe
 from frappe import _
-from frappe.utils import validate_email_address
+from frappe.rate_limiter import rate_limit
+from frappe.utils import cint, validate_email_address
 from frappe.utils.oauth import get_oauth2_authorize_url
+
+# //// Neoffice — accounts one address may create in an hour (#691 D-9): each sends a welcome
+# //// email, and nothing limited them. Generous enough for a shop's own counter, where every
+# //// customer signs up from the same connection.
+SIGN_UPS_PER_HOUR = 20
 
 @frappe.whitelist(allow_guest=True)
 def check_email(email):
@@ -27,7 +33,12 @@ def check_email(email):
         "first_name": first_name
     }
 
-@frappe.whitelist(allow_guest=True)
+# //// Neoffice — reviewed for guests (frappe's semgrep rule guest-whitelisted-method, #691 D-9,
+# //// 2026-09-25): it creates a Website User with the Customer role and nothing else, refuses an
+# //// address any User already holds, and opens the account at once only for an address the shop
+# //// does not know (auth/confirmation.py). Limited per address and per hour, like frappe's own sign-up.
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
+@rate_limit(limit=SIGN_UPS_PER_HOUR, seconds=60 * 60)
 def create_account():
     try:
         email = (frappe.form_dict.get('email') or "").strip().lower()
@@ -49,6 +60,17 @@ def create_account():
                 "message": "error",
                 "reason": _("Please enter a valid email address"),
                 "reason_code": "invalid_email",
+            }
+
+        # //// Neoffice — frappe's own ceiling on sign-ups, which its sign_up() applies and this
+        # //// endpoint skipped (System Settings, 300 an hour by default)
+        ceiling = cint(frappe.db.get_single_value("System Settings", "max_signups_allowed_per_hour")) or 300
+        if frappe.db.get_creation_count("User", 60) >= ceiling:
+            frappe.local.response.http_status_code = 429
+            return {
+                "message": "error",
+                "reason": _("Too many accounts were created in the last hour. Please try again later."),
+                "reason_code": "too_many_signups",
             }
 
         # Check if a User already exists with this email.
@@ -113,19 +135,36 @@ def create_account():
             frappe.log_error("Webshop welcome email failed", frappe.get_traceback())
             frappe.clear_messages()
 
+        # //// Neoffice — the account is opened and signed in at once, its address confirmed
+        # //// afterwards by the welcome email's link (auth/confirmation.py, decision D-9 of the SEO
+        # //// plan, #691): a first order no longer waits on a mailbox. Not for an address the shop
+        # //// already knows, nor on a site for business accounts only: those keep the link first.
+        from webshop.webshop.auth.confirmation import open_account, opens_at_once
+
+        if opens_at_once(email):
+            open_account(user.name)
+            return {
+                "message": "success",
+                "signed_in": True,
+                "reason": _("Account created successfully"),
+                "notice": _(
+                    "Your account is open and you are signed in. We sent you an email to confirm your address and choose a password."
+                ),
+            }
+
         return {
             "message": "success",
             "reason": _("Account created successfully"),
         }
 
-    except Exception as e:
+    except Exception:
         frappe.log_error("Webshop create_account failed", frappe.get_traceback())
         frappe.clear_messages()
+        # //// Neoffice — no "detail" any more: the exception's text went to the visitor (#691 D-9)
         return {
             "message": "error",
             "reason": _("An error occurred while creating your account. Please try again."),
             "reason_code": "unknown_error",
-            "detail": str(e),
         }
 
 @frappe.whitelist(allow_guest=True)

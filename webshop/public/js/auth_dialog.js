@@ -733,6 +733,15 @@ frappe.showLoginDialog = function(opts) {
                     loginBtn.disabled = false;
                     loginBtn.innerHTML = originalBtnHtml;
                     
+                    //// Neoffice — the account is opened and signed in at once (auth/confirmation.py,
+                    //// #691 D-9): the page is reloaded signed in, the checkout goes on where it was,
+                    //// and the server's notice (translated there: a website page resolves no new
+                    //// __() string) is shown once the page is back.
+                    if (r.message && r.message.message === 'success' && r.message.signed_in) {
+                        try { sessionStorage.setItem('webshop_account_opened', r.message.notice || ''); } catch (e) { /* private mode */ }
+                        window.location.reload();
+                        return;
+                    }
                     if (r.message && r.message.message === 'success') {
                         frappe.show_alert({
                             message: __("Account created successfully! Please check your email to activate your account."),
@@ -1005,3 +1014,16 @@ frappe.showLoginDialog = function(opts) {
         });
     });
 };
+
+//// Neoffice — the notice of an account opened at once (create_account's answer, above), shown once
+//// the reloaded page is signed in (auth/confirmation.py, #691 D-9)
+frappe.ready(() => {
+    let notice = null;
+    try {
+        notice = sessionStorage.getItem('webshop_account_opened');
+        sessionStorage.removeItem('webshop_account_opened');
+    } catch (e) { /* private mode: no notice, the page is signed in all the same */ }
+    if (notice && frappe.session && frappe.session.user !== 'Guest') {
+        frappe.show_alert({message: notice, indicator: 'green'}, 10);
+    }
+});

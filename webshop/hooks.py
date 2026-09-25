@@ -25,6 +25,9 @@ after_install = "webshop.setup.install.after_install"
 # //// (ce5220b7e7 / 2c14d7c948, 2025-12-14 "auto-rebuild Redis search index").
 after_migrate = "webshop.setup.install.after_migrate"
 on_logout = "webshop.webshop.shopping_cart.utils.clear_cart_count"
+# //// Neoffice — an account opened at once in the shop is confirmed by the first way back into it,
+# //// which can only go through its mailbox (webshop/webshop/auth/confirmation.py, #691 D-9)
+on_login = ["webshop.webshop.auth.confirmation.on_login"]
 on_session_creation = [
 	# //// Neoffice — body re-indented from 4 spaces to tabs by our editor config
 	# //// (no behaviour change). Kept as-is: reverting it would be a second

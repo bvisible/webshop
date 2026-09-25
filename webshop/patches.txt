@@ -56,3 +56,5 @@ webshop.patches.add_google_shopping_fields
 webshop.patches.make_picture_copies
 # //// Neoffice — the Search engines fields of Item Group and Brand (2026-09-25, #691 lot 6)
 webshop.patches.add_seo_fields
+# //// Neoffice — the User field of an account opened before its address is confirmed (2026-09-25, #691 D-9)
+webshop.patches.add_email_confirmation_field

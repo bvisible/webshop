@@ -8683,3 +8683,31 @@ msgstr "Description rédigée avec l'aide de l'IA"
 #: webshop/webshop/doctype/website_item/website_item.json
 msgid "Set when Nora's proposal filled the description: Google Shopping is told so (structured_description, trained_algorithmic_media)."
 msgstr "Coché quand une proposition de Nora a rempli la description : Google Shopping en est informé (structured_description, trained_algorithmic_media)."
+
+#: webshop/webshop/auth/api.py
+msgid "Too many accounts were created in the last hour. Please try again later."
+msgstr "Trop de comptes ont été créés au cours de la dernière heure. Veuillez réessayer plus tard."
+
+#: webshop/webshop/auth/api.py
+msgid "Your account is open and you are signed in. We sent you an email to confirm your address and choose a password."
+msgstr "Votre compte est ouvert et vous êtes connecté. Nous vous avons envoyé un e-mail pour confirmer votre adresse et choisir un mot de passe."
+
+#: webshop/templates/pages/checkout.html
+msgid "Your account is open. Confirm your email address with the link we sent you: you will choose your password there."
+msgstr "Votre compte est ouvert. Confirmez votre adresse e-mail à l'aide du lien que nous vous avons envoyé : vous y choisirez votre mot de passe."
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Open a new account at once"
+msgstr "Ouvrir un nouveau compte immédiatement"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "A customer who creates an account in the shop is signed in straight away and can order. The welcome email then confirms the address; payment on account waits for that confirmation. An address the shop already knows, and a site for business accounts only, keep the confirmation first."
+msgstr "Un client qui crée un compte dans la boutique est connecté aussitôt et peut commander. L'e-mail de bienvenue confirme ensuite l'adresse ; le paiement sur facture attend cette confirmation. Une adresse déjà connue de la boutique et un site réservé aux comptes professionnels conservent la confirmation préalable."
+
+#: webshop/patches/add_email_confirmation_field.py
+msgid "Email address not confirmed yet"
+msgstr "Adresse e-mail pas encore confirmée"
+
+#: webshop/patches/add_email_confirmation_field.py
+msgid "Opened in the shop and signed in at once; the link of the welcome email confirms the address."
+msgstr "Ouvert dans la boutique et connecté immédiatement ; le lien de l'e-mail de bienvenue confirme l'adresse."

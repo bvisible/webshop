@@ -293,6 +293,7 @@ jobs:
             webshop.webshop.tests.test_gift_card_families \
             webshop.webshop.seo.test_seo \
             webshop.webshop.seo.test_structured_data \
+            webshop.webshop.auth.test_account_opening \
             webshop.webshop.seo.test_listing_ssr \
             webshop.webshop.tests.test_public_settings \
             webshop.webshop.tests.test_payment_references \

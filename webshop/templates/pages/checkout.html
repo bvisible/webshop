@@ -43,6 +43,10 @@
 				<section id="step-address" class="step-section mb-6 active">
 					<h3 class="mt-0 mobile-margin-top"><span class="wave" aria-hidden="true">👋</span>{# //// Neoffice — decoration, not a word of the heading #} {{ _("Hello") }} {{ contact_first_name or "" }} {{ contact_last_name or "" }}</h3>
 					<p class="text-muted">{{ _("Welcome in checkout. Please fill in your information below.") }}</p>
+					{# //// Neoffice — an account opened at once in the shop (auth/confirmation.py, #691 D-9) #}
+					{% if email_confirmation_pending %}
+					<p class="alert alert-info small" role="status">{{ _("Your account is open. Confirm your email address with the link we sent you: you will choose your password there.") }}</p>
+					{% endif %}
 					{# //// Neoffice — POST: with no method the form was a GET, and a submit that no script
 					   //// caught (a visitor, whose page never initialises) put names, email and address in the
 					   //// URL, the server logs and the browser history (#691 lot 4) #}
