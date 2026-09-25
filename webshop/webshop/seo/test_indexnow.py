@@ -61,6 +61,57 @@ class TestQueue(FrappeTestCase):
 		self.assertEqual(indexnow.take_queue(), ["shop/tee", "shop/tee-red-m"])
 
 
+class TestAvailability(FrappeTestCase):
+	"""A product that ran out, or came back, queues its page and its model's (#691 lot 4)."""
+
+	def setUp(self):
+		for key in (indexnow.QUEUE_KEY, indexnow.STOCK_STATE_KEY):
+			frappe.cache.delete_value(key)
+			self.addCleanup(frappe.cache.delete_value, key)
+		frappe.flags.webshop_indexnow_moved = set()
+		self.addCleanup(setattr, frappe.flags, "webshop_indexnow_moved", set())
+
+	def test_a_voucher_is_checked_once_done_in_the_background(self):
+		with patch("frappe.get_cached_doc", return_value=_settings()):
+			indexnow.on_stock_ledger_entry(frappe._dict(item_code="TEE-RED-M"))
+			indexnow.on_stock_ledger_entry(frappe._dict(item_code="MUG"))
+		with patch("frappe.enqueue") as enqueue:
+			indexnow.check_moved_items(frappe._dict(doctype="Stock Ledger Entry"))
+			enqueue.assert_not_called()  # a ledger entry's own submit: its bin is not updated yet
+			indexnow.check_moved_items(frappe._dict(doctype="Delivery Note"))
+		self.assertEqual(enqueue.call_args.kwargs["item_codes"], ["MUG", "TEE-RED-M"])
+		self.assertTrue(enqueue.call_args.kwargs["enqueue_after_commit"])
+		self.assertEqual(frappe.flags.webshop_indexnow_moved, set())
+
+	def test_nothing_is_remembered_while_switched_off(self):
+		with patch("frappe.get_cached_doc", return_value=_settings(enabled=0)):
+			indexnow.on_stock_ledger_entry(frappe._dict(item_code="MUG"))
+		self.assertEqual(frappe.flags.webshop_indexnow_moved, set())
+
+	def test_only_a_flip_queues_the_page_and_its_model(self):
+		pages = [frappe._dict(item_code="TEE-RED-M", route="shop/tee-red-m", variant_of="TEE"), frappe._dict(item_code="MUG", route="shop/mug", variant_of=None)]
+		states = {"TEE-RED-M": "https://schema.org/InStock", "MUG": "https://schema.org/InStock"}
+
+		def get_all(doctype, filters=None, fields=None, pluck=None, **kwargs):
+			if pluck == "route":
+				return ["shop/tee"]
+			return pages
+
+		def flips():
+			with (
+				patch("frappe.get_cached_doc", return_value=_settings()),
+				patch("frappe.get_all", side_effect=get_all),
+				patch("webshop.webshop.seo.availability.schema_availability", side_effect=lambda code: states[code]),
+			):
+				indexnow.queue_availability_flips(["TEE-RED-M", "MUG"])
+			return indexnow.take_queue()
+
+		self.assertEqual(flips(), ["shop/mug", "shop/tee", "shop/tee-red-m"], "first look: each page once")
+		self.assertEqual(flips(), [], "nothing changed")
+		states["TEE-RED-M"] = "https://schema.org/OutOfStock"
+		self.assertEqual(flips(), ["shop/tee", "shop/tee-red-m"], "the variant ran out: it and its model")
+
+
 class TestSubmit(FrappeTestCase):
 	SITES = [
 		frappe._dict(key="shop", profile=frappe._dict(name="Shop", primary_domain="shop.test")),
