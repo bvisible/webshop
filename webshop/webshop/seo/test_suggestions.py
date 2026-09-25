@@ -71,8 +71,22 @@ class TestAProposal(FrappeTestCase):
 		self.assertEqual(result["title"], "Ridge Runner, trail shoe by Trailhead")
 		self.assertEqual(result["model"], "nora")
 		system = complete.call_args.args[0][0]["content"]
-		self.assertIn(str(suggestions.TITLE_LIMIT), system)
 		self.assertIn("n'inventes", system)
+
+	def test_the_title_is_asked_for_the_room_the_shops_name_leaves(self):
+		"""The page prints "<title> | <shop>": a proposal written for the whole budget fitted in the
+		dialog and overflowed on the page."""
+		result, _permission, complete = self.ask(
+			'{"title": "Ridge Runner trail shoe", "description": "A trail shoe with a rock plate and a 6 mm drop, made for rocky paths."}'
+		)
+		system = complete.call_args.args[0][0]["content"]
+		self.assertIn("au plus 50 caractères", system, "60, less the 10 of ' | Atelier'")
+		self.assertEqual(result["page_title"], "Ridge Runner trail shoe | Atelier")
+
+	def test_the_room_left_by_a_shops_name(self):
+		self.assertEqual(suggestions.title_room(""), suggestions.TITLE_LIMIT)
+		self.assertEqual(suggestions.title_room("Atelier"), 50)
+		self.assertEqual(suggestions.title_room("A shop whose name runs on and on and on"), suggestions.TITLE_FLOOR)
 
 	def test_a_long_answer_is_cut_at_a_word(self):
 		result, _permission, _complete = self.ask(
