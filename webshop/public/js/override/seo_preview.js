@@ -50,7 +50,6 @@ webshop.seo.preview = webshop.seo.preview || {
 			field.$wrapper.html("");
 			return;
 		}
-		const esc = frappe.utils.escape_html;
 		const title_budget = d.title_budget || 60;
 		const description_budget = d.description_budget || 160;
 		const own_title = this.value(frm, "seo_title");
@@ -63,18 +62,26 @@ webshop.seo.preview = webshop.seo.preview || {
 			`<span class="${text.length > budget ? "text-danger" : "text-muted"}">${text.length} / ${budget}</span>`;
 		const own = own_title || own_description;
 		field.$wrapper.html(`
-			<div class="wsp-seo-preview" style="max-width: 620px; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); background: var(--card-bg);">
-				<div class="text-muted small">${esc(d.url || __("No page on the site yet"))}</div>
-				<div style="font-size: 18px; line-height: 1.35; margin-top: 2px; color: #1a0dab;">${esc(cut(tab, title_budget + 10))}</div>
-				<div class="small" style="margin-top: 4px;">${esc(cut(description, description_budget))}</div>
-				<div class="small text-muted" style="margin-top: 10px;">
-					${__("Title")} ${count(tab, title_budget)} · ${__("Description")} ${count(description, description_budget)}${
-						own ? "" : " · " + __("Nothing written: this is what the page says on its own")
-					}
-				</div>
+			${this.result(d.url || __("No page on the site yet"), cut(tab, title_budget + 10), cut(description, description_budget))}
+			<div class="small text-muted" style="margin-top: 8px; max-width: 620px;">
+				${__("Title")} ${count(tab, title_budget)} · ${__("Description")} ${count(description, description_budget)}${
+					own ? "" : " · " + __("Nothing written: this is what the page says on its own")
+				}
 			</div>
 			${frm.perm && frm.perm[0] && frm.perm[0].write ? `<button type="button" class="btn btn-xs btn-default wsp-seo-suggest" style="margin-top: 8px;">${__("Propose with Nora")}</button>` : ""}`);
 		field.$wrapper.find(".wsp-seo-suggest").on("click", () => this.suggest(frm));
+	},
+
+	// A result as Google's page draws it: its white and its colours whatever the desk's theme — the
+	// dark theme turned the blue title unreadable
+	result(url, title, description) {
+		const esc = frappe.utils.escape_html;
+		return `
+			<div class="wsp-seo-preview" style="max-width: 620px; padding: 12px 14px; border: 1px solid #dadce0; border-radius: 8px; background: #fff; font-family: arial, sans-serif;">
+				<div style="font-size: 12px; color: #202124; word-break: break-all;">${esc(url)}</div>
+				<div style="font-size: 18px; line-height: 1.35; margin-top: 2px; color: #1a0dab;">${esc(title)}</div>
+				<div style="font-size: 13px; line-height: 1.5; margin-top: 4px; color: #4d5156;">${esc(description)}</div>
+			</div>`;
 	},
 
 	// Nora proposes, the merchant decides: nothing reaches the fields unless asked, and the
@@ -88,7 +95,6 @@ webshop.seo.preview = webshop.seo.preview || {
 			callback: (r) => {
 				const proposal = r.message;
 				if (!proposal) return;
-				const esc = frappe.utils.escape_html;
 				const dialog = new frappe.ui.Dialog({
 					title: __("Nora's proposal"),
 					fields: [
@@ -96,10 +102,8 @@ webshop.seo.preview = webshop.seo.preview || {
 							fieldtype: "HTML",
 							fieldname: "proposal",
 							options: `
-								<div style="font-size: 16px; color: #1a0dab;">${esc(proposal.title)}</div>
-								<div class="small text-muted">${proposal.title.length} / 60</div>
-								<div style="margin-top: 8px;">${esc(proposal.description)}</div>
-								<div class="small text-muted">${proposal.description.length} / 160</div>
+								${this.result(this.defaults[this.key(frm)]?.url || "", proposal.title, proposal.description)}
+								<div class="small text-muted" style="margin-top: 8px;">${__("Title")} ${proposal.title.length} / 60 · ${__("Description")} ${proposal.description.length} / 160</div>
 								<p class="small text-muted" style="margin-top: 12px;">${__("Nora only uses what the page says: check every word before saving.")}</p>`,
 						},
 					],
