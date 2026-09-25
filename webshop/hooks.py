@@ -268,15 +268,17 @@ doc_events = {
 	# //// decides whether it is still in the catalogue (Website Item.sold, utils/used_items.py).
 	# //// Only second-hand items are looked at; ordinary movements return at once.
 	"Stock Ledger Entry": {
-		"on_submit": ["webshop.webshop.utils.used_items.on_stock_ledger_entry"],
+		# //// Neoffice — IndexNow hears of a product that ran out or came back (seo/indexnow.py, #691 lot 4)
+		"on_submit": ["webshop.webshop.utils.used_items.on_stock_ledger_entry", "webshop.webshop.seo.indexnow.on_stock_ledger_entry"],
 	},
 	# //// Neoffice — second-hand (2026-09-14): the ledger entry's hook only remembers the used
 	# //// units a voucher moves, because ERPNext updates the bins after it; the voucher's own
 	# //// on_submit / on_cancel (any doctype that writes stock) recomputes their `sold` flag.
 	# //// Returns at once when nothing second-hand moved.
 	"*": {
-		"on_submit": ["webshop.webshop.utils.used_items.refresh_moved_used_units"],
-		"on_cancel": ["webshop.webshop.utils.used_items.refresh_moved_used_units"],
+		# //// Neoffice — and IndexNow's check of what a voucher moved, in the background (seo/indexnow.py)
+		"on_submit": ["webshop.webshop.utils.used_items.refresh_moved_used_units", "webshop.webshop.seo.indexnow.check_moved_items"],
+		"on_cancel": ["webshop.webshop.utils.used_items.refresh_moved_used_units", "webshop.webshop.seo.indexnow.check_moved_items"],
 	},
 	"Pricing Rule": {
 		"on_update": "webshop.webshop.crud_events.pricing_rule.invalidate_discount_cache.execute",

@@ -6,8 +6,9 @@
 
 - The key sits at the root of every site of the instance, `/<key>.txt` (KeyRenderer): that is how
   an engine checks that a notification comes from the site it names.
-- A Website Item saved while published, or withdrawn, and a selling price changed, queue the
-  item's page; every ten minutes, one request per site sends what piled up. The queue is a Redis
+- A Website Item saved while published, or withdrawn, a selling price changed, and a product
+  that ran out or came back in stock, queue the item's page; every ten minutes, one request per
+  site sends what piled up. The queue is a Redis
   set, so a page saved ten times in ten minutes is sent once.
 - Off by default (Webshop Settings, Advanced tab): an instance never starts calling a third party
   because it migrated. A site serving business accounts only is left out, as robots.txt keeps
@@ -72,6 +73,64 @@ def queue_item_price(doc, method=None):
 			"Website Item", filters={"item_code": ["in", codes], "published": 1}, pluck="route"
 		)
 	)
+
+
+# ---------------------------------------------------------------------------------------------
+# Availability: a page whose product ran out, or came back, changed for an engine too
+
+STOCK_STATE_KEY = "webshop_indexnow_stock_state"
+
+
+def on_stock_ledger_entry(doc, method=None):
+	"""Stock Ledger Entry on_submit: remembers what a voucher moves, when notifications are on.
+	Availability cannot be read here: ERPNext updates the warehouse's Bin only after the ledger
+	entry (see utils/used_items.py, the same rule for the second-hand units)."""
+	if active_key():
+		frappe.flags.setdefault("webshop_indexnow_moved", set()).add(doc.item_code)
+
+
+def check_moved_items(doc, method=None):
+	"""Every document's on_submit / on_cancel ("*" in hooks.py): once a voucher is done, its items
+	are checked in the background, after the commit — a stock reconciliation moves thousands."""
+	moved = frappe.flags.get("webshop_indexnow_moved")
+	if not moved or doc.doctype == "Stock Ledger Entry":
+		return
+	frappe.flags.webshop_indexnow_moved = set()
+	frappe.enqueue(
+		"webshop.webshop.seo.indexnow.queue_availability_flips",
+		item_codes=sorted(moved),
+		queue="short",
+		enqueue_after_commit=True,
+	)
+
+
+def queue_availability_flips(item_codes):
+	"""The pages of the items whose availability changed since the last look (in stock, out of
+	stock, on back order), and of their models: a model's page shows its variants' stock. The
+	last state is kept in Redis; an item seen for the first time is queued once, which costs an
+	engine nothing."""
+	if not active_key():
+		return
+	from webshop.webshop.seo.availability import schema_availability
+
+	pages = frappe.get_all(
+		"Website Item",
+		filters={"item_code": ["in", list(item_codes)], "published": 1},
+		fields=["item_code", "route", "variant_of"],
+	)
+	routes, models = [], set()
+	for page in pages:
+		state = schema_availability(page.item_code)
+		previous = frappe.cache.hget(STOCK_STATE_KEY, page.item_code)
+		if previous == state:
+			continue
+		frappe.cache.hset(STOCK_STATE_KEY, page.item_code, state)
+		routes.append(page.route)
+		if page.variant_of:
+			models.add(page.variant_of)
+	if models:
+		routes += frappe.get_all("Website Item", filters={"item_code": ["in", sorted(models)], "published": 1}, pluck="route")
+	queue_routes(routes)
 
 
 def take_queue() -> list[str]:
