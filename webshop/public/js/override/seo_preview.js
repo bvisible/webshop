@@ -189,13 +189,120 @@ webshop.seo.description = webshop.seo.description || {
 	},
 };
 
+// What the pictures show, for those who cannot see them (#691 D-11, seo/alt_text.py): a model that
+// sees each picture proposes a sentence, the merchant reads, corrects and keeps. The proposals come
+// one by one from a background job (realtime), since the first call wakes the model up.
+webshop.seo.pictures = webshop.seo.pictures || {
+	REASONS: {
+		no_vision_model: () => __("No model that sees pictures is available on this site."),
+		image_unreadable: () => __("This picture could not be read."),
+		model_failed: () => __("The description failed: try again later."),
+	},
+
+	draw(frm) {
+		const field = frm.fields_dict.website_image;
+		if (!field || frm.is_new() || !(frm.perm && frm.perm[0] && frm.perm[0].write)) return;
+		if (!frm.doc.website_image && !frm.doc.slideshow) return;
+		const show = () => {
+			field.$wrapper.find(".wsp-alt-suggest").remove();
+			$(`<button type="button" class="btn btn-xs btn-default wsp-alt-suggest" style="margin-top: 8px;">${__("Describe the pictures with Nora")}</button>`)
+				.appendTo(field.$wrapper)
+				.on("click", () => this.suggest(frm));
+		};
+		// asked once per session: whether this site has a model that sees at all
+		if (webshop.seo.pictures.available === undefined) {
+			frappe.call({ method: "webshop.webshop.seo.alt_text.available", callback: (r) => {
+				webshop.seo.pictures.available = !!r.message;
+				if (webshop.seo.pictures.available) show();
+			} });
+		} else if (webshop.seo.pictures.available) {
+			show();
+		}
+	},
+
+	suggest(frm) {
+		if (frm.is_dirty()) {
+			frappe.msgprint(__("Save the item first: the descriptions are written to the saved item."));
+			return;
+		}
+		frappe.call({
+			method: "webshop.webshop.seo.alt_text.propose",
+			args: { name: frm.doc.name },
+			callback: (r) => r.message && this.dialog(frm, r.message),
+		});
+	},
+
+	dialog(frm, answer) {
+		const escape = frappe.utils.escape_html;
+		const rows = answer.pictures.map((picture, index) => `
+			<div class="wsp-alt-row" data-index="${index}" style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px;">
+				<img src="${escape(picture.image)}" alt="" style="width: 96px; height: 96px; object-fit: cover; border-radius: 6px; flex: none;">
+				<div style="flex: 1;">
+					<textarea class="form-control wsp-alt-text" rows="2" disabled placeholder="${escape(picture.alt || "")}"></textarea>
+					<div class="small text-muted wsp-alt-status" style="margin-top: 4px;">${__("Nora is looking at the picture…")}</div>
+				</div>
+			</div>`).join("");
+		const dialog = new frappe.ui.Dialog({
+			title: __("Nora's picture descriptions"),
+			size: "large",
+			fields: [{
+				fieldtype: "HTML",
+				fieldname: "list",
+				options: `${rows}<p class="small text-muted">${__("Each sentence is read aloud to those who cannot see the picture: check it against the picture before keeping it. An empty box keeps the current description.")}</p>`,
+			}],
+			primary_action_label: __("Use these descriptions"),
+			primary_action: () => {
+				const descriptions = {};
+				dialog.$wrapper.find(".wsp-alt-row").each((_i, row) => {
+					const text = $(row).find(".wsp-alt-text").val().trim();
+					if (text) descriptions[answer.pictures[$(row).data("index")].image] = text;
+				});
+				if (!Object.keys(descriptions).length) { dialog.hide(); return; }
+				frappe.call({
+					method: "webshop.webshop.seo.alt_text.save",
+					args: { name: frm.doc.name, descriptions },
+					freeze: true,
+					callback: (r) => {
+						dialog.hide();
+						frm.reload_doc();
+						frappe.show_alert({ message: __("{0} descriptions kept.", [(r.message && r.message.kept) || 0]), indicator: "green" });
+					},
+				});
+			},
+		});
+		const handler = (data) => {
+			if (!data || data.name !== frm.doc.name) return;
+			const reason = data.reason && (this.REASONS[data.reason] || this.REASONS.model_failed)();
+			if (data.image) {
+				const index = answer.pictures.findIndex((picture) => picture.image === data.image);
+				const row = dialog.$wrapper.find(`.wsp-alt-row[data-index="${index}"]`);
+				row.find(".wsp-alt-status").text(reason || "");
+				if (data.alt) row.find(".wsp-alt-text").val(data.alt);
+				row.find(".wsp-alt-text").prop("disabled", false);
+			}
+			if (data.done) {
+				dialog.$wrapper.find(".wsp-alt-text").prop("disabled", false);
+				dialog.$wrapper.find(".wsp-alt-status").each((_i, status) => {
+					if ($(status).text() === __("Nora is looking at the picture…")) $(status).text(reason || "");
+				});
+			}
+		};
+		frappe.realtime.on(answer.event, handler);
+		dialog.onhide = () => frappe.realtime.off(answer.event, handler);
+		dialog.show();
+	},
+};
+
 if (!webshop.seo.preview.registered) {
 	webshop.seo.preview.registered = true;
 	for (const doctype of ["Website Item", "Item Group", "Brand"]) {
 		frappe.ui.form.on(doctype, {
 			refresh(frm) {
 				webshop.seo.preview.load(frm);
-				if (frm.doctype === "Website Item") webshop.seo.description.draw(frm);
+				if (frm.doctype === "Website Item") {
+					webshop.seo.description.draw(frm);
+					webshop.seo.pictures.draw(frm);
+				}
 			},
 			seo_title(frm) {
 				webshop.seo.preview.draw(frm);

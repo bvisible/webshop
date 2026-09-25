@@ -5,7 +5,8 @@
 {# //// phone. Any picture opens the full-screen zoom (0c10921750, 2025-06-18). ▲▲▲ #}
 {%- set photos = [] -%}
 {%- if slides -%}
-	{%- for s in slides -%}{%- set _appended = photos.append({"image": s.image, "alt": s.heading or _('{0} — image {1}').format(_(doc.web_item_name), loop.index)}) -%}{%- endfor -%}
+	{#- //// Neoffice — a slide's own description first (image_alt, seo/alt_text.py, #691 D-11): its heading is a caption -#}
+	{%- for s in slides -%}{%- set _appended = photos.append({"image": s.image, "alt": s.image_alt or s.heading or _('{0} — image {1}').format(_(doc.web_item_name), loop.index)}) -%}{%- endfor -%}
 {%- elif doc.website_image -%}
 	{%- set _appended = photos.append({"image": doc.website_image, "alt": doc.website_image_alt or doc.item_name}) -%}
 {%- endif -%}

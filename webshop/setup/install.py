@@ -331,6 +331,8 @@ FIELD_PATCHES_RUN_AT_INSTALL = [
 	"add_seo_fields",
 	# //// Neoffice — the User field of an account opened before its address is confirmed (#691 D-9)
 	"add_email_confirmation_field",
+	# //// Neoffice — the description of each slideshow picture (#691 D-11)
+	"add_picture_alt_field",
 ]
 
 
