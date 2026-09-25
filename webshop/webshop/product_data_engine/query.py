@@ -3,11 +3,12 @@
 
 import frappe
 # //// Neoffice — cint import: needed by the enable_gift_cards catalogue filter below
-# //// (5100ecbe6d "fix(boutique): la case « cartes cadeaux » retire enfin la carte de la vitrine").
+# //// (5100ecbe6d: the "gift cards" box finally takes the gift card out of the shop window).
 from frappe.utils import cint, flt
 
 from webshop.webshop.doctype.item_review.item_review import get_customer
-from webshop.webshop.shopping_cart.product_info import get_product_info_for_website
+# //// Neoffice — the product info's body without its stock, for the cards (#691 lot 5)
+from webshop.webshop.shopping_cart.product_info import product_info_for_website
 from webshop.webshop.utils.product import get_non_stock_item_status
 # //// Neoffice — added imports: the loyalty message shown on a product card, and the
 # //// currency formatter that honours the shop's "hide currency symbol" setting
@@ -1123,9 +1124,11 @@ class ProductQuery:
 	def add_display_details(self, result, discount_list, cart_items):
 		"""Add price and availability details in result."""
 		for item in result:
-			product_info = get_product_info_for_website(item.item_code, skip_quotation_creation=True).get(
-				"product_info"
-			)
+			# //// Neoffice — the price only: the card's stock is get_stock_availability's, below,
+			# //// and was computed a second time, unread, inside the product info (#691 lot 5)
+			product_info = product_info_for_website(
+				item.item_code, skip_quotation_creation=True, with_stock=False
+			).get("product_info")
 
 			if product_info and product_info["price"]:
 				# update/mutate item and discount_list objects

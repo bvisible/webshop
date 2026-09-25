@@ -23,7 +23,16 @@ def get_product_info_for_website(item_code, skip_quotation_creation=False):
 	"""
 	Get product price / stock info for website
 	"""
+	# //// Neoffice — the body is product_info_for_website below, which a listing card calls
+	# //// without the stock (#691 lot 5); this endpoint answers exactly as before.
+	return product_info_for_website(item_code, skip_quotation_creation)
 
+
+# //// Neoffice — added (#691 lot 5, 2026-09-25): get_product_info_for_website's body, with a
+# //// switch. with_stock=False leaves out the stock, the backorder flag and the multi-warehouse
+# //// sources: the listing reads only the price here and computes each card's stock on its own
+# //// (product_data_engine/query.py get_stock_availability), so every card computed it twice.
+def product_info_for_website(item_code, skip_quotation_creation=False, with_stock=True):
 	cart_settings = get_shopping_cart_settings()
 	if not cart_settings.enabled:
 		# return settings even if cart is disabled
@@ -89,7 +98,7 @@ def get_product_info_for_website(item_code, skip_quotation_creation=False):
 
 	stock_status = None
 
-	if cart_settings.show_stock_availability:
+	if with_stock and cart_settings.show_stock_availability:  # //// Neoffice — see product_info_for_website
 		# //// Neoffice — one column, not the document: get_cached_value with filters cannot cache,
 		# //// and loaded the whole Website Item and its child tables for each card (#691 lot 5)
 		on_backorder = frappe.db.get_value("Website Item", {"item_code": item_code}, "on_backorder")
