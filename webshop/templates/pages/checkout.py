@@ -1452,7 +1452,11 @@ def get_payment_template(payment_gateway_account, context=None):
 			"amount": (context.get("amount")
 				or (quotation_doc.get("rounded_total") or quotation_doc.get("grand_total") if quotation_doc else 0)),
 			"quotation_id": context.get("quotation_id") or (quotation_doc.name if quotation_doc else ""),
-			"submit_id": f"submit_{gateway_info['type'].lower().replace(' ', '_')}",
+			# //// Neoffice — the tile's own id: the account's (context_ids above), else the one the page
+			# //// sent (checkout.js: submit-<tile>). Upstream overwrote it with one id per gateway TYPE, so
+			# //// two accounts of one gateway shared their ids — the second tile's terms label ticked the
+			# //// first tile's box, and its pay button was bound to the first (#691 lot 4).
+			"submit_id": context.get("submit_id") or f"submit_{gateway_info['type'].lower().replace(' ', '_')}",
 			"reference_doctype": context.get("reference_doctype") or "Quotation",
 			"reference_docname": context.get("reference_docname") or (quotation_doc.name if quotation_doc else ""),
 			"description": (context.get("description")

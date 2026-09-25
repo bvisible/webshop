@@ -8549,3 +8549,23 @@ msgstr ""
 #: webshop/public/js/override/seo_preview.js
 msgid "Nora only uses what the page says: check every word before saving."
 msgstr ""
+
+#: webshop/templates/includes/cart/cart_items.html:0
+msgid "Decrease quantity"
+msgstr ""
+
+#: webshop/templates/includes/cart/cart_items.html:0
+msgid "Increase quantity"
+msgstr ""
+
+#: webshop/templates/includes/coupon_form.html:0
+msgid "Apply coupon"
+msgstr ""
+
+#: webshop/templates/includes/loyalty_points_form.html:0
+msgid "Apply points"
+msgstr ""
+
+#: webshop/templates/includes/coupon_form.html:0
+msgid "Enter Coupon Code"
+msgstr ""

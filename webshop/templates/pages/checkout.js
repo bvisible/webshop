@@ -51,6 +51,13 @@ frappe.ready(function() {
                     }
                 }, 1000);
                 
+                //// Neoffice — the form behind the sign-in dialog is out of reach: a visitor's page
+                //// never initialises, so nothing handled its submit, and keyboard or script could still
+                //// fill and send it (the dialog lives on <body>, outside this wrapper). #691 lot 4.
+                const checkoutPage = document.querySelector('.checkout-page');
+                if (checkoutPage) checkoutPage.inert = true;
+                $('#address-form').on('submit', (event) => event.preventDefault());
+
                 // Prevent the rest of the checkout initialization for guests
                 return;
             }
@@ -1498,6 +1505,13 @@ frappe.ready(function() {
                     $number.removeClass('active');
                     $label.removeClass('active');
                 }
+                //// Neoffice — the current step is said, not only painted: steps 1 to N all
+                //// wear `active`, only aria-current names the one in progress (#691 lot 4).
+                if (stepNumber === Number(currentStep)) {
+                    $(item).attr('aria-current', 'step');
+                } else {
+                    $(item).removeAttr('aria-current');
+                }
             });
         }
 
@@ -1667,9 +1681,12 @@ frappe.ready(function() {
             $('#ship_to_different').on('change', async (e) => {
                 const isChecked = $(e.target).is(':checked');
 
+                //// Neoffice — required on the four fields the step validates (.shipping-required),
+                //// not on all nine: the markup told a browser, an agent or a screen reader that
+                //// the house number, line 2, state, email and phone were mandatory. #691 lot 4.
                 if (isChecked) {
                     shippingContainer.show();
-                    shippingFields.prop('required', true);
+                    shippingFields.filter('.shipping-required').prop('required', true);
                     shippingFields.prop('disabled', false);
                 } else {
                     shippingContainer.hide();
@@ -1715,7 +1732,7 @@ frappe.ready(function() {
                                     <input type="radio" 
                                            id="shipping_method_${method.name}" 
                                            name="shipping_method" 
-                                           class="custom-control-input hide"
+                                           class="custom-control-input"${/* //// Neoffice — no "hide" (display:none): the radio stays in the accessibility tree, custom-control-input still hides it visually (#691 lot 4) */ ''}
                                            value="${method.name}"
                                            data-rate="${method.rate}"
                                            ${methods.length === 1 || method.name === this.currentShippingMethod ? 'checked' : ''}>
@@ -1752,12 +1769,12 @@ frappe.ready(function() {
                     }
 
                 } else {
-                    container.html(`<div class="alert alert-warning">${__('No shipping methods available for your location')}</div>`);
+                    container.html(`<div role="alert" class="alert alert-warning">${__('No shipping methods available for your location')}</div>`); //// Neoffice — role="alert": announced, not only painted (#691 lot 4)
                 }
 
             } catch (error) {
                 console.error('Error loading shipping methods:', error);
-                container.html(`<div class="alert alert-danger">${__('Error loading shipping methods')}</div>`);
+                container.html(`<div role="alert" class="alert alert-danger">${__('Error loading shipping methods')}</div>`); //// Neoffice — role="alert": announced, not only painted (#691 lot 4)
             } finally {
                 this.unfreezeElements(['step-section', 'order-summary']);
             }
@@ -2550,8 +2567,9 @@ frappe.ready(function() {
 
                     if (r.message.error) {
                         console.error("Error loading payment methods:", r.message.message);
+                        //// Neoffice — role="alert" on the checkout's error boxes: announced, not only painted (#691 lot 4)
                         $('#payment-methods-container').html(`
-                            <div class="alert alert-danger">
+                            <div role="alert" class="alert alert-danger">
                                 ${r.message.message || __("An error occurred while loading payment methods")}
                             </div>
                         `);
@@ -2672,7 +2690,7 @@ frappe.ready(function() {
                                                     <input type="radio" 
                                                            id="method_${cleanId}" 
                                                            name="payment_method" 
-                                                           class="custom-control-input hide"
+                                                           class="custom-control-input"${/* //// Neoffice — see the shipping radios: no "hide", the choice is a radio a keyboard, a screen reader or an agent can reach (#691 lot 4) */ ''}
                                                            value="${method.id}"
                                                            data-rate="${method.rate}"
                                                            ${this.paymentMethods.length === 1 || method.id === this.currentMethod ? 'checked' : ''}>
@@ -2751,7 +2769,7 @@ frappe.ready(function() {
                             this._paymentMethodsLoading = false;
                             this.unfreeze('step-section');
                             $('#payment-methods-container').html(
-                                `<div class="alert alert-danger">${__('Payment methods could not be loaded. Please try again.')}</div>`
+                                `<div role="alert" class="alert alert-danger">${__('Payment methods could not be loaded. Please try again.')}</div>` //// Neoffice — announced (#691 lot 4)
                             );
                         }
                     });
@@ -2761,7 +2779,7 @@ frappe.ready(function() {
                     this._paymentMethodsLoading = false;
                     this.unfreeze('step-section');
                     $('#payment-methods-container').html(
-                        `<div class="alert alert-danger">${__('Payment methods could not be loaded. Please try again.')}</div>`
+                        `<div role="alert" class="alert alert-danger">${__('Payment methods could not be loaded. Please try again.')}</div>` //// Neoffice — announced (#691 lot 4)
                     );
                 }
             });
@@ -2956,7 +2974,10 @@ frappe.ready(function() {
             //// checkout.html. Without it this line invented its own wording and
             //// the same page showed two different terms names.
             const label = window.webshop_terms_label || __('terms and conditions');
-            const link = '<a href="#terms-title" class="terms-link">' +
+            //// Neoffice — the link has an id so the checkbox can be named by the label AND the
+            //// link (aria-labelledby below): outside the label, it left the box named "By paying,
+            //// I accept the", with no object (#691 lot 4).
+            const link = '<a href="#terms-title" class="terms-link" id="' + id + '-link">' +
                 frappe.utils.escape_html(label) + '</a>';
 
             //// Neoffice — a payment FRAME gets a mention, not a checkbox.
@@ -3002,8 +3023,9 @@ frappe.ready(function() {
             //// alone can be disputed — see the frame branch above for where that
             //// trade is deliberately made.
             const conditions = '<div class="form-check mt-3">' +
-                '<input type="checkbox" class="form-check-input cursor-pointer terms-acceptance" id="' + id + '" required>' +
-                '<label class="form-check-label cursor-pointer" for="' + id + '">' +
+                //// Neoffice — named by its label and the terms' link, see `link` above (#691 lot 4)
+                '<input type="checkbox" class="form-check-input cursor-pointer terms-acceptance" id="' + id + '" required aria-labelledby="' + id + '-label ' + id + '-link">' +
+                '<label class="form-check-label cursor-pointer" for="' + id + '" id="' + id + '-label">' +
                 //// Neoffice — say(), same reason as above: no __() catalogue on this page.
                 this.say('by_paying_i_accept', 'By paying, I accept the') + '</label> ' + link + '</div>';
             return '<div class="intent-action" style="position:relative">' +

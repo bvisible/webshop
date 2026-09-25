@@ -92,12 +92,15 @@
 
         <div class="mt-4 d-flex justify-content-between align-items-center">
             <div class="form-check mb-3" id="terms-container-{{ submit_id }}">
-                <input type="checkbox" class="form-check-input cursor-pointer terms-acceptance" id="terms-{{ submit_id }}" required>
-                <label class="form-check-label cursor-pointer" for="terms-{{ submit_id }}">
+                {# //// Neoffice — named by its labels and the terms' link (aria-labelledby): the link sits outside
+                   //// the label, which left the box named "I accept the", with no object (#691 lot 4) #}
+                {%- set specific_terms = payment_context.terms_title and payment_context.display_specific_conditions %}
+                <input type="checkbox" class="form-check-input cursor-pointer terms-acceptance" id="terms-{{ submit_id }}" required aria-labelledby="terms-label-{{ submit_id }} terms-link-{{ submit_id }}{% if specific_terms %} terms-specific-{{ submit_id }}{% endif %}">
+                <label class="form-check-label cursor-pointer" for="terms-{{ submit_id }}" id="terms-label-{{ submit_id }}">
                     {{ _("I accept the") }}</label>
-                <a href="#terms-title" class="terms-link">{{ cgv_tc_name or _("terms and conditions") }}</a>
-                {% if payment_context.terms_title and payment_context.display_specific_conditions %}
-                    <label class="form-check-label cursor-pointer" for="terms-{{ submit_id }}">
+                <a href="#terms-title" class="terms-link" id="terms-link-{{ submit_id }}">{{ cgv_tc_name or _("terms and conditions") }}</a>
+                {% if specific_terms %}
+                    <label class="form-check-label cursor-pointer" for="terms-{{ submit_id }}" id="terms-specific-{{ submit_id }}">
                         & {{ _("I accept the") }} {{ _( payment_context.terms_title ) }}</label>
                 {% endif %}
             </div>
