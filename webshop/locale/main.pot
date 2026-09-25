@@ -8601,3 +8601,31 @@ msgstr ""
 #: webshop/webshop/doctype/website_item/website_item.json
 msgid "Set when Nora's proposal filled the description: Google Shopping is told so (structured_description, trained_algorithmic_media)."
 msgstr ""
+
+#: webshop/webshop/auth/api.py
+msgid "Too many accounts were created in the last hour. Please try again later."
+msgstr ""
+
+#: webshop/webshop/auth/api.py
+msgid "Your account is open and you are signed in. We sent you an email to confirm your address and choose a password."
+msgstr ""
+
+#: webshop/templates/pages/checkout.html
+msgid "Your account is open. Confirm your email address with the link we sent you: you will choose your password there."
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "Open a new account at once"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "A customer who creates an account in the shop is signed in straight away and can order. The welcome email then confirms the address; payment on account waits for that confirmation. An address the shop already knows, and a site for business accounts only, keep the confirmation first."
+msgstr ""
+
+#: webshop/patches/add_email_confirmation_field.py
+msgid "Email address not confirmed yet"
+msgstr ""
+
+#: webshop/patches/add_email_confirmation_field.py
+msgid "Opened in the shop and signed in at once; the link of the welcome email confirms the address."
+msgstr ""

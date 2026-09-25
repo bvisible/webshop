@@ -684,6 +684,33 @@ audited for them (PRs #17, #18, #21). What must stay true:
 > reached the browser as `$<ol></ol>`, and the address options' ids with it (2026-09-25). Name
 > the variable otherwise; a comment spelling the placeholder out breaks the script the same way.
 
+### An account opened at once (decision D-9, #691)
+
+`webshop/webshop/auth/confirmation.py`. A shopper who creates an account in the sign-in dialog is
+**signed in at once** and can order. The welcome email's link then confirms the address and sets
+the password. Before, the account stayed shut until that link was clicked: the checkout's forced
+dialog came back, and an agent buying for somebody never got past it. Webshop Settings'
+`open_account_at_once` (on by default, `patches/add_email_confirmation_field`) is the switch.
+Until the link is clicked, the User carries `email_confirmation_pending`.
+
+- **Only an address the shop does not know is opened at once.** `get_party()` attaches a new
+  account to the Customer whose Contact carries its address, with that customer's addresses,
+  orders and invoices. Opening such an address without proof would hand a stranger somebody's
+  account, so it keeps the link first (a `Contact Email` row decides). A site for business
+  accounts only keeps it first too.
+- **The first way back in confirms the address.** The account has no password, so only the
+  mailbox leads back in: the welcome link (`update_password` with its key), a sign-in link, a
+  social login. The `on_login` hook clears the flag and closes every other session of the account,
+  so whoever opened it without owning the address loses the session they kept. It runs before
+  the new session exists, while `frappe.session` is the requester's. Staff signing in as the
+  customer (impersonation, `bench browse`) come with their own session, and prove nothing.
+- **Payment on account waits** (`utils/payment_methods.rows_for_group`): it ships before the money
+  is in. Card and transfer-before-shipping are unaffected.
+- `create_account` is limited to 20 accounts an hour per address (`rate_limit`) and honours
+  frappe's `max_signups_allowed_per_hour`. It no longer returns the exception's text to the
+  visitor. The dialog reloads the page signed in and shows the server's notice after the
+  reload (`sessionStorage`), because a website page resolves no new `__()` string.
+
 ### Where the features live on the desk
 
 The workspace `Webshop` (`webshop/webshop/workspace/webshop/`) sits next to
@@ -1832,7 +1859,7 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) — **green, and it runs**:
 > raised `Unknown column`, which the blanket `except` turned into "error
 > creating the payment request". Nobody could pay. Fixed in
 > `webshop/setup/install.py`: **a patch that creates a field belongs in
-> `CHAMPS_A_CREER_A_L_INSTALLATION`.**
+> `FIELD_PATCHES_RUN_AT_INSTALL`.**
 
 > **Filters in a drawer on every screen** is a Webshop Settings check (`filters_in_drawer`,
 > off by default): the listing's `body_class` gains `wsp-filters-drawer`, and the

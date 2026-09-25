@@ -210,6 +210,12 @@ def get_context(context):
 			frappe.local.flags.redirect_location = '/all-products'
 			raise frappe.Redirect
 	
+	# //// Neoffice — an account opened at once, whose address is not confirmed yet, is told so
+	# //// (auth/confirmation.py, #691 D-9)
+	from webshop.webshop.auth.confirmation import pending
+
+	context.email_confirmation_pending = pending()
+
 	# Check if B2B checkout is enabled
 	if settings.activate_b2b_checkout:
 		# Get cart information to check if it's a B2B customer

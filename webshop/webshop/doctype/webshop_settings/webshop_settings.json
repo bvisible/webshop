@@ -60,6 +60,7 @@
   "enable_checkout_page",
   "enable_guest_cart",
   "guest_customer",
+  "open_account_at_once",
   "show_price_in_quotation",
   "column_break_27",
   "save_quotations_as_draft",
@@ -757,6 +758,13 @@
    "options": "Customer"
   },
   {
+   "default": "1",
+   "description": "A customer who creates an account in the shop is signed in straight away and can order. The welcome email then confirms the address; payment on account waits for that confirmation. An address the shop already knows, and a site for business accounts only, keep the confirmation first.",
+   "fieldname": "open_account_at_once",
+   "fieldtype": "Check",
+   "label": "Open a new account at once"
+  },
+  {
    "depends_on": "doc.enabled",
    "fieldname": "store_page_docs",
    "fieldtype": "HTML"
@@ -1443,7 +1451,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-24 21:00:00.000000",
+ "modified": "2026-09-25 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

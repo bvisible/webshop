@@ -299,8 +299,8 @@ patches = [
 # ////
 # //// Every one of these checks before it writes, so replaying them is free.
 # //// RULE: a patch that creates a field belongs in this list, in patches.txt
-# //// order.
-CHAMPS_A_CREER_A_L_INSTALLATION = [
+# //// order. (Renamed from its French name on 2026-09-25: code is English, RULE #00.)
+FIELD_PATCHES_RUN_AT_INSTALL = [
 	"add_shipping_rule_description",
 	"add_loyalty_points_reduction_field",
 	"add_loyalty_point_entry_field",
@@ -329,6 +329,8 @@ CHAMPS_A_CREER_A_L_INSTALLATION = [
 	"add_google_shopping_fields",
 	# //// Neoffice — the Search engines fields of Item Group and Brand (#691 lot 6)
 	"add_seo_fields",
+	# //// Neoffice — the User field of an account opened before its address is confirmed (#691 D-9)
+	"add_email_confirmation_field",
 ]
 
 
@@ -338,7 +340,7 @@ def run_patches():
 	frappe.flags.in_patch = True
 
 	try:
-		for patch in patches + CHAMPS_A_CREER_A_L_INSTALLATION:
+		for patch in patches + FIELD_PATCHES_RUN_AT_INSTALL:  # //// Neoffice — see the list's rename above
 			try:
 				frappe.get_attr(f"webshop.patches.{patch}.execute")()
 			except Exception:

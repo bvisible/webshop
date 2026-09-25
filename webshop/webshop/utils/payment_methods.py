@@ -85,7 +85,14 @@ def rows_for_group(settings=None, customer_group=None):
 		key = row.payment_gateway_account
 		if key not in best or score < best[key][0]:
 			best[key] = (score, row)
-	return [row for _score, row in best.values()]
+	rows = [row for _score, row in best.values()]
+	# //// Neoffice — paying on account ships before the money is in: an account opened before its
+	# //// address is confirmed is not offered it until then (auth/confirmation.py, #691 D-9)
+	from webshop.webshop.auth.confirmation import pending
+
+	if pending():
+		rows = [row for row in rows if (row.get("settlement") or "Online") != "On account"]
+	return rows
 
 
 def row_for_gateway(gateway_account, settings=None, customer_group=None):

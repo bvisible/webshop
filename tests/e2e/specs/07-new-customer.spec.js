@@ -1,6 +1,6 @@
 //// Neoffice — added file (no upstream equivalent).
 //// The full journey of someone who has never bought here: create an account,
-//// activate it, fill a cart, and pay by card.
+//// signed in at once (D-9, #691), activate it, fill a cart, and pay by card.
 ////
 //// This is the scenario the other specs do NOT cover. 01-authentication stops
 //// at "the account exists"; 05-stripe-payment starts from an account that
@@ -65,10 +65,14 @@ test.describe('A new customer, from signing up to their order', () => {
 			)
 			.toBe(true);
 
-		//// And yet they must not be signed in: the account is created without a
-		//// password, activation goes through the link received. An "account
-		//// created" that opened a session without a password would be a hole.
-		expect(await currentUser(page), 'a session was opened without activation').toBe('Guest');
+		//// And they are signed in at once (decision D-9, #691): a first order no longer waits on
+		//// a mailbox. It is safe because only an address the shop does not know is opened this
+		//// way — a known one would be attached to its customer's orders by get_party() — and the
+		//// link received then confirms the address and closes every other session of the account
+		//// (webshop/webshop/auth/confirmation.py). The throwaway address is new by construction.
+		await expect
+			.poll(async () => currentUser(page), {timeout: 20_000, message: 'the new account is not signed in'})
+			.toBe(email);
 	});
 
 	test('they activate their account through the link they received', async ({page}) => {
