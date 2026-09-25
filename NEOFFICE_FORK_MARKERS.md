@@ -59,8 +59,11 @@ Custom Fields if we ever want to shrink the divergence.
   `image_focus` + `section_break_qjfe` (per-item image focus point, so a cover-fit
   card does not cut a face); `warehouse_sources_mode`,
   `additional_warehouse_sources` (multi-warehouse override); `seo_title`,
-  `seo_description`, `seo_preview` in the "Search and SEO" section (the page's title and
-  description for search engines, seo/page_meta.py, #691 lot 6, 2026-09-25).
+  `seo_description`, `seo_ai_assisted`, `seo_ai_assisted_on`, `seo_preview` in the "Search
+  and SEO" section (the page's title and description for search engines, seo/page_meta.py,
+  and whether Nora wrote them, #691 lot 6, 2026-09-25); `description_ai_assisted` after
+  `web_long_description` (Nora's description kept by the merchant, declared to Google
+  Shopping as structured_description, seo/feeds/google.py, 2026-09-25).
 - removed: `column_break_27`, `column_break_11` — layout only, dropped when the
   sections above were inserted.
 - `field_order` re-shuffled accordingly.

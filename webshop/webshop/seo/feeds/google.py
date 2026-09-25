@@ -301,6 +301,15 @@ def item_entry(doc, settings, excluded, mapping) -> tuple[dict | None, str | Non
 		"availability": AVAILABILITY.get(availability, "out_of_stock"),
 		"condition": CONDITION.get(doc.get("item_condition") or "New", "new"),
 	}
+	# A description Nora proposed and the merchant kept is declared as such: Merchant Center asks
+	# that text made with generative AI come as structured_description, marked
+	# trained_algorithmic_media (#691 lot 6). Only when it IS the description sent: a product
+	# without one sends its name, which nobody generated.
+	if doc.get("description_ai_assisted") and html_to_text(doc.web_long_description or "", 1):
+		entry["structured_description"] = {
+			"digital_source_type": "trained_algorithmic_media",
+			"content": entry["description"],
+		}
 	# The page's struck price is `price` and what the buyer pays is `sale_price` (Google).
 	if offer.struck_price:
 		entry["price"] = money(offer.struck_price, offer.currency)
@@ -404,7 +413,12 @@ def render_xml(entries: list[dict], title: str, link: str) -> str:
 		lines.append("<item>")
 		for key, value in entry.items():
 			for single in value if isinstance(value, list) else [value]:
-				lines.append(f"<g:{key}>{escape(str(single))}</g:{key}>")
+				if isinstance(single, dict):
+					# a group of sub-attributes (structured_description)
+					inner = "".join(f"<g:{k}>{escape(str(v))}</g:{k}>" for k, v in single.items())
+					lines.append(f"<g:{key}>{inner}</g:{key}>")
+				else:
+					lines.append(f"<g:{key}>{escape(str(single))}</g:{key}>")
 		lines.append("</item>")
 	lines += ["</channel>", "</rss>", ""]
 	return "\n".join(lines)

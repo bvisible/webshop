@@ -49,6 +49,21 @@ def title_room(shop: str) -> int:
 	return max(TITLE_LIMIT - len(f" | {shop}"), TITLE_FLOOR)
 
 
+# The model reads this: French, like SYSTEM above.
+DESCRIBE = (
+	"Tu rédiges la description d'une fiche produit d'une boutique en ligne, celle que le client lit sous "
+	"le nom du produit. Tu n'utilises que les faits donnés : tu n'inventes ni caractéristique, ni usage, "
+	"ni matière, ni prix, ni promesse de livraison, de garantie ou de stock. Si un fait manque, tu n'en "
+	"parles pas. Pas de superlatif gratuit, pas de majuscules d'accroche, pas d'emoji, pas le nom de la "
+	"boutique. Deux ou trois paragraphes courts, entre {low} et {high} mots en tout : ce qu'est le "
+	"produit et à qui il sert, puis ce que disent ses caractéristiques, en phrases. Rédige en {language}. "
+	'Réponds uniquement par un objet JSON {{"paragraphs": ["…", "…"]}}.'
+)
+DESCRIPTION_WORDS = (70, 170)
+# what a product needs before a model may describe it: its name and at least two of these
+ENOUGH_FACTS = 2
+
+
 def site_language() -> str:
 	code = (frappe.get_system_settings("language") or "fr").split("-")[0]
 	return LANGUAGES.get(code, "français")
@@ -160,5 +175,64 @@ def suggest(doctype: str, name: str):
 		"description": one_line(proposal.description, DESCRIPTION_LIMIT + 45),
 		# what the page will print, the shop's name included: the dialog shows and counts this one
 		"page_title": page_meta.with_shop_name(title, shop),
+		"model": answer.model,
+	}
+
+
+def known_facts(doc) -> int:
+	"""How many things the page says about a product beyond its name: its brand, its category, a
+	description of some length, its characteristics (two or more count as one fact each, up to two)."""
+	count = bool(doc.get("brand")) + bool(doc.get("item_group"))
+	text = html_to_text(doc.get("web_long_description") or doc.get("description") or "", FACT_LIMIT)
+	count += len(text) >= 40
+	characteristics = [row for row in (doc.get("website_specifications") or []) if row.get("label") and row.get("description")]
+	return count + min(len(characteristics), 2)
+
+
+def paragraphs_of(content: str) -> list[str]:
+	"""The model's paragraphs, or an empty list: it may wrap its JSON object in a fence or a sentence."""
+	found = re.search(r"\{.*\}", content or "", re.DOTALL)
+	if not found:
+		return []
+	try:
+		data = json.loads(found.group(0))
+	except ValueError:
+		return []
+	paragraphs = data.get("paragraphs") if isinstance(data, dict) else None
+	if not isinstance(paragraphs, list):
+		return []
+	return [text for text in (one_line(str(p), 900) for p in paragraphs[:4]) if text]
+
+
+@frappe.whitelist()
+def describe(name: str):
+	"""Nora's proposal for a product page's description; nothing is written.
+
+	The facts are the page's own (the same as the title's), and a product the page says too little
+	about gets no proposal: with a name alone, a model can only invent."""
+	frappe.has_permission("Website Item", "write", name, throw=True)
+	doc = frappe.get_doc("Website Item", name)
+	if known_facts(doc) < ENOUGH_FACTS:
+		frappe.throw(
+			_(
+				"This page says too little about the product to describe it without inventing: add its "
+				"brand, its characteristics or a few words of description first."
+			)
+		)
+	from webshop.webshop.assistant import llm
+
+	low, high = DESCRIPTION_WORDS
+	system = DESCRIBE.format(low=low, high=high, language=site_language())
+	answer = llm.complete(
+		[{"role": "system", "content": system}, {"role": "user", "content": facts("Website Item", doc)}],
+		temperature=0.3,
+		max_tokens=900,
+	)
+	paragraphs = paragraphs_of(answer.content)
+	if not paragraphs:
+		frappe.throw(_("Nora gave no usable proposal. Try again."))
+	return {
+		"html": "".join(f"<p>{frappe.utils.escape_html(text)}</p>" for text in paragraphs),
+		"words": sum(len(text.split()) for text in paragraphs),
 		"model": answer.model,
 	}

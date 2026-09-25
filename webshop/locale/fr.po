@@ -8651,3 +8651,35 @@ msgstr "Appliquer les points"
 #: webshop/templates/includes/coupon_form.html:0
 msgid "Enter Coupon Code"
 msgstr "Entrez le code promo"
+
+#: webshop/public/js/override/seo_preview.js:0
+msgid "Propose a description with Nora"
+msgstr "Proposer une description avec Nora"
+
+#: webshop/public/js/override/seo_preview.js:0
+msgid "Nora's description"
+msgstr "Description de Nora"
+
+#: webshop/public/js/override/seo_preview.js:0
+msgid "{0} words"
+msgstr "{0} mots"
+
+#: webshop/public/js/override/seo_preview.js:0
+msgid "It replaces the current description."
+msgstr "Elle remplace la description actuelle."
+
+#: webshop/public/js/override/seo_preview.js:0
+msgid "Use this description"
+msgstr "Utiliser cette description"
+
+#: webshop/webshop/seo/suggestions.py:0
+msgid "This page says too little about the product to describe it without inventing: add its brand, its characteristics or a few words of description first."
+msgstr "Cette page dit trop peu sur le produit pour le décrire sans inventer : ajoutez d'abord sa marque, ses caractéristiques ou quelques mots de description."
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Description written with AI assistance"
+msgstr "Description rédigée avec l'aide de l'IA"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Set when Nora's proposal filled the description: Google Shopping is told so (structured_description, trained_algorithmic_media)."
+msgstr "Coché quand une proposition de Nora a rempli la description : Google Shopping en est informé (structured_description, trained_algorithmic_media)."
