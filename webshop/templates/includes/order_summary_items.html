@@ -33,13 +33,18 @@
               {% set disabled = 'disabled' if item.get("gift_card_data") else '' %}
               <div class="input-group number-spinner" style="width: 120px;">
                 <span class="input-group-prepend">
-                  <button class="btn cart-btn" data-dir="dwn" {{ disabled }}>
+                  {#- //// Neoffice — type and name: a "–" alone named the button "–" (#691 lot 4) -#}
+                  <button type="button" class="btn cart-btn" data-dir="dwn" aria-label="{{ _('Decrease quantity') }}" {{ disabled }}>
                     {{ '–' if not item.get("gift_card_data") else '' }}
                   </button>
                 </span>
+                {#- //// Neoffice — named and with a number keypad (#691 lot 4) -#}
                 <input
                   class="form-control text-center cart-qty"
-                  {#- //// Neoffice — a whole quantity prints without ".0" -#}
+                  aria-label="{{ _('Quantity') }}"
+                  inputmode="decimal"
+                  {# //// Neoffice — a whole quantity prints without ".0". A plain comment: the
+                     //// whitespace-trimming form glued this attribute to the one before it #}
                   value="{{ item["qty"] | int if item["qty"] == item["qty"] | int else item["qty"] }}"
                   data-item-code="{{ item["item_code"] }}"
                   data-warehouse="{{ item.warehouse or '' }}"
@@ -47,7 +52,8 @@
                   {{ disabled }}
                 />
                 <span class="input-group-append">
-                  <button class="btn cart-btn" data-dir="up" {{ disabled }}>
+                  {#- //// Neoffice — type and name (#691 lot 4) -#}
+                  <button type="button" class="btn cart-btn" data-dir="up" aria-label="{{ _('Increase quantity') }}" {{ disabled }}>
                     {{ '+' if not item.get("gift_card_data") else '' }}
                   </button>
                 </span>

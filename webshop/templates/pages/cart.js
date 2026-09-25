@@ -94,6 +94,14 @@ $.extend(shopping_cart, {
 	},
 
 	bind_remove_cart_item: function() {
+		//// Neoffice — the remove control is a role="button" (cart_items.html): Enter and Space
+		//// press it, as they press a button (#691 lot 4).
+		$(".cart-items").on("keydown", ".remove-cart-item", (e) => {
+			if (e.key === "Enter" || e.key === " ") {
+				e.preventDefault();
+				$(e.currentTarget).trigger("click");
+			}
+		});
 		$(".cart-items").on("click", ".remove-cart-item", (e) => {
 			const $remove_cart_item_btn = $(e.currentTarget);
 			var item_code = $remove_cart_item_btn.data("item-code");

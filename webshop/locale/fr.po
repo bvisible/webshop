@@ -8631,3 +8631,23 @@ msgstr "Les champs sont remplis : relisez-les, puis enregistrez."
 #: webshop/public/js/override/seo_preview.js
 msgid "Nora only uses what the page says: check every word before saving."
 msgstr "Nora ne se base que sur ce que la page affiche : vérifiez chaque mot avant d'enregistrer."
+
+#: webshop/templates/includes/cart/cart_items.html:0
+msgid "Decrease quantity"
+msgstr "Diminuer la quantité"
+
+#: webshop/templates/includes/cart/cart_items.html:0
+msgid "Increase quantity"
+msgstr "Augmenter la quantité"
+
+#: webshop/templates/includes/coupon_form.html:0
+msgid "Apply coupon"
+msgstr "Appliquer le code promo"
+
+#: webshop/templates/includes/loyalty_points_form.html:0
+msgid "Apply points"
+msgstr "Appliquer les points"
+
+#: webshop/templates/includes/coupon_form.html:0
+msgid "Enter Coupon Code"
+msgstr "Entrez le code promo"

@@ -19,7 +19,8 @@
 					<div class="step-label active">{{ _("Cart") }}</div>
 				</a>
 			</div>
-			<div class="step-item">
+			{# //// Neoffice — the step in progress when the page opens; checkout.js moves it (#691 lot 4) #}
+			<div class="step-item" aria-current="step">
 				<div class="step-number active">2</div>
 				<div class="step-label active">{{ _("Information") }}</div>
 			</div>
@@ -40,9 +41,12 @@
 			<div class="col-md-8 col-12 order-md-1 order-2">
 				<!-- Step 1: Information -->
 				<section id="step-address" class="step-section mb-6 active">
-					<h3 class="mt-0 mobile-margin-top"><span class="wave">👋</span> {{ _("Hello") }} {{ contact_first_name or "" }} {{ contact_last_name or "" }}</h3>
+					<h3 class="mt-0 mobile-margin-top"><span class="wave" aria-hidden="true">👋</span>{# //// Neoffice — decoration, not a word of the heading #} {{ _("Hello") }} {{ contact_first_name or "" }} {{ contact_last_name or "" }}</h3>
 					<p class="text-muted">{{ _("Welcome in checkout. Please fill in your information below.") }}</p>
-					<form id="address-form">
+					{# //// Neoffice — POST: with no method the form was a GET, and a submit that no script
+					   //// caught (a visitor, whose page never initialises) put names, email and address in the
+					   //// URL, the server logs and the browser history (#691 lot 4) #}
+					<form id="address-form" method="post">
 						<!-- Billing Address -->
 						<div class="mb-4">
 							<h5 class="mb-3">{{ _("Your information") }}</h5>
@@ -53,7 +57,8 @@
 										<label for="contact_first_name">{{ _("First Name") }} *</label>
 										<input type="text" 
 												class="form-control" 
-												id="contact_first_name" 
+												id="contact_first_name"
+												autocomplete="given-name" {# //// Neoffice — autofill token (#691 lot 4) #} 
 												name="contact_first_name" 
 												value="{{ contact_first_name or '' }}"
 												required>
@@ -62,7 +67,8 @@
 										<label for="contact_last_name">{{ _("Last Name") }} *</label>
 										<input type="text" 
 												class="form-control" 
-												id="contact_last_name" 
+												id="contact_last_name"
+												autocomplete="family-name" {# //// Neoffice — autofill token (#691 lot 4) #} 
 												name="contact_last_name" 
 												value="{{ contact_last_name or '' }}"
 												required>
@@ -73,7 +79,8 @@
 									<label for="customer_name">{{ _("Company") }}</label>
 									<input type="text" 
 										class="form-control" 
-										id="customer_name" 
+										id="customer_name"
+										autocomplete="organization" {# //// Neoffice — autofill token (#691 lot 4) #} 
 										name="customer_name" 
 										value="{{ customer_name or '' }}"
 										placeholder="{{ _('Optional') }}">
@@ -85,7 +92,8 @@
 									<label for="contact_email">{{ _("Email") }} *</label>
 									<input type="email" 
 											class="form-control" 
-											id="contact_email" 
+											id="contact_email"
+											autocomplete="email" {# //// Neoffice — autofill token (#691 lot 4) #} 
 											name="contact_email" 
 											value="{{ contact_email or '' }}"
 											required>
@@ -95,7 +103,8 @@
 									<label for="contact_phone">{{ _("Phone") }} *</label>
 									<input type="tel" 
 											class="form-control" 
-											id="contact_phone" 
+											id="contact_phone"
+											autocomplete="tel" {# //// Neoffice — autofill token (#691 lot 4) #} 
 											name="contact_phone" 
 											value="{{ contact_phone or '' }}"
 											required>
@@ -123,6 +132,7 @@
 										<input type="text"
 												class="form-control"
 												id="billing_address_1"
+												autocomplete="billing address-line1" {# //// Neoffice — autofill token (#691 lot 4) #}
 												name="billing_address_1"
 												value="{{ billing_address_1 or '' }}"
 												required>
@@ -141,7 +151,8 @@
 									<label for="billing_address_2">{{ _("Address Line 2") }}</label>
 									<input type="text" 
 											class="form-control" 
-											id="billing_address_2" 
+											id="billing_address_2"
+											autocomplete="billing address-line2" {# //// Neoffice — autofill token (#691 lot 4) #} 
 											name="billing_address_2" 
 											value="{{ billing_address_2 or '' }}"
 											placeholder="{{ _('Apartment, suite, etc. (optional)') }}">
@@ -152,7 +163,8 @@
 										<label for="billing_postcode">{{ _("Postal Code") }} *</label>
 										<input type="text" 
 												class="form-control" 
-												id="billing_postcode" 
+												id="billing_postcode"
+												autocomplete="billing postal-code" {# //// Neoffice — autofill token (#691 lot 4) #} 
 												name="billing_postcode" 
 												value="{{ billing_postcode or '' }}"
 												required>
@@ -161,7 +173,8 @@
 										<label for="billing_city">{{ _("City") }} *</label>
 										<input type="text" 
 												class="form-control" 
-												id="billing_city" 
+												id="billing_city"
+												autocomplete="billing address-level2" {# //// Neoffice — autofill token (#691 lot 4) #} 
 												name="billing_city" 
 												value="{{ billing_city or '' }}"
 												required>
@@ -170,10 +183,11 @@
 										<label for="billing_state">{{ _("State") }}</label>
 										<input type="text" 
 												class="form-control" 
-												id="billing_state" 
+												id="billing_state"
+												autocomplete="billing address-level1" {# //// Neoffice — autofill token (#691 lot 4) #} 
 												name="billing_state" 
 												value="{{ billing_state or '' }}"
-												required>
+												{# //// Neoffice — not required: checkout.js does not ask for it, the markup no longer says it does #}>
 									</div>
 								</div>
 
@@ -181,6 +195,7 @@
 									<label for="billing_country">{{ _("Country") }} *</label>
 									<select class="form-control"
 											id="billing_country"
+											autocomplete="billing country-name" {# //// Neoffice — autofill token (#691 lot 4) #}
 											name="billing_country"
 											required>
 										<option value="">{{ _("Select a country") }}</option>
@@ -197,19 +212,21 @@
 									<label for="billing_email">{{ _("Email") }}</label>
 									<input type="email" 
 											class="form-control" 
-											id="billing_email" 
+											id="billing_email"
+											autocomplete="billing email" {# //// Neoffice — autofill token (#691 lot 4) #} 
 											name="billing_email" 
 											value="{{ billing_email or '' }}"
-											required>
+											{# //// Neoffice — not required: checkout.js does not ask for it, the markup no longer says it does #}>
 									</div>
 									<div class="col-md-6 mb-3">
 									<label for="billing_phone">{{ _("Phone") }}</label>
 									<input type="tel" 
 											class="form-control" 
-											id="billing_phone" 
+											id="billing_phone"
+											autocomplete="billing tel" {# //// Neoffice — autofill token (#691 lot 4) #} 
 											name="billing_phone" 
 											value="{{ billing_phone or '' }}"
-											required>
+											{# //// Neoffice — not required: checkout.js does not ask for it, the markup no longer says it does #}>
 									</div>
 								</div>
 							</div>
@@ -242,8 +259,9 @@
 									<div class="col-md-9 mb-3">
 										<label for="shipping_address_1">{{ _("Address Line 1") }} *</label>
 										<input type="text"
-												class="form-control shipping-field"
+												class="form-control shipping-field shipping-required" {# //// Neoffice — validated by checkout.js #}
 												id="shipping_address_1"
+												autocomplete="shipping address-line1" {# //// Neoffice — autofill token (#691 lot 4) #}
 												name="shipping_address_1"
 												value="{{ shipping_address_1 or '' }}">
 									</div>
@@ -261,7 +279,8 @@
 									<label for="shipping_address_2">{{ _("Address Line 2") }}</label>
 									<input type="text" 
 											class="form-control shipping-field" 
-											id="shipping_address_2" 
+											id="shipping_address_2"
+											autocomplete="shipping address-line2" {# //// Neoffice — autofill token (#691 lot 4) #} 
 											name="shipping_address_2" 
 											value="{{ shipping_address_2 or '' }}"
 											placeholder="{{ _('Apartment, suite, etc. (optional)') }}">
@@ -271,16 +290,18 @@
 									<div class="col-md-3 mb-3">
 										<label for="shipping_postcode">{{ _("Postal Code") }} *</label>
 										<input type="text" 
-												class="form-control shipping-field" 
-												id="shipping_postcode" 
+												class="form-control shipping-field shipping-required" {# //// Neoffice — validated by checkout.js #} 
+												id="shipping_postcode"
+												autocomplete="shipping postal-code" {# //// Neoffice — autofill token (#691 lot 4) #} 
 												name="shipping_postcode" 
 												value="{{ shipping_postcode or '' }}">
 									</div>
 									<div class="col-md-6 mb-3">
 										<label for="shipping_city">{{ _("City") }} *</label>
 										<input type="text" 
-												class="form-control shipping-field" 
-												id="shipping_city" 
+												class="form-control shipping-field shipping-required" {# //// Neoffice — validated by checkout.js #} 
+												id="shipping_city"
+												autocomplete="shipping address-level2" {# //// Neoffice — autofill token (#691 lot 4) #} 
 												name="shipping_city" 
 												value="{{ shipping_city or '' }}">
 									</div>
@@ -288,7 +309,8 @@
 										<label for="shipping_state">{{ _("State") }}</label>
 										<input type="text" 
 												class="form-control shipping-field" 
-												id="shipping_state" 
+												id="shipping_state"
+												autocomplete="shipping address-level1" {# //// Neoffice — autofill token (#691 lot 4) #} 
 												name="shipping_state" 
 												value="{{ shipping_state or '' }}">
 									</div>
@@ -296,8 +318,9 @@
 
 								<div class="mb-3">
 									<label for="shipping_country">{{ _("Country") }} *</label>
-									<select class="form-control shipping-field"
+									<select class="form-control shipping-field shipping-required" {# //// Neoffice — validated by checkout.js #}
 											id="shipping_country"
+											autocomplete="shipping country-name" {# //// Neoffice — autofill token (#691 lot 4) #}
 											name="shipping_country">
 										<option value="">{{ _("Select a country") }}</option>
 										{% for country in frappe.get_all("Country", fields=["name", "country_name"]) %}
@@ -313,19 +336,21 @@
 									<label for="shipping_email">{{ _("Email") }}</label>
 									<input type="email" 
 											class="form-control shipping-field" 
-											id="shipping_email" 
+											id="shipping_email"
+											autocomplete="shipping email" {# //// Neoffice — autofill token (#691 lot 4) #} 
 											name="shipping_email" 
 											value="{{ shipping_email or '' }}"
-											required>
+											{# //// Neoffice — not required: checkout.js does not ask for it, the markup no longer says it does #}>
 									</div>
 									<div class="col-md-6 mb-3">
 									<label for="shipping_phone">{{ _("Phone") }}</label>
 									<input type="tel" 
 											class="form-control shipping-field" 
-											id="shipping_phone" 
+											id="shipping_phone"
+											autocomplete="shipping tel" {# //// Neoffice — autofill token (#691 lot 4) #} 
 											name="shipping_phone" 
 											value="{{ shipping_phone or '' }}"
-											required>
+											{# //// Neoffice — not required: checkout.js does not ask for it, the markup no longer says it does #}>
 									</div>
 								</div>
 							</div>

@@ -91,7 +91,8 @@
 					{% endif %}
 
 					<div class="mt-2 notes">
-						<textarea data-item-code="{{d.item_code}}" data-warehouse="{{ d.warehouse or '' }}" class="form-control" rows="2" placeholder="{{ _('Add notes') }}">{{d.additional_notes or ''}}</textarea>
+						{# //// Neoffice — named: a placeholder is no label (#691 lot 4). #}
+						<textarea data-item-code="{{d.item_code}}" data-warehouse="{{ d.warehouse or '' }}" class="form-control" rows="2" placeholder="{{ _('Add notes') }}" aria-label="{{ _('Add notes') }}">{{d.additional_notes or ''}}</textarea>
 					</div>
 				</div>
 			</div>
@@ -116,7 +117,8 @@
 				{% set disabled = 'disabled' if d.is_free_item or d.gift_card_data or booking_extra_of else '' %}
 				<div class="input-group number-spinner mt-1 mb-4 mr-2">
 					<span class="input-group-prepend d-sm-inline-block">
-						<button class="btn cart-btn" data-dir="dwn" {{ disabled }}>
+						{# //// Neoffice — type and name: a "–" alone named the button "–" (#691 lot 4). #}
+						<button type="button" class="btn cart-btn" data-dir="dwn" aria-label="{{ _('Decrease quantity') }}" {{ disabled }}>
 							{# //// Neoffice — same three cases (see above). #}
 							{# //// Neoffice — `lie` renamed booking_extra_of (RULE #00). #}
 							{{ '–' if not (d.is_free_item or d.gift_card_data or booking_extra_of) else ''}}
@@ -126,11 +128,13 @@
 					{# //// Neoffice — the line carries its warehouse: with multi-warehouse the same product #}
 					{# //// can be in the cart twice, from two sources, and the item code alone no longer #}
 					{# //// identifies the line (5bf2e88a1b, 2026-08-25). #}
+					{# //// Neoffice — named and with a number keypad (#691 lot 4). #}
 					<input class="form-control text-center cart-qty" value="{{ d.get_formatted('qty') }}" data-item-code="{{ d.item_code }}" data-warehouse="{{ d.warehouse or '' }}"
-						style="max-width: 70px;" {{ disabled }}>
+						aria-label="{{ _('Quantity') }}" inputmode="decimal" style="max-width: 70px;" {{ disabled }}>
 
 					<span class="input-group-append d-sm-inline-block">
-						<button class="btn cart-btn" data-dir="up" {{ disabled }}>
+						{# //// Neoffice — type and name, see the other button (#691 lot 4). #}
+						<button type="button" class="btn cart-btn" data-dir="up" aria-label="{{ _('Increase quantity') }}" {{ disabled }}>
 							{# //// Neoffice — same three cases (see above). #}
 							{# //// Neoffice — `lie` renamed booking_extra_of (RULE #00). #}
 							{{ '+' if not (d.is_free_item or d.gift_card_data or booking_extra_of) else ''}}
@@ -142,11 +146,15 @@
 				<div>
 					{% if not d.is_free_item %}
 						{# //// Neoffice — the remove button also carries the warehouse (see #8). #}
-						<div class="remove-cart-item d-flex" data-item-code="{{ d.item_code }}" data-warehouse="{{ d.warehouse or '' }}">
+						{# //// Neoffice — a button for the keyboard and the accessibility tree (role, tab stop, name; #}
+						{# //// Enter and Space in cart.js), and no id on the drawing: every line printed #}
+						{# //// id="icon-close", the id of frappe's own close symbol, which <use href="#icon-close"> #}
+						{# //// could then resolve to (#691 lot 4). #}
+						<div class="remove-cart-item d-flex" data-item-code="{{ d.item_code }}" data-warehouse="{{ d.warehouse or '' }}" role="button" tabindex="0" aria-label="{{ _('Remove') }}">
 							<span>
 								<svg class="icon sm remove-cart-item-logo"
 									width="18" height="18" viewBox="0 0 18 18"
-									xmlns="http://www.w3.org/2000/svg" id="icon-close">
+									xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 									<path fill-rule="evenodd" clip-rule="evenodd" d="M4.146 11.217a.5.5 0 1 0 .708.708l3.182-3.182 3.181 3.182a.5.5 0 1 0 .708-.708l-3.182-3.18 3.182-3.182a.5.5 0 1 0-.708-.708l-3.18 3.181-3.183-3.182a.5.5 0 0 0-.708.708l3.182 3.182-3.182 3.181z" stroke-width="0"></path>
 								</svg>
 							</span>
