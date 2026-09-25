@@ -357,163 +357,20 @@ def get_discount_filters(discounts):
 	return discount_filters
 
 
-@frappe.whitelist(allow_guest=True)
-def get_all_variants_info(item_code):
-	"""Get all variants information for a template item.
-	
-	Args:
-		item_code: The template item code
-		
-	Returns:
-		Dict containing variants data with attributes, prices, stock info
-	"""
-	# Get the template item
-	template_item = frappe.get_doc("Item", item_code)
-	
-	if not template_item.has_variants:
-		return {"variants": []}
-	
-	# Get all variants
-	variants = frappe.get_all(
-		"Item",
-		filters={"variant_of": item_code, "disabled": 0},
-		fields=["name", "item_code", "item_name"]
-	)
-	
-	if not variants:
-		return {"variants": []}
-	
-	# Get variant attributes
-	variant_attributes = frappe.get_all(
-		"Item Variant Attribute",
-		filters={"parent": item_code},
-		fields=["attribute"],
-		order_by="idx"
-	)
-	
-	# Get price list from settings
-	price_list = frappe.db.get_single_value("Webshop Settings", "price_list")
-	
-	# Build variant data
-	variants_data = []
-	price_min = None
-	price_max = None
-	
-	for variant in variants:
-		variant_data = {
-			"item_code": variant.item_code,
-			"item_name": variant.item_name,
-			"attributes": {},
-			"in_stock": False,
-			"stock_qty": 0,
-			"exists": True,
-			"website_item": False
-		}
-		
-		# Get variant attributes
-		variant_attrs = frappe.get_all(
-			"Item Variant Attribute",
-			filters={"parent": variant.item_code},
-			fields=["attribute", "attribute_value"]
-		)
-		
-		for attr in variant_attrs:
-			variant_data["attributes"][attr.attribute] = attr.attribute_value
-		
-		# Check if website item exists
-		website_item = frappe.db.get_value(
-			"Website Item",
-			{"item_code": variant.item_code},
-			["name", "published", "website_image", "on_backorder", "website_warehouse"],
-			as_dict=True
-		)
+# //// Neoffice — reviewed for guests (frappe's semgrep rule guest-whitelisted-method, #691 D-1,
+# //// 2026-09-25): what a model's page shows anyone, its variants, and nothing that page does not
+# //// show. The body is seo/variants.selector_data, on the rows the page's ProductGroup declares
+# //// too. It answered for any item code, a model nobody published included, and priced every
+# //// variant on the shop's list for everyone: a visitor to whom the shop hides its prices read
+# //// them here, a customer with a list of their own read one price and paid another, and a shop
+# //// selling beyond its stock (allow_items_not_in_stock) showed its empty variants as out of
+# //// stock. The argument is typed, as the rule asks.
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
+def get_all_variants_info(item_code: str):
+	"""Get all variants information for a template item (seo/variants.py selector_data)."""
+	from webshop.webshop.seo.variants import selector_data
 
-		if website_item and website_item.published:
-			variant_data["website_item"] = True
-			variant_data["image"] = website_item.website_image
-
-			# Get stock info
-			if not website_item.on_backorder:
-				# Get actual stock
-				from webshop.webshop.utils.product import get_web_item_qty_in_stock
-				stock_info = get_web_item_qty_in_stock(variant.item_code, "website_warehouse")
-				variant_data["in_stock"] = stock_info.in_stock
-				variant_data["stock_qty"] = stock_info.stock_qty
-			else:
-				# On backorder items are considered in stock
-				variant_data["in_stock"] = True
-				variant_data["stock_qty"] = None
-
-			# Get price with Pricing Rules applied
-			if price_list:
-				from erpnext.utilities.product import get_price
-				from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
-
-				cart_settings = get_shopping_cart_settings()
-				price_obj = get_price(
-					variant.item_code,
-					price_list,
-					cart_settings.default_customer_group,
-					cart_settings.company,
-					warehouse=website_item.website_warehouse
-				)
-
-				if price_obj:
-					variant_data["price"] = {
-						"price_list_rate": price_obj.get("price_list_rate"),
-						"formatted_price": price_obj.get("formatted_price"),
-						"currency": price_obj.get("currency"),
-						"formatted_mrp": price_obj.get("formatted_mrp"),
-						"discount_percent": price_obj.get("discount_percent"),
-						"formatted_discount_percent": price_obj.get("formatted_discount_percent")
-					}
-
-					# Track min/max prices (use discounted price)
-					actual_price = price_obj.get("price_list_rate")
-					if actual_price:
-						if price_min is None or actual_price < price_min:
-							price_min = actual_price
-						if price_max is None or actual_price > price_max:
-							price_max = actual_price
-		
-		variants_data.append(variant_data)
-	
-	# Build price range
-	price_range = None
-	if price_min is not None and price_max is not None:
-		from webshop.webshop.utils.utils import format_currency_value
-		currency = frappe.db.get_value("Price List", price_list, "currency") if price_list else None
-		if price_min == price_max:
-			price_range = {
-				"min": price_min,
-				"max": price_max,
-				"formatted": format_currency_value(price_min, currency=currency)
-			}
-		else:
-			price_range = {
-				"min": price_min,
-				"max": price_max,
-				"formatted": f"{format_currency_value(price_min, currency=currency)} - {format_currency_value(price_max, currency=currency)}"
-			}
-	
-	# //// Neoffice — the values of each attribute in the attribute's own order (S, M, L,
-	# //// XL — not alphabetical), for the rows of chips the page draws (2026-09-13).
-	attribute_values = {}
-	for attr in variant_attributes:
-		attribute_values[attr.attribute] = frappe.get_all(
-			"Item Attribute Value", filters={"parent": attr.attribute}, pluck="attribute_value", order_by="idx asc"
-		)
-		if frappe.db.get_value("Item Attribute", attr.attribute, "numeric_values"):
-			present = sorted({v["attributes"].get(attr.attribute) for v in variants_data if v["attributes"].get(attr.attribute)}, key=lambda x: float(x))
-			attribute_values[attr.attribute] = present
-
-	return {
-		"variants": variants_data,
-		# //// Neoffice — see attribute_values above
-		"attribute_values": attribute_values,
-		"attributes": variant_attributes,
-		"price_range": price_range
-	}
+	return selector_data(item_code)  # //// Neoffice — see above (#691 D-1)
 
 
 @frappe.whitelist(allow_guest=True)

@@ -13,6 +13,15 @@
    a tile shows the poster with a play badge — a hosted file without poster shows its own
    first frame — and the lightbox plays it; a third-party player only loads on that click. #}
 {%- for v in videos or [] -%}{%- set _appended = photos.append({"image": v.poster, "alt": v.title or _('{0} — video').format(_(doc.web_item_name)), "video": v}) -%}{%- endfor -%}
+{#- //// Neoffice — a model's page opened on one variant (`?variant=`, seo/variants.py, #691 D-1) shows
+    that variant's picture first, as the selector does once the variant is chosen
+    (wspGallery.showImage). base_image keeps the model's own, which the selector puts back when a
+    choice has no picture of its own. -#}
+{%- if variant_picture and photos and not photos[0].video -%}
+	{%- set _ignored = photos[0].update({"base_image": photos[0].image, "image": variant_picture}) -%}
+{%- elif variant_picture and not photos -%}
+	{%- set _appended = photos.append({"image": variant_picture, "alt": doc.web_item_name}) -%}
+{%- endif -%}
 {%- macro play_badge() -%}<span class="wsp-gallery__play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>{%- endmacro -%}
 {#- //// Neoffice — the first picture is fetched ahead of everything (priority): the page's LCP (#691 lot 5) -#}
 {#- //// Neoffice — a picture's WebP copies and the sizes of the place it sits in (utils/renditions.py,
@@ -37,7 +46,7 @@
 {%- set srcsets = [] -%}
 {%- for p in photos -%}{%- set _appended = srcsets.append(webshop_picture(p.image, "gallery").srcset) -%}{%- endfor -%}
 {# //// Neoffice — data-media carries each entry's video payload for the lightbox (2026-09-13) #}
-<div class="col-md-{{ 6 if slides else 4 }} product-image-wrapper wsp-gallery wsp-gallery--{{ layout }}" data-layout="{{ layout }}" data-fit="{{ shopping_cart.cart_settings.product_image_fit or 'Contain' }}" data-photos="{{ photos | map(attribute='image') | list | tojson | forceescape }}" data-media="{{ photos | tojson | forceescape }}" data-srcsets="{{ srcsets | tojson | forceescape }}">
+<div class="col-md-{{ 6 if slides else 4 }} product-image-wrapper wsp-gallery wsp-gallery--{{ layout }}" data-layout="{{ layout }}" data-fit="{{ shopping_cart.cart_settings.product_image_fit or 'Contain' }}" data-photos="{{ photos | map(attribute='image') | list | tojson | forceescape }}" data-media="{{ photos | tojson | forceescape }}" data-srcsets="{{ srcsets | tojson | forceescape }}"{% if photos and photos[0].base_image %} data-base-first="{{ photos[0].base_image }}" data-base-first-srcset="{{ webshop_picture(photos[0].base_image, 'gallery').srcset or '' }}"{% endif %}>
 	{%- if layout == "mosaic" %}
 	{# two large tiles, then the rest as small ones; every tile opens the zoom at its index #}
 	<div class="wsp-gallery__mosaic product-image">
@@ -279,14 +288,17 @@ frappe.ready(function() {
 	// //// Neoffice — the variant selector swaps the first picture for the chosen colour's
 	// //// (item_configure_grid.js, 2026-09-13); null puts the product's own picture back.
 	const firstPictures = [root.querySelector('.wsp-gallery__large .wsp-gallery__img'), main, root.querySelector('.wsp-gallery__single .wsp-gallery__img'), root.querySelector('.wsp-gallery__slide .wsp-gallery__img')].filter(Boolean);
-	const originalSources = firstPictures.map(el => el.getAttribute('src'));
+	// //// Neoffice — on a page opened on one variant (`?variant=`) the server showed its picture
+	// //// first: the model's own is the one to put back (data-base-first, #691 D-1)
+	const baseFirst = root.dataset.baseFirst || '';
+	const originalSources = firstPictures.map(el => baseFirst || el.getAttribute('src'));
 	// //// Neoffice — and their srcsets: a variant's picture is shown as it is, the product's comes back with its copies
-	const originalSrcsets = firstPictures.map(el => el.getAttribute('srcset') || '');
+	const originalSrcsets = firstPictures.map(el => baseFirst ? (root.dataset.baseFirstSrcset || '') : (el.getAttribute('srcset') || ''));
 	window.wspGallery = Object.assign(window.wspGallery || {}, {
 		showImage(url) {
 			// //// Neoffice — the srcset follows the src (see originalSrcsets)
 			firstPictures.forEach((el, i) => { const next = url || originalSources[i]; const nextSet = url ? '' : originalSrcsets[i]; if ((el.getAttribute('srcset') || '') !== nextSet) { if (nextSet) el.setAttribute('srcset', nextSet); else el.removeAttribute('srcset'); } if (el.getAttribute('src') !== next) el.setAttribute('src', next); });
-			if (photos.length) photos[0] = url || (media[0] && media[0].image) || photos[0];
+			if (photos.length) photos[0] = url || (media[0] && (media[0].base_image || media[0].image)) || photos[0];
 		}
 	});
 	if (zoom) {

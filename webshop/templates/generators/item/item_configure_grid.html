@@ -6,9 +6,15 @@
 {% set cart_settings = shopping_cart.cart_settings %}
 
 {% if cart_settings.enable_variants | int %}
+{# //// Neoffice — a visitor to whom the shop hides its prices is asked to sign in, as on a plain
+   product page (item_add_to_cart.html): the selector used to price the variants for everyone #}
+{% set prices_hidden_for_guest = frappe.session.user == "Guest" and cart_settings.show_price and cart_settings.hide_price_for_guest %}
 <div class="variant-selection-section mt-4">
 	<!-- Variant Grid Container (hidden initially) -->
-	<div class="variant-grid-container" id="variant-grid-container" style="display: none;">
+	{# //// Neoffice — `?variant=` (seo/variants.py, #691 D-1): the variant the page is opened on is
+	   printed by the server — name, price, stock, the button — before the chips are drawn, and the
+	   script selects it. A crawler that runs no script reads the variant the feed links. #}
+	<div class="variant-grid-container" id="variant-grid-container"{% if chosen_variant %} data-chosen-variant="{{ chosen_variant.item_code | e }}"{% else %} style="display: none;"{% endif %}>
 		<div class="variant-grid-header mb-3">
 			<div class="d-flex align-items-center justify-content-between">
 				<h5 class="mb-0">{{ _('Choose your options') }}</h5>
@@ -21,19 +27,30 @@
 		   (2026-09-13); the grid of one card per combination is gone. #}
 		<div class="wsp-variants" id="wsp-variants" aria-live="polite"></div>
 		
-		<div class="variant-grid-footer mt-3" style="display: none;">
+		<div class="variant-grid-footer mt-3"{% if not chosen_variant %} style="display: none;"{% endif %}>
 			<div class="selected-variant-info">
 				<div class="d-flex align-items-center justify-content-between">
 					<div>
-						<h6 class="mb-1">{{ _('Selected') }}: <span class="selected-variant-name"></span></h6>
-						<div class="selected-variant-price"></div>
+						<h6 class="mb-1">{{ _('Selected') }}: <span class="selected-variant-name">{% if chosen_variant %}{{ chosen_variant.label | e }}{% endif %}</span></h6>
+						<div class="selected-variant-price">{% if chosen_variant and chosen_variant.price %}{{ chosen_variant.price.formatted_price }}{% if chosen_variant.price.formatted_mrp %} <small class="text-muted"><del>{{ chosen_variant.price.formatted_mrp }}</del></small> <span class="badge badge-success">- {{ chosen_variant.price.discount_percent }}%</span>{% endif %}{% endif %}</div>
+						{% if chosen_variant %}
+						<div class="selected-variant-stock mt-2">
+							{% if chosen_variant.backorder %}<span class="badge badge-success">{{ _("Available on backorder") }}</span>
+							{% elif chosen_variant.in_stock %}<span class="badge badge-success">{{ _("In Stock") }}</span>{% if chosen_variant.few_left %} <small class="text-warning">{{ _("Only {0} left").format(chosen_variant.few_left) }}</small>{% endif %}
+							{% else %}<span class="badge badge-secondary">{{ _("Out of Stock") }}</span>{% endif %}
+						</div>
+						{% endif %}
 					</div>
 					{# //// Neoffice — no guest cart: the footer sends the visitor to sign in, as the
 					   plain product page does, instead of a button that answers nothing #}
 					{% if cart_settings.enable_guest_cart == 0 and frappe.session.user == "Guest" %}
 					<a href="/login" class="btn btn-primary" role="button">{{ _("To add to cart, please log in") }}</a>
+					{# //// Neoffice — prices hidden from visitors: sign in first (see prices_hidden_for_guest) #}
+					{% elif prices_hidden_for_guest %}
+					<a href="/login" class="btn btn-primary" role="button">{{ _("Sign in to see prices") }}</a>
 					{% else %}
-					<button class="btn btn-primary btn-add-to-cart">
+					{# //// Neoffice — the chosen variant's code from the server when the page is opened on one #}
+					<button class="btn btn-primary btn-add-to-cart"{% if chosen_variant %} data-item-code="{{ chosen_variant.item_code | e }}"{% if not chosen_variant.in_stock %} style="display: none;"{% endif %}{% endif %}>
 						{{ _('Add to Cart') }}
 					</button>
 					{% endif %}
@@ -54,8 +71,9 @@
 <script>
 frappe.ready(() => {
 	// Auto-load variants when page loads
-	const item_code = "{{ doc.item_code }}";
-	const item_name = "{{ doc.web_item_name }}";
+	{#- //// Neoffice — as JSON: a quote in a product's name ended the string and the script with it #}
+	const item_code = {{ doc.item_code | tojson }};
+	const item_name = {{ doc.web_item_name | tojson }};
 	
 	new ItemConfigureGrid(item_code, item_name);
 });

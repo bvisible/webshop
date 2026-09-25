@@ -45,17 +45,9 @@ def product_info_for_website(item_code, skip_quotation_creation=False, with_stoc
 	if not skip_quotation_creation:
 		cart_quotation = _get_cart_quotation()
 
-	selling_price_list = (
-		cart_quotation.get("selling_price_list")
-		if cart_quotation
-		# //// Neoffice — upstream falls back to the shop's price list when there is no cart.
-		# //// With the guest cart on, an anonymous visitor must be priced with the list
-		# //// _set_price_list() resolves for the site being browsed, or a multi-site shop
-		# //// showed the standard tariff to guests (b9f319c437, 2025-02-24; 422e3c3c71,
-		# //// 2026-08-28).
-		else cart_settings.price_list if not cart_settings.enable_guest_cart
-		else _set_price_list(cart_settings, None)
-	)
+	# //// Neoffice — the resolution lives in _selling_price_list (end of the file): the variant
+	# //// selector prices a model's variants with the same list (#691, decision D-1)
+	selling_price_list = _selling_price_list(cart_settings, cart_quotation)
 
 	price = {}
 	if cart_settings.show_price:
@@ -286,7 +278,8 @@ def _variant_prices(item_code, price_list, customer_group, company, qty=1, party
 	scope = [item_code, price_list, customer_group, company, qty, party_key, warehouse, frappe.utils.nowdate()]
 	key = f"{VARIANT_PRICES_CACHE}:{item_code}:" + hashlib.sha256(frappe.as_json(scope).encode()).hexdigest()[:16]
 	cached = _kept(key)
-	if cached is not None:
+	# //// Neoffice — an answer kept before by_variant existed is recomputed (#691 D-1)
+	if cached is not None and (not cached or "by_variant" in cached):
 		return frappe._dict(cached) if cached else None
 
 	variants = _priced_variants(item_code, price_list)
@@ -297,9 +290,14 @@ def _variant_prices(item_code, price_list, customer_group, company, qty=1, party
 	# Get prices with Pricing Rules applied for each variant
 	prices_with_discount = []
 	mrp_prices = []
+	# //// Neoffice — each variant's own numbers, for the variant selector and the page's ProductGroup (#691 D-1)
+	by_variant = {}
 	currency = variants[0].currency
 
 	for variant in variants:
+		# //// Neoffice — a variant with two prices on the list is priced once: get_price resolves which applies
+		if variant.item_code in by_variant:
+			continue
 		# Get variant's website_warehouse if not provided
 		variant_warehouse = warehouse
 		if not variant_warehouse:
@@ -320,14 +318,28 @@ def _variant_prices(item_code, price_list, customer_group, company, qty=1, party
 			# Track MRP (original price before discount) if available
 			if variant_price.get("formatted_mrp"):
 				mrp_prices.append(flt(variant.price_list_rate))
+			# //// Neoffice — see by_variant above
+			by_variant[variant.item_code] = {
+				"price": flt(variant_price.get("price_list_rate")),
+				# the list price a rule lowered: what the page strikes through
+				"mrp": flt(variant.price_list_rate) if variant_price.get("formatted_mrp") else 0,
+				"currency": variant_price.get("currency") or variant.currency,
+				"valid_from": variant_price.get("valid_from"),
+				"valid_upto": variant_price.get("valid_upto"),
+			}
 
 	if not prices_with_discount:
 		return _remember(key, None)
-	return _remember(key, frappe._dict(prices=prices_with_discount, mrp_prices=mrp_prices, currency=currency))
+	# //// Neoffice — by_variant is kept with the rest (#691 D-1)
+	return _remember(
+		key,
+		frappe._dict(prices=prices_with_discount, mrp_prices=mrp_prices, currency=currency, by_variant=by_variant),
+	)
 
 
 def _priced_variants(item_code, price_list):
-	"""A template's variants with a selling price on this list, and that price."""
+	"""A template's enabled variants with a selling price on this list, and that price. A disabled
+	variant cannot be bought: its price counted in the model's "from" price (#691 D-1)."""
 	return frappe.db.sql(
 		"""
 		SELECT
@@ -337,9 +349,13 @@ def _priced_variants(item_code, price_list):
 		FROM `tabItem` i
 		INNER JOIN `tabItem Price` ip ON i.name = ip.item_code
 		WHERE i.variant_of = %s
+			-- //// Neoffice — a disabled variant cannot be bought (#691 D-1)
+			AND i.disabled = 0
 			AND ip.selling = 1
 			AND ip.price_list = %s
 			AND ip.price_list_rate > 0
+		-- //// Neoffice — one row per variant first, its latest price first (#691 D-1)
+		ORDER BY i.name, ip.modified DESC
 		""",
 		(item_code, price_list),
 		as_dict=True,
@@ -365,3 +381,43 @@ def clear_variant_prices():
 	"""Every template's kept prices, on every list: a selling price or pricing rule changed."""
 	frappe.cache().delete_keys(VARIANT_PRICES_CACHE)
 
+
+# //// Neoffice — added (#691, decision D-1, 2026-09-25): the list a product page prices with, and a
+# //// model's variants as that page prices them for this visitor.
+def _selling_price_list(cart_settings, cart_quotation):
+	"""The price list of a product page: the cart's when there is one; without a cart the shop's
+	list, or with the guest cart on the list _set_price_list() resolves for the site being browsed.
+	Upstream fell back to the shop's list: a multi-site shop showed the standard tariff to guests
+	(b9f319c437, 2025-02-24; 422e3c3c71, 2026-08-28)."""
+	if cart_quotation:
+		return cart_quotation.get("selling_price_list")
+	if not cart_settings.enable_guest_cart:
+		return cart_settings.price_list
+	return _set_price_list(cart_settings, None)
+
+
+def variant_prices(template_code, cart_settings=None):
+	"""{variant item code: {price, mrp, currency, valid_from, valid_upto}} for a model, priced as its
+	page prices it for this visitor (product_info_for_website without a cart), or None when the page
+	shows this visitor no price. The variant selector, the page's ProductGroup and the model's own
+	"from" price read the same kept computation (_variant_prices): the selector priced every variant
+	on the shop's list for everyone, so a customer with a list of their own, or a visitor of another
+	site of the instance, read one price in the selector and paid another."""
+	cart_settings = cart_settings or get_shopping_cart_settings()
+	if not cart_settings.enabled or not cart_settings.show_price:
+		return None
+	if frappe.session.user == "Guest" and cart_settings.hide_price_for_guest:
+		return None
+	price_list = _selling_price_list(cart_settings, frappe._dict())
+	if not price_list:
+		return {}
+	warehouse = frappe.db.get_value("Website Item", {"item_code": template_code}, "website_warehouse")
+	found = _variant_prices(
+		template_code,
+		price_list,
+		cart_settings.default_customer_group,
+		cart_settings.company,
+		party=get_party(),
+		warehouse=warehouse,
+	)
+	return (found or {}).get("by_variant") or {}

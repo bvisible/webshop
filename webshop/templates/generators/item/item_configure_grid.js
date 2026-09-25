@@ -19,6 +19,10 @@ class ItemConfigureGrid {
 		this.container = document.getElementById('variant-grid-container');
 		this.loading = document.getElementById('variant-loading');
 		this.rows_host = document.getElementById('wsp-variants');
+		//// Neoffice — the variant the page is opened on (`?variant=`, #691 D-1): the server names
+		//// it once it has checked the page sells it, the address otherwise
+		this.chosen = (this.container && this.container.dataset.chosenVariant)
+			|| new URLSearchParams(window.location.search).get('variant') || null;
 
 		this.init();
 	}
@@ -176,6 +180,9 @@ class ItemConfigureGrid {
 		});
 		// a single choice is no choice: take it
 		this.rows.forEach(row => { if (row.values.length === 1) this.selection[row.attribute] = row.values[0]; });
+		//// Neoffice — the variant the page is opened on is chosen (see the constructor)
+		const chosen = this.chosen && this.variants_data.variants.find(v => v.item_code === this.chosen);
+		if (chosen) this.rows.forEach(row => { if (chosen.attributes[row.attribute]) this.selection[row.attribute] = chosen.attributes[row.attribute]; });
 		this.refresh_rows();
 	}
 
@@ -223,6 +230,19 @@ class ItemConfigureGrid {
 		}
 		this.refresh_rows();
 		this.show_picture_for_selection();
+		this.sync_address();
+	}
+
+	//// Neoffice — the address names the variant the shopper chose (`?variant=`, #691 D-1): it can be
+	//// shared or bookmarked, and the server opens the page on it. The canonical stays the model's page.
+	sync_address() {
+		if (!window.history || !window.history.replaceState) return;
+		const url = new URL(window.location.href);
+		const code = this.selected_variant ? this.selected_variant.item_code : null;
+		if ((url.searchParams.get('variant') || null) === code) return;
+		if (code) url.searchParams.set('variant', code);
+		else url.searchParams.delete('variant');
+		window.history.replaceState(window.history.state, '', url.toString());
 	}
 
 	/** The gallery's first picture follows the chosen variant's, when it has one. */
@@ -314,16 +334,23 @@ class ItemConfigureGrid {
 					let priceHtml = this.selected_variant.price.formatted_price;
 					if (this.selected_variant.price.formatted_mrp && this.selected_variant.price.discount_percent) {
 						priceHtml += ` <small class="text-muted"><del>${this.selected_variant.price.formatted_mrp}</del></small>`;
-						priceHtml += ` <span class="badge badge-success">${this.selected_variant.price.discount_percent}% off</span>`;
+						//// Neoffice — "- 20%" as the catalogue's badge reads, not an untranslated "20% off"
+						priceHtml += ` <span class="badge badge-success">- ${this.selected_variant.price.discount_percent}%</span>`;
 					}
 					priceElement.innerHTML = priceHtml;
+				} else if (this.variants_data.show_prices === false) {
+					//// Neoffice — the page shows this visitor no price: nothing to say here
+					priceElement.innerHTML = '';
 				} else {
 					priceElement.innerHTML = `<span class="text-muted">${__('Not Available')}</span>`;
 				}
 			}
 
 			let stockInfoHtml = '';
-			if (this.selected_variant.in_stock) {
+			//// Neoffice — a variant the shop sells beyond its stock says so, as a plain product page does
+			if (this.selected_variant.backorder) {
+				stockInfoHtml = `<span class="badge badge-success">{{ _("Available on backorder") }}</span>`;
+			} else if (this.selected_variant.in_stock) {
 				stockInfoHtml = `<span class="badge badge-success">{{ _("In Stock") }}</span>`;
 				if (this.selected_variant.stock_qty && this.selected_variant.stock_qty < 10) {
 					stockInfoHtml += ` <small class="text-warning">${'{{ _("Only {0} left") }}'.replace('{0}', this.selected_variant.stock_qty)}</small>`;

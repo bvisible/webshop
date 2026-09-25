@@ -227,10 +227,13 @@
 
 {% block head_include %}
 {{ super() }}
-<link rel="canonical" href="{{ frappe.utils.get_url(doc.route) }}">
+{#- //// Neoffice — the canonical is the model's page on a variant's page (seo/variants.py, decision
+    D-1, #691): upstream named the page itself, and a model's twelve variant pages competed with it #}
+<link rel="canonical" href="{{ canonical_url or frappe.utils.get_url(doc.route) }}">
 {#- //// Neoffice — the first picture is announced in the head: in the body it comes after some
-    320 kB of inline icon sprites, which the browser parses first (#691 lot 5, the page's LCP) #}
-{%- set _first_picture = (slides[0].image if slides else doc.website_image) %}
+    320 kB of inline icon sprites, which the browser parses first (#691 lot 5, the page's LCP).
+    On a model's page opened on one variant, that variant's picture (item_image.html). #}
+{%- set _first_picture = variant_picture or (slides[0].image if slides else doc.website_image) %}
 {%- if _first_picture %}
 {#- //// Neoffice — with the WebP copies the gallery's first picture offers, at the same sizes
     (item_image.html, first_layout): a preload of the original alone fetched a file the page then

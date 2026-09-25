@@ -100,6 +100,47 @@ test.describe('The shop as a crawler reads it', () => {
 		}
 	});
 
+	test('a model declares its variants, and each variant\'s address prints its offer', async ({request}) => {
+		//// Decision D-1 of the SEO plan (#691, seo/variants.py): a model's page is one ProductGroup,
+		//// each variant a Product whose offer names the page opened on it (`?variant=`). Google and
+		//// Merchant Center read that address; the server prints the variant there, price and stock,
+		//// for a crawler that runs no script.
+		const products = await fetchRaw(request, '/sitemap_products.xml');
+		const urls = [...products.body.matchAll(/<url>\s*<loc>([^<]+)<\/loc>/g)].map((match) =>
+			match[1].replace(/&amp;/g, '&')
+		);
+		let group = null;
+		for (const url of urls.slice(0, 60)) {
+			const page = await fetchRaw(request, url);
+			group = jsonLdBlocks(page.body).find((node) => node['@type'] === 'ProductGroup');
+			if (group) break;
+		}
+		test.skip(!group, 'no model with variants on sale on this site');
+
+		expect(group.productGroupID).toBeTruthy();
+		expect(Array.isArray(group.hasVariant) && group.hasVariant.length).toBeTruthy();
+		for (const property of group.variesBy || []) {
+			expect(property).toMatch(/^https:\/\/schema\.org\/(color|size|material|pattern|suggestedGender)$/);
+		}
+		const offered = group.hasVariant.filter((variant) => variant.offers).slice(0, 4);
+		for (const variant of offered) {
+			expect(variant.name, 'a variant is named more precisely than its model').not.toBe(group.name);
+			expect(variant.offers.url).toContain('?variant=');
+			const page = await fetchRaw(request, variant.offers.url);
+			expect(page.status, variant.offers.url).toBe(200);
+			expect(page.body, `${variant.offers.url}: the model's page is the canonical one`).toContain(
+				`<link rel="canonical" href="${group.url}">`
+			);
+			expect(page.body, `${variant.offers.url}: the server names the variant`).toContain('data-chosen-variant=');
+			const shown = [...page.body.matchAll(/(\d[\d'’ ]*[.,]\d{2})/g)].map((m) =>
+				Number(m[1].replace(/['’ ]/g, '').replace(',', '.'))
+			);
+			expect(shown, `${variant.offers.url}: the variant's price ${variant.offers.price} is printed`).toContain(
+				Number(variant.offers.price)
+			);
+		}
+	});
+
 	test('a category page says what it holds and names its address', async ({request}) => {
 		const categories = await fetchRaw(request, '/sitemap_categories.xml');
 		const url = firstLoc(categories.body);

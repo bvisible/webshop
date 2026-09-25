@@ -74,17 +74,25 @@ def _product_links(website_profile=None):
 	from webshop.webshop.multi_site import effective_price_list
 	from webshop.webshop.product_data_engine.catalogue_scope import visible_item_filters
 
+	from webshop.webshop.seo.variants import sells_on_model_page
+
 	filters = visible_item_filters()
-	# A variant hidden from the listings is still a page of its own until the shop decides
-	# otherwise (decision D-1 of the study): the sitemap follows the listing on everything else.
+	# A variant hidden from the listings can still be a page of its own: the sitemap follows the
+	# listing on everything else.
 	filters.pop("variant_of", None)
 	products = frappe.get_all(
 		"Website Item",
-		fields=["route", "item_code", "modified", "web_item_name", "website_image", "slideshow"],
+		fields=["route", "item_code", "modified", "web_item_name", "website_image", "slideshow", "variant_of"],
 		filters=filters,
 		order_by="ranking desc, modified desc",
 	)
 	products = [p for p in products if p.route]
+	# A variant sold on its model's page names that page as canonical (seo/variants.py, decision
+	# D-1), and a sitemap lists canonical pages only; a variant whose model's page this site does
+	# not publish stays a page of its own.
+	if sells_on_model_page():
+		listed = {p.item_code for p in products}
+		products = [p for p in products if not (p.variant_of and p.variant_of in listed)]
 	if not products:
 		return []
 
