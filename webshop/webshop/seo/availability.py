@@ -70,14 +70,15 @@ def _in_stock(item_code) -> bool:
 	return bool(status.in_stock)
 
 
-def bulk_availability(item_codes, cart_settings=None, fallback_warehouse=None) -> dict[str, frappe._dict]:
+def bulk_availability(item_codes, cart_settings=None) -> dict[str, frappe._dict]:
 	"""schema_availability for the variants of one model at once, with the quantity the shop may
 	promise: {item code: {availability, qty}}; qty is None for an item the shop does not count
 	(not a stock item, on backorder). Same rules as schema_availability, in fewer queries: the
 	variant selector and the model page's ProductGroup ask for a dozen variants on every render.
 
-	fallback_warehouse is the model's website warehouse, which a variant without one of its own
-	uses (get_web_item_qty_in_stock resolves it the same way)."""
+	A variant without a website warehouse of its own counts in its model's, as
+	get_web_item_qty_in_stock resolves it: the caller asked for it once, and a caller who forgot
+	read every variant out of stock (the CI caught it, 2026-09-25)."""
 	from webshop.webshop.multi_warehouse import sources as mw_sources
 	from webshop.webshop.utils.product import get_non_stock_item_status, get_web_items_qty_in_stock
 
@@ -98,7 +99,24 @@ def bulk_availability(item_codes, cart_settings=None, fallback_warehouse=None) -
 			fields=["item_code", "on_backorder", "website_warehouse"],
 		)
 	}
-	stock_items = set(frappe.get_all("Item", filters={"name": ["in", codes], "is_stock_item": 1}, pluck="name"))
+	items = {
+		row.name: row
+		for row in frappe.get_all("Item", filters={"name": ["in", codes]}, fields=["name", "is_stock_item", "variant_of"])
+	}
+	stock_items = {code for code, row in items.items() if row.is_stock_item}
+	models = list({row.variant_of for row in items.values() if row.variant_of})
+	model_warehouses = (
+		dict(
+			frappe.get_all(
+				"Website Item",
+				filters={"item_code": ["in", models]},
+				fields=["item_code", "website_warehouse"],
+				as_list=True,
+			)
+		)
+		if models
+		else {}
+	)
 	found, qty = {}, {}
 	counted = []
 	for code in codes:
@@ -118,7 +136,9 @@ def bulk_availability(item_codes, cart_settings=None, fallback_warehouse=None) -
 	for code in counted:
 		if code in qty:
 			continue
-		warehouse = (web_items.get(code) or {}).get("website_warehouse") or fallback_warehouse
+		warehouse = (web_items.get(code) or {}).get("website_warehouse") or model_warehouses.get(
+			(items.get(code) or {}).get("variant_of")
+		)
 		by_warehouse.setdefault(warehouse, []).append(code)
 	for warehouse, group in by_warehouse.items():
 		# no warehouse at all: nothing counted, as get_web_item_qty_in_stock answers

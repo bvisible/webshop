@@ -134,8 +134,7 @@ def offered_variants(model_code, cart_settings=None, limit=MAX_VARIANTS) -> list
 	):
 		values.setdefault(row.parent, {})[row.attribute] = row.attribute_value
 	prices = variant_prices(model_code, cart_settings)
-	fallback = frappe.db.get_value("Website Item", {"item_code": model_code}, "website_warehouse")
-	stock = bulk_availability(codes, cart_settings, fallback)
+	stock = bulk_availability(codes, cart_settings)
 	rows = []
 	for page in pages:
 		attributes = values.get(page.item_code) or {}
