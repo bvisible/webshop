@@ -1,6 +1,9 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
+# //// Neoffice — the variant prices are kept in Redis as frappe keeps its own values (#691 lot 5)
+import pickle
+
 import frappe
 # //// Neoffice — added imports: _ for the "from" price prefix and fmt_money/flt for
 # //// the variant price range built below (94a06a2173, 2025-12-05 "display prices for
@@ -285,7 +288,7 @@ def _variant_prices(item_code, price_list, customer_group, company, qty=1, party
 	party_key = (party.get("doctype"), party.get("name")) if party else None
 	scope = [item_code, price_list, customer_group, company, qty, party_key, warehouse, frappe.utils.nowdate()]
 	key = f"{VARIANT_PRICES_CACHE}:{item_code}:" + hashlib.sha256(frappe.as_json(scope).encode()).hexdigest()[:16]
-	cached = frappe.cache().get_value(key)
+	cached = _kept(key)
 	if cached is not None:
 		return frappe._dict(cached) if cached else None
 
@@ -348,8 +351,19 @@ def _priced_variants(item_code, price_list):
 
 def _remember(key, found):
 	# an empty answer is kept too (as {}): a template without priced variants asks once
-	frappe.cache().set_value(key, found or {}, expires_in_sec=VARIANT_PRICES_TTL)
+	cache = frappe.cache()
+	cache.setex(cache.make_key(key), VARIANT_PRICES_TTL, pickle.dumps(dict(found or {})))
 	return found
+
+
+def _kept(key):
+	"""Straight from Redis, not through get_value: stock frappe v15 keeps a miss as None for the
+	rest of the request and never replaces it by a value written with an expiry, so the second
+	template of a page, or the second render in a test, always missed (the fleet's fork has the
+	fix, the CI's frappe has not)."""
+	cache = frappe.cache()
+	raw = cache.get(cache.make_key(key))
+	return pickle.loads(raw) if raw is not None else None
 
 
 def clear_variant_prices():
