@@ -60,3 +60,5 @@ webshop.patches.add_seo_fields
 webshop.patches.add_email_confirmation_field
 # //// Neoffice — the description of each slideshow picture (2026-09-25, #691 D-11)
 webshop.patches.add_picture_alt_field
+# //// Neoffice — every product's first SEO score, in the background (2026-09-26, #691 plan note 20)
+webshop.patches.compute_seo_scores

@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
 
+from webshop.webshop.seo import score
 from webshop.webshop.seo.facts import gallery_images
 from webshop.webshop.seo.feeds import google
 
@@ -44,7 +45,7 @@ def report(filters):
 	sites_ = google.feed_sites()
 	site = next((s for s in sites_ if s.key == filters.get("site")), sites_[0])
 	show = filters.get("show") if filters.get("show") in SHOW else "All"
-	rows, sent, left_out, suggested = [], 0, 0, 0
+	rows, sent, left_out, suggested, scores = [], 0, 0, 0, []
 	with google.serving(site):
 		settings = get_shopping_cart_settings()
 		refusal = google.site_refusal(settings)
@@ -52,6 +53,7 @@ def report(filters):
 			return columns(), [], _("This site has no feed: {0}.").format(refusal)
 		excluded = google.excluded_groups()
 		mapping = google.attribute_map(settings)
+		context = frappe._dict(settings=settings, refusal=refusal, excluded=excluded, mapping=mapping)
 		candidates = google.feed_candidates()
 		if filters.get("website_item"):
 			candidates = [name for name in candidates if name == filters.website_item]
@@ -63,6 +65,9 @@ def report(filters):
 				frappe.log_error(f"Catalogue Ready for Google: {doc.item_code}", frappe.get_traceback())
 				entry, reason = None, "error"
 			warnings = google.entry_warnings(entry, doc, first_picture(doc)) if entry else []
+			seo_score = product_score(doc, context, entry, reason)
+			if seo_score is not None:
+				scores.append(seo_score)
 			sent += bool(entry)
 			left_out += not entry
 			suggested += bool(warnings)
@@ -72,13 +77,29 @@ def report(filters):
 				or (show == "Suggestions" and not warnings)
 			):
 				continue
-			rows.append(row(doc, entry, reason, warnings))
+			rows.append(row(doc, entry, reason, warnings, seo_score))
 	summary = [
 		{"value": sent, "label": _("Sent to Google"), "indicator": "Green", "datatype": "Int"},
 		{"value": left_out, "label": _("Left out"), "indicator": "Red", "datatype": "Int"},
 		{"value": suggested, "label": _("With suggestions"), "indicator": "Orange", "datatype": "Int"},
+		{
+			"value": round(sum(scores) / len(scores)) if scores else 0,
+			"label": _("Average SEO score"),
+			"indicator": "Blue",
+			"datatype": "Int",
+		},
 	]
 	return columns(), rows, None, None, summary
+
+
+def product_score(doc, context, entry, reason):
+	"""The product's SEO score (seo/score.py), from the feed's answer the report already has. A
+	score that fails costs its cell, never the report."""
+	try:
+		return score.product_score(doc, context, entry, reason).score
+	except Exception:
+		frappe.log_error(f"Catalogue Ready for Google: SEO score of {doc.item_code}", frappe.get_traceback())
+		return None
 
 
 def first_picture(doc):
@@ -88,12 +109,13 @@ def first_picture(doc):
 	return images[0] if images else None
 
 
-def row(doc, entry, reason, warnings):
+def row(doc, entry, reason, warnings, seo_score=None):
 	entry = entry or {}
 	return {
 		"website_item": doc.name,
 		"item_code": doc.item_code,
 		"item_name": doc.web_item_name,
+		"seo_score": seo_score,
 		"status": _("Sent to Google") if entry else _("Left out"),
 		"reason": google.reason_label(reason) if reason else "",
 		"suggestions": "; ".join(google.warning_label(code) for code in warnings),
@@ -109,6 +131,7 @@ def columns():
 		{"fieldname": "website_item", "label": _("Website Item"), "fieldtype": "Link", "options": "Website Item", "width": 140},
 		{"fieldname": "item_code", "label": _("Item Code"), "fieldtype": "Data", "width": 130},
 		{"fieldname": "item_name", "label": _("Name"), "fieldtype": "Data", "width": 220},
+		{"fieldname": "seo_score", "label": _("SEO score"), "fieldtype": "Int", "width": 90},
 		{"fieldname": "status", "label": _("Status"), "fieldtype": "Data", "width": 120},
 		{"fieldname": "reason", "label": _("Why left out"), "fieldtype": "Data", "width": 220},
 		{"fieldname": "suggestions", "label": _("To show it at its best"), "fieldtype": "Data", "width": 360},

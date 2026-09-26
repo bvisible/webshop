@@ -1,6 +1,19 @@
 {
- "charts": [],
- "content": "[{\"id\": \"hdr_quick\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Quick Access</b></span>\", \"col\": 12}}, {\"id\": \"sc_settings\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Webshop Settings\", \"col\": 3}}, {\"id\": \"sc_used\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Second-hand units\", \"col\": 3}}, {\"id\": \"sc_xsell\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cross-sell offers\", \"col\": 3}}, {\"id\": \"sc_followups\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Follow-ups scheduled\", \"col\": 3}}, {\"id\": \"sc_carts\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Abandoned carts\", \"col\": 3}}, {\"id\": \"sc_page\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Second-hand page\", \"col\": 3}}, {\"id\": \"spacer_1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"hdr_masters\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\", \"col\": 12}}, {\"id\": \"card_catalogue\", \"type\": \"card\", \"data\": {\"card_name\": \"Catalogue\", \"col\": 4}}, {\"id\": \"card_xsell\", \"type\": \"card\", \"data\": {\"card_name\": \"Cross-sell\", \"col\": 4}}, {\"id\": \"card_emails\", \"type\": \"card\", \"data\": {\"card_name\": \"Customer emails and assistant\", \"col\": 4}}, {\"id\": \"card_seo\", \"type\": \"card\", \"data\": {\"card_name\": \"Search engines and AI\", \"col\": 4}}, {\"id\": \"card_settings\", \"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4}}]",
+ "charts": [
+  {
+   "chart_name": "Products by SEO Score",
+   "label": "Products by SEO Score"
+  },
+  {
+   "chart_name": "Google Shopping Status",
+   "label": "Google Shopping Status"
+  },
+  {
+   "chart_name": "Average SEO Score",
+   "label": "Average SEO Score"
+  }
+ ],
+ "content": "[{\"id\": \"hdr_quick\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Quick Access</b></span>\", \"col\": 12}}, {\"id\": \"sc_settings\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Webshop Settings\", \"col\": 3}}, {\"id\": \"sc_used\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Second-hand units\", \"col\": 3}}, {\"id\": \"sc_xsell\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Cross-sell offers\", \"col\": 3}}, {\"id\": \"sc_followups\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Follow-ups scheduled\", \"col\": 3}}, {\"id\": \"sc_carts\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Abandoned carts\", \"col\": 3}}, {\"id\": \"sc_page\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Second-hand page\", \"col\": 3}}, {\"id\": \"spacer_1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"wspSeoHead\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>SEO and Google Shopping</b></span>\", \"col\": 12}}, {\"id\": \"wspSeoCard0\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Average SEO Score\", \"col\": 4}}, {\"id\": \"wspSeoCard1\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Products Sent to Google Shopping\", \"col\": 4}}, {\"id\": \"wspSeoCard2\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Products Without a Description\", \"col\": 4}}, {\"id\": \"wspSeoCard3\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Products Without GTIN or Reference\", \"col\": 4}}, {\"id\": \"wspSeoCard4\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Products Without Picture Descriptions\", \"col\": 4}}, {\"id\": \"wspSeoChart0\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Products by SEO Score\", \"col\": 6}}, {\"id\": \"wspSeoChart1\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Google Shopping Status\", \"col\": 6}}, {\"id\": \"wspSeoChart2\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Average SEO Score\", \"col\": 12}}, {\"id\": \"wspSeoSpacer\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"hdr_masters\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\", \"col\": 12}}, {\"id\": \"card_catalogue\", \"type\": \"card\", \"data\": {\"card_name\": \"Catalogue\", \"col\": 4}}, {\"id\": \"card_xsell\", \"type\": \"card\", \"data\": {\"card_name\": \"Cross-sell\", \"col\": 4}}, {\"id\": \"card_emails\", \"type\": \"card\", \"data\": {\"card_name\": \"Customer emails and assistant\", \"col\": 4}}, {\"id\": \"card_seo\", \"type\": \"card\", \"data\": {\"card_name\": \"Search engines and AI\", \"col\": 4}}, {\"id\": \"card_settings\", \"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4}}]",
  "creation": "2026-09-03 15:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -280,11 +293,32 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-25 00:00:00.000000",
+ "modified": "2026-09-26 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Average SEO Score",
+   "number_card_name": "Average SEO Score"
+  },
+  {
+   "label": "Products Sent to Google Shopping",
+   "number_card_name": "Products Sent to Google Shopping"
+  },
+  {
+   "label": "Products Without a Description",
+   "number_card_name": "Products Without a Description"
+  },
+  {
+   "label": "Products Without GTIN or Reference",
+   "number_card_name": "Products Without GTIN or Reference"
+  },
+  {
+   "label": "Products Without Picture Descriptions",
+   "number_card_name": "Products Without Picture Descriptions"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,

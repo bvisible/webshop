@@ -1,0 +1,132 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-09-26 16:00:00.000000",
+ "description": "A day's SEO figures of one site, written every night by the SEO score job.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "date",
+  "site",
+  "column_break_products",
+  "products",
+  "average_score",
+  "section_break_criteria",
+  "sent_to_google",
+  "without_long_description",
+  "column_break_criteria",
+  "without_identifier",
+  "without_alt_text"
+ ],
+ "fields": [
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "description": "The site the figures are for, as the Google feed names it: default for a single site, else its Website Profile.",
+   "fieldname": "site",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Site",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_products",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "products",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Products scored",
+   "read_only": 1
+  },
+  {
+   "fieldname": "average_score",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Average score",
+   "precision": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_criteria",
+   "fieldtype": "Section Break",
+   "label": "Products"
+  },
+  {
+   "fieldname": "sent_to_google",
+   "fieldtype": "Int",
+   "label": "Sent to Google Shopping",
+   "read_only": 1
+  },
+  {
+   "fieldname": "without_long_description",
+   "fieldtype": "Int",
+   "label": "Without a description",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_criteria",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "without_identifier",
+   "fieldtype": "Int",
+   "label": "Without GTIN or manufacturer's reference",
+   "read_only": 1
+  },
+  {
+   "fieldname": "without_alt_text",
+   "fieldtype": "Int",
+   "label": "Without picture descriptions",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-26 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Webshop SEO Snapshot",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  },
+  {
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Website Manager"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Stock Manager"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Stock User"
+  }
+ ],
+ "read_only": 1,
+ "sort_field": "date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "site"
+}

@@ -1168,6 +1168,57 @@ defects in neoffice-maintenance#691.
 - `tests/e2e/specs/17-seo-crawler-view.spec.js` reads the pages with no JavaScript, the way AI
   crawlers and Google Shopping's checks do.
 
+### The SEO score (2026-09-26, plan note 20 in Obsidian)
+
+`seo/score.py` gives every product a score out of 100 and a checklist: what search engines,
+Google Shopping and AI assistants read of it, and what to do about the rest. It shows on the desk
+only, never to the public.
+
+- **One reading of the rules.** The score reads what the page, its JSON-LD and the feed compute
+  (`page_meta.product_meta`, `facts`, `feeds/google.item_entry` and `page_offer`), never a copy.
+  A rule changed there changes the score.
+- **Eleven criteria, 100 points** (`CRITERIA`):
+  - title 10, search description 10, description 12, pictures 10, picture descriptions 8;
+  - GTIN or manufacturer's reference 15, brand 5, Google category 5, characteristics 5;
+  - price and availability 10, sent to Google 10.
+
+  A criterion is good (its points), to improve (half) or missing (none). One that does not concern
+  the product is **left out of the total**: a gift card has no barcode, a variant sold on its
+  model's page has no title of its own, a business site has no feed. `no_product_identifier` on
+  Website Item is the merchant saying no barcode exists (own manufacture, made to measure).
+  Reviews and videos are shown, never counted.
+- **Computed in a background job, always.** The offer is what a visitor gets, which only
+  `google.serving()` computes, and `serving()` refuses a web request. So the job runs:
+  - after a save (`doc_events`, one job per item thanks to `job_id` + `deduplicate`);
+  - when the form opens (`checklist(refresh=1)`; the answer reaches the form on the document's
+    realtime room);
+  - every night (`daily_long` → `refresh_all`);
+  - once after the deploy (`patches/compute_seo_scores`).
+- **Stored on Website Item, without touching `modified`:**
+  - `seo_score` — a list column, sortable and filterable;
+  - `seo_score_details` — the checklist as codes; the labels are written at read time, in the
+    reader's language, since a job starts in English;
+  - `seo_missing` — missing codes wrapped in commas, for the cards' `like "%,identifier,%"`;
+  - `seo_google_status` — `sent`, or why not.
+- **Which site's score.** On a multi-site instance the item keeps the score of the first site
+  with a feed that shows it, the main site first (`is_default` profile). A business site hides
+  its prices, and its score would leave the offer and Google out and flatter the product.
+- **The workspace**:
+  - five number cards read the stored fields;
+  - two charts come from `dashboard_chart_source/` (score bands, Google status by reason);
+  - the average over time reads `Webshop SEO Snapshot`, one row per site and day, kept 400 days.
+  The Catalogue Ready for Google report carries a score column and the average.
+- **Measured on osiris** (2026-09-26): 328 products on 5 sites in 13 s, 8 ms per product.
+
+> **`frappe.enqueue(..., deduplicate=True)` decides when it is called, not when it enqueues.**
+> With `enqueue_after_commit`, two calls in one transaction both pass the check. And a skipped
+> job logs an *error* line. The form's call enqueues at once: nothing of its request is to wait
+> for, and a GET is never committed, so an after-commit job would never leave.
+
+> **The form's headline figure is drawn from `frm.doc` on every refresh**, then updated in
+> place when the job answers. An indicator added only by the late callback would die at the
+> next redraw (see "A custom button added from a server callback does not survive").
+
 ## Integration Points
 
 ### ERPNext Dependencies

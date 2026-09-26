@@ -1,0 +1,36 @@
+{
+ "chart_name": "Products by SEO Score",
+ "chart_type": "Custom",
+ "creation": "2026-09-26 16:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart",
+ "filters_json": "{}",
+ "idx": 0,
+ "is_public": 1,
+ "is_standard": 1,
+ "modified": "2026-09-26 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Products by SEO Score",
+ "number_of_groups": 0,
+ "owner": "Administrator",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Website Manager"
+  },
+  {
+   "role": "Stock Manager"
+  },
+  {
+   "role": "Stock User"
+  }
+ ],
+ "source": "Webshop SEO Score Bands",
+ "timeseries": 0,
+ "type": "Bar",
+ "use_report_chart": 0,
+ "y_axis": []
+}

@@ -310,7 +310,8 @@ jobs:
             webshop.webshop.seo.test_suggestions \
             webshop.webshop.seo.test_indexnow \
             webshop.webshop.seo.test_llms \
-            webshop.webshop.seo.test_ai_referrals
+            webshop.webshop.seo.test_ai_referrals \
+            webshop.webshop.seo.test_score
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || failed="$failed $m"
