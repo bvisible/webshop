@@ -370,7 +370,9 @@ class TestOrdersWaitForTheConfirmation(FrappeTestCase):
 
 	def test_held_until_the_confirmation_then_released(self):
 		name, placed = self.order()
+		lang = frappe.local.lang
 		confirmation.hold_until_confirmed(name)
+		self.assertEqual(frappe.local.lang, lang, "the note is the staff's; the response keeps its language")
 		self.assertEqual(self.state(name), ("On Hold", 1))
 		self.assertEqual(len(self.info_comments(name)), 1, "the timeline says why the order waits")
 		self.assertEqual(confirmation.held_orders(USER), [name])

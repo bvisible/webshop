@@ -110,17 +110,24 @@ def hold_until_confirmed(sales_order: str):
 	"""Hold an order paid on account by an account whose address is not confirmed yet, marked so
 	that the confirmation releases it (release_held_orders). The timeline says why the order waits:
 	the desk's simple view does not show the mark."""
+	from frappe.translate import get_user_lang
+
 	frappe.db.set_value("Sales Order", sales_order, {"status": "On Hold", HELD_FIELD: 1})
-	frappe.get_doc("Sales Order", sales_order).add_comment(
-		"Info",
-		"{} — {}".format(
+	# written during the customer's request, read by the shop's staff: in the staff's language, as
+	# release_held_orders writes its own note, and the response keeps the customer's
+	lang = frappe.local.lang
+	frappe.local.lang = get_user_lang("Administrator") or lang
+	try:
+		note = "{} — {}".format(
 			_("On hold until the customer confirms their email address"),
 			_(
 				"Paid on account from an account opened in the shop whose address is not confirmed yet. "
 				"The confirmation releases the order; resuming it by hand works too."
 			),
-		),
-	)
+		)
+	finally:
+		frappe.local.lang = lang
+	frappe.get_doc("Sales Order", sales_order).add_comment("Info", note)
 
 
 def held_orders(user: str) -> list:
