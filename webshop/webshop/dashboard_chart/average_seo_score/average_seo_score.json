@@ -1,16 +1,15 @@
 {
- "based_on": "date",
  "chart_name": "Average SEO Score",
- "chart_type": "Average",
+ "chart_type": "Custom",
  "creation": "2026-09-26 16:00:00.000000",
+ "custom_options": "{\"fieldtype\": \"Float\"}",
  "docstatus": 0,
  "doctype": "Dashboard Chart",
- "document_type": "Webshop SEO Snapshot",
- "filters_json": "[]",
+ "filters_json": "{}",
  "idx": 0,
  "is_public": 1,
  "is_standard": 1,
- "modified": "2026-09-26 16:00:00.000000",
+ "modified": "2026-09-26 17:40:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Average SEO Score",
@@ -30,11 +29,9 @@
    "role": "Stock User"
   }
  ],
- "time_interval": "Weekly",
- "timeseries": 1,
- "timespan": "Last Quarter",
+ "source": "Webshop SEO Score History",
+ "timeseries": 0,
  "type": "Line",
  "use_report_chart": 0,
- "value_based_on": "average_score",
  "y_axis": []
 }

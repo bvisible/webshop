@@ -9155,3 +9155,31 @@ msgstr "Tableau de bord SEO"
 #: webshop/webshop/webshop_dashboard/webshop_seo/webshop_seo.json
 msgid "Webshop SEO"
 msgstr "SEO de la boutique"
+
+#: webshop/webshop/seo/score.py
+msgid "Excluded"
+msgstr "Exclu"
+
+#: webshop/webshop/seo/score.py
+msgid "Gift card"
+msgstr "Carte cadeau"
+
+#: webshop/webshop/seo/score.py
+msgid "Second-hand, not sent"
+msgstr "Occasion non envoyée"
+
+#: webshop/webshop/seo/score.py
+msgid "No price"
+msgstr "Sans prix"
+
+#: webshop/webshop/seo/score.py
+msgid "No picture"
+msgstr "Sans photo"
+
+#: webshop/webshop/seo/score.py
+msgid "Code too long"
+msgstr "Code trop long"
+
+#: webshop/webshop/seo/score.py
+msgid "No feed"
+msgstr "Sans flux"

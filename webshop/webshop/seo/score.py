@@ -585,14 +585,23 @@ def not_applicable_message(detail: dict) -> str:
 
 
 def google_status_label(status: str) -> str:
-	"""A value of Website Item.seo_google_status, as the chart names it."""
-	from webshop.webshop.seo.feeds.google import reason_label
-
-	if status == "sent":
-		return _("Sent")
-	if status in ("no_feed", "unpublished", "sold"):
-		return not_applicable_message({"why": status})
-	return reason_label(status) if status else _("Not scored yet")
+	"""A value of Website Item.seo_google_status, as the chart's legend names it: a word or two, the
+	feed's own reasons (reason_label) being sentences a legend cuts."""
+	return {
+		"sent": _("Sent"),
+		"model": _("Model"),
+		"gift_card": _("Gift card"),
+		"service": _("Service"),
+		"second_hand_off": _("Second-hand, not sent"),
+		"excluded": _("Excluded"),
+		"no_price": _("No price"),
+		"no_image": _("No picture"),
+		"id_too_long": _("Code too long"),
+		"error": _("Error"),
+		"no_feed": _("No feed"),
+		"unpublished": _("Not published"),
+		"sold": _("Sold"),
+	}.get(status, status or _("Not scored yet"))
 
 
 def barcode_problem_message(d: dict) -> str:

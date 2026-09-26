@@ -9073,3 +9073,31 @@ msgstr ""
 #: webshop/webshop/webshop_dashboard/webshop_seo/webshop_seo.json
 msgid "Webshop SEO"
 msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Excluded"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Gift card"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Second-hand, not sent"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No price"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No picture"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Code too long"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No feed"
+msgstr ""

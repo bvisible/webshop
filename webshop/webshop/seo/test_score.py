@@ -408,7 +408,15 @@ class TestStoredOnTheItem(FrappeTestCase):
 			score.refresh_all()
 			score.refresh_all()
 		self.assertTrue(frappe.db.get_value("Website Item", name, "seo_score_checked_on"))
+		# the curve draws the days measured, and only them
+		from webshop.webshop.dashboard_chart_source.webshop_seo_score_history import (
+			webshop_seo_score_history as history,
+		)
+
+		curve = history.get(chart_name="Average SEO Score", no_cache=1)
 		today = frappe.utils.nowdate()
+		self.assertIn(frappe.utils.formatdate(today), curve["labels"])
+		self.assertEqual(len(curve["labels"]), len(set(curve["labels"])))
 		snapshots = frappe.get_all("Webshop SEO Snapshot", filters={"date": today}, fields=["site", "products", "average_score"])
 		self.assertEqual(len(snapshots), len({row.site for row in snapshots}))
 		self.assertTrue(all(row.products >= 1 for row in snapshots))
