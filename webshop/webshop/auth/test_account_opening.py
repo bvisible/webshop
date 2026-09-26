@@ -63,8 +63,13 @@ class TestCreateAccount(FrappeTestCase):
 		self.form.start()
 		self.mail = patch("frappe.core.doctype.user.user.User.send_welcome_mail_to_user")
 		self.mail.start()
+		# a shop that takes sign-ups, whatever the site says: frappe ticks "Disable Signup" on a site
+		# created from scratch, the CI's among them
+		self.signups = patch.object(api, "signups_disabled", return_value=False)
+		self.signups.start()
 
 	def tearDown(self):
+		self.signups.stop()
 		self.mail.stop()
 		self.form.stop()
 		frappe.set_user("Administrator")
@@ -114,18 +119,21 @@ class TestCreateAccount(FrappeTestCase):
 
 	def test_a_site_that_disabled_sign_ups_opens_no_account(self):
 		"""Website Settings' "Disable Signup", which frappe's own sign_up() honours."""
-		single = frappe.db.get_single_value
-
-		def settings(doctype, field, *args, **kwargs):
-			if (doctype, field) == ("Website Settings", "disable_signup"):
-				return 1
-			return single(doctype, field, *args, **kwargs)
-
-		with patch.object(frappe.db, "get_single_value", side_effect=settings):
+		with patch.object(api, "signups_disabled", return_value=True):
 			answer = api.create_account()
 		self.assertEqual(answer["reason_code"], "signup_disabled")
 		self.assertTrue(answer["reason"])
 		self.assertFalse(frappe.db.exists("User", EMAIL))
+
+	def test_the_switch_is_website_settings(self):
+		self.signups.stop()
+		try:
+			for stored, disabled in ((1, True), (0, False), (None, False)):
+				with patch.object(frappe.db, "get_single_value", return_value=stored) as read:
+					self.assertEqual(api.signups_disabled(), disabled)
+				read.assert_called_once_with("Website Settings", "disable_signup")
+		finally:
+			self.signups.start()
 
 	def test_an_error_says_nothing_of_its_cause(self):
 		with (

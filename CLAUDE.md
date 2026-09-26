@@ -722,9 +722,12 @@ Until the link is clicked, the User carries `email_confirmation_pending`.
   order and does not offer the method to an unconfirmed account (`can_hold_orders`), as before.
   Card and transfer-before-shipping are unaffected. (Until 2026-09-26 the method was simply not
   offered to an unconfirmed account.)
-- **Website Settings' "Disable Signup" is honoured** (2026-09-26): frappe's own `sign_up()`
-  refused, and `create_account` opened accounts whatever it said. No instance had it ticked the
-  day it changed (read-only census), so nothing changed where it is not.
+- **Website Settings' "Disable Signup" is honoured** (2026-09-26, `api.signups_disabled`): frappe's
+  own `sign_up()` refused, and `create_account` opened accounts whatever it said. No instance had
+  it ticked the day it changed (read-only census), so nothing changed where it is not. **Frappe
+  ticks it on a site created from scratch** — the field's default is 1, written the first time
+  the Single is saved — and the CI's site is one: the account tests pin `signups_disabled` to
+  False, and a new shop instance must have it unticked to take sign-ups.
 - `create_account` creates at most 20 accounts an hour per address (`SIGN_UPS_PER_HOUR`, a
   counter of the accounts actually created: frappe's `rate_limit` counted every call, and the
   browser suite's refusals used the allowance up in an afternoon) and honours frappe's
