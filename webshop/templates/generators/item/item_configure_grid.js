@@ -230,7 +230,32 @@ class ItemConfigureGrid {
 		}
 		this.refresh_rows();
 		this.show_picture_for_selection();
+		this.show_codes_for_selection();
 		this.sync_address();
+	}
+
+	//// Neoffice — the chosen variant's EAN and manufacturer's reference close the characteristics
+	//// (#691 plan note 20, B2). The server prints the chosen variant's; a choice made here replaces
+	//// them, and an unfinished choice shows none rather than another variant's.
+	show_codes_for_selection() {
+		const table = document.querySelector('.wsp-specs[data-codes-host]');
+		if (!table) return;
+		table.querySelectorAll('.wsp-specs__code').forEach(row => row.remove());
+		const codes = (this.selected_variant && this.selected_variant.codes) || [];
+		codes.forEach(([label, value]) => {
+			const row = document.createElement('tr');
+			row.className = 'wsp-specs__code';
+			const head = document.createElement('th');
+			head.className = 'spec-label';
+			head.textContent = label;
+			const cell = document.createElement('td');
+			cell.className = 'spec-content';
+			cell.textContent = value;
+			row.append(head, cell);
+			table.appendChild(row);
+		});
+		const fold = table.closest('.wsp-acc');
+		if (fold) fold.hidden = !table.querySelector('tr');
 	}
 
 	//// Neoffice — the address names the variant the shopper chose (`?variant=`, #691 D-1): it can be

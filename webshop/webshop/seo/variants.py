@@ -286,6 +286,13 @@ def selector_data(item_code: str) -> dict:
 	# the variants the page sells, priced for this visitor and stocked by the shop's rule
 	offered = {row.item_code: row for row in offered_variants(item_code, cart_settings)}
 	show_qty = cint(cart_settings.show_stock_availability)
+	# each variant's EAN and manufacturer's reference, which the page's characteristics follow
+	# (#691 plan note 20, B2): the structured data already declares them, nothing new is told
+	codes = {}
+	if offered and cint(cart_settings.get("show_product_identifiers")):
+		from webshop.webshop.seo.facts import bulk_identifiers, identifier_rows
+
+		codes = {code: identifier_rows(found) for code, found in bulk_identifiers(list(offered)).items()}
 	values = {}
 	for row in frappe.get_all(
 		"Item Variant Attribute",
@@ -312,6 +319,7 @@ def selector_data(item_code: str) -> dict:
 		}
 		if offer:
 			variant_data["image"] = offer.image
+			variant_data["codes"] = codes.get(variant.item_code) or []
 			variant_data["in_stock"] = offer.availability != OUT_OF_STOCK
 			variant_data["backorder"] = offer.availability == BACK_ORDER
 			# the quantity only where the shop shows its stock

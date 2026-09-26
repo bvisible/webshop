@@ -162,7 +162,11 @@
 	{% set _texte = _desc_html | default(doc.web_long_description or doc.description) %}
 	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: set _has_desc = frappe.utils.strip_html(_texte or '') | trim #}
 	{% set _has_desc = frappe.utils.strip_html(_texte or '') | trim %}
-	{% if _has_desc or website_specifications or brand_info %}
+	{#- //// Neoffice — the product's EAN and manufacturer's reference close its characteristics, as
+	    text a search finds (#691 plan note 20, B2). On a model's page the fold is drawn even with
+	    nothing in it yet, hidden: the variant selector fills it with the chosen variant's codes. #}
+	{% set _codes_host = shown_identifiers or (show_product_identifiers and group_model and group_model == doc.item_code) %}
+	{% if _has_desc or website_specifications or brand_info or _codes_host %}
 	<div class="wsp-folds">
 		{% if _has_desc %}
 		<details class="wsp-acc" open>
@@ -173,15 +177,24 @@
 			</div>
 		</details>
 		{% endif %}
-		{% if website_specifications %}
-		<details class="wsp-acc">
+		{#- //// Neoffice — drawn for the codes too, hidden while it holds nothing (#691 plan note 20, B2) #}
+		{% if website_specifications or _codes_host %}
+		<details class="wsp-acc"{% if not (website_specifications or shown_identifiers) %} hidden{% endif %}>
 			<summary class="wsp-acc__head">{{ _("Characteristics") }}</summary>
 			<div class="wsp-acc__body">
-				<table class="wsp-specs">
-					{% for d in website_specifications -%}
+				{#- //// Neoffice — data-codes-host: the table the variant selector writes the codes in #}
+				<table class="wsp-specs"{% if _codes_host %} data-codes-host{% endif %}>
+					{% for d in website_specifications or [] -%}
 					<tr>
 						<th class="spec-label">{{ _(d.label) }}</th>
 						<td class="spec-content">{{ _(d.description) }}</td>
+					</tr>
+					{%- endfor %}
+					{#- //// Neoffice — the product's EAN and manufacturer's reference, as text a search finds #}
+					{% for code_label, code_value in shown_identifiers or [] -%}
+					<tr class="wsp-specs__code">
+						<th class="spec-label">{{ code_label | e }}</th>
+						<td class="spec-content">{{ code_value | e }}</td>
 					</tr>
 					{%- endfor %}
 				</table>

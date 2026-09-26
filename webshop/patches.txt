@@ -62,3 +62,5 @@ webshop.patches.add_email_confirmation_field
 webshop.patches.add_picture_alt_field
 # //// Neoffice — every product's first SEO score, in the background (2026-09-26, #691 plan note 20)
 webshop.patches.compute_seo_scores
+# //// Neoffice — the product identifiers shown and supplier references searched, on by default (2026-09-26, #691 plan note 20)
+webshop.patches.switch_on_product_identifiers

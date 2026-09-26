@@ -333,6 +333,8 @@ FIELD_PATCHES_RUN_AT_INSTALL = [
 	"add_email_confirmation_field",
 	# //// Neoffice — the description of each slideshow picture (#691 D-11)
 	"add_picture_alt_field",
+	# //// Neoffice — the product identifiers' switches, on as their default says (#691 plan note 20)
+	"switch_on_product_identifiers",
 ]
 
 

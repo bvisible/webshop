@@ -150,6 +150,23 @@ class TestIdentifiers(FrappeTestCase):
 			with self.subTest(code=code):
 				self.assertEqual(facts_module.gtin_problem(code), problem)
 
+	def test_the_manufacturer_s_number_comes_from_its_rows_too(self):
+		"""ERPNext copies the number to the Item only from the row ticked as default: an item whose
+		only manufacturer row was never ticked declared no MPN."""
+		maker = f"_Test SEO maker {frappe.generate_hash(length=6)}"
+		frappe.get_doc({"doctype": "Manufacturer", "short_name": maker}).insert(ignore_permissions=True)
+		item = make_test_item(f"_Test MPN {frappe.generate_hash(length=8)}")
+		frappe.get_doc(
+			{"doctype": "Item Manufacturer", "item_code": item.name, "manufacturer": maker, "manufacturer_part_no": "RR-2026 "}
+		).insert(ignore_permissions=True)
+		self.assertFalse(frappe.db.get_value("Item", item.name, "default_manufacturer_part_no"))
+		self.assertEqual(facts_module.product_identifiers(item.name), {"mpn": "RR-2026"})
+		# the default row wins, through the Item as ERPNext keeps it
+		frappe.get_doc(
+			{"doctype": "Item Manufacturer", "item_code": item.name, "manufacturer": maker, "manufacturer_part_no": "RR-2027", "is_default": 1}
+		).insert(ignore_permissions=True)
+		self.assertEqual(facts_module.product_identifiers(item.name), {"mpn": "RR-2027"})
+
 	def test_the_sku_carries_no_whitespace(self):
 		self.assertEqual(facts_module.schema_sku("TRAIL 01\t-B "), "TRAIL01-B")
 

@@ -1010,6 +1010,23 @@ defects in neoffice-maintenance#691.
   `get_product_info_for_website` only fills when the shop DISPLAYS its stock: a shop hiding it
   told Google everything was out of stock. A shop that takes orders beyond its stock is
   `BackOrder`.
+- **The product's codes** (2026-09-26, plan note 20):
+  - **GTIN.** `facts.product_gtin` keeps one per product: a barcode row typed EAN/UPC first, and
+    never a number GS1 keeps off the market (prefix 2, 02, 04, 05, 98, 99, an RCN-8), which
+    Google refuses.
+  - **MPN.** The manufacturer's part number comes from `Item.default_manufacturer_part_no`, else
+    from the first `Item Manufacturer` row that has one (`manufacturer_part_numbers`): ERPNext
+    copies it to the Item only from the row ticked as default.
+  - **Shown on the page.** The EAN and the MPN close the characteristics (`shown_identifiers`,
+    Webshop Settings `show_product_identifiers`, on by default). A search for a code only finds a
+    page whose text says it; the feed and the JSON-LD send them whatever the switch says. A model's
+    page prints the chosen variant's, and `item_configure_grid.js` follows the choice from
+    `selector_data`'s `codes`.
+  - **Search by reference.** A barcode, an MPN or a supplier's reference typed whole finds its
+    product, in the catalogue's search and in the quick order (`product_data_engine/references.py`;
+    supplier references only with `search_supplier_references`, on by default).
+  - **A supplier's reference is never shown or sent.** It would name the shop's supplier, and
+    Google reserves `mpn` for the manufacturer's number.
 - **The site's identity is the chrome's, declared once on the home page.** builder's
   `site_graph.py` prints the `WebSite` and the `Organization` there and calls the
   `site_organization` hook: `jsonld.site_organization` makes it an `OnlineStore` (legal name,

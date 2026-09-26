@@ -15,6 +15,7 @@ import re
 from datetime import datetime
 
 import frappe
+from frappe import _
 from frappe.utils import cint, flt, getdate, now_datetime
 
 from webshop.webshop.seo.text import html_to_text
@@ -90,13 +91,36 @@ def category_path(item_group: str | None) -> str:
 	return " > ".join(group.name for group in groups if group.lft != 1)
 
 
+# How a buyer names each GTIN in the product's characteristics
+IDENTIFIER_LABELS = {"gtin8": "EAN", "gtin13": "EAN", "gtin12": "UPC", "gtin14": "GTIN"}
+
+
+def identifier_rows(identifiers: dict) -> list[tuple[str, str]]:
+	"""The product's codes as its characteristics list them: the GTIN, named as a buyer knows it,
+	then the manufacturer's reference."""
+	rows = [(IDENTIFIER_LABELS[key], value) for key, value in identifiers.items() if key in IDENTIFIER_LABELS]
+	if identifiers.get("mpn"):
+		rows.append((_("Manufacturer's reference"), identifiers["mpn"]))
+	return rows
+
+
+def shown_identifiers(item_code: str | None, settings) -> list[tuple[str, str]]:
+	"""The codes the product page prints in its characteristics (Webshop Settings,
+	show_product_identifiers). A search for an EAN or a manufacturer's reference only finds a page
+	whose text says it: the structured data alone does not make the page come up. Google Shopping
+	and the structured data receive them whatever the switch says."""
+	if not item_code or not cint(settings.get("show_product_identifiers")):
+		return []
+	return identifier_rows(product_identifiers(item_code))
+
+
 def product_identifiers(item_code: str) -> dict:
 	"""GTIN (only one whose check digit is right) and manufacturer part number, from the item."""
 	return bulk_identifiers([item_code]).get(item_code) or {}
 
 
 def bulk_identifiers(item_codes) -> dict[str, dict]:
-	"""product_identifiers of several items (a model's variants) in two queries."""
+	"""product_identifiers of several items (a model's variants) in three queries at most."""
 	codes = list(dict.fromkeys(code for code in item_codes or [] if code))
 	if not codes:
 		return {}
@@ -114,14 +138,37 @@ def bulk_identifiers(item_codes) -> dict[str, dict]:
 		order_by="parent asc, idx asc",
 	):
 		barcodes.setdefault(row.parent, []).append(row)
+	part_numbers = manufacturer_part_numbers(
+		[code for code, item in items.items() if not (item.default_manufacturer_part_no or "").strip()]
+	)
 	found = {code: {} for code in codes}
 	for code, item in items.items():
 		gtin = product_gtin(barcodes.get(code) or [], item.stock_uom)
 		if gtin:
 			found[code][GTIN_PROPERTIES[len(gtin)]] = gtin
-		mpn = (item.default_manufacturer_part_no or "").strip()
+		mpn = (item.default_manufacturer_part_no or "").strip() or part_numbers.get(code)
 		if mpn:
 			found[code]["mpn"] = mpn
+	return found
+
+
+def manufacturer_part_numbers(item_codes) -> dict[str, str]:
+	"""The manufacturer's part number of items whose Item carries none: ERPNext copies it to the
+	Item only from the manufacturer row ticked as default, so an item whose only row was never
+	ticked declared no MPN. The first row that has a number, the default first, else the oldest.
+	Never a supplier's reference (Item Supplier): Google reserves `mpn` for the manufacturer's."""
+	if not item_codes:
+		return {}
+	found = {}
+	for row in frappe.get_all(
+		"Item Manufacturer",
+		filters={"item_code": ["in", list(item_codes)], "manufacturer_part_no": ["is", "set"]},
+		fields=["item_code", "manufacturer_part_no"],
+		order_by="is_default desc, creation asc",
+	):
+		number = (row.manufacturer_part_no or "").strip()
+		if number:
+			found.setdefault(row.item_code, number)
 	return found
 
 
