@@ -11,9 +11,9 @@ assistants read of it is there, and what to do about the rest.
   Reviews and videos are shown, never counted: they depend on the customers, not on the work.
 - The offer and "sent to Google" are what a visitor gets, computed as the feed computes them:
   inside seo.feeds.google.serving(), which only a background job may enter. So the score is
-  computed in a job (after the item is saved, when its form opens, every night) and stored on the
-  item: seo_score for the list, the cards and the charts, seo_score_details for the form's
-  checklist, which the job's answer (EVENT, on the document's room) redraws.
+  computed in a job (when the item's form opens or reloads, a save included, and every night)
+  and stored on the item: seo_score for the list, the cards and the charts, seo_score_details for
+  the form's checklist, which the job's answer (EVENT, on the document's room) redraws.
 - The score is the merchant's, never the public's: it only shows on the desk.
 """
 
@@ -501,24 +501,19 @@ def refresh_item(name: str):
 		)
 
 
-def queue_item(name: str, after_commit: bool = True):
-	"""One computation per product in the queue at a time: a save and the form's reload share it.
-	After a save, the job waits for the commit, or it would read the item as it was."""
+def queue_item(name: str):
+	"""One computation per product in the queue at a time: two forms open on it share it.
+
+	Queued by the form only, never by a save: the form reloads after its own save and asks then,
+	while a sync that saves thousands of items through the API (no import flag) would flood the
+	short queue, where the shop's emails wait. The night's pass catches every other change."""
 	frappe.enqueue(
 		"webshop.webshop.seo.score.refresh_item",
 		queue="short",
 		job_id=f"webshop_seo_score::{name}",
 		deduplicate=True,
-		enqueue_after_commit=after_commit,
 		name=name,
 	)
-
-
-def on_website_item_update(doc, method=None):
-	"""doc_events: a saved product is scored again, in the background."""
-	if frappe.flags.in_import or frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_migrate:
-		return
-	queue_item(doc.name)
 
 
 @frappe.whitelist()
@@ -532,8 +527,7 @@ def checklist(name: str, refresh: int = 1):
 	if values is None:
 		frappe.throw(_("Website Item {0} not found").format(name), frappe.DoesNotExistError)
 	if cint(refresh):
-		# nothing of this request to wait for, and a GET is never committed
-		queue_item(name, after_commit=False)
+		queue_item(name)
 	details = json.loads(values.seo_score_details) if values.seo_score_details else None
 	return {
 		"name": name,

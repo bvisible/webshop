@@ -172,9 +172,6 @@ doc_events = {
 			"webshop.webshop.seo.redirects.remember_old_route",
 			"webshop.webshop.seo.indexnow.queue_website_item",
 			"webshop.webshop.utils.renditions.on_website_item_update",
-			# //// Neoffice — and its SEO score is computed again in the background (seo/score.py,
-			# //// #691 plan note 20): the form reads the stored checklist
-			"webshop.webshop.seo.score.on_website_item_update",
 		],
 		"on_trash": ["webshop.webshop.seo.indexnow.queue_website_item"],
 	},

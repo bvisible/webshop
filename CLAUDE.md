@@ -1189,11 +1189,15 @@ only, never to the public.
   Reviews and videos are shown, never counted.
 - **Computed in a background job, always.** The offer is what a visitor gets, which only
   `google.serving()` computes, and `serving()` refuses a web request. So the job runs:
-  - after a save (`doc_events`, one job per item thanks to `job_id` + `deduplicate`);
-  - when the form opens (`checklist(refresh=1)`; the answer reaches the form on the document's
-    realtime room);
+  - when the form opens or reloads, a save included (`checklist(refresh=1)`, one job per item
+    thanks to `job_id` + `deduplicate`; the answer reaches the form on the document's realtime
+    room);
   - every night (`daily_long` → `refresh_all`);
   - once after the deploy (`patches/compute_seo_scores`).
+
+  **Never from `doc_events`.** A sync that saves thousands of items through the API sets no
+  import flag, and one job per saved item would flood the short queue, where the shop's emails
+  wait. The night's pass catches every change made outside the form.
 - **Stored on Website Item, without touching `modified`:**
   - `seo_score` — a list column, sortable and filterable;
   - `seo_score_details` — the checklist as codes; the labels are written at read time, in the
@@ -1212,8 +1216,8 @@ only, never to the public.
 
 > **`frappe.enqueue(..., deduplicate=True)` decides when it is called, not when it enqueues.**
 > With `enqueue_after_commit`, two calls in one transaction both pass the check. And a skipped
-> job logs an *error* line. The form's call enqueues at once: nothing of its request is to wait
-> for, and a GET is never committed, so an after-commit job would never leave.
+> job logs an *error* line. The form's call enqueues at once, without `enqueue_after_commit`: a
+> GET is never committed, and an after-commit job would never leave.
 
 > **The form's headline figure is drawn from `frm.doc` on every refresh**, then updated in
 > place when the job answers. An indicator added only by the late callback would die at the

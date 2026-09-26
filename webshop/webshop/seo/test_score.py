@@ -330,10 +330,14 @@ class TestStoredOnTheItem(FrappeTestCase):
 					bands_chart.get(chart_name="Products by SEO Score", no_cache=1)
 				frappe.set_user("Administrator")
 
-	def test_a_save_queues_one_computation(self):
+	def test_the_form_queues_the_computation_and_a_save_does_not(self):
+		"""A sync saving thousands of items through the API must not flood the short queue: only
+		the form asks, when it opens or reloads after its own save."""
 		name = self.product()
 		with patch.object(score, "queue_item") as queued:
 			frappe.get_doc("Website Item", name).save()
+			queued.assert_not_called()
+			score.checklist(name, refresh=1)
 		queued.assert_called_once_with(name)
 
 	def test_the_workspace_reads_the_stored_scores(self):
