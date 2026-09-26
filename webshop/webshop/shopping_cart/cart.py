@@ -1675,14 +1675,27 @@ def add_new_address(doc):
 	# //// ERPNext only fills the text when the address is saved from the desk form, so a
 	# //// customer created from the checkout showed an empty address in every list
 	# //// (5bcccd131a / aeddc82961, 2025-11-25 and 2025-11-30).
-	# Add link to current customer if not already provided
+	# //// Neoffice — the caller's links are no longer trusted: a portal customer could link
+	# //// an address to ANOTHER customer and, flagged primary, rewrite that customer's
+	# //// primary address. A link is kept only when the caller may write the linked
+	# //// record; the caller's own customer is always linked.
+	party = get_party() if frappe.session.user != "Guest" else None
+	kept = [
+		link
+		for link in (address.get("links") or [])
+		if link.link_doctype
+		and link.link_name
+		and frappe.has_permission(link.link_doctype, "write", link.link_name)
+	]
+	address.set("links", [])
+	for link in kept:
+		address.append("links", {"link_doctype": link.link_doctype, "link_name": link.link_name})
+	if party and not any(
+		row.link_doctype == party.doctype and row.link_name == party.name for row in address.links
+	):
+		address.append("links", {"link_doctype": party.doctype, "link_name": party.name})
 	if not address.links:
-		party = get_party()
-		if party:
-			address.append("links", {
-				"link_doctype": "Customer",
-				"link_name": party.name
-			})
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	address.save()
 

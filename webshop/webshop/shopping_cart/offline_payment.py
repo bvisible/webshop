@@ -168,6 +168,11 @@ def request_payment_for_order(sales_order, hold=1, mode_of_payment=None):
 @frappe.whitelist()
 def open_payment_request(sales_order):
 	"""The submitted request raised on this order, and what can be done with it."""
+	# //// Neoffice — it answered for any order number, and order numbers follow each other:
+	# //// any signed-in account read another customer's request (amount, status, balance).
+	# //// Only whoever may read the order, or the order's own customer, gets an answer.
+	if not _may_see_order(sales_order):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 	name = frappe.db.get_value(
 		"Payment Request",
 		{"reference_doctype": "Sales Order", "reference_name": sales_order, "docstatus": 1},
@@ -222,3 +227,15 @@ def settle(payment_request):
 
 def _thank_you(sales_order):
 	return f"/thank_you?sales_order={sales_order}"
+
+
+def _may_see_order(sales_order):
+	"""True for whoever may read the Sales Order, or for the order's own customer."""
+	if not sales_order or not frappe.db.exists("Sales Order", sales_order):
+		return False
+	if frappe.has_permission("Sales Order", "read", sales_order):
+		return True
+	from webshop.webshop.shopping_cart.cart import get_party
+
+	party = get_party() if frappe.session.user != "Guest" else None
+	return bool(party) and frappe.db.get_value("Sales Order", sales_order, "customer") == party.name

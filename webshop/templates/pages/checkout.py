@@ -1599,20 +1599,43 @@ def update_payment_method(payment_method):
         "payment_method": payment_method
     }
 
+# //// Neoffice — rewritten. It was open to any signed-in account and saved ANY document
+# //// of ANY doctype with ANY fields under ignore_permissions. The checkout only ever
+# //// sends one of the customer's own addresses with address fields: that is now all it
+# //// accepts. Refusals raise before the try, so they are never reported as a soft failure.
+_ADDRESS_FIELDS_NEVER_SET = {"links", "is_your_company_address", "disabled", "name", "owner", "docstatus", "doctype"}
+
+
 @frappe.whitelist()
 def update_address_info(doctype, docname, fieldname_dict):
-    """Update address information with ignore_permissions=True"""
+    """Update one of the signed-in customer's own addresses from the checkout."""
+    if doctype != "Address" or frappe.session.user == "Guest":
+        frappe.throw(_("Not permitted"), frappe.PermissionError)
+    if isinstance(fieldname_dict, str):
+        fieldname_dict = json.loads(fieldname_dict)
+    if not isinstance(fieldname_dict, dict):
+        frappe.throw(_("Not permitted"), frappe.PermissionError)
+    party = get_party()
+    own = party and frappe.db.exists(
+        "Dynamic Link",
+        {"parenttype": "Address", "parent": docname, "link_doctype": party.doctype, "link_name": party.name},
+    )
+    if not own and not frappe.has_permission("Address", "write", docname):
+        frappe.throw(_("Not permitted"), frappe.PermissionError)
+    meta = frappe.get_meta("Address")
+    writable = {
+        df.fieldname
+        for df in meta.fields
+        if df.fieldtype not in frappe.model.no_value_fields
+        and df.fieldtype not in frappe.model.table_fields
+        and not df.read_only
+    } - _ADDRESS_FIELDS_NEVER_SET
     try:
-        # Convert JSON string to dict if needed
-        if isinstance(fieldname_dict, str):
-            fieldname_dict = json.loads(fieldname_dict)
-            
-        # Update the document with ignore_permissions=True
-        doc = frappe.get_doc(doctype, docname)
-        doc.update(fieldname_dict)
+        doc = frappe.get_doc("Address", docname)
+        doc.update({key: value for key, value in fieldname_dict.items() if key in writable})
         doc.save(ignore_permissions=True)
-        
+
         return {"success": True, "name": docname}
     except Exception as e:
-        frappe.log_error(f"Error updating address: {str(e)}")
+        frappe.log_error("Checkout address update failed", str(e))
         return {"success": False, "message": str(e)}
