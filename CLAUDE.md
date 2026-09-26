@@ -1404,11 +1404,17 @@ endpoint whose id travels in a redirect URL.
 > into the test and read the CI log: the ERPNext-fixture modules die on a French
 > site (no "Item Group: Products"), so no local run can reproduce it.
 
-> **Fixtures built in `setUpClass` need a commit.** `FrappeTestCase` rolls back
-> between tests, and that rollback takes uncommitted class fixtures with it —
-> the tests then report their own data as missing. Commit at the end of
-> `setUpClass`, and purge in `tearDownClass` (and again at the start of
-> `setUpClass`, for whatever an interrupted run left behind).
+> **Fixtures built in `setUpClass` need a commit.** `FrappeTestCase` (v15) rolls
+> back once, when the class ends (`_rollback_db`, a class cleanup), **not between
+> tests**: what one test writes is still there in the next — a test asserting
+> "the held orders are exactly mine" found the previous test's order
+> (2026-09-26). A test that must not see its neighbours rolls itself back
+> (`self.addCleanup(frappe.db.rollback)` in `setUp`), and any rollback during a
+> test — its own, or one the code under test makes — takes uncommitted class
+> fixtures with it: the tests then report their own data as missing. Commit at
+> the end of `setUpClass`, and purge in `tearDownClass` (and again at the start
+> of `setUpClass`, for whatever an interrupted run left behind); a purge deletes
+> what links a document before cancelling it.
 
 > **`frappe.enqueue` does not run inline under tests.** `is_async` stays true, so
 > a rebuild triggered by `save()` is handed to a worker that may not exist. A
