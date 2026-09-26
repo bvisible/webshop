@@ -22,6 +22,25 @@ class TestDesk(FrappeTestCase):
 			self.assertIn(doctype, linked)
 		self.assertIn("/occasions", {row.url for row in workspace.shortcuts})
 
+	def test_the_seo_figures_are_on_the_desk(self):
+		"""The SEO score's cards and charts exist, and a dashboard shows them all: the Neoffice theme
+		draws a workspace's cards and links but no chart (#691 plan note 20)."""
+		workspace = frappe.get_doc("Workspace", "Webshop")
+		cards = {row.number_card_name for row in workspace.number_cards}
+		charts = {row.chart_name for row in workspace.charts}
+		self.assertIn("Average SEO Score", cards)
+		self.assertIn("Products by SEO Score", charts)
+		dashboard = frappe.get_doc("Dashboard", "Webshop SEO")
+		self.assertEqual({row.card for row in dashboard.cards}, cards)
+		self.assertEqual({row.chart for row in dashboard.charts}, charts)
+		for name in cards:
+			self.assertTrue(frappe.db.exists("Number Card", name), name)
+		for name in charts:
+			self.assertTrue(frappe.db.exists("Dashboard Chart", name), name)
+		self.assertIn(("Dashboard", "Webshop SEO"), {(row.type, row.link_to) for row in workspace.shortcuts})
+		linked = {(row.link_type, row.link_to) for row in workspace.links if row.type == "Link"}
+		self.assertIn(("Dashboard", "Webshop SEO"), linked)
+
 	def test_every_workspace_link_points_at_an_installed_doctype(self):
 		workspace = frappe.get_doc("Workspace", "Webshop")
 		for row in workspace.links:
@@ -33,6 +52,9 @@ class TestDesk(FrappeTestCase):
 		for row in workspace.shortcuts:
 			if row.type == "DocType":
 				self.assertTrue(frappe.db.exists("DocType", row.link_to), row.link_to)
+			# //// Neoffice — and the SEO dashboard (#691 plan note 20)
+			if row.type == "Dashboard":
+				self.assertTrue(frappe.db.exists("Dashboard", row.link_to), row.link_to)
 
 	def test_orders_invoices_and_quotations_show_the_emails_they_triggered(self):
 		# The dashboard data is what the form's "Connections" section reads.

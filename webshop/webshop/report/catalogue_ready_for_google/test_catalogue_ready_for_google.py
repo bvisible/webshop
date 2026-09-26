@@ -120,8 +120,25 @@ class TestTheReport(FrappeTestCase):
 		self.assertEqual(by_name["WI-3"]["suggestions"], in_users_language(google.warning_label, "no_brand"))
 		self.assertEqual(by_name["WI-1"]["suggestions"], "")
 		self.assertEqual(by_name["WI-1"]["price"], "120.00 CHF")
-		self.assertEqual([item["value"] for item in summary], [2, 1, 1])
-		self.assertTrue({"status", "reason", "suggestions"} <= {column["fieldname"] for column in columns})
+		self.assertEqual([item["value"] for item in summary][:3], [2, 1, 1])
+		self.assertTrue({"status", "reason", "suggestions", "seo_score"} <= {column["fieldname"] for column in columns})
+
+	def test_each_product_carries_its_seo_score_and_the_summary_their_average(self):
+		"""The score of seo/score.py, read from the feed's answer the report already has."""
+		columns, rows, message, chart, summary = self.run_report()
+		scores = [row["seo_score"] for row in rows]
+		self.assertTrue(all(isinstance(value, int) and 0 <= value <= 100 for value in scores), scores)
+		by_name = {row["website_item"]: row for row in rows}
+		# sent beats left out for want of a price, all else equal
+		self.assertGreater(by_name["WI-1"]["seo_score"], by_name["WI-2"]["seo_score"])
+		self.assertEqual(summary[3]["value"], round(sum(scores) / len(scores)))
+
+	def test_a_score_that_fails_costs_its_cell_not_the_report(self):
+		with patch("webshop.webshop.seo.score.product_score", side_effect=RuntimeError("boom")):
+			columns, rows, message, chart, summary = self.run_report()
+		self.assertEqual(len(rows), 3)
+		self.assertTrue(all(row["seo_score"] is None for row in rows))
+		self.assertEqual(summary[3]["value"], 0)
 
 	def test_the_filters(self):
 		self.assertEqual([r["website_item"] for r in self.run_report({"show": "Left out"})[1]], ["WI-2"])

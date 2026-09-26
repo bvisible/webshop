@@ -63,7 +63,10 @@ Custom Fields if we ever want to shrink the divergence.
   and SEO" section (the page's title and description for search engines, seo/page_meta.py,
   and whether Nora wrote them, #691 lot 6, 2026-09-25); `description_ai_assisted` after
   `web_long_description` (Nora's description kept by the merchant, declared to Google
-  Shopping as structured_description, seo/feeds/google.py, 2026-09-25).
+  Shopping as structured_description, seo/feeds/google.py, 2026-09-25); `seo_score_html` at the
+  top of "Search and SEO", then `no_product_identifier`, `seo_score`, `seo_score_checked_on`,
+  `seo_score_details`, `seo_missing`, `seo_google_status` after `seo_preview` (the product's SEO
+  score, computed and stored by seo/score.py, #691 plan note 20, 2026-09-26).
 - removed: `column_break_27`, `column_break_11` — layout only, dropped when the
   sections above were inserted.
 - `field_order` re-shuffled accordingly.
@@ -237,6 +240,11 @@ French shop.
 - `webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.json` — new report (by day or by customer, with the estimated cost) that the assistant service is billed from — no upstream equivalent (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
 - `webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.json` — new report: the visits AI assistants sent (by referrer host or utm_source, from Web Page View), by assistant, page or day — the measure of the GEO work, neoffice-maintenance#691 lot 4 — no upstream equivalent
 - `webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.json` — new prepared report: every published product of a site as the Google feed sees it (sent, or left out and why) with what would make its listing better — neoffice-maintenance#691 lot 6 — no upstream equivalent
+- `webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json` — new DocType: one site's SEO figures of the day (products, average score, sent to Google Shopping, without a description, an identifier or picture descriptions), written every night by `seo/score.py` and kept 400 days — neoffice-maintenance#691, plan note 20 — no upstream equivalent
+- `webshop/webshop/dashboard_chart_source/webshop_seo_score_bands/webshop_seo_score_bands.json`, `webshop/webshop/dashboard_chart_source/webshop_google_shopping_status/webshop_google_shopping_status.json`, `webshop/webshop/dashboard_chart_source/webshop_seo_score_history/webshop_seo_score_history.json` — new chart sources: published products by band of SEO score, by what Google Shopping gets of them, and the average score on each measured day (#691, plan note 20) — no upstream equivalent
+- `webshop/webshop/dashboard_chart/products_by_seo_score/products_by_seo_score.json`, `webshop/webshop/dashboard_chart/google_shopping_status/google_shopping_status.json`, `webshop/webshop/dashboard_chart/average_seo_score/average_seo_score.json` — the Webshop workspace's SEO charts (the two sources above, and the average score over time from the snapshots) — no upstream equivalent
+- `webshop/webshop/webshop_dashboard/webshop_seo/webshop_seo.json` — the "Webshop SEO" dashboard: the SEO charts and cards on one page, reached from the workspace (the Neoffice theme's module home draws cards and links but no chart) — no upstream equivalent
+- `webshop/webshop/number_card/average_seo_score/average_seo_score.json`, `webshop/webshop/number_card/products_sent_to_google_shopping/products_sent_to_google_shopping.json`, `webshop/webshop/number_card/products_without_a_description/products_without_a_description.json`, `webshop/webshop/number_card/products_without_gtin_or_reference/products_without_gtin_or_reference.json`, `webshop/webshop/number_card/products_without_picture_descriptions/products_without_picture_descriptions.json` — the Webshop workspace's SEO number cards, counted on the fields the score stores on Website Item — no upstream equivalent
 
 ---
 
@@ -256,6 +264,12 @@ webshop/templates/payments/stripe.json
 webshop/templates/payments/twint.json
 webshop/templates/payments/wallee.json
 webshop/templates/payments/webshopsi.json
+webshop/webshop/dashboard_chart/average_seo_score/average_seo_score.json
+webshop/webshop/dashboard_chart/google_shopping_status/google_shopping_status.json
+webshop/webshop/dashboard_chart/products_by_seo_score/products_by_seo_score.json
+webshop/webshop/dashboard_chart_source/webshop_google_shopping_status/webshop_google_shopping_status.json
+webshop/webshop/dashboard_chart_source/webshop_seo_score_bands/webshop_seo_score_bands.json
+webshop/webshop/dashboard_chart_source/webshop_seo_score_history/webshop_seo_score_history.json
 webshop/webshop/doctype/abandoned_cart_reminder/abandoned_cart_reminder.json
 webshop/webshop/doctype/b2b_customer_group/b2b_customer_group.json
 webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
@@ -269,6 +283,7 @@ webshop/webshop/doctype/purchase_follow_up_step/purchase_follow_up_step.json
 webshop/webshop/doctype/store_closure/store_closure.json
 webshop/webshop/doctype/store_opening_hours/store_opening_hours.json
 webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
 webshop/webshop/doctype/webshop_settings/webshop_settings.json
 webshop/webshop/doctype/webshop_trust_item/webshop_trust_item.json
 webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
@@ -278,9 +293,15 @@ webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
 webshop/webshop/doctype/website_item/website_item.json
 webshop/webshop/doctype/website_item_video/website_item_video.json
 webshop/webshop/doctype/website_item_warehouse_source/website_item_warehouse_source.json
+webshop/webshop/number_card/average_seo_score/average_seo_score.json
+webshop/webshop/number_card/products_sent_to_google_shopping/products_sent_to_google_shopping.json
+webshop/webshop/number_card/products_without_a_description/products_without_a_description.json
+webshop/webshop/number_card/products_without_gtin_or_reference/products_without_gtin_or_reference.json
+webshop/webshop/number_card/products_without_picture_descriptions/products_without_picture_descriptions.json
 webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.json
 webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.json
 webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.json
+webshop/webshop/webshop_dashboard/webshop_seo/webshop_seo.json
 webshop/webshop/workspace/webshop/webshop.json
 ```
 

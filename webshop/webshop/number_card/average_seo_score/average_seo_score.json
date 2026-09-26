@@ -1,0 +1,22 @@
+{
+ "aggregate_function_based_on": "seo_score",
+ "color": "#29CD42",
+ "creation": "2026-09-26 16:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Number Card",
+ "document_type": "Website Item",
+ "filters_json": "[[\"Website Item\", \"published\", \"=\", 1, false], [\"Website Item\", \"sold\", \"=\", 0, false], [\"Website Item\", \"seo_score_checked_on\", \"is\", \"set\", false]]",
+ "function": "Average",
+ "idx": 0,
+ "is_public": 1,
+ "is_standard": 1,
+ "label": "Average SEO Score",
+ "modified": "2026-09-26 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Average SEO Score",
+ "owner": "Administrator",
+ "show_percentage_stats": 0,
+ "stats_time_interval": "Daily",
+ "type": "Document Type"
+}

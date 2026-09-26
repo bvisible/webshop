@@ -293,6 +293,163 @@ webshop.seo.pictures = webshop.seo.pictures || {
 	},
 };
 
+// The product's SEO score (#691 plan note 20, seo/score.py): out of 100, what search engines, Google
+// Shopping and assistants read of it, and what to do about the rest. It is computed in a background
+// job, because it prices the product as a visitor sees it, which a web request may not do: the form
+// draws the stored checklist at once, then redraws it when the job's answer reaches the document's
+// room. The headline figure is drawn from the document on every refresh, never from a late callback
+// (a dashboard indicator added by a callback dies at the next redraw).
+webshop.seo.score = webshop.seo.score || {
+	EVENT: "webshop_seo_score",
+
+	colour(score) {
+		return score >= 80 ? "green" : score >= 50 ? "orange" : "red";
+	},
+
+	load(frm) {
+		if (frm.is_new() || !frm.fields_dict.seo_score_html) return;
+		if (frm.doc.seo_score_checked_on) this.indicator(frm, frm.doc.seo_score);
+		this.fetch(frm, 1);
+		this.listen();
+	},
+
+	fetch(frm, refresh) {
+		frappe.call({
+			method: "webshop.webshop.seo.score.checklist",
+			args: { name: frm.doc.name, refresh },
+			callback: (r) => r.message && this.draw(frm, r.message, refresh),
+		});
+	},
+
+	// one listener for every form: the answer names its item, and only the form open on it redraws
+	listen() {
+		if (this.listening) return;
+		this.listening = true;
+		frappe.realtime.on(this.EVENT, (data) => {
+			const frm = window.cur_frm;
+			if (!data || !frm || frm.doctype !== "Website Item" || frm.doc.name !== data.name) return;
+			this.fetch(frm, 0);
+		});
+	},
+
+	indicator(frm, score) {
+		if (score === null || score === undefined) return;
+		const label = __("SEO score: {0} / 100", [score]);
+		const existing = frm.dashboard.stats_area_row && frm.dashboard.stats_area_row.find(".wsp-seo-indicator");
+		if (existing && existing.length) {
+			existing.removeClass("red orange green").addClass(this.colour(score)).text(label);
+			return;
+		}
+		const column = frm.dashboard.add_indicator(label, this.colour(score));
+		column.find(".indicator").addClass("wsp-seo-indicator").css("cursor", "pointer")
+			.on("click", () => frm.scroll_to_field("seo_score_html"));
+	},
+
+	status(status) {
+		const pills = {
+			good: ["green", __("Good")],
+			improve: ["orange", __("To improve")],
+			missing: ["red", __("Missing")],
+			not_applicable: ["gray", __("Not counted")],
+		};
+		const [colour, label] = pills[status] || pills.not_applicable;
+		return `<span class="indicator-pill ${colour}" style="white-space: nowrap;">${label}</span>`;
+	},
+
+	gauge(score) {
+		const radius = 26;
+		const circle = 2 * Math.PI * radius;
+		const filled = (circle * score) / 100;
+		return `
+			<svg width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="${__("SEO score: {0} / 100", [score])}" style="flex: none;">
+				<circle cx="32" cy="32" r="${radius}" fill="none" stroke="var(--gray-300)" stroke-width="6"></circle>
+				<circle cx="32" cy="32" r="${radius}" fill="none" stroke="var(--${this.colour(score)}-500)" stroke-width="6"
+					stroke-linecap="round" stroke-dasharray="${filled} ${circle}" transform="rotate(-90 32 32)"></circle>
+				<text x="32" y="38" text-anchor="middle" font-size="17" font-weight="600" fill="var(--text-color)">${score}</text>
+			</svg>`;
+	},
+
+	draw(frm, data, refreshing) {
+		const field = frm.fields_dict.seo_score_html;
+		// an answer for another item (the form moved on while it was computed) draws nothing
+		if (!field || data.name !== frm.doc.name) return;
+		const esc = frappe.utils.escape_html;
+		if (data.score === null || data.score === undefined) {
+			field.$wrapper.html(`<div class="small text-muted">${
+				refreshing ? __("Computing the SEO score…") : __("No SEO score yet: it is computed after each save and every night.")
+			}</div>`);
+			return;
+		}
+		this.indicator(frm, data.score);
+		const can_fix = (code) => Boolean(this.FIXES[code]);
+		const rows = data.criteria.map((criterion) => `
+			<tr>
+				<td style="width: 110px; vertical-align: top;">${this.status(criterion.status)}</td>
+				<td style="vertical-align: top;">
+					<div style="font-weight: 500;">${esc(criterion.label)}</div>
+					<div class="small text-muted">${esc(criterion.message || "")}</div>
+				</td>
+				<td class="small text-muted text-right" style="white-space: nowrap; vertical-align: top;">${
+					criterion.status === "not_applicable" ? "" : `${Math.round(criterion.earned * 10) / 10} / ${criterion.points}`
+				}</td>
+				<td class="text-right" style="width: 90px; vertical-align: top;">${
+					["improve", "missing"].includes(criterion.status) && can_fix(criterion.code)
+						? `<button type="button" class="btn btn-xs btn-default wsp-seo-fix" data-code="${esc(criterion.code)}">${__("Fix this")}</button>`
+						: ""
+				}</td>
+			</tr>`).join("");
+		const informative = (data.informative || []).map((row) => `
+			<tr>
+				<td style="vertical-align: top;"><span class="indicator-pill gray" style="white-space: nowrap;">${__("For information")}</span></td>
+				<td colspan="3" style="vertical-align: top;">
+					<div style="font-weight: 500;">${esc(row.label)}</div>
+					<div class="small text-muted">${esc(row.message || "")}</div>
+				</td>
+			</tr>`).join("");
+		const checked = data.checked_on ? __("Computed {0}", [frappe.datetime.prettyDate(data.checked_on)]) : "";
+		field.$wrapper.html(`
+			<div class="wsp-seo-score" style="max-width: 820px; margin-bottom: 16px;">
+				<div style="display: flex; gap: 16px; align-items: center; margin-bottom: 12px;">
+					${this.gauge(data.score)}
+					<div>
+						<div style="font-size: var(--text-lg); font-weight: 600;">${__("SEO score")}</div>
+						<div class="small text-muted">${esc(checked)}${refreshing ? " · " + __("updating…") : ""}</div>
+						<div class="small text-muted">${__("What search engines, Google Shopping and AI assistants read of this product. Only you see it.")}</div>
+					</div>
+				</div>
+				<table class="table table-sm" style="margin: 0;">${rows}${informative}</table>
+			</div>`);
+		field.$wrapper.find(".wsp-seo-fix").on("click", (event) => {
+			const fix = this.FIXES[$(event.currentTarget).data("code")];
+			if (fix) fix(frm);
+		});
+	},
+
+	// Where each criterion is fixed: a field of this form, Nora's proposal, or the record that holds it
+	FIXES: {
+		title: (frm) => frm.scroll_to_field("seo_title"),
+		search_description: (frm) => frm.scroll_to_field("seo_description"),
+		long_description: (frm) => frm.scroll_to_field("web_long_description"),
+		pictures: (frm) => frm.scroll_to_field("slideshow"),
+		alt_text: (frm) =>
+			webshop.seo.pictures.available ? webshop.seo.pictures.suggest(frm) : frm.scroll_to_field("slideshow"),
+		identifier: (frm) => {
+			frappe.route_hooks.after_load = (item) => item.scroll_to_field("barcodes");
+			frappe.set_route("Form", "Item", frm.doc.item_code);
+		},
+		brand: (frm) => frm.scroll_to_field("brand"),
+		google_category: (frm) => {
+			if (!frm.doc.item_group) return;
+			frappe.route_hooks.after_load = (group) => group.scroll_to_field("google_product_category");
+			frappe.set_route("Form", "Item Group", frm.doc.item_group);
+		},
+		specifications: (frm) => frm.scroll_to_field("website_specifications"),
+		offer: (frm) => frappe.set_route("List", "Item Price", { item_code: frm.doc.item_code }),
+		sent_to_google: (frm) =>
+			frappe.set_route("query-report", "Catalogue Ready for Google", { website_item: frm.doc.name }),
+	},
+};
+
 if (!webshop.seo.preview.registered) {
 	webshop.seo.preview.registered = true;
 	for (const doctype of ["Website Item", "Item Group", "Brand"]) {
@@ -302,6 +459,7 @@ if (!webshop.seo.preview.registered) {
 				if (frm.doctype === "Website Item") {
 					webshop.seo.description.draw(frm);
 					webshop.seo.pictures.draw(frm);
+					webshop.seo.score.load(frm);
 				}
 			},
 			seo_title(frm) {

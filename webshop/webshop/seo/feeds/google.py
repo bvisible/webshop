@@ -252,41 +252,24 @@ def is_service(item_code: str) -> bool:
 	)
 
 
-def item_entry(doc, settings, excluded, mapping) -> tuple[dict | None, str | None]:
-	"""The feed's item for a Website Item, or the reason it has none."""
+def page_offer(doc, settings) -> frappe._dict:
+	"""What a product's page offers the visitor being served: its address, its availability, the
+	offer its buy column prints (None without a price) and its pictures, each once. `model_url` is
+	the model's page when the product is a variant sold there.
+
+	A variant sold on its model's page is that page opened on it (seo/variants.py, decision D-1):
+	its address, and what the page prints there. Its own page is not the canonical one, and Google
+	compares the feed with the page it links. The feed's item reads this, and so does the SEO score
+	(seo/score.py) for a product the feed leaves out."""
 	from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
 
 	from webshop.webshop.multi_site import site_url
 	from webshop.webshop.seo.availability import schema_availability
-	from webshop.webshop.seo.facts import (
-		absolute_url,
-		category_path,
-		gallery_images,
-		offer_facts,
-		product_identifiers,
-		variant_offer,
-	)
-	from webshop.webshop.seo.text import html_to_text
+	from webshop.webshop.seo.facts import absolute_url, gallery_images, offer_facts, variant_offer
 	from webshop.webshop.seo.variants import model_view, variant_link
 	from webshop.webshop.shopping_cart.product_info import get_product_info_for_website
-	from webshop.webshop.utils.used_items import condition_schema_url, is_second_hand
+	from webshop.webshop.utils.used_items import condition_schema_url
 
-	if doc.get("has_variants"):
-		return None, "model"
-	if doc.get("is_gift_card"):
-		return None, "gift_card"
-	if is_service(doc.item_code):
-		return None, "service"
-	if is_second_hand(doc.get("item_condition")) and not cint(settings.get("google_feed_include_second_hand")):
-		return None, "second_hand_off"
-	if cint(doc.get("exclude_from_google_shopping")) or doc.item_group in excluded:
-		return None, "excluded"
-	if len(doc.item_code) > MAX_ID:
-		return None, "id_too_long"
-
-	# A variant sold on its model's page is sent as that page opened on it (seo/variants.py, decision
-	# D-1): its address, and what the page prints there. Its own page is not the canonical one, and
-	# Google compares the feed with the page it links.
 	view = model_view(doc.variant_of, settings) if doc.get("variant_of") else None
 	row = view.rows.get(doc.item_code) if view else None
 	if row:
@@ -303,9 +286,46 @@ def item_entry(doc, settings, excluded, mapping) -> tuple[dict | None, str | Non
 		availability = schema_availability(doc.item_code, context.shopping_cart.cart_settings)
 		offer = offer_facts(doc, context, url, availability)
 		images = [absolute_url(image) for image in gallery_images(doc, context)]
+	return frappe._dict(
+		url=url,
+		availability=availability,
+		offer=offer,
+		images=list(dict.fromkeys(images)),
+		model_url=view.url if row else None,
+	)
+
+
+def left_out_before_pricing(doc, settings, excluded) -> str | None:
+	"""Why the feed leaves a product out whatever its page offers, or None."""
+	from webshop.webshop.utils.used_items import is_second_hand
+
+	if doc.get("has_variants"):
+		return "model"
+	if doc.get("is_gift_card"):
+		return "gift_card"
+	if is_service(doc.item_code):
+		return "service"
+	if is_second_hand(doc.get("item_condition")) and not cint(settings.get("google_feed_include_second_hand")):
+		return "second_hand_off"
+	if cint(doc.get("exclude_from_google_shopping")) or doc.item_group in excluded:
+		return "excluded"
+	if len(doc.item_code) > MAX_ID:
+		return "id_too_long"
+	return None
+
+
+def item_entry(doc, settings, excluded, mapping) -> tuple[dict | None, str | None]:
+	"""The feed's item for a Website Item, or the reason it has none."""
+	from webshop.webshop.seo.facts import category_path, product_identifiers
+	from webshop.webshop.seo.text import html_to_text
+
+	reason = left_out_before_pricing(doc, settings, excluded)
+	if reason:
+		return None, reason
+	page = page_offer(doc, settings)
+	url, availability, offer, images = page.url, page.availability, page.offer, page.images
 	if not offer:
 		return None, "no_price"
-	images = list(dict.fromkeys(images))
 	if not images:
 		return None, "no_image"
 
@@ -349,8 +369,8 @@ def item_entry(doc, settings, excluded, mapping) -> tuple[dict | None, str | Non
 		entry["identifier_exists"] = "no"
 	if doc.get("variant_of"):
 		entry["item_group_id"] = doc.variant_of
-	if row:
-		entry["canonical_link"] = view.url
+	if page.model_url:
+		entry["canonical_link"] = page.model_url
 	entry.update(variant_attributes(doc.item_code, mapping))
 	product_type = category_path(doc.item_group)
 	if product_type:

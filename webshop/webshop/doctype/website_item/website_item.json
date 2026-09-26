@@ -58,6 +58,7 @@
   "offers_section",
   "offers",
   "section_break_6",
+  "seo_score_html",
   "ranking",
   "set_meta_tags",
   "seo_title",
@@ -65,6 +66,12 @@
   "seo_ai_assisted",
   "seo_ai_assisted_on",
   "seo_preview",
+  "no_product_identifier",
+  "seo_score",
+  "seo_score_checked_on",
+  "seo_score_details",
+  "seo_missing",
+  "seo_google_status",
   "column_break_22",
   "website_item_groups",
   "advanced_display_section",
@@ -444,6 +451,11 @@
    "label": "Search and SEO"
   },
   {
+   "fieldname": "seo_score_html",
+   "fieldtype": "HTML",
+   "label": "SEO score"
+  },
+  {
    "description": "Items with higher ranking will be shown higher",
    "fieldname": "ranking",
    "fieldtype": "Int",
@@ -486,6 +498,54 @@
    "label": "Google preview"
   },
   {
+   "default": "0",
+   "description": "Own manufacture, made to measure, one of a kind: no barcode exists for it. Google asks no GTIN of such a product, and the SEO score does not count it.",
+   "fieldname": "no_product_identifier",
+   "fieldtype": "Check",
+   "label": "No barcode exists for this product"
+  },
+  {
+   "fieldname": "seo_score",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "SEO score",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "seo_score_checked_on",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "SEO score checked on",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "seo_score_details",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "SEO score details",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "seo_missing",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "SEO criteria missing",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "seo_google_status",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Google Shopping status",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "description": "List this Item in multiple groups on the website.",
    "fieldname": "website_item_groups",
    "fieldtype": "Table",
@@ -510,7 +570,7 @@
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2026-09-25 18:30:00.000000",
+ "modified": "2026-09-26 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Website Item",

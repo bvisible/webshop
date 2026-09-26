@@ -75,6 +75,9 @@ scheduler_events = {
 		# //// Neoffice — each site's Google Merchant Center feed, written for Google's daily fetch (#691 lot 3)
 		"webshop.webshop.seo.feeds.google.generate_feeds",
 	],
+	# //// Neoffice — every product's SEO score, and the day's figures of each site for the workspace's
+	# //// charts (seo/score.py, #691 plan note 20): a pass over the catalogue, in the long queue
+	"daily_long": ["webshop.webshop.seo.score.refresh_all"],
 	# //// Neoffice — abandoned carts: one look per hour at the carts left behind
 	"hourly": ["webshop.webshop.utils.abandoned_carts.send_abandoned_cart_reminders"],
 	# //// Neoffice — purchase follow-ups go out in the morning, not at midnight
