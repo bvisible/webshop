@@ -9147,3 +9147,11 @@ msgstr "Le code-barres {0} est un numéro de bon de réduction : Google le refus
 #: webshop/webshop/seo/score.py
 msgid "The barcode {0} is the one of another unit ({1}), not of the product sold"
 msgstr "Le code-barres {0} est celui d'une autre unité ({1}), pas celui du produit vendu"
+
+#: webshop/webshop/workspace/webshop/webshop.json
+msgid "SEO dashboard"
+msgstr "Tableau de bord SEO"
+
+#: webshop/webshop/webshop_dashboard/webshop_seo/webshop_seo.json
+msgid "Webshop SEO"
+msgstr "SEO de la boutique"

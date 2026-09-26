@@ -9065,3 +9065,11 @@ msgstr ""
 #: webshop/webshop/seo/score.py
 msgid "The barcode {0} is the one of another unit ({1}), not of the product sold"
 msgstr ""
+
+#: webshop/webshop/workspace/webshop/webshop.json
+msgid "SEO dashboard"
+msgstr ""
+
+#: webshop/webshop/webshop_dashboard/webshop_seo/webshop_seo.json
+msgid "Webshop SEO"
+msgstr ""
