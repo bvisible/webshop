@@ -168,6 +168,10 @@
   "follow_up_status",
   "follow_up_note",
   "tab_google_shopping",
+  "product_identifiers_section",
+  "show_product_identifiers",
+  "product_identifiers_column",
+  "search_supplier_references",
   "google_feed_section",
   "enable_google_feed",
   "google_feed_include_second_hand",
@@ -593,6 +597,30 @@
    "fieldname": "tab_google_shopping",
    "fieldtype": "Tab Break",
    "label": "Google Shopping"
+  },
+  {
+   "description": "The EAN (GTIN) and the manufacturer's reference are always sent to Google Shopping and declared in the product page's structured data: Google needs them to recognise the product.",
+   "fieldname": "product_identifiers_section",
+   "fieldtype": "Section Break",
+   "label": "Product Identifiers"
+  },
+  {
+   "default": "1",
+   "description": "In the product page's characteristics. A search for a code only finds a page whose text says it; switch it off if you would rather not make price comparison easy.",
+   "fieldname": "show_product_identifiers",
+   "fieldtype": "Check",
+   "label": "Show the EAN and the Manufacturer's Reference on the Product Page"
+  },
+  {
+   "fieldname": "product_identifiers_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "A customer who types a supplier's reference whole, in the site's search or in the quick order, finds the product. The reference is never shown, nor sent to Google.",
+   "fieldname": "search_supplier_references",
+   "fieldtype": "Check",
+   "label": "Find a Product by its Supplier's Reference"
   },
   {
    "description": "Each site's product feed for Google Merchant Center, written every night and served at /feeds/google.xml?token=… on the site's domain. A site that hides its prices from visitors, or serves business accounts only, has none.",
@@ -1451,7 +1479,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-25 18:00:00.000000",
+ "modified": "2026-09-26 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

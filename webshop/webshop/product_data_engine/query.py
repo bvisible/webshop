@@ -959,6 +959,16 @@ class ProductQuery:
 			self.filters.append(["item_code", "=", search_term])
 			return
 
+		# //// Neoffice — a reference typed whole finds its product (#691 plan note 20, B4): its
+		# //// barcode, its manufacturer's part number, its supplier's reference where the shop
+		# //// allows it (product_data_engine/references.py). None of them is in a searched field.
+		from webshop.webshop.product_data_engine.references import listing_codes
+
+		referenced = listing_codes(search_term)
+		if referenced:
+			self.filters.append(["item_code", "in", referenced])
+			return
+
 		# Default fields to search from
 		# //// Neoffice — item_code and item_group are searched too: a buyer pasting a
 		# //// reference found nothing (87cde0532f, 2025-06-24; e5c9f74cf0, 2025-12-15).

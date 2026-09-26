@@ -15,6 +15,7 @@ import re
 from datetime import datetime
 
 import frappe
+from frappe import _
 from frappe.utils import cint, flt, getdate, now_datetime
 
 from webshop.webshop.seo.text import html_to_text
@@ -88,6 +89,29 @@ def category_path(item_group: str | None) -> str:
 		order_by="lft asc",
 	)
 	return " > ".join(group.name for group in groups if group.lft != 1)
+
+
+# How a buyer names each GTIN in the product's characteristics
+IDENTIFIER_LABELS = {"gtin8": "EAN", "gtin13": "EAN", "gtin12": "UPC", "gtin14": "GTIN"}
+
+
+def identifier_rows(identifiers: dict) -> list[tuple[str, str]]:
+	"""The product's codes as its characteristics list them: the GTIN, named as a buyer knows it,
+	then the manufacturer's reference."""
+	rows = [(IDENTIFIER_LABELS[key], value) for key, value in identifiers.items() if key in IDENTIFIER_LABELS]
+	if identifiers.get("mpn"):
+		rows.append((_("Manufacturer's reference"), identifiers["mpn"]))
+	return rows
+
+
+def shown_identifiers(item_code: str | None, settings) -> list[tuple[str, str]]:
+	"""The codes the product page prints in its characteristics (Webshop Settings,
+	show_product_identifiers). A search for an EAN or a manufacturer's reference only finds a page
+	whose text says it: the structured data alone does not make the page come up. Google Shopping
+	and the structured data receive them whatever the switch says."""
+	if not item_code or not cint(settings.get("show_product_identifiers")):
+		return []
+	return identifier_rows(product_identifiers(item_code))
 
 
 def product_identifiers(item_code: str) -> dict:

@@ -382,6 +382,16 @@ class WebsiteItem(WebsiteGenerator):
 		elif context.group_model:
 			model_route = frappe.db.get_value("Website Item", {"item_code": context.group_model}, "route")
 			context.canonical_url = frappe.utils.get_url(model_route)
+		# //// Neoffice — the product's EAN and manufacturer's reference in its characteristics, as
+		# //// text a search finds (#691 plan note 20, B2; Webshop Settings, show_product_identifiers).
+		# //// A model's page prints the chosen variant's, which the variant selector then follows.
+		from webshop.webshop.seo.facts import shown_identifiers
+
+		context.show_product_identifiers = cint(settings.get("show_product_identifiers"))
+		shown_code = self.item_code
+		if context.group_model == self.item_code:
+			shown_code = context.chosen_variant.item_code if context.get("chosen_variant") else None
+		context.shown_identifiers = shown_identifiers(shown_code, settings)
 		# //// Neoffice — what the page promises under the buy button (utils/promises.py),
 		# //// and the brand's own text for the "About <brand>" fold of the buy column.
 		from webshop.webshop.utils.promises import shopping_promises

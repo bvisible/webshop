@@ -145,7 +145,8 @@ def resolve(code):
 	"""What a scanned or typed code designates on this site, or None.
 
 	A barcode first (`Item Barcode`), then an item code — a variant's or a simple
-	item's. The item, or the model it is a variant of, must be published here.
+	item's —, then a manufacturer's or supplier's reference that one item only
+	carries. The item, or the model it is a variant of, must be published here.
 	"""
 	code = (code or "").strip()
 	if not code:
@@ -153,6 +154,13 @@ def resolve(code):
 	item_code = frappe.db.get_value("Item Barcode", {"barcode": code}, "parent")
 	if not item_code and frappe.db.exists("Item", code):
 		item_code = code
+	if not item_code:
+		# //// Neoffice — then the manufacturer's or the supplier's reference, when one item only
+		# //// carries it (#691 plan note 20, B4, product_data_engine/references.py)
+		from webshop.webshop.product_data_engine.references import items_referenced
+
+		referenced = items_referenced(code)
+		item_code = referenced[0] if len(referenced) == 1 else None
 	if not item_code:
 		return None
 	item = frappe.db.get_value(
