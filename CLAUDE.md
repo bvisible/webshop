@@ -703,7 +703,11 @@ Until the link is clicked, the User carries `email_confirmation_pending`.
   social login. The `on_login` hook clears the flag and closes every other session of the account,
   so whoever opened it without owning the address loses the session they kept. It runs before
   the new session exists, while `frappe.session` is the requester's. Staff signing in as the
-  customer (impersonation, `bench browse`) come with their own session, and prove nothing.
+  customer prove nothing: the desk's impersonation comes with the staff's own session, and
+  **`bench browse --user` signs in from outside any HTTP request**, after `LoginManager()` resumed
+  a Guest session of its own — it read exactly like a visitor back from the mailbox and
+  confirmed a test account on osiris (2026-09-26). Only a sign-in with `frappe.local.http_request`
+  (set by frappe's app for a real request) counts.
 - **An order paid on account waits for the confirmation** (2026-09-26). Paying on account ships
   before the money is in, so an unconfirmed account's order is placed **On Hold** and marked
   (`Sales Order.awaiting_email_confirmation`, `patches/add_email_confirmation_hold_field`). The

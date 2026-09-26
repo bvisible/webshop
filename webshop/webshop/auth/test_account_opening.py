@@ -166,6 +166,10 @@ class TestConfirmation(FrappeTestCase):
 	def login_manager(self):
 		return frappe._dict(user=EMAIL)
 
+	def over_http(self, request=True):
+		"""A sign-in that came through an HTTP request (frappe's app sets `http_request`), or not."""
+		return patch.object(frappe.local, "http_request", object() if request else None, create=True)
+
 	def test_opening_marks_the_account_and_signs_it_in(self):
 		manager = MagicMock()
 		with patch.object(frappe.local, "login_manager", manager, create=True):
@@ -177,7 +181,7 @@ class TestConfirmation(FrappeTestCase):
 	def test_the_first_way_back_in_confirms_and_closes_the_other_sessions(self):
 		frappe.db.set_value("User", EMAIL, confirmation.FIELD, 1)
 		frappe.set_user("Guest")
-		with patch("frappe.sessions.clear_sessions") as clear:
+		with self.over_http(), patch("frappe.sessions.clear_sessions") as clear:
 			confirmation.on_login(self.login_manager())
 		self.assertFalse(confirmation.pending(EMAIL))
 		clear.assert_called_once_with(EMAIL, keep_current=False, force=True)
@@ -189,18 +193,24 @@ class TestConfirmation(FrappeTestCase):
 			frappe.set_user("Guest")
 			frappe.flags.webshop_opening_account = True
 			try:
-				confirmation.on_login(self.login_manager())
+				with self.over_http():
+					confirmation.on_login(self.login_manager())
 			finally:
 				frappe.flags.webshop_opening_account = False
-			# staff signing in as the customer (impersonation, bench browse)
+			# staff impersonating the customer on the desk: the staff's own session
 			frappe.set_user("Administrator")
-			confirmation.on_login(self.login_manager())
+			with self.over_http():
+				confirmation.on_login(self.login_manager())
+			# `bench browse --user`: a Guest session of its own, outside any HTTP request
+			frappe.set_user("Guest")
+			with self.over_http(request=False):
+				confirmation.on_login(self.login_manager())
 		self.assertTrue(confirmation.pending(EMAIL))
 		clear.assert_not_called()
 
 	def test_an_account_nothing_waits_on_is_left_alone(self):
 		frappe.set_user("Guest")
-		with patch("frappe.sessions.clear_sessions") as clear:
+		with self.over_http(), patch("frappe.sessions.clear_sessions") as clear:
 			confirmation.on_login(self.login_manager())
 		clear.assert_not_called()
 
@@ -208,6 +218,7 @@ class TestConfirmation(FrappeTestCase):
 		frappe.db.set_value("User", EMAIL, confirmation.FIELD, 1)
 		frappe.set_user("Guest")
 		with (
+			self.over_http(),
 			patch("frappe.sessions.clear_sessions"),
 			patch.object(confirmation, "held_orders", return_value=["SO-HELD"]),
 			patch("frappe.enqueue") as enqueue,
@@ -219,6 +230,7 @@ class TestConfirmation(FrappeTestCase):
 		# nothing held: no job
 		frappe.db.set_value("User", EMAIL, confirmation.FIELD, 1)
 		with (
+			self.over_http(),
 			patch("frappe.sessions.clear_sessions"),
 			patch.object(confirmation, "held_orders", return_value=[]),
 			patch("frappe.enqueue") as enqueue,

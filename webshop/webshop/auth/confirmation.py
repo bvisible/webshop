@@ -76,10 +76,15 @@ def on_login(login_manager):
 
 	It runs before the new session is made, while frappe.session is still the one the request came
 	with: Guest, or the account itself in the browser that opened it. Staff signing in as the
-	customer (impersonation, `bench browse`) come with their own session and prove nothing about
-	the address."""
+	customer prove nothing about the address: the desk's impersonation comes with the staff's own
+	session, and `bench browse` signs in from outside any HTTP request, after resuming a Guest
+	session of its own (LoginManager() outside a request), so it looked exactly like a visitor
+	coming back through the mailbox and confirmed the account (measured on osiris, 2026-09-26)."""
 	user = login_manager.user
 	if frappe.flags.get("webshop_opening_account") or not pending(user):
+		return
+	# a sign-in outside an HTTP request (bench browse, a console, a job) is never the mailbox's
+	if not getattr(frappe.local, "http_request", None):
 		return
 	if frappe.session.user not in ("Guest", user):
 		return
