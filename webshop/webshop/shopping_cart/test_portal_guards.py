@@ -88,11 +88,12 @@ class TestPortalGuards(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value("Address", self.theirs, "city"), "Lausanne")
 
 	def test_any_other_doctype_is_refused(self):
+		before = frappe.db.get_value("User", ME, "first_name")
 		frappe.set_user(ME)
 		with self.assertRaises(frappe.PermissionError):
-			update_address_info("User", ME, {"first_name": "Changed"})
+			update_address_info("User", ME, {"first_name": before + " changed"})
 		frappe.set_user("Administrator")
-		self.assertNotEqual(frappe.db.get_value("User", ME, "first_name"), "Changed")
+		self.assertEqual(frappe.db.get_value("User", ME, "first_name"), before)
 
 	def test_a_new_address_goes_to_the_customer_s_own_record_only(self):
 		frappe.set_user(ME)
