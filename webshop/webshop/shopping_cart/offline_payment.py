@@ -229,6 +229,7 @@ def _thank_you(sales_order):
 	return f"/thank_you?sales_order={sales_order}"
 
 
+# //// Neoffice — added helper for open_payment_request: who may read an order's payment request.
 def _may_see_order(sales_order):
 	"""True for whoever may read the Sales Order, or for the order's own customer."""
 	if not sales_order or not frappe.db.exists("Sales Order", sales_order):

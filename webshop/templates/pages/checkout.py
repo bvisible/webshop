@@ -1630,6 +1630,7 @@ def update_address_info(doctype, docname, fieldname_dict):
         and df.fieldtype not in frappe.model.table_fields
         and not df.read_only
     } - _ADDRESS_FIELDS_NEVER_SET
+    # //// Neoffice — the caller's own address, its address fields only (see the header above).
     try:
         doc = frappe.get_doc("Address", docname)
         doc.update({key: value for key, value in fieldname_dict.items() if key in writable})
@@ -1637,5 +1638,6 @@ def update_address_info(doctype, docname, fieldname_dict):
 
         return {"success": True, "name": docname}
     except Exception as e:
+        # //// Neoffice — frappe.log_error(title, message): the old single-argument call made the message the title.
         frappe.log_error("Checkout address update failed", str(e))
         return {"success": False, "message": str(e)}

@@ -263,6 +263,7 @@ jobs:
             webshop.webshop.doctype.webshop_settings.test_webshop_settings \
             webshop.webshop.doctype.wishlist.test_wishlist \
             webshop.webshop.shopping_cart.test_checkout_addresses \
+            webshop.webshop.shopping_cart.test_portal_guards \
             webshop.webshop.test_multi_site \
             webshop.webshop.utils.test_brand_carousel \
             webshop.webshop.utils.test_carousel_cache \

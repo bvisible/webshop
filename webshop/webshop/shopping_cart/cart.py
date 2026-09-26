@@ -1697,6 +1697,7 @@ def add_new_address(doc):
 	if not address.links:
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
+	# //// Neoffice — saved with the caller's rights, links now limited as described above.
 	address.save()
 
 	# Update customer's primary address if this is a primary address
