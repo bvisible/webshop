@@ -400,7 +400,7 @@ webshop.seo.score = webshop.seo.score || {
 			</tr>`).join("");
 		const informative = (data.informative || []).map((row) => `
 			<tr>
-				<td style="vertical-align: top;"><span class="indicator-pill gray">${__("For information")}</span></td>
+				<td style="vertical-align: top;"><span class="indicator-pill gray" style="white-space: nowrap;">${__("For information")}</span></td>
 				<td colspan="3" style="vertical-align: top;">
 					<div style="font-weight: 500;">${esc(row.label)}</div>
 					<div class="small text-muted">${esc(row.message || "")}</div>
