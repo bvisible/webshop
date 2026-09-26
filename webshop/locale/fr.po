@@ -446,7 +446,7 @@ msgstr "Autoriser les utilisateurs système pendant la maintenance"
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Allow customers to enter a custom amount for gift cards"
-msgstr "Permettre aux clients de saisir un montant personnalisé pour les cartes cadeauxPermettre aux clients de saisir un montant personnalisé pour les cartes cadeaux"
+msgstr "Permettre aux clients de saisir un montant personnalisé pour les cartes cadeaux"
 
 #. Description of the 'Enable Gift Cards' (Check) field in DocType 'Webshop
 #. Settings'
@@ -947,7 +947,7 @@ msgstr "Impossible d'activer « Masquer les variantes » quand « Filtres d'attr
 
 #: webshop/templates/includes/product_page.js:130
 msgid "Cannot find a matching Item. Please select some other value for {0}."
-msgstr "Impossible de trouver un article correspondant. Veuillez sélectionner une autre valeur pour {0}.Impossible de trouver un article correspondant. Veuillez sélectionner une autre valeur pour {0}."
+msgstr "Impossible de trouver un article correspondant. Veuillez sélectionner une autre valeur pour {0}."
 
 #. Label of a Select field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -1108,7 +1108,7 @@ msgstr "Paramètres de paiement"
 
 #: webshop/templates/pages/checkout.py:225
 msgid "Checkout is disabled. Please enable it in Webshop Settings."
-msgstr "Le paiement est désactivé. Veuillez l'activer dans les paramètres de la boutique.Le paiement est désactivé. Veuillez l'activer dans les paramètres de la boutique."
+msgstr "Le paiement est désactivé. Veuillez l'activer dans les paramètres de la boutique."
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:315
 msgid "Checkout not enabled"
@@ -1539,7 +1539,7 @@ msgstr ""
 
 #: webshop/webshop/shopping_cart/cart.py:4020
 msgid "Created from gift card: {0} (remaining amount after order {1})"
-msgstr "Créé à partir de la carte cadeau : {0} (montant restant après la commande {1})Créé à partir de la carte cadeau : {0} (montant restant après la commande {1})"
+msgstr "Créé à partir de la carte cadeau : {0} (montant restant après la commande {1})"
 
 #: webshop/webshop/shopping_cart/cart.py:963
 msgid "Created from split of {0} in webshop. Used in order {1}. Original amount: {2}, Used: {3}, Remaining on original card: {4}"
@@ -2250,7 +2250,7 @@ msgstr "Erreur lors de la création de la demande de paiement"
 
 #: webshop/controllers/payment_handler.py:83
 msgid "Error during quotation retrieval: Cart is empty or quotation not found"
-msgstr "Erreur lors de la récupération du devis : Le panier est vide ou le devis n'a pas été trouvéErreur lors de la récupération du devis : Le panier est vide ou le devis n'a pas été trouvé"
+msgstr "Erreur lors de la récupération du devis : Le panier est vide ou le devis n'a pas été trouvé"
 
 #: webshop/templates/generators/item/item_add_to_cart.html:629
 msgid "Error generating gift card code"
@@ -2296,7 +2296,7 @@ msgstr "Erreur lors de la lecture du fichier : {0}"
 
 #: webshop/webshop/shopping_cart/cart.py:1919
 msgid "Error updating address. Please try again or contact support."
-msgstr "Erreur lors de la mise à jour de l'adresse. Veuillez réessayer ou contacter le support.Erreur lors de la mise à jour de l'adresse. Veuillez réessayer ou contacter le support."
+msgstr "Erreur lors de la mise à jour de l'adresse. Veuillez réessayer ou contacter le support."
 
 #: webshop/webshop/shopping_cart/cart.py:1039
 msgid "Error while creating new gift card during split. Original: {0}, Amount: {1}"
@@ -2654,7 +2654,7 @@ msgstr "Le montant de la carte cadeau ({0}) dépasse le total de la commande ({1
 
 #: webshop/webshop/shopping_cart/cart.py:708
 msgid "Gift card amount ({0}) is less than required discount amount ({1})"
-msgstr "Le montant de la carte cadeau ({0}) est inférieur au montant de réduction requis ({1})Le montant de la carte cadeau ({0}) est inférieur au montant de réduction requis ({1})"
+msgstr "Le montant de la carte cadeau ({0}) est inférieur au montant de réduction requis ({1})"
 
 #: webshop/webshop/utils/import_gift_cards.py:57
 msgid "Gift card code cannot be empty"
@@ -5281,7 +5281,7 @@ msgstr "Utilisés"
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Redirect directly to login page instead of showing maintenance page"
-msgstr "Rediriger directement vers la page de connexion au lieu d'afficher la page de maintenanceRediriger directement vers la page de connexion au lieu d'afficher la page de maintenance"
+msgstr "Rediriger directement vers la page de connexion au lieu d'afficher la page de maintenance"
 
 #. Label of a Data field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -6669,7 +6669,7 @@ msgstr "Cet e-mail est déjà associé à un compte administrateur. Veuillez con
 
 #: webshop/webshop/shopping_cart/cart.py:3304
 msgid "This gift card has already been used and cannot be applied again"
-msgstr "Cette carte cadeau a déjà été utilisée et ne peut pas être appliquée à nouveauCette carte cadeau a déjà été utilisée et ne peut pas être appliquée à nouveau"
+msgstr "Cette carte cadeau a déjà été utilisée et ne peut pas être appliquée à nouveau"
 
 #: webshop/webshop/quick_order/api.py:658
 msgid "This item is not available in this shop."
@@ -6960,7 +6960,7 @@ msgstr "Utilisez vos points au paiement pour des réductions"
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Use {points} for points count and {value} for monetary value"
-msgstr "Utilisez {points} pour le nombre de points et {value} pour la valeur monétaireUtilisez {points} pour le nombre de points et {value} pour la valeur monétaire"
+msgstr "Utilisez {points} pour le nombre de points et {value} pour la valeur monétaire"
 
 #: webshop/templates/pages/gift_cards.py:136
 msgid "Used"
@@ -7623,7 +7623,7 @@ msgstr "Vous êtes déjà connecté."
 
 #: webshop/webshop/doctype/item_review/item_review.py:189
 msgid "You are not a verified customer yet. Please contact us to proceed."
-msgstr "Vous n'êtes pas encore un client vérifié. Veuillez nous contacter pour continuer.Vous n'êtes pas encore un client vérifié. Veuillez nous contacter pour continuer."
+msgstr "Vous n'êtes pas encore un client vérifié. Veuillez nous contacter pour continuer."
 
 #: webshop/public/js/utils/frappe-mock.js:290
 msgid "You are not allowed to do this. Try signing in again."
@@ -7646,12 +7646,12 @@ msgstr "Vous pouvez utiliser n'importe quel balisage Bootstrap 4 valide dans ce 
 #: webshop/templates/includes/coupon_form.html:21
 #: webshop/templates/includes/coupon_form.html:31
 msgid "You cannot use a promo code when loyalty points are applied"
-msgstr "Vous ne pouvez pas utiliser un code promo lorsque des points de fidélité sont appliquésVous ne pouvez pas utiliser un code promo lorsque des points de fidélité sont appliqués"
+msgstr "Vous ne pouvez pas utiliser un code promo lorsque des points de fidélité sont appliqués"
 
 #: webshop/templates/includes/loyalty_points_form.html:19
 #: webshop/templates/includes/loyalty_points_form.html:28
 msgid "You cannot use loyalty points when a promo code is applied"
-msgstr "Vous ne pouvez pas utiliser les points de fidélité lorsqu'un code promo est appliquéVous ne pouvez pas utiliser les points de fidélité lorsqu'un code promo est appliqué"
+msgstr "Vous ne pouvez pas utiliser les points de fidélité lorsqu'un code promo est appliqué"
 
 #: webshop/webshop/shopping_cart/cart.py:3525
 msgid "You do not have an active loyalty program"
@@ -8771,3 +8771,359 @@ msgstr "Description de la photo"
 #: webshop/patches/add_picture_alt_field.py
 msgid "What someone who cannot see the picture needs to know: read aloud by screen readers, shown when the picture fails to load, read by search engines."
 msgstr "Ce qu'une personne qui ne peut pas voir la photo doit savoir : lu à voix haute par les lecteurs d'écran, affiché quand la photo ne se charge pas, lu par les moteurs de recherche."
+
+#: webshop/webshop/seo/score.py
+msgid "Website Item {0} not found"
+msgstr "Article du site {0} introuvable"
+
+#: webshop/webshop/seo/score.py
+msgid "Description of the product"
+msgstr "Description du produit"
+
+#: webshop/webshop/seo/score.py
+msgid "Picture descriptions"
+msgstr "Descriptions des photos"
+
+#: webshop/webshop/seo/score.py
+msgid "GTIN (EAN) or manufacturer's reference"
+msgstr "GTIN (EAN) ou référence fabricant"
+
+#: webshop/webshop/seo/score.py
+msgid "Google product category"
+msgstr "Catégorie de produits Google"
+
+#: webshop/webshop/seo/score.py
+msgid "Price and availability"
+msgstr "Prix et disponibilité"
+
+#: webshop/webshop/seo/score.py
+msgid "Sent to Google Shopping"
+msgstr "Envoyé à Google Shopping"
+
+#: webshop/webshop/seo/score.py
+msgid "Customer reviews"
+msgstr "Avis clients"
+
+#: webshop/webshop/seo/score.py
+msgid "Sold on its model's page, which search engines read instead"
+msgstr "Vendu sur la page de son modèle, celle que les moteurs de recherche lisent à sa place"
+
+#: webshop/webshop/seo/score.py
+msgid "Its variants carry it"
+msgstr "Porté par ses variantes"
+
+#: webshop/webshop/seo/score.py
+msgid "Not asked of a gift card"
+msgstr "Non demandé pour une carte cadeau"
+
+#: webshop/webshop/seo/score.py
+msgid "Not asked of a service"
+msgstr "Non demandé pour un service"
+
+#: webshop/webshop/seo/score.py
+msgid "No barcode exists for this product (declared on the item)"
+msgstr "Aucun code-barres n'existe pour ce produit (déclaré sur l'article)"
+
+#: webshop/webshop/seo/score.py
+msgid "This site sends no feed to Google Shopping"
+msgstr "Ce site n'envoie aucun flux à Google Shopping"
+
+#: webshop/webshop/seo/score.py
+msgid "No picture yet"
+msgstr "Pas encore de photo"
+
+#: webshop/webshop/seo/score.py
+msgid "Each variant is sold on its own page"
+msgstr "Chaque variante est vendue sur sa propre page"
+
+#: webshop/webshop/seo/score.py
+msgid "Not published"
+msgstr "Non publié"
+
+#: webshop/webshop/seo/score.py
+msgid "Not scored yet"
+msgstr "Pas encore noté"
+
+#: webshop/webshop/seo/score.py
+msgid "in stock"
+msgstr "en stock"
+
+#: webshop/webshop/seo/score.py
+msgid "on backorder"
+msgstr "en réapprovisionnement"
+
+#: webshop/webshop/seo/score.py
+msgid "out of stock"
+msgstr "en rupture de stock"
+
+#: webshop/webshop/seo/score.py
+msgid "{0} characters: Google cuts it after about {1}"
+msgstr "{0} caractères : Google le coupe après environ {1}"
+
+#: webshop/webshop/seo/score.py
+msgid "{0} characters: too short to say what the product is"
+msgstr "{0} caractères : trop court pour dire ce qu'est le produit"
+
+#: webshop/webshop/seo/score.py
+msgid "{0} characters, shown whole"
+msgstr "{0} caractères, affichés en entier"
+
+#: webshop/webshop/seo/score.py
+msgid "Nothing but the product's name: write one, or a description it can be taken from"
+msgstr "Rien que le nom du produit : rédigez-en une, ou une description dont elle pourra être tirée"
+
+#: webshop/webshop/seo/score.py
+msgid "{0} characters: Google shows about {1}"
+msgstr "{0} caractères : Google en affiche environ {1}"
+
+#: webshop/webshop/seo/score.py
+msgid "{0} characters"
+msgstr "{0} caractères"
+
+#: webshop/webshop/seo/score.py
+msgid "No description: the page says nothing a search could find"
+msgstr "Aucune description : la page ne dit rien qu'une recherche puisse trouver"
+
+#: webshop/webshop/seo/score.py
+msgid "{0} words: say more, from {1} words on"
+msgstr "{0} mots : dites-en plus, à partir de {1} mots"
+
+#: webshop/webshop/seo/score.py
+msgid "No picture: Google Shopping refuses the product"
+msgstr "Aucune photo : Google Shopping refuse le produit"
+
+#: webshop/webshop/seo/score.py
+msgid "The main picture is {0} px wide: {1} px or more"
+msgstr "La photo principale fait {0} px de large : {1} px ou plus"
+
+#: webshop/webshop/seo/score.py
+msgid "Pictures: {0}. Show other views, from {1} on"
+msgstr "Photos : {0}. Montrez d'autres vues, à partir de {1}"
+
+#: webshop/webshop/seo/score.py
+msgid "Pictures: {0}"
+msgstr "Photos : {0}"
+
+#: webshop/webshop/seo/score.py
+msgid "No picture is described: screen readers and image searches read only the product's name"
+msgstr "Aucune photo n'est décrite : les lecteurs d'écran et les recherches d'images ne lisent que le nom du produit"
+
+#: webshop/webshop/seo/score.py
+msgid "{0} of {1} pictures described"
+msgstr "{0} photos décrites sur {1}"
+
+#: webshop/webshop/seo/score.py
+msgid "Every picture is described"
+msgstr "Toutes les photos sont décrites"
+
+#: webshop/webshop/seo/score.py
+msgid "GTIN {0}"
+msgstr "GTIN {0}"
+
+#: webshop/webshop/seo/score.py
+msgid "Manufacturer's reference {0} but no GTIN: add the EAN if the product has one"
+msgstr "Référence fabricant {0} mais aucun GTIN : ajoutez l'EAN si le produit en a un"
+
+#: webshop/webshop/seo/score.py
+msgid "No GTIN (EAN) and no manufacturer's reference: Google shows a branded product less often without one"
+msgstr "Aucun GTIN (EAN) ni référence fabricant : sans l'un des deux, Google montre moins souvent un produit de marque"
+
+#: webshop/webshop/seo/score.py
+msgid "No brand"
+msgstr "Aucune marque"
+
+#: webshop/webshop/seo/score.py
+msgid "No Google product category on the item group {0} or above it"
+msgstr "Aucune catégorie de produits Google sur le groupe d'articles {0} ni au-dessus"
+
+#: webshop/webshop/seo/score.py
+msgid "No characteristics listed"
+msgstr "Aucune caractéristique renseignée"
+
+#: webshop/webshop/seo/score.py
+msgid "Characteristics: {0}. List at least {1}"
+msgstr "Caractéristiques : {0}. Indiquez-en au moins {1}"
+
+#: webshop/webshop/seo/score.py
+msgid "Characteristics: {0}"
+msgstr "Caractéristiques : {0}"
+
+#: webshop/webshop/seo/score.py
+msgid "No price shown to a visitor"
+msgstr "Aucun prix affiché à un visiteur"
+
+#: webshop/webshop/seo/score.py
+msgid "No variant has a price for a visitor"
+msgstr "Aucune variante n'a de prix pour un visiteur"
+
+#: webshop/webshop/seo/score.py
+msgid "The offer could not be read: see the Error Log"
+msgstr "Impossible de lire l'offre : consultez le journal des erreurs"
+
+#: webshop/webshop/seo/score.py
+msgid "Shown out of stock: Google shows it less"
+msgstr "Affiché en rupture de stock : Google le montre moins"
+
+#: webshop/webshop/seo/score.py
+msgid "Variants on sale: {0}"
+msgstr "Variantes en vente : {0}"
+
+#: webshop/webshop/seo/score.py
+msgid "In the feed"
+msgstr "Dans le flux"
+
+#: webshop/webshop/seo/score.py
+msgid "{0} reviews, {1} out of 5"
+msgstr "{0} avis, {1} sur 5"
+
+#: webshop/webshop/seo/score.py
+msgid "No review yet"
+msgstr "Pas encore d'avis"
+
+#: webshop/webshop/seo/score.py
+msgid "Videos: {0}"
+msgstr "Vidéos : {0}"
+
+#: webshop/webshop/seo/score.py
+msgid "No video"
+msgstr "Aucune vidéo"
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Average SEO score"
+msgstr "Score SEO moyen"
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "SEO score"
+msgstr "Score SEO"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "SEO score: {0} / 100"
+msgstr "Score SEO : {0} / 100"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "To improve"
+msgstr "À améliorer"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Not counted"
+msgstr "Non compté"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Computing the SEO score…"
+msgstr "Calcul du score SEO…"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "No SEO score yet: it is computed after each save and every night."
+msgstr "Aucun score SEO pour l'instant : il est calculé après chaque enregistrement et chaque nuit."
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Fix this"
+msgstr "Corriger"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "For information"
+msgstr "Pour information"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Computed {0}"
+msgstr "Calculé {0}"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "updating…"
+msgstr "mise à jour…"
+
+#: webshop/public/js/override/seo_preview.js
+msgid "What search engines, Google Shopping and AI assistants read of this product. Only you see it."
+msgstr "Ce que les moteurs de recherche, Google Shopping et les assistants IA lisent de ce produit. Vous seul le voyez."
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "No barcode exists for this product"
+msgstr "Aucun code-barres n'existe pour ce produit"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Own manufacture, made to measure, one of a kind: no barcode exists for it. Google asks no GTIN of such a product, and the SEO score does not count it."
+msgstr "Fabrication propre, sur mesure, pièce unique : aucun code-barres n'existe. Google ne demande pas de GTIN pour un tel produit, et le score SEO ne le compte pas."
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "SEO score checked on"
+msgstr "Score SEO calculé le"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "SEO score details"
+msgstr "Détails du score SEO"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "SEO criteria missing"
+msgstr "Critères SEO manquants"
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Google Shopping status"
+msgstr "Statut Google Shopping"
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Webshop SEO Snapshot"
+msgstr "Instantané SEO Webshop"
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "A day's SEO figures of one site, written every night by the SEO score job."
+msgstr "Les chiffres SEO d'un site pour une journée, écrits chaque nuit par la tâche de calcul du score SEO."
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Site"
+msgstr "Site"
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "The site the figures are for, as the Google feed names it: default for a single site, else its Website Profile."
+msgstr "Le site auquel se rapportent ces chiffres, tel que le nomme le flux Google : « default » pour un site unique, sinon son profil de site."
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Products scored"
+msgstr "Produits notés"
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Average score"
+msgstr "Score moyen"
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Without a description"
+msgstr "Sans description"
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Without GTIN or manufacturer's reference"
+msgstr "Sans GTIN ni référence fabricant"
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Without picture descriptions"
+msgstr "Sans description des photos"
+
+#: webshop/webshop/number_card/average_seo_score/average_seo_score.json
+msgid "Average SEO Score"
+msgstr "Score SEO moyen"
+
+#: webshop/webshop/number_card/products_sent_to_google_shopping/products_sent_to_google_shopping.json
+msgid "Products Sent to Google Shopping"
+msgstr "Produits envoyés à Google Shopping"
+
+#: webshop/webshop/number_card/products_without_a_description/products_without_a_description.json
+msgid "Products Without a Description"
+msgstr "Produits sans description"
+
+#: webshop/webshop/number_card/products_without_picture_descriptions/products_without_picture_descriptions.json
+msgid "Products Without Picture Descriptions"
+msgstr "Produits sans description des photos"
+
+#: webshop/webshop/number_card/products_without_gtin_or_reference/products_without_gtin_or_reference.json
+msgid "Products Without GTIN or Reference"
+msgstr "Produits sans GTIN ni référence"
+
+#: webshop/webshop/dashboard_chart/google_shopping_status/google_shopping_status.json
+msgid "Google Shopping Status"
+msgstr "Statut Google Shopping"
+
+#: webshop/webshop/dashboard_chart/products_by_seo_score/products_by_seo_score.json
+msgid "Products by SEO Score"
+msgstr "Produits par score SEO"
+
+#: webshop/webshop/workspace/webshop/webshop.json
+msgid "SEO and Google Shopping"
+msgstr "SEO et Google Shopping"

@@ -8689,3 +8689,359 @@ msgstr ""
 #: webshop/patches/add_picture_alt_field.py
 msgid "What someone who cannot see the picture needs to know: read aloud by screen readers, shown when the picture fails to load, read by search engines."
 msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Website Item {0} not found"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Description of the product"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Picture descriptions"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "GTIN (EAN) or manufacturer's reference"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Google product category"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Price and availability"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Sent to Google Shopping"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Customer reviews"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Sold on its model's page, which search engines read instead"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Its variants carry it"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Not asked of a gift card"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Not asked of a service"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No barcode exists for this product (declared on the item)"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "This site sends no feed to Google Shopping"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No picture yet"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Each variant is sold on its own page"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Not published"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Not scored yet"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "in stock"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "on backorder"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "out of stock"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "{0} characters: Google cuts it after about {1}"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "{0} characters: too short to say what the product is"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "{0} characters, shown whole"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Nothing but the product's name: write one, or a description it can be taken from"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "{0} characters: Google shows about {1}"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "{0} characters"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No description: the page says nothing a search could find"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "{0} words: say more, from {1} words on"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No picture: Google Shopping refuses the product"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "The main picture is {0} px wide: {1} px or more"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Pictures: {0}. Show other views, from {1} on"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Pictures: {0}"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No picture is described: screen readers and image searches read only the product's name"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "{0} of {1} pictures described"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Every picture is described"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "GTIN {0}"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Manufacturer's reference {0} but no GTIN: add the EAN if the product has one"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No GTIN (EAN) and no manufacturer's reference: Google shows a branded product less often without one"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No brand"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No Google product category on the item group {0} or above it"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No characteristics listed"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Characteristics: {0}. List at least {1}"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Characteristics: {0}"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No price shown to a visitor"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No variant has a price for a visitor"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "The offer could not be read: see the Error Log"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Shown out of stock: Google shows it less"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Variants on sale: {0}"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "In the feed"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "{0} reviews, {1} out of 5"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No review yet"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "Videos: {0}"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "No video"
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "Average SEO score"
+msgstr ""
+
+#: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py
+msgid "SEO score"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "SEO score: {0} / 100"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "To improve"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Not counted"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Computing the SEO score…"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "No SEO score yet: it is computed after each save and every night."
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Fix this"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "For information"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "Computed {0}"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "updating…"
+msgstr ""
+
+#: webshop/public/js/override/seo_preview.js
+msgid "What search engines, Google Shopping and AI assistants read of this product. Only you see it."
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "No barcode exists for this product"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Own manufacture, made to measure, one of a kind: no barcode exists for it. Google asks no GTIN of such a product, and the SEO score does not count it."
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "SEO score checked on"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "SEO score details"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "SEO criteria missing"
+msgstr ""
+
+#: webshop/webshop/doctype/website_item/website_item.json
+msgid "Google Shopping status"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Webshop SEO Snapshot"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "A day's SEO figures of one site, written every night by the SEO score job."
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Site"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "The site the figures are for, as the Google feed names it: default for a single site, else its Website Profile."
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Products scored"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Average score"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Without a description"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Without GTIN or manufacturer's reference"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
+msgid "Without picture descriptions"
+msgstr ""
+
+#: webshop/webshop/number_card/average_seo_score/average_seo_score.json
+msgid "Average SEO Score"
+msgstr ""
+
+#: webshop/webshop/number_card/products_sent_to_google_shopping/products_sent_to_google_shopping.json
+msgid "Products Sent to Google Shopping"
+msgstr ""
+
+#: webshop/webshop/number_card/products_without_a_description/products_without_a_description.json
+msgid "Products Without a Description"
+msgstr ""
+
+#: webshop/webshop/number_card/products_without_picture_descriptions/products_without_picture_descriptions.json
+msgid "Products Without Picture Descriptions"
+msgstr ""
+
+#: webshop/webshop/number_card/products_without_gtin_or_reference/products_without_gtin_or_reference.json
+msgid "Products Without GTIN or Reference"
+msgstr ""
+
+#: webshop/webshop/dashboard_chart/google_shopping_status/google_shopping_status.json
+msgid "Google Shopping Status"
+msgstr ""
+
+#: webshop/webshop/dashboard_chart/products_by_seo_score/products_by_seo_score.json
+msgid "Products by SEO Score"
+msgstr ""
+
+#: webshop/webshop/workspace/webshop/webshop.json
+msgid "SEO and Google Shopping"
+msgstr ""
