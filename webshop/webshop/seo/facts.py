@@ -21,6 +21,12 @@ from webshop.webshop.seo.text import html_to_text
 
 # Identifiers a barcode can carry, by length (GS1): the most specific property name wins.
 GTIN_PROPERTIES = {8: "gtin8", 12: "gtin12", 13: "gtin13", 14: "gtin14"}
+# Item Barcode types that name a GTIN symbology: a row typed so is the merchant saying "this is
+# the product's EAN", and wins over an untyped row, which may hold a code of the shop's own.
+GTIN_BARCODE_TYPES = {"EAN", "EAN-8", "EAN-12", "UPC", "UPC-A", "GTIN", "GS1", "JAN", "ISBN", "ISBN-13"}
+# Types whose codes are never a GTIN. They carry their own check character, and one code in ten
+# passes GS1's check digit by chance: a pharmacy number, a free Code 39, an 8-character ISSN.
+NOT_GTIN_BARCODE_TYPES = {"CODE-39", "PZN", "ISBN-10", "ISSN"}
 MAX_IMAGES = 10
 MAX_REVIEWS = 4  # what the reviews block shows
 
@@ -100,35 +106,76 @@ def bulk_identifiers(item_codes) -> dict[str, dict]:
 			"Item", filters={"name": ["in", codes]}, fields=["name", "stock_uom", "default_manufacturer_part_no"]
 		)
 	}
-	found = {code: {} for code in codes}
+	barcodes = {}
 	for row in frappe.get_all(
 		"Item Barcode",
 		filters={"parent": ["in", codes], "parenttype": "Item"},
-		fields=["parent", "barcode", "uom"],
+		fields=["parent", "barcode", "barcode_type", "uom"],
 		order_by="parent asc, idx asc",
 	):
-		item = items.get(row.parent)
-		# a barcode of another unit (a carton of twelve) is not this product's
-		if not item or (row.uom and row.uom != item.stock_uom):
-			continue
-		code = (row.barcode or "").strip()
-		if valid_gtin(code):
-			found[row.parent].setdefault(GTIN_PROPERTIES[len(code)], code)
+		barcodes.setdefault(row.parent, []).append(row)
+	found = {code: {} for code in codes}
 	for code, item in items.items():
+		gtin = product_gtin(barcodes.get(code) or [], item.stock_uom)
+		if gtin:
+			found[code][GTIN_PROPERTIES[len(gtin)]] = gtin
 		mpn = (item.default_manufacturer_part_no or "").strip()
 		if mpn:
 			found[code]["mpn"] = mpn
 	return found
 
 
+def product_gtin(barcodes, stock_uom: str) -> str | None:
+	"""The product's one GTIN among its Item Barcode rows, in the table's order: the first valid
+	row the merchant typed as a GTIN symbology, else the first valid untyped one.
+
+	A trade item has one GTIN; two would describe two products. The old reading kept the first
+	code of each length, so an internal 8-digit code that passed the check digit by chance sat
+	next to the real EAN-13 in the page's markup.
+	"""
+	untyped = None
+	for row in barcodes:
+		# a barcode of another unit (a carton of twelve) is not this product's
+		if row.uom and row.uom != stock_uom:
+			continue
+		kind = (row.barcode_type or "").upper()
+		if kind in NOT_GTIN_BARCODE_TYPES:
+			continue
+		# Google wants the digits alone; a code typed with its groups ("400 6381 33393-1") is one
+		code = re.sub(r"[\s-]+", "", row.barcode or "")
+		if not valid_gtin(code):
+			continue
+		if kind in GTIN_BARCODE_TYPES:
+			return code
+		untyped = untyped or code
+	return untyped
+
+
 def valid_gtin(code: str) -> bool:
-	"""A GTIN-8, 12, 13 or 14 whose GS1 check digit is right."""
+	"""A GTIN-8, 12, 13 or 14 that Google accepts: its GS1 check digit is right, and it is not a
+	number GS1 keeps off the market (restricted_gtin)."""
 	if not code or not code.isdigit() or len(code) not in GTIN_PROPERTIES or not int(code):
 		return False
 	digits = [int(char) for char in code]
 	body, check = digits[:-1], digits[-1]
 	total = sum(digit * (3 if position % 2 == 0 else 1) for position, digit in enumerate(reversed(body)))
-	return (10 - total % 10) % 10 == check
+	return (10 - total % 10) % 10 == check and not restricted_gtin(code)
+
+
+def restricted_gtin(code: str) -> bool:
+	"""A number GS1 reserves for use inside one company or one country, or for coupons: it names no
+	product on the market, and Google refuses it (Merchant Center, the gtin attribute).
+
+	A GTIN-8 is restricted when it starts with 0 or 2 (RCN-8). A longer one is read on its GS1
+	prefix, once right-aligned on 14 digits, the form GS1 stores every GTIN in (a UPC gains a
+	leading zero, a GTIN-14 keeps its packaging digit in front): 2 (codes a shop prints itself,
+	weighed articles), 02 and 04 (the same for a UPC), 05 (UPC coupons), 98 and 99 (coupons,
+	refund receipts). ISBN (978, 979) and ISSN (977) are real GTINs.
+	"""
+	if len(code) == 8:
+		return code[0] in "02"
+	fourteen = code.zfill(14)
+	return fourteen[1] == "2" or fourteen[1:3] in ("02", "04", "05", "98", "99")
 
 
 def specifications(doc) -> list[tuple[str, str]]:
