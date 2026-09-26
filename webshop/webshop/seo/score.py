@@ -118,6 +118,11 @@ def gather(doc, site, entry=_UNREAD, reason=None) -> frappe._dict:
 	found = frappe._dict(
 		kind=kind,
 		name=name,
+		# what says nothing of the product: its own names and code, which ERPNext writes as the
+		# description of an item nobody described
+		bare=frozenset(
+			text.strip().lower() for text in (name, doc.get("item_name"), doc.item_code) if text and text.strip()
+		),
 		published=cint(doc.get("published")),
 		sold=cint(doc.get("sold")),
 		refusal=site.refusal,
@@ -195,6 +200,11 @@ def reviews_of(website_item: str) -> tuple[int, float | None]:
 # The criteria
 
 
+def bare_texts(f) -> frozenset:
+	"""The texts that say nothing of the product: its names and its code."""
+	return f.get("bare") or frozenset({f.name.lower()})
+
+
 def judge_title(f):
 	if f.kind == "grouped_variant":
 		return NOT_APPLICABLE, {"why": "model_page"}
@@ -216,7 +226,7 @@ def judge_search_description(f):
 	text = f.description.strip()
 	length = len(text)
 	# the page falls back on the product's name when it has nothing else to say
-	if not text or text.lower() == f.name.lower():
+	if not text or text.lower() in bare_texts(f):
 		return MISSING, {"length": length}
 	if length < DESCRIPTION_SHORT:
 		return IMPROVE, {"length": length, "problem": "short", "target": DESCRIPTION_SHORT}
@@ -230,8 +240,8 @@ def judge_long_description(f):
 
 	text = f.long_text.strip()
 	words = len(text.split())
-	# an item's description is its name until somebody writes one (ERPNext fills it so)
-	if not text or text.lower() == f.name.lower():
+	# an item's description is its name or its code until somebody writes one (ERPNext fills it so)
+	if not text or text.lower() in bare_texts(f):
 		return MISSING, {"words": 0}
 	if words < DESCRIPTION_WORDS[0]:
 		return IMPROVE, {"words": words, "target": DESCRIPTION_WORDS[0]}

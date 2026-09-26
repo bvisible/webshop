@@ -156,6 +156,9 @@ class TestTheCriteria(FrappeTestCase):
 			({"description": "trail shoe"}, "search_description", score.MISSING),
 			({"long_text": "A light shoe for the mountains."}, "long_description", score.IMPROVE),
 			({"long_text": ""}, "long_description", score.MISSING),
+			# ERPNext writes the item's code as the description of an item nobody described
+			({"long_text": "TRAIL-01", "bare": frozenset({"trail shoe", "trail-01"})}, "long_description", score.MISSING),
+			({"description": "TRAIL-01", "bare": frozenset({"trail shoe", "trail-01"})}, "search_description", score.MISSING),
 			({"pictures": 2}, "pictures", score.IMPROVE),
 			({"first_picture_width": 500}, "pictures", score.IMPROVE),
 			({"alt_described": 2}, "alt_text", score.IMPROVE),
