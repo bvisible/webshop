@@ -9237,10 +9237,12 @@ msgid "Download the order as Excel"
 msgstr "Télécharger la commande en Excel"
 
 #: webshop/patches/add_email_confirmation_hold_field.py
+#: webshop/webshop/auth/confirmation.py
 msgid "On hold until the customer confirms their email address"
 msgstr "En attente jusqu'à ce que le client confirme son adresse e-mail"
 
 #: webshop/patches/add_email_confirmation_hold_field.py
+#: webshop/webshop/auth/confirmation.py
 msgid "Paid on account from an account opened in the shop whose address is not confirmed yet. The confirmation releases the order; resuming it by hand works too."
 msgstr "Payé sur facture depuis un compte ouvert dans la boutique dont l'adresse n'est pas encore confirmée. La confirmation libère la commande ; la reprendre à la main fonctionne aussi."
 

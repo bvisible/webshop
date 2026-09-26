@@ -372,10 +372,11 @@ class TestOrdersWaitForTheConfirmation(FrappeTestCase):
 		name, placed = self.order()
 		confirmation.hold_until_confirmed(name)
 		self.assertEqual(self.state(name), ("On Hold", 1))
+		self.assertEqual(len(self.info_comments(name)), 1, "the timeline says why the order waits")
 		self.assertEqual(confirmation.held_orders(USER), [name])
 		confirmation.release_held_orders(USER)
 		self.assertEqual(self.state(name), (placed, 0), "the status the order had, computed again")
-		self.assertTrue(any(USER in text for text in self.info_comments(name)), "the timeline says why")
+		self.assertTrue(any(USER in text for text in self.info_comments(name)), "and why it no longer does")
 		self.assertEqual(frappe.session.user, "Administrator")
 
 	def test_a_hold_the_merchant_takes_back_is_never_lifted_by_the_confirmation(self):

@@ -108,8 +108,19 @@ def can_hold_orders() -> bool:
 
 def hold_until_confirmed(sales_order: str):
 	"""Hold an order paid on account by an account whose address is not confirmed yet, marked so
-	that the confirmation releases it (release_held_orders)."""
+	that the confirmation releases it (release_held_orders). The timeline says why the order waits:
+	the desk's simple view does not show the mark."""
 	frappe.db.set_value("Sales Order", sales_order, {"status": "On Hold", HELD_FIELD: 1})
+	frappe.get_doc("Sales Order", sales_order).add_comment(
+		"Info",
+		"{} — {}".format(
+			_("On hold until the customer confirms their email address"),
+			_(
+				"Paid on account from an account opened in the shop whose address is not confirmed yet. "
+				"The confirmation releases the order; resuming it by hand works too."
+			),
+		),
+	)
 
 
 def held_orders(user: str) -> list:

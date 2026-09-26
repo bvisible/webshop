@@ -9154,10 +9154,12 @@ msgid "Download the order as Excel"
 msgstr ""
 
 #: webshop/patches/add_email_confirmation_hold_field.py
+#: webshop/webshop/auth/confirmation.py
 msgid "On hold until the customer confirms their email address"
 msgstr ""
 
 #: webshop/patches/add_email_confirmation_hold_field.py
+#: webshop/webshop/auth/confirmation.py
 msgid "Paid on account from an account opened in the shop whose address is not confirmed yet. The confirmation releases the order; resuming it by hand works too."
 msgstr ""
 

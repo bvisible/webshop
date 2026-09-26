@@ -66,5 +66,3 @@ webshop.patches.compute_seo_scores
 webshop.patches.switch_on_product_identifiers
 # //// Neoffice — the Sales Order field of an order held until its account's address is confirmed (2026-09-26, #691 D-9)
 webshop.patches.add_email_confirmation_hold_field
-# //// Neoffice — the SEO score among the saved columns of the Website Item report view (2026-09-26, #691 plan note 20)
-webshop.patches.show_seo_score_in_saved_report_views
