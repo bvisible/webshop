@@ -5018,10 +5018,6 @@ msgstr ""
 msgid "Products per Page"
 msgstr ""
 
-#: webshop/webshop/utils/product_carousel_helper.py:339
-msgid "Produits en vedette"
-msgstr ""
-
 #: webshop/webshop/multi_site.py:55
 msgid "Professional account required"
 msgstr ""
@@ -6867,14 +6863,6 @@ msgstr ""
 
 #: webshop/webshop/quick_order/api.py:846
 msgid "Type a reference, a name or a barcode: the model's grid opens and you enter the quantities at the keyboard."
-msgstr ""
-
-#: webshop/templates/pages/order.html:39
-msgid "Télécharger en Excel"
-msgstr ""
-
-#: webshop/templates/pages/thank_you.html:51
-msgid "Télécharger la commande en Excel"
 msgstr ""
 
 #: webshop/templates/generators/item/item_add_to_cart.html:64
@@ -9127,4 +9115,52 @@ msgstr ""
 
 #: webshop/webshop/seo/score.py
 msgid "No feed"
+msgstr ""
+
+#: webshop/webshop/auth/api.py
+msgid "New accounts cannot be created on this site. Please contact the shop."
+msgstr ""
+
+#: webshop/webshop/utils/product_carousel_helper.py
+msgid "Featured products"
+msgstr ""
+
+#: webshop/webshop/auth/confirmation.py
+msgid "{0} confirmed the email address, but the order stays on hold: {1}"
+msgstr ""
+
+#: webshop/webshop/auth/confirmation.py
+msgid "see the Error Log"
+msgstr ""
+
+#: webshop/webshop/auth/confirmation.py
+msgid "{0} confirmed the email address: the order is no longer on hold."
+msgstr ""
+
+#: webshop/templates/pages/checkout.py
+msgid "Your order is registered and invoiced under your agreed payment terms. It is prepared once your email address is confirmed."
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html
+msgid "Your order will be prepared once your email address is confirmed: open the link we sent you."
+msgstr ""
+
+#: webshop/templates/pages/order.html
+msgid "Download as Excel"
+msgstr ""
+
+#: webshop/templates/pages/thank_you.html
+msgid "Download the order as Excel"
+msgstr ""
+
+#: webshop/patches/add_email_confirmation_hold_field.py
+msgid "On hold until the customer confirms their email address"
+msgstr ""
+
+#: webshop/patches/add_email_confirmation_hold_field.py
+msgid "Paid on account from an account opened in the shop whose address is not confirmed yet. The confirmation releases the order; resuming it by hand works too."
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "A customer who creates an account in the shop is signed in straight away and can order. The welcome email then confirms the address; an order paid on account is held until then. An address the shop already knows, and a site for business accounts only, keep the confirmation first."
 msgstr ""
