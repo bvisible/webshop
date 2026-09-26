@@ -592,6 +592,12 @@ class WebsiteItem(WebsiteGenerator):
 		if settings and settings.enable_frequently_bought_together:
 			from webshop.webshop.utils.frequently_bought_together import get_frequently_bought_together
 			context.frequently_bought_together = get_frequently_bought_together(self.item_code)
+		# //// Neoffice — a variant sold on its model's page links that page opened on it (decision D-1,
+		# //// seo/variants.py), as the listing's tiles do: its own page names the model's as canonical
+		from webshop.webshop.seo.variants import link_variants_to_models
+
+		link_variants_to_models(context.recommended_items or [], settings)
+		link_variants_to_models(context.frequently_bought_together or [], settings)
 
 		from webshop.webshop.shopping_cart.guest_cart import check_and_merge_guest_cart
 

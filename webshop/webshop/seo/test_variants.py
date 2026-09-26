@@ -499,3 +499,26 @@ class TestAModelPage(FrappeTestCase):
 		self.assertEqual(entry.get("color"), "Graphite")
 		# the variant has no picture of its own: the model's page shows the model's
 		self.assertTrue(entry["image_link"].endswith(PICTURE))
+
+	def test_a_variants_tile_opens_the_models_page_on_it(self):
+		"""A listing, a carousel, a wishlist or the search linked the variant's own page, which names
+		the model's page as canonical: the tile opens the model's page on the variant instead."""
+		model_route = frappe.db.get_value("Website Item", self.model_page, "route")
+		code = self.codes[("Graphite", "S")]
+
+		def tiles():
+			return [
+				frappe._dict(item_code=code, route="own-page"),
+				frappe._dict(item_code=MODEL, route=model_route),
+				frappe._dict(item_code="_WSTEST NO SUCH ITEM", route="mug"),
+			]
+
+		linked = variants.link_variants_to_models(tiles(), self.settings())
+		self.assertEqual(linked[0].route, variants.variant_link(model_route.lstrip("/"), code))
+		self.assertEqual(linked[1].route, model_route, "the model keeps its own page")
+		self.assertEqual(linked[2].route, "mug", "a simple product keeps its own page")
+		# the selector off: each variant is a product of its own, with its own page
+		self.assertEqual(variants.link_variants_to_models(tiles(), self.settings(enable_variants=0))[0].route, "own-page")
+		# a model this site does not show cannot be the variant's page
+		with patch("webshop.webshop.multi_site.excluded_item_names", return_value=[self.model_page]):
+			self.assertEqual(variants.link_variants_to_models(tiles(), self.settings())[0].route, "own-page")

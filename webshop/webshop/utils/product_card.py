@@ -30,6 +30,10 @@ def attach_cards(items, settings, eager=0):
 	The first `eager` pictures load at once, the very first ahead of everything (a listing's
 	first page, its first row): they are what the visitor sees first (the LCP), and lazy
 	loading only delayed them. #691 lot 5."""
+	from webshop.webshop.seo.variants import link_variants_to_models
+
+	# a variant sold on its model's page links that page opened on it (decision D-1)
+	link_variants_to_models(items, settings)
 	hover = second_pictures(items)
 	for index, item in enumerate(items or []):
 		if item.get("item_code") in hover:

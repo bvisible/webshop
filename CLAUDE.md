@@ -704,8 +704,22 @@ Until the link is clicked, the User carries `email_confirmation_pending`.
   so whoever opened it without owning the address loses the session they kept. It runs before
   the new session exists, while `frappe.session` is the requester's. Staff signing in as the
   customer (impersonation, `bench browse`) come with their own session, and prove nothing.
-- **Payment on account waits** (`utils/payment_methods.rows_for_group`): it ships before the money
-  is in. Card and transfer-before-shipping are unaffected.
+- **An order paid on account waits for the confirmation** (2026-09-26). Paying on account ships
+  before the money is in, so an unconfirmed account's order is placed **On Hold** and marked
+  (`Sales Order.awaiting_email_confirmation`, `patches/add_email_confirmation_hold_field`). The
+  confirmation's `on_login` queues `release_held_orders`, which resumes each order as the desk's
+  Resume button does (`update_status("Draft")`, credit limit included) as Administrator, with a
+  timeline note naming the customer's confirmation. An order the credit limit refuses is rolled
+  back to its savepoint, stays held, and its timeline says why. The mark lives only while the
+  order is On Hold (`on_sales_order_change`, Sales Order `on_change`): an order the merchant
+  resumed and held again for a reason of their own is never released by the customer. The tile
+  and the thank-you page say the order waits. A site that has not migrated yet cannot mark the
+  order and does not offer the method to an unconfirmed account (`can_hold_orders`), as before.
+  Card and transfer-before-shipping are unaffected. (Until 2026-09-26 the method was simply not
+  offered to an unconfirmed account.)
+- **Website Settings' "Disable Signup" is honoured** (2026-09-26): frappe's own `sign_up()`
+  refused, and `create_account` opened accounts whatever it said. No instance had it ticked the
+  day it changed (read-only census), so nothing changed where it is not.
 - `create_account` creates at most 20 accounts an hour per address (`SIGN_UPS_PER_HOUR`, a
   counter of the accounts actually created: frappe's `rate_limit` counted every call, and the
   browser suite's refusals used the allowance up in an afternoon) and honours frappe's
@@ -994,6 +1008,11 @@ defects in neoffice-maintenance#691.
     and the selector selects it. The markup stays the same whichever variant is chosen.
   - A variant's own page stays online, because carts and emails link it. It names the model's
     page as canonical, carries the same group, and leaves the sitemap.
+  - **Every tile of such a variant links `model?variant=<code>`** (2026-09-26,
+    `variants.link_variants_to_models`): the listing's cards (`attach_cards`), the carousels
+    (`render_product_carousel`), the product page's recommendations and "bought together", the
+    wishlist and the search dropdown. They linked the variant's own page, which points elsewhere.
+    IndexNow hears of the model's page, never of such a variant's (`indexnow.grouped_variants`).
   - The feed links `model?variant=` with `canonical_link`.
   - One reading of the variants feeds the selector (`get_all_variants_info`, now
     `variants.selector_data`), the group and the feed. Before, the selector priced every variant
@@ -1216,7 +1235,10 @@ only, never to the public.
   import flag, and one job per saved item would flood the short queue, where the shop's emails
   wait. The night's pass catches every change made outside the form.
 - **Stored on Website Item, without touching `modified`:**
-  - `seo_score` — a list column, sortable and filterable;
+  - `seo_score` — a list column, sortable and filterable. The desk opens the list in its report
+    view with each user's saved columns, so a user who had saved some before the score existed
+    got it once, at the end (`patches/show_seo_score_in_saved_report_views`, which syncs the
+    cached settings first and drops each user's cached copy);
   - `seo_score_details` — the checklist as codes; the labels are written at read time, in the
     reader's language, since a job starts in English;
   - `seo_missing` — missing codes wrapped in commas, for the cards' `like "%,identifier,%"`;

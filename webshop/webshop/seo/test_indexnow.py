@@ -17,16 +17,25 @@ def _settings(enabled=1, key=KEY):
 	return frappe._dict(enable_indexnow=enabled, indexnow_key=key)
 
 
-def _item(published, route, before=None):
-	doc = MagicMock(published=published, route=route)
+def _item(published, route, before=None, item_code=None, variant_of=None):
+	doc = MagicMock(published=published, route=route, item_code=item_code, variant_of=variant_of)
 	doc.get_doc_before_save.return_value = before
+	doc.get.side_effect = {"item_code": item_code, "variant_of": variant_of}.get
 	return doc
+
+
+def _no_grouped_variants(case):
+	"""Every variant is a product of its own (seo/variants.py, decision D-1), whatever the site says."""
+	grouped = patch.object(indexnow, "grouped_variants", return_value=set())
+	grouped.start()
+	case.addCleanup(grouped.stop)
 
 
 class TestQueue(FrappeTestCase):
 	def setUp(self):
 		frappe.cache.delete_value(indexnow.QUEUE_KEY)
 		self.addCleanup(frappe.cache.delete_value, indexnow.QUEUE_KEY)
+		_no_grouped_variants(self)
 
 	def test_nothing_is_queued_while_switched_off(self):
 		with patch("frappe.get_cached_doc", return_value=_settings(enabled=0)):
@@ -60,6 +69,35 @@ class TestQueue(FrappeTestCase):
 		self.assertEqual(get_all.call_args.kwargs["filters"]["item_code"], ["in", ["TEE-RED-M", "TEE"]])
 		self.assertEqual(indexnow.take_queue(), ["shop/tee", "shop/tee-red-m"])
 
+	def test_a_variant_sold_on_its_models_page_is_heard_of_through_that_page(self):
+		"""Its own page names the model's as canonical (decision D-1): an engine hears of the model's."""
+		with (
+			patch("frappe.get_cached_doc", return_value=_settings()),
+			patch.object(indexnow, "grouped_variants", return_value={"TEE-RED-M"}),
+			patch("frappe.db.get_value", return_value="TEE"),
+			patch("frappe.get_all", return_value=["shop/tee"]) as get_all,
+		):
+			indexnow.queue_item_price(frappe._dict(selling=1, item_code="TEE-RED-M"), "on_update")
+			self.assertEqual(get_all.call_args.kwargs["filters"]["item_code"], ["in", ["TEE"]])
+			variant = _item(1, "shop/tee-red-m", item_code="TEE-RED-M", variant_of="TEE")
+			indexnow.queue_website_item(variant, "on_update")
+			self.assertEqual(get_all.call_args.kwargs["filters"], {"item_code": "TEE", "published": 1})
+		self.assertEqual(indexnow.take_queue(), ["shop/tee"])
+
+
+class TestGroupedVariants(FrappeTestCase):
+	def test_which_variants_their_models_page_sells(self):
+		rows = [frappe._dict(name="TEE-RED-M", variant_of="TEE"), frappe._dict(name="CAP-BLUE", variant_of="CAP")]
+		with (
+			patch("frappe.db.get_single_value", return_value=1),
+			patch("frappe.get_all", return_value=rows),
+			patch("webshop.webshop.seo.variants.model_page_name", side_effect=lambda model: "WEB-TEE" if model == "TEE" else None),
+		):
+			self.assertEqual(indexnow.grouped_variants(["TEE-RED-M", "CAP-BLUE", "MUG"]), {"TEE-RED-M"})
+		with patch("frappe.db.get_single_value", return_value=0):
+			self.assertEqual(indexnow.grouped_variants(["TEE-RED-M"]), set(), "the selector off: none")
+		self.assertEqual(indexnow.grouped_variants([]), set())
+
 
 class TestAvailability(FrappeTestCase):
 	"""A product that ran out, or came back, queues its page and its model's (#691 lot 4)."""
@@ -70,6 +108,7 @@ class TestAvailability(FrappeTestCase):
 			self.addCleanup(frappe.cache.delete_value, key)
 		frappe.flags.webshop_indexnow_moved = set()
 		self.addCleanup(setattr, frappe.flags, "webshop_indexnow_moved", set())
+		_no_grouped_variants(self)
 
 	def test_a_voucher_is_checked_once_done_in_the_background(self):
 		with patch("frappe.get_cached_doc", return_value=_settings()):
@@ -110,6 +149,10 @@ class TestAvailability(FrappeTestCase):
 		self.assertEqual(flips(), [], "nothing changed")
 		states["TEE-RED-M"] = "https://schema.org/OutOfStock"
 		self.assertEqual(flips(), ["shop/tee", "shop/tee-red-m"], "the variant ran out: it and its model")
+		# sold on its model's page (decision D-1): the model's page alone
+		states["TEE-RED-M"] = "https://schema.org/InStock"
+		with patch.object(indexnow, "grouped_variants", return_value={"TEE-RED-M"}):
+			self.assertEqual(flips(), ["shop/tee"], "the variant came back: its model's page")
 
 
 class TestSubmit(FrappeTestCase):

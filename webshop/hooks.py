@@ -247,6 +247,9 @@ doc_events = {
 			# //// Website Item.sold of the used units it holds (utils/used_items.py).
 			"webshop.webshop.utils.used_items.on_sales_order_change",
 		],
+		# //// Neoffice — an order held until its account's address is confirmed stops being ours
+		# //// to release once it leaves On Hold otherwise (auth/confirmation.py, #691 D-9)
+		"on_change": ["webshop.webshop.auth.confirmation.on_sales_order_change"],
 	},
 	# //// Neoffice — multi-warehouse: ERPNext reserves the received goods for
 	# //// the customer order on its own (Stock Settings); this only writes the

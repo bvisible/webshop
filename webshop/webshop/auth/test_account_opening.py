@@ -5,15 +5,18 @@
 - only an address the shop does not know is opened;
 - the first way back into the account, which can only go through its mailbox, confirms the
   address and closes the sessions whoever opened it kept;
-- payment on account waits for that confirmation.
+- an order paid on account waits On Hold for that confirmation, which releases it.
 """
 
 from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import add_days, nowdate
 
 from webshop.webshop.auth import api, confirmation
+from webshop.webshop.shopping_cart import offline_payment
+from webshop.webshop.tests.utils import PREFIX, make_test_item, portal_customer, selling_price_list
 from webshop.webshop.utils import payment_methods
 
 EMAIL = "e2e.d9-opening@yopmail.com"
@@ -109,6 +112,21 @@ class TestCreateAccount(FrappeTestCase):
 		finally:
 			frappe.cache().delete_value(key)
 
+	def test_a_site_that_disabled_sign_ups_opens_no_account(self):
+		"""Website Settings' "Disable Signup", which frappe's own sign_up() honours."""
+		single = frappe.db.get_single_value
+
+		def settings(doctype, field, *args, **kwargs):
+			if (doctype, field) == ("Website Settings", "disable_signup"):
+				return 1
+			return single(doctype, field, *args, **kwargs)
+
+		with patch.object(frappe.db, "get_single_value", side_effect=settings):
+			answer = api.create_account()
+		self.assertEqual(answer["reason_code"], "signup_disabled")
+		self.assertTrue(answer["reason"])
+		self.assertFalse(frappe.db.exists("User", EMAIL))
+
 	def test_an_error_says_nothing_of_its_cause(self):
 		with (
 			patch.object(api.frappe, "get_doc", side_effect=RuntimeError("SMTP host secret.example")),
@@ -186,6 +204,28 @@ class TestConfirmation(FrappeTestCase):
 			confirmation.on_login(self.login_manager())
 		clear.assert_not_called()
 
+	def test_the_confirmation_releases_the_orders_it_held_in_the_background(self):
+		frappe.db.set_value("User", EMAIL, confirmation.FIELD, 1)
+		frappe.set_user("Guest")
+		with (
+			patch("frappe.sessions.clear_sessions"),
+			patch.object(confirmation, "held_orders", return_value=["SO-HELD"]),
+			patch("frappe.enqueue") as enqueue,
+		):
+			confirmation.on_login(self.login_manager())
+		enqueue.assert_called_once_with(
+			"webshop.webshop.auth.confirmation.release_held_orders", user=EMAIL, enqueue_after_commit=True
+		)
+		# nothing held: no job
+		frappe.db.set_value("User", EMAIL, confirmation.FIELD, 1)
+		with (
+			patch("frappe.sessions.clear_sessions"),
+			patch.object(confirmation, "held_orders", return_value=[]),
+			patch("frappe.enqueue") as enqueue,
+		):
+			confirmation.on_login(self.login_manager())
+		enqueue.assert_not_called()
+
 
 class TestPaymentOnAccountWaits(FrappeTestCase):
 	def rows(self, pending):
@@ -202,6 +242,147 @@ class TestPaymentOnAccountWaits(FrappeTestCase):
 		):
 			return [row.payment_gateway_account for row in payment_methods.rows_for_group(settings, None)]
 
-	def test_an_unconfirmed_account_is_not_offered_payment_on_account(self):
-		self.assertEqual(self.rows(pending=True), ["Card", "Transfer"])
+	def test_an_unconfirmed_account_pays_on_account_where_the_order_can_wait(self):
 		self.assertEqual(self.rows(pending=False), ["Card", "Invoice", "Transfer"])
+		with patch.object(confirmation, "can_hold_orders", return_value=True):
+			self.assertEqual(self.rows(pending=True), ["Card", "Invoice", "Transfer"])
+		# a site that has not migrated cannot mark the order: the method waits for the confirmation
+		with patch.object(confirmation, "can_hold_orders", return_value=False):
+			self.assertEqual(self.rows(pending=True), ["Card", "Transfer"])
+
+
+class TestPlacingAnOrderOnAccount(FrappeTestCase):
+	"""place_offline_order holds an order paid on account by an unconfirmed account, and only that."""
+
+	def place(self, settlement, pending):
+		cart = frappe._dict(items=[frappe._dict(item_code="MUG", qty=1)])
+		row = frappe._dict(settlement=settlement, payment_terms_template=None)
+		with (
+			patch("webshop.webshop.shopping_cart.cart._get_cart_quotation", return_value=cart),
+			patch("webshop.webshop.shopping_cart.cart.place_order", return_value="SO-PLACED"),
+			patch.object(offline_payment, "row_for_gateway", return_value=row),
+			patch.object(offline_payment, "customer_group_of", return_value=None),
+			patch.object(offline_payment, "raise_payment_request", return_value="PR-PLACED"),
+			patch.object(offline_payment.frappe.db, "set_value"),
+			patch.object(confirmation, "pending", return_value=pending),
+			patch.object(confirmation, "hold_until_confirmed") as hold,
+		):
+			answer = offline_payment.place_offline_order("Invoice")
+		self.assertEqual(answer["sales_order"], "SO-PLACED")
+		return hold
+
+	def test_only_an_unconfirmed_account_paying_on_account_waits(self):
+		self.place("On account", pending=True).assert_called_once_with("SO-PLACED")
+		self.place("On account", pending=False).assert_not_called()
+		# a transfer is held until the money is in, whoever pays: not this module's hold
+		self.place("Transfer before shipping", pending=True).assert_not_called()
+
+
+USER = "_wstest_d9_held@example.com"
+CUSTOMER = f"{PREFIX} D9 Held Customer"
+
+
+class TestOrdersWaitForTheConfirmation(FrappeTestCase):
+	"""Real orders: held, released by the confirmation, and a hold that is not ours left alone."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		from webshop.patches.add_email_confirmation_hold_field import execute
+
+		execute()
+		cls.item = make_test_item(f"{PREFIX} D9 Held Item", is_stock_item=0).name
+		portal_customer(USER, CUSTOMER)
+		# class fixtures survive FrappeTestCase's rollback only committed (CLAUDE.md, Testing Strategy)
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		cls.purge()
+		# class fixtures survive FrappeTestCase's rollback only committed (CLAUDE.md, Testing Strategy)
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+		super().tearDownClass()
+
+	@classmethod
+	def purge(cls):
+		for name in frappe.get_all("Sales Order", filters={"customer": CUSTOMER}, pluck="name"):
+			order = frappe.get_doc("Sales Order", name)
+			if order.docstatus == 1:
+				order.cancel()
+			frappe.delete_doc("Sales Order", name, force=True, ignore_permissions=True)
+		for doctype in ("Purchase Follow-up Entry", "Abandoned Cart Reminder"):
+			if frappe.db.exists("DocType", doctype):
+				frappe.db.delete(doctype, {"customer": CUSTOMER})
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		# release_held_orders refuses to switch the user inside a web request; a test is not one
+		session = patch.object(frappe.local, "session_obj", None, create=True)
+		session.start()
+		self.addCleanup(session.stop)
+
+	def order(self):
+		order = frappe.get_doc(
+			{
+				"doctype": "Sales Order",
+				"customer": CUSTOMER,
+				"order_type": "Sales",
+				"transaction_date": nowdate(),
+				"delivery_date": add_days(nowdate(), 7),
+				"selling_price_list": selling_price_list(),
+				"items": [{"item_code": self.item, "qty": 1, "rate": 25, "delivery_date": add_days(nowdate(), 7)}],
+			}
+		)
+		order.flags.ignore_permissions = True
+		order.insert()
+		order.submit()
+		# placed by the customer's own account, as the shop's checkout places it
+		frappe.db.set_value("Sales Order", order.name, "owner", USER, update_modified=False)
+		return order.name, order.status
+
+	def state(self, name):
+		return frappe.db.get_value("Sales Order", name, ["status", confirmation.HELD_FIELD])
+
+	def info_comments(self, name):
+		return frappe.get_all(
+			"Comment",
+			filters={"reference_doctype": "Sales Order", "reference_name": name, "comment_type": "Info"},
+			pluck="content",
+		)
+
+	def test_held_until_the_confirmation_then_released(self):
+		name, placed = self.order()
+		confirmation.hold_until_confirmed(name)
+		self.assertEqual(self.state(name), ("On Hold", 1))
+		self.assertEqual(confirmation.held_orders(USER), [name])
+		confirmation.release_held_orders(USER)
+		self.assertEqual(self.state(name), (placed, 0), "the status the order had, computed again")
+		self.assertTrue(any(USER in text for text in self.info_comments(name)), "the timeline says why")
+		self.assertEqual(frappe.session.user, "Administrator")
+
+	def test_a_hold_the_merchant_takes_back_is_never_lifted_by_the_confirmation(self):
+		name, _placed = self.order()
+		confirmation.hold_until_confirmed(name)
+		# the merchant resumes it by hand, then holds it again for a reason of their own
+		frappe.get_doc("Sales Order", name).update_status("Draft")
+		self.assertEqual(self.state(name)[1], 0, "resumed: no longer ours to release")
+		frappe.get_doc("Sales Order", name).update_status("On Hold")
+		self.assertEqual(confirmation.held_orders(USER), [])
+		confirmation.release_held_orders(USER)
+		self.assertEqual(self.state(name), ("On Hold", 0))
+
+	def test_an_order_the_credit_limit_refuses_stays_held_and_says_why(self):
+		name, _placed = self.order()
+		confirmation.hold_until_confirmed(name)
+		with (
+			patch(
+				"erpnext.selling.doctype.sales_order.sales_order.SalesOrder.check_credit_limit",
+				side_effect=frappe.ValidationError("Credit limit crossed"),
+			),
+			patch.object(confirmation.frappe, "log_error") as log_error,
+		):
+			confirmation.release_held_orders(USER)
+		self.assertEqual(self.state(name), ("On Hold", 1), "nothing half done: still held, still ours")
+		log_error.assert_called_once()
+		self.assertTrue(any("Credit limit crossed" in text for text in self.info_comments(name)))

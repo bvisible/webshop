@@ -76,6 +76,17 @@ def create_account():
                 "reason_code": "invalid_email",
             }
 
+        # //// Neoffice — Website Settings' "Disable Signup" is honoured (#691 D-9, 2026-09-26): frappe's
+        # //// own sign_up() refuses, and this endpoint created accounts whatever it said. No instance
+        # //// of the fleet had it ticked that day (read-only census), so nothing changes where it
+        # //// is not. The dialog shows the reason, as it shows every refusal.
+        if cint(frappe.db.get_single_value("Website Settings", "disable_signup")):
+            return {
+                "message": "error",
+                "reason": _("New accounts cannot be created on this site. Please contact the shop."),
+                "reason_code": "signup_disabled",
+            }
+
         # //// Neoffice — frappe's own ceiling on sign-ups, which its sign_up() applies and this
         # //// endpoint skipped (System Settings, 300 an hour by default), and this address's own
         # //// allowance (SIGN_UPS_PER_HOUR)

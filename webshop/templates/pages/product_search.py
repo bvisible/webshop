@@ -106,8 +106,11 @@ def search(query):
 	}
 
 
-@frappe.whitelist(allow_guest=True)
-def product_search(query, limit=10, fuzzy_search=True):
+# //// Neoffice — reviewed for guests (frappe's semgrep rule guest-whitelisted-method): the shop's
+# //// search dropdown, over the published items of the site being browsed. Arguments typed, as the
+# //// rule asks (2026-09-26, when the variants' links changed here).
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
+def product_search(query: str | None, limit: int = 10, fuzzy_search: bool = True):
 	# //// Neoffice — RediSearch is REMOVED from this fork (tracker #223): it was
 	# //// disabled in 2025-12-15 (c54680b459 / e580d79023) because its autocomplete
 	# //// only indexed product names — narrower than what this dropdown must find —
@@ -193,7 +196,11 @@ def product_search(query, limit=10, fuzzy_search=True):
 
 	# //// Neoffice — the SQL rows are returned as-is; upstream re-sorted the RediSearch
 	# //// documents by ranking in Python, which the ORDER BY above now does.
-	search_results["results"] = results
+	# //// A variant sold on its model's page links that page opened on it (decision D-1,
+	# //// seo/variants.py), as the listing's tiles do.
+	from webshop.webshop.seo.variants import link_variants_to_models
+
+	search_results["results"] = link_variants_to_models(results)
 	return search_results
 
 

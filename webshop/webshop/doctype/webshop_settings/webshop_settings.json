@@ -787,7 +787,7 @@
   },
   {
    "default": "1",
-   "description": "A customer who creates an account in the shop is signed in straight away and can order. The welcome email then confirms the address; payment on account waits for that confirmation. An address the shop already knows, and a site for business accounts only, keep the confirmation first.",
+   "description": "A customer who creates an account in the shop is signed in straight away and can order. The welcome email then confirms the address; an order paid on account is held until then. An address the shop already knows, and a site for business accounts only, keep the confirmation first.",
    "fieldname": "open_account_at_once",
    "fieldtype": "Check",
    "label": "Open a new account at once"
@@ -1479,7 +1479,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-26 17:00:00.000000",
+ "modified": "2026-09-26 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

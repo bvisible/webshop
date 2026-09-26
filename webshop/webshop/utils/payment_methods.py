@@ -87,10 +87,12 @@ def rows_for_group(settings=None, customer_group=None):
 			best[key] = (score, row)
 	rows = [row for _score, row in best.values()]
 	# //// Neoffice — paying on account ships before the money is in: an account opened before its
-	# //// address is confirmed is not offered it until then (auth/confirmation.py, #691 D-9)
-	from webshop.webshop.auth.confirmation import pending
+	# //// address is confirmed pays on account, and the order waits On Hold until the address is
+	# //// confirmed (auth/confirmation.py, #691 D-9, 2026-09-26). A site that has not migrated yet
+	# //// cannot mark the order, and the method is not offered there.
+	from webshop.webshop.auth.confirmation import can_hold_orders, pending
 
-	if pending():
+	if pending() and not can_hold_orders():
 		rows = [row for row in rows if (row.get("settlement") or "Online") != "On account"]
 	return rows
 

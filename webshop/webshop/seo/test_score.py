@@ -420,3 +420,44 @@ class TestStoredOnTheItem(FrappeTestCase):
 		snapshots = frappe.get_all("Webshop SEO Snapshot", filters={"date": today}, fields=["site", "products", "average_score"])
 		self.assertEqual(len(snapshots), len({row.site for row in snapshots}))
 		self.assertTrue(all(row.products >= 1 for row in snapshots))
+
+
+class TestTheScoreInSavedReportViews(FrappeTestCase):
+	"""A user who saved the Website Item report view's columns before the score existed sees it too
+	(patches/show_seo_score_in_saved_report_views)."""
+
+	USER = "_wstest_report_view@example.com"
+
+	def test_added_once_at_the_end_of_saved_columns_only(self):
+		from webshop.patches.show_seo_score_in_saved_report_views import with_seo_score
+
+		saved = {"Report": {"fields": [["name", "Website Item"], ["web_item_name", "Website Item"]]}, "last_view": "Report"}
+		changed = json.loads(with_seo_score(json.dumps(saved)))
+		self.assertEqual(changed["Report"]["fields"][-1], ["seo_score", "Website Item"])
+		self.assertEqual(changed["last_view"], "Report", "nothing else changes")
+		self.assertIsNone(with_seo_score(json.dumps(changed)), "already there")
+		self.assertIsNone(with_seo_score(json.dumps({"List": {"filters": []}})), "no saved columns: the defaults show it")
+		self.assertIsNone(with_seo_score("not json"))
+		self.assertIsNone(with_seo_score(None))
+
+	def test_the_saved_settings_are_rewritten_and_their_cached_copy_dropped(self):
+		from webshop.patches import show_seo_score_in_saved_report_views
+
+		key = f"Website Item::{self.USER}"
+		saved = json.dumps({"Report": {"fields": [["name", "Website Item"]]}})
+		frappe.db.sql("delete from `__UserSettings` where `user` = %s", self.USER)
+		frappe.db.sql(
+			"insert into `__UserSettings` (`user`, `doctype`, `data`) values (%s, %s, %s)",
+			(self.USER, "Website Item", saved),
+		)
+		frappe.cache.hset("_user_settings", key, saved)
+		try:
+			show_seo_score_in_saved_report_views.execute()
+			data = frappe.db.sql(
+				"select `data` from `__UserSettings` where `user` = %s and `doctype` = %s", (self.USER, "Website Item")
+			)[0][0]
+			self.assertEqual(json.loads(data)["Report"]["fields"], [["name", "Website Item"], ["seo_score", "Website Item"]])
+			self.assertIsNone(frappe.cache.hget("_user_settings", key), "the view would read the old copy")
+		finally:
+			frappe.db.sql("delete from `__UserSettings` where `user` = %s", self.USER)
+			frappe.cache.hdel("_user_settings", key)

@@ -335,6 +335,8 @@ FIELD_PATCHES_RUN_AT_INSTALL = [
 	"add_picture_alt_field",
 	# //// Neoffice — the product identifiers' switches, on as their default says (#691 plan note 20)
 	"switch_on_product_identifiers",
+	# //// Neoffice — the Sales Order field of an order held until its account's address is confirmed (#691 D-9)
+	"add_email_confirmation_hold_field",
 ]
 
 

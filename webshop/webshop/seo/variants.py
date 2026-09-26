@@ -80,6 +80,43 @@ def variant_link(model_url: str, item_code: str) -> str:
 	return f"{model_url}?{PARAMETER}={quote(item_code, safe='')}"
 
 
+def link_variants_to_models(items, cart_settings=None):
+	"""Point the tile of each variant sold on its model's page at that page opened on it
+	(`model?variant=<code>`), in place, and return the items.
+
+	The variant's own page stays online for the carts and emails that link it, but it names the
+	model's page as canonical: a listing, a carousel or a wishlist that linked it sent visitors and
+	search engines to a page that points elsewhere. Items are dicts with `item_code` and `route`;
+	a model, a simple product or a variant whose model is not published here keeps its link."""
+	codes = [item.get("item_code") for item in items or [] if item.get("item_code")]
+	if not codes or not sells_on_model_page(cart_settings):
+		return items
+	models = dict(
+		frappe.get_all(
+			"Item", filters={"name": ["in", codes], "variant_of": ["is", "set"]}, fields=["name", "variant_of"], as_list=True
+		)
+	)
+	if not models:
+		return items
+	from webshop.webshop.multi_site import excluded_item_names
+
+	excluded = set(excluded_item_names() or [])
+	pages = {
+		row.item_code: row.route
+		for row in frappe.get_all(
+			"Website Item",
+			filters={"item_code": ["in", sorted(set(models.values()))], "published": 1},
+			fields=["name", "item_code", "route"],
+		)
+		if row.route and row.name not in excluded
+	}
+	for item in items:
+		route = pages.get(models.get(item.get("item_code")))
+		if route:
+			item["route"] = variant_link(route.lstrip("/"), item["item_code"])
+	return items
+
+
 def model_attributes(model_code) -> list[str]:
 	"""The model's attributes in the model's own order (colour, then size)."""
 	return frappe.get_all(
