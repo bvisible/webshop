@@ -96,7 +96,7 @@ def product_identifiers(item_code: str) -> dict:
 
 
 def bulk_identifiers(item_codes) -> dict[str, dict]:
-	"""product_identifiers of several items (a model's variants) in two queries."""
+	"""product_identifiers of several items (a model's variants) in three queries at most."""
 	codes = list(dict.fromkeys(code for code in item_codes or [] if code))
 	if not codes:
 		return {}
@@ -114,14 +114,37 @@ def bulk_identifiers(item_codes) -> dict[str, dict]:
 		order_by="parent asc, idx asc",
 	):
 		barcodes.setdefault(row.parent, []).append(row)
+	part_numbers = manufacturer_part_numbers(
+		[code for code, item in items.items() if not (item.default_manufacturer_part_no or "").strip()]
+	)
 	found = {code: {} for code in codes}
 	for code, item in items.items():
 		gtin = product_gtin(barcodes.get(code) or [], item.stock_uom)
 		if gtin:
 			found[code][GTIN_PROPERTIES[len(gtin)]] = gtin
-		mpn = (item.default_manufacturer_part_no or "").strip()
+		mpn = (item.default_manufacturer_part_no or "").strip() or part_numbers.get(code)
 		if mpn:
 			found[code]["mpn"] = mpn
+	return found
+
+
+def manufacturer_part_numbers(item_codes) -> dict[str, str]:
+	"""The manufacturer's part number of items whose Item carries none: ERPNext copies it to the
+	Item only from the manufacturer row ticked as default, so an item whose only row was never
+	ticked declared no MPN. The first row that has a number, the default first, else the oldest.
+	Never a supplier's reference (Item Supplier): Google reserves `mpn` for the manufacturer's."""
+	if not item_codes:
+		return {}
+	found = {}
+	for row in frappe.get_all(
+		"Item Manufacturer",
+		filters={"item_code": ["in", list(item_codes)], "manufacturer_part_no": ["is", "set"]},
+		fields=["item_code", "manufacturer_part_no"],
+		order_by="is_default desc, creation asc",
+	):
+		number = (row.manufacturer_part_no or "").strip()
+		if number:
+			found.setdefault(row.item_code, number)
 	return found
 
 
