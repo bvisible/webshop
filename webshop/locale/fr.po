@@ -9127,3 +9127,23 @@ msgstr "Produits par score SEO"
 #: webshop/webshop/workspace/webshop/webshop.json
 msgid "SEO and Google Shopping"
 msgstr "SEO et Google Shopping"
+
+#: webshop/webshop/seo/score.py
+msgid "The barcode {0} is not an EAN, UPC or GTIN (8, 12, 13 or 14 digits): a code of the shop's own"
+msgstr "Le code-barres {0} n'est pas un EAN, UPC ou GTIN (8, 12, 13 ou 14 chiffres) : un code propre au magasin"
+
+#: webshop/webshop/seo/score.py
+msgid "The barcode {0} has a wrong check digit: compare it with the packaging"
+msgstr "Le code-barres {0} a un chiffre de contrôle incorrect : comparez-le avec l'emballage"
+
+#: webshop/webshop/seo/score.py
+msgid "The barcode {0} is a number for use inside a shop (GS1 prefix 2, 02 or 04): Google refuses it"
+msgstr "Le code-barres {0} est un numéro à usage interne au magasin (préfixe GS1 2, 02 ou 04) : Google le refuse"
+
+#: webshop/webshop/seo/score.py
+msgid "The barcode {0} is a coupon's number: Google refuses it"
+msgstr "Le code-barres {0} est un numéro de bon de réduction : Google le refuse"
+
+#: webshop/webshop/seo/score.py
+msgid "The barcode {0} is the one of another unit ({1}), not of the product sold"
+msgstr "Le code-barres {0} est celui d'une autre unité ({1}), pas celui du produit vendu"

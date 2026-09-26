@@ -9045,3 +9045,23 @@ msgstr ""
 #: webshop/webshop/workspace/webshop/webshop.json
 msgid "SEO and Google Shopping"
 msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "The barcode {0} is not an EAN, UPC or GTIN (8, 12, 13 or 14 digits): a code of the shop's own"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "The barcode {0} has a wrong check digit: compare it with the packaging"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "The barcode {0} is a number for use inside a shop (GS1 prefix 2, 02 or 04): Google refuses it"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "The barcode {0} is a coupon's number: Google refuses it"
+msgstr ""
+
+#: webshop/webshop/seo/score.py
+msgid "The barcode {0} is the one of another unit ({1}), not of the product sold"
+msgstr ""
