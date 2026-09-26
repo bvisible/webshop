@@ -178,6 +178,41 @@ def restricted_gtin(code: str) -> bool:
 	return fourteen[1] == "2" or fourteen[1:3] in ("02", "04", "05", "98", "99")
 
 
+def gtin_problem(code: str) -> str | None:
+	"""Why a barcode is no GTIN Google accepts, for the merchant: "length" (not 8, 12, 13 or 14
+	digits: a code of the shop's own), "check_digit", "coupon" or "restricted"; None when it is one."""
+	if not code or not code.isdigit() or len(code) not in GTIN_PROPERTIES or not int(code):
+		return "length"
+	if restricted_gtin(code):
+		coupon = len(code) != 8 and code.zfill(14)[1:3] in ("05", "98", "99")
+		return "coupon" if coupon else "restricted"
+	if not valid_gtin(code):
+		return "check_digit"
+	return None
+
+
+def barcode_problem(item_code: str, stock_uom: str | None = None) -> frappe._dict | None:
+	"""The first of an item's barcodes that is no usable GTIN, and why (gtin_problem), for an item
+	that declares none: the SEO score tells the merchant what to correct. None without barcodes."""
+	for row in frappe.get_all(
+		"Item Barcode",
+		filters={"parent": item_code, "parenttype": "Item"},
+		fields=["barcode", "barcode_type", "uom"],
+		order_by="idx asc",
+	):
+		if (row.barcode_type or "").upper() in NOT_GTIN_BARCODE_TYPES:
+			continue
+		code = re.sub(r"[\s-]+", "", row.barcode or "")
+		if not code:
+			continue
+		problem = gtin_problem(code)
+		if problem:
+			return frappe._dict(barcode=code, problem=problem)
+		if row.uom and stock_uom and row.uom != stock_uom:
+			return frappe._dict(barcode=code, problem="other_unit", uom=row.uom)
+	return None
+
+
 def specifications(doc) -> list[tuple[str, str]]:
 	"""The characteristics the page lists (item_specifications.html), as name and text."""
 	found = []

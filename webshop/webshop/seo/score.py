@@ -166,6 +166,11 @@ def gather(doc, site, entry=_UNREAD, reason=None) -> frappe._dict:
 	identifiers = facts.product_identifiers(doc.item_code)
 	found.gtin = next((value for key, value in identifiers.items() if key.startswith("gtin")), None)
 	found.mpn = identifiers.get("mpn")
+	# a barcode that is no usable GTIN is said, with why: the merchant corrects it, or learns it is
+	# a code of the shop's own
+	found.barcode_problem = None
+	if not found.gtin and kind not in ("model", "gift_card", "service"):
+		found.barcode_problem = facts.barcode_problem(doc.item_code, doc.get("stock_uom"))
 	found.google_category = google.google_category(doc.get("item_group"))
 	found.reviews, found.rating = reviews_of(doc.name)
 	return found
@@ -282,9 +287,11 @@ def judge_identifier(f):
 		return GOOD, {"gtin": f.gtin}
 	if f.no_product_identifier:
 		return NOT_APPLICABLE, {"why": "declared"}
+	problem = f.get("barcode_problem")
+	detail = {"barcode": problem.barcode, "problem": problem.problem, "uom": problem.get("uom")} if problem else {}
 	if f.mpn:
-		return IMPROVE, {"mpn": f.mpn}
-	return MISSING, {}
+		return IMPROVE, {"mpn": f.mpn, **detail}
+	return MISSING, detail
 
 
 def judge_brand(f):
@@ -594,6 +601,20 @@ def google_status_label(status: str) -> str:
 	return reason_label(status) if status else _("Not scored yet")
 
 
+def barcode_problem_message(d: dict) -> str:
+	"""Why the item's barcode is not used as its GTIN (seo.facts.gtin_problem)."""
+	barcode = d.get("barcode")
+	if not barcode:
+		return ""
+	return {
+		"length": _("The barcode {0} is not an EAN, UPC or GTIN (8, 12, 13 or 14 digits): a code of the shop's own"),
+		"check_digit": _("The barcode {0} has a wrong check digit: compare it with the packaging"),
+		"restricted": _("The barcode {0} is a number for use inside a shop (GS1 prefix 2, 02 or 04): Google refuses it"),
+		"coupon": _("The barcode {0} is a coupon's number: Google refuses it"),
+		"other_unit": _("The barcode {0} is the one of another unit ({1}), not of the product sold"),
+	}.get(d.get("problem"), "").format(barcode, d.get("uom") or "")
+
+
 def availability_label(availability: str) -> str:
 	return {
 		"in_stock": _("in stock"),
@@ -647,9 +668,12 @@ def criterion_message(code: str, status: str, d: dict) -> str:
 	if code == "identifier":
 		if status == GOOD:
 			return _("GTIN {0}").format(d["gtin"])
+		why = barcode_problem_message(d)
 		if status == IMPROVE:
-			return _("Manufacturer's reference {0} but no GTIN: add the EAN if the product has one").format(d["mpn"])
-		return _("No GTIN (EAN) and no manufacturer's reference: Google shows a branded product less often without one")
+			message = _("Manufacturer's reference {0} but no GTIN: add the EAN if the product has one").format(d["mpn"])
+			return f"{message}. {why}" if why else message
+		message = _("No GTIN (EAN) and no manufacturer's reference: Google shows a branded product less often without one")
+		return f"{message}. {why}" if why else message
 	if code == "brand":
 		return d["brand"] if status == GOOD else _("No brand")
 	if code == "google_category":

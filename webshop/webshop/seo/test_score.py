@@ -189,6 +189,12 @@ class TestTheCriteria(FrappeTestCase):
 		self.assertEqual(_status(failed, "offer"), score.MISSING)
 		self.assertEqual(_status(failed, "sent_to_google"), score.MISSING)
 
+	def test_the_checklist_says_why_a_barcode_is_not_used(self):
+		result = score.evaluate(_found(gtin=None, barcode_problem=frappe._dict(barcode="2000000012346", problem="restricted")))
+		identifier = next(criterion for criterion in result.criteria if criterion.code == "identifier")
+		self.assertEqual(identifier.status, score.MISSING)
+		self.assertIn("2000000012346", score.explain(identifier)["message"])
+
 	def test_bands(self):
 		self.assertEqual([score.band_of(value) for value in (0, 49, 50, 79, 80, 100)], [0, 0, 1, 1, 2, 2])
 		self.assertIsNone(score.band_of(None))
@@ -206,6 +212,8 @@ class TestTheCriteria(FrappeTestCase):
 			_found(refusal="no", sent=False),
 			_found(offer=frappe._dict(price="120.00 CHF", availability="out_of_stock")),
 			_found(gtin=None, no_product_identifier=1, published=0),
+			_found(gtin=None, barcode_problem=frappe._dict(barcode="12345", problem="length")),
+			_found(gtin=None, mpn="TR-01", barcode_problem=frappe._dict(barcode="4006381333931", problem="other_unit", uom="Box")),
 		)
 		for found in fixtures:
 			result = score.evaluate(found)

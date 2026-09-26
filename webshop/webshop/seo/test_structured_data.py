@@ -135,6 +135,21 @@ class TestIdentifiers(FrappeTestCase):
 		self.assertEqual(facts_module.bulk_identifiers([item.name]), {item.name: {"gtin13": ean}})
 		self.assertEqual(facts_module.product_identifiers(item.name), {"gtin13": ean})
 
+	def test_why_a_barcode_is_no_gtin(self):
+		"""The SEO score tells the merchant what is wrong with a barcode it does not use."""
+		cases = (
+			("12345", "length"),  # a code of the shop's own
+			("4006381333932", "check_digit"),
+			(_with_check_digit("200000001234"), "restricted"),
+			(_with_check_digit("0123456"), "restricted"),  # an RCN-8
+			(_with_check_digit("981234567890"), "coupon"),
+			(_with_check_digit("51234567890"), "coupon"),  # a UPC coupon
+			("4006381333931", None),
+		)
+		for code, problem in cases:
+			with self.subTest(code=code):
+				self.assertEqual(facts_module.gtin_problem(code), problem)
+
 	def test_the_sku_carries_no_whitespace(self):
 		self.assertEqual(facts_module.schema_sku("TRAIL 01\t-B "), "TRAIL01-B")
 
