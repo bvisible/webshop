@@ -1212,6 +1212,11 @@ only, never to the public.
   - two charts come from `dashboard_chart_source/` (score bands, Google status by reason);
   - the average over time reads `Webshop SEO Snapshot`, one row per site and day, kept 400 days.
   The Catalogue Ready for Google report carries a score column and the average.
+- **The Neoffice theme draws a workspace's cards, shortcuts and links, and no chart**
+  (`neoffice_theme/module_home.py`). The standard dashboard `Webshop SEO`
+  (`webshop_dashboard/webshop_seo/`) carries the three charts and the five cards on one page. The
+  workspace reaches it from Quick Access and from the "Search engines and AI" card; the theme opens a
+  Dashboard shortcut at `/app/dashboard-view/<name>`.
 - **Measured on osiris** (2026-09-26): 328 products on 5 sites in 13 s, 8 ms per product.
 
 > **`frappe.enqueue(..., deduplicate=True)` decides when it is called, not when it enqueues.**

@@ -1,0 +1,45 @@
+{
+ "cards": [
+  {
+   "card": "Average SEO Score"
+  },
+  {
+   "card": "Products Sent to Google Shopping"
+  },
+  {
+   "card": "Products Without a Description"
+  },
+  {
+   "card": "Products Without GTIN or Reference"
+  },
+  {
+   "card": "Products Without Picture Descriptions"
+  }
+ ],
+ "charts": [
+  {
+   "chart": "Products by SEO Score",
+   "width": "Half"
+  },
+  {
+   "chart": "Google Shopping Status",
+   "width": "Half"
+  },
+  {
+   "chart": "Average SEO Score",
+   "width": "Full"
+  }
+ ],
+ "creation": "2026-09-26 17:30:00.000000",
+ "dashboard_name": "Webshop SEO",
+ "docstatus": 0,
+ "doctype": "Dashboard",
+ "idx": 0,
+ "is_default": 0,
+ "is_standard": 1,
+ "modified": "2026-09-26 17:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Webshop SEO",
+ "owner": "Administrator"
+}

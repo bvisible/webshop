@@ -243,6 +243,7 @@ French shop.
 - `webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json` — new DocType: one site's SEO figures of the day (products, average score, sent to Google Shopping, without a description, an identifier or picture descriptions), written every night by `seo/score.py` and kept 400 days — neoffice-maintenance#691, plan note 20 — no upstream equivalent
 - `webshop/webshop/dashboard_chart_source/webshop_seo_score_bands/webshop_seo_score_bands.json`, `webshop/webshop/dashboard_chart_source/webshop_google_shopping_status/webshop_google_shopping_status.json` — new chart sources: published products by band of SEO score, and by what Google Shopping gets of them (#691, plan note 20) — no upstream equivalent
 - `webshop/webshop/dashboard_chart/products_by_seo_score/products_by_seo_score.json`, `webshop/webshop/dashboard_chart/google_shopping_status/google_shopping_status.json`, `webshop/webshop/dashboard_chart/average_seo_score/average_seo_score.json` — the Webshop workspace's SEO charts (the two sources above, and the average score over time from the snapshots) — no upstream equivalent
+- `webshop/webshop/webshop_dashboard/webshop_seo/webshop_seo.json` — the "Webshop SEO" dashboard: the SEO charts and cards on one page, reached from the workspace (the Neoffice theme's module home draws cards and links but no chart) — no upstream equivalent
 - `webshop/webshop/number_card/average_seo_score/average_seo_score.json`, `webshop/webshop/number_card/products_sent_to_google_shopping/products_sent_to_google_shopping.json`, `webshop/webshop/number_card/products_without_a_description/products_without_a_description.json`, `webshop/webshop/number_card/products_without_gtin_or_reference/products_without_gtin_or_reference.json`, `webshop/webshop/number_card/products_without_picture_descriptions/products_without_picture_descriptions.json` — the Webshop workspace's SEO number cards, counted on the fields the score stores on Website Item — no upstream equivalent
 
 ---
@@ -299,6 +300,7 @@ webshop/webshop/number_card/products_without_picture_descriptions/products_witho
 webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.json
 webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.json
 webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.json
+webshop/webshop/webshop_dashboard/webshop_seo/webshop_seo.json
 webshop/webshop/workspace/webshop/webshop.json
 ```
 
