@@ -1694,6 +1694,7 @@ def add_new_address(doc):
 		row.link_doctype == party.doctype and row.link_name == party.name for row in address.links
 	):
 		address.append("links", {"link_doctype": party.doctype, "link_name": party.name})
+	# //// Neoffice — a Guest, or a caller linked to nothing they may write, saves nothing.
 	if not address.links:
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
