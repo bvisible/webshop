@@ -703,9 +703,31 @@ Until the link is clicked, the User carries `email_confirmation_pending`.
   social login. The `on_login` hook clears the flag and closes every other session of the account,
   so whoever opened it without owning the address loses the session they kept. It runs before
   the new session exists, while `frappe.session` is the requester's. Staff signing in as the
-  customer (impersonation, `bench browse`) come with their own session, and prove nothing.
-- **Payment on account waits** (`utils/payment_methods.rows_for_group`): it ships before the money
-  is in. Card and transfer-before-shipping are unaffected.
+  customer prove nothing: the desk's impersonation comes with the staff's own session, and
+  **`bench browse --user` signs in from outside any HTTP request**, after `LoginManager()` resumed
+  a Guest session of its own — it read exactly like a visitor back from the mailbox and
+  confirmed a test account on osiris (2026-09-26). Only a sign-in with `frappe.local.http_request`
+  (set by frappe's app for a real request) counts.
+- **An order paid on account waits for the confirmation** (2026-09-26). Paying on account ships
+  before the money is in, so an unconfirmed account's order is placed **On Hold** and marked
+  (`Sales Order.awaiting_email_confirmation`, `patches/add_email_confirmation_hold_field`). The
+  confirmation's `on_login` queues `release_held_orders`, which resumes each order as the desk's
+  Resume button does (`update_status("Draft")`, credit limit included) as Administrator, with a
+  timeline note naming the customer's confirmation. An order the credit limit refuses is rolled
+  back to its savepoint, stays held, and its timeline says why. The mark lives only while the
+  order is On Hold (`on_sales_order_change`, Sales Order `on_change`): an order the merchant
+  resumed and held again for a reason of their own is never released by the customer. The tile,
+  the thank-you page and the order's timeline say the order waits (the desk's simple view does
+  not show the mark). A site that has not migrated yet cannot mark the
+  order and does not offer the method to an unconfirmed account (`can_hold_orders`), as before.
+  Card and transfer-before-shipping are unaffected. (Until 2026-09-26 the method was simply not
+  offered to an unconfirmed account.)
+- **Website Settings' "Disable Signup" is honoured** (2026-09-26, `api.signups_disabled`): frappe's
+  own `sign_up()` refused, and `create_account` opened accounts whatever it said. No instance had
+  it ticked the day it changed (read-only census), so nothing changed where it is not. **Frappe
+  ticks it on a site created from scratch** — the field's default is 1, written the first time
+  the Single is saved — and the CI's site is one: the account tests pin `signups_disabled` to
+  False, and a new shop instance must have it unticked to take sign-ups.
 - `create_account` creates at most 20 accounts an hour per address (`SIGN_UPS_PER_HOUR`, a
   counter of the accounts actually created: frappe's `rate_limit` counted every call, and the
   browser suite's refusals used the allowance up in an afternoon) and honours frappe's
@@ -994,6 +1016,11 @@ defects in neoffice-maintenance#691.
     and the selector selects it. The markup stays the same whichever variant is chosen.
   - A variant's own page stays online, because carts and emails link it. It names the model's
     page as canonical, carries the same group, and leaves the sitemap.
+  - **Every tile of such a variant links `model?variant=<code>`** (2026-09-26,
+    `variants.link_variants_to_models`): the listing's cards (`attach_cards`), the carousels
+    (`render_product_carousel`), the product page's recommendations and "bought together", the
+    wishlist and the search dropdown. They linked the variant's own page, which points elsewhere.
+    IndexNow hears of the model's page, never of such a variant's (`indexnow.grouped_variants`).
   - The feed links `model?variant=` with `canonical_link`.
   - One reading of the variants feeds the selector (`get_all_variants_info`, now
     `variants.selector_data`), the group and the feed. Before, the selector priced every variant
@@ -1216,7 +1243,15 @@ only, never to the public.
   import flag, and one job per saved item would flood the short queue, where the shop's emails
   wait. The night's pass catches every change made outside the form.
 - **Stored on Website Item, without touching `modified`:**
-  - `seo_score` — a list column, sortable and filterable;
+  - `seo_score` — a list column, sortable and filterable. **On the fleet the report view's
+    columns are not the doctype's defaults nor `__UserSettings`**: our frappe fork rebuilds them
+    from an `order` (`frappe.desk.reportview.get_user_report_settings`: the user's own
+    `User.report_settings`, else `System Settings.report_settings`), and neoffice_custom_fields
+    rewrites `System Settings.report_settings` from the hub's "Report View Defaults" master at
+    every devops-update. The score reaches every desk by adding `Website Item:seo_score` to that
+    master (the "Push this table to the reference" button, as Administrator) — **only once every
+    instance with the webshop has the field**: a column the table does not have makes the report
+    view fail ("Field not permitted in query") on every instance that pulls the master;
   - `seo_score_details` — the checklist as codes; the labels are written at read time, in the
     reader's language, since a job starts in English;
   - `seo_missing` — missing codes wrapped in commas, for the cards' `like "%,identifier,%"`;
@@ -1372,11 +1407,17 @@ endpoint whose id travels in a redirect URL.
 > into the test and read the CI log: the ERPNext-fixture modules die on a French
 > site (no "Item Group: Products"), so no local run can reproduce it.
 
-> **Fixtures built in `setUpClass` need a commit.** `FrappeTestCase` rolls back
-> between tests, and that rollback takes uncommitted class fixtures with it —
-> the tests then report their own data as missing. Commit at the end of
-> `setUpClass`, and purge in `tearDownClass` (and again at the start of
-> `setUpClass`, for whatever an interrupted run left behind).
+> **Fixtures built in `setUpClass` need a commit.** `FrappeTestCase` (v15) rolls
+> back once, when the class ends (`_rollback_db`, a class cleanup), **not between
+> tests**: what one test writes is still there in the next — a test asserting
+> "the held orders are exactly mine" found the previous test's order
+> (2026-09-26). A test that must not see its neighbours rolls itself back
+> (`self.addCleanup(frappe.db.rollback)` in `setUp`), and any rollback during a
+> test — its own, or one the code under test makes — takes uncommitted class
+> fixtures with it: the tests then report their own data as missing. Commit at
+> the end of `setUpClass`, and purge in `tearDownClass` (and again at the start
+> of `setUpClass`, for whatever an interrupted run left behind); a purge deletes
+> what links a document before cancelling it.
 
 > **`frappe.enqueue` does not run inline under tests.** `is_async` stays true, so
 > a rebuild triggered by `save()` is handed to a worker that may not exist. A

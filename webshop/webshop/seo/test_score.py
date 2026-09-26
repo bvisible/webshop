@@ -420,3 +420,4 @@ class TestStoredOnTheItem(FrappeTestCase):
 		snapshots = frappe.get_all("Webshop SEO Snapshot", filters={"date": today}, fields=["site", "products", "average_score"])
 		self.assertEqual(len(snapshots), len({row.site for row in snapshots}))
 		self.assertTrue(all(row.products >= 1 for row in snapshots))
+

@@ -64,3 +64,5 @@ webshop.patches.add_picture_alt_field
 webshop.patches.compute_seo_scores
 # //// Neoffice — the product identifiers shown and supplier references searched, on by default (2026-09-26, #691 plan note 20)
 webshop.patches.switch_on_product_identifiers
+# //// Neoffice — the Sales Order field of an order held until its account's address is confirmed (2026-09-26, #691 D-9)
+webshop.patches.add_email_confirmation_hold_field

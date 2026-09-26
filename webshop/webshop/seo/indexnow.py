@@ -48,12 +48,35 @@ def queue_routes(routes):
 		frappe.cache.sadd(QUEUE_KEY, *sorted(routes))
 
 
+def grouped_variants(item_codes) -> set[str]:
+	"""Those of these items that are variants sold on their model's page (decision D-1,
+	seo/variants.py). Such a page names its model's as canonical: an engine hears of the model's
+	page, which shows the variant's price and stock, and never of the variant's own."""
+	codes = [code for code in item_codes or [] if code]
+	# the switch itself: get_shopping_cart_settings() would build the whole document for one value
+	if not codes or not cint(frappe.db.get_single_value("Webshop Settings", "enable_variants")):
+		return set()
+	from webshop.webshop.seo.variants import model_page_name
+
+	return {
+		row.name
+		for row in frappe.get_all(
+			"Item", filters={"name": ["in", codes], "variant_of": ["is", "set"]}, fields=["name", "variant_of"]
+		)
+		if model_page_name(row.variant_of)
+	}
+
+
 def queue_website_item(doc, method=None):
 	"""`doc_events` of Website Item (on_update, on_trash): its page, and the page it had before a
-	change of address, which now answers with a redirection the engine should see."""
+	change of address, which now answers with a redirection the engine should see. A variant sold
+	on its model's page: the model's page instead (grouped_variants)."""
 	before = doc.get_doc_before_save() if method == "on_update" else None
 	if not cint(doc.published) and not (before and cint(before.published)):
 		return  # never public: no engine knows this page
+	if doc.get("variant_of") and doc.get("item_code") in grouped_variants([doc.get("item_code")]):
+		queue_routes(frappe.get_all("Website Item", filters={"item_code": doc.variant_of, "published": 1}, pluck="route"))
+		return
 	routes = [doc.route]
 	if before and before.route and before.route != doc.route:
 		routes.append(before.route)
@@ -68,6 +91,9 @@ def queue_item_price(doc, method=None):
 	template = frappe.db.get_value("Item", doc.item_code, "variant_of")
 	if template:
 		codes.append(template)
+		# a variant sold on its model's page: the model's page alone prints its price
+		if doc.item_code in grouped_variants([doc.item_code]):
+			codes.remove(doc.item_code)
 	queue_routes(
 		frappe.get_all(
 			"Website Item", filters={"item_code": ["in", codes], "published": 1}, pluck="route"
@@ -119,13 +145,16 @@ def queue_availability_flips(item_codes):
 		fields=["item_code", "route", "variant_of"],
 	)
 	routes, models = [], set()
+	grouped = grouped_variants([page.item_code for page in pages if page.variant_of])
 	for page in pages:
 		state = schema_availability(page.item_code)
 		previous = frappe.cache.hget(STOCK_STATE_KEY, page.item_code)
 		if previous == state:
 			continue
 		frappe.cache.hset(STOCK_STATE_KEY, page.item_code, state)
-		routes.append(page.route)
+		# a variant sold on its model's page: the model's page alone, added below
+		if page.item_code not in grouped:
+			routes.append(page.route)
 		if page.variant_of:
 			models.add(page.variant_of)
 	if models:

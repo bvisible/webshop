@@ -30,6 +30,11 @@
                                     <br>
                                     {{ _("Status : ") }} <span class="badge badge-{{ 'success' if sales_order.status == 'Completed' else 'info' }}">{{ _(sales_order.status) }}</span>
                                 </p>
+                                {# //// Neoffice — paid on account from an account whose address is not confirmed yet:
+                                   //// the order waits for that confirmation (auth/confirmation.py, #691 D-9) #}
+                                {% if sales_order.get("awaiting_email_confirmation") and sales_order.status == "On Hold" %}
+                                <p class="alert alert-info small" role="status">{{ _("Your order will be prepared once your email address is confirmed: open the link we sent you.") }}</p>
+                                {% endif %}
                             {% else %}
                                 <p class="text-muted">{{ _("Your order has been confirmed.") }}</p>
                             {% endif %}
@@ -45,10 +50,10 @@
                                           <strong>{{ _("Date :") }}</strong> {{ frappe.utils.format_date(sales_order.transaction_date) }}<br>
                                           <strong>{{ _("Status :") }}</strong> {{ _(sales_order.status) }}<br>
                                           <strong>{{ _("Total :") }}</strong> {{ webshop_fmt_money(sales_order.grand_total, currency=sales_order.currency) }}
-							{# //// Neoffice — the order as a spreadsheet (utils/order_export.py) #}
+							{# //// Neoffice — the order as a spreadsheet (utils/order_export.py); label in English, French in fr.po (2026-09-26) #}
 							<a class="btn btn-outline-primary btn-sm mt-3" id="download-order-xlsx"
 								href="/api/method/webshop.webshop.utils.order_export.download_order_xlsx?doctype=Sales%20Order&name={{ sales_order.name | urlencode }}">
-								{{ _("Télécharger la commande en Excel") }}
+								{{ _("Download the order as Excel") }}
 							</a>
                                           {% if payment_info %}
                                                 <br><br>

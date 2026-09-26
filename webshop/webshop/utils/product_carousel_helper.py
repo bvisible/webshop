@@ -350,10 +350,17 @@ def render_product_carousel(carousel_item_group=None, only_promotions=False, lim
             # If failure, create a new context
             context = frappe._dict({})
     
+    # //// Neoffice — a variant sold on its model's page links that page opened on it (decision D-1,
+    # //// seo/variants.py), read after the cache: the link depends on the site being served
+    from webshop.webshop.seo.variants import link_variants_to_models
+
+    link_variants_to_models(carousel_items)
+
     # Update context with carousel items
     context.update({
         "website_items": carousel_items,  # Use website_items for compatibility with existing template
-        "carousel_title": carousel_title or _("Produits en vedette"),
+        # //// Neoffice — the source string in English (it was French); fr.po carries the French
+        "carousel_title": carousel_title or _("Featured products"),
         "carousel_id": carousel_id
     })
     

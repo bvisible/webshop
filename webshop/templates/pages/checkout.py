@@ -889,6 +889,15 @@ def _settlement_notice(settlement):
 			"You will get the payment details with your order confirmation."
 		)
 	if settlement == "On account":
+		# //// Neoffice — an account whose address is not confirmed yet: the order waits for that
+		# //// confirmation before it is prepared (auth/confirmation.py, #691 D-9)
+		from webshop.webshop.auth.confirmation import pending
+
+		if pending():
+			return _(
+				"Your order is registered and invoiced under your agreed payment terms. "
+				"It is prepared once your email address is confirmed."
+			)
 		return _("Your order is registered and invoiced under your agreed payment terms.")
 	return None
 

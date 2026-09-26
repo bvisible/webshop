@@ -5024,10 +5024,6 @@ msgstr "Les articles peuvent s'afficher et se vendre depuis plusieurs sources de
 msgid "Products per Page"
 msgstr "Produits par page"
 
-#: webshop/webshop/utils/product_carousel_helper.py:339
-msgid "Produits en vedette"
-msgstr "Produits en vedette"
-
 #: webshop/webshop/multi_site.py:55
 msgid "Professional account required"
 msgstr ""
@@ -6875,14 +6871,6 @@ msgstr "Code pays à deux lettres, CH pour la Suisse."
 #: webshop/webshop/quick_order/api.py:846
 msgid "Type a reference, a name or a barcode: the model's grid opens and you enter the quantities at the keyboard."
 msgstr "Tapez une référence, un nom ou un code-barres : la grille du modèle s'ouvre et vous saisissez les quantités au clavier."
-
-#: webshop/templates/pages/order.html:39
-msgid "Télécharger en Excel"
-msgstr ""
-
-#: webshop/templates/pages/thank_you.html:51
-msgid "Télécharger la commande en Excel"
-msgstr ""
 
 #: webshop/templates/generators/item/item_add_to_cart.html:64
 #: webshop/webshop/utils/order_export.py:56
@@ -9211,3 +9199,53 @@ msgstr "Trouver un produit par sa référence fournisseur"
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "A customer who types a supplier's reference whole, in the site's search or in the quick order, finds the product. The reference is never shown, nor sent to Google."
 msgstr "Un client qui saisit une référence fournisseur complète, dans la recherche du site ou dans la commande rapide, trouve le produit. La référence n'est jamais affichée, ni envoyée à Google."
+
+#: webshop/webshop/auth/api.py
+msgid "New accounts cannot be created on this site. Please contact the shop."
+msgstr "Aucun nouveau compte ne peut être créé sur ce site. Veuillez contacter la boutique."
+
+#: webshop/webshop/utils/product_carousel_helper.py
+msgid "Featured products"
+msgstr "Produits en vedette"
+
+#: webshop/webshop/auth/confirmation.py
+msgid "{0} confirmed the email address, but the order stays on hold: {1}"
+msgstr "{0} a confirmé l'adresse e-mail, mais la commande reste en attente : {1}"
+
+#: webshop/webshop/auth/confirmation.py
+msgid "see the Error Log"
+msgstr "voir le Journal des Erreurs"
+
+#: webshop/webshop/auth/confirmation.py
+msgid "{0} confirmed the email address: the order is no longer on hold."
+msgstr "{0} a confirmé l'adresse e-mail : la commande n'est plus en attente."
+
+#: webshop/templates/pages/checkout.py
+msgid "Your order is registered and invoiced under your agreed payment terms. It is prepared once your email address is confirmed."
+msgstr "Votre commande est enregistrée et facturée selon vos conditions de paiement convenues. Elle est préparée une fois votre adresse e-mail confirmée."
+
+#: webshop/templates/pages/thank_you.html
+msgid "Your order will be prepared once your email address is confirmed: open the link we sent you."
+msgstr "Votre commande sera préparée une fois votre adresse e-mail confirmée : ouvrez le lien que nous vous avons envoyé."
+
+#: webshop/templates/pages/order.html
+msgid "Download as Excel"
+msgstr "Télécharger en Excel"
+
+#: webshop/templates/pages/thank_you.html
+msgid "Download the order as Excel"
+msgstr "Télécharger la commande en Excel"
+
+#: webshop/patches/add_email_confirmation_hold_field.py
+#: webshop/webshop/auth/confirmation.py
+msgid "On hold until the customer confirms their email address"
+msgstr "En attente jusqu'à ce que le client confirme son adresse e-mail"
+
+#: webshop/patches/add_email_confirmation_hold_field.py
+#: webshop/webshop/auth/confirmation.py
+msgid "Paid on account from an account opened in the shop whose address is not confirmed yet. The confirmation releases the order; resuming it by hand works too."
+msgstr "Payé sur facture depuis un compte ouvert dans la boutique dont l'adresse n'est pas encore confirmée. La confirmation libère la commande ; la reprendre à la main fonctionne aussi."
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json
+msgid "A customer who creates an account in the shop is signed in straight away and can order. The welcome email then confirms the address; an order paid on account is held until then. An address the shop already knows, and a site for business accounts only, keep the confirmation first."
+msgstr "Un client qui crée un compte dans la boutique est connecté aussitôt et peut commander. L'e-mail de bienvenue confirme ensuite l'adresse ; une commande payée sur facture reste en attente jusque-là. Une adresse déjà connue de la boutique et un site réservé aux comptes professionnels conservent la confirmation préalable."

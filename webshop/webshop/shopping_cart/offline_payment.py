@@ -87,7 +87,7 @@ def raise_payment_request(sales_order, row=None, mode_of_payment=None):
 
 
 @frappe.whitelist()
-def place_offline_order(payment_gateway_account, idempotency_token=None):
+def place_offline_order(payment_gateway_account: str, idempotency_token: str | None = None):
 	"""Place the cart's order and settle it outside any gateway.
 
 	Returns where to send the shopper. Refuses a method this customer is not
@@ -124,6 +124,12 @@ def place_offline_order(payment_gateway_account, idempotency_token=None):
 	_remember(idempotency_token, sales_order)
 
 	payment_request = None
+	# //// Neoffice — an account whose address is not confirmed yet: the order it pays on account
+	# //// waits On Hold, marked, and the confirmation releases it (auth/confirmation.py, #691 D-9)
+	from webshop.webshop.auth.confirmation import hold_until_confirmed, pending
+
+	if settlement == "On account" and pending():
+		hold_until_confirmed(sales_order)
 	if settlement == "Transfer before shipping":
 		# //// Neoffice — the order must not ship before the money is in. ERPNext has
 		# //// no "awaiting payment" status of its own on a Sales Order, so it is put

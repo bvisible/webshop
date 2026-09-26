@@ -28,6 +28,15 @@ def _count_sign_up():
     # an hour after the last account created from this address, the count starts again
     frappe.cache().set_value(_sign_ups_key(), _sign_ups_so_far() + 1, expires_in_sec=60 * 60)
 
+
+# //// Neoffice — added helper (#691 D-9, 2026-09-26): create_account honours this setting, as
+# //// frappe's own sign_up() does.
+def signups_disabled() -> bool:
+    """Website Settings' "Disable Signup". Frappe ticks it on a site created from scratch (the
+    field's default, the CI's site); the fleet's instances read it unticked (read-only census,
+    2026-09-26). A new shop instance must have it unticked to take sign-ups."""
+    return bool(cint(frappe.db.get_single_value("Website Settings", "disable_signup")))
+
 @frappe.whitelist(allow_guest=True)
 def check_email(email):
     """Check if email already exists"""
@@ -74,6 +83,17 @@ def create_account():
                 "message": "error",
                 "reason": _("Please enter a valid email address"),
                 "reason_code": "invalid_email",
+            }
+
+        # //// Neoffice — Website Settings' "Disable Signup" is honoured (#691 D-9, 2026-09-26): frappe's
+        # //// own sign_up() refuses, and this endpoint created accounts whatever it said. No instance
+        # //// of the fleet had it ticked that day (read-only census), so nothing changes where it
+        # //// is not. The dialog shows the reason, as it shows every refusal.
+        if signups_disabled():
+            return {
+                "message": "error",
+                "reason": _("New accounts cannot be created on this site. Please contact the shop."),
+                "reason_code": "signup_disabled",
             }
 
         # //// Neoffice — frappe's own ceiling on sign-ups, which its sign_up() applies and this

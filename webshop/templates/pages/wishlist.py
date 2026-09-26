@@ -27,6 +27,11 @@ def get_context(context):
 	selling_price_list = _set_price_list(settings) if not is_guest else None
 
 	items = set_stock_price_details(items, settings, selling_price_list)
+	# //// Neoffice — a variant sold on its model's page links that page opened on it (decision D-1,
+	# //// seo/variants.py): its own page names the model's as canonical
+	from webshop.webshop.seo.variants import link_variants_to_models
+
+	link_variants_to_models(items, settings)
 
 	context.body_class = "product-page"
 	context.items = items
