@@ -978,8 +978,10 @@ defects in neoffice-maintenance#691.
 - **The product graph is built in Python from what the page computed** (`seo/facts.py` →
   `seo/jsonld.py` → `context.product_jsonld`, printed once by `item.html`): the price the buy
   column prints (× `conversion_factor`), the struck price only when `formatted_mrp` is printed,
-  a sale's dates in ISO 8601 with the site's offset, the gallery's pictures, a GTIN only when its
-  check digit is right and it is the item's own unit, a `sku` without whitespace, the reviews
+  a sale's dates in ISO 8601 with the site's offset, the gallery's pictures, one GTIN of the
+  item's own unit (`product_gtin`: a barcode row typed EAN/UPC first; its check digit right; never
+  a number GS1 keeps off the market — prefix 2, 02, 04, 05, 98, 99, an RCN-8 — which Google
+  refuses), a `sku` without whitespace, the reviews
   block's rating and reviews, the characteristics, the videos Google can describe. The feed
   (lot 3) reads the same facts. A failure is logged and costs the markup, never the page.
 - **Declare only what the page shows.** A gift card's page shows amounts to choose: no offer.

@@ -8,6 +8,8 @@ a refused item, then a suspended account.
 """
 
 import json
+import random
+import string
 from pathlib import Path
 from unittest.mock import patch
 
@@ -17,6 +19,7 @@ from frappe.utils import add_days, nowdate
 
 from webshop.webshop.seo import facts as facts_module
 from webshop.webshop.seo import jsonld
+from webshop.webshop.tests.utils import make_test_item
 
 SETTINGS = {"show_price": 1, "enable_reviews": 1, "return_days": 0, "free_shipping_from": 0}
 
@@ -42,6 +45,16 @@ def _doc(**fields):
 	)
 
 
+def _with_check_digit(body: str) -> str:
+	"""body and its GS1 check digit: a test names the prefix it means, and nothing else."""
+	total = sum(int(digit) * (3 if position % 2 == 0 else 1) for position, digit in enumerate(reversed(body)))
+	return body + str((10 - total % 10) % 10)
+
+
+def _barcode(code, kind="", uom=None):
+	return frappe._dict(barcode=code, barcode_type=kind, uom=uom)
+
+
 def _offer(price, settings=None, **doc_fields):
 	return facts_module.offer_facts(
 		_doc(**doc_fields), _context(price, settings), "https://shop.test/shop/trail-shoe", jsonld.SCHEMA + "InStock"
@@ -56,6 +69,71 @@ class TestIdentifiers(FrappeTestCase):
 		for code in ("4006381333932", "40063813339", "ABC1234567890", "0000000000000", "", None):
 			with self.subTest(code=code):
 				self.assertFalse(facts_module.valid_gtin(code))
+
+	def test_a_number_gs1_keeps_off_the_market_is_not_a_gtin(self):
+		"""Google refuses them: a shop's own labels, weighed articles, coupons, refund receipts."""
+		for body in (
+			"200000001234",  # a label the shop prints itself (prefix 2)
+			"212345678901",  # a weighed article, its price inside the code
+			"21234567890",  # the same on a UPC (02 once right-aligned)
+			"41234567890",  # a UPC for use inside one company (04)
+			"51234567890",  # a UPC coupon (05)
+			"040000001234",  # a GTIN-13 for use inside one company (04)
+			"981234567890",  # a coupon
+			"980123456789",  # a refund receipt
+			"991234567890",  # a coupon
+			"0123456",  # an RCN-8, for use inside one company
+			"2123456",  # an RCN-8
+			"1212345678901",  # a GTIN-14 built on a shop's own label
+		):
+			code = _with_check_digit(body)
+			with self.subTest(code=code):
+				self.assertTrue(facts_module.restricted_gtin(code))
+				self.assertFalse(facts_module.valid_gtin(code))
+		for body in (
+			"761234567890",  # Switzerland
+			"978316148410",  # an ISBN
+			"977031784700",  # an ISSN's EAN
+			"03600029145",  # a UPC (036)
+			"30123456789",  # a UPC for a drug (03)
+			"4017072",  # a GTIN-8
+			"1061414100041",  # a GTIN-14 (a case)
+		):
+			code = _with_check_digit(body)
+			with self.subTest(code=code):
+				self.assertFalse(facts_module.restricted_gtin(code))
+				self.assertTrue(facts_module.valid_gtin(code))
+
+	def test_a_product_has_one_gtin_and_the_one_typed_as_such_wins(self):
+		choose = facts_module.product_gtin
+		ean = "4006381333931"
+		# an 8-digit code that passes the check digit, as one code in ten does
+		other = "96385074"
+		self.assertEqual(choose([_barcode(other), _barcode(ean, "EAN")], "Unit"), ean)
+		# nothing typed: the first valid row, in the table's order
+		self.assertEqual(choose([_barcode("ABC-12"), _barcode(other), _barcode(ean)], "Unit"), other)
+		# a symbology that is never a GTIN does not count, whatever its check digit
+		self.assertIsNone(choose([_barcode(other, "PZN"), _barcode(other, "CODE-39"), _barcode(other, "ISSN")], "Unit"))
+		# a restricted code is passed over, even typed as an EAN
+		label = _with_check_digit("200000001234")
+		self.assertEqual(choose([_barcode(label, "EAN"), _barcode(ean)], "Unit"), ean)
+		# a carton's barcode is not the unit's; a row that names no unit is the unit's
+		self.assertIsNone(choose([_barcode(ean, "EAN", uom="Carton")], "Unit"))
+		self.assertEqual(choose([_barcode(ean, "EAN", uom="Unit")], "Unit"), ean)
+		# the digits alone, as Google wants them
+		self.assertEqual(choose([_barcode("400 6381 33393-1", "EAN")], "Unit"), ean)
+		self.assertIsNone(choose([], "Unit"))
+
+	def test_the_item_declares_the_one_gtin_its_barcodes_name(self):
+		"""Read through the database, as the product page and the feed read it."""
+		ean = _with_check_digit("76" + "".join(random.choices(string.digits, k=10)))
+		other = _with_check_digit("9" + "".join(random.choices(string.digits, k=6)))
+		item = make_test_item(
+			f"_Test GTIN {frappe.generate_hash(length=8)}",
+			barcodes=[{"barcode": other}, {"barcode": ean, "barcode_type": "EAN"}],
+		)
+		self.assertEqual(facts_module.bulk_identifiers([item.name]), {item.name: {"gtin13": ean}})
+		self.assertEqual(facts_module.product_identifiers(item.name), {"gtin13": ean})
 
 	def test_the_sku_carries_no_whitespace(self):
 		self.assertEqual(facts_module.schema_sku("TRAIL 01\t-B "), "TRAIL01-B")
