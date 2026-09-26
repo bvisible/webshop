@@ -306,17 +306,22 @@ class TestOrdersWaitForTheConfirmation(FrappeTestCase):
 
 	@classmethod
 	def purge(cls):
+		"""What an interrupted run committed: each test rolls its own orders back."""
+		# what an order's submit enrolled links it, and would refuse its cancellation
+		for doctype in ("Purchase Follow-up Entry", "Abandoned Cart Reminder"):
+			frappe.db.delete(doctype, {"customer": CUSTOMER})
 		for name in frappe.get_all("Sales Order", filters={"customer": CUSTOMER}, pluck="name"):
 			order = frappe.get_doc("Sales Order", name)
 			if order.docstatus == 1:
+				order.flags.ignore_links = True
 				order.cancel()
 			frappe.delete_doc("Sales Order", name, force=True, ignore_permissions=True)
-		for doctype in ("Purchase Follow-up Entry", "Abandoned Cart Reminder"):
-			if frappe.db.exists("DocType", doctype):
-				frappe.db.delete(doctype, {"customer": CUSTOMER})
 
 	def setUp(self):
 		frappe.set_user("Administrator")
+		# FrappeTestCase rolls back at the end of the class only: an order held by one test would
+		# still be held in the next
+		self.addCleanup(frappe.db.rollback)
 		# release_held_orders refuses to switch the user inside a web request; a test is not one
 		session = patch.object(frappe.local, "session_obj", None, create=True)
 		session.start()
