@@ -1108,10 +1108,15 @@ defects in neoffice-maintenance#691.
   Only a brand carrying something this site shows has one (the facets' scope); any other address
   under `/brands/` does not exist. Every link to a brand used to open the filtered catalogue,
   which robots.txt closes and which names the plain catalogue as its reference — a search for a
-  brand found no page of the shop. The product page, the brand carousel (template and helper)
-  and the category page's brand cards link the page through `brand_page_routes()` (a jinja
-  method, one query); a brand with no page keeps its old link. The slug is ASCII (`Café & Co` →
-  `cafe-co`); two names folding to one slug resolve to the first alphabetically.
+  brand found no page of the shop. The product page and the category page's brand cards link
+  the page through `brand_page_routes()` (a jinja method, one query); a brand with no page keeps
+  its old link. The slug is ASCII (`Café & Co` → `cafe-co`); two names folding to one slug
+  resolve to the first alphabetically.
+- **The brand carousel offers only what the site shows** (2026-09-29). Its include takes its
+  brands from `brand_carousel_helper`, whose functions read `offered_brands()`: the brands with a
+  page, with the figure the page and the facets give, whatever the sort. The include used to list
+  every Brand record and drop an empty one only when sorted by count: a public shop's home page
+  offered a brand with no published product, whose card led to an empty catalogue.
 - **The skeleton's `<style>` gave the product areas their 10px margin**: skipping the skeleton
   lost it, and the grid rose 26px under the toolbar. `add_product_loader_styles()` injects the
   styles alone, on both paths.
