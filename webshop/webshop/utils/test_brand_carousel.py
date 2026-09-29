@@ -129,25 +129,41 @@ class TestACallerVariableDoesNotTakeTheComponentOver(unittest.TestCase):
 	UndefinedError and the WHOLE page answered 417 on a live client site."""
 
 	TEMPLATE = "webshop/templates/includes/brand_carousel.html"
+	# //// Neoffice — the component fetches its own brands through the helper; the render context
+	# //// hands it a fixed answer (a context variable wins over the jinja method of the same name),
+	# //// so these tests do not depend on what the test site's catalogue carries (2026-09-29).
+	OWN = {"brand_name": "_WSTEST Own", "logo": "/files/own.png", "route": "brands/wstest-own", "description": "", "product_count": 2}
 
-	def render(self, **context):
+	def render(self, offered=None, **context):
+		offered = [self.OWN] if offered is None else offered
+		context.setdefault("get_brands_with_product_count", lambda **kwargs: list(offered))
 		return frappe.render_template(f'{{% include "{self.TEMPLATE}" %}}', context)
+
+	def assertDrewItsOwn(self, html):
+		self.assertIn("brand-carousel", html)
+		self.assertIn("_WSTEST Own", html)
+		self.assertNotIn("_WSTEST One", html)
+		self.assertNotIn("_WSTEST Two", html)
 
 	def test_rows_without_the_keys_the_cards_need_do_not_take_the_page_down(self):
 		# exactly the shape the page data script produced
 		foreign = [{"name": "_WSTEST One", "desc": "Vêtements"}, {"name": "_WSTEST Two", "desc": "Optique"}]
-		html = self.render(brands=foreign)
-		self.assertIn("brand-carousel", html)
+		self.assertDrewItsOwn(self.render(brands=foreign))
 
 	def test_a_single_bad_row_is_enough_to_refuse_the_whole_list(self):
 		mixed = [{"brand_name": "_WSTEST One", "logo": "/files/one.png"}, {"name": "_WSTEST Two"}]
-		self.assertIn("brand-carousel", self.render(brands=mixed))
+		self.assertDrewItsOwn(self.render(brands=mixed))
 
 	def test_a_string_or_a_number_is_not_a_list_of_brands(self):
 		for junk in ("a brand name", 3, {"brand_name": "not a list"}):
-			self.assertIn("brand-carousel", self.render(brands=junk))
+			self.assertDrewItsOwn(self.render(brands=junk))
 
 	def test_a_caller_that_really_passes_brands_is_still_honoured(self):
 		mine = [{"brand_name": "ZZ Test Brand", "logo": "/files/zz.png", "route": "all-products", "description": "", "product_count": 0}]
 		html = self.render(brands=mine)
 		self.assertIn("ZZ Test Brand", html)
+		self.assertNotIn("_WSTEST Own", html)
+
+	def test_nothing_to_offer_draws_nothing(self):
+		"""No title over an apology (2026-09-29): a site whose brands carry nothing it shows."""
+		self.assertNotIn("brand-carousel", self.render(offered=[], carousel_title="Our brands"))
