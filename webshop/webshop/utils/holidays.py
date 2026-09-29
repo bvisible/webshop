@@ -9,8 +9,11 @@ Saint Joseph's day and the Immaculate Conception, Geneva does not.
 
 So they are read from **openholidaysapi.org**: free, no key, and the only source
 checked that gives Swiss holidays **per canton and in French**. A holiday is kept
-when it is nationwide, or when its subdivisions name the configured canton (or
-any district inside it, the API going one level below the canton).
+when it is nationwide, or when one of its subdivisions is the configured one or
+contains it (`CH-VS` for a shop set on Valais). A day the API gives only for a
+district or a municipality below the canton is not the canton's: Sechseläuten
+belongs to the city of Zurich, and closing every shop of the canton for it is
+wrong (#690).
 
 They land in a **Holiday List**, Frappe's own doctype: visible and editable on
 the desk, reusable by the delivery delays that already read one, and out of the
@@ -70,9 +73,11 @@ def _named(entry, language):
 def _covers(entry, subdivision):
 	"""Does this holiday apply where the shop is?
 
-	Nationwide holidays always do. A regional one does when its subdivisions name
-	the canton itself (`CH-VS`) or a district inside it (`CH-VS-…`) — the provider
-	goes one level below the canton for some of them.
+	Nationwide holidays always do. A regional one does when one of its subdivisions
+	is the shop's own (`CH-VS`) or contains it (`CH`): codes nest by dashes, so
+	`CH-VS` contains `CH-VS-…`. A code BELOW the shop's (a district, a municipality)
+	does not count: it names a place inside the canton, not the canton. The rule
+	used to keep those too, so one district's day closed the whole canton (#690).
 	"""
 	if entry.get("nationwide"):
 		return True
@@ -80,16 +85,28 @@ def _covers(entry, subdivision):
 		return False
 	for row in entry.get("subdivisions") or []:
 		code = row.get("code") or ""
-		if code == subdivision or code.startswith(subdivision + "-"):
+		if code and (subdivision == code or subdivision.startswith(code + "-")):
 			return True
 	return False
 
 
-def fetch_holidays(country, subdivision, year, language="FR"):
-	"""[(date, name)] of the public holidays of one year where the shop is.
+def _only_below(entry, subdivision):
+	"""True for a holiday the provider gives only for places BELOW the shop's subdivision.
 
-	Returns None — not an empty list — when the provider could not be read, so a
-	caller never mistakes an outage for "no holidays this year" and wipes a list.
+	These are the days the old rule wrote into the Holiday List for the whole canton.
+	They are no longer kept, and `sync_holiday_list` retracts the ones already there.
+	"""
+	if entry.get("nationwide") or not subdivision or _covers(entry, subdivision):
+		return False
+	codes = [row.get("code") or "" for row in entry.get("subdivisions") or []]
+	return any(code.startswith(subdivision + "-") for code in codes)
+
+
+def _fetch(country, subdivision, year, language="FR"):
+	"""([(date, name)] kept, {(date, name)} rejected) for one year, or None when unread.
+
+	`rejected` holds the days of the holidays given only for places below the shop's
+	subdivision (see `_only_below`): the sync uses it to retract what an older rule wrote.
 	"""
 	entries = _get(
 		HOLIDAYS_ENDPOINT,
@@ -103,8 +120,13 @@ def fetch_holidays(country, subdivision, year, language="FR"):
 	if entries is None:
 		return None
 	found = {}
+	rejected = set()
 	for entry in entries:
-		if not _covers(entry, subdivision):
+		if _covers(entry, subdivision):
+			keep = True
+		elif _only_below(entry, subdivision):
+			keep = False
+		else:
 			continue
 		start = entry.get("startDate")
 		end = entry.get("endDate") or start
@@ -115,9 +137,22 @@ def fetch_holidays(country, subdivision, year, language="FR"):
 		last = getdate(end)
 		# a multi-day holiday is written out day by day, the way a Holiday List holds it
 		while day <= last:
-			found.setdefault(day, name)
+			if keep:
+				found.setdefault(day, name)
+			else:
+				rejected.add((day, name))
 			day = getdate(add_days(day, 1))
-	return sorted(found.items())
+	return sorted(found.items()), rejected
+
+
+def fetch_holidays(country, subdivision, year, language="FR"):
+	"""[(date, name)] of the public holidays of one year where the shop is.
+
+	Returns None — not an empty list — when the provider could not be read, so a
+	caller never mistakes an outage for "no holidays this year" and wipes a list.
+	"""
+	result = _fetch(country, subdivision, year, language)
+	return None if result is None else result[0]
 
 
 def subdivisions(country="CH", language="FR"):
@@ -145,9 +180,13 @@ def get_subdivisions(country="CH", language="FR"):
 def sync_holiday_list(list_name, country, subdivision, years, language="FR", weekly_off=None):
 	"""Write the fetched holidays of `years` into the named Holiday List.
 
-	The list is created when missing. Only the rows this function put there are
-	replaced: a date typed by hand inside the covered years is kept, so a shop can
-	add "closed the Monday after the fair" without it being wiped every month.
+	The list is created when missing. A date typed by hand inside the covered years
+	is kept, so a shop can add "closed the Monday after the fair" without it being
+	wiped every month. One kind of row is retracted: a holiday the provider gives
+	only for a place below the shop's subdivision, which an older rule wrote for the
+	whole canton (#690). Such a row is recognised by its date AND its wording, and
+	only when no day of the current rule sits on that date; a row typed by hand with
+	other words survives. The report lists what was retracted.
 	Returns a report dict; raises nothing a caller has to catch.
 	"""
 	years = sorted({int(y) for y in years})
@@ -155,13 +194,16 @@ def sync_holiday_list(list_name, country, subdivision, years, language="FR", wee
 		return {"ok": False, "reason": _("No year to fetch.")}
 
 	fetched = {}
+	below = set()
 	unreachable = []
 	for year in years:
-		rows = fetch_holidays(country, subdivision, year, language)
-		if rows is None:
+		result = _fetch(country, subdivision, year, language)
+		if result is None:
 			unreachable.append(year)
 			continue
+		rows, rejected = result
 		fetched.update(dict(rows))
+		below.update(rejected)
 
 	if not fetched:
 		# nothing readable: leave the list exactly as it was
@@ -183,11 +225,21 @@ def sync_holiday_list(list_name, country, subdivision, years, language="FR", wee
 	if weekly_off:
 		doc.weekly_off = weekly_off
 
-	# keep every row outside the covered years, and the hand-typed ones inside them
 	kept = []
+	retracted = []
 	for row in doc.get("holidays") or []:
 		day = getdate(row.holiday_date)
-		if day.year not in years or day not in fetched:
+		if day.year not in years:
+			# outside what this run fetched: never touched
+			kept.append((day, row.description))
+		elif day in fetched:
+			# a day of the current rule: written again below, with the provider's wording
+			continue
+		elif (day, (row.description or "").strip()) in below:
+			# what an older rule wrote for a place below the shop's subdivision
+			retracted.append({"date": day.isoformat(), "description": row.description})
+		else:
+			# typed by hand
 			kept.append((day, row.description))
 	merged = dict(kept)
 	merged.update(fetched)
@@ -205,6 +257,7 @@ def sync_holiday_list(list_name, country, subdivision, years, language="FR", wee
 		"fetched": len(fetched),
 		"total": len(merged),
 		"unreachable": unreachable,
+		"retracted": retracted,
 	}
 
 
