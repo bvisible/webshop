@@ -1,9 +1,10 @@
 # //// Neoffice — added file (no upstream equivalent). Covers the two parts of our
 # //// payment path where a mistake costs real money: idempotency (charging a buyer
 # //// twice) and who may conclude a payment. Upstream has no payment controller and
-# //// therefore no such test (0231a6f96d, 2026-08-29 "couvrir le multi-site et le
-# //// paiement — 94 → 135 tests"). The module docstring below records what the
-# //// previous version asserted — its own mocks — and why it proved nothing.
+# //// therefore no such test (0231a6f96d, 2026-08-29, "cover multi-site and payment
+# //// — 94 → 135 tests", title translated from French). The module docstring below
+# //// records what the previous version asserted — its own mocks — and why it proved
+# //// nothing.
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -33,22 +34,22 @@ from unittest.mock import patch
 
 import frappe
 
-from webshop.controllers.payment_handler import PaymentHandler, _peut_conclure
+from webshop.controllers.payment_handler import PaymentHandler, _may_conclude
 
-PREFIXE = "_WSTEST-"
+PREFIX = "_WSTEST-"
 
 
-def jeton():
+def fresh_token():
 	"""A fresh token per test.
 
 	`custom_idempotency_token` carries a unique index, and something down the
 	create path commits — so a token reused across tests survives the rollback
 	and the next insert dies on a duplicate key.
 	"""
-	return f"{PREFIXE}{frappe.generate_hash(length=12)}"
+	return f"{PREFIX}{frappe.generate_hash(length=12)}"
 
 
-def purger_demandes():
+def purge_requests():
 	"""Delete the requests these tests made, and the intents pointing at them.
 
 	`frappe.db.rollback()` is not enough: the idempotency path calls
@@ -57,28 +58,28 @@ def purger_demandes():
 	Payment Requests to the site's accounting — 17 of them before this was
 	noticed.
 	"""
-	noms = frappe.get_all(
+	names = frappe.get_all(
 		"Payment Request",
-		filters={"custom_idempotency_token": ("like", f"{PREFIXE}%")},
+		filters={"custom_idempotency_token": ("like", f"{PREFIX}%")},
 		pluck="name",
 	)
-	if not noms:
+	if not names:
 		return
 
 	if frappe.db.exists("DocType", "Payment Intent"):
 		for intent in frappe.get_all(
 			"Payment Intent",
-			filters={"reference_doctype": "Payment Request", "reference_name": ("in", noms)},
+			filters={"reference_doctype": "Payment Request", "reference_name": ("in", names)},
 			pluck="name",
 		):
 			frappe.delete_doc("Payment Intent", intent, force=True, ignore_permissions=True)
 
-	for nom in noms:
-		frappe.delete_doc("Payment Request", nom, force=True, ignore_permissions=True)
+	for name in names:
+		frappe.delete_doc("Payment Request", name, force=True, ignore_permissions=True)
 	frappe.db.commit()
 
 
-def _payment_request(jeton, statut="Requested", reference_doctype="Quotation", reference_name=None):
+def _payment_request(token, status="Requested", reference_doctype="Quotation", reference_name=None):
 	"""A Payment Request carrying an idempotency token.
 
 	Inserted with validation relaxed: what is under test is how the handler
@@ -93,8 +94,8 @@ def _payment_request(jeton, statut="Requested", reference_doctype="Quotation", r
 			"grand_total": 10,
 			"currency": "CHF",
 			"email_to": "wstest@example.com",
-			"custom_idempotency_token": jeton,
-			"status": statut,
+			"custom_idempotency_token": token,
+			"status": status,
 		}
 	)
 	doc.flags.ignore_validate = True
@@ -111,12 +112,12 @@ class TestIdempotence(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		frappe.set_user("Administrator")
-		purger_demandes()
+		purge_requests()
 
 	@classmethod
 	def tearDownClass(cls):
 		frappe.set_user("Administrator")
-		purger_demandes()
+		purge_requests()
 
 	def setUp(self):
 		frappe.set_user("Administrator")
@@ -127,23 +128,23 @@ class TestIdempotence(unittest.TestCase):
 		frappe.set_user("Administrator")
 
 	def test_an_existing_token_returns_the_same_request(self):
-		jeton_test = jeton()
-		demande = _payment_request(jeton_test)
+		test_token = fresh_token()
+		payment_request = _payment_request(test_token)
 
-		resultat = self.handler.create_payment_request(idempotency_token=jeton_test)
+		result = self.handler.create_payment_request(idempotency_token=test_token)
 
-		self.assertEqual(resultat.get("status"), "success")
-		self.assertEqual(resultat.get("payment_request_id"), demande.name)
+		self.assertEqual(result.get("status"), "success")
+		self.assertEqual(result.get("payment_request_id"), payment_request.name)
 
 	def test_an_order_already_placed_is_reported_as_such(self):
 		"""Token already carried through to an order: say so, do not re-charge."""
-		jeton_test = jeton()
-		_payment_request(jeton_test, reference_doctype="Sales Order", reference_name="SO-WSTEST-0001")
+		test_token = fresh_token()
+		_payment_request(test_token, reference_doctype="Sales Order", reference_name="SO-WSTEST-0001")
 
-		resultat = self.handler.create_payment_request(idempotency_token=jeton_test)
+		result = self.handler.create_payment_request(idempotency_token=test_token)
 
-		self.assertEqual(resultat.get("status"), "error")
-		self.assertEqual(resultat.get("existing_order"), "SO-WSTEST-0001")
+		self.assertEqual(result.get("status"), "error")
+		self.assertEqual(result.get("existing_order"), "SO-WSTEST-0001")
 
 	def test_a_failed_request_is_not_reused(self):
 		"""A refused card must leave the buyer able to try again.
@@ -152,41 +153,41 @@ class TestIdempotence(unittest.TestCase):
 		one — here with an empty cart, which is why an error comes back. What
 		matters is that it is NOT the "using existing payment request" answer.
 		"""
-		jeton_test = jeton()
-		_payment_request(jeton_test, statut="Failed")
+		test_token = fresh_token()
+		_payment_request(test_token, status="Failed")
 
 		with patch(
 			"webshop.controllers.payment_handler._get_cart_quotation", return_value=None
 		):
-			resultat = self.handler.create_payment_request(idempotency_token=jeton_test)
+			result = self.handler.create_payment_request(idempotency_token=test_token)
 
-		self.assertEqual(resultat.get("status"), "error")
-		self.assertNotIn("payment_request_id", resultat)
+		self.assertEqual(result.get("status"), "error")
+		self.assertNotIn("payment_request_id", result)
 
 	def test_an_unknown_token_is_not_matched(self):
-		_payment_request(jeton())
+		_payment_request(fresh_token())
 
 		with patch(
 			"webshop.controllers.payment_handler._get_cart_quotation", return_value=None
 		):
-			resultat = self.handler.create_payment_request(idempotency_token="_WSTEST-autre")
+			result = self.handler.create_payment_request(idempotency_token="_WSTEST-other")
 
-		self.assertEqual(resultat.get("status"), "error")
-		self.assertNotIn("payment_request_id", resultat)
+		self.assertEqual(result.get("status"), "error")
+		self.assertNotIn("payment_request_id", result)
 
 	def test_an_empty_cart_is_refused_cleanly(self):
 		"""No quotation, no "Devis None not found" traceback in the buyer's face."""
 		with patch(
 			"webshop.controllers.payment_handler._get_cart_quotation", return_value=None
 		):
-			resultat = self.handler.create_payment_request()
+			result = self.handler.create_payment_request()
 
-		self.assertEqual(resultat.get("status"), "error")
-		self.assertTrue(resultat.get("message"))
+		self.assertEqual(result.get("status"), "error")
+		self.assertTrue(result.get("message"))
 
 
-class TestQuiPeutConclureUnPaiement(unittest.TestCase):
-	"""`_peut_conclure` decides who may settle a payment request.
+class TestWhoMayConcludeAPayment(unittest.TestCase):
+	"""`_may_conclude` decides who may settle a payment request.
 
 	It is reached from a `allow_guest=True` endpoint, so "anyone with the id"
 	must not be enough: the id travels in a redirect URL.
@@ -195,31 +196,31 @@ class TestQuiPeutConclureUnPaiement(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		frappe.set_user("Administrator")
-		purger_demandes()
+		purge_requests()
 
 	@classmethod
 	def tearDownClass(cls):
 		frappe.set_user("Administrator")
-		purger_demandes()
+		purge_requests()
 
 	def setUp(self):
-		self.utilisateur_avant = frappe.session.user
+		self.user_before = frappe.session.user
 		frappe.set_user("Administrator")
-		self.demande = _payment_request(jeton())
-		self.addCleanup(self._restaurer)
+		self.payment_request = _payment_request(fresh_token())
+		self.addCleanup(self._restore)
 
-	def _restaurer(self):
-		frappe.set_user(self.utilisateur_avant)
+	def _restore(self):
+		frappe.set_user(self.user_before)
 		frappe.db.rollback()
 
 	def test_the_server_itself_may_conclude(self):
 		"""Background jobs and the server-side return page run as Administrator."""
-		self.assertTrue(_peut_conclure(self.demande.name))
+		self.assertTrue(_may_conclude(self.payment_request.name))
 
 	def test_a_guest_may_not_conclude_on_the_id_alone(self):
 		frappe.set_user("Guest")
 
-		self.assertFalse(_peut_conclure(self.demande.name, argent_constate=False))
+		self.assertFalse(_may_conclude(self.payment_request.name, money_confirmed=False))
 
 	def test_a_guest_may_conclude_when_the_money_is_confirmed(self):
 		"""Back from the gateway, the session is not always restored yet.
@@ -234,7 +235,7 @@ class TestQuiPeutConclureUnPaiement(unittest.TestCase):
 		intent.update(
 			{
 				"reference_doctype": "Payment Request",
-				"reference_name": self.demande.name,
+				"reference_name": self.payment_request.name,
 				"status": "succeeded",
 			}
 		)
@@ -243,18 +244,18 @@ class TestQuiPeutConclureUnPaiement(unittest.TestCase):
 
 		frappe.set_user("Guest")
 
-		self.assertTrue(_peut_conclure(self.demande.name))
+		self.assertTrue(_may_conclude(self.payment_request.name))
 
 	def test_a_confirmed_intent_on_another_request_does_not_count(self):
 		if not frappe.db.exists("DocType", "Payment Intent"):
 			self.skipTest("Payment Intent doctype not installed")
 
-		autre = _payment_request(jeton())
+		other = _payment_request(fresh_token())
 		intent = frappe.new_doc("Payment Intent")
 		intent.update(
 			{
 				"reference_doctype": "Payment Request",
-				"reference_name": autre.name,
+				"reference_name": other.name,
 				"status": "succeeded",
 			}
 		)
@@ -263,7 +264,7 @@ class TestQuiPeutConclureUnPaiement(unittest.TestCase):
 
 		frappe.set_user("Guest")
 
-		self.assertFalse(_peut_conclure(self.demande.name))
+		self.assertFalse(_may_conclude(self.payment_request.name))
 
 	def test_a_failed_intent_does_not_count(self):
 		if not frappe.db.exists("DocType", "Payment Intent"):
@@ -273,7 +274,7 @@ class TestQuiPeutConclureUnPaiement(unittest.TestCase):
 		intent.update(
 			{
 				"reference_doctype": "Payment Request",
-				"reference_name": self.demande.name,
+				"reference_name": self.payment_request.name,
 				"status": "failed",
 			}
 		)
@@ -282,14 +283,14 @@ class TestQuiPeutConclureUnPaiement(unittest.TestCase):
 
 		frappe.set_user("Guest")
 
-		self.assertFalse(_peut_conclure(self.demande.name))
+		self.assertFalse(_may_conclude(self.payment_request.name))
 
 	def test_staff_may_conclude(self):
 		"""A System Manager settles a payment by hand when a webhook is lost."""
-		utilisateur = _utilisateur_de_test("_wstest_staff@example.com", ["System Manager"])
-		frappe.set_user(utilisateur)
+		user = _test_user("_wstest_staff@example.com", ["System Manager"])
+		frappe.set_user(user)
 
-		self.assertTrue(_peut_conclure(self.demande.name))
+		self.assertTrue(_may_conclude(self.payment_request.name))
 
 	def test_the_buyer_who_opened_the_request_may_conclude_it(self):
 		"""Back from their gateway, the buyer settles the request they created.
@@ -300,33 +301,37 @@ class TestQuiPeutConclureUnPaiement(unittest.TestCase):
 		card payments would every one have been refused AFTER the money was taken. The party
 		is deliberately someone else here, so only ownership can carry this test.
 		"""
-		acheteur = _utilisateur_de_test("_wstest_buyer@example.com", ["Customer"])
+		buyer = _test_user("_wstest_buyer@example.com", ["Customer"])
 		frappe.db.set_value(
-			"Payment Request", self.demande.name, {"owner": acheteur, "party": "_WSTEST Someone Else"}
+			"Payment Request",
+			self.payment_request.name,
+			{"owner": buyer, "party": "_WSTEST Someone Else"},
 		)
-		frappe.set_user(acheteur)
+		frappe.set_user(buyer)
 
-		self.assertTrue(_peut_conclure(self.demande.name, argent_constate=False))
+		self.assertTrue(_may_conclude(self.payment_request.name, money_confirmed=False))
 
 	def test_a_signed_in_stranger_may_not_conclude(self):
 		"""Signed in, but not the buyer and not staff: the request is not theirs."""
-		utilisateur = _utilisateur_de_test("_wstest_stranger@example.com", ["Customer"])
-		frappe.db.set_value("Payment Request", self.demande.name, "party", "_WSTEST Someone Else")
-		frappe.set_user(utilisateur)
+		user = _test_user("_wstest_stranger@example.com", ["Customer"])
+		frappe.db.set_value(
+			"Payment Request", self.payment_request.name, "party", "_WSTEST Someone Else"
+		)
+		frappe.set_user(user)
 
-		self.assertFalse(_peut_conclure(self.demande.name, argent_constate=False))
+		self.assertFalse(_may_conclude(self.payment_request.name, money_confirmed=False))
 
 	def test_a_request_without_a_party_is_refused(self):
-		utilisateur = _utilisateur_de_test("_wstest_stranger@example.com", ["Customer"])
-		frappe.db.set_value("Payment Request", self.demande.name, "party", None)
-		frappe.set_user(utilisateur)
+		user = _test_user("_wstest_stranger@example.com", ["Customer"])
+		frappe.db.set_value("Payment Request", self.payment_request.name, "party", None)
+		frappe.set_user(user)
 
-		self.assertFalse(_peut_conclure(self.demande.name, argent_constate=False))
+		self.assertFalse(_may_conclude(self.payment_request.name, money_confirmed=False))
 
 
-def _utilisateur_de_test(email, roles):
+def _test_user(email, roles):
 	"""A user with these roles, created muted (a welcome mail needs SMTP)."""
-	avant = frappe.flags.mute_emails
+	before = frappe.flags.mute_emails
 	frappe.flags.mute_emails = True
 	try:
 		if not frappe.db.exists("User", email):
@@ -337,9 +342,9 @@ def _utilisateur_de_test(email, roles):
 		# Read the user back before touching roles: insert() writes it again
 		# (welcome-mail bookkeeping), so the doc in hand is already stale and
 		# add_roles' save raises TimestampMismatchError.
-		manquants = [r for r in roles if not frappe.db.exists("Has Role", {"parent": email, "role": r})]
-		if manquants:
-			frappe.get_doc("User", email).add_roles(*manquants)
+		missing = [r for r in roles if not frappe.db.exists("Has Role", {"parent": email, "role": r})]
+		if missing:
+			frappe.get_doc("User", email).add_roles(*missing)
 		return email
 	finally:
-		frappe.flags.mute_emails = avant
+		frappe.flags.mute_emails = before
