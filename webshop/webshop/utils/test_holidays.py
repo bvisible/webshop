@@ -7,6 +7,11 @@ return today. The one shape worth pinning is the Swiss one, because it is why th
 feature exists: Valais closes on Saint Joseph's day and Geneva does not, so a
 holiday has to be filtered by canton and not merely by country.
 
+A holiday the provider gives for a district or a municipality BELOW the canton is not
+the canton's: one district's day used to close every shop of the canton (#690). And a
+row an older rule wrote for such a day has to leave a list that already holds it, without
+touching what a shop typed by hand.
+
 The other rule under test is what happens when the provider is down: the list is
 left exactly as it was. An outage that silently emptied a Holiday List would open
 the shop on Christmas Day.
@@ -61,6 +66,46 @@ ANSWER = [
 ]
 
 
+# The shape the provider gives for Zurich: a day for the whole canton, and two that belong
+# to the city of Zurich only (a municipality code three levels below the canton).
+ZURICH = [
+	{
+		"startDate": "2026-05-01",
+		"nationwide": False,
+		"subdivisions": [{"code": "CH-ZH"}, {"code": "CH-BL"}],
+		"name": [{"language": "FR", "text": "Fête du Travail"}],
+	},
+	{
+		"startDate": "2026-04-20",
+		"nationwide": False,
+		"subdivisions": [{"code": "CH-ZH-ZH-ZH"}],
+		"name": [{"language": "FR", "text": "Sechseläuten"}],
+	},
+	{
+		"startDate": "2026-09-14",
+		"nationwide": False,
+		"subdivisions": [{"code": "CH-ZH-ZH-ZH"}],
+		"name": [{"language": "FR", "text": "Knabenschiessen"}],
+	},
+]
+
+# One day the provider gives twice: for the canton and for a district of it.
+BOTH = [
+	{
+		"startDate": "2026-06-04",
+		"nationwide": False,
+		"subdivisions": [{"code": "CH-VS"}],
+		"name": [{"language": "FR", "text": "Fête-Dieu"}],
+	},
+	{
+		"startDate": "2026-06-04",
+		"nationwide": False,
+		"subdivisions": [{"code": "CH-VS-SIERRE"}],
+		"name": [{"language": "FR", "text": "Fête-Dieu"}],
+	},
+]
+
+
 class TestHolidays(FrappeTestCase):
 	def setUp(self):
 		self.real_get = holidays._get
@@ -87,9 +132,9 @@ class TestHolidays(FrappeTestCase):
 		self.assertIn(datetime.date(2026, 1, 1), found)  # nationwide
 		self.assertIn(datetime.date(2026, 3, 19), found)  # Valais
 		self.assertEqual(found[datetime.date(2026, 3, 19)], "Saint-Joseph")
-		# a district of the canton counts as the canton
-		self.assertIn(datetime.date(2026, 11, 1), found)
-		# another canton's day does not
+		# a district of the canton is not the canton (#690)
+		self.assertNotIn(datetime.date(2026, 11, 1), found)
+		# another canton's day is not either
 		self.assertNotIn(datetime.date(2026, 9, 11), found)
 
 	def test_another_canton_gets_a_different_week(self):
@@ -99,6 +144,30 @@ class TestHolidays(FrappeTestCase):
 		self.assertIn(datetime.date(2026, 9, 11), geneva)
 		self.assertNotIn(datetime.date(2026, 3, 19), geneva)
 		self.assertNotEqual(sorted(valais), sorted(geneva))
+
+	def test_a_day_of_the_city_of_zurich_does_not_close_the_canton(self):
+		self.answer_with(ZURICH)
+		found = dict(holidays.fetch_holidays("CH", "CH-ZH", 2026, "FR"))
+		self.assertEqual(sorted(found), [datetime.date(2026, 5, 1)])
+
+	def test_a_shop_set_on_a_district_gets_the_cantons_days_and_its_own(self):
+		self.answer_with(ANSWER)
+		found = dict(holidays.fetch_holidays("CH", "CH-VS-SIERRE", 2026, "FR"))
+		self.assertIn(datetime.date(2026, 1, 1), found)  # nationwide
+		self.assertIn(datetime.date(2026, 3, 19), found)  # the canton that contains it
+		self.assertIn(datetime.date(2026, 11, 1), found)  # its own district
+		self.assertNotIn(datetime.date(2026, 9, 11), found)  # another canton
+
+	def test_a_sibling_district_is_not_this_ones(self):
+		self.answer_with(ANSWER)
+		found = dict(holidays.fetch_holidays("CH", "CH-VS-SION", 2026, "FR"))
+		self.assertIn(datetime.date(2026, 3, 19), found)
+		self.assertNotIn(datetime.date(2026, 11, 1), found)
+
+	def test_a_code_that_only_starts_like_the_canton_is_not_the_canton(self):
+		# `CH-V` is not a parent of `CH-VS`: containment is by whole dash-separated parts
+		self.answer_with([{**ANSWER[2], "subdivisions": [{"code": "CH-V"}]}])
+		self.assertEqual(holidays.fetch_holidays("CH", "CH-VS", 2026, "FR"), [])
 
 	def test_without_a_canton_only_the_national_days_are_kept(self):
 		self.answer_with(ANSWER)
@@ -162,6 +231,84 @@ class TestHolidays(FrappeTestCase):
 		dates = self._dates()
 		self.assertIn(datetime.date(2026, 6, 15), dates, "a hand-typed closure was wiped by the fetch")
 		self.assertIn(datetime.date(2026, 3, 19), dates)
+
+	# --- the days an older rule wrote for a district ---------------------------------
+
+	def _seed(self, rows, from_date="2026-01-01", to_date="2027-12-31"):
+		"""A Holiday List as an older version left it: `rows` are (date, description)."""
+		doc = frappe.new_doc("Holiday List")
+		doc.holiday_list_name = LIST_NAME
+		doc.from_date = from_date
+		doc.to_date = to_date
+		for day, description in rows:
+			doc.append("holidays", {"holiday_date": day, "description": description})
+		doc.flags.ignore_permissions = True
+		doc.save()
+		frappe.db.commit()
+
+	def _rows(self):
+		return {
+			frappe.utils.getdate(row.holiday_date): row.description
+			for row in frappe.get_doc("Holiday List", LIST_NAME).get("holidays") or []
+		}
+
+	def test_a_day_an_older_rule_wrote_for_a_district_is_retracted(self):
+		self.answer_with(ANSWER)
+		self._seed([("2026-11-01", "Toussaint"), ("2026-06-15", "Fermeture annuelle")])
+
+		report = holidays.sync_holiday_list(LIST_NAME, "CH", "CH-VS", [2026])
+
+		rows = self._rows()
+		self.assertNotIn(datetime.date(2026, 11, 1), rows, "a district's day stayed in the list")
+		self.assertEqual(rows[datetime.date(2026, 6, 15)], "Fermeture annuelle")
+		self.assertEqual(rows[datetime.date(2026, 3, 19)], "Saint-Joseph")
+		self.assertEqual(report["retracted"], [{"date": "2026-11-01", "description": "Toussaint"}])
+
+	def test_the_same_day_typed_with_other_words_is_not_retracted(self):
+		self.answer_with(ANSWER)
+		self._seed([("2026-11-01", "Pont de la Toussaint, fermé")])
+		report = holidays.sync_holiday_list(LIST_NAME, "CH", "CH-VS", [2026])
+		self.assertEqual(self._rows()[datetime.date(2026, 11, 1)], "Pont de la Toussaint, fermé")
+		self.assertEqual(report["retracted"], [])
+
+	def test_the_same_words_on_another_date_are_not_retracted(self):
+		self.answer_with(ANSWER)
+		self._seed([("2026-11-03", "Toussaint")])
+		holidays.sync_holiday_list(LIST_NAME, "CH", "CH-VS", [2026])
+		self.assertIn(datetime.date(2026, 11, 3), self._rows())
+
+	def test_a_day_the_canton_has_too_stays(self):
+		self.answer_with(BOTH)
+		self._seed([("2026-06-04", "Fête-Dieu")])
+		report = holidays.sync_holiday_list(LIST_NAME, "CH", "CH-VS", [2026])
+		self.assertEqual(self._rows()[datetime.date(2026, 6, 4)], "Fête-Dieu")
+		self.assertEqual(report["retracted"], [])
+
+	def test_a_year_that_was_not_fetched_is_never_retracted(self):
+		self.answer_with(ANSWER)
+		self._seed([("2027-11-01", "Toussaint")])
+		holidays.sync_holiday_list(LIST_NAME, "CH", "CH-VS", [2026])
+		self.assertIn(datetime.date(2027, 11, 1), self._rows())
+
+	def test_an_outage_retracts_nothing(self):
+		self._seed([("2026-11-01", "Toussaint")])
+		holidays._get = lambda url, params: None
+		report = holidays.sync_holiday_list(LIST_NAME, "CH", "CH-VS", [2026])
+		self.assertFalse(report["ok"])
+		self.assertIn(datetime.date(2026, 11, 1), self._rows())
+
+	def test_a_zurich_list_loses_the_days_of_the_city(self):
+		self.answer_with(ZURICH)
+		self._seed(
+			[
+				("2026-04-20", "Sechseläuten"),
+				("2026-05-01", "Fête du Travail"),
+				("2026-09-14", "Knabenschiessen"),
+			]
+		)
+		report = holidays.sync_holiday_list(LIST_NAME, "CH", "CH-ZH", [2026])
+		self.assertEqual(sorted(self._rows()), [datetime.date(2026, 5, 1)])
+		self.assertEqual([r["date"] for r in report["retracted"]], ["2026-04-20", "2026-09-14"])
 
 	def _dates(self):
 		if not frappe.db.exists("Holiday List", LIST_NAME):
