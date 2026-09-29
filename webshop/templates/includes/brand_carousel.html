@@ -29,6 +29,11 @@
     {% set brands = brands[:carousel_limit|default(20)] %}
 {% endif %}
 
+{#- //// Neoffice — a carousel with no brand draws nothing (2026-09-29): it drew its title over
+    "No brands available at the moment" in a grey of its own. Since it offers only the brands this
+    site shows something of (above), a site whose brands carry nothing it shows would print that
+    under "Our brands" on its home page. -#}
+{% if brands %}
 {% set unique_carousel_id = carousel_id|default('brand-carousel-' + range(1000, 9999)|random|string) %}
 {#- //// Neoffice — this component is included in Builder pages, which load no shop
     bundle: it carries its own compiled stylesheet, once per request (utils/assets.py). -#}
@@ -304,9 +309,6 @@
           }
         })();
       </script>
-    {% else %}
-      <div class="empty-carousel text-center" style="padding: 3rem 1rem;">
-        <p style="color: #666; margin: 0;">{{ _("No brands available at the moment") }}</p>
-      </div>
     {% endif %}
 </section>
+{% endif %}
