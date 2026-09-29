@@ -9,7 +9,7 @@ Reminder and a Communication on the Customer; an order placed from the cart
 marks the reminders converted.
 """
 
-import random
+import secrets
 import string
 
 import frappe
@@ -157,9 +157,10 @@ def create_coupon(customer, percentage, valid_days, currency):
 	Letters only: Coupon Code derives its code from the name and drops the
 	digits, so a name with digits would not be the code the customer types.
 	"""
-	code = "".join(random.choices(string.ascii_uppercase, k=8))
+	# //// Neoffice — secrets, not random: a coupon code is a token of value (#953).
+	code = "".join(secrets.choice(string.ascii_uppercase) for _ in range(8))
 	while frappe.db.exists("Coupon Code", code):
-		code = "".join(random.choices(string.ascii_uppercase, k=8))
+		code = "".join(secrets.choice(string.ascii_uppercase) for _ in range(8))
 	rule = frappe.get_doc(
 		{
 			"doctype": "Pricing Rule",

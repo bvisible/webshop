@@ -1,18 +1,21 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
-# //// Neoffice — added imports. `random`/`re` mint and validate gift-card codes,
+# //// Neoffice — added imports. `secrets`/`re` mint and validate gift-card codes,
 # //// `json` reads the gift_card_data blob carried on the quotation items, `os`
 # //// resolves the per-gateway checkout templates (3bc2d836f1, 2025-02-11 "Add gift
 # //// cards and improve shopping cart"). `from locale import currency` sat here too
 # //// — dead, nothing in the file ever called it; removed 2026-09-04.
+# //// `random` was replaced by `secrets` on 2026-09-29: a gift card or a coupon code is a token of
+# //// value and must not come from a predictable generator (maintenance#953).
 import os
 import json
 import re
-import random
+import secrets  # //// Neoffice — replaces `random`, see the header above (#953)
 
 import frappe
 import frappe.defaults
 from frappe import _, throw
+from frappe.rate_limiter import rate_limit  # //// Neoffice — see check_gift_cards (#953)
 from frappe.contacts.doctype.address.address import get_address_display
 from frappe.contacts.doctype.contact.contact import get_contact_name
 from frappe.utils import cint, cstr, flt, get_fullname
@@ -647,16 +650,16 @@ def place_order():
 			if original_card and original_card.coupon_type == "Gift Card":
 				# Create a new gift card for the used amount
 				import string
-				import random
 				
+				# //// Neoffice — secrets, not random: the code of a gift card is a token of value (#953).
 				# Generate a unique code for the new gift card
 				def generate_unique_code():
 					chars = string.ascii_uppercase + string.digits
-					code_parts = [''.join(random.choice(chars) for _ in range(4)) for _ in range(3)]
+					code_parts = [''.join(secrets.choice(chars) for _ in range(4)) for _ in range(3)]  # //// Neoffice — secrets (#953)
 					new_code = '-'.join(code_parts)
 					
 					while frappe.db.exists("Coupon Code", {"coupon_code": new_code}):
-						code_parts = [''.join(random.choice(chars) for _ in range(4)) for _ in range(3)]
+						code_parts = [''.join(secrets.choice(chars) for _ in range(4)) for _ in range(3)]  # //// Neoffice — secrets (#953)
 						new_code = '-'.join(code_parts)
 						
 					return new_code
@@ -3691,7 +3694,11 @@ def remove_quotation_loyalty_points(doc, method=None):
 	return False
 
 # Check if gift cards exist
+# //// Neoffice — rate limited (#953). Open to guests and answering « this code exists », it was an
+# //// oracle with no limit. The item page calls it once per gift card bought, to avoid a duplicate
+# //// code: 60 a minute per address is far above that and far below a search.
 @frappe.whitelist(allow_guest=True)
+@rate_limit(limit=60, seconds=60)
 def check_gift_cards(code):
 	"""Check if gift cards exist"""
 	
@@ -3773,9 +3780,9 @@ def create_gift_cards_from_invoice(doc, method=None):
 						coupon_code = f"{base_coupon_code}-{i+1}"
 					elif not base_coupon_code:
 						# Generate a random unique code if none provided
-						import random
 						import string
-						coupon_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+						# //// Neoffice — secrets, not random: a coupon code is a token of value (#953).
+						coupon_code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(10))
 					else:
 						coupon_code = base_coupon_code
 
@@ -3929,15 +3936,16 @@ def process_gift_card_split(sales_order, coupon_data):
 			return {"status": "error", "message": "Gift card not found or invalid type"}
 			
 		# Generate a unique code for the new gift card
+		# //// Neoffice — `import random` removed: the segments below come from `secrets` (#953).
 		import string
-		import random
 		
 		def generate_unique_gift_card_code():
 			"""Generate a unique code for a gift card"""
 			def generate_segment():
 				"""Generate a segment of 4 alphanumeric characters"""
 				chars = string.ascii_uppercase + string.digits
-				return ''.join(random.choice(chars) for _ in range(4))
+				# //// Neoffice — secrets, not random: the code of a gift card is a token of value (#953).
+				return ''.join(secrets.choice(chars) for _ in range(4))
 			
 			# Generate initial code
 			code = f"{generate_segment()}-{generate_segment()}-{generate_segment()}"
