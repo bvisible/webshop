@@ -109,9 +109,12 @@ class TestLinksLeadToThePage(FrappeTestCase):
 	"""Where the shop linked a brand to its filtered catalogue: now its page, when it has one."""
 
 	def test_the_product_page_and_the_carousel_ask_for_the_page(self):
-		for template in ("generators/item/item_details.html", "includes/brand_carousel.html"):
-			with self.subTest(template=template):
-				self.assertIn("brand_page_routes()", (APP / "templates" / template).read_text())
+		self.assertIn("brand_page_routes()", (APP / "templates" / "generators/item/item_details.html").read_text())
+		# the carousel reads the helper, which links the page (below), and never queries brands itself
+		carousel = (APP / "templates" / "includes/brand_carousel.html").read_text()
+		self.assertIn("get_brands_with_product_count(", carousel)
+		self.assertNotIn("frappe.get_all(", carousel)
+		self.assertNotIn("frappe.db.count(", carousel)
 		self.assertIn(
 			"webshop.webshop.product_data_engine.brand_pages.brand_page_routes", frappe.get_hooks("jinja")["methods"]
 		)
@@ -130,3 +133,51 @@ class TestLinksLeadToThePage(FrappeTestCase):
 		):
 			rows = brand_carousel_helper.get_featured_brands(["Canon"], use_cache=False)
 		self.assertEqual([row["route"] for row in rows], ["brands/canon"])
+
+
+class TestTheCarouselOffersWhatTheSiteShows(FrappeTestCase):
+	"""A brand card is a promise that something is behind it (2026-09-29): a public shop's home page
+	offered a brand with no published product, whose card led to an empty catalogue."""
+
+	ROWS = [
+		frappe._dict(name="Canon", brand="Canon", image="/files/canon.png", description=""),
+		frappe._dict(name="Volcom", brand="Volcom", image="/files/volcom.png", description=""),
+		frappe._dict(name="West", brand="West", image=None, description=""),
+	]
+
+	def carousel(self, offered, **kwargs):
+		from webshop.webshop.utils import brand_carousel_helper
+
+		rows = [row for row in self.ROWS if row.name in offered]
+		with (
+			patch.object(brand_pages, "offered_brands", return_value=offered),
+			patch("frappe.get_all", return_value=[frappe._dict(row) for row in rows]) as get_all,
+		):
+			result = brand_carousel_helper.get_brands_with_product_count(use_cache=False, **kwargs)
+		return result, get_all
+
+	def test_only_the_brands_this_site_shows_with_their_figure_and_page(self):
+		offered = {"Canon": 3, "Volcom": 369, "West": 10}
+		result, get_all = self.carousel(offered, sort_by="product_count")
+		self.assertEqual([(r["brand_name"], r["product_count"]) for r in result], [("Volcom", 369), ("West", 10), ("Canon", 3)])
+		self.assertEqual(get_all.call_args.kwargs["filters"], {"name": ["in", ["Canon", "Volcom", "West"]]})
+		self.assertEqual(result[0]["route"], "brands/volcom")
+		by_name, _get_all = self.carousel(offered, sort_by="brand_name", limit=2)
+		self.assertEqual([r["brand_name"] for r in by_name], ["Canon", "Volcom"])
+
+	def test_nothing_to_offer_asks_for_no_brand(self):
+		result, get_all = self.carousel({})
+		self.assertEqual(result, [])
+		get_all.assert_not_called()
+
+	def test_a_featured_brand_the_site_does_not_show_is_left_out(self):
+		from webshop.webshop.utils import brand_carousel_helper
+
+		empty = frappe._dict(name="Empty", brand="Empty", image="/files/empty.png", description="")
+		with (
+			patch.object(brand_pages, "offered_brands", return_value={"Canon": 2}),
+			patch("frappe.get_all", return_value=[self.ROWS[0], empty]),
+		):
+			rows = brand_carousel_helper.get_featured_brands(["Empty", "Canon"], use_cache=False)
+		self.assertEqual([(r["brand_name"], r["product_count"], r["route"]) for r in rows], [("Canon", 2, "brands/canon")])
+
