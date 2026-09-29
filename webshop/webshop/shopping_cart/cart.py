@@ -1077,6 +1077,9 @@ def _release_abandoned_cart_reminders(quotation_name):
 # //// holding its documents.
 UNCONCLUDED_INTENTS = ("requires_action", "processing", "failed", "canceled")
 
+# //// Neoffice — #951. Name of the savepoint under which ONE payment request is released.
+_RELEASE_SAVEPOINT = "webshop_release_payment_request"
+
 
 def _release_unconcluded_payment_intents(payment_request_name):
 	"""Drop the attempts recorded against a payment request that never succeeded."""
@@ -1110,6 +1113,13 @@ def _release_unsuccessful_payment_requests(quotation_name):
 	# //// Neoffice — body of the added helper marked above. `requests` / `request` were
 	# //// named `demandes` / `demande`, renamed under RULE #00 with the function itself.
 	for request in requests:
+		# //// Neoffice — #951. Releasing one request is ONE unit: its intents go, then the request is
+		# //// cancelled or deleted. When Frappe refuses the cancel (LinkExistsError) it has already
+		# //// written docstatus 2 and run on_cancel by the time it raises, and this loop carries on to the
+		# //// next request, so the half-done cancellation was kept with the rest of the operation, and the
+		# //// intents deleted just before it with it. The savepoint puts the request and its intents back
+		# //// as they were.
+		frappe.db.savepoint(_RELEASE_SAVEPOINT)
 		try:
 			_release_unconcluded_payment_intents(request.name)
 			doc = frappe.get_doc("Payment Request", request.name)
@@ -1119,6 +1129,8 @@ def _release_unsuccessful_payment_requests(quotation_name):
 			else:
 				doc.delete()
 		except Exception:
+			# //// Neoffice — #951. Undone BEFORE the error is logged: a log written first would be undone with it.
+			frappe.db.rollback(save_point=_RELEASE_SAVEPOINT)
 			# //// A request we cannot release must not fail the operation: the delete
 			# //// that follows will say whether it still blocks, and the error will
 			# //// then surface with its real cause.
@@ -1127,6 +1139,8 @@ def _release_unsuccessful_payment_requests(quotation_name):
 				frappe.get_traceback(),
 			)
 			frappe.clear_messages()
+		else:
+			frappe.db.release_savepoint(_RELEASE_SAVEPOINT)  # //// Neoffice — #951
 
 
 # //// Neoffice — the stock rule of one cart line, split out of update_cart so the

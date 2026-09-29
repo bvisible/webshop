@@ -260,6 +260,8 @@ jobs:
           # //// Neoffice — the two source-reading (ast) tests of #739 and #953 were merged without
           # //// being listed here, and the guard above turned the whole workflow red on every push
           # //// since. They import nothing of the app and need no fixture, so they are blocking.
+          # //// Neoffice — the payment-request release test of #951 joins them: it replaces the database by a
+          # //// stand-in and needs no site fixture either.
           for m in \
             webshop.controllers.test_payment_handler \
             webshop.webshop.doctype.item_review.test_item_review \
@@ -317,7 +319,8 @@ jobs:
             webshop.webshop.seo.test_score \
             webshop.webshop.product_data_engine.test_references \
             webshop.webshop.tests.test_engine_callers_match_the_engine \
-            webshop.webshop.tests.test_gift_card_codes_are_not_predictable
+            webshop.webshop.tests.test_gift_card_codes_are_not_predictable \
+            webshop.webshop.tests.test_payment_request_release_undoes_a_refused_cancel
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || failed="$failed $m"
