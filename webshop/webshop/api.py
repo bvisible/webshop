@@ -190,146 +190,15 @@ def get_product_filter_data(query_args: str | dict | None = None):
 	}
 
 
-@frappe.whitelist(allow_guest=True)
-def get_products_html_for_website(
-	item_group=None,
-	start=0,
-	limit=20,
-	search=None,
-	sort_order="relevance"
-):
-	"""
-	Args:
-		item_group (str): Valid Item Group
-		start (int): Start index of results 
-		limit (int): Number of results to return
-		search (str): Search term
-		sort_order (str): Sort order for results (relevance, price_low_to_high, price_high_to_low, new_arrivals, rating)
-	
-	Returns:
-		dict: HTML for product list, items_count
-	"""
-	from webshop.webshop.doctype.website_item.website_item import render_product_cards
-
-	engine = ProductQuery()
-	
-	result = engine.query(
-		attribute_filters={},
-		field_filters={},
-		search_term=search,
-		start=int(start),
-		item_group=item_group,
-		sort_order=sort_order
-	)
-
-	products = result.get("items", [])
-	
-	html = render_product_cards(products, engine.settings)
-
-	return {"html": html, "items_count": result.get("items_count", 0)}
-
-
-@frappe.whitelist(allow_guest=True)
-def get_products_json_for_website(
-	item_group=None,
-	start=0,
-	limit=20,
-	search=None,
-	sort_order="relevance"
-):
-	"""
-	Args:
-		item_group (str): Valid Item Group
-		start (int): Start index of results
-		limit (int): Number of results to return
-		search (str): Search term
-		sort_order (str): Sort order for results
-
-	Returns:
-		dict: Items list and count
-	"""
-	# Simply return the result of the engine query
-	engine = ProductQuery()
-	
-	result = engine.query(
-		attribute_filters={},
-		field_filters={}, 
-		search_term=search,
-		start=int(start),
-		item_group=item_group,
-		sort_order=sort_order
-	)
-
-	return {
-		"items": result.get("items", []),
-		"items_count": result.get("items_count", 0)
-	}
-
-
-@frappe.whitelist(allow_guest=True)
-def get_product_filter_html(item_group=None, query_args=None):
-	from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
-
-	if query_args:
-		query_args = json.loads(query_args)
-		if query_args.get("field_filters"):
-			query_args["field_filters"] = json.loads(query_args.get("field_filters"))
-		if query_args.get("attribute_filters"):
-			query_args["attribute_filters"] = json.loads(query_args.get("attribute_filters"))
-		
-		if query_args.get("price_range"):
-			try:
-				query_args["price_range"] = json.loads(query_args.get("price_range"))
-			except (json.JSONDecodeError, TypeError):
-				# If it's already a dict or malformed, leave as is
-				pass
-		
-		query_args = frappe._dict(query_args)
-	else:
-		query_args = frappe._dict()
-
-	# Ensure field_filters and attribute_filters are dictionaries
-	field_filters = query_args.get("field_filters") or {}
-	attribute_filters = query_args.get("attribute_filters") or {}
-	price_range = query_args.get("price_range") or {}
-	sort_order = query_args.get("sort_order", "relevance")
-
-	# Initialize the filter builder
-	filter_engine = ProductFiltersBuilder(item_group)
-	filters = filter_engine.get_all_filters(field_filters, attribute_filters)
-
-	# Initialize as empty dict if None
-	if not filters:
-		filters = frappe._dict()
-	elif isinstance(filters, tuple):
-		# Handle case where get_all_filters returns a tuple
-		filters = filters[0] if filters[0] else frappe._dict()
-	
-	# Always ensure discount key exists
-	if "discount" not in filters:
-		filters["discount"] = []
-	
-	# Add price filter
-	filters["price_range"] = price_range
-	filters["sort_order"] = sort_order
-	
-	# Add selected filters info for template
-	selected_filters = frappe._dict()
-	if field_filters:
-		selected_filters.update(field_filters)
-	if attribute_filters:
-		selected_filters.update(attribute_filters)
-	
-	html = frappe.render_template(
-		"templates/includes/products/product_filters.html",
-		{
-			"filters": filters,
-			"selected_filters": selected_filters,
-			"settings": get_shopping_cart_settings()
-		}
-	)
-	
-	return html
+# //// Neoffice — removed three guest-callable endpoints that only our fork had (added in
+# //// 6fea19b1fe, 2025-06-17; frappe/webshop has none of them): get_products_html_for_website,
+# //// get_products_json_for_website and get_product_filter_html. Each answered 500 to every
+# //// call. The first two passed `attribute_filters=` and `field_filters=` to
+# //// ProductQuery.query(), which takes `attributes` and `fields` (TypeError), and the first
+# //// imported a render_product_cards that does not exist. The third called
+# //// ProductFiltersBuilder.get_all_filters(), which does not exist, and rendered a template
+# //// that is not in the tree. No app, template or script of ours calls them; the listing is
+# //// served by get_product_filter_data() above (#739).
 
 
 def get_discount_filters(discounts):
