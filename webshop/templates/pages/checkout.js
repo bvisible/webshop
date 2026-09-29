@@ -1898,15 +1898,72 @@ frappe.ready(function() {
             return this.loadShippingMethods(true);
         }
 
+        //// Neoffice — one coupon-affecting cycle at a time (#650). updateShippingMethod and
+        //// updateItemQuantity each REMOVE the coupon, change the quotation, then PUT THE COUPON BACK
+        //// (restoreCoupon), and they remember it in ONE shared field. Two cycles overlapping (a radio
+        //// change and then Next, which re-applies the method on entering the payment step; a quantity
+        //// change during a shipping update; a slow network makes it easy) left the second one reading a
+        //// quotation the first had already taken the coupon from: it restored nothing, and the last write
+        //// was an apply_shipping_rule that ran after the first cycle's restore. The gift card was gone and
+        //// the customer paid in full. Cycles now queue: `cycle(done)` must call `done()` exactly once,
+        //// when its whole sequence (remove, change, restore) is over, whatever the outcome.
+        runExclusiveCouponCycle(cycle) {
+            const run = () => new Promise((resolve) => {
+                //// A request that never answers must not stall every later update: the queue moves on
+                //// after 45 s (the freeze failsafe above tells the customer at 30 s).
+                const timer = setTimeout(() => {
+                    console.warn('checkout: a coupon cycle took too long, the queue moves on');
+                    resolve();
+                }, 45000);
+                const finish = () => {
+                    clearTimeout(timer);
+                    resolve();
+                };
+                try {
+                    cycle(finish);
+                } catch (error) {
+                    console.error('checkout: a coupon cycle failed to start', error);
+                    finish();
+                }
+            });
+            this._couponCycle = (this._couponCycle || Promise.resolve()).then(run, run);
+            return this._couponCycle;
+        }
+
         updateShippingMethod(shipping_method, notReload = false) {
             if (!shipping_method) return;
+            //// Neoffice — a cycle already waiting for its turn takes the LATEST choice instead of another
+            //// cycle being queued behind it: several quick radio changes cost one update, not several.
+            if (this._shippingQueued) {
+                this._shippingQueued.method = shipping_method;
+                this._shippingQueued.notReload = this._shippingQueued.notReload && notReload;
+                return;
+            }
+            this._shippingQueued = {method: shipping_method, notReload};
+            this.runExclusiveCouponCycle((done) => {
+                const {method, notReload: keepRows} = this._shippingQueued;
+                this._shippingQueued = null;
+                this.updateShippingMethodNow(method, keepRows, done);
+            });
+        }
+
+        updateShippingMethodNow(shipping_method, notReload, done) {
             this.freezeElements(['step-section', 'order-summary']);
             this.isUpdatingShipping = true;  
             this.currentShippingMethod = shipping_method;  
+            //// Neoffice — every way out of the cycle releases the screen and the queue (#650); before, a
+            //// failed call left the summary frozen until the 30 s failsafe.
+            const giveUp = () => {
+                this.isUpdatingShipping = false;
+                this.unfreezeElements(['step-section', 'order-summary']);
+                this.restoreCoupon(notReload, done);
+            };
+            const apply = () => this.applyShippingRule(shipping_method, notReload, done);
 
             // Check if a coupon or loyalty points are applied
             frappe.call({
                 method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
+                error: giveUp,  //// Neoffice — see giveUp (#650)
                 callback: (r) => {
                     if (r.message && r.message.doc) {
                         const doc = r.message.doc;
@@ -1922,10 +1979,13 @@ frappe.ready(function() {
                             // Remove the coupon before applying the shipping rule
                             frappe.call({
                                 method: 'webshop.webshop.shopping_cart.cart.remove_coupon_code',
+                                error: giveUp,  //// Neoffice — see giveUp (#650)
                                 callback: (r) => {
                                     if (r.message) {
                                         // Apply the shipping rule
-                                        this.applyShippingRule(shipping_method, notReload);
+                                        apply();
+                                    } else {
+                                        giveUp();  //// Neoffice — see giveUp (#650)
                                     }
                                 }
                             });
@@ -1933,6 +1993,7 @@ frappe.ready(function() {
                             // Remove loyalty points before applying the shipping rule
                             frappe.call({
                                 method: 'webshop.webshop.shopping_cart.cart.remove_loyalty_points',
+                                error: giveUp,  //// Neoffice — see giveUp (#650)
                                 callback: (r) => {
                                     if (r.message) {
                                         frappe.show_alert({
@@ -1940,27 +2001,35 @@ frappe.ready(function() {
                                             indicator: 'blue'
                                         });
                                         // Apply the shipping rule
-                                        this.applyShippingRule(shipping_method, notReload);
+                                        apply();
+                                    } else {
+                                        giveUp();  //// Neoffice — see giveUp (#650)
                                     }
                                 }
                             });
                         } else {
                             // No coupon or loyalty points, apply the shipping rule directly
-                            this.applyShippingRule(shipping_method, notReload);
+                            apply();  //// Neoffice — see above (#650)
                         }
                     } else {
                         // No cart data, apply the shipping rule directly
-                        this.applyShippingRule(shipping_method, notReload);
+                        apply();  //// Neoffice — see above (#650)
                     }
                 }
             });
         }
         
-        applyShippingRule(shipping_method, notReload = false) {
+        applyShippingRule(shipping_method, notReload = false, done = null) {
+            //// Neoffice — `done` closes the coupon cycle once the coupon is back (#650).
             frappe.call({
                 method: 'webshop.webshop.shopping_cart.cart.apply_shipping_rule',
                 args: {
                     shipping_rule: shipping_method
+                },
+                error: () => {  //// Neoffice — a failed rule still puts the coupon back (#650)
+                    this.isUpdatingShipping = false;
+                    this.unfreezeElements(['step-section', 'order-summary']);
+                    this.restoreCoupon(notReload, done);
                 },
                 callback: (r) => {
                     if (r.message && r.message.doc) {
@@ -1968,7 +2037,7 @@ frappe.ready(function() {
                     }
                     this.isUpdatingShipping = false; 
                     this.unfreezeElements(['step-section', 'order-summary']);
-                    this.restoreCoupon(notReload);
+                    this.restoreCoupon(notReload, done);  //// Neoffice — closes the coupon cycle (#650)
                 }
             });
         }
@@ -1977,9 +2046,14 @@ frappe.ready(function() {
         //// updateItemQuantity had to remove. It goes through apply_coupon_code,
         //// so validity, usage limit and customer are checked again on the new
         //// totals; when that fails the customer sees why, and the old toast.
-        restoreCoupon(notReload = false) {
+        restoreCoupon(notReload = false, done = null) {
+            //// Neoffice — `done` closes the coupon cycle that removed the coupon, on every outcome: the
+            //// next cycle starts only once the coupon is back (or refused), never in between (#650).
             const code = this.couponToRestore;
-            if (!code) return;
+            if (!code) {
+                if (done) done();
+                return;
+            }
             this.couponToRestore = null;
             this.freezeElements(['order-summary']);
             frappe.call({
@@ -1991,6 +2065,7 @@ frappe.ready(function() {
                     } else {
                         this.unfreezeElements(['order-summary']);
                     }
+                    if (done) done();  //// Neoffice — see above (#650)
                 },
                 error: () => {
                     frappe.show_alert({
@@ -1998,6 +2073,7 @@ frappe.ready(function() {
                         indicator: 'blue'
                     });
                     this.updateOrderSummaryFromDoc(null, notReload);
+                    if (done) done();  //// Neoffice — see above (#650)
                 }
             });
         }
@@ -2370,11 +2446,23 @@ frappe.ready(function() {
         }
 
         updateItemQuantity(item_code, qty, warehouse) {
+            //// Neoffice — same queue as the shipping updates: both remove and restore the coupon (#650).
+            this.runExclusiveCouponCycle((done) => this.updateItemQuantityNow(item_code, qty, warehouse, done));
+        }
+
+        updateItemQuantityNow(item_code, qty, warehouse, done) {
             this.freezeElements(['order-summary']);
+            //// Neoffice — every way out of the cycle puts the coupon back and lets the queue go (#650).
+            const giveUp = () => {
+                this.unfreezeElements(['order-summary']);
+                this.restoreCoupon(false, done);
+            };
+            const perform = () => this.performItemQuantityUpdate(item_code, qty, warehouse, done);
             
             // Check if a coupon or loyalty points are applied
             frappe.call({
                 method: 'webshop.webshop.shopping_cart.cart.get_cart_quotation',
+                error: giveUp,  //// Neoffice — see giveUp (#650)
                 callback: (r) => {
                     if (r.message && r.message.doc) {
                         const doc = r.message.doc;
@@ -2386,10 +2474,13 @@ frappe.ready(function() {
                             // Remove the coupon before updating the quantity
                             frappe.call({
                                 method: 'webshop.webshop.shopping_cart.cart.remove_coupon_code',
+                                error: giveUp,  //// Neoffice — see giveUp (#650)
                                 callback: (r) => {
                                     if (r.message) {
                                         // Update the quantity
-                                        this.performItemQuantityUpdate(item_code, qty, warehouse);
+                                        perform();
+                                    } else {
+                                        giveUp();  //// Neoffice — see giveUp (#650)
                                     }
                                 }
                             });
@@ -2397,6 +2488,7 @@ frappe.ready(function() {
                             // Remove loyalty points before updating the quantity
                             frappe.call({
                                 method: 'webshop.webshop.shopping_cart.cart.remove_loyalty_points',
+                                error: giveUp,  //// Neoffice — see giveUp (#650)
                                 callback: (r) => {
                                     if (r.message) {
                                         frappe.show_alert({
@@ -2404,23 +2496,25 @@ frappe.ready(function() {
                                             indicator: 'blue'
                                         });
                                         // Update the quantity
-                                        this.performItemQuantityUpdate(item_code, qty, warehouse);
+                                        perform();
+                                    } else {
+                                        giveUp();  //// Neoffice — see giveUp (#650)
                                     }
                                 }
                             });
                         } else {
                             // No coupon or loyalty points, update quantity directly
-                            this.performItemQuantityUpdate(item_code, qty, warehouse);
+                            perform();  //// Neoffice — see above (#650)
                         }
                     } else {
                         // No cart data, update quantity directly
-                        this.performItemQuantityUpdate(item_code, qty, warehouse);
+                        perform();  //// Neoffice — see above (#650)
                     }
                 }
             });
         }
         
-        performItemQuantityUpdate(item_code, qty, warehouse) {
+        performItemQuantityUpdate(item_code, qty, warehouse, done = null) {  //// Neoffice — `done` closes the coupon cycle (#650)
             // Use nested callback to ensure get_cart_quotation runs AFTER update_cart completes
             frappe.call({
                 method: 'webshop.webshop.shopping_cart.cart.update_cart',
@@ -2457,12 +2551,15 @@ frappe.ready(function() {
                         }
                     } finally {
                         this.unfreezeElements(['order-summary']);
-                        this.restoreCoupon();
+                        this.restoreCoupon(false, done);  //// Neoffice — closes the coupon cycle (#650)
                     }
                 },
                 error: (err) => {
                     console.error('checkout: update_cart failed', err);
                     this.unfreezeElements(['order-summary']);
+                    //// Neoffice — the coupon was removed before this call: put it back even when the update
+                    //// failed, and let the queue go (#650). It used to stay removed.
+                    this.restoreCoupon(false, done);
                     frappe.msgprint({
                         title: __('Error'),
                         message: __('The quantity could not be updated. Please try again.'),

@@ -97,4 +97,86 @@ test.describe('Gift card at checkout', () => {
 
 		await emptyCart(page);
 	});
+
+	//// #650: a card applied at step 4 vanished when the customer went back, changed the shipping method
+	//// and pressed Next on a slow connection, and they paid in full. The two updates (the method chosen,
+	//// then the method re-applied on entering the payment step) each removed the coupon and put it back,
+	//// and overlapped. Every call of the page is slowed here so they certainly do.
+	test('a card applied at step 4 survives a shipping change made on a slow connection', async ({page}) => {
+		test.setTimeout(600_000);
+		await signIn(page);
+		const cards = await customerGiftCards(page);
+		test.skip(
+			cards.length === 0,
+			'this account holds no gift card on this instance: seed one (README, "gift cards")'
+		);
+		const code = cards[0].trim();
+
+		await emptyCart(page);
+		const item = await firstBuyableItem(page);
+		expect(item, 'no buyable article in the catalogue').toBeTruthy();
+		await addToCart(page, item.item_code, 1);
+		expect(await goToPaymentStep(page), 'the tunnel does not reach the payment step').toBeTruthy();
+
+		const before = await quotationTotal(page);
+		const withCard = await pressUntil(
+			page,
+			async () => {
+				await page.locator('.txtcoupon').fill(code);
+				await page.locator('.bt-coupon').click();
+			},
+			(doc) => Number(doc.grand_total) < before
+		);
+		expect(withCard, `the bill did not go down after the gift card (${before})`).toBeTruthy();
+
+		//// Every call of the page is slowed, by a delay that varies from one call to the next, so the two
+		//// updates (the method just chosen, then the method re-applied by Next) overlap in a different way
+		//// each round: one of the orders loses the coupon (the second update reads the quotation without it,
+		//// or writes a stale copy over the coupon the first one just put back). The loss is a matter of
+		//// timing, hence several rounds.
+		let calls = 0;
+		await page.route(
+			(url) => url.pathname === '/',
+			async (route) => {
+				if (/cmd=/.test(route.request().postData() || '')) {
+					calls += 1;
+					await new Promise((resolve) => setTimeout(resolve, 300 + ((calls * 397) % 1400)));
+				}
+				await route.continue();
+			}
+		);
+
+		for (let round = 1; round <= 6; round++) {
+			await page.locator('#step-payment .prev-step').click();
+			await expect(page.locator('#step-shipping')).toHaveClass(/active/, {timeout: 60_000});
+			const radios = page.locator('#step-shipping input[type=radio]');
+			const count = await radios.count();
+			if (count > 1) {
+				const id = await radios.nth(round % count).getAttribute('id');
+				const label = id ? page.locator(`label[for="${id}"]`).first() : null;
+				if (label && (await label.count())) await label.click().catch(() => {});
+			}
+			await page.locator('#step-shipping .next-step').click();
+			await expect(page.locator('#step-payment')).toHaveClass(/active/, {timeout: 90_000});
+			await expect
+				.poll(
+					async () => {
+						const answer = await readQuotation(page);
+						const doc = (answer && (answer.doc || answer)) || {};
+						return Boolean(doc.gift_card_coupon) && Number(doc.grand_total) < before;
+					},
+					{timeout: 40_000, message: `the gift card is gone after round ${round}: the customer pays in full`}
+				)
+				.toBeTruthy();
+		}
+
+		//// leave the account as it was: the card off the basket, unspent
+		await page.unroute(() => true).catch(() => {});
+		await page
+			.locator('.bt-remove-coupon')
+			.click()
+			.catch(() => {});
+		await page.waitForTimeout(3000);
+		await emptyCart(page);
+	});
 });
