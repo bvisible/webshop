@@ -157,6 +157,39 @@ test.describe('Checkout tunnel', () => {
 			});
 			expect(n, 'too many calls for a step with no change').toBeLessThanOrEqual(6);
 		});
+
+		//// #634: two presses on Next, sent before the first answer came back, started two
+		//// update_cart_address on the same quotation, and MariaDB answered with a deadlock.
+		//// The write is slowed down so the second press certainly lands while the first is
+		//// in flight; both presses are sent in the same tick, the way a fast double click is.
+		test('two presses on Next send a single address write and the step still opens', async ({page}) => {
+			const writes = [];
+			//// frappe.call posts to the site root with the method in the body (`cmd=`), not to /api/method/.
+			await page.route(
+				(url) => url.pathname === '/',
+				async (route) => {
+					const body = route.request().postData() || '';
+					if (body.includes('cmd=webshop.webshop.shopping_cart.cart.update_cart_address')) {
+						writes.push(body);
+						await new Promise((resolve) => setTimeout(resolve, 2_000));
+					}
+					await route.continue();
+				}
+			);
+
+			await page.locator('#step-address .next-step').evaluate((button) => {
+				button.click();
+				button.click();
+			});
+
+			await expect(page.locator('#step-shipping')).toHaveClass(/active/, {timeout: 40_000});
+			expect(writes, 'the second press sent a second write to the same quotation').toHaveLength(1);
+			await expect(page.locator('.modal.show'), 'an error dialog opened').toHaveCount(0);
+			await expect(
+				page.locator('#step-shipping .next-step'),
+				'the Next button of the new step is still locked'
+			).toBeEnabled({timeout: 30_000});
+		});
 	});
 
 	test.describe('Payment step', () => {

@@ -207,11 +207,11 @@ frappe.ready(function() {
             return this._isLoading;
         }
 
-        set isLoading(valeur) {
-            this._isLoading = valeur;
+        set isLoading(value) {  //// Neoffice — the parameter was named `valeur`: identifiers are English (#634)
+            this._isLoading = value;  //// Neoffice — see above
             $('.next-step, .prev-step')
-                .prop('disabled', !!valeur)
-                .toggleClass('is-busy', !!valeur);
+                .prop('disabled', !!value)  //// Neoffice — see above
+                .toggleClass('is-busy', !!value);  //// Neoffice — see above
         }
 
         setupListeners() {
@@ -816,18 +816,28 @@ frappe.ready(function() {
                     if (Object.keys(this.pendingChanges).length > 0) {
                         this.showConfirmationDialog(e);
                     } else {
-                        // Force address synchronization if necessary
-                        await frappe.call({
-                            method: 'webshop.webshop.shopping_cart.cart.update_cart_address',
-                            args: { 
-                                address_type: 'Shipping', 
-                                address_name: $('#billing_address_name').val() 
-                            }
-                        });
+                        //// Neoffice — the step is frozen while its address is saved (#634). Nothing
+                        //// used to hold it: a second press on Next, sent before the first answer
+                        //// came back, started a second update_cart_address on the same quotation
+                        //// (load, modify, save), and the two writes deadlocked in the database.
+                        //// The lock is taken in the same tick as the click, before the first
+                        //// await, and released BEFORE the step changes: showStep('step-shipping')
+                        //// calls loadShippingMethods(), which does nothing while a freeze is held.
+                        await this.runWithStepLocked(async () => {
+                            // Force address synchronization if necessary
+                            await frappe.call({
+                                method: 'webshop.webshop.shopping_cart.cart.update_cart_address',
+                                args: { 
+                                    address_type: 'Shipping', 
+                                    address_name: $('#billing_address_name').val() 
+                                }
+                            });
 
-                        // Check if all items are gift cards
-                        await this.checkGiftCardOnly();
-                        
+                            // Check if all items are gift cards
+                            await this.checkGiftCardOnly();
+                        });
+                        //// Neoffice — the two calls above sit inside the lock now (#634); the step changes after it.
+
                         if (this.isGiftCardOnly) {
                             this.showStep('step-payment');
                         } else {
@@ -1598,7 +1608,12 @@ frappe.ready(function() {
                 changesSummary,
                 () => {
                     // On 'Yes'
-                    this.applyPendingChanges().then(() => {
+                    //// Neoffice — same lock as the address step (#634): applyPendingChanges is four to
+                    //// seven writes in a row, and a second press on Yes started a second run while
+                    //// the first was still writing. pendingChanges is cleared and the step changes
+                    //// only after the lock is released, for the reason given at the address step.
+                    if (this.isLoading) return;
+                    this.runWithStepLocked(() => this.applyPendingChanges()).then(() => {
                         this.pendingChanges = {};
                         this.showStep('step-shipping');
                     }).catch(error => {
@@ -1713,6 +1728,19 @@ frappe.ready(function() {
                     this.unfreeze(selector);
                 }
             });
+        }
+
+        //// Neoffice — runs `task` with the active step frozen and releases it whatever
+        //// happens (#634). Freezing sets isLoading, which the step buttons and the step
+        //// handlers all read; the freeze is counted and has the 30 s failsafe above. The
+        //// caller changes step AFTER the returned promise settles, never inside `task`.
+        async runWithStepLocked(task) {
+            this.freezeElements(['step-section']);
+            try {
+                return await task();
+            } finally {
+                this.unfreezeElements(['step-section']);
+            }
         }
 
         //// Neoffice — single door to the server. Guarantees three things the
