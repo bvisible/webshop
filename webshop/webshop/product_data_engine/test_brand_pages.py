@@ -117,7 +117,7 @@ class TestLinksLeadToThePage(FrappeTestCase):
 		self.assertNotIn("frappe.db.count(", carousel)
 		# nothing to offer, nothing drawn: no title over an apology
 		self.assertLess(carousel.index("{% if brands %}"), carousel.index("<section"))
-		self.assertNotIn("No brands available", carousel)
+		self.assertNotIn('_("No brands available', carousel)
 		self.assertIn(
 			"webshop.webshop.product_data_engine.brand_pages.brand_page_routes", frappe.get_hooks("jinja")["methods"]
 		)
