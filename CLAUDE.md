@@ -1116,7 +1116,11 @@ defects in neoffice-maintenance#691.
   brands from `brand_carousel_helper`, whose functions read `offered_brands()`: the brands with a
   page, with the figure the page and the facets give, whatever the sort. The include used to list
   every Brand record and drop an empty one only when sorted by count: a public shop's home page
-  offered a brand with no published product, whose card led to an empty catalogue.
+  offered a brand with no published product, whose card led to an empty catalogue. With no brand
+  to offer it draws nothing (#36), and builder's pruning of an empty include asks the same question
+  (`empty_includes.has_pictured_brands`, bvisible/builder@d33cd9bf). Its tests hand the component a
+  fixed answer through the render context (a context variable wins over the jinja method), so they
+  do not depend on what the test site carries.
 - **The skeleton's `<style>` gave the product areas their 10px margin**: skipping the skeleton
   lost it, and the grid rose 26px under the toolbar. `add_product_loader_styles()` injects the
   styles alone, on both paths.
