@@ -33,66 +33,55 @@ def get_brands_with_product_count(limit: int = 20, sort_by: str = "brand_name",
         if cached_brands is not None:
             return cached_brands
     
-    # //// Neoffice multi-site: scope to the current site
-    from webshop.webshop.multi_site import site_sql_condition
-    _site_cond = site_sql_condition("wi")
+    # //// Neoffice — the brands this site shows something of, counted as the brand pages and the
+    # //// facets count them (brand_pages.offered_brands: published, not sold, visible on this
+    # //// site, gift cards and hidden variants out), 2026-09-29. The hand-written query counted
+    # //// published items of the site but kept hidden variants, and the carousel include did not
+    # //// even use it: it listed every Brand record, so a public shop's home page offered a brand
+    # //// with no product, whose card led to an empty catalogue.
+    from webshop.webshop.product_data_engine.brand_pages import brand_link, brand_route, offered_brands
 
-    # Get brands with product count using SQL for better performance
-    query = f"""
-        SELECT 
-            b.name as brand_name,
-            b.brand,
-            b.image as logo,
-            b.description,
-            COUNT(DISTINCT wi.name) as product_count
-        FROM `tabBrand` b
-        -- //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
-        LEFT JOIN `tabWebsite Item` wi ON wi.brand = b.name AND wi.published = 1 AND wi.sold = 0{_site_cond}
-        GROUP BY b.name, b.brand, b.image, b.description
-        HAVING product_count > 0
-    """
-    
-    # Add sorting
-    if sort_by == "product_count":
-        query += " ORDER BY product_count DESC, b.brand ASC"
-    elif sort_by == "random":
-        query += " ORDER BY RAND()"
-    else:  # default to brand_name
-        query += " ORDER BY b.brand ASC"
-    
-    # Add limit
-    query += f" LIMIT {int(limit)}"
-    
-    try:
-        brands_data = frappe.db.sql(query, as_dict=True)
-        
-        if debug:
-            frappe.logger().debug(f"Brand query returned {len(brands_data)} brands")
-            if brands_data and len(brands_data) > 0:
-                frappe.logger().debug(f"Sample brand data: {brands_data[0]}")
-    except Exception as e:
-        frappe.log_error(f"Error in brand carousel query: {str(e)}", "Brand Carousel Error")
+    offered = offered_brands()
+    if not offered:
         return []
-    
+    brands_data = frappe.get_all(
+        "Brand", filters={"name": ["in", list(offered)]}, fields=["name", "brand", "image", "description"]
+    )
+    # //// Neoffice — sorted and cut here, over offered_brands (see above), not in SQL
+    if sort_by == "product_count":
+        brands_data.sort(key=lambda b: (-offered[b.name], (b.brand or b.name).lower()))
+    # //// Neoffice — see the sort marker above
+    elif sort_by == "random":
+        import random
+
+        random.shuffle(brands_data)
+    # //// Neoffice — see the sort marker above
+    else:  # default to brand_name
+        brands_data.sort(key=lambda b: (b.brand or b.name).lower())
+    # //// Neoffice — see the sort marker above
+    brands_data = brands_data[: int(limit)]
+
+    if debug:
+        frappe.logger().debug(f"Brand carousel: {len(brands_data)} brands")
+
     # Format brands for carousel
     formatted_brands = []
     # //// Neoffice — a brand links to its own page when it has one (#691 lot 2), else to the
-    # //// catalogue filtered on it, which robots.txt closes (brand_pages.brand_link).
-    from webshop.webshop.product_data_engine.brand_pages import brand_link, brand_page_routes
-
-    page_routes = brand_page_routes()
+    # //// catalogue filtered on it, which robots.txt closes (brand_pages.brand_link). Every
+    # //// brand offered here has a page: the routes come from the same reading.
+    page_routes = {name: "/" + brand_route(name) for name in offered}
     for brand in brands_data:
         # //// Neoffice — no brand filter built here any more: brand_link gives the address.
         formatted_brand = {
-            "brand_name": brand.brand,  # This is the alias from SQL query
-            "logo": brand.logo,
+            "brand_name": brand.brand,
+            "logo": brand.image,
             # //// Neoffice — see brand_link above.
-            "route": brand_link(brand.brand_name, page_routes),
+            "route": brand_link(brand.name, page_routes),
             "description": brand.description or "",
-            "product_count": brand.product_count
+            "product_count": offered[brand.name],
         }
         formatted_brands.append(formatted_brand)
-    
+
     # Cache the results if cache is enabled
     if use_cache and 'cache_manager' in locals():
         cache_manager.set_cache(cache_key, formatted_brands, cache_ttl)
@@ -161,31 +150,21 @@ def get_featured_brands(brand_names: List[str], use_cache: bool = True,
     # Create a map for easy lookup
     brand_map = {b.name: b for b in brands_data}
     
-    # //// Neoffice multi-site: hide items restricted to other sites
-    from webshop.webshop.multi_site import excluded_item_names
-    _excluded = excluded_item_names()
-
     # Format brands in the requested order
     formatted_brands = []
-    # //// Neoffice — a brand links to its own page when it has one (#691 lot 2): the pages are
-    # //// fetched once for the whole carousel (brand_pages.brand_link).
-    from webshop.webshop.product_data_engine.brand_pages import brand_link, brand_page_routes
+    # //// Neoffice — a brand links to its own page when it has one (#691 lot 2), and a featured
+    # //// brand shows only when this site shows something of it, counted as the brand page and the
+    # //// facets count it (brand_pages.offered_brands, 2026-09-29; it counted per brand, without
+    # //// the hidden variants and gift cards rules).
+    from webshop.webshop.product_data_engine.brand_pages import brand_link, brand_route, offered_brands
 
-    page_routes = brand_page_routes()
+    offered = offered_brands()
+    page_routes = {name: "/" + brand_route(name) for name in offered}
     for brand_name in brand_names:
         if brand_name in brand_map:
             brand = brand_map[brand_name]
-            
-            # Get product count
-            # //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
-            count_filters = {"brand": brand_name, "published": 1, "sold": 0}
-            if _excluded:
-                count_filters["name"] = ["not in", _excluded]
-            product_count = frappe.db.count(
-                "Website Item",
-                filters=count_filters
-            )
-            
+            # //// Neoffice — the figure of offered_brands (see the marker above the loop)
+            product_count = offered.get(brand_name, 0)
             if product_count > 0:
                 # //// Neoffice — no brand filter built here any more: brand_link gives the address.
                 formatted_brand = {

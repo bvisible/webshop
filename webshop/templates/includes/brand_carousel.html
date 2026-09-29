@@ -11,60 +11,22 @@
 {%- set brands = brands if (brands and brands is iterable and brands is not string
     and brands|selectattr("brand_name", "defined")|list|length == brands|length) else None -%}
 {% if not brands %}
-    {# Get brands automatically if not provided #}
-
-    {# First, get all brands #}
-    {% set all_brands = frappe.get_all(
-        "Brand",
-        fields=["name", "brand", "image", "description"],
-        limit=100
-    ) %}
-
-    {# Transform the data and add product count #}
-    {% set transformed_brands = [] %}
-    {#- //// Neoffice — a brand links to its own page when it has one (#691 lot 2), else to the
-        catalogue filtered on it, which robots.txt closes: the pages, fetched once. -#}
-    {% set brand_routes = brand_page_routes() %}
-    {% for b in all_brands %}
-        {# Skip brands without image if hide_without_image is set, or with private images #}
-        {% set skip_brand = false %}
-        {% if hide_without_image and not b.image %}
-            {% set skip_brand = true %}
-        {% elif b.image and '/private/' in b.image %}
-            {% set skip_brand = true %}
-        {% endif %}
-        {% if not skip_brand %}
-            {% set brand_filter = '{"brand":["' + b.name + '"]}' %}
-            {% set product_count = 0 %}
-            {% if carousel_sort_by == "product_count" or show_product_count %}
-                {% set product_count = frappe.db.count("Website Item", {"brand": b.name, "published": 1}) %}
-            {% endif %}
-            {% if product_count > 0 or not carousel_sort_by == "product_count" %}
-                {#- //// Neoffice — the route: see brand_routes above (a comment cannot sit inside the tag) -#}
-                {% set brand_item = {
-                    "route": (brand_routes[b.name][1:] if b.name in brand_routes else "all-products?field_filters=" + brand_filter.replace(' ', '%20').replace('"', '%22')),
-                    "brand_name": b.brand,
-                    "logo": b.image,
-                    "description": b.description or "",
-                    "product_count": product_count,
-                    "_name": b.name
-                } %}
-                {#- //// Neoffice — never `_`: a set of `_` shadows the translation function (CLAUDE.md). -#}
-                {% set _appended = transformed_brands.append(brand_item) %}
-            {% endif %}
+    {#- //// Neoffice — the brands come from the helper, which reads the catalogue's scope: only a brand
+        this site shows something of, with the figure its brand page and the facets give
+        (brand_carousel_helper.get_brands_with_product_count → brand_pages.offered_brands,
+        2026-09-29). This block listed every Brand record (the first 100) and dropped an empty one
+        only when sorted by count, so a public shop's home page offered a brand with no product,
+        whose card led to an empty catalogue; its count, when it counted, ignored the site, the sold
+        used units and the hidden variants. Brands with a private or missing image are skipped as
+        before: a private file renders as a broken image for a visitor. -#}
+    {% set brands = [] %}
+    {% for b in get_brands_with_product_count(limit=100, sort_by=carousel_sort_by or "brand_name") %}
+        {% if not (hide_without_image and not b.logo) and not (b.logo and '/private/' in b.logo) %}
+            {#- //// Neoffice — never `_`: a set of `_` shadows the translation function (CLAUDE.md). -#}
+            {% set _appended = brands.append(b) %}
         {% endif %}
     {% endfor %}
-    
-    {# Sort the brands #}
-    {% if carousel_sort_by == "product_count" %}
-        {% set sorted_brands = transformed_brands|sort(attribute='product_count', reverse=True) %}
-        {% set brands = sorted_brands[:carousel_limit|default(20)] %}
-    {% elif carousel_sort_by == "random" %}
-        {% set brands = transformed_brands[:carousel_limit|default(20)] %}
-    {% else %}
-        {% set sorted_brands = transformed_brands|sort(attribute='brand_name') %}
-        {% set brands = sorted_brands[:carousel_limit|default(20)] %}
-    {% endif %}
+    {% set brands = brands[:carousel_limit|default(20)] %}
 {% endif %}
 
 {% set unique_carousel_id = carousel_id|default('brand-carousel-' + range(1000, 9999)|random|string) %}
