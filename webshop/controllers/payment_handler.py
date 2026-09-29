@@ -248,7 +248,8 @@ class PaymentHandler:
                 return self.handle_error("Missing payment request ID")
             if not frappe.db.exists("Payment Request", payment_request_id):
                 return self.handle_error("Missing payment request ID")
-            if not _peut_conclure(payment_request_id):
+            # //// Neoffice — RULE #00 pass (#925): was `_peut_conclure`.
+            if not _may_conclude(payment_request_id):
                 frappe.throw(_("Not permitted"), frappe.PermissionError)
 
             # Bypass all permission checks - payment is confirmed by payment provider
@@ -498,7 +499,7 @@ class PaymentHandler:
             # //// on the PSP side by a `succeeded` intent.
             if not payment_request_id or not frappe.db.exists("Payment Request", payment_request_id):
                 return self.handle_error("Missing payment request ID")
-            if not _peut_conclure(payment_request_id, argent_constate=False):
+            if not _may_conclude(payment_request_id, money_confirmed=False):
                 frappe.throw(_("Not permitted"), frappe.PermissionError)
 
             payment_request = frappe.get_doc("Payment Request", payment_request_id)
@@ -636,7 +637,10 @@ def create_payment_request(quotation_id=None, gateway_settings=None, idempotency
 # //// An anonymous visitor who posts a request number belongs to none of
 # //// these. Case 4 is the TRUE invariant: the money is confirmed, no matter
 # //// who reports it.
-def _peut_conclure(payment_request_id: str, argent_constate: bool = True) -> bool:
+# //// Neoffice — RULE #00 pass (#925): renamed from `_peut_conclure(…, argent_constate=…)`.
+# //// Same behaviour and the same two call sites in this file; the identifiers were the last
+# //// French ones of the payment guard.
+def _may_conclude(payment_request_id: str, money_confirmed: bool = True) -> bool:
 	user = frappe.session.user
 
 	# 1. the server itself (background task, server-side return page)
@@ -655,7 +659,8 @@ def _peut_conclure(payment_request_id: str, argent_constate: bool = True) -> boo
 	#    Checked before case 3 to cover a gateway return where the
 	#    session has not been restored yet.
 	try:
-		if argent_constate and frappe.db.exists("DocType", "Payment Intent") and frappe.db.exists(
+		# //// Neoffice — RULE #00 pass (#925): the flag was `argent_constate`.
+		if money_confirmed and frappe.db.exists("DocType", "Payment Intent") and frappe.db.exists(
 			"Payment Intent",
 			{"reference_doctype": "Payment Request", "reference_name": payment_request_id,
 			 "status": "succeeded"},
