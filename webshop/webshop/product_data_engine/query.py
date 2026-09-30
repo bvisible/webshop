@@ -1206,47 +1206,17 @@ class ProductQuery:
 
 	def get_stock_availability(self, item):
 		"""Modify item object and add stock details."""
-		from webshop.templates.pages.wishlist import (
-			get_stock_availability as get_stock_availability_from_template,
-		)
 		# //// Neoffice — the stock shown on a card is the webshop stock (projected, minus POS
 		# //// reservations, per source when multi-warehouse is on) — see utils/product.py
-		# //// (17128042fc / f3d9fb5de7, 2025-12; 5bf2e88a1b, 2026-08-25).
-		from webshop.webshop.utils.product import get_web_item_qty_in_stock
+		# //// (17128042fc / f3d9fb5de7, 2025-12; 5bf2e88a1b, 2026-08-25). The rule itself lives
+		# //// in get_web_item_stock_availability since 2026-09-30, where the desk's item lists
+		# //// read the same verdict; upstream computes it inline here, through the wishlist's
+		# //// get_stock_availability, without the stock quantity.
+		from webshop.webshop.utils.product import get_web_item_stock_availability
 
-		item.in_stock = False
-		# //// Neoffice — see above.
-		item.stock_qty = 0
-		warehouse = item.get("website_warehouse")
-		is_stock_item = frappe.get_cached_value("Item", item.item_code, "is_stock_item")
-
-		if item.get("on_backorder"):
-			return
-
-		if not is_stock_item:
-			if warehouse:
-				# product bundle case
-				item.in_stock = get_non_stock_item_status(item.item_code, "website_warehouse")
-			else:
-				item.in_stock = True
-		elif warehouse:
-			# //// Neoffice — multi-warehouse: the grid badge aggregates every
-			# //// exposed source of the item (an item out of store stock but
-			# //// available at the supplier must not read "out of stock" in the
-			# //// grid while its page says otherwise). Feature off or single
-			# //// source: historical single-warehouse computation.
-			from webshop.webshop.multi_warehouse.sources import get_aggregate_stock
-
-			aggregate = get_aggregate_stock(item.item_code)
-			if aggregate is not None:
-				item.in_stock = aggregate.in_stock
-				item.stock_qty = aggregate.stock_qty
-				return
-
-			# stock item and has warehouse - get full stock info
-			stock_info = get_web_item_qty_in_stock(item.item_code, "website_warehouse", warehouse)
-			item.in_stock = stock_info.in_stock
-			item.stock_qty = stock_info.stock_qty if stock_info.stock_qty else 0
+		availability = get_web_item_stock_availability(item)
+		item.in_stock = availability.in_stock
+		item.stock_qty = availability.stock_qty
 
 	def get_cart_items(self):
 		customer = get_customer(silent=True)

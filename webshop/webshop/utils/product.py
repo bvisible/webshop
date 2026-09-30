@@ -180,3 +180,48 @@ def get_non_stock_item_status(item_code, item_warehouse_field):
 		)
 	else:
 		return 1
+
+
+# //// Neoffice — added: the stock a product card shows, taken out of
+# //// ProductQuery.get_stock_availability so the desk reads the same verdict: the
+# //// « Out of stock » status of the Website Item list is this function's answer
+# //// (neoffice_theme/stock.py, 2026-09-30). One rule for both: an item on backorder
+# //// is never counted in stock (its card says « on backorder »); an item kept out of
+# //// stock is in stock, unless it is a bundle whose components are not; a stock item
+# //// counts its exposed sources when multi-warehouse is on, its website warehouse
+# //// otherwise, and nothing when it has none.
+def get_web_item_stock_availability(item):
+	"""{in_stock, stock_qty} of a website item, as its card on the shop shows it.
+
+	`item` carries item_code, and may carry website_warehouse and on_backorder.
+	"""
+	availability = frappe._dict({"in_stock": False, "stock_qty": 0})
+	if item.get("on_backorder"):
+		return availability
+
+	warehouse = item.get("website_warehouse")
+	if not frappe.get_cached_value("Item", item.get("item_code"), "is_stock_item"):
+		# product bundle case: in stock when its components are
+		availability.in_stock = (
+			get_non_stock_item_status(item.get("item_code"), "website_warehouse") if warehouse else True
+		)
+		return availability
+	if not warehouse:
+		return availability
+
+	# Multi-warehouse: the badge aggregates every exposed source of the item (an item out
+	# of store stock but available at the supplier must not read « out of stock » in the
+	# grid while its page says otherwise). Feature off or single source: the historical
+	# single-warehouse computation.
+	from webshop.webshop.multi_warehouse.sources import get_aggregate_stock
+
+	aggregate = get_aggregate_stock(item.get("item_code"))
+	if aggregate is not None:
+		availability.in_stock = aggregate.in_stock
+		availability.stock_qty = aggregate.stock_qty
+		return availability
+
+	stock_info = get_web_item_qty_in_stock(item.get("item_code"), "website_warehouse", warehouse)
+	availability.in_stock = stock_info.in_stock
+	availability.stock_qty = stock_info.stock_qty if stock_info.stock_qty else 0
+	return availability
