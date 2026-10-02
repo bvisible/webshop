@@ -18,6 +18,7 @@ from webshop.webshop import api
 PREFIX = "PAB1032"
 OWN = f"_{PREFIX} Customer"
 OTHER = f"_{PREFIX} Other"
+PORTAL = "pab1032-portal@yopmail.com"
 EXTRA = ("company", "to_the_attention_of", "neo_delivery_instructions")
 
 
@@ -62,10 +63,28 @@ class TestPortalAddressBook(FrappeTestCase):
 		_bare_customer(OTHER)
 		cls.own = _address(OWN, "Rue Propre")
 		cls.other = _address(OTHER, "Rue Voisine")
+		# A portal customer: the Customer role, nothing of the desk.
+		if not frappe.db.exists("User", PORTAL):
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": PORTAL,
+					"first_name": "pab1032-portal",
+					"user_type": "Website User",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Customer"}],
+				}
+			)
+			user.flags.skip_drive_setup = True
+			user.insert(ignore_permissions=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
 
 	@classmethod
 	def tearDownClass(cls):
 		frappe.set_user("Administrator")
+		frappe.delete_doc("User", PORTAL, force=1, ignore_permissions=True)
 		for name in (cls.own, cls.other):
 			frappe.delete_doc("Address", name, force=1, ignore_permissions=True)
 		frappe.db.delete("Customer", {"name": ("in", (OWN, OTHER))})
@@ -113,3 +132,28 @@ class TestPortalAddressBook(FrappeTestCase):
 			self.assertRaises(frappe.ValidationError, api.get_address, self.other)
 			self.assertRaises(frappe.ValidationError, api.update_address, self.other, self._data(company="x"))
 		self.assertFalse(frappe.db.get_value("Address", self.other, "company"))
+
+	def test_an_address_the_office_made_can_be_changed_by_the_customer(self):
+		# The Customer role may only write an address it created; the office made this one. Before, the
+		# shop answered PermissionError and nothing was saved.
+		frappe.set_user(PORTAL)
+		with self._as_customer():
+			api.update_address(self.own, self._data(to_the_attention_of=f"{PREFIX} Marc"))
+		frappe.set_user("Administrator")
+		self.assertEqual(frappe.db.get_value("Address", self.own, "to_the_attention_of"), f"{PREFIX} Marc")
+
+	def test_an_address_shared_with_another_account_is_not_changed_from_the_shop(self):
+		shared = frappe.get_doc("Address", self.own)
+		shared.append("links", {"link_doctype": "Customer", "link_name": OTHER})
+		shared.save(ignore_permissions=True)
+		try:
+			frappe.set_user(PORTAL)
+			with self._as_customer():
+				self.assertRaises(frappe.ValidationError, api.update_address, self.own, self._data(company="x"))
+				self.assertRaises(frappe.ValidationError, api.delete_address, self.own)
+		finally:
+			frappe.set_user("Administrator")
+			shared.reload()
+			shared.set("links", [row for row in shared.links if row.link_name != OTHER])
+			shared.save(ignore_permissions=True)
+		self.assertTrue(frappe.db.exists("Address", self.own))

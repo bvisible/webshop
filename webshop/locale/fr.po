@@ -9249,3 +9249,7 @@ msgstr "Payé sur facture depuis un compte ouvert dans la boutique dont l'adress
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "A customer who creates an account in the shop is signed in straight away and can order. The welcome email then confirms the address; an order paid on account is held until then. An address the shop already knows, and a site for business accounts only, keep the confirmation first."
 msgstr "Un client qui crée un compte dans la boutique est connecté aussitôt et peut commander. L'e-mail de bienvenue confirme ensuite l'adresse ; une commande payée sur facture reste en attente jusque-là. Une adresse déjà connue de la boutique et un site réservé aux comptes professionnels conservent la confirmation préalable."
+
+#: webshop/webshop/api.py:899
+msgid "This address is also used by another account: please contact us to change it."
+msgstr "Cette adresse est aussi utilisée par un autre compte : contactez-nous pour la modifier."

@@ -885,6 +885,18 @@ def clear_webshop_cache():
 # //// the name printed on documents, « to the attention of », the delivery instructions
 # //// (maintenance#1032). Read and written only where the site has them.
 PORTAL_ADDRESS_EXTRA_FIELDS = ("company", "to_the_attention_of", "neo_delivery_instructions")
+_PARTY_DOCTYPES = ("Customer", "Supplier", "Lead", "Prospect")
+
+
+def _refuse_shared_address(address, party):
+	"""//// Neoffice — an address the customer changes or deletes from the shop must be theirs alone: one
+	//// also linked to another party (a property manager's, a supplier's) would change for that party too
+	//// (maintenance#1032)."""
+	for link in address.links:
+		if link.link_doctype in _PARTY_DOCTYPES and not (
+			link.link_doctype == party.doctype and link.link_name == party.name
+		):
+			frappe.throw(_("This address is also used by another account: please contact us to change it."))
 
 
 @frappe.whitelist()
@@ -959,6 +971,8 @@ def update_address(address_name, address_data):
 	if not is_linked:
 		frappe.throw(_("Address not found or access denied"))
 
+	_refuse_shared_address(address, party)
+
 	# Update address fields
 	address.address_title = address_data.get("address_title")
 	address.address_line1 = address_data.get("address_line1")
@@ -978,7 +992,11 @@ def update_address(address_name, address_data):
 		if field in address_data and address.meta.has_field(field):
 			address.set(field, address_data.get(field))
 
-	address.save()
+	# //// Neoffice — saved past the role's rules, like delete_address below: the Customer role may only
+	# //// write an address it created (if_owner), so an address the office or the till made for the
+	# //// customer could not be changed from the shop (PermissionError, maintenance#1032). The link to
+	# //// the caller's own customer, checked above, is this endpoint's permission.
+	address.save(ignore_permissions=True)
 
 	# Update customer's primary address if needed
 	if address.is_primary_address:
@@ -1015,6 +1033,8 @@ def delete_address(address_name):
 
 	if not is_linked:
 		frappe.throw(_("Address not found or access denied"))
+
+	_refuse_shared_address(address, party)
 
 	# Check if address is used in any pending quotations
 	quotations = frappe.get_all(
