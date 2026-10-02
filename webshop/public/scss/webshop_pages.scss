@@ -234,8 +234,19 @@
 	#address-form-container .card-header #address-form-title {
 		color: var(--wsh-on-primary) !important;
 	}
-	#address-form-container .btn-close {
-		filter: invert(1);
+	/* //// Neoffice — Bootstrap 4's `close` on the coloured header (the form used Bootstrap 5's
+	   `btn-close`, which this site does not have: it rendered as a bar, maintenance#1032). */
+	#address-form-container .my-addresses-close {
+		color: var(--wsh-on-primary);
+		opacity: 0.85;
+		font-size: 1.6rem;
+		line-height: 1;
+		text-shadow: none;
+		background: transparent;
+		border: 0;
+	}
+	#address-form-container .my-addresses-close:hover {
+		opacity: 1;
 	}
 	#address-form-container .form-select {
 		width: 100%;

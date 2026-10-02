@@ -16,76 +16,112 @@
 	</div>
 
 	<!-- Address Form (hidden by default) -->
+	{# //// Neoffice — in the order of an envelope, like the desk's Address form and the address book of
+	   //// the sales documents (maintenance#1032): the name printed on documents and « to the attention
+	   //// of » before the street, the street and its number on one row, postcode and town, canton and
+	   //// country; then how to reach and deliver. Bootstrap 4 here: `close`, not Bootstrap 5's
+	   //// `btn-close`, which rendered as a bar. #}
 	<div id="address-form-container" class="card mb-4" style="display: none;">
 		<div class="card-header d-flex justify-content-between align-items-center">
 			<h5 class="m-0" id="address-form-title">{{ _("Add New Address") }}</h5>
-			<button type="button" class="btn-close" onclick="hideAddressForm()"></button>
+			<button type="button" class="close my-addresses-close" aria-label="{{ _('Close') }}" onclick="hideAddressForm()">&times;</button>
 		</div>
 		<div class="card-body">
-			<form id="address-form" onsubmit="event.preventDefault(); saveAddress();">
+			<form id="address-form" onsubmit="event.preventDefault(); saveAddress();" autocomplete="on">
 				<div class="row">
 					<div class="col-md-12 mb-3">
 						<label for="address_title" class="form-label">{{ _("Address Title") }} <span class="text-danger">*</span></label>
 						<input type="text" class="form-control" id="address_title" placeholder="{{ _('e.g., Home, Office') }}" required>
 					</div>
 				</div>
+				{% if has_field.company or has_field.to_the_attention_of %}
 				<div class="row">
-					<div class="col-md-5 mb-3">
-						<label for="address_line1" class="form-label">{{ _("Address Line 1") }} <span class="text-danger">*</span></label>
-						<input type="text" class="form-control" id="address_line1" required>
+					{% if has_field.company %}
+					<div class="col-md-6 mb-3">
+						<label for="company" class="form-label">{{ field_label.company }}</label>
+						<input type="text" class="form-control" id="company" autocomplete="organization">
 					</div>
-					<div class="col-md-2 mb-3">
-						<label for="custom_house_number" class="form-label">{{ _("House No.") }}</label>
+					{% endif %}
+					{% if has_field.to_the_attention_of %}
+					<div class="col-md-6 mb-3">
+						<label for="to_the_attention_of" class="form-label">{{ field_label.to_the_attention_of }}</label>
+						<input type="text" class="form-control" id="to_the_attention_of" autocomplete="name">
+					</div>
+					{% endif %}
+				</div>
+				{% endif %}
+				<div class="row">
+					<div class="{{ 'col-8 col-md-10' if has_field.custom_house_number else 'col-12' }} mb-3">
+						<label for="address_line1" class="form-label">{{ _("Street") }} <span class="text-danger">*</span></label>
+						<input type="text" class="form-control" id="address_line1" autocomplete="address-line1" required>
+					</div>
+					{% if has_field.custom_house_number %}
+					<div class="col-4 col-md-2 mb-3">
+						<label for="custom_house_number" class="form-label">{{ field_label.custom_house_number }}</label>
 						<input type="text" class="form-control" id="custom_house_number">
 					</div>
-					<div class="col-md-5 mb-3">
+					{% endif %}
+				</div>
+				<div class="row">
+					<div class="col-md-12 mb-3">
 						<label for="address_line2" class="form-label">{{ _("Address Line 2") }}</label>
-						<input type="text" class="form-control" id="address_line2" placeholder="{{ _('Apartment, suite, etc. (optional)') }}">
+						<input type="text" class="form-control" id="address_line2" autocomplete="address-line2" placeholder="{{ _('Apartment, suite, etc. (optional)') }}">
 					</div>
 				</div>
 				<div class="row">
-					<div class="col-md-3 mb-3">
+					<div class="col-4 col-md-3 mb-3">
 						<label for="pincode" class="form-label">{{ _("Postal Code") }} <span class="text-danger">*</span></label>
-						<input type="text" class="form-control" id="pincode" required>
+						<input type="text" class="form-control" id="pincode" autocomplete="postal-code" required>
 					</div>
-					<div class="col-md-5 mb-3">
+					<div class="col-8 col-md-9 mb-3">
 						<label for="city" class="form-label">{{ _("City") }} <span class="text-danger">*</span></label>
-						<input type="text" class="form-control" id="city" required>
-					</div>
-					<div class="col-md-4 mb-3">
-						<label for="state" class="form-label">{{ _("State/Region") }}</label>
-						<input type="text" class="form-control" id="state">
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-4 mb-3">
-						<label for="country" class="form-label">{{ _("Country") }} <span class="text-danger">*</span></label>
-						<select class="form-select" id="country" required>
-							{% for c in countries %}
-							<option value="{{ c.name }}" {% if c.name == default_country %}selected{% endif %}>{{ c.country_name }}</option>
-							{% endfor %}
-						</select>
-					</div>
-					<div class="col-md-4 mb-3">
-						<label for="phone" class="form-label">{{ _("Phone") }}</label>
-						<input type="tel" class="form-control" id="phone">
-					</div>
-					<div class="col-md-4 mb-3">
-						<label for="email_id" class="form-label">{{ _("Email") }}</label>
-						<input type="email" class="form-control" id="email_id">
+						<input type="text" class="form-control" id="city" autocomplete="address-level2" required>
 					</div>
 				</div>
 				<div class="row">
 					<div class="col-md-6 mb-3">
+						<label for="state" class="form-label">{{ _("Canton") }}</label>
+						<input type="text" class="form-control" id="state" autocomplete="address-level1">
+					</div>
+					<div class="col-md-6 mb-3">
+						<label for="country" class="form-label">{{ _("Country") }} <span class="text-danger">*</span></label>
+						<select class="form-control form-select" id="country" required>
+							{% for c in countries %}
+							<option value="{{ c.name }}" {% if c.name == default_country %}selected{% endif %}>{{ _(c.country_name) }}</option>
+							{% endfor %}
+						</select>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6 mb-3">
+						<label for="phone" class="form-label">{{ _("Phone") }}</label>
+						<input type="tel" class="form-control" id="phone" autocomplete="tel">
+					</div>
+					<div class="col-md-6 mb-3">
+						<label for="email_id" class="form-label">{{ _("Email") }}</label>
+						<input type="email" class="form-control" id="email_id" autocomplete="email">
+					</div>
+				</div>
+				{% if has_field.neo_delivery_instructions %}
+				<div class="row">
+					<div class="col-md-12 mb-3">
+						<label for="neo_delivery_instructions" class="form-label">{{ field_label.neo_delivery_instructions }}</label>
+						<textarea class="form-control" id="neo_delivery_instructions" rows="2"></textarea>
+						{% if field_help.neo_delivery_instructions %}<small class="form-text text-muted">{{ field_help.neo_delivery_instructions }}</small>{% endif %}
+					</div>
+				</div>
+				{% endif %}
+				<div class="row">
+					<div class="col-md-6 mb-3">
 						<div class="form-check">
 							<input class="form-check-input" type="checkbox" id="is_primary_address">
-							<label class="form-check-label" for="is_primary_address">{{ _("Set as primary address") }}</label>
+							<label class="form-check-label" for="is_primary_address">{{ _("Preferred Billing Address") }}</label>
 						</div>
 					</div>
 					<div class="col-md-6 mb-3">
 						<div class="form-check">
 							<input class="form-check-input" type="checkbox" id="is_shipping_address">
-							<label class="form-check-label" for="is_shipping_address">{{ _("Set as shipping address") }}</label>
+							<label class="form-check-label" for="is_shipping_address">{{ _("Preferred Shipping Address") }}</label>
 						</div>
 					</div>
 				</div>
@@ -112,22 +148,27 @@
 							<h5 class="card-title">{{ address.address_title or address.name }}</h5>
 							<div>
 								{% if address.is_primary_address %}
-								<span class="badge bg-success">{{ _("Primary") }}</span>
+								<span class="badge bg-success" title="{{ _('Preferred Billing Address') }}">{{ _("Billing") }}</span>
 								{% endif %}
 								{% if address.is_shipping_address %}
-								<span class="badge bg-info">{{ _("Shipping") }}</span>
+								<span class="badge bg-info" title="{{ _('Preferred Shipping Address') }}">{{ _("Shipping") }}</span>
 								{% endif %}
 							</div>
 						</div>
+						{# //// Neoffice — the card reads like the desk's and the print's window (maintenance#1032): the
+						   //// name printed on documents in bold, « to the attention of », the street and its number,
+						   //// postcode and town; the delivery instructions under it. #}
 						<p class="card-text">
+							{% if address.company %}<strong>{{ address.company }}</strong><br>{% endif %}
+							{% if address.to_the_attention_of %}{{ _("To the attention of") }} : {{ address.to_the_attention_of }}<br>{% endif %}
 							{{ street_line(address) }}<br>
 							{% if address.address_line2 %}{{ address.address_line2 }}<br>{% endif %}
-							{{ address.pincode }} {{ address.city }}
-							{% if address.state %}, {{ address.state }}{% endif %}<br>
+							{{ address.pincode }} {{ address.city }}<br>
 							{{ _(address.country) }}
 							{% if address.phone %}<br><i class="fa fa-phone"></i> {{ address.phone }}{% endif %}
 							{% if address.email_id %}<br><i class="fa fa-envelope"></i> {{ address.email_id }}{% endif %}
 						</p>
+						{% if address.neo_delivery_instructions %}<p class="card-text small text-muted mb-0">{{ field_label.neo_delivery_instructions or _("Delivery instructions") }} : {{ address.neo_delivery_instructions }}</p>{% endif %}
 					</div>
 					<div class="card-footer bg-transparent">
 						<button class="btn btn-sm btn-outline-primary" onclick="editAddress('{{ address.name }}')">
@@ -156,6 +197,7 @@
 {% block script %}
 <script>
 window.default_country = "{{ default_country }}";
+window.myAddressesText = {{ texts | tojson }};
 {% include "www/my_addresses.js" %}
 </script>
 {% endblock %}

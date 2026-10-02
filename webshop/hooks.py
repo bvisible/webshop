@@ -46,7 +46,12 @@ website_redirects = [
 	{"source": "/homepage", "target": "/"},
 	{"source": "/navbar", "target": "/"},
 	{"source": "/footer", "target": "/"},
-	{"source": "/all-item-groups", "target": "/all-products"}
+	{"source": "/all-item-groups", "target": "/all-products"},
+	# //// Neoffice — « Addresses » of the customer's account (ERPNext's portal menu) opens Frappe's web form
+	# //// list, which shows a portal customer only the addresses they created themselves: « Nothing to
+	# //// show » for a customer whose addresses the shop or the office made. The shop's address book
+	# //// (/my_addresses) lists every address of the customer (maintenance#1032).
+	{"source": "/addresses", "target": "/my_addresses"},
 ]
 
 update_website_context = [

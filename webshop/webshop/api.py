@@ -880,6 +880,13 @@ def clear_webshop_cache():
 
 
 # Address Management API
+
+# //// Neoffice — fleet custom fields of the Address the customer edits from the shop's address book:
+# //// the name printed on documents, « to the attention of », the delivery instructions
+# //// (maintenance#1032). Read and written only where the site has them.
+PORTAL_ADDRESS_EXTRA_FIELDS = ("company", "to_the_attention_of", "neo_delivery_instructions")
+
+
 @frappe.whitelist()
 def get_address(address_name):
 	"""Get address details for editing"""
@@ -903,7 +910,7 @@ def get_address(address_name):
 	if not is_linked:
 		frappe.throw(_("Address not found or access denied"))
 
-	return {
+	out = {
 		"name": address.name,
 		"address_title": address.address_title,
 		"address_line1": address.address_line1,
@@ -918,6 +925,11 @@ def get_address(address_name):
 		"is_primary_address": address.is_primary_address,
 		"is_shipping_address": address.is_shipping_address
 	}
+	# //// Neoffice — the print and delivery fields of the address book (maintenance#1032).
+	for field in PORTAL_ADDRESS_EXTRA_FIELDS:
+		if address.meta.has_field(field):
+			out[field] = address.get(field)
+	return out
 
 
 @frappe.whitelist()
@@ -960,6 +972,11 @@ def update_address(address_name, address_data):
 	address.email_id = address_data.get("email_id")
 	address.is_primary_address = address_data.get("is_primary_address", 0)
 	address.is_shipping_address = address_data.get("is_shipping_address", 0)
+	# //// Neoffice — only what the form sent: an older page that does not know these fields must not
+	# //// empty them (maintenance#1032).
+	for field in PORTAL_ADDRESS_EXTRA_FIELDS:
+		if field in address_data and address.meta.has_field(field):
+			address.set(field, address_data.get(field))
 
 	address.save()
 

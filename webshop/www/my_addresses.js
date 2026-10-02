@@ -6,13 +6,29 @@
 
 let currentAddressName = null;
 
+//// Neoffice — the page's words, translated by the server (my_addresses.py): __() has no catalogue
+//// on this page, so « Add New Address » and the alerts stayed in English (maintenance#1032).
+function t(key, fallback) {
+	const texts = window.myAddressesText || {};
+	return texts[key] || __(fallback);
+}
+
+//// Neoffice — the fields a site may lack (fleet custom fields of the Address): read and written only
+//// when the form shows them.
+const OPTIONAL_FIELDS = ["company", "to_the_attention_of", "custom_house_number", "neo_delivery_instructions"];
+
+function fieldValue(id) {
+	const $el = $('#' + id);
+	return $el.length ? ($el.val() || '').trim() : undefined;
+}
+
 frappe.ready(function() {
 	// Nothing to initialize on load
 });
 
 function showAddressForm() {
 	currentAddressName = null;
-	$('#address-form-title').text(__('Add New Address'));
+	$('#address-form-title').text(t('add', 'Add New Address'));
 	clearAddressForm();
 	$('#address-form-container').slideDown();
 	$('html, body').animate({
@@ -29,7 +45,7 @@ function hideAddressForm() {
 function clearAddressForm() {
 	$('#address_title').val('');
 	$('#address_line1').val('');
-	$('#custom_house_number').val('');
+	OPTIONAL_FIELDS.forEach(function (f) { $('#' + f).val(''); });
 	$('#address_line2').val('');
 	$('#pincode').val('');
 	$('#city').val('');
@@ -46,16 +62,16 @@ function editAddress(addressName) {
 		method: 'webshop.webshop.api.get_address',
 		args: { address_name: addressName },
 		freeze: true,
-		freeze_message: __('Loading...'),
+		freeze_message: t('loading', 'Loading...'),
 		callback: function(r) {
 			if (r.message) {
 				currentAddressName = addressName;
-				$('#address-form-title').text(__('Edit Address'));
+				$('#address-form-title').text(t('edit', 'Edit Address'));
 
 				// Fill form with data
 				$('#address_title').val(r.message.address_title || '');
 				$('#address_line1').val(r.message.address_line1 || '');
-				$('#custom_house_number').val(r.message.custom_house_number || '');
+				OPTIONAL_FIELDS.forEach(function (f) { $('#' + f).val(r.message[f] || ''); });
 				$('#address_line2').val(r.message.address_line2 || '');
 				$('#pincode').val(r.message.pincode || '');
 				$('#city').val(r.message.city || '');
@@ -76,16 +92,16 @@ function editAddress(addressName) {
 }
 
 function deleteAddress(addressName) {
-	if (confirm(__('Are you sure you want to delete this address?'))) {
+	if (confirm(t('confirm_delete', 'Are you sure you want to delete this address?'))) {
 		frappe.call({
 			method: 'webshop.webshop.api.delete_address',
 			args: { address_name: addressName },
 			freeze: true,
-			freeze_message: __('Deleting...'),
+			freeze_message: t('deleting', 'Deleting...'),
 			callback: function(r) {
 				if (r.message && r.message.success) {
 					frappe.show_alert({
-						message: __('Address deleted successfully'),
+						message: t('deleted', 'Address deleted successfully'),
 						indicator: 'green'
 					});
 					setTimeout(function() {
@@ -106,27 +122,27 @@ function saveAddress() {
 	let country = $('#country').val();
 
 	if (!address_title) {
-		frappe.show_alert({ message: __('Address Title is required'), indicator: 'red' });
+		frappe.show_alert({ message: t('need_title', 'Address Title is required'), indicator: 'red' });
 		$('#address_title').focus();
 		return;
 	}
 	if (!address_line1) {
-		frappe.show_alert({ message: __('Address Line 1 is required'), indicator: 'red' });
+		frappe.show_alert({ message: t('need_street', 'Address Line 1 is required'), indicator: 'red' });
 		$('#address_line1').focus();
 		return;
 	}
 	if (!pincode) {
-		frappe.show_alert({ message: __('Postal Code is required'), indicator: 'red' });
+		frappe.show_alert({ message: t('need_pincode', 'Postal Code is required'), indicator: 'red' });
 		$('#pincode').focus();
 		return;
 	}
 	if (!city) {
-		frappe.show_alert({ message: __('City is required'), indicator: 'red' });
+		frappe.show_alert({ message: t('need_city', 'City is required'), indicator: 'red' });
 		$('#city').focus();
 		return;
 	}
 	if (!country) {
-		frappe.show_alert({ message: __('Country is required'), indicator: 'red' });
+		frappe.show_alert({ message: t('need_country', 'Country is required'), indicator: 'red' });
 		$('#country').focus();
 		return;
 	}
@@ -134,7 +150,6 @@ function saveAddress() {
 	let addressData = {
 		address_title: address_title,
 		address_line1: address_line1,
-		custom_house_number: $('#custom_house_number').val().trim(),
 		address_line2: $('#address_line2').val().trim(),
 		city: city,
 		state: $('#state').val().trim(),
@@ -145,6 +160,10 @@ function saveAddress() {
 		is_primary_address: $('#is_primary_address').is(':checked') ? 1 : 0,
 		is_shipping_address: $('#is_shipping_address').is(':checked') ? 1 : 0
 	};
+	OPTIONAL_FIELDS.forEach(function (f) {
+		const value = fieldValue(f);
+		if (value !== undefined) addressData[f] = value;
+	});
 
 	if (currentAddressName) {
 		// Update existing address
@@ -155,12 +174,12 @@ function saveAddress() {
 				address_data: addressData
 			},
 			freeze: true,
-			freeze_message: __('Saving...'),
+			freeze_message: t('saving', 'Saving...'),
 			callback: function(r) {
 				if (r.message && r.message.success) {
 					hideAddressForm();
 					frappe.show_alert({
-						message: __('Address updated successfully'),
+						message: t('updated', 'Address updated successfully'),
 						indicator: 'green'
 					});
 					setTimeout(function() {
@@ -177,12 +196,12 @@ function saveAddress() {
 				doc: addressData
 			},
 			freeze: true,
-			freeze_message: __('Saving...'),
+			freeze_message: t('saving', 'Saving...'),
 			callback: function(r) {
 				if (r.message) {
 					hideAddressForm();
 					frappe.show_alert({
-						message: __('Address created successfully'),
+						message: t('created', 'Address created successfully'),
 						indicator: 'green'
 					});
 					setTimeout(function() {
