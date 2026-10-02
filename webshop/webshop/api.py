@@ -922,6 +922,8 @@ def get_address(address_name):
 	if not is_linked:
 		frappe.throw(_("Address not found or access denied"))
 
+	# //// Neoffice — built in `out`, not returned at once, so the address book's print and delivery fields can be
+	# //// added below; upstream returns this dict as it stands (maintenance#1032).
 	out = {
 		"name": address.name,
 		"address_title": address.address_title,
@@ -971,6 +973,8 @@ def update_address(address_name, address_data):
 	if not is_linked:
 		frappe.throw(_("Address not found or access denied"))
 
+	# //// Neoffice — an address another account shares is not changed from the shop: it would change for that
+	# //// account too (maintenance#1032).
 	_refuse_shared_address(address, party)
 
 	# Update address fields
@@ -1034,6 +1038,8 @@ def delete_address(address_name):
 	if not is_linked:
 		frappe.throw(_("Address not found or access denied"))
 
+	# //// Neoffice — nor deleted from the shop when another account shares it: the address would go for that
+	# //// account too (maintenance#1032).
 	_refuse_shared_address(address, party)
 
 	# Check if address is used in any pending quotations
