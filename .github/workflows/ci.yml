@@ -320,6 +320,7 @@ jobs:
             webshop.webshop.product_data_engine.test_references \
             webshop.webshop.tests.test_engine_callers_match_the_engine \
             webshop.webshop.tests.test_gift_card_codes_are_not_predictable \
+            webshop.webshop.tests.test_portal_address_book \
             webshop.webshop.tests.test_payment_request_release_undoes_a_refused_cancel
           do
             echo "::group::$m"
