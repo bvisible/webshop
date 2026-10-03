@@ -9052,6 +9052,7 @@ msgstr ""
 
 #: webshop/webshop/seo/score.py
 msgid "The barcode {0} is the one of another unit ({1}), not of the product sold"
+msgstr ""
 
 #: webshop/webshop/seo/facts.py
 msgid "Manufacturer's reference"
