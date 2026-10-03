@@ -126,7 +126,8 @@ test.describe('Business account application', () => {
 			);
 			//// Both the originating site AND the target group must be set: it is
 			//// the site that decides the group, never the applicant.
-			expect(row, 'the application was not recorded').toContain('Nouvelle');
+			//// The status is stored in English since maintenance#1100; the desk shows it in French.
+			expect(row, 'the application was not recorded').toMatch(/'status': 'New'/);
 			expect(row, 'the originating site was not kept').toMatch(/website_profile.+\w/);
 		} finally {
 			await context.close();
