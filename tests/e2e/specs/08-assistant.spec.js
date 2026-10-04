@@ -72,7 +72,9 @@ test.describe('Shop assistant', () => {
 			.locator('#wsh-assistant .wsh-assistant__msg--assistant')
 			.first()
 			.innerText();
-		expect(greeting).toMatch(/^Bonjour !/);
+		//// Neoffice — the greeting is an English msgid now (house rule): "Hello!" on an English
+		//// screen, the same French "Bonjour !" as before on a French one.
+		expect(greeting).toMatch(/^(Bonjour !|Hello!)/);
 	});
 
 	test('the "talk to the team" link opens a form that goes out without the model', async ({page}, testInfo) => {
