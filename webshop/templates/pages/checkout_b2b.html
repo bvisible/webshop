@@ -68,6 +68,15 @@
 
 {% block script %}
 <script>
+	{# //// Neoffice — the texts this page shows were French msgids read by the browser's __(); they are English msgids now (house rule), translated on the server with _() because a website page has no JS catalogue beyond a curated list (neoffice_theme WEBSHOP_JS_STRINGS): the French screen is unchanged, served by the translation catalogue. #}
+	const b2bText = {
+		selectAddress: {{ _("Please select a delivery address") | tojson }},
+		loadingMethods: {{ _("Loading shipping methods...") | tojson }},
+		selectMethod: {{ _("Please select a shipping method to continue") | tojson }},
+		noMethods: {{ _("No shipping methods available for your location") | tojson }},
+		loadFailed: {{ _("Unable to load shipping methods") | tojson }},
+		loadError: {{ _("Error loading shipping methods. Please try again.") | tojson }},
+	};
 	frappe.ready(function() {
 		// Global variables
 		let isLoading = false;
@@ -100,14 +109,13 @@
 		}
 		
 		// Function to load shipping methods
-		{# //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue. #}
 		function loadShippingMethods() {
 			if (isLoading) return;
 			
 			// Check if a shipping address is selected
 			const shippingAddressElement = $('[data-section="shipping-address"] [data-address-name][data-active]');
 			if (!shippingAddressElement.length) {
-				$('#shipping-methods-container').html(`<div class="text-muted">${__('Please select a delivery address')}</div>`);
+				$('#shipping-methods-container').html(`<div class="text-muted">${b2bText.selectAddress}</div>`);
 				$('.btn-place-order').prop('disabled', true);
 				return;
 			}
@@ -119,7 +127,7 @@
 					<span class="spinner">
 						<i class="fa fa-spinner fa-spin"></i>
 					</span>
-					<span>${__('Loading shipping methods...')}</span>
+					<span>${b2bText.loadingMethods}</span>
 				</div>
 			`);
 			
@@ -153,9 +161,8 @@
 					if (response.message && response.message.length) {
 						const methods = response.message;
 						
-						{# //// Neoffice — msgid was French, now English (house rule); the French screen is unchanged, served by the translation catalogue. #}
 						let html = `<div class="shipping-methods">
-							<div class="mb-3">${__('Please select a shipping method to continue')}</div>`;
+							<div class="mb-3">${b2bText.selectMethod}</div>`;
 						
 						methods.forEach((method, index) => {
 							html += `
@@ -196,8 +203,7 @@
 						updatePlaceOrderButton();
 						unfreeze('step-section');
 					} else {
-						{# //// Neoffice — msgid was French, now English (house rule); the French screen is unchanged, served by the translation catalogue. #}
-						$('#shipping-methods-container').html(`<div class="alert alert-warning">${__('No shipping methods available for your location')}</div>`);
+						$('#shipping-methods-container').html(`<div class="alert alert-warning">${b2bText.noMethods}</div>`);
 						$('.btn-place-order').prop('disabled', true);
 						currentShippingMethod = null;
 						unfreeze('step-section');
@@ -205,9 +211,8 @@
 				},
 				error: function(err) {
 					console.error('Error loading shipping methods:', err);
-					{# //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue. #}
-					$('#shipping-methods-container').html(`<div class="text-muted">${__('Unable to load shipping methods')}</div>`);
-					$('#shipping-method-error').html(__('Error loading shipping methods. Please try again.')).show();
+					$('#shipping-methods-container').html(`<div class="text-muted">${b2bText.loadFailed}</div>`);
+					$('#shipping-method-error').html(b2bText.loadError).show();
 					isLoading = false;
 					$('.btn-place-order').prop('disabled', true);
 					currentShippingMethod = null;
