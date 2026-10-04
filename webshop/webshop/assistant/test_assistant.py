@@ -397,7 +397,8 @@ class TestAssistant(FrappeTestCase):
 		self.assertEqual(out["unavailable"], "limit")
 		self.assertTrue(out["leave_message"])
 		self.assertFalse(out["email_required"])
-		self.assertIn("limite", out["reply"])
+		# //// Neoffice — the limit notice is an English msgid now (house rule); the French screen is served by the catalogue.
+		self.assertIn("limit", out["reply"])
 		self.assertIn("message", out["reply"])
 
 	# //// Neoffice — was test_a_model_failure_is_a_calm_sentence_not_a_traceback, which only
@@ -574,7 +575,8 @@ class TestAssistant(FrappeTestCase):
 		customer = api.unavailable(self.customer_context(), "cap")
 		self.assertFalse(customer["email_required"])
 		limit = api.unavailable(self.customer_context(), "limit")
-		self.assertTrue(limit["reply"].startswith("Vous avez atteint la limite"))
+		# //// Neoffice — the limit notice is an English msgid now (house rule); the French screen is served by the catalogue.
+		self.assertTrue(limit["reply"].startswith("You have reached the message limit"))
 		# the shop's opening status is part of the notice whenever hours are published
 		status = api.store_status_line(self.settings)
 		if status:
