@@ -1620,7 +1620,10 @@ frappe.ready(function() {
                         frappe.msgprint({
                             title: __('Error'),
                             indicator: 'red',
-                            message: __('Error applying changes: ' + error.message)
+                            //// Neoffice — upstream concatenated the error text into the string given to __(), so
+                            //// the key changed with every error and never matched a catalogue entry. A template
+                            //// with {0} is the key, the error text is substituted after the translation.
+                            message: __('Error applying changes: {0}', [error.message])
                         });
                     });
                 },

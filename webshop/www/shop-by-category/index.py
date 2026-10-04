@@ -271,7 +271,8 @@ def get_category_records(categories):
 			try:
 				rows = frappe.db.get_all(doctype, fields=fields, filters=filters or None)
 			except BaseException:
-				frappe.throw(_("DocType {} not found").format(doctype))
+				# //// Neoffice — the DocType name is injected into a translated template: translate it too.
+				frappe.throw(_("DocType {} not found").format(_(doctype)))
 
 			# //// Neoffice — same rule as the item groups above: a brand or a collection
 			# //// nothing published carries led to an empty catalogue, and the sidebar

@@ -1,5 +1,6 @@
 {% if coupon_code %}
-<p class="h6">Coupon code</p>
+{#- //// Neoffice — upstream wrote this label as bare English text; it goes through _(). #}
+<p class="h6">{{ _("Coupon code") }}</p>
 <div
     class="cart-coupon-code flex gap-2 align-items-center w-fit rounded mb-4"
     style="border: 2px dashed #ccc;"

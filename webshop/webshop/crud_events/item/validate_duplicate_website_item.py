@@ -29,6 +29,11 @@ def execute(doc, method=None, old_name=None, new_name=None, merge=False):
     web_item_link = get_link_to_form("Website Item", old_web_item)
     old_name, new_name = frappe.bold(old_name), frappe.bold(new_name)
 
-    msg = f"Please delete linked Website Item {frappe.bold(web_item_link)} before merging {old_name} into {new_name}"
-    frappe.throw(_(msg), title=_("Cannot Merge"), exc=DataValidationError)
+    # //// Neoffice — upstream built the sentence in an f-string and then called _() on the result: the
+    # //// key changed with every item name and never matched a catalogue entry, so the message stayed
+    # //// English. The template is the key, the values are formatted in after the translation.
+    msg = _("Please delete linked Website Item {0} before merging {1} into {2}").format(
+        frappe.bold(web_item_link), old_name, new_name
+    )
+    frappe.throw(msg, title=_("Cannot Merge"), exc=DataValidationError)
 

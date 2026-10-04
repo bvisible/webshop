@@ -77,7 +77,8 @@ PREVIEWED = ("Website Item", "Item Group", "Brand")
 def seo_preview(doctype: str, name: str):
 	"""The page's own title, description and address, as the Search engines fields' defaults."""
 	if doctype not in PREVIEWED:
-		frappe.throw(_("No preview for {0}").format(doctype))
+		# //// Neoffice — the DocType name is injected into a translated template: translate it too.
+		frappe.throw(_("No preview for {0}").format(_(doctype)))
 	frappe.has_permission(doctype, "read", name, throw=True)
 	from webshop.webshop.multi_site import site_url
 

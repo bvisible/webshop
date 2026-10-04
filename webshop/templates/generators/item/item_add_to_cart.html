@@ -136,7 +136,9 @@
 				<span class="mr-1 tag-icon">
 					<svg class="icon icon-lg"><use href="#icon-tag"></use></svg>
 				</span>
-				<b>Available Offers</b>
+				{#- //// Neoffice — upstream wrote this heading as bare English text; it stayed English on a
+				    French shop page. It goes through _(). #}
+				<b>{{ _("Available Offers") }}</b>
 			</div>
 			<div class="offer-container">
 				{% for offer in doc.offers %}

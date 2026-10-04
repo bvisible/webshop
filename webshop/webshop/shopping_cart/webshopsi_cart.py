@@ -21,8 +21,9 @@ def update_payment_terms(quotation_name, payment_terms_template):
     quotation = frappe.get_doc('Quotation', quotation_name)
     party = get_party()
     
+    # //// Neoffice — this refusal was a bare English string, shown as is; it goes through _().
     if not party or quotation.party_name != party.name:
-        frappe.throw('Access not authorized')
+        frappe.throw(_('Access not authorized'))
 
     if not payment_terms_template:
         return remove_webshopsi_fees(quotation)
@@ -178,8 +179,9 @@ def handle_payment_method_change(quotation_name, payment_method):
     quotation = frappe.get_doc('Quotation', quotation_name)
     party = get_party()
     
+    # //// Neoffice — this refusal was a bare English string, shown as is; it goes through _().
     if not party or quotation.party_name != party.name:
-        frappe.throw('Access not authorized')
+        frappe.throw(_('Access not authorized'))
     
     # Update the payment method on the quotation
     quotation.payment_method = payment_method

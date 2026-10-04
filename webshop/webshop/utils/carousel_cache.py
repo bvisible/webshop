@@ -1,4 +1,6 @@
 import frappe
+# //// Neoffice — added so the permission refusal below can be translated (it was bare English).
+from frappe import _
 import hashlib
 import json
 from typing import Any, Dict, List, Optional
@@ -179,7 +181,8 @@ def warm_carousel_cache(item_group: Optional[str] = None, only_promotions: bool 
 def clear_all_carousel_cache():
     """Clear all carousel cache entries. Can be called from UI."""
     if not frappe.has_permission("Webshop Settings", "write"):
-        frappe.throw("Insufficient permissions to clear carousel cache")
+        # //// Neoffice — this refusal was a bare English string, shown as is; it goes through _().
+        frappe.throw(_("Insufficient permissions to clear carousel cache"))
     
     cache_manager = CarouselCacheManager()
     cache_manager.clear_cache()

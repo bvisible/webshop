@@ -336,13 +336,16 @@ class WebshopSettings(Document):
 		company_currency = frappe.get_cached_value("Company", self.company, "default_currency")
 		price_list_currency = frappe.db.get_value("Price List", self.price_list, "currency")
 
+		# //// Neoffice — upstream built each sentence in an f-string and then called _() on the result: the
+		# //// key changed with every company / price list name and never matched a catalogue entry, so
+		# //// these messages stayed English. The template is the key, values are formatted in afterwards.
 		if not company_currency:
-			msg = f"Please specify currency in Company {self.company}"
-			frappe.throw(_(msg), title=_("Missing Currency"), exc=ShoppingCartSetupError)
+			msg = _("Please specify currency in Company {0}").format(self.company)
+			frappe.throw(msg, title=_("Missing Currency"), exc=ShoppingCartSetupError)
 
 		if not price_list_currency:
-			msg = f"Please specify currency in Price List {frappe.bold(self.price_list)}"
-			frappe.throw(_(msg), title=_("Missing Currency"), exc=ShoppingCartSetupError)
+			msg = _("Please specify currency in Price List {0}").format(frappe.bold(self.price_list))
+			frappe.throw(msg, title=_("Missing Currency"), exc=ShoppingCartSetupError)
 
 		if price_list_currency != company_currency:
 			from_currency, to_currency = price_list_currency, company_currency
@@ -351,8 +354,9 @@ class WebshopSettings(Document):
 			exchange_rate = get_exchange_rate(from_currency, to_currency, args="for_selling")
 
 			if not flt(exchange_rate):
-				msg = f"Missing Currency Exchange Rates for {from_currency}-{to_currency}"
-				frappe.throw(_(msg), title=_("Missing"), exc=ShoppingCartSetupError)
+				# //// Neoffice — same as above: template translated first, currencies formatted in after.
+				msg = _("Missing Currency Exchange Rates for {0}-{1}").format(from_currency, to_currency)
+				frappe.throw(msg, title=_("Missing"), exc=ShoppingCartSetupError)
 
 	def validate_tax_rule(self):
 		if not frappe.db.get_value("Tax Rule", {"use_for_shopping_cart": 1}, "name"):

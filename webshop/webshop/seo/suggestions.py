@@ -152,7 +152,8 @@ def parse(content: str):
 def suggest(doctype: str, name: str):
 	"""Nora's proposal for a page's title and description; nothing is written."""
 	if doctype not in page_meta.PREVIEWED:
-		frappe.throw(_("No preview for {0}").format(doctype))
+		# //// Neoffice — the DocType name is injected into a translated template: translate it too.
+		frappe.throw(_("No preview for {0}").format(_(doctype)))
 	frappe.has_permission(doctype, "write", name, throw=True)
 	from webshop.webshop.assistant import llm
 

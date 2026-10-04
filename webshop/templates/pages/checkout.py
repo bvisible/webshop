@@ -936,9 +936,11 @@ def get_payment_methods(reference_doctype: str | None = None, reference_docname:
 		# 1. Get payment methods from Webshop Settings
 		settings = frappe.get_doc("Webshop Settings")
 		if not settings.enable_checkout or not settings.payment_methods:
+			# //// Neoffice — the client prints this message as it comes (checkout.js, payment methods
+			# //// step), and upstream returned bare English text; it goes through _() here.
 			return {
 				"error": True,
-				"message": "Online payment is not enabled"
+				"message": _("Online payment is not enabled")
 			}
 
 		# //// Neoffice — the shopper is offered the rows meant for their customer group,
@@ -1445,9 +1447,10 @@ def get_payment_template(payment_gateway_account: str, context: dict | str | Non
 		)
 	try:		
 		if not payment_gateway_account:
+			# //// Neoffice — shown as is by the client, so translated here (see get_payment_methods).
 			return {
 				"error": True,
-				"message": "No payment gateway account specified"
+				"message": _("No payment gateway account specified")
 			}
 
 		# Get all gateway information
@@ -1546,9 +1549,11 @@ def get_payment_template(payment_gateway_account: str, context: dict | str | Non
 
 	except Exception as e:
 		frappe.log_error(f"General error", e)
+		# //// Neoffice — shown as is by the client; the text is a template translated first, the
+		# //// exception text is formatted in afterwards (an f-string made a different key per error).
 		return {
 			"error": True,
-			"message": f"Error loading template: {str(e)}"
+			"message": _("Error loading template: {0}").format(str(e))
 		}
 
 def get_gateway_info(payment_gateway_account):
