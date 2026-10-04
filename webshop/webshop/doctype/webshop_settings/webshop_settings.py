@@ -344,6 +344,7 @@ class WebshopSettings(Document):
 			frappe.throw(msg, title=_("Missing Currency"), exc=ShoppingCartSetupError)
 
 		if not price_list_currency:
+			# //// Neoffice — see the marker above: template translated first, price list formatted in after (e1214cb46b "fix(i18n): translate messages built before _() and bare strings shown as is")
 			msg = _("Please specify currency in Price List {0}").format(frappe.bold(self.price_list))
 			frappe.throw(msg, title=_("Missing Currency"), exc=ShoppingCartSetupError)
 

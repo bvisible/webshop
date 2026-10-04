@@ -318,6 +318,7 @@ function handleQuantityChange(e) {
             method: 'webshop.webshop.shopping_cart.cart.remove_loyalty_points',
             callback: (r) => {
               if (r.message) {
+                //// Neoffice — msgid was French, now English (c4768a0cd1 "refactor(i18n): English source strings for the shop assistant, the B2B checkout, the terms page and the cart drawer"); the French screen is unchanged, served by the catalogue.
                 frappe.show_alert({
                   message: __('The loyalty points were removed so the quantity could be updated'),
                   indicator: 'blue'
@@ -497,6 +498,7 @@ function handleRemoveItem(e) {
             method: 'webshop.webshop.shopping_cart.cart.remove_loyalty_points',
             callback: (r) => {
               if (r.message) {
+                //// Neoffice — msgid was French, now English (c4768a0cd1 "refactor(i18n): English source strings for the shop assistant, the B2B checkout, the terms page and the cart drawer"); the French screen is unchanged, served by the catalogue.
                 frappe.show_alert({
                   message: __('The loyalty points were removed so the product could be removed'),
                   indicator: 'blue'
