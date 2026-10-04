@@ -582,10 +582,6 @@ msgstr "Une erreur s'est produite lors de la validation de la commande"
 msgid "An item cannot be offered with itself."
 msgstr "Un article ne peut pas être proposé avec lui-même."
 
-#: webshop/webshop/assistant/api.py:220
-msgid "Annuler"
-msgstr ""
-
 #: webshop/templates/pages/checkout.html:147
 #: webshop/templates/pages/checkout.html:267 webshop/www/my_addresses.html:43
 msgid "Apartment, suite, etc. (optional)"
@@ -636,8 +632,8 @@ msgid "Assistant"
 msgstr "Assistant"
 
 #: webshop/webshop/assistant/escalation.py:130
-msgid "Assistant boutique : {0} demande l'équipe"
-msgstr ""
+msgid "Shop assistant: {0} is asking for the team"
+msgstr "Assistant boutique : {0} demande l'équipe"
 
 #. Label of a Data field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -674,10 +670,6 @@ msgstr ""
 #: webshop/webshop/assistant/tools.py:350
 msgid "Aucune facture « {0} » pour ce client."
 msgstr ""
-
-#: webshop/templates/pages/checkout_b2b.html:197
-msgid "Aucune méthode de livraison disponible pour votre emplacement"
-msgstr "Aucune méthode de livraison disponible pour votre emplacement"
 
 #. Label of a Column Break field in DocType 'Purchase Follow-up'
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json
@@ -805,24 +797,24 @@ msgid "Billing Address is same as Shipping Address"
 msgstr "L'adresse de facturation est identique à l'adresse de livraison"
 
 #: webshop/webshop/assistant/api.py:197
-msgid "Bonjour !"
-msgstr ""
+msgid "Hello!"
+msgstr "Bonjour !"
 
 #: webshop/webshop/assistant/api.py:199
-msgid "Bonjour ! Je suis {0}, l'assistant·e de la boutique. Un produit, nos horaires, une commande ? Je suis là."
-msgstr ""
+msgid "Hello! I am {0}, the shop assistant. A product, our opening hours, an order? I am here to help."
+msgstr "Bonjour ! Je suis {0}, l'assistant·e de la boutique. Un produit, nos horaires, une commande ? Je suis là."
 
 #: webshop/webshop/assistant/api.py:197
-msgid "Bonjour {0} !"
-msgstr ""
+msgid "Hello {0}!"
+msgstr "Bonjour {0} !"
 
 #: webshop/webshop/assistant/escalation.py:142
-msgid "Bonjour,<br><br>Votre demande a été transmise à notre équipe : « {0} ». Quelqu'un vous recontacte rapidement à cette adresse.<br><br>{1}"
-msgstr ""
+msgid "Hello,<br><br>Your request has been passed to our team: “{0}”. Someone will get back to you shortly at this address.<br><br>{1}"
+msgstr "Bonjour,<br><br>Votre demande a été transmise à notre équipe : « {0} ». Quelqu'un vous recontacte rapidement à cette adresse.<br><br>{1}"
 
 #: webshop/webshop/assistant/escalation.py:195
-msgid "Bonjour,<br><br>Votre demande « {0} » est enregistrée sous le numéro {1}. Notre équipe la traite et vous répond à cette adresse."
-msgstr ""
+msgid "Hello,<br><br>Your request “{0}” has been registered under number {1}. Our team is handling it and will reply to you at this address."
+msgstr "Bonjour,<br><br>Votre demande « {0} » est enregistrée sous le numéro {1}. Notre équipe la traite et vous répond à cette adresse."
 
 #: webshop/templates/generators/item_group.html:147
 #: webshop/templates/includes/product_card.html:107
@@ -917,8 +909,8 @@ msgid "By using this payment form, you accept the"
 msgstr "En utilisant ce formulaire de paiement, vous acceptez les"
 
 #: webshop/webshop/assistant/api.py:373
-msgid "C'est transmis. L'équipe vous répond à {0}."
-msgstr ""
+msgid "Your message has been passed on. The team will reply to {0}."
+msgstr "C'est transmis. L'équipe vous répond à {0}."
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:64
 msgid "Calculate Frequently Bought Together"
@@ -1082,10 +1074,6 @@ msgstr "Nom ou identifiant du canal qui reçoit les demandes ; vide si Raven n'e
 #: webshop/templates/generators/item/item_details.html:131
 msgid "Characteristics"
 msgstr "Caractéristiques"
-
-#: webshop/templates/pages/checkout_b2b.html:121
-msgid "Chargement des méthodes de livraison..."
-msgstr "Chargement des méthodes de livraison..."
 
 #. Option for the 'Icon' (Select) field in DocType 'Webshop Trust Item'
 #: webshop/webshop/doctype/webshop_trust_item/webshop_trust_item.json
@@ -1395,7 +1383,7 @@ msgid "Continue to shipping"
 msgstr "Continuer vers la livraison"
 
 #: webshop/templates/pages/cgv.html:39
-msgid "Continuer mes achats"
+msgid "Continue shopping"
 msgstr "Continuer mes achats"
 
 #. Description of the 'Hide Currency Symbol in Shop' (Select) field in DocType
@@ -1802,8 +1790,8 @@ msgid "Demande au visiteur son adresse email pour que l'équipe puisse le recont
 msgstr ""
 
 #: webshop/webshop/assistant/escalation.py:165
-msgid "Demande depuis l'assistant de la boutique"
-msgstr ""
+msgid "Request from the shop assistant"
+msgstr "Demande depuis l'assistant de la boutique"
 
 #. Label of a Small Text field in DocType 'Cross Sell Offer'
 #. Label of a Text Editor field in DocType 'Homepage Featured Product'
@@ -2179,20 +2167,16 @@ msgstr "Entrée : case suivante · Échap : retour à la recherche · Ctrl+Entr�
 msgid "Entries"
 msgstr "Suivis clients"
 
-#: webshop/webshop/assistant/api.py:206
-msgid "Envoyer"
-msgstr ""
-
 #: webshop/webshop/assistant/api.py:219
-msgid "Envoyer à l'équipe"
-msgstr ""
+msgid "Send to the team"
+msgstr "Envoyer à l'équipe"
 
 #: webshop/templates/includes/loyalty_points_form.html:36
 msgid "Equivalent Value:"
 msgstr "Valeur équivalente :"
 
 #: webshop/templates/pages/checkout_b2b.html:206
-msgid "Erreur lors du chargement des méthodes de livraison. Veuillez réessayer."
+msgid "Error loading shipping methods. Please try again."
 msgstr "Erreur lors du chargement des méthodes de livraison. Veuillez réessayer."
 
 #: webshop/public/js/shopping_cart.js:304
@@ -2428,10 +2412,6 @@ msgstr "Pourcentage de frais"
 #: webshop/templates/payments/webshopsi.html:405
 msgid "Fees have been updated"
 msgstr "Les frais ont été mis à jour"
-
-#: webshop/webshop/assistant/api.py:211
-msgid "Fermer"
-msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:773
 msgid "Fetch public holidays"
@@ -2989,11 +2969,11 @@ msgid "Import Results"
 msgstr "Résultats de l'import"
 
 #: webshop/webshop/assistant/api.py:311 webshop/webshop/assistant/api.py:366
-msgid "Impossible d'ouvrir une conversation pour cette session."
-msgstr ""
+msgid "Unable to open a conversation for this session."
+msgstr "Impossible d'ouvrir une conversation pour cette session."
 
 #: webshop/templates/pages/checkout_b2b.html:205
-msgid "Impossible de charger les méthodes de livraison"
+msgid "Unable to load shipping methods"
 msgstr "Impossible de charger les méthodes de livraison"
 
 #. Label of a Int field in DocType 'Cross Sell Offer'
@@ -3044,8 +3024,8 @@ msgid "Indicative total"
 msgstr "Total indicatif"
 
 #: webshop/webshop/assistant/api.py:363
-msgid "Indiquez une adresse email valide pour que l'équipe puisse vous répondre."
-msgstr ""
+msgid "Enter a valid email address so the team can reply to you."
+msgstr "Indiquez une adresse email valide pour que l'équipe puisse vous répondre."
 
 #: webshop/templates/pages/checkout.html:24
 msgid "Information"
@@ -3217,12 +3197,12 @@ msgid "Items with higher ranking will be shown higher"
 msgstr "Les articles avec un classement plus élevé seront affichés en premier"
 
 #: webshop/webshop/assistant/api.py:225
-msgid "Je cherche un produit"
-msgstr ""
+msgid "I am looking for a product"
+msgstr "Je cherche un produit"
 
 #: webshop/webshop/assistant/api.py:198
-msgid "Je suis {0}, l'assistant·e de la boutique. Une commande à suivre, un produit à trouver ?"
-msgstr ""
+msgid "I am {0}, the shop assistant. An order to track, a product to find?"
+msgstr "Je suis {0}, l'assistant·e de la boutique. Une commande à suivre, un produit à trouver ?"
 
 #: webshop/templates/payments/paypal.html:9
 #: webshop/templates/payments/stripe.html:5
@@ -3241,8 +3221,8 @@ msgid "Knowledge"
 msgstr "Connaissances"
 
 #: webshop/webshop/assistant/api.py:97
-msgid "L'assistant n'est pas disponible pour le moment."
-msgstr ""
+msgid "The assistant is not available at the moment."
+msgstr "L'assistant n'est pas disponible pour le moment."
 
 #: webshop/webshop/assistant/tools.py:558
 msgid "L'outil n'a pas pu répondre. Propose au client de contacter l'équipe."
@@ -3262,12 +3242,12 @@ msgid "Label"
 msgstr "Étiquette"
 
 #: webshop/webshop/assistant/api.py:216
-msgid "Laisser un message à l'équipe"
-msgstr ""
+msgid "Leave a message for the team"
+msgstr "Laisser un message à l'équipe"
 
 #: webshop/webshop/assistant/api.py:98
-msgid "Laissez-nous votre message ci-dessous : l'équipe vous répond par email."
-msgstr ""
+msgid "Leave us your message below: the team will reply by email."
+msgstr "Laissez-nous votre message ci-dessous : l'équipe vous répond par email."
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -3296,11 +3276,11 @@ msgid "Last Name"
 msgstr "Nom"
 
 #: webshop/templates/includes/cart_component.js:306
-msgid "Le coupon a été supprimé pour mettre à jour la quantité"
+msgid "The coupon was removed so the quantity could be updated"
 msgstr "Le coupon a été supprimé pour mettre à jour la quantité"
 
 #: webshop/templates/includes/cart_component.js:484
-msgid "Le coupon a été supprimé pour retirer le produit"
+msgid "The coupon was removed so the product could be removed"
 msgstr "Le coupon a été supprimé pour retirer le produit"
 
 #: webshop/webshop/assistant/tools.py:222
@@ -3308,16 +3288,16 @@ msgid "Le magasin n'a pas publié ses horaires."
 msgstr ""
 
 #: webshop/webshop/assistant/api.py:306 webshop/webshop/assistant/api.py:345
-msgid "Le message est vide."
-msgstr ""
+msgid "The message is empty."
+msgstr "Le message est vide."
 
 #: webshop/webshop/assistant/api.py:221
-msgid "Le message n'a pas pu partir. Réessayez, ou écrivez-nous directement."
-msgstr ""
+msgid "The message could not be sent. Please try again, or write to us directly."
+msgstr "Le message n'a pas pu partir. Réessayez, ou écrivez-nous directement."
 
 #: webshop/webshop/assistant/api.py:213
-msgid "Le message n'est pas parti. Réessayez dans un instant."
-msgstr ""
+msgid "The message was not sent. Please try again in a moment."
+msgstr "Le message n'est pas parti. Réessayez dans un instant."
 
 #: webshop/webshop/assistant/tools.py:399
 #: webshop/webshop/assistant/tools.py:402
@@ -3371,15 +3351,15 @@ msgid "Length"
 msgstr "Longueur"
 
 #: webshop/templates/pages/cgv.html:35
-msgid "Les conditions générales de vente ne sont pas encore configurées."
+msgid "The terms and conditions of sale have not been set up yet."
 msgstr "Les conditions générales de vente ne sont pas encore configurées."
 
 #: webshop/templates/includes/cart_component.js:321
-msgid "Les points de fidélité ont été supprimés pour mettre à jour la quantité"
+msgid "The loyalty points were removed so the quantity could be updated"
 msgstr "Les points de fidélité ont été supprimés pour mettre à jour la quantité"
 
 #: webshop/templates/includes/cart_component.js:499
-msgid "Les points de fidélité ont été supprimés pour retirer le produit"
+msgid "The loyalty points were removed so the product could be removed"
 msgstr "Les points de fidélité ont été supprimés pour retirer le produit"
 
 #. Option for the 'Condition Grade' (Select) field in DocType 'Website Item'
@@ -4027,8 +4007,8 @@ msgid "Nothing to pay"
 msgstr "Rien à payer"
 
 #: webshop/webshop/assistant/api.py:209
-msgid "Nouvelle conversation"
-msgstr ""
+msgid "New conversation"
+msgstr "Nouvelle conversation"
 
 #. Label of a Int field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -4115,8 +4095,8 @@ msgid "On backorder"
 msgstr "En réapprovisionnement"
 
 #: webshop/webshop/assistant/api.py:210
-msgid "On reprend où on en était ?"
-msgstr ""
+msgid "Shall we pick up where we left off?"
+msgstr "On reprend où on en était ?"
 
 #. Description of the 'Reminders (hours after the last change)' (Data) field in
 #. DocType 'Webshop Settings'
@@ -4390,16 +4370,16 @@ msgid "Outil inconnu : {0}."
 msgstr ""
 
 #: webshop/webshop/assistant/api.py:212
-msgid "Ouvrir l'assistant"
-msgstr ""
+msgid "Open the assistant"
+msgstr "Ouvrir l'assistant"
 
 #: webshop/templates/generators/item/item_reviews.html:115
 msgid "Overall Rating"
 msgstr "Note globale"
 
 #: webshop/webshop/assistant/api.py:224
-msgid "Où en est ma commande ?"
-msgstr ""
+msgid "Where is my order?"
+msgstr "Où en est ma commande ?"
 
 #. Label of a Data field in DocType 'Shop Assistant Conversation'
 #: webshop/templates/generators/item_group.html:155
@@ -4409,12 +4389,12 @@ msgid "Page"
 msgstr "Page"
 
 #: webshop/webshop/assistant/api.py:208
-msgid "Parler à l'équipe"
-msgstr ""
+msgid "Talk to the team"
+msgstr "Parler à l'équipe"
 
 #: webshop/webshop/assistant/api.py:226
-msgid "Parler à quelqu'un"
-msgstr ""
+msgid "Talk to someone"
+msgstr "Parler à quelqu'un"
 
 #: webshop/webshop/assistant/escalation.py:159
 msgid "Pas de helpdesk sur cette boutique : la demande est partie à l'équipe par message."
@@ -5439,7 +5419,7 @@ msgid "Resume the entry from {0} ({1} lines, {2} pieces)?"
 msgstr "Reprendre la saisie du {0} ({1} lignes, {2} pièces) ?"
 
 #: webshop/templates/pages/cgv.html:28
-msgid "Retour au checkout"
+msgid "Back to checkout"
 msgstr "Retour au checkout"
 
 #. Label of a Int field in DocType 'Webshop Settings'
@@ -5511,8 +5491,8 @@ msgid "Row #{0}: Item {1} must have a Website Item for Shopping Cart Quotations"
 msgstr "Ligne #{0} : L'article {1} doit avoir un article de site web pour les devis du panier"
 
 #: webshop/webshop/assistant/engine.py:122
-msgid "Résumé mis à jour."
-msgstr ""
+msgid "Summary updated."
+msgstr "Résumé mis à jour."
 
 #. Name of a role
 #: webshop/webshop/doctype/abandoned_cart_reminder/abandoned_cart_reminder.json
@@ -7066,12 +7046,8 @@ msgid "Very Good"
 msgstr "Très bon"
 
 #: webshop/templates/pages/checkout_b2b.html:109
-msgid "Veuillez sélectionner une adresse de livraison"
+msgid "Please select a delivery address"
 msgstr "Veuillez sélectionner une adresse de livraison"
-
-#: webshop/templates/pages/checkout_b2b.html:156
-msgid "Veuillez sélectionner une méthode de livraison pour continuer"
-msgstr "Veuillez sélectionner une méthode de livraison pour continuer"
 
 #. Label of a Button field in DocType 'Homepage Featured Product'
 #: webshop/templates/payments/webshopsi.html:87
@@ -7134,37 +7110,33 @@ msgstr "Voir le panier"
 msgid "Visible On"
 msgstr "Visible sur"
 
-#: webshop/templates/pages/cart.html:148
-msgid "Voir les produits"
-msgstr "Voir les produits"
-
 #: webshop/webshop/assistant/api.py:223
-msgid "Vos horaires ?"
-msgstr ""
+msgid "What are your opening hours?"
+msgstr "Vos horaires ?"
 
 #: webshop/webshop/assistant/api.py:218
-msgid "Votre adresse email"
-msgstr ""
+msgid "Your email address"
+msgstr "Votre adresse email"
 
 #: webshop/webshop/assistant/escalation.py:141
-msgid "Votre demande a été transmise à l'équipe"
-msgstr ""
+msgid "Your request has been passed to the team"
+msgstr "Votre demande a été transmise à l'équipe"
 
 #: webshop/webshop/assistant/escalation.py:194
-msgid "Votre demande {0} est enregistrée"
-msgstr ""
+msgid "Your request {0} has been registered"
+msgstr "Votre demande {0} est enregistrée"
 
 #: webshop/webshop/assistant/api.py:217
-msgid "Votre message pour l'équipe…"
-msgstr ""
+msgid "Your message for the team…"
+msgstr "Votre message pour l'équipe…"
 
 #: webshop/webshop/assistant/api.py:214
-msgid "Vous avez atteint la limite de messages pour aujourd'hui."
-msgstr ""
+msgid "You have reached the message limit for today."
+msgstr "Vous avez atteint la limite de messages pour aujourd'hui."
 
 #: webshop/webshop/assistant/api.py:83
-msgid "Vous pouvez aussi nous appeler au {0}."
-msgstr ""
+msgid "You can also call us at {0}."
+msgstr "Vous pouvez aussi nous appeler au {0}."
 
 #: webshop/templates/pages/checkout.js:3100
 #: webshop/templates/pages/checkout.py:1179
@@ -8114,12 +8086,12 @@ msgid "{} sent"
 msgstr "{} envoyées"
 
 #: webshop/webshop/assistant/api.py:205
-msgid "Écrivez votre message…"
-msgstr ""
+msgid "Write your message…"
+msgstr "Écrivez votre message…"
 
 #: webshop/webshop/assistant/api.py:207
-msgid "écrit…"
-msgstr ""
+msgid "typing…"
+msgstr "écrit…"
 
 msgid "Videos"
 msgstr "Vidéos"

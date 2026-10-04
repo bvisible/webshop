@@ -302,8 +302,9 @@ function handleQuantityChange(e) {
             method: 'webshop.webshop.shopping_cart.cart.remove_coupon_code',
             callback: (r) => {
               if (r.message) {
+                //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue.
                 frappe.show_alert({
-                  message: __('Le coupon a été supprimé pour mettre à jour la quantité'),
+                  message: __('The coupon was removed so the quantity could be updated'),
                   indicator: 'blue'
                 });
                 // Continue with the quantity update
@@ -318,7 +319,7 @@ function handleQuantityChange(e) {
             callback: (r) => {
               if (r.message) {
                 frappe.show_alert({
-                  message: __('Les points de fidélité ont été supprimés pour mettre à jour la quantité'),
+                  message: __('The loyalty points were removed so the quantity could be updated'),
                   indicator: 'blue'
                 });
                 // Continue with the quantity update
@@ -480,8 +481,9 @@ function handleRemoveItem(e) {
             method: 'webshop.webshop.shopping_cart.cart.remove_coupon_code',
             callback: (r) => {
               if (r.message) {
+                //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue.
                 frappe.show_alert({
-                  message: __('Le coupon a été supprimé pour retirer le produit'),
+                  message: __('The coupon was removed so the product could be removed'),
                   indicator: 'blue'
                 });
                 // Continue with the item removal
@@ -496,7 +498,7 @@ function handleRemoveItem(e) {
             callback: (r) => {
               if (r.message) {
                 frappe.show_alert({
-                  message: __('Les points de fidélité ont été supprimés pour retirer le produit'),
+                  message: __('The loyalty points were removed so the product could be removed'),
                   indicator: 'blue'
                 });
                 // Continue with the item removal

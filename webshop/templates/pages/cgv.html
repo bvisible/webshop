@@ -24,19 +24,21 @@
                         </div>
                         
                         <div class="mt-5 text-center">
+                            {# //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue. #}
                             <a href="/checkout" class="btn btn-primary">
-                                {{ _("Retour au checkout") }}
+                                {{ _("Back to checkout") }}
                             </a>
                         </div>
                     </div>
                 {% else %}
                     <div class="cgv-content frappe-card p-5 text-center">
                         <h1 class="page-title mb-4">{{ cgv_title }}</h1>
-                        <p class="text-muted">{{ _("Les conditions générales de vente ne sont pas encore configurées.") }}</p>
+                        {# //// Neoffice — msgid was French, now English (house rule); the French screen is unchanged, served by the translation catalogue. #}
+                        <p class="text-muted">{{ _("The terms and conditions of sale have not been set up yet.") }}</p>
                         
                         <div class="mt-4">
                             <a href="/all-products" class="btn btn-primary">
-                                {{ _("Continuer mes achats") }}
+                                {{ _("Continue shopping") }}
                             </a>
                         </div>
                     </div>

@@ -100,13 +100,14 @@
 		}
 		
 		// Function to load shipping methods
+		{# //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue. #}
 		function loadShippingMethods() {
 			if (isLoading) return;
 			
 			// Check if a shipping address is selected
 			const shippingAddressElement = $('[data-section="shipping-address"] [data-address-name][data-active]');
 			if (!shippingAddressElement.length) {
-				$('#shipping-methods-container').html(`<div class="text-muted">${__('Veuillez sélectionner une adresse de livraison')}</div>`);
+				$('#shipping-methods-container').html(`<div class="text-muted">${__('Please select a delivery address')}</div>`);
 				$('.btn-place-order').prop('disabled', true);
 				return;
 			}
@@ -118,7 +119,7 @@
 					<span class="spinner">
 						<i class="fa fa-spinner fa-spin"></i>
 					</span>
-					<span>${__('Chargement des méthodes de livraison...')}</span>
+					<span>${__('Loading shipping methods...')}</span>
 				</div>
 			`);
 			
@@ -152,8 +153,9 @@
 					if (response.message && response.message.length) {
 						const methods = response.message;
 						
+						{# //// Neoffice — msgid was French, now English (house rule); the French screen is unchanged, served by the translation catalogue. #}
 						let html = `<div class="shipping-methods">
-							<div class="mb-3">${__('Veuillez sélectionner une méthode de livraison pour continuer')}</div>`;
+							<div class="mb-3">${__('Please select a shipping method to continue')}</div>`;
 						
 						methods.forEach((method, index) => {
 							html += `
@@ -194,7 +196,8 @@
 						updatePlaceOrderButton();
 						unfreeze('step-section');
 					} else {
-						$('#shipping-methods-container').html(`<div class="alert alert-warning">${__('Aucune méthode de livraison disponible pour votre emplacement')}</div>`);
+						{# //// Neoffice — msgid was French, now English (house rule); the French screen is unchanged, served by the translation catalogue. #}
+						$('#shipping-methods-container').html(`<div class="alert alert-warning">${__('No shipping methods available for your location')}</div>`);
 						$('.btn-place-order').prop('disabled', true);
 						currentShippingMethod = null;
 						unfreeze('step-section');
@@ -202,8 +205,9 @@
 				},
 				error: function(err) {
 					console.error('Error loading shipping methods:', err);
-					$('#shipping-methods-container').html(`<div class="text-muted">${__('Impossible de charger les méthodes de livraison')}</div>`);
-					$('#shipping-method-error').html(__('Erreur lors du chargement des méthodes de livraison. Veuillez réessayer.')).show();
+					{# //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue. #}
+					$('#shipping-methods-container').html(`<div class="text-muted">${__('Unable to load shipping methods')}</div>`);
+					$('#shipping-method-error').html(__('Error loading shipping methods. Please try again.')).show();
 					isLoading = false;
 					$('.btn-place-order').prop('disabled', true);
 					currentShippingMethod = null;

@@ -11,7 +11,7 @@ the session and nothing else:
 import frappe
 from frappe import _
 from frappe.rate_limiter import rate_limit
-# //// Neoffice — the answering machine's "leave a message" form validates a guest's email before escalating (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
+# //// Neoffice — the answering machine's "leave a message" form validates a guest's email before escalating (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 from frappe.utils import add_days, cint, now_datetime, validate_email_address
 
 from webshop.webshop.assistant import engine
@@ -80,7 +80,8 @@ def store_status_line(s):
 		return ""
 	line = " · ".join(p for p in (data.headline, data.detail) if p) + "."
 	if data.is_open and data.phone:
-		line += " " + _("Vous pouvez aussi nous appeler au {0}.").format(data.phone)
+		# //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue.
+		line += " " + _("You can also call us at {0}.").format(data.phone)
 	return line
 
 
@@ -94,8 +95,8 @@ def unavailable(ctx, reason):
 	if reason == "limit":
 		lead = labels()["limit"]
 	else:
-		lead = (s.get("assistant_offline_message") or "").strip() or _("L'assistant n'est pas disponible pour le moment.")
-	invite = _("Laissez-nous votre message ci-dessous : l'équipe vous répond par email.")
+		lead = (s.get("assistant_offline_message") or "").strip() or _("The assistant is not available at the moment.")
+	invite = _("Leave us your message below: the team will reply by email.")
 	return {
 		"reply": " ".join(p for p in (lead, store_status_line(s), invite) if p),
 		"unavailable": reason,
@@ -188,42 +189,43 @@ def _adopt_guest_conversation(ctx, since):
 	return name
 
 
+# //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue.
 def greeting(ctx):
 	s = ctx.settings
 	name = (s.get("assistant_name") or "Nora").strip()
 	welcome = (s.get("assistant_welcome") or "").strip()
 	if ctx.user and ctx.user != "Guest":
 		first_name = frappe.db.get_value("User", ctx.user, "first_name") or ""
-		hello = _("Bonjour {0} !").format(first_name) if first_name else _("Bonjour !")
-		return f"{hello} " + (welcome or _("Je suis {0}, l'assistant·e de la boutique. Une commande à suivre, un produit à trouver ?").format(name))
-	return welcome or _("Bonjour ! Je suis {0}, l'assistant·e de la boutique. Un produit, nos horaires, une commande ? Je suis là.").format(name)
+		hello = _("Hello {0}!").format(first_name) if first_name else _("Hello!")
+		return f"{hello} " + (welcome or _("I am {0}, the shop assistant. An order to track, a product to find?").format(name))
+	return welcome or _("Hello! I am {0}, the shop assistant. A product, our opening hours, an order? I am here to help.").format(name)
 
 
 def labels():
 	return {
 		"title": _("Assistant"),
-		"placeholder": _("Écrivez votre message…"),
-		"send": _("Envoyer"),
-		"typing": _("écrit…"),
-		"talk_to_team": _("Parler à l'équipe"),
-		"new_conversation": _("Nouvelle conversation"),
-		"resume": _("On reprend où on en était ?"),
-		"close": _("Fermer"),
-		"open": _("Ouvrir l'assistant"),
-		"error": _("Le message n'est pas parti. Réessayez dans un instant."),
-		"limit": _("Vous avez atteint la limite de messages pour aujourd'hui."),
-		# //// Neoffice — labels for the answering machine's "leave a message" form (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
-		"leave_title": _("Laisser un message à l'équipe"),
-		"leave_placeholder": _("Votre message pour l'équipe…"),
-		"leave_email": _("Votre adresse email"),
-		"leave_send": _("Envoyer à l'équipe"),
-		"leave_cancel": _("Annuler"),
-		"leave_error": _("Le message n'a pas pu partir. Réessayez, ou écrivez-nous directement."),
+		"placeholder": _("Write your message…"),
+		"send": _("Send"),
+		"typing": _("typing…"),
+		"talk_to_team": _("Talk to the team"),
+		"new_conversation": _("New conversation"),
+		"resume": _("Shall we pick up where we left off?"),
+		"close": _("Close"),
+		"open": _("Open the assistant"),
+		"error": _("The message was not sent. Please try again in a moment."),
+		"limit": _("You have reached the message limit for today."),
+		# //// Neoffice — labels for the answering machine's "leave a message" form (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
+		"leave_title": _("Leave a message for the team"),
+		"leave_placeholder": _("Your message for the team…"),
+		"leave_email": _("Your email address"),
+		"leave_send": _("Send to the team"),
+		"leave_cancel": _("Cancel"),
+		"leave_error": _("The message could not be sent. Please try again, or write to us directly."),
 		"suggestions": [
-			_("Vos horaires ?"),
-			_("Où en est ma commande ?"),
-			_("Je cherche un produit"),
-			_("Parler à quelqu'un"),
+			_("What are your opening hours?"),
+			_("Where is my order?"),
+			_("I am looking for a product"),
+			_("Talk to someone"),
 		],
 	}
 
@@ -248,7 +250,7 @@ def get_config(page_route=None):
 		"signed_in": bool(ctx.user and ctx.user != "Guest"),
 		"history": history,
 		"labels": labels(),
-		# //// Neoffice — the answering machine (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
+		# //// Neoffice — the answering machine (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 		# the answering machine speaks from the first screen when it has to
 		"notice": unavailable(ctx, reason) if (reason := unavailable_reason(ctx, conversation)) else None,
 	}
@@ -270,7 +272,7 @@ def _monthly_cap_reached(ctx):
 	return bool(cap) and engine.monthly_tokens() >= cap
 
 
-# //// Neoffice — the answering machine: what a "no answer" actually means (outage, daily limit, monthly cap), and what to write on the conversation for the outage case (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
+# //// Neoffice — the answering machine: what a "no answer" actually means (outage, daily limit, monthly cap), and what to write on the conversation for the outage case (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 def unavailable_reason(ctx, conversation=None):
 	if in_outage():
 		return "outage"
@@ -301,14 +303,15 @@ def send(message, page_route=None):
 	s = settings()
 	if not enabled(s):
 		frappe.throw(_("The assistant is not enabled."), frappe.PermissionError)
+	# //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue.
 	text = (message or "").strip()
 	if not text:
-		frappe.throw(_("Le message est vide."))
+		frappe.throw(_("The message is empty."))
 	text = text[:MAX_MESSAGE_CHARS]
 	ctx = context(page_route)
 	conversation = find_conversation(ctx, create=True)
 	if not conversation:
-		frappe.throw(_("Impossible d'ouvrir une conversation pour cette session."))
+		frappe.throw(_("Unable to open a conversation for this session."))
 	ctx.conversation = conversation
 	if ctx.page_route:
 		conversation.page_route = ctx.page_route
@@ -323,7 +326,7 @@ def send(message, page_route=None):
 		out = engine.respond(conversation, text, ctx)
 	except Exception:
 		frappe.log_error("Shop assistant: reply failed", frappe.get_traceback())
-		# //// Neoffice — the answering machine: arm the outage flag so the next visitors get the notice at once, and answer this one the same way instead of a bare error (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
+		# //// Neoffice — the answering machine: arm the outage flag so the next visitors get the notice at once, and answer this one the same way instead of a bare error (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 		mark_outage()
 		# respond() already wrote the visitor's words on the conversation
 		result = _answering_machine(conversation, ctx, "outage")
@@ -332,7 +335,7 @@ def send(message, page_route=None):
 	return {"reply": out.reply, "conversation": out.conversation, "escalated": conversation.status == "Escalated"}
 
 
-# //// Neoffice ▼▼▼ — the answering machine's tape: the "leave a message" endpoint and the escalation it triggers, reached with no model involved when the model is down or a limit is hit (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
+# //// Neoffice ▼▼▼ — the answering machine's tape: the "leave a message" endpoint and the escalation it triggers, reached with no model involved when the model is down or a limit is hit (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=5, seconds=600)
 def leave_message(message, email=None, page_route=None):
@@ -340,9 +343,10 @@ def leave_message(message, email=None, page_route=None):
 	s = settings()
 	if not enabled(s):
 		frappe.throw(_("The assistant is not enabled."), frappe.PermissionError)
+	# //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue.
 	text = (message or "").strip()[:MAX_MESSAGE_CHARS]
 	if not text:
-		frappe.throw(_("Le message est vide."))
+		frappe.throw(_("The message is empty."))
 	return leave(context(page_route), text, email)
 
 
@@ -360,17 +364,17 @@ def leave(ctx, text, email=None):
 	else:
 		email = validate_email_address((email or "").strip()) if email else None
 		if not email:
-			frappe.throw(_("Indiquez une adresse email valide pour que l'équipe puisse vous répondre."))
+			frappe.throw(_("Enter a valid email address so the team can reply to you."))
 	conversation = ctx.conversation or find_conversation(ctx, create=True)
 	if not conversation:
-		frappe.throw(_("Impossible d'ouvrir une conversation pour cette session."))
+		frappe.throw(_("Unable to open a conversation for this session."))
 	ctx.conversation = conversation
 	# the form is prefilled with the words the model could not answer: no second copy
 	last_user = next((m for m in reversed(conversation.messages) if m.role == "user"), None)
 	if not last_user or (last_user.content or "").strip() != text:
 		conversation.add_message("user", text)
 	out = escalation.contact_team(ctx, summary=text, email=email)
-	reply = _("C'est transmis. L'équipe vous répond à {0}.").format(email)
+	reply = _("Your message has been passed on. The team will reply to {0}.").format(email)
 	status = store_status_line(ctx.settings)
 	if status:
 		reply = f"{reply} {status}"
@@ -424,7 +428,7 @@ def usage_stats():
 	return get_usage_stats()
 
 
-# //// Neoffice — nightly purge job feeding the usage report and retention policy (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
+# //// Neoffice — nightly purge job feeding the usage report and retention policy (84412d0bec "feat(assistant): usage report, nightly purge, conversations on the customer record")
 def purge_old_conversations():
 	"""Nightly: forget conversations older than the retention, except the ones
 	that were handed to the team — those are the trace the team may need."""

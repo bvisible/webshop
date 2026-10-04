@@ -1,8 +1,7 @@
 # //// Neoffice — added file (shop assistant, no upstream equivalent).
 # //// Neoffice — below: settings are read once into an in-memory copy instead of written
 # //// via frappe.db.set_single_value, since a write to tabSingles on a shared site (osiris)
-# //// waited on another suite's lock, twice, until timeout (807c98474e "test(assistant): des
-# //// réglages en mémoire, pas d'écriture dans tabSingles")
+# //// waited on another suite's lock, twice, until timeout (807c98474e "test(assistant): in-memory settings, no writes to tabSingles")
 """The assistant without a model: `llm.complete` is replaced by a fake that
 answers what each test scripts, so what is exercised is everything around it —
 the identity of the tools, the loop, what gets written on the conversation,
@@ -29,8 +28,7 @@ from webshop.webshop.tests.utils import (
 	leaf_customer_group,
 	make_test_item,
 	portal_customer,
-	# //// Neoffice — removed restore_webshop_settings import (807c98474e "test(assistant): des
-	# //// réglages en mémoire, pas d'écriture dans tabSingles"): settings are no longer snapshotted
+	# //// Neoffice — removed restore_webshop_settings import (807c98474e "test(assistant): in-memory settings, no writes to tabSingles"): settings are no longer snapshotted
 	# //// and restored via Webshop Settings, so this helper is unused here.
 	selling_price_list,
 	ensure_shop_settings,
@@ -56,12 +54,10 @@ class FakeModel:
 	def __call__(self, messages, tools_schema=None, settings=None, **kwargs):
 		self.seen.append(messages)
 		# //// Neoffice — records whether tools were offered on each call, so a test can check
-		# //// the last round of the loop was made without tools (a1c7c75f97 "fix(assistant):
-		# //// après le dernier tour d'outils, le modèle répond sans outils")
+		# //// the last round of the loop was made without tools (a1c7c75f97 "fix(assistant): after the last tool round, the model answers without tools")
 		self.tools_offered = getattr(self, "tools_offered", []) + [bool(tools_schema)]
 		turn = self.turns.pop(0) if self.turns else "…"
-		# //// Neoffice — TO REVIEW: "test(assistant): des réglages en mémoire, pas d'écriture dans
-		# //// tabSingles" (807c98474e) — reformatted only (line-length), reason not stated in the commit
+		# //// Neoffice — TO REVIEW: "test(assistant): in-memory settings, no writes to tabSingles" (807c98474e) — reformatted only (line-length), reason not stated in the commit
 		out = frappe._dict(
 			content="", tool_calls=[], prompt_tokens=100, completion_tokens=20, model="fake", duration_ms=5, finish_reason="stop"
 		)
@@ -77,8 +73,7 @@ class FakeModel:
 
 # //// Neoffice — added: builds the in-memory Webshop Settings copy that api.settings() is
 # //// monkeypatched to return during these tests, instead of writing to the Single via
-# //// frappe.db.set_single_value (807c98474e "test(assistant): des réglages en mémoire, pas
-# //// d'écriture dans tabSingles").
+# //// frappe.db.set_single_value (807c98474e "test(assistant): in-memory settings, no writes to tabSingles").
 def test_settings(**overrides):
 	"""Webshop Settings as this class wants them, in memory only."""
 	doc = frappe.get_doc("Webshop Settings")
@@ -101,8 +96,7 @@ class TestAssistant(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		# //// Neoffice — added (c81fe963b2 "test(assistant): un site neuf reçoit une liste
-		# //// de prix et l'affichage des prix"): write what a fresh site is missing, restored below
+		# //// Neoffice — added (c81fe963b2 "test(assistant): a fresh site gets a price list and the price display"): write what a fresh site is missing, restored below
 		cls.settings_written = ensure_shop_settings()
 		cls.purge()
 		# no standard_rate: ERPNext would write its own Item Price, and a second
@@ -114,7 +108,7 @@ class TestAssistant(FrappeTestCase):
 				{"doctype": "Item Price", "item_code": item.name, "price_list": price_list, "price_list_rate": 349}
 			).insert(ignore_permissions=True)
 		# //// Neoffice — make_website_item returns [name, web_item_name], not the document
-		# //// (3348ed273a "test(assistant): make_website_item rend des noms, pas le document");
+		# //// (3348ed273a "test(assistant): make_website_item returns names, not the document");
 		# //// re-fetch the Website Item explicitly before editing it.
 		make_website_item(item)  # returns [name, web_item_name], not the document
 		website_item = frappe.get_doc("Website Item", {"item_code": item.name})
@@ -131,8 +125,7 @@ class TestAssistant(FrappeTestCase):
 	def tearDownClass(cls):
 		frappe.set_user("Administrator")
 		cls.purge()
-		# //// Neoffice — added (c81fe963b2 "test(assistant): un site neuf reçoit une liste
-		# //// de prix et l'affichage des prix"): put back only what ensure_shop_settings() wrote
+		# //// Neoffice — added (c81fe963b2 "test(assistant): a fresh site gets a price list and the price display"): put back only what ensure_shop_settings() wrote
 		# only what ensure_shop_settings() wrote on a fresh site goes back
 		for field, value in cls.settings_written.items():
 			frappe.db.set_single_value("Webshop Settings", field, value)
@@ -147,8 +140,7 @@ class TestAssistant(FrappeTestCase):
 		frappe.set_user("Administrator")
 		for name in frappe.get_all("Shop Assistant Conversation", filters={"user": USER}, pluck="name"):
 			frappe.delete_doc("Shop Assistant Conversation", name, force=True, ignore_permissions=True)
-		# //// Neoffice — TO REVIEW: "test(assistant): des réglages en mémoire, pas d'écriture dans
-		# //// tabSingles" (807c98474e) — reformatted only (line-length), reason not stated in the commit
+		# //// Neoffice — TO REVIEW: "test(assistant): in-memory settings, no writes to tabSingles" (807c98474e) — reformatted only (line-length), reason not stated in the commit
 		for name in frappe.get_all(
 			"Shop Assistant Conversation", filters={"guest_session": ["like", f"{PREFIX}%"]}, pluck="name"
 		):
@@ -190,8 +182,7 @@ class TestAssistant(FrappeTestCase):
 				"transaction_date": nowdate(),
 				"delivery_date": add_days(nowdate(), 5),
 				"selling_price_list": selling_price_list(),
-				# //// Neoffice — TO REVIEW: "test(assistant): des réglages en mémoire, pas d'écriture
-				# //// dans tabSingles" (807c98474e) — reformatted only (line-length), reason not stated
+				# //// Neoffice — TO REVIEW: "test(assistant): in-memory settings, no writes to tabSingles" (807c98474e) — reformatted only (line-length), reason not stated
 				"items": [
 					{"item_code": cls.item_code, "qty": 1, "rate": 349, "delivery_date": add_days(nowdate(), 5)}
 				],
@@ -206,8 +197,7 @@ class TestAssistant(FrappeTestCase):
 		frappe.set_user("Administrator")
 		# //// Neoffice — frappe.log_error commits, so a conversation saved by a failing-model
 		# //// test in this class was still on the database for the next test of the same user;
-		# //// purge them here first (a1c7c75f97 "fix(assistant): après le dernier tour d'outils,
-		# //// le modèle répond sans outils")
+		# //// purge them here first (a1c7c75f97 "fix(assistant): after the last tool round, the model answers without tools")
 		# frappe.log_error commits: a conversation saved by a failing-model test
 		# would otherwise be found again by the next test of the same user
 		for name in frappe.get_all("Shop Assistant Conversation", filters={"user": USER}, pluck="name"):
@@ -216,7 +206,7 @@ class TestAssistant(FrappeTestCase):
 		self.real_complete = llm.complete
 		# //// Neoffice — added: api.settings() is monkeypatched to return an in-memory copy for the
 		# //// duration of each test, so nothing is written to Webshop Settings (807c98474e
-		# //// "test(assistant): des réglages en mémoire, pas d'écriture dans tabSingles").
+		# //// "test(assistant): in-memory settings, no writes to tabSingles").
 		self.real_settings = api.settings
 		self.settings = test_settings()
 		api.settings = lambda: self.settings
@@ -245,8 +235,7 @@ class TestAssistant(FrappeTestCase):
 		)
 
 	def new_conversation(self, ctx):
-		# //// Neoffice — TO REVIEW: "test(assistant): des réglages en mémoire, pas d'écriture dans
-		# //// tabSingles" (807c98474e) — reformatted only (line-length), reason not stated in the commit
+		# //// Neoffice — TO REVIEW: "test(assistant): in-memory settings, no writes to tabSingles" (807c98474e) — reformatted only (line-length), reason not stated in the commit
 		doc = frappe.get_doc(
 			{
 				"doctype": "Shop Assistant Conversation",
@@ -315,8 +304,7 @@ class TestAssistant(FrappeTestCase):
 		self.assertEqual(conversation.messages[2].tool_name, "get_store_hours")
 		self.assertEqual(conversation.prompt_tokens, 200)
 		# //// Neoffice — was 3: message_count no longer counts the model's tool-call requests, only
-		# //// what the visitor saw (807c98474e "test(assistant): des réglages en mémoire, pas
-		# //// d'écriture dans tabSingles"); see shop_assistant_conversation.py validate().
+		# //// what the visitor saw (807c98474e "test(assistant): in-memory settings, no writes to tabSingles"); see shop_assistant_conversation.py validate().
 		self.assertEqual(conversation.message_count, 2)
 		last_call = fake.seen[-1]
 		self.assertEqual(last_call[-1]["role"], "tool")
@@ -327,8 +315,7 @@ class TestAssistant(FrappeTestCase):
 		conversation = self.new_conversation(ctx)
 		# //// Neoffice — script exactly MAX_TOOL_ROUNDS tool turns (was 6, an arbitrary
 		# //// overshoot) plus the final worded reply, and check the last call was made
-		# //// without tools (a1c7c75f97 "fix(assistant): après le dernier tour d'outils,
-		# //// le modèle répond sans outils")
+		# //// without tools (a1c7c75f97 "fix(assistant): after the last tool round, the model answers without tools")
 		fake = FakeModel([[("get_store_info", {})]] * engine.MAX_TOOL_ROUNDS + ["Fin."])
 		llm.complete = fake
 		out = engine.respond(conversation, "encore", ctx)
@@ -348,8 +335,7 @@ class TestAssistant(FrappeTestCase):
 	def test_the_system_prompt_names_the_signed_in_customer(self):
 		from webshop.webshop.assistant import prompt
 
-		# //// Neoffice — TO REVIEW: "test(assistant): des réglages en mémoire, pas d'écriture dans
-		# //// tabSingles" (807c98474e) — reformatted only (line-length), reason not stated in the commit
+		# //// Neoffice — TO REVIEW: "test(assistant): in-memory settings, no writes to tabSingles" (807c98474e) — reformatted only (line-length), reason not stated in the commit
 		text = prompt.build(self.customer_context())
 		self.assertIn(CUSTOMER, text)
 		self.assertIn("connecté", text)
@@ -361,8 +347,7 @@ class TestAssistant(FrappeTestCase):
 	def test_config_is_off_when_the_switch_is_off(self):
 		# //// Neoffice — flips the in-memory settings copy directly instead of writing
 		# //// enable_assistant via frappe.db.set_single_value and clearing the doctype cache
-		# //// afterwards (807c98474e "test(assistant): des réglages en mémoire, pas d'écriture
-		# //// dans tabSingles").
+		# //// afterwards (807c98474e "test(assistant): in-memory settings, no writes to tabSingles").
 		self.settings.enable_assistant = 0
 		self.assertEqual(api.get_config(), {"enabled": False})
 
@@ -374,8 +359,9 @@ class TestAssistant(FrappeTestCase):
 			frappe.set_user("Administrator")
 		self.assertTrue(cfg["enabled"])
 		self.assertTrue(cfg["signed_in"])
-		self.assertIn("Bonjour", cfg["greeting"])
-		self.assertEqual(cfg["labels"]["send"], "Envoyer")
+		# //// Neoffice — the widget's default texts are English msgids now (house rule); a French screen gets the same words through the translation catalogue.
+		self.assertIn("Hello", cfg["greeting"])
+		self.assertEqual(cfg["labels"]["send"], "Send")
 
 	def test_send_answers_and_resumes_the_same_conversation(self):
 		llm.complete = FakeModel(["Bien sûr.", "Encore moi."])
@@ -425,7 +411,7 @@ class TestAssistant(FrappeTestCase):
 		frappe.set_user(USER)
 		try:
 			out = api.send("Ça marche ?")
-			# //// Neoffice — checks the outage flag actually skips the model, and that get_config's notice reflects it too (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
+			# //// Neoffice — checks the outage flag actually skips the model, and that get_config's notice reflects it too (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 			# the failure armed the flag: the next message is answered at once, the model is not called
 			fake = FakeModel(["Oui."])
 			llm.complete = fake
@@ -436,7 +422,7 @@ class TestAssistant(FrappeTestCase):
 		finally:
 			frappe.set_user("Administrator")
 		self.assertTrue(out.get("failed"))
-		# //// Neoffice ▼▼▼ — new coverage for the answering machine: outage assertions, then the "leave a message" tape (team notified with no model involved, guest email required, a broken SMTP config never surfacing to the visitor, the confirmation bypassing the follow-ups' unsubscribe) and the merchant-worded notice (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
+		# //// Neoffice ▼▼▼ — new coverage for the answering machine: outage assertions, then the "leave a message" tape (team notified with no model involved, guest email required, a broken SMTP config never surfacing to the visitor, the confirmation bypassing the follow-ups' unsubscribe) and the merchant-worded notice (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 		self.assertEqual(out["unavailable"], "outage")
 		self.assertTrue(out["leave_message"])
 		self.assertNotIn("Traceback", out["reply"])
@@ -537,11 +523,11 @@ class TestAssistant(FrappeTestCase):
 		self.assertIn("visiteur@example.com", self._recipients(mailed))
 
 	def test_the_confirmation_reaches_a_customer_who_stopped_the_follow_ups(self):
-		# //// Neoffice — docstring added (8f821f80e9 "fix(assistant): l'escalade ne dépend plus d'un champ que Frappe standard n'a pas"): the test was rewritten below, no longer just checking the queue
+		# //// Neoffice — docstring added (8f821f80e9 "fix(assistant): escalation no longer depends on a field stock Frappe does not have"): the test was rewritten below, no longer just checking the queue
 		"""The follow-ups' unsubscribe must not swallow a transactional receipt."""
 		from webshop.webshop.assistant import escalation
 
-		# //// Neoffice — removed the "no outgoing email account" skipTest guard (8f821f80e9 "fix(assistant): l'escalade ne dépend plus d'un champ que Frappe standard n'a pas"): the test now captures frappe.sendmail directly instead of reading Email Queue Recipient, so no outgoing email account is required on the site
+		# //// Neoffice — removed the "no outgoing email account" skipTest guard (8f821f80e9 "fix(assistant): escalation no longer depends on a field stock Frappe does not have"): the test now captures frappe.sendmail directly instead of reading Email Queue Recipient, so no outgoing email account is required on the site
 		ctx = self.customer_context()
 		self.new_conversation(ctx)
 		# the customer once clicked the follow-ups' unsubscribe link, scoped to their Customer
@@ -555,17 +541,17 @@ class TestAssistant(FrappeTestCase):
 		real = frappe.sendmail
 		frappe.sendmail = lambda *args, **kwargs: mailed.append(kwargs)
 		try:
-			escalation._notify_customer(USER, "Votre demande a été transmise", "Bonjour", ctx)
+			escalation._notify_customer(USER, "Your request has been passed on", "Hello", ctx)
 		finally:
 			frappe.sendmail = real
 		self.assertEqual([c.get("recipients") for c in mailed], [[USER]])
 		# the giveaway of the follow-ups' path, the one that carries the unsubscribe
 		self.assertNotIn("unsubscribe_message", mailed[0])
 		self.assertTrue(
-			frappe.db.exists("Communication", {"reference_doctype": "Customer", "reference_name": CUSTOMER, "subject": "Votre demande a été transmise"})
+			frappe.db.exists("Communication", {"reference_doctype": "Customer", "reference_name": CUSTOMER, "subject": "Your request has been passed on"})
 		)
 
-	# //// Neoffice — added test (8f821f80e9 "fix(assistant): l'escalade ne dépend plus d'un champ que Frappe standard n'a pas"): _support_email used to call Website Settings.email unguarded, a field that belongs to us and does not exist on stock Frappe, raising and taking down the whole escalation
+	# //// Neoffice — added test (8f821f80e9 "fix(assistant): escalation no longer depends on a field stock Frappe does not have"): _support_email used to call Website Settings.email unguarded, a field that belongs to us and does not exist on stock Frappe, raising and taking down the whole escalation
 	def test_the_support_email_falls_back_without_a_website_settings_field(self):
 		"""A stock Frappe has no Website Settings.email: asking for it used to raise."""
 		from webshop.webshop.assistant import escalation

@@ -71,7 +71,7 @@ def _post_to_raven(channel, text):
 		return False
 
 
-# //// Neoffice — repurposed for the answering machine's "leave a message" confirmation, sent outside the follow-ups' unsubscribe-scoped path (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
+# //// Neoffice — repurposed for the answering machine's "leave a message" confirmation, sent outside the follow-ups' unsubscribe-scoped path (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 def _notify_customer(email, subject, message, ctx):
 	"""The confirmation the visitor asked for a moment ago.
 
@@ -86,7 +86,7 @@ def _notify_customer(email, subject, message, ctx):
 
 	conversation = ctx.conversation
 	try:
-		# //// Neoffice — logged straight on the Customer's timeline instead of through the follow-ups' outgoing path, whose Customer-scoped unsubscribe would otherwise swallow it (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
+		# //// Neoffice — logged straight on the Customer's timeline instead of through the follow-ups' outgoing path, whose Customer-scoped unsubscribe would otherwise swallow it (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 		if ctx.customer:
 			frappe.get_doc(
 				{
@@ -104,7 +104,7 @@ def _notify_customer(email, subject, message, ctx):
 			).insert(ignore_permissions=True)
 	except Exception:
 		frappe.log_error("Shop assistant: customer notification failed", frappe.get_traceback())
-	# //// Neoffice — through _send_quietly so a broken SMTP config (osiris) never bubbles frappe.throw's "Incorrect Configuration" back to the public visitor (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
+	# //// Neoffice — through _send_quietly so a broken SMTP config (osiris) never bubbles frappe.throw's "Incorrect Configuration" back to the public visitor (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 	# the mail on its own quiet path: an SMTP error must not surface to the visitor
 	_send_quietly(
 		recipients=[email],
@@ -124,10 +124,11 @@ def contact_team(ctx, summary, email):
 	channel_done = _post_to_raven(_team_channel(settings), text)
 	support = _support_email(settings)
 	if support:
-		# //// Neoffice — through _send_quietly, same SMTP-failure guard as the customer confirmation below (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
+		# //// Neoffice — through _send_quietly, same SMTP-failure guard as the customer confirmation below (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 		_send_quietly(
 			recipients=[support],
-			subject=_("Assistant boutique : {0} demande l'équipe").format(who),
+			# //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue.
+			subject=_("Shop assistant: {0} is asking for the team").format(who),
 			message=text.replace("\n", "<br>"),
 			reference_doctype="Shop Assistant Conversation" if conversation else None,
 			reference_name=conversation.name if conversation else None,
@@ -136,10 +137,11 @@ def contact_team(ctx, summary, email):
 		conversation.status = "Escalated"
 		conversation.escalated_to = "Team"
 		conversation.escalation_note = summary
+	# //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue.
 	_notify_customer(
 		email,
-		_("Votre demande a été transmise à l'équipe"),
-		_("Bonjour,<br><br>Votre demande a été transmise à notre équipe : « {0} ». Quelqu'un vous recontacte rapidement à cette adresse.<br><br>{1}").format(
+		_("Your request has been passed to the team"),
+		_("Hello,<br><br>Your request has been passed to our team: “{0}”. Someone will get back to you shortly at this address.<br><br>{1}").format(
 			escape_html(summary), frappe.db.get_single_value("Website Settings", "app_name") or ""
 		),
 		ctx,
@@ -162,10 +164,11 @@ def create_support_ticket(ctx, subject, description, email):
 	ticket = frappe.get_doc(
 		{
 			"doctype": "HD Ticket",
-			"subject": subject or _("Demande depuis l'assistant de la boutique"),
+			# //// Neoffice — msgid was French, now English (house rule); the French screen is unchanged, served by the translation catalogue.
+			"subject": subject or _("Request from the shop assistant"),
 			"description": escape_html(description).replace("\n", "<br>"),
 			"raised_by": email,
-			# //// Neoffice — HD Ticket.customer links to Helpdesk's own HD Customer, not to ERPNext's Customer; inserting the ERPNext one raised LinkValidationError and the request fell back to contact_team (231ad396f5 "fix(assistant): le ticket Helpdesk ne pointe pas un Client ERPNext")
+			# //// Neoffice — HD Ticket.customer links to Helpdesk's own HD Customer, not to ERPNext's Customer; inserting the ERPNext one raised LinkValidationError and the request fell back to contact_team (231ad396f5 "fix(assistant): the Helpdesk ticket does not point at an ERPNext Customer")
 			# HD Ticket.customer links to Helpdesk's own HD Customer, not to ERPNext's
 			"customer": ctx.customer if ctx.customer and frappe.db.exists("HD Customer", ctx.customer) else None,
 			"agent_group": team if team and frappe.db.exists("HD Team", team) else None,
@@ -189,10 +192,11 @@ def create_support_ticket(ctx, subject, description, email):
 		_team_channel(settings),
 		f"**Assistant boutique** — ticket {ticket.name} ouvert pour {escape_html(_customer_label(ctx, email))} : {escape_html(subject)}",
 	)
+	# //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue.
 	_notify_customer(
 		email,
-		_("Votre demande {0} est enregistrée").format(ticket.name),
-		_("Bonjour,<br><br>Votre demande « {0} » est enregistrée sous le numéro {1}. Notre équipe la traite et vous répond à cette adresse.").format(
+		_("Your request {0} has been registered").format(ticket.name),
+		_("Hello,<br><br>Your request “{0}” has been registered under number {1}. Our team is handling it and will reply to you at this address.").format(
 			escape_html(subject), ticket.name
 		),
 		ctx,

@@ -149,7 +149,8 @@
 	{# //// to go and see the products, not the quick order; the quick order and past #}
 	{# //// orders are quiet links under it. #}
 	<div class="cart-empty-actions mt-3">
-		<a class="btn btn-primary font-md" href="/all-products">{{ _('Voir les produits') }}</a>
+		{# //// Neoffice — msgid was French, now English (house rule); the French screen is unchanged, served by the translation catalogue. #}
+		<a class="btn btn-primary font-md" href="/all-products">{{ _('View Products') }}</a>
 	</div>
 	<div class="cart-empty-links mt-3">
 		{% if show_quick_order %}

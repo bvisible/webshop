@@ -321,3 +321,11 @@ Why: the module was disabled in 2025-12-15 and **no fleet bench carried an index
 **Upstream `frappe/webshop develop` still ships RediSearch**, so all these files conflict at the next
 merge. Resolve them in favour of OURS: the feature is gone on purpose, not lost. The only survivor is
 the `from_redisearch: False` key in the `product_search` payload, kept for the response contract.
+
+### English msgids instead of French source strings (2026-10-04)
+
+House rule: the source text of a translatable string is English; the French lives in the
+catalogue and the French screen is unchanged. JSON and `.po` files cannot carry a comment, so
+those edits are recorded here (the code edits are marked in place with `//// Neoffice`).
+
+- `webshop/locale/fr.po` — 52 entries whose msgid was the French source text of the shop assistant, the B2B checkout, the terms page and the cart drawer are renamed to their English msgid (or dropped when that msgid already existed with the same French); an empty msgstr was filled with the French that was served before. The templates and Python that call them are marked in place.
