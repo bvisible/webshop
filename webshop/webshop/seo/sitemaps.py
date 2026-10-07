@@ -39,6 +39,14 @@ def index_entries():
 	names = ["sitemap_pages.xml", "sitemap_products.xml", "sitemap_categories.xml", "sitemap_brands.xml"]
 	if frappe.db.table_exists("Blog Post") and frappe.db.exists("Blog Post", {"published": 1}):
 		names.append("sitemap_blog.xml")
+	# Other apps name their own sitemaps through the `sitemap_index_entries` hook: a function that
+	# returns file names such as "sitemap_jobs.xml" (hrms's careers page, neoffice-maintenance#1294).
+	# Without it, the index replacing Frappe's sitemap left their pages out.
+	for method in frappe.get_hooks("sitemap_index_entries") or []:
+		try:
+			names.extend(name for name in (frappe.get_attr(method)() or []) if name not in names)
+		except Exception:
+			frappe.log_error("Sitemap index: entry not listed", f"{method}\n{frappe.get_traceback()}")
 	return [{"loc": _loc(name)} for name in names]
 
 

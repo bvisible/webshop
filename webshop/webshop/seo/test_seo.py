@@ -396,3 +396,37 @@ class _form_dict:
 
 	def __exit__(self, *exc):
 		frappe.local.form_dict = self.previous
+
+
+def _jobs_sitemap():
+	return ["sitemap_jobs.xml"]
+
+
+def _broken_sitemap():
+	raise RuntimeError("an app's hook failed")
+
+
+class TestSitemapIndexHook(FrappeTestCase):
+	"""Another app names its own sitemap in the index (hrms's careers page, neoffice-maintenance#1294)."""
+
+	def _index_with(self, *methods):
+		original = frappe.get_hooks
+
+		def hooks(name=None, *args, **kwargs):
+			if name == "sitemap_index_entries":
+				return list(methods)
+			return original(name, *args, **kwargs)
+
+		with patch("frappe.get_hooks", side_effect=hooks):
+			return [entry["loc"] for entry in sitemaps.index_entries()]
+
+	def test_an_app_names_its_sitemap_in_the_index(self):
+		locs = self._index_with("webshop.webshop.seo.test_seo._jobs_sitemap")
+		self.assertTrue(any(loc.endswith("/sitemap_jobs.xml") for loc in locs), locs)
+
+	def test_a_failing_app_does_not_take_the_index_down(self):
+		locs = self._index_with(
+			"webshop.webshop.seo.test_seo._broken_sitemap", "webshop.webshop.seo.test_seo._jobs_sitemap"
+		)
+		self.assertTrue(any(loc.endswith("/sitemap_pages.xml") for loc in locs))
+		self.assertTrue(any(loc.endswith("/sitemap_jobs.xml") for loc in locs))
