@@ -45,7 +45,7 @@ No upstream equivalent; the whole file is ours.
 | `webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json`, `website_item_warehouse_source/website_item_warehouse_source.json` | multi-warehouse: the shop's sources, and the per-product override | `5bf2e88a1b` (2026-08-25), `98bdb60ccf` (2026-08-26) |
 | `webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json`, `webshopsi_country/webshopsi_country.json`, `webshopsi_invoice_installments/webshopsi_invoice_installments.json` | the "Facture" (pay-on-invoice) method, folded in from the standalone `webshopsi_integration` app | `662c26b650` (2026-05-26) |
 | `webshop/webshop/doctype/website_item_video/website_item_video.json` | child table of a product's videos (YouTube, Vimeo or a hosted file, title, poster), drawn by the gallery | `b89dd9080b` (2026-09-13) |
-| `webshop/webshop/workspace/webshop/webshop.json` | the "Webshop" desk workspace — a **root** page of the Website module, so the Neoffice sidebar lists it | `86e2609b57`, `01c6358b19` (2026-09-03) |
+| `webshop/webshop/workspace/webshop/webshop.json` | the "Webshop" desk workspace — a **root** page of the Website module, so the Neoffice sidebar lists it. Its « SEO dashboard » link is a URL (`/app/dashboard-view/Webshop%20SEO`): a Workspace Link accepts DocType, Page, Report or URL, and the `Dashboard` type it had was refused when the hub copied the workspace to an instance (neoffice-maintenance#1278) | `86e2609b57`, `01c6358b19` (2026-09-03), 2026-10-07 |
 
 ### DocType JSON — upstream files we MODIFY
 
