@@ -38,8 +38,11 @@ class TestDesk(FrappeTestCase):
 		for name in charts:
 			self.assertTrue(frappe.db.exists("Dashboard Chart", name), name)
 		self.assertIn(("Dashboard", "Webshop SEO"), {(row.type, row.link_to) for row in workspace.shortcuts})
-		linked = {(row.link_type, row.link_to) for row in workspace.links if row.type == "Link"}
-		self.assertIn(("Dashboard", "Webshop SEO"), linked)
+		# The card's link opens the dashboard by its address: a Workspace Link accepts DocType, Page, Report or URL,
+		# and the `Dashboard` link it had was refused when the hub copied the workspace (neoffice-maintenance#1278).
+		urls = {row.url for row in workspace.links if row.type == "Link" and row.link_type == "URL"}
+		self.assertIn("/app/dashboard-view/Webshop%20SEO", urls)
+		self.assertNotIn("Dashboard", {row.link_type for row in workspace.links if row.type == "Link"})
 
 	def test_every_workspace_link_points_at_an_installed_doctype(self):
 		workspace = frappe.get_doc("Workspace", "Webshop")
