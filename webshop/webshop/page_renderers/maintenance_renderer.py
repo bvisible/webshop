@@ -3,7 +3,8 @@
 # //// is the only hook that beats the website router for ALL routes (deb34ad632,
 # //// 2025-06-19). Its allow-list is deliberate: /login, assets, files, print/PDF
 # //// (228763c16c) and, for a signed-in user, the desk and the API (3bb7ad595d) —
-# //// closing the shop must not lock the staff out of the ERP.
+# //// and every app mounted through a route rule (is_app_endpoint, 2026-10-08): closing the shop
+# //// must not lock the staff out of the ERP.
 import frappe
 from frappe.website.page_renderers.base_renderer import BaseRenderer
 from frappe.utils import cint, now_datetime
@@ -34,7 +35,9 @@ class MaintenancePageRenderer(BaseRenderer):
 		if frappe.session.user != "Guest":
 			# Always allow desk/app paths for logged-in users
 			desk_paths = ['app', 'drive', 'crm', 'insights', 'raven', 'builder']
-			if any(self.path.startswith(p) for p in desk_paths):
+			# //// Neoffice — and every app mounted through a route rule (is_app_endpoint, 2026-10-08,
+			# //// neoffice-maintenance#1325): the list above is the fixed set that was true in 2025.
+			if any(self.path.startswith(p) for p in desk_paths) or self.is_app_endpoint():
 				return False
 
 			# Always allow API calls for logged-in users
@@ -109,6 +112,27 @@ class MaintenancePageRenderer(BaseRenderer):
 		else:
 			return "Disabled"
 		
+	def is_app_endpoint(self):
+		"""Whether this request is for a single-page app mounted through `website_route_rules`.
+
+		//// Neoffice — added (2026-10-08, neoffice-maintenance#1325). Frappe hands a page renderer
+		//// the ENDPOINT of the route rule that matched, not the address that was asked for:
+		//// /drive, /writer, /sheets, /slides, /meet, /mail and /calendar all reach this renderer
+		//// as "suite", /hrms as "hrms", /hr as "roster", /builder as "_builder", /lms as "_lms".
+		//// The fixed `desk_paths` therefore never matched them ("drive" and "builder" could not:
+		//// no endpoint carries those names), and a signed-in member of staff got the maintenance
+		//// page, or a redirect to /login and then /app, on every app but the desk itself.
+		//// An app is named by its rule, whose address ends in `<path:app_path>`: read from the
+		//// hooks, so an app installed tomorrow passes without touching this file. Only that
+		//// variable counts: the shop's own pages (/orders/<path:name>, /brands/<brand_slug>)
+		//// stay under the veil. Each app applies its own permissions once the request is through."""
+		for rule in frappe.get_hooks("website_route_rules") or []:
+			if not isinstance(rule, dict) or "<path:app_path>" not in (rule.get("from_route") or ""):
+				continue
+			if (rule.get("to_route") or "").strip("/ ") == self.path:
+				return True
+		return False
+
 	def can_user_bypass_maintenance(self):
 		"""Check if current user can bypass maintenance mode"""
 		if frappe.session.user == "Guest":

@@ -321,7 +321,8 @@ jobs:
             webshop.webshop.tests.test_engine_callers_match_the_engine \
             webshop.webshop.tests.test_gift_card_codes_are_not_predictable \
             webshop.webshop.tests.test_portal_address_book \
-            webshop.webshop.tests.test_payment_request_release_undoes_a_refused_cancel
+            webshop.webshop.tests.test_payment_request_release_undoes_a_refused_cancel \
+            webshop.webshop.page_renderers.test_maintenance_renderer
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || failed="$failed $m"
