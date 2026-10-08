@@ -757,6 +757,29 @@ checks all of it on a fresh install.
 > folder** from the app (`Workspace.on_trash`). `git checkout` brings it back.
 
 <!-- //// Neoffice — added: documents the store-hours feature as one source of truth across settings, endpoint, page, include and Builder block (a3aa43ce16 "docs: les horaires du magasin, une seule source de vérité") -->
+### The maintenance veil
+
+`page_renderers/maintenance_renderer.py` closes the public website to visitors while the switches of
+Webshop Settings' Maintenance Mode section are on: `maintenance_website` (the whole site),
+`maintenance_webshop` (the shop's pages only), `allow_system_users_during_maintenance` (System Manager,
+Website Manager and Administrator see the site too) and `redirect_to_login` (a blocked visitor is sent to
+`/login` instead of seeing the page). It is a page renderer — the one hook that beats the website router
+for every route — and closing the shop must never lock the staff out of the ERP.
+
+> **A page renderer is handed the ENDPOINT of the route rule that matched, not the address asked for.**
+> `path_resolver.resolve()` builds each renderer from the endpoint: `/drive`, `/writer`, `/sheets`,
+> `/slides`, `/meet`, `/mail` and `/calendar` reach `can_render` as `suite`, `/hrms` as `hrms`, `/hr` as
+> `roster`, `/builder` as `_builder`, `/lms` as `_lms`. The veil's fixed list of desk paths could not
+> recognise them (`drive` and `builder` match no endpoint at all), and a signed-in member of staff got the
+> maintenance page on every app but the desk (neoffice-maintenance#1325, 2026-10-08).
+> `is_app_endpoint` names an app by its rule — an address ending in `<path:app_path>` — read from
+> `frappe.get_hooks("website_route_rules")`, so an app installed tomorrow passes on its own; the other
+> variables (`<path:name>`, `<brand_slug>`) are the shop's pages and stay behind the veil. Visitors stay
+> behind it; a signed-in account passes, and each app applies its own permissions once the request is
+> through. `test_maintenance_renderer.py` pins the premise (an address becomes its rule's endpoint) and who
+> passes, `_builder` and `_lms` included. Not to be confused with a Website Profile's `maintenance_mode`
+> (frappe fork, the `/site-offline` page, which System Manager and Website Manager bypass).
+
 ### Store hours
 
 `webshop/webshop/utils/store_hours.py` is the one source of truth: rows on
