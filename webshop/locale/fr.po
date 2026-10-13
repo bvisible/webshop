@@ -64,8 +64,9 @@ msgstr ""
 #. Description of the 'Settlement' (Select) field in DocType 'Webshop Payment
 #. Method'
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+# //// Neoffice — translated: field help of a doctype we added (Webshop Payment Method)
 msgid "<b>Online</b>: the shopper is handed to the gateway and the order follows the payment.<br><b>Transfer before shipping</b>: the order is placed and waits. A payment request carrying the QR bill is raised on it; no invoice is issued until the money arrives.<br><b>On account</b>: the order is placed and shipped, and invoiced on the terms above."
-msgstr ""
+msgstr "<b>En ligne</b> : le client est redirigé vers la passerelle, et la commande suit le paiement.<br><b>Virement avant expédition</b> : la commande est enregistrée et attend. Une demande de paiement comportant la QR-facture y est rattachée ; aucune facture n'est émise tant que le paiement n'est pas reçu.<br><b>Sur facture</b> : la commande est enregistrée et expédiée, puis facturée selon les conditions ci-dessus."
 
 #. Content of the 'sitemap_info' (HTML) field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -1237,8 +1238,9 @@ msgstr "Tout réduire"
 #. Description of the 'Restrict Payment Methods' (Data) field in DocType
 #. 'Webshop Payment Method'
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+# //// Neoffice — translated: field help of a doctype we added (Webshop Payment Method)
 msgid "Comma-separated provider codes, e.g. <code>twint</code> or <code>visa,mastercard</code>. Leave empty to offer everything the account allows. Lets one gateway serve several tiles: name a second Payment Gateway Account after the same provider and restrict it here, and the shopper gets a TWINT tile and a card tile that both settle through it. Ignored by gateways that cannot filter."
-msgstr ""
+msgstr "Codes des fournisseurs séparés par des virgules, par exemple <code>twint</code> ou <code>visa,mastercard</code>. Laissez vide pour proposer tout ce que le compte permet. Permet à une même passerelle d'alimenter plusieurs tuiles : nommez un second compte de passerelle de paiement d'après le même fournisseur et restreignez-le ici, et le client verra une tuile TWINT et une tuile carte qui passent toutes deux par cette passerelle. Ignoré par les passerelles qui ne savent pas filtrer."
 
 #. Label of a Small Text field in DocType 'Item Review'
 #: webshop/webshop/doctype/item_review/item_review.json
@@ -4048,8 +4050,9 @@ msgstr "Offrir un code promo à partir de l'email numéro"
 #. Description of the 'Offered To' (Link) field in DocType 'Webshop Payment
 #. Method'
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+# //// Neoffice — translated: field help of a doctype we added (Webshop Payment Method)
 msgid "Offer this method only to that customer group <b>and its sub-groups</b>. Leave empty to offer it to everyone. Add the same gateway on several rows, one per group, when a group must get its own payment terms — a group buying on account at 30 days and another at 2% within 10 days are two rows of the same method.<br><br>The field is <b>not</b> called customer_group on purpose: Frappe fills a Link field of that name with the session default at insert time, so \"empty means everyone\" could never happen."
-msgstr ""
+msgstr "Proposez ce moyen de paiement uniquement à ce groupe de clients <b>et à ses sous-groupes</b>. Laissez vide pour le proposer à tout le monde. Ajoutez la même passerelle sur plusieurs lignes, une par groupe, lorsqu'un groupe doit avoir ses propres conditions de paiement — un groupe qui achète sur facture à 30 jours et un autre qui paie dans les 10 jours avec 2 % d'escompte sont deux lignes du même moyen de paiement.<br><br>Ce champ ne s'appelle <b>pas</b> customer_group, à dessein : le système remplit un champ Lien de ce nom avec la valeur par défaut de la session à la création, si bien que « vide signifie tout le monde » ne pourrait jamais se produire."
 
 #. Label of a Link field in DocType 'Cross Sell Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
@@ -5991,8 +5994,9 @@ msgstr "Afficher les importations réussies"
 #. Description of the 'Render Payment Page Inline' (Check) field in DocType
 #. 'Webshop Payment Method'
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
+# //// Neoffice — translated: field help of a doctype we added (Webshop Payment Method)
 msgid "Show the payment page inside the checkout instead of sending the shopper away. Suits card entry, which is a form. Leave off for methods that hand over to an app — TWINT switches to the phone, and it cannot do that from inside a frame."
-msgstr ""
+msgstr "Affichez la page de paiement dans le tunnel de commande au lieu d'envoyer le client ailleurs. Convient à la saisie d'une carte, qui est un formulaire. Laissez décoché pour les moyens de paiement qui passent par une application : TWINT bascule sur le téléphone, et il ne peut pas le faire depuis un cadre intégré à la page."
 
 #: webshop/webshop/doctype/website_item/website_item_list.js:58
 msgid "Show this source on the selected items"
