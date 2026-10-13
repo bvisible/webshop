@@ -59,7 +59,7 @@ msgstr "De 1 à 20. Quand plusieurs offres ou règles de prix touchent la même 
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "1 to 28."
-msgstr ""
+msgstr "De 1 à 28."
 
 #. Description of the 'Settlement' (Select) field in DocType 'Webshop Payment
 #. Method'
@@ -76,7 +76,7 @@ msgstr "<p>Le sitemap est généré automatiquement et mis en cache pendant 6 he
 #. Content of the 'follow_up_note' (HTML) field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "<p>Which purchase, how many days later, which template: <a href=\"/app/purchase-follow-up\">Purchase Follow-up</a>. Emails go out every morning at 08:15; what a customer received shows in the customer's timeline and in <a href=\"/app/purchase-follow-up-entry\">Purchase Follow-up Entry</a>.</p>"
-msgstr ""
+msgstr "<p>Quel achat, combien de jours plus tard, quel modèle : <a href=\"/app/purchase-follow-up\">Suivi d'achat</a>. Les e-mails partent chaque matin à 08:15 ; ce qu'un client a reçu apparaît dans la chronologie du client et dans <a href=\"/app/purchase-follow-up-entry\">Suivi d'achat client</a>.</p>"
 
 #. Header text in the Webshop Workspace
 #: webshop/webshop/workspace/webshop/webshop.json
@@ -225,7 +225,7 @@ msgstr "Ajouter une nouvelle adresse"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:314
 msgid "Add at least one payment method before enabling the checkout."
-msgstr ""
+msgstr "Ajoutez au moins une méthode de paiement avant d'activer le paiement."
 
 #: webshop/webshop/utils/cross_sell.py:229
 msgid "Add both"
@@ -681,7 +681,7 @@ msgstr "Audience"
 #. Item'
 #: webshop/webshop/doctype/website_item/website_item.json
 msgid "Auto"
-msgstr ""
+msgstr "Automatique"
 
 #. Label of a Check field in DocType 'Webshop Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
@@ -888,13 +888,13 @@ msgstr "Couleur de la pastille"
 #. 'Webshop Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Business days between the supplier order departure and the goods arriving."
-msgstr ""
+msgstr "Jours ouvrables entre le départ de la commande fournisseur et l'arrivée de la marchandise."
 
 #. Description of the 'Handling (business days)' (Int) field in DocType
 #. 'Webshop Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Business days to prepare and ship after the goods arrived."
-msgstr ""
+msgstr "Jours ouvrables pour préparer et expédier une fois la marchandise arrivée."
 
 #: webshop/templates/pages/gift_cards.html:27
 msgid "Buy a gift card"
@@ -1101,7 +1101,7 @@ msgstr "Le paiement est désactivé. Veuillez l'activer dans les paramètres de 
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:315
 msgid "Checkout not enabled"
-msgstr ""
+msgstr "Paiement non activé"
 
 #: webshop/templates/pages/checkout.html:347
 msgid "Choose Shipping Method"
@@ -1432,11 +1432,11 @@ msgstr "Impossible d'ouvrir un panier pour cette session."
 
 #: webshop/templates/payments/payrexx.html:114
 msgid "Could not reach Payrexx. Please try again."
-msgstr ""
+msgstr "Impossible de joindre Payrexx. Veuillez réessayer."
 
 #: webshop/templates/payments/payrexx.html:104
 msgid "Could not start the Payrexx payment"
-msgstr ""
+msgstr "Impossible de démarrer le paiement Payrexx"
 
 #: webshop/webshop/shopping_cart/cart.py:3271
 msgid "Could not update the contact details"
@@ -1525,7 +1525,7 @@ msgstr "Créez l'occasion depuis une variante précise, pas depuis le modèle."
 
 #: webshop/webshop/shopping_cart/cart.py:614
 msgid "Created from gift card"
-msgstr ""
+msgstr "Créée à partir d'une carte cadeau"
 
 #: webshop/webshop/shopping_cart/cart.py:4020
 msgid "Created from gift card: {0} (remaining amount after order {1})"
@@ -2296,7 +2296,7 @@ msgstr "Erreurs"
 #. Conversation'
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json
 msgid "Escalated"
-msgstr ""
+msgstr "Transmise"
 
 #. Label of a Select field in DocType 'Shop Assistant Conversation'
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json
@@ -2321,7 +2321,7 @@ msgstr "Livraison estimée"
 #. 'Webshop Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Every published Website Item with stock in this source displays it automatically (no per-item setup). Uncheck to only show it on items that list this source explicitly."
-msgstr ""
+msgstr "Chaque article du site publié ayant du stock dans cette source l'affiche automatiquement, sans configuration par article. Décochez pour ne l'afficher que sur les articles qui listent explicitement cette source."
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:128
 msgid "Excel File"
@@ -2431,11 +2431,11 @@ msgstr "Récupération des jours fériés…"
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Fieldname on Item holding the quantity, e.g. neo_supplier_stock."
-msgstr ""
+msgstr "Nom du champ de l'article qui contient la quantité, par exemple neo_supplier_stock."
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:273
 msgid "Filter Fields Row #{0}: Fieldname {1} must be of type 'Link', 'Select' or 'Table MultiSelect'"
-msgstr ""
+msgstr "Ligne #{0} des champs de filtre : le champ {1} doit être de type « Lien », « Sélectionner » ou « Tableau MultiSelect »"
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -2470,7 +2470,7 @@ msgstr ""
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Fixed: constant number of business days. Periodic: supplier orders leave on a schedule (e.g. end of month), the estimate accounts for the next departure."
-msgstr ""
+msgstr "Fixe : nombre constant de jours ouvrables. Périodique : les commandes fournisseur partent selon un calendrier (par exemple fin de mois), l'estimation tient compte du prochain départ."
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:27
 msgid "Follow these steps to create a landing page for your store"
@@ -3131,7 +3131,7 @@ msgstr "Détails de l'article"
 #. Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Item Field"
-msgstr ""
+msgstr "Champ de l'article"
 
 #. Option for the 'Trigger' (Select) field in DocType 'Cross Sell Offer'
 #. Label of a Link field in DocType 'Cross Sell Offer'
@@ -3696,7 +3696,7 @@ msgstr "Stock multi-entrepôts"
 #. Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Multi-site: restrict this source to B2B (reseller) sites or to public sites. Single-site instances always show it."
-msgstr ""
+msgstr "Multi-site : limiter cette source aux sites B2B (revendeurs) ou aux sites publics. Les instances mono-site l'affichent toujours."
 
 #. Description of the 'Multi-Warehouse Stock' (Section Break) field in DocType
 #. 'Webshop Settings'
@@ -3722,7 +3722,7 @@ msgstr "Multi-entrepôt : {0} activé dans les paramètres de stock"
 #. Warehouse Source'
 #: webshop/webshop/doctype/website_item_warehouse_source/website_item_warehouse_source.json
 msgid "Must be listed as a Warehouse Source in Webshop Settings."
-msgstr ""
+msgstr "Doit figurer comme source d'entrepôt dans les paramètres de la boutique."
 
 #. Option for the 'Payment Success Url' (Select) field in DocType 'Webshop
 #. Settings'
@@ -4315,7 +4315,7 @@ msgstr "A recommandé"
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Ordered quantities from this source feed the supplier procurement flow (draft Purchase Order or Material Request)."
-msgstr ""
+msgstr "Les quantités commandées à cette source alimentent le flux d'approvisionnement fournisseur (commande d'achat ou demande de matériel en brouillon)."
 
 #. Option for the 'Payment Success Url' (Select) field in DocType 'Webshop
 #. Settings'
@@ -4486,7 +4486,7 @@ msgstr "Passerelle de paiement non trouvée pour les paramètres : {0}"
 
 #: webshop/controllers/payment_handler.py:109
 msgid "Payment Gateway not found: {0}"
-msgstr ""
+msgstr "Passerelle de paiement introuvable : {0}"
 
 #: webshop/templates/pages/checkout.html:380
 msgid "Payment Method"
@@ -4601,7 +4601,7 @@ msgstr ""
 #. Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Periodic"
-msgstr ""
+msgstr "Périodique"
 
 #. Label of a Data field in DocType 'Webshop Settings'
 #. Option for the 'Icon' (Select) field in DocType 'Webshop Trust Item'
@@ -4736,7 +4736,7 @@ msgstr "Veuillez vous connecter pour continuer le paiement"
 
 #: webshop/webshop/multi_site.py:53
 msgid "Please log in to shop on this site."
-msgstr ""
+msgstr "Veuillez vous connecter pour acheter sur ce site."
 
 #: webshop/webshop/shopping_cart/cart.py:3520
 msgid "Please log in to use your loyalty points"
@@ -5009,7 +5009,7 @@ msgstr "Produits par page"
 
 #: webshop/webshop/multi_site.py:55
 msgid "Professional account required"
-msgstr ""
+msgstr "Compte professionnel requis"
 
 #. Label of a Int field in DocType 'Shop Assistant Conversation'
 #. Label of a Int field in DocType 'Shop Assistant Message'
@@ -5112,7 +5112,7 @@ msgstr "Suivi d'achat client"
 #. Name of a DocType
 #: webshop/webshop/doctype/purchase_follow_up_log/purchase_follow_up_log.json
 msgid "Purchase Follow-up Log"
-msgstr ""
+msgstr "Journal de suivi d'achat"
 
 #. Name of a DocType
 #: webshop/webshop/doctype/purchase_follow_up_step/purchase_follow_up_step.json
@@ -5140,7 +5140,7 @@ msgstr "Commande fournisseur : un brouillon par fournisseur, les nouvelles comma
 #. Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Purchase Orders are grouped under this supplier. Falls back to the item's default supplier when empty."
-msgstr ""
+msgstr "Les commandes d'achat sont regroupées sous ce fournisseur. Si le champ est vide, le fournisseur par défaut de l'article est utilisé."
 
 #: webshop/webshop/quick_order/api.py:892
 msgid "Qty"
@@ -5279,7 +5279,7 @@ msgstr "Redirection vers PayPal..."
 
 #: webshop/templates/payments/payrexx.html:75
 msgid "Redirecting to Payrexx…"
-msgstr ""
+msgstr "Redirection vers Payrexx…"
 
 #: webshop/templates/payments/wallee.html:396
 msgid "Redirecting to Wallee..."
@@ -5366,7 +5366,7 @@ msgstr "Retiré de votre panier"
 #. Label of a Check field in DocType 'Webshop Payment Method'
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
 msgid "Render Payment Page Inline"
-msgstr ""
+msgstr "Afficher la page de paiement intégrée"
 
 #. Description of the 'Enable Infinite Scroll' (Check) field in DocType
 #. 'Webshop Settings'
@@ -5401,7 +5401,7 @@ msgstr "Réserver la marchandise reçue pour la commande client"
 #. Label of a Data field in DocType 'Webshop Payment Method'
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
 msgid "Restrict Payment Methods"
-msgstr ""
+msgstr "Limiter les méthodes de paiement"
 
 #. Label of a Table field in DocType 'WebshopSI Settings'
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
@@ -6011,7 +6011,7 @@ msgstr "Affiché dans l'encart d'achat de la page produit, sous le bouton Ajoute
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Shown to shoppers instead of the warehouse name (e.g. \"Store\", \"Supplier stock\"). Translatable through the Translation doctype."
-msgstr ""
+msgstr "Affiché aux acheteurs à la place du nom de l'entrepôt (par exemple « Magasin », « Stock fournisseur »). Traduisible via le type de document Traduction."
 
 #. Description of the 'Headline' (Data) field in DocType 'Cross Sell Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
@@ -6278,7 +6278,7 @@ msgstr "Boutique"
 #. Name of a DocType
 #: webshop/webshop/doctype/store_closure/store_closure.json
 msgid "Store Closure"
-msgstr ""
+msgstr "Fermeture du magasin"
 
 #. Name of a DocType
 #: webshop/webshop/doctype/store_opening_hours/store_opening_hours.json
@@ -7163,13 +7163,13 @@ msgstr "Entrepôt"
 #. Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Warehouse Bin"
-msgstr ""
+msgstr "Stock de l'entrepôt"
 
 #. Description of the 'Stock Basis' (Select) field in DocType 'Webshop
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Warehouse Bin reads real ERPNext stock. Item Field reads a numeric custom field on Item (e.g. a synced supplier stock) without creating any valued stock."
-msgstr ""
+msgstr "« Stock de l'entrepôt » lit le stock réel du système. « Champ de l'article » lit un champ personnalisé numérique de l'article (par exemple un stock fournisseur synchronisé), sans créer de stock valorisé."
 
 #: webshop/webshop/doctype/website_item/website_item_list.js:47
 msgid "Warehouse Source"
@@ -7275,7 +7275,7 @@ msgstr "Élément de confiance de la boutique"
 #. Name of a DocType
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Webshop Warehouse Source"
-msgstr ""
+msgstr "Source d'entrepôt de la boutique"
 
 #: webshop/webshop/api.py:1119
 msgid "Webshop cache cleared successfully"
@@ -7385,7 +7385,7 @@ msgstr "Miniature de l'article du site"
 #. Name of a DocType
 #: webshop/webshop/doctype/website_item_warehouse_source/website_item_warehouse_source.json
 msgid "Website Item Warehouse Source"
-msgstr ""
+msgstr "Source d'entrepôt de l'article du site"
 
 #: webshop/webshop/doctype/website_item/website_item.py:94
 msgid "Website Item already exists against Item {0}"
@@ -7506,7 +7506,7 @@ msgstr "Où sont rangés les jours récupérés. Modifiable depuis le bureau pou
 #. Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
 msgid "Where the goods physically arrive (target warehouse of the Purchase Order). Defaults to the item's website warehouse."
-msgstr ""
+msgstr "Entrepôt où la marchandise arrive physiquement (entrepôt cible de la commande d'achat). Par défaut, l'entrepôt du site de l'article."
 
 #. Description of the 'Image Focus' (Select) field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json
@@ -7750,7 +7750,7 @@ msgstr "Zoom"
 
 #: webshop/webshop/shopping_cart/cart.py:614
 msgid "amount used in order from quotation"
-msgstr ""
+msgstr "montant utilisé dans la commande issue du devis"
 
 #. Option for the 'Role' (Select) field in DocType 'Shop Assistant Message'
 #: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json
@@ -7779,12 +7779,12 @@ msgstr "ex. : Domicile, Bureau"
 #: webshop/webshop/shopping_cart/cart.py:981
 #: webshop/webshop/shopping_cart/cart.py:983
 msgid "for order"
-msgstr ""
+msgstr "pour la commande"
 
 #: webshop/webshop/shopping_cart/cart.py:666
 #: webshop/webshop/shopping_cart/cart.py:668
 msgid "for order from quotation"
-msgstr ""
+msgstr "pour la commande issue du devis"
 
 #: webshop/templates/includes/macros.html:605
 #: webshop/templates/includes/product_card.html:74 webshop/webshop/api.py:1342
@@ -7932,7 +7932,7 @@ msgstr "à"
 #. Option for the 'Role' (Select) field in DocType 'Shop Assistant Message'
 #: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json
 msgid "tool"
-msgstr ""
+msgstr "Outil"
 
 #: webshop/webshop/shopping_cart/cart.py:666
 #: webshop/webshop/shopping_cart/cart.py:668
@@ -7944,7 +7944,7 @@ msgstr "transféré sur la carte"
 #: webshop/webshop/shopping_cart/cart.py:981
 #: webshop/webshop/shopping_cart/cart.py:983
 msgid "transferred to new card"
-msgstr ""
+msgstr "transféré vers une nouvelle carte"
 
 #. Option for the 'Role' (Select) field in DocType 'Shop Assistant Message'
 #: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json
