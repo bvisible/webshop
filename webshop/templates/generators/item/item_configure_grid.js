@@ -9,6 +9,19 @@
 //// already chosen, is struck; a chip that no variant has at all is hidden; a chip whose
 //// variants carry their own picture (a colour) shows it and, once chosen, swaps the
 //// gallery's first picture for it. The footer (price, stock, add to cart) is unchanged.
+//// Neoffice — a website page carries no message catalogue: `__()` returned the English key
+//// for the strings below ("Sold out", "Not Available", "Add to Cart"...) while the server-side
+//// translations of this same file worked. The server hands the catalogue over, the way
+//// item_reviews.html does for its dialog.
+frappe._messages = Object.assign(frappe._messages || {}, {
+	"No variants available for this product": {{ _("No variants available for this product") | tojson }},
+	"Error loading variants. Please try again.": {{ _("Error loading variants. Please try again.") | tojson }},
+	"Sold out": {{ _("Sold out") | tojson }},
+	"Not Available": {{ _("Not Available") | tojson }},
+	"Adding...": {{ _("Adding...") | tojson }},
+	"Add to Cart": {{ _("Add to Cart") | tojson }},
+	"Added to cart": {{ _("Added to cart") | tojson }},
+});
 class ItemConfigureGrid {
 	constructor(item_code, item_name) {
 		this.item_code = item_code;
