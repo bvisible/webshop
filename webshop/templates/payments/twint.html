@@ -34,8 +34,12 @@
 (function () {
     // Prevent double initialization across multiple payment method tabs.
     const formId = '{{ payment_form_id }}';
-    if (window['twint_initialized_' + formId]) return;
-    window['twint_initialized_' + formId] = true;
+    //// Neoffice — the guard sits on the tile's own element, not on the window (maintenance#1721): clicking
+    //// the tile's label renders it twice, and a window flag left the second, visible button without its
+    //// click handler ("Pay" did nothing). A re-rendered tile is a new element and binds again.
+    const $tile = $('#' + formId);
+    if ($tile.data('twint-initialized')) return;
+    $tile.data('twint-initialized', true);
 
     const submitButton = $('#{{ submit_id }}');
     let isProcessingPayment = false;

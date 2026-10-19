@@ -43,8 +43,12 @@
 (function () {
 	// Guard against double initialisation when several payment tabs are rendered.
 	const formId = '{{ payment_form_id }}';
-	if (window['payrexx_initialized_' + formId]) return;
-	window['payrexx_initialized_' + formId] = true;
+	//// Neoffice — the guard sits on the tile's own element, not on the window (maintenance#1721): clicking
+	//// the tile's label renders it twice, and a window flag left the second, visible button without its
+	//// click handler ("Pay" did nothing). A re-rendered tile is a new element and binds again.
+	const $tile = $('#' + formId);
+	if ($tile.data('payrexx-initialized')) return;
+	$tile.data('payrexx-initialized', true);
 
 	const submitButton = $('#{{ submit_id }}');
 	const originalLabel = submitButton.html();

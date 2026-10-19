@@ -50,8 +50,12 @@
 (function() {
     // Prevent double initialization
     const formId = '{{ payment_form_id }}';
-    if (window['wallee_initialized_' + formId]) return;
-    window['wallee_initialized_' + formId] = true;
+    //// Neoffice — the guard sits on the tile's own element, not on the window (maintenance#1721): clicking
+    //// the tile's label renders it twice, and a window flag left the second, visible button without its
+    //// click handler ("Pay" did nothing). A re-rendered tile is a new element and binds again.
+    const $tile = $('#' + formId);
+    if ($tile.data('wallee-initialized')) return;
+    $tile.data('wallee-initialized', true);
 
     let formData = checkout_manager.initPaymentForm(formId);
     let cardholderName = $('#' + formId + ' input[name="cardholder-name"]');
