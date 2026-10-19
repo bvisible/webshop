@@ -1108,7 +1108,11 @@ def _intent_metadata(methods, quotation) -> dict | None:  # noqa: ANN001
 	return meta or None
 
 
-@frappe.whitelist(allow_guest=True)
+# //// Neoffice — POST only (maintenance#1721): it creates the Payment Request and starts the
+# //// payment at the PSP (payments.api.intent.create_intent), and Frappe rolls a GET's transaction
+# //// back: the PSP would hold an order the shop does not know. checkout.js posts it (the site's
+# //// frappe.call posts by default).
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def start_cart_intent(payment_gateway_account: str) -> dict:
 	"""//// Neoffice — take the cart through the `payments` INTENT engine.
 
