@@ -1290,6 +1290,14 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 	from webshop.webshop.multi_site import require_login_to_buy
 
 	require_login_to_buy()
+	# //// Neoffice — Administrator is not a shopper (neoffice-maintenance#1763). Its cart used to mint a
+	# //// Customer "Administrator" (and a Portal User row) on every instance it touched; get_party() now
+	# //// answers None for it, so say why here instead of a bare "No cart found".
+	if frappe.session.user == "Administrator":
+		frappe.throw(
+			_("The Administrator account cannot shop. Sign in with a customer account to try the shop."),
+			title=_("Not a customer account"),
+		)
 
 	# Convert gift_card_data from JSON if necessary
 	if gift_card_data and isinstance(gift_card_data, str):
