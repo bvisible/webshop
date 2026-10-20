@@ -55,6 +55,19 @@ def _customer(name):
 	return name
 
 
+def pricing_function_name(accounts_controller):
+	"""The name under which accounts_controller prices a document row.
+
+	The fleet's fork still calls the public `get_item_details`. Upstream ERPNext
+	version-15 now calls the internal `_get_item_details` (the public name stayed
+	behind as the whitelisted wrapper and is no longer in accounts_controller), so a
+	patch aimed at the old name raised AttributeError in the CI. The public name wins
+	when it is there, which keeps the test as it was on the fork."""
+	if hasattr(accounts_controller, "get_item_details"):
+		return "get_item_details"
+	return "_get_item_details"
+
+
 @contextlib.contextmanager
 def upstream_check():
 	"""get_item_details as upstream ERPNext version-15 has it: the Item is read by the
@@ -62,7 +75,8 @@ def upstream_check():
 	is already there; on the fleet's fork it puts it in place."""
 	import erpnext.controllers.accounts_controller as accounts_controller
 
-	original = accounts_controller.get_item_details
+	name = pricing_function_name(accounts_controller)
+	original = getattr(accounts_controller, name)
 
 	def checked(args, *a, **kw):
 		code = (frappe.parse_json(args) if isinstance(args, str) else args or {}).get("item_code")
@@ -70,7 +84,7 @@ def upstream_check():
 			frappe.get_cached_doc("Item", code).check_permission()
 		return original(args, *a, **kw)
 
-	with patch.object(accounts_controller, "get_item_details", checked):
+	with patch.object(accounts_controller, name, checked):
 		yield
 
 
@@ -194,7 +208,9 @@ class TestShopRights(FrappeTestCase):
 		def boom(*a, **kw):
 			raise frappe.ValidationError("pricing failed on purpose")
 
-		with patch("erpnext.controllers.accounts_controller.get_item_details", boom):
+		import erpnext.controllers.accounts_controller as accounts_controller
+
+		with patch.object(accounts_controller, pricing_function_name(accounts_controller), boom):
 			with self.assertRaises(frappe.ValidationError):
 				cart.update_cart(ITEM, 1)
 		self.assertEqual(frappe.session.user, USER, "a failure inside the guard must not leave Administrator on")
