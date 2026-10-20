@@ -50,7 +50,8 @@ frappe.ready(() => {
 				.map((e) => e[0] + "=" + e[1])
 				.join("&");
 
-			const href_base_url = "/api/method/erpnext.accounts.doctype.payment_request.payment_request.make_payment_request"
+			// //// Neoffice — the shop's own make_payment_request (order.py), not erpnext's: a customer has no right to create a Payment Request
+			const href_base_url = "/api/method/webshop.templates.pages.order.make_payment_request"
 			const href = href_base_url + "?" + args_str;
 
 			var payment_button = document.getElementById("pay-for-order");

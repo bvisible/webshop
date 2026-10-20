@@ -86,6 +86,37 @@ def get_context(context):
 	context.show_make_pi_button = frappe.has_permission("Purchase Invoice", "create")
 
 
+# //// Neoffice — added function (no upstream equivalent): the order page's "Pay" button. erpnext's make_payment_request
+# //// asks its caller for the right to create a Payment Request (v15.99.0, GHSA-wpfx-jw7g-7f83), which a portal customer
+# //// does not have: the button, which called it directly, would stop working. The page already shows an order only to
+# //// whoever the website permission lets see it; the same test guards the request, which is then made as the system.
+# //// Drop this, and the two links to it in order.html and order.js, if upstream's page ever makes its own way to it.
+@frappe.whitelist()
+def make_payment_request(**args):
+	args = frappe._dict(args)
+	if args.dt not in ("Sales Order", "Sales Invoice") or not isinstance(args.dn, str):
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+
+	if not frappe.has_website_permission(frappe.get_doc(args.dt, args.dn)):
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+
+	# a document handed in by the client is never trusted
+	args.pop("ref_doc", None)
+
+	from erpnext.accounts.doctype.payment_request.payment_request import (
+		make_payment_request as erpnext_make_payment_request,
+	)
+
+	session = frappe.local.session
+	previous = session.user
+	# not frappe.set_user(): it replaces the session id and its data too
+	session.user = "Administrator"
+	try:
+		return erpnext_make_payment_request(**args)
+	finally:
+		session.user = previous
+
+
 def get_attachments(dt, dn):
 	return frappe.get_all(
 		"File",

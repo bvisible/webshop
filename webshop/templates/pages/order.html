@@ -45,7 +45,8 @@
 			<div class="page-header-actions-block" data-html-block="header-actions">
 				<p>
 					{% if enabled_checkout and (doc.doctype != "Sales Invoice" or doc.outstanding_amount > 0) %}
-					<a href="/api/method/erpnext.accounts.doctype.payment_request.payment_request.make_payment_request?dn={{ doc.name }}&dt={{ doc.doctype }}&submit_doc=1&order_type=Shopping Cart"
+					{# //// Neoffice — the button calls the shop's own make_payment_request (order.py), not erpnext's: a customer has no right to create a Payment Request. #}
+					<a href="/api/method/webshop.templates.pages.order.make_payment_request?dn={{ doc.name }}&dt={{ doc.doctype }}&submit_doc=1&order_type=Shopping Cart"
 						class="btn btn-primary btn-sm" id="pay-for-order">
 						{# //// Neoffice — on an invoice the button must offer what is left to pay, not the #}
 						{# //// grand total: a partly paid invoice asked for the whole amount again #}
