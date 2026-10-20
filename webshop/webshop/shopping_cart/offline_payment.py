@@ -94,6 +94,7 @@ def place_offline_order(payment_gateway_account: str, idempotency_token: str | N
 	offered — the tile is hidden for them, and hiding a tile is not a permission.
 	"""
 	from webshop.webshop.shopping_cart.cart import _get_cart_quotation, place_order
+	from webshop.webshop.shopping_cart.shop_rights import save_as_shop  # //// Neoffice — see below (#277)
 
 	already = _order_already_placed(idempotency_token)
 	if already:
@@ -116,7 +117,8 @@ def place_offline_order(payment_gateway_account: str, idempotency_token: str | N
 	if row.get("payment_terms_template"):
 		quotation.payment_terms_template = row.payment_terms_template
 		quotation.flags.ignore_permissions = True
-		quotation.save(ignore_permissions=True)
+		# //// Neoffice — save_as_shop, not a plain save (#277): validate prices every line, and upstream v15.123.0 reads the Item there on the SESSION user (41effcf754), which the buyer may not
+		save_as_shop(quotation, ignore_permissions=True)
 
 	sales_order = place_order()
 	if not sales_order:

@@ -389,19 +389,23 @@ def get_context(context):
 			context.shipping_phone = shipping_address.phone or (customer.mobile_no if customer else '')
 			context.shipping_email = shipping_address.email_id or (customer.email_id if customer else '')
 	
-	# Check for the loyalty program of the customer
-	customer_loyalty_program = frappe.db.get_value(
-		"Customer", context.doc.customer_name, "loyalty_program"
-	)
-	if customer_loyalty_program:
-		from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
-			get_loyalty_program_details_with_points,
-		)
-		import math
+	# //// Neoffice — the customer by its link, not by context.doc.customer_name (a label, which
+	# //// missed every customer named by series), and the balance through loyalty_rights:
+	# //// upstream v15.123.0 refuses ERPNext's get_loyalty_program_details_with_points to a portal
+	# //// customer (aea326869b), and a visitor's cart stands for the shop's shared guest customer,
+	# //// whose balance is nobody's (None, so the block stays hidden).
+	from webshop.webshop.shopping_cart.loyalty_rights import customer_loyalty_details, customer_of
 
-		loyalty_program_details = get_loyalty_program_details_with_points(
-			context.doc.customer_name, customer_loyalty_program
-		)
+	loyalty_customer = customer_of(context.doc)
+	# Check for the loyalty program of the customer
+	customer_loyalty_program = loyalty_customer and frappe.db.get_value(  # //// Neoffice — see above
+		"Customer", loyalty_customer, "loyalty_program"
+	)
+	loyalty_program_details = customer_loyalty_program and customer_loyalty_details(
+		loyalty_customer, customer_loyalty_program
+	)
+	if loyalty_program_details:  # //// Neoffice — None: the session may not see these points
+		import math
 
 		# Get the raw points
 		available_loyalty_points = loyalty_program_details.get("loyalty_points")

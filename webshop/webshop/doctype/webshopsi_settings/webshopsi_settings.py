@@ -10,6 +10,10 @@ from frappe.model.document import Document
 from frappe import _
 from frappe.utils import today
 
+# //// Neoffice — the buyer's quotation and invoice are saved with the shop's rights (#277): upstream
+# //// v15.123.0 reads the Item on the SESSION user whenever a line is priced (41effcf754)
+from webshop.webshop.shopping_cart.shop_rights import save_as_shop, shop_rights
+
 class WebshopSISettings(Document):
 	def get_restricted_countries(self):
 		"""Returns the list of restricted countries"""
@@ -87,14 +91,18 @@ class WebshopSISettings(Document):
 				"is_webshopsi_fee": 1
 			})
 			
-			quotation.save(ignore_permissions=True)
+			# //// Neoffice — save_as_shop, not a plain save (#277): validate prices every line, and upstream v15.123.0 reads the Item there on the SESSION user (41effcf754), which the buyer may not
+			save_as_shop(quotation, ignore_permissions=True)
 
 def make_invoice(sales_order_name):
 	"""Create a Sales Invoice from a Sales Order"""
 	from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
 
 	so = frappe.get_doc("Sales Order", sales_order_name)
-	si = make_sales_invoice(sales_order_name, ignore_permissions=True)
+	# //// Neoffice — mapped with the shop's rights: the mapper prices every line, and upstream
+	# //// v15.123.0 reads the Item there on the session user (#277), here the buyer
+	with shop_rights():
+		si = make_sales_invoice(sales_order_name, ignore_permissions=True)
 	
 	# Copy payment terms and schedule
 	if so.payment_terms_template:
@@ -111,8 +119,12 @@ def make_invoice(sales_order_name):
 				"mode_of_payment": schedule.mode_of_payment
 			})
 	
-	si.insert(ignore_permissions=True)
-	si.submit()
+	# //// Neoffice — saved and submitted with the shop's rights, then handed back to the buyer as
+	# //// owner (save_as_shop): this runs in the buyer's session, and upstream v15.123.0 asks that
+	# //// user for Item read (#277) and for Customer read whenever the invoice books or redeems
+	# //// loyalty points (make_loyalty_point_entry, validate_loyalty_points, aea326869b).
+	save_as_shop(si, ignore_permissions=True)
+	save_as_shop(si, submit=True)
 
 	return si
 
@@ -178,7 +190,8 @@ def on_payment_authorized(gateway_settings , birthday=None, contactName=None):
 						payment_terms_template = f"WebshopSI_{installment['num_payments']}_payments"
 						if frappe.db.exists('Payment Terms Template', payment_terms_template):
 							quotation.payment_terms_template = payment_terms_template
-							quotation.save(ignore_permissions=True)
+							# //// Neoffice — save_as_shop, not a plain save (#277): validate prices every line, and upstream v15.123.0 reads the Item there on the SESSION user (41effcf754), which the buyer may not
+							save_as_shop(quotation, ignore_permissions=True)
 							
 							# Update payment schedule
 							from erpnext.controllers.accounts_controller import get_payment_terms
@@ -191,7 +204,7 @@ def on_payment_authorized(gateway_settings , birthday=None, contactName=None):
 							
 							if payment_schedule:
 								quotation.set("payment_schedule", payment_schedule)
-								quotation.save(ignore_permissions=True)
+								save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — see above (#277)
 					break
 			
 			if not installment_found:

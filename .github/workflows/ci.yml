@@ -265,6 +265,8 @@ jobs:
           # //// Neoffice — the POST-only checkout test of #1721 joins them too: it reads Frappe's method
           # //// tables and needs no site fixture. Left out of this list, the guard below turned the whole
           # //// workflow red on every push.
+          # //// Neoffice — test_loyalty_rights (the shop under upstream v15.123.0's Customer, Payment Entry
+          # //// and Item checks) is blocking from its first push: on stock ERPNext those checks are real.
           for m in \
             webshop.controllers.test_payment_handler \
             webshop.webshop.doctype.item_review.test_item_review \
@@ -295,6 +297,7 @@ jobs:
             webshop.webshop.utils.test_holidays \
             webshop.webshop.assistant.test_assistant \
             webshop.webshop.shopping_cart.test_shop_rights \
+            webshop.webshop.shopping_cart.test_loyalty_rights \
             webshop.webshop.quick_order.test_quick_order \
             webshop.webshop.tests.test_stylesheet_inks \
             webshop.webshop.utils.test_product_carousel \

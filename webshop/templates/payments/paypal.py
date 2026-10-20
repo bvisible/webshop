@@ -5,6 +5,10 @@
 import frappe
 from frappe import _
 
+# //// Neoffice — the quotation is saved with the shop's rights (#277): upstream v15.123.0 reads the
+# //// Item on the SESSION user whenever a line is priced (41effcf754)
+from webshop.webshop.shopping_cart.shop_rights import save_as_shop
+
 @frappe.whitelist(allow_guest=True)
 def create_paypal_payment_request(quotation_id, idempotency_token=None):
     """Create a payment request for PayPal"""
@@ -58,7 +62,8 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
             gateway_type = payment_gateway.gateway.split('-')[0].split()[0].lower().strip()
             if gateway_type == "paypal" and method.payment_terms_template:
                 quotation.payment_terms_template = method.payment_terms_template
-                quotation.save(ignore_permissions=True)
+                # //// Neoffice — save_as_shop, not a plain save (#277): validate prices every line, and upstream v15.123.0 reads the Item there on the SESSION user (41effcf754), which the buyer may not
+                save_as_shop(quotation, ignore_permissions=True)
                 
                 # Get and update payment schedule
                 from erpnext.controllers.accounts_controller import get_payment_terms
@@ -71,7 +76,7 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
                 
                 if payment_schedule:
                     quotation.set("payment_schedule", payment_schedule)
-                    quotation.save(ignore_permissions=True)
+                    save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — see above (#277)
                 break
         
         # Check if payment request already exists

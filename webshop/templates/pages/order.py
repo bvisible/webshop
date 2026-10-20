@@ -43,25 +43,30 @@ def get_context(context):
 	# //// (it carries party_name / customer_name), so the loyalty block never appeared on a
 	# //// quotation. The guard `if context.doc.get("customer")` is dropped with it
 	# //// (618eedfdb8, 2025-03-24).
+	# //// Neoffice — the customer by its link (customer_of), not by context.doc.customer_name: a
+	# //// label, which missed every customer named by series. The balance through loyalty_rights:
+	# //// upstream v15.123.0 refuses ERPNext's get_loyalty_program_details_with_points to a portal
+	# //// customer (Customer read on the session user, aea326869b); the website permission above
+	# //// already let this session see the order, and the shop then asks with its own rights.
+	from webshop.webshop.shopping_cart.loyalty_rights import customer_loyalty_details, customer_of
+
+	loyalty_customer = customer_of(context.doc)
 	# check for the loyalty program of the customer
-	customer_loyalty_program = frappe.db.get_value(
-		"Customer", context.doc.customer_name, "loyalty_program"
+	customer_loyalty_program = loyalty_customer and frappe.db.get_value(  # //// Neoffice — see above
+		"Customer", loyalty_customer, "loyalty_program"
 	)
 	
-	if customer_loyalty_program:
-		from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
-			get_loyalty_program_details_with_points,
-		)
+	# //// Neoffice — the balance is rounded DOWN to a multiple of ten, because a programme
+	# //// redeems in tens and the buyer was shown a number they could not spend; its cash
+	# //// value goes through format_currency_value so the shop's currency setting applies
+	# //// (0134ef756e, 2025-07-03).
+	loyalty_program_details = customer_loyalty_program and customer_loyalty_details(
+		loyalty_customer, customer_loyalty_program
+	)
+
+	if loyalty_program_details:
 		# //// Neoffice — see above.
 		import math
-
-		# //// Neoffice — the balance is rounded DOWN to a multiple of ten, because a programme
-		# //// redeems in tens and the buyer was shown a number they could not spend; its cash
-		# //// value goes through format_currency_value so the shop's currency setting applies
-		# //// (0134ef756e, 2025-07-03).
-		loyalty_program_details = get_loyalty_program_details_with_points(
-			context.doc.customer_name, customer_loyalty_program
-		)
 		
 		# Get raw loyalty points
 		raw_loyalty_points = float(loyalty_program_details.get("loyalty_points", 0))
@@ -115,6 +120,25 @@ def make_payment_request(**args):
 		return erpnext_make_payment_request(**args)
 	finally:
 		session.user = previous
+
+
+# //// Neoffice — added function (no upstream equivalent): the redemption factor the order page's loyalty
+# //// field asks for. The page called erpnext's get_redeemption_factor, which upstream v15.123.0 opens only
+# //// to a desk right on Sales or POS Invoice (aea326869b): a portal customer could no longer redeem.
+# //// Guarded like make_payment_request above: the order the session may see names the customer -- a
+# //// customer sent by the browser is never trusted -- then loyalty_rights asks with the shop's rights.
+@frappe.whitelist()
+def get_redemption_factor(dt, dn):
+	if dt != "Sales Order" or not isinstance(dn, str):
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+
+	doc = frappe.get_doc(dt, dn)
+	if not frappe.has_website_permission(doc):
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+
+	from webshop.webshop.shopping_cart.loyalty_rights import customer_of, customer_redemption_factor
+
+	return customer_redemption_factor(customer_of(doc))
 
 
 def get_attachments(dt, dn):

@@ -427,13 +427,22 @@ class PaymentHandler:
 
             from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
 
-            invoice = make_sales_invoice(sales_order_name, ignore_permissions=True)
-            invoice.allocate_advances_automatically = True
-            invoice.flags.ignore_permissions = True
-            invoice.insert(ignore_permissions=True)
-            invoice.submit()
+            # //// Neoffice — the invoice and the payment entry with the shop's rights, whoever the
+            # //// session is: upstream v15.123.0 asks the session user for the right to create a
+            # //// Payment Entry and read the invoice (get_payment_entry, 5289982059), for Customer
+            # //// read when the invoice books loyalty points (aea326869b), and for Item read when a
+            # //// line is priced (the mapping included, #277). A failure here is only logged, so a
+            # //// portal customer's or a visitor's session would leave money captured by the PSP
+            # //// and never booked. handle_payment_success runs as Administrator already; this no
+            # //// longer depends on it.
+            with shop_rights():
+                invoice = make_sales_invoice(sales_order_name, ignore_permissions=True)
+                invoice.allocate_advances_automatically = True
+                invoice.flags.ignore_permissions = True
+                invoice.insert(ignore_permissions=True)
+                invoice.submit()
 
-            self._record_gateway_payment(invoice, payment_request, sales_order.company)
+                self._record_gateway_payment(invoice, payment_request, sales_order.company)
         except Exception as e:
             frappe.log_error(
                 "Webshop: invoicing a paid order failed",
@@ -575,10 +584,18 @@ class PaymentHandler:
             
             # Create and submit invoice
             from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
-            si = make_sales_invoice(sales_order_name, ignore_permissions=True)
+            # //// Neoffice — mapped, saved and submitted with the shop's rights, then handed back to
+            # //// the buyer as owner (save_as_shop): this runs in the buyer's session, and upstream
+            # //// v15.123.0 asks that user for Item read when a line is priced (the mapping
+            # //// included, #277) and for Customer read whenever the invoice books or redeems
+            # //// loyalty points (make_loyalty_point_entry, validate_loyalty_points, aea326869b). The
+            # //// buyer got "An error occurred" after their order was already submitted, and the
+            # //// order was never invoiced.
+            with shop_rights():
+                si = make_sales_invoice(sales_order_name, ignore_permissions=True)
             si.allocate_advances_automatically = True
-            si.insert(ignore_permissions=True)
-            si.submit()
+            save_as_shop(si, ignore_permissions=True)  # //// Neoffice — see above
+            save_as_shop(si, submit=True)
 
             # Redirect to thank you page
             success_url = f"/thank_you?sales_order={sales_order_name}"

@@ -60,9 +60,12 @@ frappe.ready(() => {
 		}
 
 		frappe.call({
-			method: "erpnext.accounts.doctype.loyalty_program.loyalty_program.get_redeemption_factor",
+			// //// Neoffice — the shop's own get_redemption_factor (order.py), not erpnext's get_redeemption_factor:
+			// //// upstream opens that one to a desk right only (v15.123.0); the order names the customer, not the browser
+			method: "webshop.templates.pages.order.get_redemption_factor",
 			args: {
-				"customer": doc_info.customer
+				dt: doc_info.doctype,
+				dn: doc_info.doctype_name,
 			},
 			callback,
 		});

@@ -61,13 +61,15 @@ def get_context(context):
         return
 
     # Get total available points
-    from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
-        get_loyalty_program_details_with_points,
-    )
+    # //// Neoffice — through loyalty_rights, not ERPNext's get_loyalty_program_details_with_points
+    # //// directly: upstream v15.123.0 refuses it to a portal customer (Customer read on the session
+    # //// user, aea326869b). The shop checks the customer is the session's own, then asks with its
+    # //// rights; None (no claim on this customer) shows no balance.
+    from webshop.webshop.shopping_cart.loyalty_rights import customer_loyalty_details
 
-    loyalty_details = get_loyalty_program_details_with_points(
+    loyalty_details = customer_loyalty_details(
         customer, customer_loyalty_program
-    )
+    ) or {}  # //// Neoffice — None: no claim on this customer
 
     context.total_points = loyalty_details.get("loyalty_points", 0)
 

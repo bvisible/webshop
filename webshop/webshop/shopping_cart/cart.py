@@ -48,10 +48,15 @@ try:
 except ImportError:
 	from erpnext.selling.doctype.quotation.mapper import _make_sales_order
 
-# //// Neoffice — added: the ERPNext entry point for the loyalty balance the cart
-# //// spends (3bc2d836f1, 2025-02-11 "Add gift cards and improve shopping cart").
-from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
-	get_loyalty_program_details_with_points,
+# //// Neoffice — added: the loyalty balance the cart spends (3bc2d836f1, 2025-02-11 "Add gift
+# //// cards and improve shopping cart"). Asked through loyalty_rights, not ERPNext directly:
+# //// upstream v15.123.0 refuses its get_loyalty_program_details_with_points to a portal customer
+# //// (Customer read on the session user, aea326869b); the shop checks the customer is the
+# //// session's own, then asks with its rights.
+from webshop.webshop.shopping_cart.loyalty_rights import (
+	customer_loyalty_details,
+	customer_of,
+	may_see_loyalty_of,
 )
 
 # //// Neoffice — body re-indented to tabs only.
@@ -211,17 +216,21 @@ def get_cart_quotation(doc=None):
 		loyalty_points_value = 0
 		loyalty_program_details = None
 
-		if doc.customer_name and frappe.session.user != "Guest":
+		# //// Neoffice — the customer by its link (customer_of), not by doc.customer_name, which is
+		# //// a label and missed every customer named by series; the balance through
+		# //// customer_loyalty_details (upstream refuses it to a portal customer, see the import).
+		customer = customer_of(doc)
+		if customer and frappe.session.user != "Guest":
 			customer_loyalty_program = frappe.db.get_value(
-				"Customer", doc.customer_name, "loyalty_program"
+				"Customer", customer, "loyalty_program"  # //// Neoffice — see above
 			)
 
 			if customer_loyalty_program:
+				loyalty_program_details = customer_loyalty_details(customer, customer_loyalty_program)
+
+			# //// Neoffice — None when the session may not see this customer's points
+			if customer_loyalty_program and loyalty_program_details:
 				import math
-				
-				loyalty_program_details = get_loyalty_program_details_with_points(
-					doc.customer_name, customer_loyalty_program
-				)
 
 				# Get raw loyalty points
 				raw_loyalty_points = float(loyalty_program_details.get("loyalty_points", 0))
@@ -611,11 +620,13 @@ def place_order():
 		quotation.flags.ignore_permissions = True
 		save_as_shop(quotation, submit=True)  # //// Neoffice — #277
 
-	sales_order = frappe.get_doc(
-		_make_sales_order(
-			quotation.name, ignore_permissions=True
-		)
-	)
+	# //// Neoffice — mapped with the shop's rights (shop_rights, #277): the mapper prices every line
+	# //// again (set_missing_values -> _get_item_details), and upstream v15.123.0 reads the Item there
+	# //// on the SESSION user (item.check_permission()), which a portal customer may not. The order is
+	# //// saved and submitted the same way below.
+	with shop_rights():
+		mapped_order = _make_sales_order(quotation.name, ignore_permissions=True)
+	sales_order = frappe.get_doc(mapped_order)
 	sales_order.payment_schedule = []
 	
 	# For gift cards that need to be split, process the split BEFORE creating the sales order
@@ -885,8 +896,12 @@ def place_order():
 		_set_delivery_dates_from_sources(sales_order, cart_settings)
 
 	sales_order.flags.ignore_permissions = True
-	sales_order.insert()
-	sales_order.submit()
+	_check_the_buyer_s_standing(sales_order)  # //// Neoffice — before the shop's rights, see the function
+	# //// Neoffice — saved and submitted with the shop's rights, then handed back to the buyer as owner
+	# //// (save_as_shop, #277): validate prices every line again, and upstream v15.123.0 reads the Item
+	# //// on the SESSION user there. Before, this ran in the buyer's session.
+	save_as_shop(sales_order)
+	save_as_shop(sales_order, submit=True)
 	
 	# The gift card was already split before the sales order was inserted,
 	# so there is nothing left to do here.
@@ -895,6 +910,27 @@ def place_order():
 		frappe.local.cookie_manager.delete_cookie("cart_count")
 
 	return sales_order.name
+
+
+# //// Neoffice — added function (no upstream equivalent). The two rules ERPNext decides on the SESSION user's
+# //// roles when an order is saved and submitted: a frozen customer (Accounts Settings frozen_accounts_modifier)
+# //// and the credit limit (credit_controller). place_order now saves the order with the shop's rights (#277:
+# //// upstream v15.123.0 reads the Item on the session user), and Administrator holds every role, so a shop
+# //// that names those roles would take an order on account from a frozen customer or one over their limit.
+# //// Asked here, in the buyer's session, with ERPNext's own functions: on submit the order already counts in
+# //// the customer's outstanding, so it is added as extra_amount, as SalesOrder.check_credit_limit sees it.
+def _check_the_buyer_s_standing(sales_order):
+	from erpnext.accounts.party import validate_party_frozen_disabled
+	from erpnext.selling.doctype.customer.customer import check_credit_limit
+
+	validate_party_frozen_disabled("Customer", sales_order.customer)
+	bypass = frappe.db.get_value(
+		"Customer Credit Limit",
+		{"parent": sales_order.customer, "parenttype": "Customer", "company": sales_order.company},
+		"bypass_credit_limit_check",
+	)
+	if not cint(bypass):
+		check_credit_limit(sales_order.customer, sales_order.company, extra_amount=flt(sales_order.base_grand_total))
 
 
 # //// Neoffice — added block, down to request_for_quotation below. ▼▼▼
@@ -2165,7 +2201,8 @@ def update_party(fullname, company_name=None, mobile_no=None, phone=None):
 		qdoc.customer_name = company_name or fullname
 		qdoc.run_method("set_missing_lead_customer_details")
 		qdoc.flags.ignore_permissions = True
-		qdoc.save()
+		# //// Neoffice — save_as_shop, not a plain save (#277): validate prices every line, and upstream v15.123.0 reads the Item there on the SESSION user (41effcf754), which a portal customer or a visitor may not
+		save_as_shop(qdoc)
 
 def apply_cart_settings(party=None, quotation=None):
 	if not party:
@@ -3238,7 +3275,8 @@ def update_contact_info(first_name, last_name, email=None, phone=None, company_n
 		# //// the order kept a contact that no longer matches what the buyer typed.
 		# Update quotation's contact_person
 		quotation.contact_person = contact.name
-		quotation.save(ignore_permissions=True)
+		# //// Neoffice — save_as_shop, not a plain save (#277): validate prices every line, and upstream v15.123.0 reads the Item there on the SESSION user (41effcf754), which a portal customer or a visitor may not
+		save_as_shop(quotation, ignore_permissions=True)
 
 		# //// Neoffice — the checkout reads this shape (success/message) rather than a
 		# //// document; see update_customer_info above. The message is translated because the
@@ -3374,7 +3412,8 @@ def apply_coupon_code(applied_code, applied_referral_sales_partner):
         
     # Save without setting coupon_code
     quotation.flags.ignore_permissions = True
-    quotation.save()
+    # //// Neoffice — save_as_shop, not a plain save (#277): validate prices every line, and upstream v15.123.0 reads the Item there on the SESSION user (41effcf754), which a portal customer or a visitor may not
+    save_as_shop(quotation)
     
     # For regular coupons (not gift cards), check that discount does not exceed total amount
     if quotation.discount_amount > quotation.rounded_total and not is_gift_card:
@@ -3382,7 +3421,7 @@ def apply_coupon_code(applied_code, applied_referral_sales_partner):
         quotation.temp_coupon_code = ""
         quotation.discount_amount = 0
         quotation.flags.ignore_permissions = True
-        quotation.save()
+        save_as_shop(quotation)  # //// Neoffice — see above (#277, 41effcf754)
         frappe.throw(_("Discount value cannot exceed total amount"))
 
     if applied_referral_sales_partner:
@@ -3393,7 +3432,7 @@ def apply_coupon_code(applied_code, applied_referral_sales_partner):
             sales_partner_name = sales_partner_list[0].name
             quotation.referral_sales_partner = sales_partner_name
             quotation.flags.ignore_permissions = True
-            quotation.save()
+            save_as_shop(quotation)  # //// Neoffice — see above (#277, 41effcf754)
 
     return quotation
 
@@ -3422,7 +3461,8 @@ def remove_coupon_code():
 	if hasattr(quotation, "base_discount_amount"):
 		quotation.base_discount_amount = 0
 	quotation.flags.ignore_permissions = True
-	quotation.save()
+	# //// Neoffice — save_as_shop, not a plain save (#277): validate prices every line, and upstream v15.123.0 reads the Item there on the SESSION user (41effcf754), which a portal customer or a visitor may not
+	save_as_shop(quotation)
 	# //// Neoffice — upstream returns None. The checkout renders the summary from the
 	# //// returned document, so returning nothing left the coupon row on screen after it
 	# //// was removed (b370403e2d, 2026-05-20 "loyalty and coupon endpoints return the
@@ -3466,12 +3506,14 @@ def get_loyalty_points_html():
 			# Get customer's loyalty program first
 			loyalty_program = frappe.db.get_value("Customer", customer, "loyalty_program")
 			if loyalty_program:
-				loyalty_points_details = get_loyalty_program_details_with_points(
+				# //// Neoffice — through loyalty_rights (see the import): a visitor stands for the
+				# //// shop's shared guest customer, whose balance is nobody's, and gets 0 points
+				loyalty_points_details = customer_loyalty_details(
 					customer,
 					loyalty_program,
 					company=quotation.company,
 					silent=True
-				)
+				) or frappe._dict({"loyalty_points": 0})  # //// Neoffice — see above
 		except Exception as e:
 			frappe.log_error(f"Error getting loyalty points", e)
 			loyalty_points_details = frappe._dict({"loyalty_points": 0})
@@ -3511,6 +3553,10 @@ def get_loyalty_points_html():
 def apply_loyalty_points(points):
 	quotation = _get_cart_quotation()
 	points = float(points)
+	# //// Neoffice — only a positive number of points is spent: a negative one passed both checks below
+	# //// and wrote a POSITIVE Loyalty Point Entry, which raised the balance it was meant to hold
+	if points <= 0:
+		frappe.throw(_("Enter Loyalty Points"))
 	
 	# Get customer
 	customer_info = get_party()
@@ -3518,13 +3564,28 @@ def apply_loyalty_points(points):
 	if not customer:
 		frappe.throw(_("Please log in to use your loyalty points"))
 	
+	# //// Neoffice — a visitor stands for the shop's shared guest customer: its points are
+	# //// nobody's to spend (loyalty_rights). Upstream refuses them too, with a PermissionError.
+	if not may_see_loyalty_of(customer):
+		frappe.throw(_("Please log in to use your loyalty points"))
+
 	# Get customer's loyalty program
 	loyalty_program = frappe.db.get_value("Customer", customer, "loyalty_program")
 	if not loyalty_program:
 		frappe.throw(_("You do not have an active loyalty program"))
+
+	# //// Neoffice — points applied again: the hold written the first time is dropped first, as
+	# //// remove_loyalty_points does. It stayed behind, orphaned (the cart keeps only the latest), and
+	# //// held those points for good; dropped before the balance is read, which it lowered.
+	if quotation.get("loyalty_point_entry"):
+		frappe.db.delete(
+			"Loyalty Point Entry",
+			{"name": quotation.loyalty_point_entry, "invoice_type": "Quotation", "invoice": quotation.name},
+		)
 	
 	# Check if customer has enough points
-	loyalty_points_details = get_loyalty_program_details_with_points(
+	# //// Neoffice — through loyalty_rights (see the import), checked just above
+	loyalty_points_details = customer_loyalty_details(
 		customer,
 		loyalty_program,
 		company=quotation.company,
@@ -3587,7 +3648,8 @@ def apply_loyalty_points(points):
 	quotation.calculate_taxes_and_totals()
 
 	quotation.flags.ignore_permissions = True
-	quotation.save()
+	# //// Neoffice — save_as_shop, not a plain save (#277): validate prices every line, and upstream v15.123.0 reads the Item there on the SESSION user (41effcf754), which a portal customer or a visitor may not
+	save_as_shop(quotation)
 
 	# //// Neoffice — see apply_loyalty_points above (b370403e2d, 2026-05-20).
 	# Return the updated quotation doc — the checkout JS feeds it to
@@ -3631,7 +3693,8 @@ def remove_loyalty_points():
 	# //// cart, and the updated document is returned so the checkout can redraw the
 	# //// summary without a reload (b370403e2d, 2026-05-20).
 	quotation.flags.ignore_permissions = True
-	quotation.save()
+	# //// Neoffice — save_as_shop, not a plain save (#277): validate prices every line, and upstream v15.123.0 reads the Item there on the SESSION user (41effcf754), which a portal customer or a visitor may not
+	save_as_shop(quotation)
 
 	# //// Neoffice — upstream returns None here too (b370403e2d, 2026-05-20).
 	# Return the updated quotation doc so the checkout JS can refresh the
