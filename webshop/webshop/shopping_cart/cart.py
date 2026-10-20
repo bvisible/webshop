@@ -2175,6 +2175,9 @@ def _get_cart_quotation(party=None):
 @frappe.whitelist()
 def update_party(fullname, company_name=None, mobile_no=None, phone=None):
 	party = get_party()
+	# //// Neoffice — no Customer to update (Administrator, neoffice-maintenance#1763): refuse, not an AttributeError.
+	if not party:
+		frappe.throw(_("No customer account found"), frappe.PermissionError)
 
 	party.customer_name = company_name or fullname
 	party.customer_type = "Company" if company_name else "Individual"
@@ -2333,7 +2336,10 @@ def _set_price_list(cart_settings, quotation=None):
 	"""Set price list based on the site being browsed, the customer, or the default"""
 	from erpnext.accounts.party import get_default_price_list
 
-	party_name = quotation.get("party_name") if quotation else get_party().get("name")
+	# //// Neoffice — get_party() answers None for Administrator (neoffice-maintenance#1763), and for a
+	# //// signed-in user whose Customer is gone: the list then comes from the site or the shop below, as
+	# //// for a visitor. Upstream dereferenced it and every product page was a 500 for the desk account.
+	party_name = quotation.get("party_name") if quotation else (get_party() or {}).get("name")
 	selling_price_list = None
 
 	# //// Neoffice multi-site — the price list of the SITE wins.
@@ -2496,8 +2502,8 @@ def get_party(user=None, ignore_permissions=False):
 	# //// create-customer branch below mints a Customer named get_fullname("Administrator") ==
 	# //// "Administrator" the first time the desk user touches the cart, plus a Portal User row to
 	# //// match, polluting every instance's customer list (neoffice-maintenance#1763). A signed-in
-	# //// user with no Customer is already handled wherever get_party is consumed (empty, well-shaped
-	# //// context), so None is safe here.
+	# //// user with no Customer gets an empty, well-shaped cart; _set_price_list() and update_party()
+	# //// were made to accept None too, and update_cart() refuses Administrator with a reason.
 	if user == "Administrator":
 		return None
 

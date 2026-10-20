@@ -29,3 +29,15 @@ class TestAdministratorIsNotAShopCustomer(FrappeTestCase):
             cart.update_cart("NO-SUCH-ITEM-1763", 1)
         self.assertIn("Administrator", str(refused.exception))
         self.assertEqual(before, frappe.db.count("Customer", {"name": "Administrator"}))
+
+    def test_a_product_page_still_prices_for_administrator(self):
+        # get_party() answers None for Administrator: the price list must then come from the site or the
+        # shop, as for a visitor, instead of raising (every product page was a 500 for the desk account)
+        frappe.set_user("Administrator")
+        settings = frappe.get_cached_doc("Webshop Settings")
+        self.assertEqual(cart._set_price_list(settings, None), settings.price_list)
+
+    def test_the_checkout_details_form_is_refused_to_administrator(self):
+        frappe.set_user("Administrator")
+        with self.assertRaises(frappe.PermissionError):
+            cart.update_party("Administrator")
