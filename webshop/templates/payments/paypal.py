@@ -8,10 +8,16 @@ from frappe import _
 # //// Neoffice — the quotation is saved with the shop's rights (#277): upstream v15.123.0 reads the
 # //// Item on the SESSION user whenever a line is priced (41effcf754)
 from webshop.webshop.shopping_cart.shop_rights import save_as_shop
+from webshop.webshop.shopping_cart.cart import _get_cart_quotation
 
 @frappe.whitelist(allow_guest=True)
 def create_paypal_payment_request(quotation_id, idempotency_token=None):
     """Create a payment request for PayPal"""
+    # //// Neoffice — the quotation must be the session's own cart, checked before the try below so the
+    # //// refusal is not swallowed by its except (neoffice-maintenance#1764).
+    cart = _get_cart_quotation()
+    if not cart or cart.name != quotation_id:
+        frappe.throw(_("Not Permitted"), frappe.PermissionError)
     try:
         # Check for idempotency token to prevent duplicate requests
         if idempotency_token:
