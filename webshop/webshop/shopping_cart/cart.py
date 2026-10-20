@@ -2484,6 +2484,15 @@ def get_party(user=None, ignore_permissions=False):
 				})
 		return None
 
+	# //// Neoffice — Administrator is the built-in superuser, never a shopper. Without this the
+	# //// create-customer branch below mints a Customer named get_fullname("Administrator") ==
+	# //// "Administrator" the first time the desk user touches the cart, plus a Portal User row to
+	# //// match, polluting every instance's customer list (neoffice-maintenance#1763). A signed-in
+	# //// user with no Customer is already handled wherever get_party is consumed (empty, well-shaped
+	# //// context), so None is safe here.
+	if user == "Administrator":
+		return None
+
 	# //// Neoffice — added, and it is the FIRST lookup on purpose. Upstream resolves the
 	# //// party through the Contact, which picks the wrong Customer whenever a person is
 	# //// a contact of several (a company and their own account): the buyer then saw
