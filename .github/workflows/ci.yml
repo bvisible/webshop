@@ -262,12 +262,16 @@ jobs:
           # //// since. They import nothing of the app and need no fixture, so they are blocking.
           # //// Neoffice — the payment-request release test of #951 joins them: it replaces the database by a
           # //// stand-in and needs no site fixture either.
+          # //// Neoffice — the POST-only checkout test of #1721 joins them too: it reads Frappe's method
+          # //// tables and needs no site fixture. Left out of this list, the guard below turned the whole
+          # //// workflow red on every push.
           for m in \
             webshop.controllers.test_payment_handler \
             webshop.webshop.doctype.item_review.test_item_review \
             webshop.webshop.doctype.webshop_settings.test_webshop_settings \
             webshop.webshop.doctype.wishlist.test_wishlist \
             webshop.webshop.shopping_cart.test_checkout_addresses \
+            webshop.templates.pages.test_checkout_post_only \
             webshop.webshop.shopping_cart.test_portal_guards \
             webshop.webshop.test_multi_site \
             webshop.webshop.utils.test_brand_carousel \
