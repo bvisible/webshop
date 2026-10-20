@@ -48,7 +48,7 @@ msgstr "+ {0} autres marques"
 
 #: webshop/templates/pages/loyalty_points.html:49
 msgid "1 point = {0}"
-msgstr "1 point = {0}"
+msgstr ""
 
 #. Description of the 'Priority' (Int) field in DocType 'Cross Sell Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
@@ -186,7 +186,7 @@ msgstr ""
 
 #: webshop/templates/pages/order.html:20
 msgid "Actions"
-msgstr "Actions"
+msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -630,7 +630,7 @@ msgstr "Ratio d'aspect (largeur/hauteur) des cartes produit. Appliqué uniquemen
 #: webshop/webshop/assistant/api.py:204
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Assistant"
-msgstr "Assistant"
+msgstr ""
 
 #: webshop/webshop/assistant/escalation.py:130
 msgid "Shop assistant: {0} is asking for the team"
@@ -675,7 +675,7 @@ msgstr ""
 #. Label of a Column Break field in DocType 'Purchase Follow-up'
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json
 msgid "Audience"
-msgstr "Audience"
+msgstr ""
 
 #. Option for the 'Warehouse Sources Mode' (Select) field in DocType 'Website
 #. Item'
@@ -1031,7 +1031,7 @@ msgstr "Paniers récupérés, 30 derniers jours"
 #. Label of a Card Break in the Webshop Workspace
 #: webshop/webshop/workspace/webshop/webshop.json
 msgid "Catalogue"
-msgstr "Catalogue"
+msgstr ""
 
 #: webshop/public/js/product_ui/search.js:354
 #: webshop/public/js/product_ui/search_no_jquery.js:382
@@ -1224,7 +1224,7 @@ msgstr "Ferme automatiquement la boutique les jours fériés du lieu où elle se
 #: webshop/templates/pages/gift_cards.html:78
 #: webshop/templates/pages/thank_you.html:194
 msgid "Code"
-msgstr "Code"
+msgstr ""
 
 #: webshop/templates/pages/gift_cards.html:171
 #: webshop/templates/pages/gift_cards.html:183
@@ -1314,7 +1314,7 @@ msgstr ""
 #: webshop/templates/pages/cgv.py:20 webshop/templates/pages/cgv.py:27
 #: webshop/templates/pages/cgv.py:28 webshop/templates/pages/checkout.html:398
 msgid "Conditions Générales de Vente"
-msgstr "Conditions Générales de Vente"
+msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:314
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:325
@@ -1397,7 +1397,7 @@ msgstr "Contrôle l'affichage du symbole de devise dans la boutique. Si vide, ut
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:752
 #: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:46
 msgid "Conversations"
-msgstr "Conversations"
+msgstr ""
 
 #. Label of a Check field in DocType 'Abandoned Cart Reminder'
 #: webshop/webshop/doctype/abandoned_cart_reminder/abandoned_cart_reminder.json
@@ -1497,7 +1497,7 @@ msgstr "Code promo valable (jours)"
 
 #: webshop/templates/includes/cart/cart_payment_summary.html:186
 msgid "Coupons"
-msgstr "Coupons"
+msgstr ""
 
 #. Option for the 'Product Image Fit' (Select) field in DocType 'Webshop
 #. Settings'
@@ -1658,11 +1658,11 @@ msgstr "Clients en attente d'un email"
 #: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:24
 #: webshop/webshop/utils/order_export.py:81
 msgid "Date"
-msgstr "Date"
+msgstr ""
 
 #: webshop/templates/pages/thank_you.html:45
 msgid "Date :"
-msgstr "Date :"
+msgstr ""
 
 #: webshop/templates/payments/webshopsi.html:17
 msgid "Date of birth"
@@ -1806,7 +1806,7 @@ msgstr "Demande depuis l'assistant de la boutique"
 #: webshop/webshop/doctype/webshopsi_invoice_installments/webshopsi_invoice_installments.json
 #: webshop/webshop/doctype/wishlist_item/wishlist_item.json
 msgid "Description"
-msgstr "Description"
+msgstr ""
 
 #. Label of a Currency field in DocType 'Cross Sell Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
@@ -1969,7 +1969,7 @@ msgstr "Email numéro"
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Emails"
-msgstr "Emails"
+msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:707
 msgid "Emails go out every morning at 08:15; what a customer received shows in the customer's timeline and in {0}."
@@ -2927,7 +2927,7 @@ msgstr ""
 #: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json
 #: webshop/webshop/doctype/wishlist_item/wishlist_item.json
 msgid "Image"
-msgstr "Image"
+msgstr ""
 
 #. Description of the 'Image Description' (Data) field in DocType 'Website
 #. Item'
@@ -3548,7 +3548,7 @@ msgstr "Obligatoire"
 #. Option for the 'Nature' (Select) field in DocType 'Purchase Follow-up'
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json
 msgid "Marketing"
-msgstr "Marketing"
+msgstr ""
 
 #. Option for the 'Procurement Mode' (Select) field in DocType 'Webshop
 #. Settings'
@@ -3573,11 +3573,11 @@ msgstr "La quantité maximale disponible est {0}"
 
 #: webshop/templates/web.html:77 webshop/templates/web.html:99
 msgid "Menu"
-msgstr "Menu"
+msgstr ""
 
 #: webshop/templates/generators/item/item_inquiry.js:38
 msgid "Message"
-msgstr "Message"
+msgstr ""
 
 #. Label of a Int field in DocType 'Shop Assistant Conversation'
 #. Label of a Section Break field in DocType 'Shop Assistant Conversation'
@@ -3586,7 +3586,7 @@ msgstr "Message"
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:753
 #: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:47
 msgid "Messages"
-msgstr "Messages"
+msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -3614,7 +3614,7 @@ msgstr "Montant minimum requis :"
 
 #: webshop/www/maintenance.html:362
 msgid "Minutes"
-msgstr "Minutes"
+msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:346
 msgid "Missing"
@@ -3743,7 +3743,7 @@ msgstr "Série de nommage"
 #. Label of a Select field in DocType 'Purchase Follow-up'
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json
 msgid "Nature"
-msgstr "Nature"
+msgstr ""
 
 #: webshop/webshop/utils/mobile_menu.py:83
 msgid "Navigation fallback generated"
@@ -3990,7 +3990,7 @@ msgstr "Non autorisé"
 
 #: webshop/public/js/wishlist.js:199
 msgid "Note"
-msgstr "Note"
+msgstr ""
 
 #. Label of a Small Text field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -4019,7 +4019,7 @@ msgstr "Nombre de mois de validité"
 
 #: webshop/public/js/auth_dialog.js:718
 msgid "OK"
-msgstr "OK"
+msgstr ""
 
 #. Option for the 'Warehouse Sources Mode' (Select) field in DocType 'Website
 #. Item'
@@ -4389,7 +4389,7 @@ msgstr "Où en est ma commande ?"
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json
 #: webshop/www/all-products/index.html:144
 msgid "Page"
-msgstr "Page"
+msgstr ""
 
 #: webshop/webshop/assistant/api.py:208
 msgid "Talk to the team"
@@ -4804,7 +4804,7 @@ msgstr "Veuillez patienter pendant le chargement des méthodes de livraison"
 
 #: webshop/templates/pages/loyalty_points.html:100
 msgid "Points"
-msgstr "Points"
+msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -4827,7 +4827,7 @@ msgstr "Les points sont crédités après la finalisation de la commande"
 #. Label of a Select field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Position"
-msgstr "Position"
+msgstr ""
 
 #: webshop/templates/includes/cart/cart_address.html:139
 #: webshop/templates/pages/checkout.html:152
@@ -5334,7 +5334,7 @@ msgstr "Nom article lié"
 #. Label of a Select field in DocType 'Cross Sell Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json
 msgid "Relation"
-msgstr "Relation"
+msgstr ""
 
 #: webshop/webshop/shopping_cart/cart.py:4038
 #: webshop/webshop/shopping_cart/cart.py:4040
@@ -5411,7 +5411,7 @@ msgstr "Pays restreints"
 #. Label of a Section Break field in DocType 'WebshopSI Settings'
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json
 msgid "Restriction"
-msgstr "Restriction"
+msgstr ""
 
 #: webshop/webshop/quick_order/api.py:882
 msgid "Resume"
@@ -5482,7 +5482,7 @@ msgstr "Rôle"
 #: webshop/webshop/doctype/website_item/website_item.json
 #: webshop/webshop/doctype/wishlist_item/wishlist_item.json
 msgid "Route"
-msgstr "Route"
+msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:219
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:229
@@ -6066,7 +6066,7 @@ msgstr "Le cache du sitemap a été vidé avec succès. Les sitemaps seront reg�
 
 #: webshop/public/js/override/item.js:22
 msgid "Sites"
-msgstr "Sites"
+msgstr ""
 
 #. Label of a Check field in DocType 'Purchase Follow-up Step'
 #: webshop/webshop/doctype/purchase_follow_up_step/purchase_follow_up_step.json
@@ -6132,7 +6132,7 @@ msgstr "Trier par :"
 #. Label of a Dynamic Link field in DocType 'Purchase Follow-up Entry'
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json
 msgid "Source"
-msgstr "Source"
+msgstr ""
 
 #. Label of a Link field in DocType 'Purchase Follow-up Entry'
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json
@@ -6203,7 +6203,7 @@ msgstr "Étapes"
 #: webshop/webshop/doctype/website_item/website_item.js:15
 #: webshop/webshop/quick_order/api.py:859
 msgid "Stock"
-msgstr "Stock"
+msgstr ""
 
 #. Label of a Select field in DocType 'Webshop Warehouse Source'
 #: webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json
@@ -6400,7 +6400,7 @@ msgstr "Onglets"
 
 #: webshop/templates/includes/macros.html:548
 msgid "Tags"
-msgstr "Tags"
+msgstr ""
 
 #: webshop/templates/payments/wallee.py:69
 msgid "Tax"
@@ -6780,11 +6780,11 @@ msgstr "Haut droite"
 
 #: webshop/templates/pages/thank_you.html:174
 msgid "Total"
-msgstr "Total"
+msgstr ""
 
 #: webshop/templates/pages/thank_you.html:47
 msgid "Total :"
-msgstr "Total :"
+msgstr ""
 
 #: webshop/templates/includes/order/order_taxes.html:103
 msgid "Total Amount"
@@ -7746,7 +7746,7 @@ msgstr "Votre paiement a été traité avec succès. Redirection..."
 #: webshop/templates/generators/item/item_image.html:51
 #: webshop/templates/generators/item/item_image.html:81
 msgid "Zoom"
-msgstr "Zoom"
+msgstr ""
 
 #: webshop/webshop/shopping_cart/cart.py:614
 msgid "amount used in order from quotation"
@@ -7818,7 +7818,7 @@ msgstr "lignes"
 
 #: webshop/www/maintenance.html:334
 msgid "maintenance"
-msgstr "maintenance"
+msgstr ""
 
 #. Option for the 'Default Product Sort Order' (Select) field in DocType
 #. 'Webshop Settings'
@@ -7828,7 +7828,7 @@ msgstr "nouveautes"
 
 #: webshop/webshop/utils/store_hours.py:156
 msgid "non-stop"
-msgstr "non-stop"
+msgstr ""
 
 #: webshop/templates/generators/item_group.html:156
 #: webshop/www/all-products/index.html:145
@@ -7852,7 +7852,7 @@ msgstr "pièces"
 #: webshop/templates/pages/checkout.js:2024
 #: webshop/templates/pages/checkout_b2b.html:450
 msgid "points"
-msgstr "points"
+msgstr ""
 
 #: webshop/templates/includes/cart/cart_payment_summary.html:140
 #: webshop/templates/includes/order_summary.html:135
@@ -8019,7 +8019,7 @@ msgstr "{0} articles trouvés."
 
 #: webshop/webshop/utils/store_hours.py:144
 msgid "{0} min"
-msgstr "{0} min"
+msgstr ""
 
 #: webshop/templates/generators/item/item_details.html:43
 msgid "{0} months warranty"
@@ -8043,7 +8043,7 @@ msgstr "{0} variantes"
 
 #: webshop/templates/generators/item/item_image.html:8
 msgid "{0} — image {1}"
-msgstr "{0} — image {1}"
+msgstr ""
 
 #: webshop/webshop/product_data_engine/filters.py:461
 msgid "{0}% and below"
@@ -8059,15 +8059,15 @@ msgstr "{0} : {1} demandées, {2} gardées ({3} disponibles)"
 
 #: webshop/webshop/utils/store_hours.py:143
 msgid "{0}h {1}min"
-msgstr "{0}h {1}min"
+msgstr ""
 
 #: webshop/webshop/utils/loyalty_points.py:125
 msgid "{points} points = {amount}"
-msgstr "{points} points = {amount}"
+msgstr ""
 
 #: webshop/templates/payments/webshopsi.html:158
 msgid "{{ payment_context.terms_title }}"
-msgstr "{{ payment_context.terms_title }}"
+msgstr ""
 
 #. Count format of shortcut in the Webshop Workspace
 #: webshop/webshop/workspace/webshop/webshop.json
@@ -8195,7 +8195,7 @@ msgid "Categories that hold products"
 msgstr "Catégories contenant des produits"
 
 msgid "Pages"
-msgstr "Pages"
+msgstr ""
 
 msgid "Blog posts"
 msgstr "Articles de blog"
@@ -8205,7 +8205,7 @@ msgstr "Les sitemaps sont générés automatiquement et conservés pendant 6 heu
 
 #: webshop/webshop/seo/feeds/google.py
 msgid "Google Shopping"
-msgstr "Google Shopping"
+msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
 msgid "Product Feed"
@@ -8401,7 +8401,7 @@ msgstr "Livraison et retours"
 
 #: webshop/webshop/seo/llms.py
 msgid "Contact"
-msgstr "Contact"
+msgstr ""
 
 #: webshop/webshop/seo/llms.py
 msgid "one product"
@@ -8882,7 +8882,7 @@ msgstr "Toutes les photos sont décrites"
 
 #: webshop/webshop/seo/score.py
 msgid "GTIN {0}"
-msgstr "GTIN {0}"
+msgstr ""
 
 #: webshop/webshop/seo/score.py
 msgid "Manufacturer's reference {0} but no GTIN: add the EAN if the product has one"
@@ -9034,7 +9034,7 @@ msgstr "Les chiffres SEO d'un site pour une journée, écrits chaque nuit par la
 
 #: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
 msgid "Site"
-msgstr "Site"
+msgstr ""
 
 #: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json
 msgid "The site the figures are for, as the Google feed names it: default for a single site, else its Website Profile."
@@ -9229,3 +9229,21 @@ msgstr "Un client qui crée un compte dans la boutique est connecté aussitôt e
 #: webshop/webshop/api.py:899
 msgid "This address is also used by another account: please contact us to change it."
 msgstr "Cette adresse est aussi utilisée par un autre compte : contactez-nous pour la modifier."
+
+#. Header text in the Webshop Workspace
+#: webshop/webshop/workspace/webshop/webshop.json
+msgid "<span class=\"h4\"><b>SEO and Google Shopping</b></span>"
+msgstr "<span class=\"h4\"><b>SEO et Google Shopping</b></span>"
+
+#: webshop/webshop/shopping_cart/cart.py:1299
+msgid "Not a customer account"
+msgstr "Ce n'est pas un compte client"
+
+#: webshop/www/my_addresses.html:73
+msgctxt "Address book"
+msgid "Postal Code"
+msgstr "Code postal"
+
+#: webshop/webshop/shopping_cart/cart.py:1298
+msgid "The Administrator account cannot shop. Sign in with a customer account to try the shop."
+msgstr "Le compte Administrateur ne peut pas faire d'achats. Connectez-vous avec un compte client pour essayer la boutique."
