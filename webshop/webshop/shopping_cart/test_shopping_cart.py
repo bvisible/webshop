@@ -213,6 +213,10 @@ class TestShoppingCart(unittest.TestCase):
 		variant.save()
 		make_website_item(template_item)  # publish template not variant
 
+		# //// Neoffice — the cart is filled by a customer account: update_cart refuses Administrator
+		# //// (neoffice-maintenance#1763), and upstream ran this test as Administrator.
+		self.login_as_customer()
+		self.clear_existing_quotations()
 		update_cart("Test-Tshirt-Temp-S-R", 1)
 
 		cart = get_cart_quotation()  # test if cart page gets data without errors
@@ -250,6 +254,8 @@ class TestShoppingCart(unittest.TestCase):
 			web_item.website_warehouse = warehouse
 			web_item.save()
 		frappe.local.shopping_cart_settings = None
+		self.login_as_customer()  # //// Neoffice — update_cart refuses Administrator (neoffice-maintenance#1763)
+		self.clear_existing_quotations()
 
 		with self.assertRaises(frappe.ValidationError) as refused:
 			update_cart(item.name, 1)
@@ -267,6 +273,10 @@ class TestShoppingCart(unittest.TestCase):
 	def test_cart_without_checkout_and_draft_quotation(self):
 		"Test impact of 'save_quotations_as_draft' checkbox."
 		frappe.local.shopping_cart_settings = None
+		# //// Neoffice — the cart is filled by a customer account: update_cart refuses Administrator
+		# //// (neoffice-maintenance#1763), and upstream ran this test as Administrator.
+		self.login_as_customer()
+		self.clear_existing_quotations()
 
 		# add item to cart
 		update_cart("_Test Item", 1)
