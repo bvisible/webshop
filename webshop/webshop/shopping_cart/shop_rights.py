@@ -78,7 +78,9 @@ def save_as_shop(doc, submit=False, **save_kwargs):
 	saying who acted.
 	"""
 	user = frappe.session.user
-	was_new = doc.is_new()
+	# A document built from a dict (`frappe.get_doc({...})`) has no `__islocal` until it is inserted, but no name
+	# either: both say « new », or its owner would be left as the shop's.
+	was_new = doc.is_new() or not doc.get("name")
 	with shop_rights():
 		if submit:
 			doc.submit()

@@ -29,6 +29,7 @@ from webshop.webshop.shopping_cart.test_loyalty_rights import (
 	GATEWAY,
 	ITEM,
 	PREFIX,
+	PRICE,
 	USER,
 	CUSTOMER,
 	ShopFixture,
@@ -43,7 +44,8 @@ def order_series_counters():
 	for option in (frappe.get_meta("Sales Order").get_field("naming_series").options or "").split("\n"):
 		if option.strip():
 			prefix = parse_naming_series(option.strip())
-			counters[prefix] = frappe.db.get_value("Series", prefix, "current")
+			rows = frappe.db.sql("select `current` from `tabSeries` where name = %s", prefix)
+			counters[prefix] = rows[0][0] if rows else None
 	return counters
 
 
@@ -174,6 +176,7 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 		quotation = self.fill_the_cart(1)
 		token = self.token()
 		first = self.raise_the_request(quotation, token)
+		old_total = frappe.db.get_value("Payment Request", first["payment_request_id"], "grand_total")
 		frappe.set_user(USER)
 		with upstream_checks():
 			cart.update_cart(ITEM, 3)
@@ -182,10 +185,19 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 		second = self.raise_the_request(quotation, token)
 
 		self.assertEqual(second.get("status"), "success", (second, self.last_error()))
-		self.assertNotEqual(second["payment_request_id"], first["payment_request_id"])
-		self.assertFalse(frappe.db.exists("Payment Request", first["payment_request_id"]), "the old request is released")
-		order = frappe.get_doc("Sales Order", pending_order.placeholder_name(quotation.name))
+		self.assertNotEqual(second.get("message"), "Using existing payment request", second)
+		# Frappe gives a deleted request's number back when it was the last one, so the NAME may repeat:
+		# what must differ is what the request asks for.
+		request = frappe.get_doc("Payment Request", second["payment_request_id"])
+		self.assertEqual(request.grand_total, 3 * PRICE)
+		self.assertNotEqual(request.grand_total, old_total)
+		self.assertEqual(request.reference_name, pending_order.placeholder_name(quotation.name))
+		order = frappe.get_doc("Sales Order", request.reference_name)
 		self.assertEqual([(row.item_code, row.qty) for row in order.items], [(ITEM, 3)])
+		self.assertEqual(len(self.placeholders()), 1)
+		self.assertEqual(
+			frappe.db.count("Payment Request", {"reference_name": request.reference_name}), 1, "one request, not two"
+		)
 
 	# --- the money comes ----------------------------------------------------------
 
