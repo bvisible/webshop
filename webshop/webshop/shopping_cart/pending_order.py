@@ -185,7 +185,11 @@ def release(quotation_name):
 	if not frappe.db.exists("Sales Order", name):
 		return True
 	_release_unsuccessful_payment_requests(name, reference_doctype="Sales Order")
-	if frappe.db.exists("Payment Request", {"reference_doctype": "Sales Order", "reference_name": name}):
+	# A request that is left, not cancelled, moved money (Paid, Completed): it keeps its order. A cancelled one is
+	# a released attempt, which Frappe does not count as a link when the order is deleted.
+	if frappe.db.exists(
+		"Payment Request", {"reference_doctype": "Sales Order", "reference_name": name, "docstatus": ["<", 2]}
+	):
 		return False
 	return drop(name)
 
@@ -206,11 +210,23 @@ def drop(placeholder):
 
 
 def move_request_to(payment_request, sales_order):
-	"""The request ends on the real order; the placeholder it stood on is dropped."""
+	"""The request ends on the real order; the placeholder it stood on is dropped.
+
+	The other requests raised on the same placeholder (an earlier attempt the gateway refused, a second method the
+	buyer opened and left) follow it to the real order, as those raised on the quotation always stayed with the
+	cart it became an order: a callback of theirs that comes late then finds an order and is not lost, and nothing
+	is deleted that a gateway may still answer for. Nothing then points at the placeholder, which can go."""
 	previous = payment_request.reference_name if payment_request.reference_doctype == "Sales Order" else None
 	payment_request.db_set("reference_doctype", "Sales Order", update_modified=False)
 	payment_request.db_set("reference_name", sales_order, update_modified=False)
 	if is_placeholder(previous):
+		frappe.db.set_value(
+			"Payment Request",
+			{"reference_doctype": "Sales Order", "reference_name": previous},
+			"reference_name",
+			sales_order,
+			update_modified=False,
+		)
 		drop(previous)
 
 

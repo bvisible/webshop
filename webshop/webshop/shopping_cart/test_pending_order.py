@@ -249,6 +249,43 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 			1,
 		)
 
+	def test_an_attempt_the_gateway_refused_follows_the_request_that_succeeds_to_the_order(self):
+		"""A refusal then a success: the refused attempt stays as history on the real order, nothing blocks the
+		placeholder's deletion, and nothing is left behind (a submitted refused request used to keep it)."""
+		quotation = self.fill_the_cart()
+		first = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		frappe.set_user(USER)
+		PaymentHandler().handle_payment_failure(payment_request_id=first, error_message="card declined")
+		frappe.set_user("Administrator")
+		second = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		self.assertNotEqual(frappe.db.get_value("Payment Request", second, "status"), "Failed")
+
+		result = self.the_money_comes(second)
+
+		self.assertEqual(result.get("status"), "success", (result, self.last_error()))
+		order = frappe.db.get_value("Payment Request", second, "reference_name")
+		self.assertEqual(self.real_orders(), [order])
+		self.assertEqual(self.placeholders(), [], "the placeholder is gone")
+		self.assertEqual(frappe.db.get_value("Payment Request", first, "reference_name"), order)
+		self.assertEqual(frappe.db.get_value("Payment Request", first, "status"), "Failed")
+		self.assertEqual(frappe.db.get_value("Payment Request", second, "status"), "Paid")
+
+	def test_a_second_method_the_buyer_left_open_follows_the_order_and_is_not_deleted(self):
+		"""Two methods opened on one cart, one pays: the other request, whose gateway may still answer, is kept."""
+		quotation = self.fill_the_cart()
+		paid = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		other = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		self.assertNotEqual(paid, other)
+		self.assertEqual(len(self.placeholders()), 1, "one placeholder for the cart, two requests on it")
+
+		result = self.the_money_comes(paid)
+
+		self.assertEqual(result.get("status"), "success", (result, self.last_error()))
+		order = frappe.db.get_value("Payment Request", paid, "reference_name")
+		self.assertEqual(frappe.db.get_value("Payment Request", other, "reference_name"), order)
+		self.assertEqual(frappe.db.get_value("Payment Request", other, "docstatus"), 0, "kept as it was")
+		self.assertEqual(self.placeholders(), [])
+
 	# --- the money does not come --------------------------------------------------
 
 	def test_a_payment_that_never_comes_leaves_the_cart_as_it_was(self):
@@ -272,6 +309,21 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 		self.assertFalse(frappe.db.exists("Payment Request", second))
 		self.assertEqual(frappe.db.get_value("Quotation", quotation.name, "docstatus"), 0, "the cart is untouched")
 		self.assertEqual(self.real_orders(), [])
+
+	def test_a_refused_attempt_does_not_keep_the_placeholder_alive(self):
+		"""A request the gateway refused is submitted; released, it is cancelled, and a cancelled request is no
+		link: the placeholder goes, as it does with a request that was never submitted."""
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		frappe.set_user(USER)
+		PaymentHandler().handle_payment_failure(payment_request_id=request, error_message="card declined")
+		frappe.set_user("Administrator")
+		self.assertEqual(frappe.db.get_value("Payment Request", request, "docstatus"), 1)
+
+		self.assertTrue(pending_order.release(quotation.name))
+
+		self.assertEqual(self.placeholders(), [])
+		self.assertEqual(frappe.db.get_value("Payment Request", request, "docstatus"), 2, "cancelled, not paid")
 
 	def test_a_payment_still_in_its_hold_is_not_released(self):
 		quotation = self.fill_the_cart()
