@@ -102,7 +102,7 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
         # Check if payment request already exists
         # //// Neoffice — on the placeholder order, or (raised before it existed) on the quotation: two lookups, not
         # //// `or_filters` with a dict each, which Frappe reads by its FIRST key only (it dropped `reference_name`:
-        # //// any paid request on any order answered « already paid »).
+        # //// any paid request on any order answered "already paid").
         payment_request = frappe.get_all(
             "Payment Request",
             filters={"docstatus": 1, "reference_doctype": "Sales Order", "reference_name": carrier},

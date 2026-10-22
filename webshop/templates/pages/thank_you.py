@@ -25,7 +25,7 @@ def _visitor_may_read(order) -> bool:
 	if frappe.session.user == "Guest":
 		return False
 	# //// Neoffice — a draft is no confirmed order, and the cart's placeholder (pending_order.py) is one: the buyer
-	# //// who typed its name read « your order is confirmed » on the page of an order that does not exist yet.
+	# //// who typed its name read "your order is confirmed" on the page of an order that does not exist yet.
 	if order.docstatus == 0 or pending_order.is_placeholder(order.name):
 		return False
 	# Staff see everything — they have access through the desk anyway.
@@ -41,7 +41,7 @@ def _visitor_may_read(order) -> bool:
 	try:
 		return bool(frappe.has_website_permission(order))
 	except Exception:
-		# //// Neoffice — the title in English (RULE #00); it was « droit de lecture d'une commande ».
+		# //// Neoffice — the title in English (RULE #00).
 		frappe.log_error("Webshop: right to read an order", frappe.get_traceback())
 		return False
 

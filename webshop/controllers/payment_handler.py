@@ -1,7 +1,8 @@
 import frappe
 from frappe import _
 import json
-from webshop.webshop.shopping_cart.cart import place_order, _get_cart_quotation, is_gift_card_item
+# //// Neoffice — get_party: whose cart it is (_is_the_session_s_quotation below).
+from webshop.webshop.shopping_cart.cart import place_order, _get_cart_quotation, is_gift_card_item, get_party
 # //// Neoffice — the placeholder order a cart's payment request is raised on (pending_order.py).
 from webshop.webshop.shopping_cart import pending_order
 # //// Neoffice — #277: the customer's session reads neither Item nor Account (shop_rights.py).
@@ -14,6 +15,40 @@ from webshop.webshop.utils.payment_methods import (
     rows_for_group,
 )
 from erpnext.accounts.doctype.payment_request.payment_request import make_payment_entry
+
+# //// Neoffice — whose cart is it? `create_payment_request` is `allow_guest` and took any quotation name the caller
+# //// sent: with the placeholder order it creates, and releases, documents on that cart, so it is the session's own
+# //// cart or nothing (the rule maintenance#1764 gave the PayPal tile, for every tile).
+def _is_staff():
+    return frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles()
+
+
+def _is_the_session_s_quotation(quotation_id):
+    if not quotation_id or not frappe.db.exists("Quotation", quotation_id):
+        return False
+    row = frappe.db.get_value(
+        "Quotation", quotation_id, ["party_name", "contact_email", "guest_session_id"], as_dict=True
+    )
+    user = frappe.session.user
+    if user == "Guest":
+        cookie = frappe.request.cookies.get("guest_session_id") if frappe.request else None
+        return bool(cookie) and row.guest_session_id == cookie
+    party = get_party()
+    return bool(party) and row.party_name == party.name and row.contact_email == user
+
+
+def _cart_of_request(payment_request):
+    """The cart a payment request was raised for: its placeholder's, its quotation, or the one the order came from."""
+    if payment_request.reference_doctype == "Quotation":
+        return payment_request.reference_name
+    if payment_request.reference_doctype == "Sales Order":
+        if pending_order.is_placeholder(payment_request.reference_name):
+            return pending_order.quotation_of(payment_request.reference_name)
+        return frappe.db.get_value(
+            "Sales Order Item", {"parent": payment_request.reference_name, "docstatus": 1}, "prevdoc_docname"
+        )
+    return None
+
 
 class PaymentHandler:
     def __init__(self):
@@ -30,6 +65,11 @@ class PaymentHandler:
             payment_gateway (str, optional): Payment Gateway name, resolved directly.
                 Takes precedence over gateway_settings. See the //// Neoffice note below.
         """
+        # //// Neoffice — the cart is the session's own, checked before anything is read or written, and before the try
+        # //// below so that the refusal is a refusal and not an "error creating the payment request".
+        if quotation_id and not _is_staff() and not _is_the_session_s_quotation(quotation_id):
+            frappe.throw(_("Not permitted"), frappe.PermissionError)
+
         try:
             # Check for idempotency token to prevent duplicate requests
             if idempotency_token:
@@ -42,7 +82,12 @@ class PaymentHandler:
                     ["name", "status", "reference_name", "reference_doctype"],
                     as_dict=True
                 )
-                
+
+                # //// Neoffice — a request that is another buyer's is no request of this one: a token is not a key
+                # //// to someone else's cart (the answer below releases the placeholder of a cart that changed).
+                if existing_pr and not _is_staff() and not _is_the_session_s_quotation(_cart_of_request(existing_pr)):
+                    existing_pr = None
+
                 if existing_pr:
                     # If payment request exists and is not failed, return existing one
                     if existing_pr.status != "Failed":
@@ -56,7 +101,7 @@ class PaymentHandler:
                         # //// except, and the customer received « Erreur lors de la
                         # //// création de la demande de paiement » instead of
                         # //// finding their request again. Only visible on the second attempt.
-                        # //// Neoffice — « the request points at a Sales Order » no longer means the order
+                        # //// Neoffice — "the request points at a Sales Order" no longer means the order
                         # //// exists: until the money is in, it points at the cart's placeholder order
                         # //// (pending_order.py). A request on a placeholder is the one to find again, unless
                         # //// the cart changed since: then it is released and a new one is raised below.
@@ -72,6 +117,8 @@ class PaymentHandler:
                             if frappe.db.exists("Quotation", cart_name) and pending_order.is_current(
                                 existing_pr.reference_name, frappe.get_doc("Quotation", cart_name)
                             ):
+                                # //// Neoffice — the buyer is still here: the hold of the placeholder starts over.
+                                pending_order.touch(existing_pr.reference_name)
                                 return {
                                     "status": "success",
                                     "payment_request_id": existing_pr.name,
@@ -90,7 +137,9 @@ class PaymentHandler:
                         elif not sales_order and existing_pr.reference_name:
                             sales_order = frappe.db.get_value(
                                 "Sales Order Item",
-                                {"prevdoc_docname": existing_pr.reference_name, "docstatus": ["<", 2]},
+                                # //// Neoffice — a SUBMITTED order only: the lines of a placeholder (a draft) carry the
+                                # //// quotation's name too, and are no order.
+                                {"prevdoc_docname": existing_pr.reference_name, "docstatus": 1},
                                 "parent"
                             )
                         
@@ -223,8 +272,8 @@ class PaymentHandler:
             })
             
             # //// Neoffice — raised on the cart's PLACEHOLDER order, not on the quotation: upstream ERPNext
-            # //// (v15.12x) refuses a Payment Request against a Quotation (« Payment Requests cannot be created
-            # //// against: Quotation »). The placeholder is a draft Sales Order named outside the order series;
+            # //// (v15.12x) refuses a Payment Request against a Quotation ("Payment Requests cannot be created
+            # //// against: Quotation"). The placeholder is a draft Sales Order named outside the order series;
             # //// the real order is made only once the gateway has confirmed the money, as it always was, and
             # //// the request then moves to it (handle_payment_success, on_payment_authorized). See
             # //// pending_order.py (neoffice-maintenance#1802).
@@ -305,6 +354,19 @@ class PaymentHandler:
             frappe.set_user("Administrator")
             frappe.flags.ignore_permissions = True
 
+            # //// Neoffice — the cart is locked FIRST, then the request: two requests of one cart concluding together
+            # //// (a double payment) then wait in a single file, instead of each holding its own row while the first
+            # //// one's move of the sibling requests waits for the other's (a deadlock).
+            _first = frappe.db.get_value(
+                "Payment Request", payment_request_id, ["reference_doctype", "reference_name"], as_dict=True
+            )
+            if _first.reference_doctype == "Sales Order" and pending_order.is_placeholder(_first.reference_name):
+                _cart = pending_order.quotation_of(_first.reference_name)
+            else:
+                _cart = _first.reference_name if _first.reference_doctype == "Quotation" else None
+            if _cart and frappe.db.exists("Quotation", _cart):
+                frappe.get_doc("Quotation", _cart, for_update=True)
+
             # //// Neoffice — the request is read FOR UPDATE: the gateway's callback, the buyer's return page and the
             # //// TWINT poller all conclude it, and a second call arriving while the first makes the order must wait
             # //// for it and then find the request moved to that order, instead of making a second one.
@@ -329,7 +391,13 @@ class PaymentHandler:
                         "redirect_to": f"/thank_you?sales_order={payment_request.reference_name}",
                         "message": _("Payment already processed")
                     }
-                return {"status": "success", "message": _("Payment already processed")}
+                # //// Neoffice — Paid but still on the cart's placeholder: the order was never made (a gateway marked
+                # //// the request, or the move failed). That is not "processed": the order is made below.
+                if not (
+                    payment_request.reference_doctype == "Sales Order"
+                    and pending_order.is_placeholder(payment_request.reference_name)
+                ):
+                    return {"status": "success", "message": _("Payment already processed")}
 
             # Concurrent-finalize guard: a second call (e.g. the TWINT poller
             # racing the consumer redirect / simulate) can arrive after the
@@ -338,11 +406,19 @@ class PaymentHandler:
             # finalised by the other call — treat it as already processed
             # instead of trying to load the Sales Order name as a Quotation
             # (which would raise "Quotation <SO> not found").
-            # //// Neoffice — only a REAL order says « already processed »: until the money is in, the request
+            # //// Neoffice — only a REAL order says "already processed": until the money is in, the request
             # //// points at the cart's placeholder order (pending_order.py), and that is the one to conclude.
             placeholder = None
             if payment_request.reference_doctype == "Sales Order":
                 if not pending_order.is_placeholder(payment_request.reference_name):
+                    # //// Neoffice — this request is not Paid and the order is real: the order was made by ANOTHER
+                    # //// request of the same cart (it followed it there), so this payment may be a second one for
+                    # //// the same cart. It is not booked here; somebody has to look (refund or credit).
+                    frappe.log_error(
+                        "Webshop: a second payment request of a cart concluded",
+                        f"payment_request={payment_request.name} order={payment_request.reference_name} "
+                        f"status={payment_request.status}: money may have been taken twice for one cart",
+                    )
                     return {
                         "status": "success",
                         "redirect_to": f"/thank_you?sales_order={payment_request.reference_name}",
@@ -376,6 +452,30 @@ class PaymentHandler:
             if linked_docs:
                 sales_order_name = linked_docs[0].name
             else:
+                # //// Neoffice — the order is built from the cart as it is NOW and its payment is booked against its
+                # //// invoice: a cart changed after this request was raised (a quantity in another tab, a code applied)
+                # //// would order and book more or less than the buyer paid. Not concluded: the request is kept with a
+                # //// note, and somebody looks (the gateway has the money).
+                if not pending_order.amount_matches(payment_request, quotation):
+                    payment_request.add_comment(
+                        "Info",
+                        _("Not concluded: the cart changed after this payment was started, its total is no longer {0}.").format(
+                            payment_request.grand_total
+                        ),
+                    )
+                    frappe.log_error(
+                        "Webshop: the amount paid is not the amount of the cart",
+                        f"payment_request={payment_request.name} paid={payment_request.grand_total} "
+                        f"cart={quotation.name} total={quotation.rounded_total or quotation.grand_total}",
+                    )
+                    return {
+                        "status": "error",
+                        "message": _(
+                            "The cart changed after the payment was started. The payment is kept: please contact us."
+                        ),
+                        "redirect_to": "",
+                    }
+
                 # Submit quotation first if not already submitted (required for make_sales_order)
                 if quotation.docstatus == 0:
                     quotation.flags.ignore_permissions = True

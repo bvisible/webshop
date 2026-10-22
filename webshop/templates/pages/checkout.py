@@ -1327,7 +1327,7 @@ def cart_intent_state(intent: str) -> dict:
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	# //// Neoffice — "payment_request" renamed from French, see the marker above (e646274dd3)
-	# //// Neoffice — « the request points at a Sales Order » no longer means the order exists: until the money is in
+	# //// Neoffice — "the request points at a Sales Order" no longer means the order exists: until the money is in
 	# //// it points at the cart's placeholder order (pending_order.py), and the poll would send the buyer to the
 	# //// thank-you page of an order that does not exist. Only a real order ends the wait.
 	from webshop.webshop.shopping_cart import pending_order

@@ -68,6 +68,11 @@ def create_guest_quotation(items=None):
     # A cart emptied of its last line is no longer a cart. It goes away,
     # just like it does for a signed-in customer.
     if existing_quotation and isinstance(items, list) and not items:
+        # //// Neoffice — the placeholder order of a card payment in progress goes with its cart (pending_order.py):
+        # //// Frappe gives the number of a cart deleted last back to the series, and a new cart would meet it.
+        from webshop.webshop.shopping_cart import pending_order
+
+        pending_order.release(existing_quotation)
         frappe.delete_doc("Quotation", existing_quotation, force=True, ignore_permissions=True)
         return None
 

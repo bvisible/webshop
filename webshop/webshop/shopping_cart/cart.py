@@ -1161,8 +1161,15 @@ def _release_unsuccessful_payment_requests(quotation_name, reference_doctype="Qu
 		# //// as they were.
 		frappe.db.savepoint(_RELEASE_SAVEPOINT)
 		try:
+			# //// Neoffice — read again FOR UPDATE, and judged again: the list above was read without a lock, and a
+			# //// conclusion that just made this request Paid (handle_payment_success holds its row) must not be
+			# //// cancelled or deleted from under it.
+			doc = frappe.get_doc("Payment Request", request.name, for_update=True)
+			if doc.docstatus >= 2 or doc.status not in ("Draft", "Failed", "Initiated", "Requested"):
+				frappe.db.release_savepoint(_RELEASE_SAVEPOINT)
+				continue
 			_release_unconcluded_payment_intents(request.name)
-			doc = frappe.get_doc("Payment Request", request.name)
+			# //// Neoffice — `doc` is the one read above, under lock (it was read here, without).
 			doc.flags.ignore_permissions = True
 			if doc.docstatus == 1:
 				doc.cancel()

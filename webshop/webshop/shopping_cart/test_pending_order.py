@@ -35,6 +35,7 @@ from webshop.webshop.shopping_cart.test_loyalty_rights import (
 	ITEM,
 	PREFIX,
 	PRICE,
+	STRANGER,
 	USER,
 	CUSTOMER,
 	ShopFixture,
@@ -358,7 +359,7 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 
 	def test_an_order_paid_elsewhere_does_not_make_the_next_cart_read_already_paid(self):
 		"""The lookup of an existing request read a filter Frappe cut to its first key: any paid request on any
-		order answered « This order has already been paid » to every other cart."""
+		order answered "This order has already been paid" to every other cart."""
 		first = self.fill_the_cart()
 		self.the_money_comes(self.raise_the_request(first, self.token())["payment_request_id"])
 		self.assertEqual(len(self.real_orders()), 1)
@@ -369,6 +370,198 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 
 		self.assertEqual(result.get("status"), "success", (result, self.last_error()))
 		self.assertEqual(result.get("payment_url"), "https://pay.example.test/paypal")
+
+	# --- whose cart, what amount, what a clock may delete --------------------------------
+
+	def test_a_buyer_cannot_raise_a_request_on_another_buyers_cart(self):
+		quotation = self.fill_the_cart()
+		frappe.set_user(STRANGER)
+		with upstream_checks(), self.assertRaises(frappe.PermissionError):
+			PaymentHandler().create_payment_request(
+				quotation_id=quotation.name, payment_gateway=GATEWAY, idempotency_token=self.token()
+			)
+		frappe.set_user("Administrator")
+		self.assertEqual(self.placeholders(), [], "nothing was made on the other buyer's cart")
+		self.assertEqual(frappe.db.count("Payment Request", {"party": CUSTOMER}), 0)
+
+	def test_a_token_is_not_a_key_to_another_buyers_request(self):
+		quotation = self.fill_the_cart()
+		token = self.token()
+		mine = self.raise_the_request(quotation, token)["payment_request_id"]
+		# the other buyer's own cart, asked with MY token
+		frappe.set_user(STRANGER)
+		with upstream_checks():
+			cart.update_cart(ITEM, 1)
+			cart.get_cart_quotation()
+			theirs = cart._get_cart_quotation()
+		frappe.set_user("Administrator")
+		frappe.db.set_value("Payment Request", mine, "custom_idempotency_token", token + "-mine")
+		self.assertNotEqual(theirs.name, quotation.name)
+
+		frappe.set_user(STRANGER)
+		with upstream_checks():
+			result = PaymentHandler().create_payment_request(
+				quotation_id=theirs.name, payment_gateway=GATEWAY, idempotency_token=token + "-mine"
+			)
+		frappe.set_user("Administrator")
+		# it does not answer with my request, and it leaves mine alone
+		self.assertNotEqual(result.get("payment_request_id"), mine, result)
+		self.assertTrue(frappe.db.exists("Payment Request", mine))
+		self.assertEqual(frappe.db.get_value("Payment Request", mine, "reference_name"), "PENDING-" + quotation.name)
+
+	def test_a_cart_changed_after_the_payment_started_is_not_ordered_for_the_wrong_amount(self):
+		quotation = self.fill_the_cart(1)
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		frappe.set_user(USER)
+		with upstream_checks():
+			cart.update_cart(ITEM, 3)  # in another tab
+		frappe.set_user("Administrator")
+
+		result = self.the_money_comes(request)
+
+		self.assertEqual(result.get("status"), "error", result)
+		self.assertEqual(self.real_orders(), [], "no order for an amount nobody paid")
+		self.assertEqual(frappe.db.get_value("Quotation", quotation.name, "docstatus"), 0, "the cart is untouched")
+		self.assertTrue(frappe.db.exists("Sales Order", pending_order.placeholder_name(quotation.name)))
+		self.assertTrue(
+			frappe.db.exists(
+				"Comment", {"reference_doctype": "Payment Request", "reference_name": request, "comment_type": "Info"}
+			),
+			"the request says why it was kept",
+		)
+		self.assertIn("amount paid", (self.last_error() or {}).get("method", ""))
+
+	def test_a_request_marked_paid_on_the_placeholder_still_makes_its_order(self):
+		"""A gateway that marked the request Paid without the shop making the order: that is not "processed"."""
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		frappe.db.set_value("Payment Request", request, "status", "Paid")
+
+		result = self.the_money_comes(request)
+
+		self.assertEqual(result.get("status"), "success", (result, self.last_error()))
+		order = frappe.db.get_value("Payment Request", request, "reference_name")
+		self.assertFalse(pending_order.is_placeholder(order))
+		self.assertEqual(self.real_orders(), [order])
+
+	def test_a_second_payment_for_a_cart_that_is_already_an_order_is_reported(self):
+		quotation = self.fill_the_cart()
+		paid = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		other = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		self.the_money_comes(paid)
+
+		result = self.the_money_comes(other)
+
+		self.assertEqual(result.get("status"), "success", result)
+		self.assertEqual(len(self.real_orders()), 1, "still one order")
+		self.assertIn("second payment request", (self.last_error() or {}).get("method", ""))
+
+	def test_nobody_submits_a_placeholder(self):
+		placeholder = self.a_placeholder()
+		order = frappe.get_doc("Sales Order", placeholder)
+		with self.assertRaises(frappe.ValidationError):
+			order.submit()
+		self.assertEqual(frappe.db.get_value("Sales Order", placeholder, "docstatus"), 0)
+
+	def test_a_placeholder_is_one_whatever_the_case(self):
+		self.assertTrue(pending_order.is_placeholder("PENDING-DEVIS-1"))
+		self.assertTrue(pending_order.is_placeholder("pending-devis-1"))
+		self.assertFalse(pending_order.is_placeholder("SAL-ORD-2026-00001"))
+		self.assertFalse(pending_order.is_placeholder(None))
+
+	def test_the_order_page_has_no_page_for_a_placeholder_in_any_case(self):
+		placeholder = self.a_placeholder()
+		frappe.set_user(USER)
+		frappe.local.form_dict = frappe._dict(doctype="Sales Order", name=placeholder.lower())
+		with self.assertRaises(frappe.DoesNotExistError):
+			order_page.get_context(frappe._dict())
+
+	def test_a_placeholder_older_than_its_cart_belongs_to_another_cart(self):
+		"""Frappe gives a deleted cart's number back: a new cart can carry the name of a cart that is gone."""
+		quotation = self.fill_the_cart()
+		first = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		placeholder = pending_order.placeholder_name(quotation.name)
+		frappe.db.set_value(
+			"Sales Order", placeholder, "creation", add_to_date(quotation.creation, days=-1), update_modified=False
+		)
+		self.assertFalse(pending_order.is_of_this_cart(placeholder, frappe.get_doc("Quotation", quotation.name)))
+
+		second = self.raise_the_request(quotation, self.token())
+
+		self.assertEqual(second.get("status"), "success", (second, self.last_error()))
+		self.assertTrue(
+			pending_order.is_of_this_cart(placeholder, frappe.get_doc("Quotation", quotation.name)),
+			"made again, for this cart",
+		)
+		self.assertEqual(self.placeholders(), [placeholder])
+		self.assertEqual(frappe.db.count("Payment Request", {"reference_name": placeholder}), 1)
+
+	def stale(self, placeholder):
+		frappe.db.set_value(
+			"Sales Order",
+			placeholder,
+			"modified",
+			add_to_date(now_datetime(), hours=-(pending_order.HOLD_HOURS + 1)),
+			update_modified=False,
+		)
+
+	def an_intent(self, request, status):
+		intent = frappe.new_doc("Payment Intent")
+		intent.update({"reference_doctype": "Payment Request", "reference_name": request, "status": status})
+		intent.flags.ignore_validate = True
+		intent.insert(ignore_permissions=True, ignore_mandatory=True)
+		return intent
+
+	def test_a_gateway_attempt_that_may_still_answer_keeps_the_placeholder_through_the_hold(self):
+		if not frappe.db.exists("DocType", "Payment Intent"):
+			self.skipTest("Payment Intent doctype not installed")
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		intent = self.an_intent(request, "processing")  # a bank page, still open
+		placeholder = pending_order.placeholder_name(quotation.name)
+		self.stale(placeholder)
+
+		pending_order.release_stale()
+
+		self.assertTrue(frappe.db.exists("Payment Request", request), "the gateway may still answer for it")
+		self.assertEqual(self.placeholders(), [placeholder])
+
+		# a day later nothing has moved: it goes, with its attempt
+		frappe.db.set_value(
+			"Payment Intent",
+			intent.name,
+			"modified",
+			add_to_date(now_datetime(), hours=-(pending_order.HOLD_HOURS + 1)),
+			update_modified=False,
+		)
+		pending_order.release_stale()
+		self.assertFalse(frappe.db.exists("Payment Request", request))
+		self.assertEqual(self.placeholders(), [])
+
+	def test_money_on_a_placeholder_is_said_once_not_every_hour(self):
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		frappe.db.set_value("Payment Request", request, "status", "Paid")
+		placeholder = pending_order.placeholder_name(quotation.name)
+		self.stale(placeholder)
+
+		pending_order.release_stale()
+		pending_order.release_stale()
+		pending_order.release_stale()
+
+		self.assertEqual(
+			frappe.db.count(
+				"Comment", {"reference_doctype": "Sales Order", "reference_name": placeholder, "comment_type": "Info"}
+			),
+			1,
+			"one note",
+		)
+		self.assertEqual(
+			frappe.db.count("Error Log", {"method": "Webshop: a pending order is kept", "error": ["like", f"{placeholder}%"]}),
+			1,
+			"one line in the Error Log",
+		)
+		self.assertEqual(self.placeholders(), [placeholder])
 
 	# --- the money does not come --------------------------------------------------
 
@@ -453,7 +646,7 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 	# --- the wait page ------------------------------------------------------------
 
 	def test_the_wait_page_announces_the_order_only_once_it_exists(self):
-		"""The request used to point at an order only once the order existed: the poll read that as « done »."""
+		"""The request used to point at an order only once the order existed: the poll read that as "done"."""
 		if not frappe.db.exists("DocType", "Payment Intent"):
 			self.skipTest("Payment Intent doctype not installed")
 		quotation = self.fill_the_cart()

@@ -56,8 +56,8 @@ class PaymentRequest(OriginalPaymentRequest):
         # //// here, once the PSP has confirmed — and idempotently, because a PSP retries its
         # //// callback (392e3c313a / 57f71797e1, 2026-06-02).
         # //// Neoffice — the request is raised on the cart's PLACEHOLDER order, not on the quotation, since
-        # //// upstream refuses a Quotation (pending_order.py): until the money is in, a placeholder is « the
-        # //// cart », exactly as the quotation was. A request raised before that change still points at the quotation.
+        # //// upstream refuses a Quotation (pending_order.py): until the money is in, a placeholder is "the
+        # //// cart", exactly as the quotation was. A request raised before that change still points at the quotation.
         on_the_cart = self.reference_doctype == "Quotation" or (
             self.reference_doctype == "Sales Order" and pending_order.is_placeholder(self.reference_name)
         )
@@ -66,11 +66,15 @@ class PaymentRequest(OriginalPaymentRequest):
             payment_request = self
             # 1. Get quotation
             # //// Neoffice — the cart the placeholder stands for (pending_order.py).
+            # //// Neoffice — locked: a second request of the same cart concluding together waits for this one and
+            # //// then finds the order (the lock order of handle_payment_success: the cart first).
             quotation = frappe.get_doc(
                 "Quotation",
                 pending_order.quotation_of(self.reference_name)
                 if self.reference_doctype == "Sales Order"
                 else self.reference_name,
+                # //// Neoffice — locked (see above).
+                for_update=True,
             )
 
             # 2. Check if Sales Order already exists for this Quotation
@@ -88,6 +92,22 @@ class PaymentRequest(OriginalPaymentRequest):
             if linked_docs:
                 sales_order_name = linked_docs[0].name
             else:
+                # //// Neoffice — the cart changed after this request was raised: no order, no booking for another
+                # //// amount than the buyer paid (see handle_payment_success, which keeps the request and says so).
+                if not pending_order.amount_matches(payment_request, quotation):
+                    payment_request.add_comment(
+                        "Info",
+                        _("Not concluded: the cart changed after this payment was started, its total is no longer {0}.").format(
+                            payment_request.grand_total
+                        ),
+                    )
+                    frappe.log_error(
+                        "Webshop: the amount paid is not the amount of the cart",
+                        f"payment_request={payment_request.name} paid={payment_request.grand_total} "
+                        f"cart={quotation.name} total={quotation.rounded_total or quotation.grand_total}",
+                    )
+                    return get_url("/payment-failed")
+
                 # Create Sales Order using place_order
                 frappe.flags.ignore_permissions = True
                 sales_order_name = place_order()

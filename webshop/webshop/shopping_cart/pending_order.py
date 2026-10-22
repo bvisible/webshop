@@ -11,9 +11,9 @@ for the real order. A draft is not an order: nobody can ship it, invoice it, res
 about it (the shop's notifications and hooks fire on submit). When the gateway confirms, the REAL order is
 made exactly as before (`place_order` / `handle_payment_success`), the request moves to it (it always did),
 and the placeholder is dropped. A payment that never comes leaves the cart untouched: the placeholder is
-released with the unpaid requests, when the cart is emptied, or by `release_stale`.
+released with the unpaid requests, when the cart is emptied, or by `release_stale` after HOLD_HOURS.
 
-Everywhere the shop used to read « the request points at a Sales Order » as « the order exists », it now asks
+Everywhere the shop used to read "the request points at a Sales Order" as "the order exists", it now asks
 `confirmed_order`: the order the request ends on, once it is a real (submitted) one.
 """
 
@@ -25,11 +25,18 @@ from frappe.utils import add_to_date, flt, now_datetime, today
 from webshop.webshop.shopping_cart.shop_rights import shop_rights
 
 PLACEHOLDER_PREFIX = "PENDING-"
-# How long a payment may take before the shop gives the placeholder back. A card session or a TWINT code lasts
-# minutes, a bank page an hour at most; money that did arrive keeps its documents whatever this says.
-HOLD_HOURS = 3
-# A request in one of these states moved no money; the others (Paid, Completed) did.
+# How long a payment may take before the shop gives the placeholder back, and with it the requests that moved no
+# money. A card session or a TWINT code lasts minutes, but a hosted payment page stays valid for hours (a gateway
+# answering after the request was deleted leaves money with no record in the ERP): a day, the longest of them.
+# Money that did arrive keeps its documents whatever this says.
+HOLD_HOURS = 24
+# A request in one of these states moved no money; the others (Paid, Completed...) did.
 UNPAID_STATUSES = ("Draft", "Failed", "Initiated", "Requested")
+# Attempts at a gateway that may still turn into money: `failed` is not final for every gateway (a late
+# confirmation moves it to `succeeded`), `processing` and `requires_action` are waiting for the buyer or the bank.
+LIVE_INTENTS = ("requires_action", "processing", "failed")
+# Intents that ARE money.
+MONEY_INTENTS = ("succeeded", "refunded")
 
 
 def placeholder_name(quotation_name):
@@ -37,7 +44,8 @@ def placeholder_name(quotation_name):
 
 
 def is_placeholder(sales_order_name):
-	return bool(sales_order_name) and str(sales_order_name).startswith(PLACEHOLDER_PREFIX)
+	# case-insensitive: the database finds `pending-qtn-1` as it finds `PENDING-QTN-1`, and so must this
+	return bool(sales_order_name) and str(sales_order_name).upper().startswith(PLACEHOLDER_PREFIX)
 
 
 def quotation_of(placeholder):
@@ -65,14 +73,26 @@ def carrier_for(quotation):
 	name = placeholder_name(quotation.name)
 	existing = frappe.db.exists("Sales Order", name)
 	if existing:
-		if is_current(name, quotation):
+		if is_of_this_cart(name, quotation) and is_current(name, quotation):
 			# The customer is still here: the hold starts over.
-			frappe.db.set_value("Sales Order", name, "modified", now_datetime(), update_modified=False)
+			touch(name)
 			return name
 		if not release(quotation.name):
 			# Money is on its way for the old content: it concludes that one, a new request waits.
 			frappe.throw(_("A payment for this cart is being processed. Please wait a moment."))
 	return _make(quotation, name)
+
+
+def touch(placeholder):
+	"""The customer is still here: the hold of the placeholder starts over."""
+	frappe.db.set_value("Sales Order", placeholder, "modified", now_datetime(), update_modified=False)
+
+
+def is_of_this_cart(placeholder, quotation):
+	"""Frappe gives the number of a deleted cart back when it was the last one: a new cart can then carry the name
+	of a cart that is gone, whose placeholder a payment left behind. A placeholder made BEFORE the cart is not its."""
+	made = frappe.db.get_value("Sales Order", placeholder, "creation")
+	return bool(made) and made >= quotation.creation
 
 
 def _signature(doc):
@@ -201,7 +221,9 @@ def drop(placeholder):
 	if frappe.db.get_value("Sales Order", placeholder, "docstatus") != 0:
 		return False
 	try:
-		frappe.delete_doc("Sales Order", placeholder, ignore_permissions=True)
+		# permanently: a placeholder is transient, and a Deleted Document row would keep the whole cart (customer and
+		# address included) for ever
+		frappe.delete_doc("Sales Order", placeholder, ignore_permissions=True, delete_permanently=True)
 	except Exception:
 		frappe.clear_messages()
 		frappe.log_error("Webshop: could not delete a pending order", frappe.get_traceback())
@@ -230,8 +252,75 @@ def move_request_to(payment_request, sales_order):
 		drop(previous)
 
 
+def requests_of(placeholder):
+	return frappe.get_all(
+		"Payment Request",
+		filters={"reference_doctype": "Sales Order", "reference_name": placeholder, "docstatus": ["<", 2]},
+		fields=["name", "status"],
+	)
+
+
+def has_money(placeholder):
+	"""Whether money moved on a request of this placeholder: a request that is not an unpaid one, or an intent that
+	succeeded (a request of such an intent may still read Draft when its finalisation failed)."""
+	requests = requests_of(placeholder)
+	if any(row.status not in UNPAID_STATUSES for row in requests):
+		return True
+	return _intents_of(requests, MONEY_INTENTS) != []
+
+
+def has_live_attempt(placeholder, since):
+	"""Whether a gateway attempt of this placeholder moved after `since`: it may still answer."""
+	return _intents_of(requests_of(placeholder), LIVE_INTENTS, since=since) != []
+
+
+def _intents_of(requests, statuses, since=None):
+	if not requests or not frappe.db.exists("DocType", "Payment Intent"):
+		return []
+	filters = {
+		"reference_doctype": "Payment Request",
+		"reference_name": ["in", [row.name for row in requests]],
+		"status": ["in", statuses],
+	}
+	if since:
+		filters["modified"] = [">", since]
+	return frappe.get_all("Payment Intent", filters=filters, pluck="name")
+
+
+def _note_once(placeholder, text):
+	"""Say once, on the placeholder and in the Error Log, what keeps it: an hourly job must not repeat itself."""
+	if frappe.db.exists(
+		"Comment",
+		{"reference_doctype": "Sales Order", "reference_name": placeholder, "comment_type": "Info", "content": text},
+	):
+		return
+	frappe.get_doc("Sales Order", placeholder).add_comment("Info", text)
+	frappe.log_error("Webshop: a pending order is kept", f"{placeholder}: {text}")
+
+
+def amount_matches(payment_request, quotation):
+	"""Whether the amount a request asked of the gateway is the amount of the cart it is concluded on. The order is
+	built from the cart as it stands when the money arrives and the payment is booked against its invoice: a cart
+	changed after the request was raised would order, and book, more or less than the buyer paid."""
+	asked = flt(payment_request.get("grand_total"), 2)
+	if asked <= 0:
+		return True
+	due = flt(quotation.get("rounded_total") or quotation.get("grand_total"), 2)
+	return abs(asked - due) < 0.01
+
+
+def refuse_submit(doc, method=None):
+	"""`before_submit` of Sales Order (hooks.py): a placeholder is no order, whoever presses Submit."""
+	if is_placeholder(doc.name):
+		frappe.throw(_("This is the draft of a payment in progress, not an order: it cannot be submitted."))
+
+
 def release_stale():
-	"""Scheduled, hourly: the placeholders whose payment never came (HOLD_HOURS)."""
+	"""Scheduled, hourly: the placeholders whose payment never came (HOLD_HOURS).
+
+	Never one that money touched (it keeps its documents, and says so once), nor one whose gateway attempt moved
+	within the hold: a hosted page or a bank may answer late, and a request deleted by then leaves money with no
+	record in the ERP."""
 	cutoff = add_to_date(now_datetime(), hours=-HOLD_HOURS)
 	for name in frappe.get_all(
 		"Sales Order",
@@ -239,7 +328,13 @@ def release_stale():
 		pluck="name",
 	):
 		try:
-			release(quotation_of(name))
+			if has_money(name):
+				_note_once(
+					name,
+					_("Kept: a payment moved on a request of this draft, which was not made an order. Look at its requests."),
+				)
+			elif not has_live_attempt(name, cutoff):
+				release(quotation_of(name))
 			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit -- a scheduled job
 		except Exception:
 			frappe.db.rollback()

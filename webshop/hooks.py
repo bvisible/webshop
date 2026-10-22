@@ -241,6 +241,8 @@ doc_events = {
 	# //// this marker, which the desk then displayed to users: the marker
 	# //// lives here, the descriptions are plain user text (translated).
 	"Sales Order": {
+		# //// Neoffice — a placeholder order (a card payment in progress, pending_order.py) is no order: nobody submits it.
+		"before_submit": ["webshop.webshop.shopping_cart.pending_order.refuse_submit"],
 		"on_submit": [
 			"webshop.webshop.multi_warehouse.procurement.process_sales_order",
 			# //// Neoffice — purchase follow-ups enrol the customer; a cart

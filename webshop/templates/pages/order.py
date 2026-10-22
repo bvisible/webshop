@@ -14,11 +14,12 @@ def get_context(context):
 	context.body_class = "product-page"  # //// Neoffice — the shop's ground (webshop_ground.scss)
 	context.no_cache = 1
 	context.show_sidebar = True
-	# //// Neoffice — the placeholder order a card payment is raised on (pending_order.py) is no order yet: it has no
-	# //// page, whoever asks (its "Pay" button would raise a second payment on the cart's behalf).
-	if frappe.form_dict.doctype == "Sales Order" and pending_order.is_placeholder(frappe.form_dict.name):
-		raise frappe.DoesNotExistError
 	context.doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
+	# //// Neoffice — the placeholder order a card payment is raised on (pending_order.py) is no order yet: it has no
+	# //// page, whoever asks (its "Pay" button would raise a second payment on the cart's behalf). Judged on the name
+	# //// of the document LOADED: the database finds `pending-qtn-1` or an accented spelling as it finds the real name.
+	if context.doc.doctype == "Sales Order" and pending_order.is_placeholder(context.doc.name):
+		raise frappe.DoesNotExistError
 	if hasattr(context.doc, "set_indicator"):
 		context.doc.set_indicator()
 
@@ -109,12 +110,16 @@ def make_payment_request(**args):
 	if args.dt not in ("Sales Order", "Sales Invoice") or not isinstance(args.dn, str):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
+	# //// Neoffice — loaded once: the placeholder test and the permission test below judge the same document.
+	order = frappe.get_doc(args.dt, args.dn)
+
 	# //// Neoffice — the cart's placeholder order is no order to pay (pending_order.py): the cart is paid through
-	# //// the checkout.
-	if args.dt == "Sales Order" and pending_order.is_placeholder(args.dn):
+	# //// the checkout. Judged on the name of the document loaded (see get_context).
+	if order.doctype == "Sales Order" and pending_order.is_placeholder(order.name):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
-	if not frappe.has_website_permission(frappe.get_doc(args.dt, args.dn)):
+	# //// Neoffice — the document loaded above (it was loaded here).
+	if not frappe.has_website_permission(order):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	# a document handed in by the client is never trusted
