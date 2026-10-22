@@ -17,6 +17,8 @@ checks (`upstream_checks`, which put on the fork the lines stock ERPNext has), a
 - the wait page does not announce an order that does not exist yet.
 """
 
+from unittest import mock
+
 import frappe
 from frappe.model.naming import parse_naming_series
 from frappe.utils import add_to_date, now_datetime
@@ -26,6 +28,7 @@ from webshop.controllers.payment_handler import PaymentHandler
 from webshop.templates.pages import order as order_page
 from webshop.templates.pages import thank_you as thank_you_page
 from webshop.templates.pages.checkout import cart_intent_state
+from webshop.templates.payments import paypal
 from webshop.webshop.shopping_cart import pending_order
 from webshop.webshop.shopping_cart.test_loyalty_rights import (
 	GATEWAY,
@@ -287,6 +290,85 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 		self.assertEqual(frappe.db.get_value("Payment Request", other, "reference_name"), order)
 		self.assertEqual(frappe.db.get_value("Payment Request", other, "docstatus"), 0, "kept as it was")
 		self.assertEqual(self.placeholders(), [])
+
+	def test_the_gateway_controllers_authorisation_makes_the_order_too(self):
+		"""Stripe and PayPal conclude through the Payment Request's own on_payment_authorized (the override
+		in override_doctype/payment_request.py), in the buyer's session, with `place_order` reading the cart."""
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		placeholder = pending_order.placeholder_name(quotation.name)
+
+		frappe.set_user(USER)
+		with upstream_checks(), no_gateway():
+			document = frappe.get_doc("Payment Request", request)
+			redirect = document.on_payment_authorized("Completed")
+		frappe.set_user("Administrator")
+
+		order = frappe.db.get_value("Payment Request", request, "reference_name")
+		self.assertFalse(pending_order.is_placeholder(order), (order, self.last_error()))
+		self.assertEqual(frappe.db.get_value("Sales Order", order, "docstatus"), 1)
+		self.assertEqual(self.real_orders(), [order])
+		self.assertFalse(frappe.db.exists("Sales Order", placeholder), "the placeholder is dropped")
+		self.assertEqual(frappe.db.get_value("Payment Request", request, "docstatus"), 1)
+		self.assertIn(order, redirect or "")
+
+	def paypal_request(self, quotation, token):
+		"""The PayPal tile's server entry point, as the buyer, the gateway's own controller standing in."""
+		settings = frappe.get_cached_doc("Webshop Settings")
+		fake_settings = frappe._dict(
+			payment_methods=[frappe._dict(payment_gateway_account=self.gateway_account, payment_terms_template=None)],
+			enabled=settings.enabled,
+		)
+		real = frappe.get_cached_doc
+
+		def get_cached_doc(doctype, *args, **kwargs):
+			return fake_settings if doctype == "Webshop Settings" else real(doctype, *args, **kwargs)
+
+		controller = mock.Mock()
+		controller.get_payment_url.return_value = "https://pay.example.test/paypal"
+		frappe.set_user(USER)
+		with (
+			upstream_checks(),
+			mock.patch.object(frappe, "get_cached_doc", side_effect=get_cached_doc),
+			mock.patch("payments.utils.get_payment_gateway_controller", return_value=controller),
+		):
+			result = paypal.create_paypal_payment_request(quotation.name, token)
+		frappe.set_user("Administrator")
+		frappe.db.commit()
+		return result
+
+	def test_the_paypal_tile_raises_its_request_on_the_placeholder(self):
+		quotation = self.fill_the_cart()
+
+		result = self.paypal_request(quotation, self.token())
+
+		self.assertEqual(result.get("status"), "success", (result, self.last_error()))
+		self.assertEqual(result.get("payment_url"), "https://pay.example.test/paypal")
+		request = frappe.get_all(
+			"Payment Request",
+			filters={"party": CUSTOMER},
+			fields=["reference_doctype", "reference_name", "status", "owner"],
+		)
+		self.assertEqual(len(request), 1, request)
+		self.assertEqual(
+			(request[0].reference_doctype, request[0].reference_name, request[0].status, request[0].owner),
+			("Sales Order", pending_order.placeholder_name(quotation.name), "Initiated", USER),
+		)
+		self.assertEqual(self.real_orders(), [], "no order until the money is in")
+
+	def test_an_order_paid_elsewhere_does_not_make_the_next_cart_read_already_paid(self):
+		"""The lookup of an existing request read a filter Frappe cut to its first key: any paid request on any
+		order answered « This order has already been paid » to every other cart."""
+		first = self.fill_the_cart()
+		self.the_money_comes(self.raise_the_request(first, self.token())["payment_request_id"])
+		self.assertEqual(len(self.real_orders()), 1)
+
+		quotation = self.fill_the_cart()
+		self.assertNotEqual(quotation.name, first.name)
+		result = self.paypal_request(quotation, self.token())
+
+		self.assertEqual(result.get("status"), "success", (result, self.last_error()))
+		self.assertEqual(result.get("payment_url"), "https://pay.example.test/paypal")
 
 	# --- the money does not come --------------------------------------------------
 
