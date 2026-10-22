@@ -143,7 +143,12 @@ jobs:
           # //// is variant pricing by warehouse: webshop calls
           # //// get_price(..., warehouse=...), an argument only our fork has.
           bench get-app erpnext --branch $WEBSHOP_BRANCH
-          bench get-app payments --branch $WEBSHOP_BRANCH
+          # //// Neoffice — OUR payments, not upstream's: the shop concludes a card payment on the receipt our
+          # //// Stripe Settings writes (payments.utils.stripe_receipt, maintenance#1807), and the tests of that
+          # //// conclusion lay the receipt through it. With upstream's payments they skipped themselves in
+          # //// silence, and a green run proved nothing about the conclusion. The app is fetched, not installed
+          # //// on the site: it only has to import.
+          bench get-app https://github.com/bvisible/payments --branch $WEBSHOP_BRANCH
           bench get-app $GITHUB_WORKSPACE
           bench new-site --db-root-password root --admin-password admin test_site
           bench --site test_site install-app erpnext
