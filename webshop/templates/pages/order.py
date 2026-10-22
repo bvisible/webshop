@@ -6,11 +6,18 @@ from frappe import _
 
 from webshop.webshop.doctype.webshop_settings.webshop_settings import show_attachments
 
+# //// Neoffice — see get_context.
+from webshop.webshop.shopping_cart import pending_order
+
 
 def get_context(context):
 	context.body_class = "product-page"  # //// Neoffice — the shop's ground (webshop_ground.scss)
 	context.no_cache = 1
 	context.show_sidebar = True
+	# //// Neoffice — the placeholder order a card payment is raised on (pending_order.py) is no order yet: it has no
+	# //// page, whoever asks (its "Pay" button would raise a second payment on the cart's behalf).
+	if frappe.form_dict.doctype == "Sales Order" and pending_order.is_placeholder(frappe.form_dict.name):
+		raise frappe.DoesNotExistError
 	context.doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 	if hasattr(context.doc, "set_indicator"):
 		context.doc.set_indicator()
@@ -100,6 +107,11 @@ def get_context(context):
 def make_payment_request(**args):
 	args = frappe._dict(args)
 	if args.dt not in ("Sales Order", "Sales Invoice") or not isinstance(args.dn, str):
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+
+	# //// Neoffice — the cart's placeholder order is no order to pay (pending_order.py): the cart is paid through
+	# //// the checkout.
+	if args.dt == "Sales Order" and pending_order.is_placeholder(args.dn):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	if not frappe.has_website_permission(frappe.get_doc(args.dt, args.dn)):

@@ -23,6 +23,8 @@ from frappe.utils import add_to_date, now_datetime
 
 import webshop.webshop.shopping_cart.cart as cart
 from webshop.controllers.payment_handler import PaymentHandler
+from webshop.templates.pages import order as order_page
+from webshop.templates.pages import thank_you as thank_you_page
 from webshop.templates.pages.checkout import cart_intent_state
 from webshop.webshop.shopping_cart import pending_order
 from webshop.webshop.shopping_cart.test_loyalty_rights import (
@@ -403,3 +405,50 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 		self.assertIsNone(
 			pending_order.confirmed_order(frappe._dict(reference_doctype="Sales Order", reference_name="SO-NONE-0001"))
 		)
+
+	# --- the buyer never meets the placeholder as an order -----------------------------
+
+	def a_placeholder(self):
+		quotation = self.fill_the_cart()
+		self.raise_the_request(quotation, self.token())
+		return pending_order.placeholder_name(quotation.name)
+
+	def test_the_thank_you_page_does_not_confirm_a_placeholder(self):
+		placeholder = self.a_placeholder()
+		frappe.set_user(USER)
+		frappe.local.form_dict = frappe._dict(sales_order=placeholder)
+		context = frappe._dict()
+		with upstream_checks():
+			thank_you_page.get_context(context)
+		self.assertTrue(context.get("error_message"), "told that the order does not exist")
+		self.assertFalse(context.get("sales_order"))
+
+	def test_the_order_page_has_no_page_for_a_placeholder(self):
+		placeholder = self.a_placeholder()
+		frappe.set_user(USER)
+		frappe.local.form_dict = frappe._dict(doctype="Sales Order", name=placeholder)
+		with self.assertRaises(frappe.DoesNotExistError):
+			order_page.get_context(frappe._dict())
+
+	def test_the_pay_button_of_the_order_page_does_not_pay_a_placeholder(self):
+		placeholder = self.a_placeholder()
+		frappe.set_user(USER)
+		with self.assertRaises(frappe.PermissionError):
+			order_page.make_payment_request(dt="Sales Order", dn=placeholder)
+		frappe.set_user("Administrator")
+		self.assertEqual(
+			frappe.db.count("Payment Request", {"reference_name": placeholder}), 1, "only the checkout's request"
+		)
+
+	def test_the_thank_you_page_still_confirms_a_real_order(self):
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		self.the_money_comes(request)
+		order = frappe.db.get_value("Payment Request", request, "reference_name")
+		frappe.set_user(USER)
+		frappe.local.form_dict = frappe._dict(sales_order=order)
+		context = frappe._dict()
+		with upstream_checks():
+			thank_you_page.get_context(context)
+		self.assertFalse(context.get("error_message"), context.get("error_message"))
+		self.assertEqual(context.sales_order.name, order)
