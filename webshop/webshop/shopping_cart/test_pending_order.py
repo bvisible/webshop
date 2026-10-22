@@ -430,6 +430,26 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 			"the request says why it was kept",
 		)
 		self.assertIn("amount paid", (self.last_error() or {}).get("method", ""))
+		self.assertEqual(
+			frappe.db.get_value("Payment Request", request, "status"), "Partially Paid", "kept as money"
+		)
+		# whatever the buyer does with the cart next, nothing releases it
+		self.assertTrue(pending_order.has_money(pending_order.placeholder_name(quotation.name)))
+		frappe.set_user(USER)
+		with upstream_checks():
+			cart.update_cart(ITEM, 0)
+		frappe.set_user("Administrator")
+		self.assertTrue(frappe.db.exists("Payment Request", request), "still there after the cart is emptied")
+		self.assertTrue(frappe.db.exists("Sales Order", pending_order.placeholder_name(quotation.name)))
+		self.assertFalse(
+			frappe.db.exists("Quotation", quotation.name), "and the buyer could empty it: no error on their last line"
+		)
+		# said once, however many times the gateway calls again
+		self.the_money_comes(request)
+		self.assertEqual(
+			frappe.db.count("Comment", {"reference_doctype": "Payment Request", "reference_name": request, "comment_type": "Info"}),
+			1,
+		)
 
 	def test_a_request_marked_paid_on_the_placeholder_still_makes_its_order(self):
 		"""A gateway that marked the request Paid without the shop making the order: that is not "processed"."""
@@ -495,6 +515,25 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 		)
 		self.assertEqual(self.placeholders(), [placeholder])
 		self.assertEqual(frappe.db.count("Payment Request", {"reference_name": placeholder}), 1)
+
+	def test_a_placeholder_that_money_keeps_moves_aside_for_the_cart_that_took_its_number(self):
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		placeholder = pending_order.placeholder_name(quotation.name)
+		frappe.db.set_value("Payment Request", request, "status", "Partially Paid")  # money the shop kept
+		frappe.db.set_value(
+			"Sales Order", placeholder, "creation", add_to_date(quotation.creation, days=-1), update_modified=False
+		)
+
+		result = self.raise_the_request(quotation, self.token())
+
+		self.assertEqual(result.get("status"), "success", (result, self.last_error()))
+		kept = frappe.db.get_value("Payment Request", request, "reference_name")
+		self.assertNotEqual(kept, placeholder)
+		self.assertTrue(pending_order.is_placeholder(kept) and kept.startswith("PENDING-KEPT-"), kept)
+		self.assertEqual(frappe.db.get_value("Sales Order", kept, "docstatus"), 0, "kept for the staff")
+		self.assertEqual(frappe.db.get_value("Payment Request", result["payment_request_id"], "reference_name"), placeholder)
+		self.assertTrue(pending_order.is_of_this_cart(placeholder, frappe.get_doc("Quotation", quotation.name)))
 
 	def stale(self, placeholder):
 		frappe.db.set_value(

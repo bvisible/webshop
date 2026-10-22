@@ -73,14 +73,37 @@ def carrier_for(quotation):
 	name = placeholder_name(quotation.name)
 	existing = frappe.db.exists("Sales Order", name)
 	if existing:
-		if is_of_this_cart(name, quotation) and is_current(name, quotation):
+		of_this_cart = is_of_this_cart(name, quotation)
+		if of_this_cart and is_current(name, quotation):
 			# The customer is still here: the hold starts over.
 			touch(name)
 			return name
 		if not release(quotation.name):
-			# Money is on its way for the old content: it concludes that one, a new request waits.
-			frappe.throw(_("A payment for this cart is being processed. Please wait a moment."))
+			if of_this_cart:
+				# Money is on its way for the old content: it concludes that one, a new request waits.
+				frappe.throw(_("A payment for this cart is being processed. Please wait a moment."))
+			# The placeholder of a cart that is gone, holding money, in the way of the cart that took its number:
+			# it moves aside (the staff keep it) and this cart is paid on its own.
+			set_aside(name)
 	return _make(quotation, name)
+
+
+def detach(placeholder):
+	"""Cut the link of a placeholder's lines to the quotation, so that the cart can be deleted while the placeholder
+	stays (a placeholder that money keeps must not make the buyer's cart impossible to empty)."""
+	frappe.db.sql(
+		"""update `tabSales Order Item` set prevdoc_docname = null, prevdoc_doctype = null, quotation_item = null
+		where parent = %s""",
+		placeholder,
+	)
+
+
+def set_aside(placeholder):
+	"""Rename a placeholder that money keeps out of the way of the cart number it carries, for the staff to deal with."""
+	aside = f"{PLACEHOLDER_PREFIX}KEPT-{frappe.generate_hash(length=10).upper()}"
+	detach(placeholder)
+	frappe.rename_doc("Sales Order", placeholder, aside, force=True, ignore_permissions=True)
+	return aside
 
 
 def touch(placeholder):
@@ -210,6 +233,8 @@ def release(quotation_name):
 	if frappe.db.exists(
 		"Payment Request", {"reference_doctype": "Sales Order", "reference_name": name, "docstatus": ["<", 2]}
 	):
+		# kept for its money: it lets go of the cart, which the buyer may then empty
+		detach(name)
 		return False
 	return drop(name)
 
@@ -307,6 +332,28 @@ def amount_matches(payment_request, quotation):
 		return True
 	due = flt(quotation.get("rounded_total") or quotation.get("grand_total"), 2)
 	return abs(asked - due) < 0.01
+
+
+def keep_unmatched(payment_request, quotation):
+	"""A payment whose amount is no longer the cart's: no order, no booking, and the request is kept as money.
+
+	Its status says so ("Partially Paid": the gateway has an amount that matches no order) and nothing then releases
+	it, whatever the buyer does with the cart; a note on the request and one line in the Error Log tell the staff."""
+	text = _("Not concluded: the cart changed after this payment was started, its total is no longer {0}.").format(
+		payment_request.grand_total
+	)
+	if not frappe.db.exists(
+		"Comment",
+		{"reference_doctype": "Payment Request", "reference_name": payment_request.name, "comment_type": "Info", "content": text},
+	):
+		payment_request.add_comment("Info", text)
+		frappe.log_error(
+			"Webshop: the amount paid is not the amount of the cart",
+			f"payment_request={payment_request.name} paid={payment_request.grand_total} "
+			f"cart={quotation.name} total={quotation.get('rounded_total') or quotation.get('grand_total')}",
+		)
+	if payment_request.status != "Partially Paid":
+		payment_request.db_set("status", "Partially Paid", update_modified=False)
 
 
 def refuse_submit(doc, method=None):

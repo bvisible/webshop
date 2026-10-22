@@ -95,17 +95,7 @@ class PaymentRequest(OriginalPaymentRequest):
                 # //// Neoffice — the cart changed after this request was raised: no order, no booking for another
                 # //// amount than the buyer paid (see handle_payment_success, which keeps the request and says so).
                 if not pending_order.amount_matches(payment_request, quotation):
-                    payment_request.add_comment(
-                        "Info",
-                        _("Not concluded: the cart changed after this payment was started, its total is no longer {0}.").format(
-                            payment_request.grand_total
-                        ),
-                    )
-                    frappe.log_error(
-                        "Webshop: the amount paid is not the amount of the cart",
-                        f"payment_request={payment_request.name} paid={payment_request.grand_total} "
-                        f"cart={quotation.name} total={quotation.rounded_total or quotation.grand_total}",
-                    )
+                    pending_order.keep_unmatched(payment_request, quotation)
                     return get_url("/payment-failed")
 
                 # Create Sales Order using place_order
