@@ -58,6 +58,7 @@ class FakePaymentRequest:
 
 	def __init__(self, database, name, docstatus, refuses=False):
 		self.database, self.name, self.docstatus, self.refuses = database, name, docstatus, refuses
+		self.status = "Draft"  # //// Neoffice — the release reads it again under lock before it cancels or deletes
 		self.flags = frappe._dict()
 
 	def cancel(self):
@@ -70,12 +71,14 @@ class FakePaymentRequest:
 		del self.database.rows[("Payment Request", self.name)]
 
 
-def _release(requests, refusing=()):
+def _release(requests, refusing=(), paid=()):
 	"""Call the real function; returns (database, log_error calls, clear_messages mock)."""
 	database = FakeDatabase(requests)
 	documents = {
 		name: FakePaymentRequest(database, name, docstatus, name in refusing) for name, docstatus in requests
 	}
+	for name in paid:
+		documents[name].status = "Paid"  # //// Neoffice — made Paid after the list was read
 	logged = []
 
 	def log_error(title=None, message=None, **_ignored):
@@ -89,7 +92,8 @@ def _release(requests, refusing=()):
 	with (
 		mock.patch.object(cart.frappe, "db", database),
 		mock.patch.object(cart.frappe, "get_all", return_value=rows),
-		mock.patch.object(cart.frappe, "get_doc", side_effect=lambda doctype, name: documents[name]),
+		# //// Neoffice — `for_update`: the release reads each request again under lock
+		mock.patch.object(cart.frappe, "get_doc", side_effect=lambda doctype, name, **_kwargs: documents[name]),
 		mock.patch.object(cart.frappe, "log_error", side_effect=log_error),
 		mock.patch.object(cart.frappe, "clear_messages") as clear_messages,
 		mock.patch.object(cart, "_release_unconcluded_payment_intents", side_effect=release_intents),
@@ -142,6 +146,16 @@ class TestPaymentRequestReleaseUndoesARefusedCancel(unittest.TestCase):
 		self.assertNotIn(("Payment Intent", "PI-PR-1"), database.committed)
 		self.assertEqual(logged, [])
 		self.assertNotIn("rollback", [kind for kind, _name in database.events])
+
+	def test_a_request_made_paid_after_the_list_was_read_is_left_alone(self):
+		# //// Neoffice — a conclusion that just made it Paid must not see it cancelled or deleted from under it
+		database, logged, _ = _release([("PR-1", 1), ("PR-2", 0)], paid={"PR-1", "PR-2"})
+		self.assertEqual(database.committed[("Payment Request", "PR-1")], 1)
+		self.assertEqual(database.committed[("Payment Request", "PR-2")], 0)
+		self.assertIn(("Payment Intent", "PI-PR-1"), database.committed)
+		self.assertIn(("Payment Intent", "PI-PR-2"), database.committed)
+		self.assertEqual(logged, [])
+		self.assertNotIn(("On cancel", "PR-1"), database.committed)
 
 
 if __name__ == "__main__":
