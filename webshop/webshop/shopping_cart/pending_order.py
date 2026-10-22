@@ -101,7 +101,7 @@ def set_aside(placeholder):
 	"""Rename a placeholder that money keeps out of the way of the cart number it carries, for the staff to deal with."""
 	aside = f"{PLACEHOLDER_PREFIX}KEPT-{frappe.generate_hash(length=10).upper()}"
 	detach(placeholder)
-	frappe.rename_doc("Sales Order", placeholder, aside, force=True, ignore_permissions=True)
+	frappe.rename_doc("Sales Order", placeholder, aside, force=True)
 	return aside
 
 
