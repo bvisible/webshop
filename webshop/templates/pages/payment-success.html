@@ -9,7 +9,9 @@
     {% if frappe.form_dict.doctype == "Payment Request" %}
         {% set payment_request = frappe.get_doc("Payment Request", frappe.form_dict.docname) %}
         
-        {% if payment_request.from_checkout and payment_request.reference_doctype == "Sales Order" %}
+        {# //// Neoffice — a REAL order only: until the money is in, a request points at the cart's placeholder order #}
+        {% set ordered = payment_request.reference_doctype == "Sales Order" and frappe.db.get_value("Sales Order", payment_request.reference_name, "docstatus") == 1 %}
+        {% if payment_request.from_checkout and ordered %}
             <script>
                 window.location.href = "/thank_you?sales_order={{ payment_request.reference_name }}";
             </script>

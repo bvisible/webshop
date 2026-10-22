@@ -105,11 +105,54 @@ def upstream_payment_entry_check():
 		yield
 
 
+UPSTREAM_PAYMENT_REQUEST_DOCTYPES = (
+	"Sales Order",
+	"Purchase Order",
+	"Sales Invoice",
+	"Purchase Invoice",
+	"POS Invoice",
+	"Fees",
+)
+
+
+@contextlib.contextmanager
+def upstream_payment_request_check():
+	"""Payment Request.validate as upstream v15.12x has it: raised only on a Sales Order, a Purchase Order, an
+	invoice or Fees (`Payment Requests cannot be created against: Quotation`), on a document the SESSION user may
+	read, of the request's own company.
+
+	The CI runs on stock ERPNext, where all of this is real; the fleet's fork does not carry it yet, so this puts the
+	same lines in place, and a test of the checkout proves it on the fork as on upstream."""
+	from erpnext.accounts.doctype.payment_request.payment_request import PaymentRequest
+
+	original = PaymentRequest.validate_reference_document
+
+	def checked(self):
+		original(self)
+		if self.reference_doctype not in UPSTREAM_PAYMENT_REQUEST_DOCTYPES:
+			frappe.throw(
+				"Payment Requests cannot be created against: {0}".format(frappe.bold(self.reference_doctype))
+			)
+		document = frappe.get_doc(self.reference_doctype, self.reference_name)
+		document.check_permission("read")
+		if self.company != document.company:
+			frappe.throw("Company {0} does not match the company {1}".format(self.company, document.company))
+
+	with patch.object(PaymentRequest, "validate_reference_document", checked):
+		yield
+
+
 @contextlib.contextmanager
 def upstream_checks():
 	"""Every check of upstream v15.123.0 a customer's order meets: the loyalty functions, the
-	payment entry, and the Item read inside the pricing of each line (test_shop_rights)."""
-	with upstream_loyalty_check(), upstream_payment_entry_check(), upstream_item_check():
+	payment entry, the Payment Request's reference, and the Item read inside the pricing of each line
+	(test_shop_rights)."""
+	with (
+		upstream_loyalty_check(),
+		upstream_payment_entry_check(),
+		upstream_payment_request_check(),
+		upstream_item_check(),
+	):
 		yield
 
 
@@ -155,7 +198,10 @@ def _purge_vouchers(customer):
 	frappe.db.commit()
 
 
-class TestLoyaltyAndPaymentUnderUpstreamChecks(FrappeTestCase):
+class ShopFixture(FrappeTestCase):
+	"""A portal customer with points, a published item, a test gateway and the shop's settings: what every test of the
+	shop's checkout under upstream's checks needs (test_pending_order.py reuses it)."""
+
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -342,6 +388,8 @@ class TestLoyaltyAndPaymentUnderUpstreamChecks(FrappeTestCase):
 		row = frappe.get_all("Error Log", fields=["method", "error"], order_by="creation desc", limit=1)
 		return row[0] if row else None
 
+
+class TestLoyaltyAndPaymentUnderUpstreamChecks(ShopFixture):
 	# --- the witness --------------------------------------------------------------
 
 	def test_erpnext_itself_refuses_the_customer_under_the_upstream_checks(self):
@@ -598,46 +646,20 @@ class TestLoyaltyAndPaymentUnderUpstreamChecks(FrappeTestCase):
 	# --- the gateway's return books the money -------------------------------------
 
 	def payment_request_for_the_cart(self):
+		"""The request the checkout raises for the cart: through the shop's own handler, as the buyer, under
+		upstream's checks (which, for a Payment Request, only accept a Sales Order, an invoice...)."""
 		frappe.set_user(USER)
 		with upstream_checks():
 			cart.update_cart(ITEM, 1)
 			cart.get_cart_quotation()
 			quotation = cart._get_cart_quotation()
+			result = PaymentHandler().create_payment_request(
+				quotation_id=quotation.name, payment_gateway=GATEWAY
+			)
 		frappe.set_user("Administrator")
-		request = frappe.get_doc(
-			{
-				"doctype": "Payment Request",
-				"payment_request_type": "Inward",
-				"transaction_date": today(),
-				"party_type": "Customer",
-				"party": CUSTOMER,
-				"reference_doctype": "Quotation",
-				"reference_name": quotation.name,
-				"grand_total": quotation.rounded_total or quotation.grand_total,
-				"currency": quotation.currency,
-				"payment_gateway_account": self.gateway_account,
-				"email_to": USER,
-				"subject": "Payment",
-				"message": "Payment",
-			}
-		)
-		request.flags.mute_email = True
-		try:
-			request.insert(ignore_permissions=True)
-		except frappe.ValidationError as error:
-			# Stock ERPNext, which this CI installs, now refuses a Payment Request against a
-			# Quotation, which is how the cart opens its payment. The fleet's fork does not, so
-			# nothing is touched: the cart pays through its order before the next merge of
-			# upstream (neoffice-maintenance#1802). Until then this skips on that refusal ONLY
-			# (any other error fails), and it runs again by itself once the cart no longer
-			# asks for it.
-			if "cannot be created against" in str(error):
-				self.skipTest("stock ERPNext refuses a Payment Request on a Quotation (#1802)")
-			raise
-		# opened by the buyer at the checkout: _may_conclude lets its owner conclude it
-		frappe.db.set_value("Payment Request", request.name, "owner", USER, update_modified=False)
+		self.assertEqual(result.get("status"), "success", (result, self.last_error()))
 		frappe.db.commit()
-		return request.name, quotation.name
+		return result["payment_request_id"], quotation.name
 
 	def assert_invoiced_and_paid(self, order, reference_no):
 		invoices = frappe.get_all(

@@ -9,6 +9,8 @@ from frappe import _
 # //// Item on the SESSION user whenever a line is priced (41effcf754)
 from webshop.webshop.shopping_cart.shop_rights import save_as_shop
 from webshop.webshop.shopping_cart.cart import _get_cart_quotation
+# //// Neoffice — the placeholder order a cart's payment request is raised on (pending_order.py).
+from webshop.webshop.shopping_cart import pending_order
 
 @frappe.whitelist(allow_guest=True)
 def create_paypal_payment_request(quotation_id, idempotency_token=None):
@@ -25,7 +27,7 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
             existing_pr = frappe.db.get_value(
                 "Payment Request",
                 {"custom_idempotency_token": idempotency_token},
-                ["name", "status", "reference_name"],
+                ["name", "status", "reference_name", "reference_doctype"],
                 as_dict=True
             )
             
@@ -34,12 +36,19 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
                 if existing_pr.status != "Failed":
                     frappe.log_error(f"Duplicate PayPal payment request prevented. Token: {idempotency_token}", "Payment Idempotency")
                     
-                    # Check if a Sales Order was already created for this quotation
-                    sales_order = frappe.db.get_value(
-                        "Sales Order",
-                        {"quotation": existing_pr.reference_name},
-                        "name"
-                    )
+                    # //// Neoffice — the order, once it is a REAL one: until the money is in, the request points at
+                    # //// the cart's placeholder order (pending_order.py). The lookup here read a `quotation`
+                    # //// column that `Sales Order` does not have, so a second attempt raised instead of finding
+                    # //// its request again.
+                    sales_order = pending_order.confirmed_order(existing_pr)
+                    if (
+                        not sales_order
+                        and pending_order.is_placeholder(existing_pr.reference_name)
+                        and not pending_order.is_current(existing_pr.reference_name, cart)
+                    ):
+                        # the cart changed since: this request is for another amount
+                        pending_order.release(cart.name)
+                        existing_pr = None
                     
                     if sales_order:
                         return {
@@ -49,8 +58,8 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
                         }
                     
                     # Get the payment URL from the existing payment request
-                    pr_doc = frappe.get_doc("Payment Request", existing_pr.name)
-                    if pr_doc.payment_url:
+                    pr_doc = frappe.get_doc("Payment Request", existing_pr.name) if existing_pr else None
+                    if pr_doc and pr_doc.payment_url:
                         return {
                             "status": "success",
                             "payment_url": pr_doc.payment_url
@@ -85,14 +94,19 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
                     save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — see above (#277)
                 break
         
+        # //// Neoffice — raised on the cart's PLACEHOLDER order, not on the quotation: upstream ERPNext refuses a
+        # //// Payment Request against a Quotation (pending_order.py). A request raised before that change still
+        # //// points at the quotation, and is found as before.
+        carrier = pending_order.carrier_for(quotation)
+
         # Check if payment request already exists
         payment_request = frappe.get_all(
             "Payment Request",
-            filters={
-                "reference_doctype": "Quotation",
-                "reference_name": quotation.name,
-                "docstatus": 1
-            },
+            filters={"docstatus": 1},
+            or_filters=[
+                {"reference_doctype": "Sales Order", "reference_name": carrier},
+                {"reference_doctype": "Quotation", "reference_name": quotation.name},
+            ],
             limit=1
         )
 
@@ -113,8 +127,9 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
                     "doctype": "Payment Request",
                     "payment_request_type": "Inward",
                     "transaction_date": frappe.utils.now(),
-                    "reference_doctype": "Quotation",
-                    "reference_name": quotation.name,
+                    "reference_doctype": "Sales Order",
+                    "reference_name": carrier,
+                    "company": quotation.company,
                     "grand_total": quotation.rounded_total,
                     "currency": quotation.currency,
                     "email_to": quotation.contact_email,
@@ -131,16 +146,18 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
                     
                 payment_request = frappe.get_doc(pr_data)
                 payment_request.flags.ignore_permissions = True
-                payment_request.insert(ignore_permissions=True)
-                payment_request.save(ignore_permissions=True)
+                # //// Neoffice — save_as_shop: upstream's validate reads the order the request is raised on
+                # //// with the SESSION user's rights, which a customer or a visitor does not have on an order.
+                save_as_shop(payment_request, ignore_permissions=True)
         else:
             # Create new payment request
             pr_data = {
                 "doctype": "Payment Request",
                 "payment_request_type": "Inward",
                 "transaction_date": frappe.utils.now(),
-                "reference_doctype": "Quotation",
-                "reference_name": quotation.name,
+                "reference_doctype": "Sales Order",
+                "reference_name": carrier,
+                "company": quotation.company,
                 "grand_total": quotation.rounded_total,
                 "currency": quotation.currency,
                 "email_to": quotation.contact_email,
@@ -157,8 +174,8 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
                 
             payment_request = frappe.get_doc(pr_data)
             payment_request.flags.ignore_permissions = True
-            payment_request.insert(ignore_permissions=True)
-            payment_request.save(ignore_permissions=True)        
+            # //// Neoffice — save_as_shop, see above
+            save_as_shop(payment_request, ignore_permissions=True)
         try:
             # Prepare data for PayPal Express Checkout
             payment_details = {
@@ -189,7 +206,9 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
             payment_request.payment_url = payment_url
             payment_request.status = "Initiated"
             payment_request.flags.ignore_permissions = True
-            payment_request.save(ignore_permissions=True)
+            # //// Neoffice — save_as_shop: the validate of a Payment Request reads the order it is raised on with
+            # //// the SESSION user's rights, on every save, not only the first (pending_order.py).
+            save_as_shop(payment_request, ignore_permissions=True)
 
             return {
                 "status": "success",

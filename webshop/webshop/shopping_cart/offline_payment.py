@@ -124,6 +124,11 @@ def place_offline_order(payment_gateway_account: str, idempotency_token: str | N
 	if not sales_order:
 		frappe.throw(_("Error creating order"))
 	_remember(idempotency_token, sales_order)
+	# //// Neoffice — a card payment started on this cart and left for this method leaves its placeholder order
+	# //// (pending_order.py) and its unpaid requests behind: they go, the order just placed is the one.
+	from webshop.webshop.shopping_cart import pending_order
+
+	pending_order.release(quotation.name)
 
 	payment_request = None
 	# //// Neoffice — an account whose address is not confirmed yet: the order it pays on account

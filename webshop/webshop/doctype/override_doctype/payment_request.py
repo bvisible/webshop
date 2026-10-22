@@ -5,6 +5,9 @@ from frappe.utils import get_url
 # //// Neoffice — place_order is called from on_payment_authorized below (see next
 # //// marker).
 from webshop.webshop.shopping_cart.cart import place_order
+# //// Neoffice — the placeholder order a cart's request is raised on (pending_order.py).
+from webshop.webshop.shopping_cart import pending_order
+from webshop.webshop.shopping_cart.shop_rights import shop_rights
 
 from erpnext.accounts.doctype.payment_request.payment_request import (
     PaymentRequest as OriginalPaymentRequest,
@@ -52,11 +55,23 @@ class PaymentRequest(OriginalPaymentRequest):
         # //// raises the Payment Request against the QUOTATION, so the order has to be created
         # //// here, once the PSP has confirmed — and idempotently, because a PSP retries its
         # //// callback (392e3c313a / 57f71797e1, 2026-06-02).
-        # If it's a Quotation, create the Sales Order
-        if self.reference_doctype == "Quotation":
+        # //// Neoffice — the request is raised on the cart's PLACEHOLDER order, not on the quotation, since
+        # //// upstream refuses a Quotation (pending_order.py): until the money is in, a placeholder is « the
+        # //// cart », exactly as the quotation was. A request raised before that change still points at the quotation.
+        on_the_cart = self.reference_doctype == "Quotation" or (
+            self.reference_doctype == "Sales Order" and pending_order.is_placeholder(self.reference_name)
+        )
+        # If it's the cart, create the Sales Order
+        if on_the_cart:
             payment_request = self
             # 1. Get quotation
-            quotation = frappe.get_doc("Quotation", self.reference_name)
+            # //// Neoffice — the cart the placeholder stands for (pending_order.py).
+            quotation = frappe.get_doc(
+                "Quotation",
+                pending_order.quotation_of(self.reference_name)
+                if self.reference_doctype == "Sales Order"
+                else self.reference_name,
+            )
 
             # 2. Check if Sales Order already exists for this Quotation
             linked_docs = frappe.get_all(
@@ -80,14 +95,18 @@ class PaymentRequest(OriginalPaymentRequest):
                     frappe.throw(_("Error creating order"))
 
             # Update payment request with Sales Order reference
-            payment_request.db_set('reference_doctype', 'Sales Order', update_modified=False)
-            payment_request.db_set('reference_name', sales_order_name, update_modified=False)
+            # //// Neoffice — and drop the placeholder order it stood on.
+            pending_order.move_request_to(payment_request, sales_order_name)
 
             # Submit Payment Request before marking as paid
             if payment_request.docstatus == 0:
                 payment_request.flags.ignore_permissions = True
-                payment_request.save(ignore_permissions=True)
-                payment_request.submit()
+                # //// Neoffice — with the shop's rights: the validate of a Payment Request reads the order it is
+                # //// raised on with the SESSION user's rights (upstream ref_doc.check_permission), and the
+                # //// callback's session is the gateway's, or the buyer's, not the shop's.
+                with shop_rights():
+                    payment_request.save(ignore_permissions=True)
+                    payment_request.submit()
 
         # If it's a Sales Invoice, only create payment entry (invoice already exists)
         if self.reference_doctype == "Sales Invoice":

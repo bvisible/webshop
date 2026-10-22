@@ -1327,8 +1327,14 @@ def cart_intent_state(intent: str) -> dict:
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	# //// Neoffice — "payment_request" renamed from French, see the marker above (e646274dd3)
-	if payment_request.reference_doctype == "Sales Order":
-		return {"done": True, "redirect_to": "/thank_you?sales_order={0}".format(payment_request.reference_name)}
+	# //// Neoffice — « the request points at a Sales Order » no longer means the order exists: until the money is in
+	# //// it points at the cart's placeholder order (pending_order.py), and the poll would send the buyer to the
+	# //// thank-you page of an order that does not exist. Only a real order ends the wait.
+	from webshop.webshop.shopping_cart import pending_order
+
+	order = pending_order.confirmed_order(payment_request)
+	if order:
+		return {"done": True, "redirect_to": "/thank_you?sales_order={0}".format(order)}
 	if payment_request.status in ("Paid", "Completed"):
 		return {"done": True, "redirect_to": None}
 	return {"done": False, "status": row.status}

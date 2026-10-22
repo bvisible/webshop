@@ -84,7 +84,11 @@ scheduler_events = {
 	# //// charts (seo/score.py, #691 plan note 20): a pass over the catalogue, in the long queue
 	"daily_long": ["webshop.webshop.seo.score.refresh_all"],
 	# //// Neoffice — abandoned carts: one look per hour at the carts left behind
-	"hourly": ["webshop.webshop.utils.abandoned_carts.send_abandoned_cart_reminders"],
+	"hourly": [
+		"webshop.webshop.utils.abandoned_carts.send_abandoned_cart_reminders",
+		# //// Neoffice — the placeholder orders a card payment never came for (shopping_cart/pending_order.py)
+		"webshop.webshop.shopping_cart.pending_order.release_stale",
+	],
 	# //// Neoffice — purchase follow-ups go out in the morning, not at midnight
 	# //// Neoffice — every ten minutes, what IndexNow should hear of (seo/indexnow.py, #691 lot 4)
 	"cron": {

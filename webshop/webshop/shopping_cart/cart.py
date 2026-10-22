@@ -1135,11 +1135,15 @@ def _release_unconcluded_payment_intents(payment_request_name):
 		frappe.delete_doc("Payment Intent", name, ignore_permissions=True, force=True)
 
 
-def _release_unsuccessful_payment_requests(quotation_name):
+# //// Neoffice — `reference_doctype` and `reference_name`: the requests of a cart are raised on its placeholder order
+# //// (pending_order.py), not on the quotation, since upstream ERPNext refuses a Quotation. Those raised before
+# //// that change still point at the quotation, and this releases both.
+def _release_unsuccessful_payment_requests(quotation_name, reference_doctype="Quotation"):
 	requests = frappe.get_all(
 		"Payment Request",
 		filters={
-			"reference_doctype": "Quotation",
+			# //// Neoffice — the placeholder order or the quotation (see above).
+			"reference_doctype": reference_doctype,
 			"reference_name": quotation_name,
 			"status": ["in", ("Draft", "Failed", "Initiated", "Requested")],
 			"docstatus": ["<", 2],
@@ -1661,6 +1665,11 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 			# //// Neoffice — added helper, renamed under RULE #00 (was
 			# //// _liberer_demandes_de_paiement_infructueuses).
 			_release_unsuccessful_payment_requests(quotation.name)
+			# //// Neoffice — the placeholder order the cart's payment requests are raised on links the
+			# //// quotation as well (pending_order.py): it goes with the cart, as its unpaid requests do.
+			from webshop.webshop.shopping_cart import pending_order
+
+			pending_order.release(quotation.name)
 			# //// Neoffice — the abandoned-cart reminders (b8160bb709, 2026-09-03) link the
 			# //// quotation too, and Frappe refuses to delete a linked document: a customer
 			# //// who had received a reminder could no longer empty their cart — 417 on the
