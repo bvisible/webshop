@@ -3,8 +3,9 @@ from frappe import _
 import json
 # //// Neoffice — get_party: whose cart it is (_is_the_session_s_quotation below).
 from webshop.webshop.shopping_cart.cart import place_order, _get_cart_quotation, is_gift_card_item, get_party
-# //// Neoffice — the placeholder order a cart's payment request is raised on (pending_order.py).
-from webshop.webshop.shopping_cart import pending_order
+# //// Neoffice — the placeholder order a cart's payment request is raised on (pending_order.py), and what proves
+# //// a request was paid (payment_proof.py, maintenance#1807).
+from webshop.webshop.shopping_cart import payment_proof, pending_order
 # //// Neoffice — #277: the customer's session reads neither Item nor Account (shop_rights.py).
 from webshop.webshop.shopping_cart.shop_rights import save_as_shop, shop_rights
 # //// Neoffice — a payment method is offered to a customer group, and carries that
@@ -347,6 +348,12 @@ class PaymentHandler:
                 return self.handle_error("Missing payment request ID")
             # //// Neoffice — RULE #00 pass (#925): was `_peut_conclure`.
             if not _may_conclude(payment_request_id):
+                # //// Neoffice — the buyer's own request, but no gateway has confirmed the money (maintenance#1807):
+                # //// refused and left exactly as it is, with a message that tells them what to do. Marking it
+                # //// Failed would let a call with no proof kill a payment the gateway is still about to confirm.
+                # //// Anyone else is simply not permitted.
+                if _may_conclude(payment_request_id, money_confirmed=False):
+                    return self._not_confirmed_yet(payment_request_id)
                 frappe.throw(_("Not permitted"), frappe.PermissionError)
 
             # Bypass all permission checks - payment is confirmed by payment provider
@@ -573,6 +580,26 @@ class PaymentHandler:
                 "status": "error",
                 "message": _("Error processing payment")
             }
+
+    def _not_confirmed_yet(self, payment_request_id):
+        """The answer to a buyer asking to conclude a request the gateway has not confirmed. Touches nothing.
+
+        //// Neoffice — maintenance#1807. One short line in the Error Log, no traceback: it is a refusal, not a fault.
+        If the proof arrives afterwards (the gateway's return, its webhook, the TWINT poller), the request is
+        concluded as usual.
+        """
+        frappe.log_error(
+            "Webshop: a payment was asked to be concluded before the gateway confirmed it",
+            f"payment_request={payment_request_id} user={frappe.session.user}",
+        )
+        return {
+            "status": "error",
+            "redirect_to": "",
+            "message": _(
+                "Your payment is not confirmed yet. If your card was charged, do not pay again: "
+                "the order will appear in your orders as soon as the payment is confirmed."
+            ),
+        }
 
     def _invoice_paid_order(self, sales_order_name, payment_request):
         """Create and submit the Sales Invoice + Payment Entry for a paid order.
@@ -803,19 +830,22 @@ def create_payment_request(quotation_id=None, gateway_settings=None, idempotency
             "message": str(e)
         }
 
-# //// Neoffice — the only four cases where completing a payment is legitimate.
+# //// Neoffice — who may CONCLUDE a payment request, and who may only FAIL one.
 # ////
-# //// Real callers, found across the repos:
-# ////   · `webshop/templates/payments/stripe.html` — the BUYER's browser
-# ////     after Stripe has captured payment (they are authenticated: checkout
-# ////     requires being signed in);
-# ////   · `payments/drivers/wallee/terminal_driver.py` — background task (server);
-# ////   · `payments/www/wallee/success.py` and `payments/api/twint.py` — gateway
-# ////     return, where the intent already carries the PSP's verdict.
+# //// To conclude (money_confirmed=True: the real order, the invoice, the payment entry) there are three cases, and
+# //// none of them is "the buyer asks":
+# ////   · the server itself (Administrator: a background task, the TWINT poller, the Wallee terminal driver);
+# ////   · the staff (System Manager);
+# ////   · the gateway's word, as the server heard it (payment_proof.py): a succeeded Payment Intent, or the receipt
+# ////     of a Stripe charge that covers the request. Whoever reports it, a guest at a gateway return included:
+# ////     the money is confirmed, and that is the invariant.
+# //// The identity of the buyer (the request is theirs, or their Contact is its customer) is no proof of payment, so
+# //// it concludes nothing (maintenance#1807). The 22.09 arbitration had accepted it because the card tile has no
+# //// Payment Intent; the tile now rests on the Stripe receipt, which the server writes itself when Stripe has
+# //// captured the charge.
 # ////
-# //// An anonymous visitor who posts a request number belongs to none of
-# //// these. Case 4 is the TRUE invariant: the money is confirmed, no matter
-# //// who reports it.
+# //// To FAIL a request (money_confirmed=False) nothing is paid out, so the buyer who opened it, or whose Contact is
+# //// its customer, may still do it: the identity cases (3a, 3) stay for that, and only for that.
 # //// Neoffice — RULE #00 pass (#925): renamed from `_peut_conclure(…, argent_constate=…)`.
 # //// Same behaviour and the same two call sites in this file; the identifiers were the last
 # //// French ones of the payment guard.
@@ -834,35 +864,25 @@ def _may_conclude(payment_request_id: str, money_confirmed: bool = True) -> bool
 	if user != "Guest" and "System Manager" in frappe.get_roles():
 		return True
 
-	# 4. the money is CONFIRMED: a succeeded intent covers this request.
-	#    Checked before case 3 to cover a gateway return where the
+	# 4. the money is CONFIRMED by the gateway (payment_proof.py).
+	#    Checked before the identity cases to cover a gateway return where the
 	#    session has not been restored yet.
-	try:
-		# //// Neoffice — RULE #00 pass (#925): the flag was `argent_constate`.
-		if money_confirmed and frappe.db.exists("DocType", "Payment Intent") and frappe.db.exists(
-			"Payment Intent",
-			{"reference_doctype": "Payment Request", "reference_name": payment_request_id,
-			 "status": "succeeded"},
-		):
-			return True
-	except Exception:
-		pass
+	# //// Neoffice — RULE #00 pass (#925): the flag was `argent_constate`.
+	if money_confirmed:
+		return payment_proof.is_confirmed(payment_request_id)
 
 	# //// Neoffice — call site updated for the "user" rename (e646274dd3)
 	if user == "Guest":
 		return False
 
-	# 3a. the BUYER who opened this request: it was created in their own session.
+	# 3a. the BUYER who opened this request: it was created in their own session. (To fail it only: see above.)
 	# //// Neoffice — measured on a live shop (2026-09-22): case 3 below resolves a
 	# //// customer through the Contact whose `user` is the session's, and it returned
-	# //// nothing for that shop's buyers. Their card payments carry no Payment Intent
-	# //// either, so the ten most recent card payments would EVERY ONE have read "Not
-	# //// permitted" after the money had left the customer's account. Owning the request
-	# //// is the buyer's own signature, and a guest cannot reach this line.
+	# //// nothing for that shop's buyers. A guest cannot reach this line.
 	if frappe.db.get_value("Payment Request", payment_request_id, "owner") == user:
 		return True
 
-	# 3. the BUYER, back from their gateway: this is their request.
+	# 3. the BUYER, back from their gateway: this is their request. (To fail it only: see above.)
 	# //// Neoffice — RULE #00 pass: local variables renamed from French to
 	# //// English "beneficiary", "customers"/"suppliers", and the log_error title
 	# //// (e646274dd3 "chore: RULE #00 pass on identifiers — multi_site functions

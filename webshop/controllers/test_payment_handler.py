@@ -58,6 +58,8 @@ def purge_requests():
 	Payment Requests to the site's accounting — 17 of them before this was
 	noticed.
 	"""
+	# //// Neoffice — the Stripe receipts the guard tests lay (maintenance#1807).
+	frappe.db.delete("Integration Request", {"request_description": ("like", f"{PREFIX}%")})
 	names = frappe.get_all(
 		"Payment Request",
 		filters={"custom_idempotency_token": ("like", f"{PREFIX}%")},
@@ -292,14 +294,12 @@ class TestWhoMayConcludeAPayment(unittest.TestCase):
 
 		self.assertTrue(_may_conclude(self.payment_request.name))
 
-	def test_the_buyer_who_opened_the_request_may_conclude_it(self):
-		"""Back from their gateway, the buyer settles the request they created.
+	def test_the_buyer_who_opened_the_request_may_fail_it_but_not_conclude_it(self):
+		"""The buyer's identity is no proof of payment (maintenance#1807).
 
-		Case 3 below resolves a customer through the Contact whose `user` is the session's.
-		On a live shop it returned nothing for the buyers, and card payments there carry no
-		Payment Intent: replayed against that shop's data on 2026-09-22, the ten most recent
-		card payments would every one have been refused AFTER the money was taken. The party
-		is deliberately someone else here, so only ownership can carry this test.
+		The 22.09 arbitration had accepted it ("opening the request is the buyer's signature"). To FAIL a request
+		nothing is paid out, so the identity still serves for that. The party is deliberately someone else, so only
+		ownership can carry the failure.
 		"""
 		buyer = _test_user("_wstest_buyer@example.com", ["Customer"])
 		frappe.db.set_value(
@@ -310,6 +310,81 @@ class TestWhoMayConcludeAPayment(unittest.TestCase):
 		frappe.set_user(buyer)
 
 		self.assertTrue(_may_conclude(self.payment_request.name, money_confirmed=False))
+		self.assertFalse(_may_conclude(self.payment_request.name))
+
+	def test_the_customer_of_the_request_may_not_conclude_it_on_their_identity_either(self):
+		"""Case 3 (the buyer through their Contact) was the same identity-only door as case 3a."""
+		buyer = _test_user("_wstest_contact@example.com", ["Customer"])
+		with patch(
+			"erpnext.controllers.website_list_for_contact.get_customers_suppliers",
+			return_value=(["_WSTEST Someone Else"], []),
+		):
+			frappe.db.set_value("Payment Request", self.payment_request.name, "party", "_WSTEST Someone Else")
+			frappe.set_user(buyer)
+
+			self.assertTrue(_may_conclude(self.payment_request.name, money_confirmed=False))
+			self.assertFalse(_may_conclude(self.payment_request.name))
+
+	def test_the_receipt_of_a_stripe_charge_lets_anyone_conclude(self):
+		"""The card tile has no Payment Intent: Stripe's answer to the server's charge is the proof, and a guest back
+		from the payment has no session to show."""
+		self._stripe_receipt(amount=1000)  # the request asks CHF 10
+		buyer = _test_user("_wstest_buyer@example.com", ["Customer"])
+
+		frappe.set_user("Guest")
+		self.assertTrue(_may_conclude(self.payment_request.name))
+
+		frappe.set_user(buyer)
+		self.assertTrue(_may_conclude(self.payment_request.name))
+
+	def test_a_stripe_charge_for_less_than_the_request_does_not_count(self):
+		self._stripe_receipt(amount=100)
+		frappe.set_user("Guest")
+		self.assertFalse(_may_conclude(self.payment_request.name))
+
+	def test_a_stripe_charge_in_another_currency_does_not_count(self):
+		self._stripe_receipt(amount=1000, currency="eur")
+		frappe.set_user("Guest")
+		self.assertFalse(_may_conclude(self.payment_request.name))
+
+	def test_a_stripe_charge_that_was_not_captured_does_not_count(self):
+		self._stripe_receipt(amount=1000, captured=False)
+		frappe.set_user("Guest")
+		self.assertFalse(_may_conclude(self.payment_request.name))
+
+	def test_a_stripe_charge_of_another_request_does_not_count(self):
+		other = _payment_request(fresh_token())
+		self._stripe_receipt(amount=1000, request=other.name)
+		frappe.set_user("Guest")
+		self.assertFalse(_may_conclude(self.payment_request.name))
+
+	def test_a_receipt_nobody_bound_to_a_request_does_not_count(self):
+		self._stripe_receipt(amount=1000, request=None)
+		frappe.set_user("Guest")
+		self.assertFalse(_may_conclude(self.payment_request.name))
+
+	def _stripe_receipt(self, amount, currency="chf", captured=True, request="__this__"):
+		"""What `Stripe Settings` writes when Stripe has answered a charge, from a stand-in for Stripe's answer."""
+		try:
+			from payments.utils import stripe_receipt
+		except ImportError:
+			self.skipTest("payments app not installed")
+		integration_request = frappe.get_doc(
+			{
+				"doctype": "Integration Request",
+				"integration_request_service": stripe_receipt.RECEIPT_SERVICE,
+				"request_description": f"{PREFIX}receipt",
+				"status": "Completed",
+				"data": "{}",
+			}
+		).insert(ignore_permissions=True)
+		charge = frappe._dict(
+			id="ch_" + frappe.generate_hash(length=16), amount=amount, currency=currency, captured=captured, paid=captured
+		)
+		stripe_receipt.write(
+			integration_request, charge, self.payment_request.name if request == "__this__" else request
+		)
+		return integration_request
 
 	def test_a_signed_in_stranger_may_not_conclude(self):
 		"""Signed in, but not the buyer and not staff: the request is not theirs."""

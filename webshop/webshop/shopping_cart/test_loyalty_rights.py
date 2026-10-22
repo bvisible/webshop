@@ -311,6 +311,8 @@ class ShopFixture(FrappeTestCase):
 				frappe.delete_doc("Contact", name, force=True, ignore_permissions=True)
 			if frappe.db.exists("User", email):
 				frappe.delete_doc("User", email, force=True, ignore_permissions=True)
+		# //// Neoffice — the Stripe receipts `stripe_has_charged` lays (maintenance#1807).
+		frappe.db.delete("Integration Request", {"request_description": ["like", f"{PREFIX}%"]})
 		for name in frappe.get_all("Payment Gateway Account", filters={"payment_gateway": GATEWAY}, pluck="name"):
 			frappe.delete_doc("Payment Gateway Account", name, force=True, ignore_permissions=True)
 		if frappe.db.exists("Payment Gateway", GATEWAY):
@@ -387,6 +389,38 @@ class ShopFixture(FrappeTestCase):
 	def last_error(self):
 		row = frappe.get_all("Error Log", fields=["method", "error"], order_by="creation desc", limit=1)
 		return row[0] if row else None
+
+	def stripe_has_charged(self, request, amount=None, currency=None, status="Completed", bound_to=None):
+		"""What the server holds once Stripe has captured the charge of `request`: the receipt `Stripe Settings` writes
+		(payments.utils.stripe_receipt), here from a stand-in for Stripe's answer. The shop concludes a card payment on
+		this, not on who asks (maintenance#1807). `amount` (in cents) and `currency` default to what the request asks;
+		`bound_to` names another request, or None to bind it to `request`."""
+		try:
+			from payments.utils import stripe_receipt
+		except ImportError:
+			self.skipTest("payments app not installed")
+		row = frappe.db.get_value("Payment Request", request, ["grand_total", "currency"], as_dict=True)
+		if not row:
+			return None
+		integration_request = frappe.get_doc(
+			{
+				"doctype": "Integration Request",
+				"integration_request_service": stripe_receipt.RECEIPT_SERVICE,
+				"request_description": f"{PREFIX}-receipt",
+				"status": status,
+				"data": "{}",
+			}
+		).insert(ignore_permissions=True)
+		charge = frappe._dict(
+			id=f"ch_{frappe.generate_hash(length=16)}",
+			amount=stripe_receipt.stripe_minor_units(row.grand_total) if amount is None else amount,
+			currency=(currency or row.currency).lower(),
+			captured=True,
+			paid=True,
+		)
+		stripe_receipt.write(integration_request, charge, bound_to or request)
+		frappe.db.commit()
+		return integration_request
 
 
 class TestLoyaltyAndPaymentUnderUpstreamChecks(ShopFixture):
@@ -679,6 +713,7 @@ class TestLoyaltyAndPaymentUnderUpstreamChecks(ShopFixture):
 
 	def test_the_gateway_return_creates_the_invoice_and_the_payment_entry(self):
 		request, quotation = self.payment_request_for_the_cart()
+		self.stripe_has_charged(request)  # the gateway's word; the buyer's identity concludes nothing (#1807)
 		frappe.set_user(USER)
 		with upstream_checks(), no_gateway():
 			result = PaymentHandler().handle_payment_success(payment_request_id=request)

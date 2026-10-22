@@ -9247,3 +9247,7 @@ msgstr "Code postal"
 #: webshop/webshop/shopping_cart/cart.py:1298
 msgid "The Administrator account cannot shop. Sign in with a customer account to try the shop."
 msgstr "Le compte Administrateur ne peut pas faire d'achats. Connectez-vous avec un compte client pour essayer la boutique."
+
+#: webshop/controllers/payment_handler.py:598
+msgid "Your payment is not confirmed yet. If your card was charged, do not pay again: the order will appear in your orders as soon as the payment is confirmed."
+msgstr "Votre paiement n'est pas encore confirmé. Si votre carte a été débitée, ne payez pas une seconde fois : la commande apparaîtra dans vos commandes dès que le paiement sera confirmé."

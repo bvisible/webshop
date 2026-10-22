@@ -44,6 +44,12 @@ from webshop.webshop.shopping_cart.test_loyalty_rights import (
 )
 
 
+NOT_CONFIRMED_YET = (
+	"Your payment is not confirmed yet. If your card was charged, do not pay again: "
+	"the order will appear in your orders as soon as the payment is confirmed."
+)
+
+
 def order_series_counters():
 	"""Where the counters of the Sales Order series stand: a number taken by a placeholder would show here."""
 	counters = {}
@@ -77,7 +83,11 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 		frappe.db.commit()
 		return result
 
-	def the_money_comes(self, request):
+	def the_money_comes(self, request, proof=True):
+		"""The gateway has the money and the buyer's browser comes back. The shop concludes only on the gateway's word
+		(maintenance#1807), so Stripe's receipt is laid first, unless the test is about a payment nobody confirmed."""
+		if proof:
+			self.stripe_has_charged(request)
 		frappe.set_user(USER)
 		with upstream_checks(), no_gateway():
 			result = PaymentHandler().handle_payment_success(payment_request_id=request)
@@ -254,6 +264,152 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 			),
 			1,
 		)
+
+	# --- nobody concludes a request the gateway has not confirmed (maintenance#1807) ----------------------------
+
+	def assert_nothing_was_concluded(self, request, quotation, result, told_the_buyer=True):
+		"""The conclusion was refused and left nothing behind: no order, no invoice, no payment entry, the cart a cart.
+		The buyer whose request it is is told what to do, and nothing about the request changes."""
+		self.assertEqual(result.get("status"), "error", result)
+		if told_the_buyer:
+			self.assertEqual(result.get("message"), NOT_CONFIRMED_YET, result)
+		self.assertEqual(self.real_orders(), [], "no order was made")
+		self.assertEqual(frappe.db.get_value("Payment Request", request, "status"), "Draft", "the request is untouched")
+		self.assertEqual(
+			frappe.db.get_value("Payment Request", request, "reference_name"),
+			pending_order.placeholder_name(quotation.name),
+			"the request is still on the placeholder",
+		)
+		self.assertTrue(frappe.db.exists("Sales Order", pending_order.placeholder_name(quotation.name)))
+		self.assertEqual(frappe.db.get_value("Quotation", quotation.name, "docstatus"), 0)
+		self.assertEqual(frappe.db.count("Sales Invoice", {"customer": CUSTOMER, "docstatus": 1}), 0)
+
+	def test_the_buyer_who_opened_the_request_cannot_conclude_it_alone(self):
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		self.assertEqual(frappe.db.get_value("Payment Request", request, "owner"), USER, "it IS the buyer's request")
+
+		result = self.the_money_comes(request, proof=False)
+
+		self.assert_nothing_was_concluded(request, quotation, result)
+
+	def test_the_refusal_is_one_short_line_of_the_error_log_not_a_traceback(self):
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		title = "Webshop: a payment was asked to be concluded before the gateway confirmed it"
+		before = frappe.db.count("Error Log", {"method": title})
+		traces = frappe.db.count("Error Log", {"method": "Detailed error while processing payment"})
+
+		self.the_money_comes(request, proof=False)
+
+		self.assertEqual(frappe.db.count("Error Log", {"method": title}), before + 1)
+		self.assertEqual(
+			frappe.db.count("Error Log", {"method": "Detailed error while processing payment"}),
+			traces,
+			"a refusal is not a fault",
+		)
+
+	def test_a_signed_in_stranger_cannot_conclude_the_request_of_another_buyer(self):
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		frappe.set_user(STRANGER)
+		with upstream_checks(), no_gateway():
+			result = PaymentHandler().handle_payment_success(payment_request_id=request)
+		frappe.set_user("Administrator")
+
+		self.assert_nothing_was_concluded(request, quotation, result, told_the_buyer=False)
+
+	def test_an_anonymous_visitor_cannot_conclude_it_either(self):
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		frappe.set_user("Guest")
+		with upstream_checks(), no_gateway():
+			result = PaymentHandler().handle_payment_success(payment_request_id=request)
+		frappe.set_user("Administrator")
+
+		self.assert_nothing_was_concluded(request, quotation, result, told_the_buyer=False)
+
+	def test_a_receipt_for_less_than_the_request_concludes_nothing(self):
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		self.stripe_has_charged(request, amount=50)  # a charge for less than the request asks
+
+		result = self.the_money_comes(request, proof=False)
+
+		self.assert_nothing_was_concluded(request, quotation, result)
+
+	def test_a_receipt_in_another_currency_concludes_nothing(self):
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		currency = frappe.db.get_value("Payment Request", request, "currency")
+		self.stripe_has_charged(request, currency="usd" if currency.lower() != "usd" else "eur")
+
+		result = self.the_money_comes(request, proof=False)
+
+		self.assert_nothing_was_concluded(request, quotation, result)
+
+	def test_a_charge_that_did_not_complete_concludes_nothing(self):
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		self.stripe_has_charged(request, status="Failed")
+
+		result = self.the_money_comes(request, proof=False)
+
+		self.assert_nothing_was_concluded(request, quotation, result)
+
+	def test_a_receipt_bound_to_another_request_concludes_nothing(self):
+		"""A first attempt the buyer paid and then failed on, a second attempt on the same cart: the receipt of the
+		first proves nothing for the second."""
+		quotation = self.fill_the_cart()
+		first = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		frappe.set_user(USER)
+		PaymentHandler().handle_payment_failure(payment_request_id=first, error_message="card declined")
+		frappe.set_user("Administrator")
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		self.assertNotEqual(request, first)
+		self.stripe_has_charged(first)
+
+		result = self.the_money_comes(request, proof=False)
+
+		self.assert_nothing_was_concluded(request, quotation, result)
+
+	def test_a_receipt_with_no_request_bound_concludes_nothing(self):
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		receipt = self.stripe_has_charged(request)
+		frappe.db.set_value(
+			"Integration Request",
+			receipt.name,
+			{"reference_doctype": "Quotation", "reference_docname": quotation.name},
+			update_modified=False,
+		)
+
+		result = self.the_money_comes(request, proof=False)
+
+		self.assert_nothing_was_concluded(request, quotation, result)
+
+	def test_a_succeeded_intent_concludes_for_a_buyer_whatever_their_identity(self):
+		"""The other proof: a Payment Intent the gateway reported succeeded (Wallee, Payrexx, TWINT)."""
+		if not frappe.db.exists("DocType", "Payment Intent"):
+			self.skipTest("Payment Intent doctype not installed")
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		self.an_intent(request, "succeeded")
+
+		result = self.the_money_comes(request, proof=False)
+
+		self.assertEqual(result.get("status"), "success", (result, self.last_error()))
+		self.assertEqual(len(self.real_orders()), 1)
+
+	def test_a_buyer_may_still_fail_their_own_request(self):
+		"""Failing a request pays nothing out: the identity of the buyer is enough for that, and only for that."""
+		quotation = self.fill_the_cart()
+		request = self.raise_the_request(quotation, self.token())["payment_request_id"]
+		frappe.set_user(USER)
+		result = PaymentHandler().handle_payment_failure(payment_request_id=request, error_message="card declined")
+		frappe.set_user("Administrator")
+		self.assertEqual(result.get("status"), "error")
+		self.assertEqual(frappe.db.get_value("Payment Request", request, "status"), "Failed")
 
 	def test_an_attempt_the_gateway_refused_follows_the_request_that_succeeds_to_the_order(self):
 		"""A refusal then a success: the refused attempt stays as history on the real order, nothing blocks the
