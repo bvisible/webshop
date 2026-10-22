@@ -92,8 +92,7 @@ def detach(placeholder):
 	"""Cut the link of a placeholder's lines to the quotation, so that the cart can be deleted while the placeholder
 	stays (a placeholder that money keeps must not make the buyer's cart impossible to empty)."""
 	frappe.db.sql(
-		"""update `tabSales Order Item` set prevdoc_docname = null, prevdoc_doctype = null, quotation_item = null
-		where parent = %s""",
+		"""update `tabSales Order Item` set prevdoc_docname = null, quotation_item = null where parent = %s""",
 		placeholder,
 	)
 

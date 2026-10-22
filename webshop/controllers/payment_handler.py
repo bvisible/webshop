@@ -374,6 +374,27 @@ class PaymentHandler:
             payment_request.flags.ignore_permissions = True
             self.payment_request = payment_request
 
+            # //// Neoffice — already on a REAL order: concluded there, or moved there by another request of the same cart
+            # //// (it followed it). Judged BEFORE the request is submitted, which validates it against the order: a call
+            # //// that waited for the lock reads, in its snapshot, the state from before the other one committed.
+            if payment_request.reference_doctype == "Sales Order" and not pending_order.is_placeholder(
+                payment_request.reference_name
+            ):
+                if payment_request.status not in ("Paid", "Completed"):
+                    # This request is not Paid and the order is real: the order was made by ANOTHER request of the same
+                    # cart, so this payment may be a second one for the same cart. It is not booked here; somebody has
+                    # to look (refund or credit).
+                    frappe.log_error(
+                        "Webshop: a second payment request of a cart concluded",
+                        f"payment_request={payment_request.name} order={payment_request.reference_name} "
+                        f"status={payment_request.status}: money may have been taken twice for one cart",
+                    )
+                return {
+                    "status": "success",
+                    "redirect_to": f"/thank_you?sales_order={payment_request.reference_name}",
+                    "message": _("Payment already processed")
+                }
+
             # Submit payment request now that payment is successful
             if payment_request.docstatus == 0:  # If not already submitted
                 payment_request.flags.ignore_permissions = True
@@ -410,20 +431,7 @@ class PaymentHandler:
             # //// points at the cart's placeholder order (pending_order.py), and that is the one to conclude.
             placeholder = None
             if payment_request.reference_doctype == "Sales Order":
-                if not pending_order.is_placeholder(payment_request.reference_name):
-                    # //// Neoffice — this request is not Paid and the order is real: the order was made by ANOTHER
-                    # //// request of the same cart (it followed it there), so this payment may be a second one for
-                    # //// the same cart. It is not booked here; somebody has to look (refund or credit).
-                    frappe.log_error(
-                        "Webshop: a second payment request of a cart concluded",
-                        f"payment_request={payment_request.name} order={payment_request.reference_name} "
-                        f"status={payment_request.status}: money may have been taken twice for one cart",
-                    )
-                    return {
-                        "status": "success",
-                        "redirect_to": f"/thank_you?sales_order={payment_request.reference_name}",
-                        "message": _("Payment already processed")
-                    }
+                # a placeholder: a request on a real order returned above
                 placeholder = payment_request.reference_name
 
             # 1. Get quotation
