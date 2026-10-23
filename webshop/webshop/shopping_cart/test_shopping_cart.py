@@ -204,7 +204,7 @@ class TestShoppingCart(unittest.TestCase):
 		template_item = make_item(
 			"Test-Tshirt-Temp",
 			{
-				"has_variant": 1,
+				"has_variants": 1,  # //// Neoffice — the field is `has_variants`: erpnext 15.12x refuses a variant of an item that is not a template
 				"variant_based_on": "Item Attribute",
 				"attributes": [{"attribute": "Test Size"}, {"attribute": "Test Colour"}],
 			},

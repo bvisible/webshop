@@ -34,7 +34,6 @@ from webshop.webshop.shopping_cart.test_loyalty_rights import (
 	GATEWAY,
 	ITEM,
 	PREFIX,
-	PRICE,
 	STRANGER,
 	USER,
 	CUSTOMER,
@@ -205,8 +204,10 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 		# Frappe gives a deleted request's number back when it was the last one, so the NAME may repeat:
 		# what must differ is what the request asks for.
 		request = frappe.get_doc("Payment Request", second["payment_request_id"])
-		self.assertEqual(request.grand_total, 3 * PRICE)
-		self.assertNotEqual(request.grand_total, old_total)
+		# the total of the changed cart as it stands (taxes and shipping rules of the site included), not a price
+		# the test guesses: the CI site and the clone of production do not charge the same extras
+		self.assertEqual(request.grand_total, frappe.db.get_value("Quotation", quotation.name, "rounded_total"))
+		self.assertGreater(request.grand_total, old_total)
 		self.assertEqual(request.reference_name, pending_order.placeholder_name(quotation.name))
 		order = frappe.get_doc("Sales Order", request.reference_name)
 		self.assertEqual([(row.item_code, row.qty) for row in order.items], [(ITEM, 3)])
