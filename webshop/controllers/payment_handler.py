@@ -678,6 +678,11 @@ class PaymentHandler:
 
         # The Mode of Payment is the one wired to the same clearing account
         # (e.g. "Twint" -> "1036 Compte d'attente Twint").
+        # //// Neoffice — erpnext 15.124 refuses a Payment Entry whose Mode of Payment is
+        # disabled; the lookup used to take the first mode wired to the gateway's clearing
+        # account whether enabled or not, so the money was captured but never booked
+        # (dfa641c6f0 "fix(payment): the shop books a paid order on an enabled Mode of
+        # Payment")
         mode_of_payment = enabled_mode_of_payment(gateway_account.payment_account, company)
 
         from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
