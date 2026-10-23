@@ -276,6 +276,7 @@ jobs:
           # //// the checkout under the Payment Request checks stock ERPNext has.
           for m in \
             webshop.controllers.test_payment_handler \
+            webshop.controllers.test_payment_mode_enabled \
             webshop.webshop.doctype.item_review.test_item_review \
             webshop.webshop.doctype.webshop_settings.test_webshop_settings \
             webshop.webshop.doctype.wishlist.test_wishlist \

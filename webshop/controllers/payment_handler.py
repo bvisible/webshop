@@ -51,6 +51,27 @@ def _cart_of_request(payment_request):
     return None
 
 
+# //// Neoffice — added function (no upstream equivalent), see `_record_gateway_payment`.
+def enabled_mode_of_payment(account, company):
+    """The enabled Mode of Payment wired to `account` for `company`, or None.
+
+    erpnext 15.124 refuses a Payment Entry whose Mode of Payment is disabled (4774e7134d). A disabled mode wired
+    to the same clearing account came first, so the money of a paid order was captured and never booked (the
+    failure was only logged)."""
+    rows = frappe.db.sql(
+        """
+        select mpa.parent
+        from `tabMode of Payment Account` mpa
+        join `tabMode of Payment` mop on mop.name = mpa.parent
+        where mpa.default_account = %s and mpa.company = %s and mop.enabled = 1
+        order by mpa.idx, mpa.creation
+        limit 1
+        """,
+        (account, company),
+    )
+    return rows[0][0] if rows else None
+
+
 class PaymentHandler:
     def __init__(self):
         self.settings = frappe.get_doc("Webshop Settings")
@@ -657,11 +678,7 @@ class PaymentHandler:
 
         # The Mode of Payment is the one wired to the same clearing account
         # (e.g. "Twint" -> "1036 Compte d'attente Twint").
-        mode_of_payment = frappe.db.get_value(
-            "Mode of Payment Account",
-            {"default_account": gateway_account.payment_account, "company": company},
-            "parent",
-        )
+        mode_of_payment = enabled_mode_of_payment(gateway_account.payment_account, company)
 
         from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 
