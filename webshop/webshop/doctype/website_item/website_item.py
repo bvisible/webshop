@@ -450,7 +450,11 @@ class WebsiteItem(WebsiteGenerator):
 				from webshop.webshop.multi_site import excluded_item_names
 				_excluded = excluded_item_names()
 				_name_filter = ["not in", _excluded + [self.name]] if _excluded else ["!=", self.name]
-				auto_items = frappe.get_all("Website Item",
+				# //// Neoffice — frappe 15.124 allows no RAND() in an order_by (a list of functions): the four items are
+				# //// drawn here from the names of the candidates, which is what `order by RAND() limit 4` did.
+				import random
+
+				_candidates = frappe.get_all("Website Item",
 					filters={
 						"published": 1,
 						"sold": 0,  # //// Neoffice — a sold used unit is out of the catalogue: every surface shows what the listing shows (2026-09-14)
@@ -459,12 +463,17 @@ class WebsiteItem(WebsiteGenerator):
 						# //// Neoffice — never a variant: a template's page recommended its own sizes
 						"variant_of": ("is", "not set"),
 					},
-					# //// Neoffice — variant_of/item_group fetched so a variant can inherit its template's picture below (40952f3117)
-					# //// Neoffice — brand and condition too: the tile names the one and badges the other
-					fields=["item_code", "web_item_name", "route", "website_image", "variant_of", "item_group", "brand", "item_condition", "has_video"],
-					limit=4,
-					order_by="RAND()"
+					pluck="name",
+					limit_page_length=0,
 				)
+				auto_items = []
+				if _candidates:
+					auto_items = frappe.get_all("Website Item",
+						filters={"name": ("in", random.sample(_candidates, min(4, len(_candidates))))},
+						# //// Neoffice — variant_of/item_group fetched so a variant can inherit its template's picture below (40952f3117)
+						# //// Neoffice — brand and condition too: the tile names the one and badges the other
+						fields=["item_code", "web_item_name", "route", "website_image", "variant_of", "item_group", "brand", "item_condition", "has_video"],
+					)
 				# //// Neoffice — a variant without a picture shows its template's (utils/variant_image.py)
 				from webshop.webshop.utils.variant_image import inherit_template_images
 

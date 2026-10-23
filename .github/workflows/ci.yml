@@ -278,6 +278,7 @@ jobs:
             webshop.controllers.test_payment_handler \
             webshop.controllers.test_payment_mode_enabled \
             webshop.webshop.doctype.item_review.test_item_review \
+            webshop.webshop.doctype.website_item.test_neoffice_auto_recommendations \
             webshop.webshop.doctype.webshop_settings.test_webshop_settings \
             webshop.webshop.doctype.wishlist.test_wishlist \
             webshop.webshop.shopping_cart.test_checkout_addresses \
