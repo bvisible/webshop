@@ -44,7 +44,10 @@ def get_context(context):
 	else:
 		context.print_format = "Standard"
 
-	if not frappe.has_website_permission(context.doc):
+	# //// Neoffice — the fallback upstream 15.124 gave its own order page (a member of the staff reads what
+	# //// the desk lets them read): the new has_website_permission answers False to an account without the
+	# //// Customer or Supplier role, a Website Manager included, who would meet "Not Permitted" on /order.
+	if not (context.doc.has_permission("read") or frappe.has_website_permission(context.doc)):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	# //// Neoffice — upstream reads context.doc.customer, which a Quotation does not have
@@ -119,7 +122,8 @@ def make_payment_request(**args):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	# //// Neoffice — the document loaded above (it was loaded here).
-	if not frappe.has_website_permission(order):
+	# //// Neoffice — same fallback as in get_context (upstream 15.124's has_website_permission needs the Customer role).
+	if not (order.has_permission("read") or frappe.has_website_permission(order)):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	# a document handed in by the client is never trusted
@@ -150,7 +154,8 @@ def get_redemption_factor(dt, dn):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	doc = frappe.get_doc(dt, dn)
-	if not frappe.has_website_permission(doc):
+	# //// Neoffice — same fallback as in get_context (upstream 15.124's has_website_permission needs the Customer role).
+	if not (doc.has_permission("read") or frappe.has_website_permission(doc)):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	from webshop.webshop.shopping_cart.loyalty_rights import customer_of, customer_redemption_factor
