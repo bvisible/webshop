@@ -50,7 +50,8 @@ class TestThePageAddresses(FrappeTestCase):
 			if any(s in rel for s in skipped):
 				continue
 			for number, line in enumerate(path.read_text(errors="ignore").splitlines(), 1):
-				if pattern.search(line):
+				# a fork marker names the upstream address on purpose: it says what was replaced
+				if pattern.search(line) and "////" not in line:
 					found.append(f"{rel}:{number}: {line.strip()[:90]}")
 		self.assertEqual(found, [])
 
