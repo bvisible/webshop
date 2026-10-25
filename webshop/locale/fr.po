@@ -7828,7 +7828,7 @@ msgstr "nouveautes"
 
 #: webshop/webshop/utils/store_hours.py:156
 msgid "non-stop"
-msgstr ""
+msgstr "sans interruption"
 
 #: webshop/templates/generators/item_group.html:156
 #: webshop/www/all-products/index.html:145
@@ -9251,3 +9251,37 @@ msgstr "Le compte Administrateur ne peut pas faire d'achats. Connectez-vous avec
 #: webshop/controllers/payment_handler.py:598
 msgid "Your payment is not confirmed yet. If your card was charged, do not pay again: the order will appear in your orders as soon as the payment is confirmed."
 msgstr "Votre paiement n'est pas encore confirmé. Si votre carte a été débitée, ne payez pas une seconde fois : la commande apparaîtra dans vos commandes dès que le paiement sera confirmé."
+
+#: webshop/controllers/payment_handler.py:152
+#: webshop/webshop/shopping_cart/pending_order.py:84
+msgid "A payment for this cart is being processed. Please wait a moment."
+msgstr "Un paiement pour ce panier est en cours de traitement. Veuillez patienter un instant."
+
+#: webshop/webshop/utils/account_menu.py:95
+msgid "After-sales"
+msgstr "SAV"
+
+#: webshop/webshop/shopping_cart/pending_order.py:382
+msgid "Kept: a payment moved on a request of this draft, which was not made an order. Look at its requests."
+msgstr "Conservé : un paiement a été reporté sur une demande de ce brouillon, qui n'est pas devenu une commande. Consultez ses demandes de paiement."
+
+#: webshop/webshop/utils/account_menu.py:129
+msgid "Loyalty"
+msgstr "Fidélité"
+
+#: webshop/webshop/shopping_cart/pending_order.py:343
+#, python-brace-format
+msgid "Not concluded: the cart changed after this payment was started, its total is no longer {0}."
+msgstr "Non conclu : le panier a changé après le lancement de ce paiement, son total n'est plus {0}."
+
+#: webshop/controllers/payment_handler.py:500
+msgid "The cart changed after the payment was started. The payment is kept: please contact us."
+msgstr "Le panier a changé après le lancement du paiement. Le paiement est conservé : veuillez nous contacter."
+
+#: webshop/webshop/shopping_cart/pending_order.py:72
+msgid "This cart cannot be paid online."
+msgstr "Ce panier ne peut pas être payé en ligne."
+
+#: webshop/webshop/shopping_cart/pending_order.py:363
+msgid "This is the draft of a payment in progress, not an order: it cannot be submitted."
+msgstr "Il s'agit du brouillon d'un paiement en cours, et non d'une commande : il ne peut pas être soumis."
