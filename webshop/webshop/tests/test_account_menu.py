@@ -161,13 +161,21 @@ class TestAccountMenu(FrappeTestCase):
 		self.assertEqual(routes(context), ["/sav"])
 		self.assertNotIn("Customer", frappe.cache.hget("roles", PLAIN) or [])
 
+	def cache_the_stored_roles(self, user, *automatic):
+		"""What `frappe.get_roles` caches for `user`: the rows of Has Role (apps add baseline roles at
+		insert, so the test asks the database instead of naming them) and the automatic roles."""
+		cached = [*sorted(account_menu.stored_roles(user)), "All", "Guest", *automatic]
+		frappe.cache.hset("roles", user, cached)
+		return cached
+
 	def test_roles_that_agree_with_the_database_are_left_in_the_cache(self):
-		frappe.cache.hset("roles", CUSTOMER, ["Customer", "All", "Guest"])
+		cached = self.cache_the_stored_roles(CUSTOMER)
+		self.assertIn("Customer", cached)
 		self.assertFalse(account_menu.heal_stale_roles(CUSTOMER))
-		self.assertEqual(frappe.cache.hget("roles", CUSTOMER), ["Customer", "All", "Guest"])
+		self.assertEqual(frappe.cache.hget("roles", CUSTOMER), cached)
 
 	def test_a_desk_user_s_automatic_role_is_not_a_difference(self):
-		frappe.cache.hset("roles", CUSTOMER, ["Customer", "All", "Guest", "Desk User"])
+		self.cache_the_stored_roles(CUSTOMER, "Desk User")
 		self.assertFalse(account_menu.heal_stale_roles(CUSTOMER))
 
 	def test_nothing_cached_nothing_to_heal(self):
