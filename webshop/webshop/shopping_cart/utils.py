@@ -58,6 +58,12 @@ def update_website_context(context):
 		classes = (context.get("body_class") or "").split()
 		if "product-page" not in classes:
 			context["body_class"] = " ".join(classes + ["product-page"])
+		# //// Neoffice — and the account's own scope: one look for its titles, surfaces, actions and menu
+		# //// (webshop_account.scss, 2026-10-25). `product-page` is the shop's ground and is on the cart, the
+		# //// checkout and the catalogue too; this one is on the pages of the account only.
+		classes = (context.get("body_class") or "").split()
+		if "wsp-account" not in classes:
+			context["body_class"] = " ".join(classes + ["wsp-account"])
 
 		# //// Neoffice — and the account's menu on each of them (2026-10-25): the links of /me led to
 		# //// pages with no sidebar, and a web form builds none of its own (utils/account_menu.py).
@@ -71,7 +77,20 @@ def update_website_context(context):
 # //// send the customer to ERPNext's address web form, which a portal menu may not list
 # //// Neoffice — "address" is that web form's own route (/address/new, /address/<name>): the menu's
 # //// route is /addresses, so the form was not recognised as a page of the account (2026-10-25)
-ACCOUNT_PAGES = ("me", "update-password", "update-profile", "third_party_apps", "addresses", "address")
+# //// Neoffice — and the shop's own pages of the account, whether or not the portal menu lists them: a menu
+# //// that never got the loyalty entry left /loyalty_points out of the account's scope, and its page drew
+# //// its own title and surfaces (osiris, 2026-10-25)
+ACCOUNT_PAGES = (
+	"me",
+	"update-password",
+	"update-profile",
+	"third_party_apps",
+	"addresses",
+	"address",
+	"my_addresses",
+	"gift_cards",
+	"loyalty_points",
+)
 
 
 def is_account_page(context) -> bool:

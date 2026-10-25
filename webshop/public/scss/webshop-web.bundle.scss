@@ -20,6 +20,9 @@
 @import "./webshop_catalogue";
 @import "./webshop_shell";
 @import "./webshop_pages";
+// //// Neoffice — one look for the customer's account (titles, surfaces, actions, the menu), after the
+// //// partials whose page rules it settles (2026-10-25)
+@import "./webshop_account";
 @import "./webshop_payments";
 
 // //// Neoffice — the product card (grid and carousel tiles) lives in its own partial,

@@ -60,8 +60,22 @@ class TestAccountPages(FrappeTestCase):
 		with patch.object(utils.frappe, "get_cached_doc", side_effect=portal_settings):
 			utils.update_website_context(context)
 			utils.update_website_context(context)
-		self.assertEqual(context.body_class.split(), ["web-list", "product-page"])
+		self.assertEqual(context.body_class.split(), ["web-list", "product-page", "wsp-account"])
 		other = frappe._dict(path="all-products", body_class="product-page")
 		with patch.object(utils.frappe, "get_cached_doc", side_effect=portal_settings):
 			utils.update_website_context(other)
 		self.assertEqual(other.body_class, "product-page")
+
+	def test_the_account_has_its_own_scope_and_the_shop_s_pages_do_not(self):
+		# //// Neoffice — webshop_account.scss hangs on it (2026-10-25): the cart, the checkout and the
+		# //// catalogue carry `product-page` too, and must not take the account's titles and surfaces
+		for path in ("orders", "my_addresses", "gift_cards", "update-profile/someone@example.com", "address/new"):
+			context = frappe._dict(path=path)
+			with patch.object(utils.frappe, "get_cached_doc", side_effect=portal_settings):
+				utils.update_website_context(context)
+			self.assertIn("wsp-account", context.body_class.split(), path)
+		for path in ("cart", "checkout", "all-products", "wishlist"):
+			context = frappe._dict(path=path, body_class="product-page")
+			with patch.object(utils.frappe, "get_cached_doc", side_effect=portal_settings):
+				utils.update_website_context(context)
+			self.assertNotIn("wsp-account", context.body_class.split(), path)

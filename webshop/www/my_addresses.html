@@ -7,10 +7,10 @@
 {% block title %}{{ _("My Addresses") }}{% endblock %}
 
 {% block page_content %}
-<div class="container my-4 my-addresses-page">{# //// Neoffice — root class: the page's styles are scoped on it in the bundle #}
-	<div class="d-flex justify-content-between align-items-center mb-4">
-		<h2 class="m-0">{{ _("My Addresses") }}</h2>
-		<button class="btn btn-primary btn-sm" onclick="showAddressForm()">
+<div class="my-addresses-page">{# //// Neoffice — root class: the page's styles are scoped on it in the bundle. No `container` here: the page is already inside Frappe's, and a second one pushed its content 22px right of every other page of the account (2026-10-25) #}
+	<div class="my-addresses-page__head d-flex justify-content-between align-items-center mb-4">
+		<h2 class="webshop-page-title m-0">{{ _("My Addresses") }}</h2>
+		<button class="btn btn-primary ml-auto" onclick="showAddressForm()">
 			<i class="fa fa-plus"></i> {{ _("Add New Address") }}
 		</button>
 	</div>

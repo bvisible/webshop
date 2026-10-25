@@ -27,18 +27,18 @@
 			<div class="col-md-6">
 				<div class="frappe-card p-5 mb-4">
 					<div class="d-flex align-items-center mb-4">
-						<img src="/assets/webshop/icons/loyalty_icon.svg" alt="Loyalty Points" class="mr-3" style="width: 48px; height: 48px;">
+						<img src="/assets/webshop/icons/loyalty_icon.svg" alt="Loyalty Points" class="wsp-icon-lg mr-3">
 						<div>
 							<h4 class="mb-0">{{ loyalty_program_name }}</h4>
 							<small class="text-muted">{{ _("Your loyalty program") }}</small>
 						</div>
 					</div>
 
-					<div class="points-balance text-center py-4" style="background: black; border-radius: 12px; color: white;">
-						<div class="points-number" style="font-size: 3rem; font-weight: bold;">{{ total_points }}</div>
+					<div class="points-balance wsp-ink-block text-center py-4">
+						<div class="points-number wsp-ink-block__figure">{{ total_points }}</div>
 						<div class="points-label">{{ _("Available Points") }}</div>
 						{% if points_value %}
-							<div class="points-value mt-2" style="font-size: 1.2rem; opacity: 0.9;">
+							<div class="points-value wsp-ink-block__sub mt-2">
 								{{ _("Worth") }} <strong>{{ points_value }}</strong>
 							</div>
 						{% endif %}
@@ -57,21 +57,21 @@
 					<h5 class="mb-4">{{ _("How to earn points") }}</h5>
 					<ul class="list-unstyled">
 						<li class="d-flex align-items-start mb-3">
-							<span class="badge badge-primary mr-3" style="padding: 8px 12px;">1</span>
+							<span class="wsp-step mr-3">1</span>
 							<div>
 								<strong>{{ _("Shop") }}</strong>
 								<p class="text-muted mb-0 small">{{ _("Earn points on every purchase") }}</p>
 							</div>
 						</li>
 						<li class="d-flex align-items-start mb-3">
-							<span class="badge badge-primary mr-3" style="padding: 8px 12px;">2</span>
+							<span class="wsp-step mr-3">2</span>
 							<div>
 								<strong>{{ _("Accumulate") }}</strong>
 								<p class="text-muted mb-0 small">{{ _("Points are credited after order completion") }}</p>
 							</div>
 						</li>
 						<li class="d-flex align-items-start mb-3">
-							<span class="badge badge-primary mr-3" style="padding: 8px 12px;">3</span>
+							<span class="wsp-step mr-3">3</span>
 							<div>
 								<strong>{{ _("Redeem") }}</strong>
 								<p class="text-muted mb-0 small">{{ _("Use your points at checkout for discounts") }}</p>
@@ -142,7 +142,7 @@
 		{% else %}
 			<div class="frappe-card p-5 text-center">
 				<div class="empty-state py-4">
-					<img src="/assets/webshop/images/cart-empty-state.png" alt="No history" style="max-width: 150px; opacity: 0.5;">
+					<img src="/assets/webshop/images/cart-empty-state.png" alt="No history" class="wsp-empty-picture">
 					<p class="text-muted mt-3">{{ _("No points history yet. Start shopping to earn points!") }}</p>
 				</div>
 			</div>

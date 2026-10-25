@@ -303,6 +303,7 @@ jobs:
             webshop.webshop.product_data_engine.test_second_hand_toggle \
             webshop.webshop.tests.test_account_pages \
             webshop.webshop.tests.test_account_menu \
+            webshop.webshop.tests.test_account_look \
             webshop.webshop.utils.test_store_hours \
             webshop.webshop.utils.test_holidays \
             webshop.webshop.assistant.test_assistant \

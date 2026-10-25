@@ -1,0 +1,161 @@
+// //// Neoffice — added file (no upstream equivalent). One look for the customer's account (2026-10-25).
+//
+// The account is a dozen pages from five apps: Frappe's lists and forms, the shop's address book,
+// gift cards and loyalty points, the theme's support and bookings, the activity app's projects.
+// Each drew its own surface (corners of 2, 4, 8 and 10 px, with a border or without), its own
+// title (six styles on eleven pages) and its own buttons (three sizes), as measured on osiris on
+// 2026-10-25. They share one rule now, written once here and scoped on `body.wsp-account`, which
+// update_website_context gives to the pages of the account and to no other:
+//
+//   - the chrome's title band is the page's title: a page does not say it a second time;
+//   - a surface is the chrome's surface: its ground, its line, its corner;
+//   - a section title is the chrome's heading font, at one size;
+//   - an action is the shop's button (webshop_buttons.scss), whoever drew it;
+//   - the menu holds one line per entry.
+//
+// Every value is a --wsh-* token, which reads the site chrome: the account looks like the site it
+// belongs to, and a dark site stays readable (webshop_tokens.scss).
+
+// The classes below this block are the ones the account's own templates use in place of the inline
+// colours they carried (a black block, white ink, a #f5f5f5 chip): written with the tokens, they are
+// right on any ground, so they are not scoped on the account.
+
+// an ink block: the text colour as a ground, the page's ground as its ink (the pair inverts with the site)
+.wsp-ink-block {
+	background-color: var(--wsh-text);
+	color: var(--wsh-bg);
+	border-radius: var(--wsh-radius-lg);
+	--heading-color: var(--wsh-bg);
+	h1, h2, h3, h4, h5, h6 { color: inherit; }
+}
+.wsp-ink-block--off {
+	background-color: var(--wsh-surface-muted);
+	color: var(--wsh-muted);
+	--heading-color: var(--wsh-muted);
+	--text-muted: var(--wsh-muted);
+}
+.wsp-ink-block__icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 48px;
+	height: 48px;
+	border-radius: var(--wsh-radius-lg);
+	svg { stroke: currentColor; }
+}
+.wsp-icon-lg { width: 48px; height: 48px; }
+.wsp-count { font-size: 1rem; }
+.wsp-ink-block__figure { font-size: 3rem; font-weight: 700; line-height: 1.1; }
+.wsp-ink-block__sub { font-size: 1.2rem; opacity: 0.9; }
+.wsp-ink-block__label { opacity: 0.8; }
+
+// the number of a step ("1. Shop, 2. Apply, 3. Save")
+.wsp-step {
+	display: inline-block;
+	padding: 8px 12px;
+	border-radius: var(--wsh-radius);
+	background-color: var(--wsh-primary);
+	color: var(--wsh-on-primary);
+	font-size: 0.85rem;
+	font-weight: 600;
+	line-height: 1;
+}
+
+// a code a customer copies
+.wsp-code {
+	padding: 4px 8px;
+	border: 1px solid var(--wsh-line);
+	border-radius: var(--wsh-radius-sm);
+	background-color: var(--wsh-surface-muted);
+	color: var(--wsh-text);
+	font-size: 1rem;
+}
+
+// an illustration that stands for "nothing here yet"
+.wsp-empty-picture {
+	max-width: 150px;
+	opacity: 0.5;
+}
+
+body.wsp-account {
+	// ---- the theme's `.nb` skin (support, bookings) reads the shop's tokens ---------------------
+	// Its own tokens read the same site variables, with different fallbacks: the corners of its
+	// buttons (the chrome's small radius) and of its cards were not the shop's.
+	.nb {
+		--nb-paper: var(--wsh-surface-muted);
+		--nb-paper-bright: var(--wsh-surface);
+		--nb-sand: var(--wsh-line);
+		--nb-sand-soft: var(--wsh-line-light);
+		--nb-ink: var(--wsh-text);
+		--nb-muted: var(--wsh-muted);
+		--nb-faint: var(--wsh-faint);
+		--nb-radius-sm: var(--wsh-radius);
+		--nb-radius-md: var(--wsh-radius);
+		--nb-radius-lg: var(--wsh-radius-lg);
+		--nb-action: var(--wsh-primary);
+		--nb-action-hover: var(--wsh-primary-hover);
+		--sv-on-action: var(--wsh-on-primary);
+		--sv-line-strong: var(--wsh-line-strong);
+	}
+
+	// ---- surfaces ----------------------------------------------------------------------------
+	:is(.frappe-card, .card, .account-info, .page-card, .web-list-item, .nb-card, .nb-panel, .sv-row, .sv-msg) {
+		background-color: var(--wsh-surface);
+		border: 1px solid var(--wsh-line);
+		border-radius: var(--wsh-radius);
+		box-shadow: none;
+		color: var(--wsh-text);
+	}
+	// the customer's own words sit on the paper, as in the support page
+	.sv-msg--mine { background-color: var(--wsh-surface-muted); }
+	.card-header {
+		background-color: transparent;
+		border-bottom: 1px solid var(--wsh-line);
+		color: var(--wsh-text);
+	}
+	// a list is a stack of rows, as the support page's
+	.web-list-item { margin-bottom: 8px; }
+
+	// ---- titles ------------------------------------------------------------------------------
+	// The page's own title steps aside when the chrome prints one (the shop's rule for
+	// .webshop-page-title, extended to what Frappe and the theme print: the account's headings,
+	// the web form's title — its status and actions stay — the password card's heading, the
+	// bookings' page heading). A site with no title band keeps them.
+	&:has(.site-page-header) :is(.my-account-header, .web-form-title, .page-card-head, .mrz-head .nb-title--lg) {
+		display: none;
+	}
+	// a section title: the chrome's heading font, one size
+	:is(
+		.card-title,
+		.card-header :is(h4, h5),
+		.frappe-card :is(h4, h5),
+		.nb-title--sm,
+		.reset-password-heading
+	) {
+		font-family: var(--heading-font, inherit);
+		font-size: 1.25rem;
+		font-weight: 600;
+		line-height: 1.3;
+		color: var(--wsh-text);
+	}
+
+	// ---- actions -----------------------------------------------------------------------------
+	// The page's own actions have the shop's shape: the theme's buttons, the web forms' (Frappe
+	// draws them small), the address book's "add". Row actions (.btn-sm in a list, a card) keep
+	// their small size but take the chrome's corner.
+	.nb .nb-btn,
+	.web-form-container .btn:is(.submit-btn, .discard-btn, .edit-button, .delete-btn),
+	.my-addresses-page__head > .btn {
+		@include wsh-action-button;
+		min-height: 0;
+	}
+	.btn.btn-sm { border-radius: var(--wsh-radius); }
+
+	// ---- the menu: one line per entry --------------------------------------------------------
+	.web-sidebar .sidebar-item a {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}

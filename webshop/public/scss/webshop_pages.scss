@@ -171,9 +171,9 @@
 	overflow: hidden;
 }
 
+/* //// Neoffice — a border that firms up, not a card that lifts: the account's other surfaces do not move (2026-10-25) */
 .gift-card-item:hover {
-	transform: translateY(-2px);
-	box-shadow: var(--wsh-shadow-lg);
+	border-color: var(--wsh-line-strong);
 }
 
 .gift-card-expired,
@@ -185,7 +185,8 @@
    --heading-color, near-black on the black card of an active gift card (2026-09-13). */
 .gift-card-header h3 { color: inherit; }
 .gift-card-header {
-	border-radius: 8px 8px 0 0;
+	/* the card clips its header to its own corner */
+	border-radius: 0;
 }
 
 .copy-code-btn {
@@ -207,38 +208,21 @@
    classes, and these rules used to be inline on this page only. In the shared bundle they
    would restyle every card and badge of the shop. */
 .my-addresses-page {
-	.card {
-		border-radius: var(--wsh-radius);
-		box-shadow: var(--wsh-shadow-sm);
-	}
-	.card:hover {
-		box-shadow: var(--wsh-shadow);
-	}
-	.card-title {
-		color: var(--wsh-text);
-		font-weight: 600;
-	}
+	/* the surfaces, titles and actions are the account's (webshop_account.scss); what is left is
+	   what only the address book has */
 	.badge {
 		font-size: 0.75rem;
 	}
 	#address-form-container {
-		border: none;
-		border-radius: var(--wsh-radius);
 		overflow: hidden;
 	}
-	#address-form-container .card-header {
-		background-color: var(--wsh-primary);
-		border-radius: 0;
-	}
-	#address-form-container .card-header h5,
-	#address-form-container .card-header #address-form-title {
-		color: var(--wsh-on-primary) !important;
-	}
-	/* //// Neoffice — Bootstrap 4's `close` on the coloured header (the form used Bootstrap 5's
-	   `btn-close`, which this site does not have: it rendered as a bar, maintenance#1032). */
+	/* //// Neoffice — Bootstrap 4's `close` (the form used Bootstrap 5's `btn-close`, which this site
+	   does not have: it rendered as a bar, maintenance#1032). The header is a surface like the
+	   others since 2026-10-25: it was the chrome's action colour, a block of colour no other page
+	   of the account has. */
 	#address-form-container .my-addresses-close {
-		color: var(--wsh-on-primary);
-		opacity: 0.85;
+		color: var(--wsh-muted);
+		opacity: 1;
 		font-size: 1.6rem;
 		line-height: 1;
 		text-shadow: none;
@@ -246,7 +230,7 @@
 		border: 0;
 	}
 	#address-form-container .my-addresses-close:hover {
-		opacity: 1;
+		color: var(--wsh-text);
 	}
 	#address-form-container .form-select {
 		width: 100%;
@@ -295,10 +279,6 @@
 .loyalty-points-container .badge-primary {
 	background-color: var(--wsh-text);
 	color: var(--wsh-bg); /* //// Neoffice — Bootstrap's white vanished on the text colour of a dark site (2026-09-14) */
-}
-
-.loyalty-points-container .points-balance {
-	box-shadow: var(--wsh-shadow-lg);
 }
 
 .loyalty-points-container .table th {
