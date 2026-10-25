@@ -72,7 +72,9 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		context.page_length = (
 			cint(frappe.db.get_single_value("Webshop Settings", "products_per_page")) or 6
 		)
-		context.search_link = "/product_search"
+		# //// Neoffice — /product_search is a dead page that sends the visitor on to /all-products with the same
+		# //// query; the link goes there directly (2026-10-25, the addresses are English).
+		context.search_link = "/all-products"
 
 		filter_engine = ProductFiltersBuilder(self.name)
 

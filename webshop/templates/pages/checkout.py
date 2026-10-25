@@ -223,7 +223,7 @@ def get_context(context):
 		
 		# If it's a B2B customer, redirect to B2B checkout
 		if cart_info.get("is_b2b_customer"):
-			frappe.local.flags.redirect_location = '/checkout_b2b'
+			frappe.local.flags.redirect_location = '/checkout-b2b'
 			raise frappe.Redirect
 	
 	# Continue with the rest of the code if a quotation exists
@@ -1334,7 +1334,7 @@ def cart_intent_state(intent: str) -> dict:
 
 	order = pending_order.confirmed_order(payment_request)
 	if order:
-		return {"done": True, "redirect_to": "/thank_you?sales_order={0}".format(order)}
+		return {"done": True, "redirect_to": "/thank-you?sales_order={0}".format(order)}
 	if payment_request.status in ("Paid", "Completed"):
 		return {"done": True, "redirect_to": None}
 	return {"done": False, "status": row.status}

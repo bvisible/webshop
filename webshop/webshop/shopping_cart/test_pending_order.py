@@ -863,7 +863,7 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 		done = cart_intent_state(intent.name)
 		frappe.set_user("Administrator")
 		self.assertEqual(done.get("done"), True, done)
-		self.assertIn("/thank_you?sales_order=", done.get("redirect_to"))
+		self.assertIn("/thank-you?sales_order=", done.get("redirect_to"))
 		self.assertNotIn(pending_order.PLACEHOLDER_PREFIX, done.get("redirect_to"))
 
 	def test_a_request_on_a_placeholder_has_no_order_yet(self):

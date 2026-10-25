@@ -1,7 +1,7 @@
 //// Neoffice — added file (no upstream equivalent).
 //// The B2B checkout, which is a different page with different rules.
 ////
-//// Unlike the B2C tunnel, /checkout_b2b is a SINGLE page — company, address,
+//// Unlike the B2C tunnel, /checkout-b2b is a SINGLE page — company, address,
 //// shipping, "Place Order" — with no payment step at all: a B2B customer
 //// orders now and is billed according to their account terms. So the assertion
 //// that matters is not "was it paid", it is "was an order created, and could
@@ -20,7 +20,7 @@ const {
 	currentUser,
 } = require('../fixtures/shop');
 
-const B2B_ROUTE = '/checkout_b2b';
+const B2B_ROUTE = '/checkout-b2b';
 
 /** Is this session actually recognised as a B2B customer? */
 async function isB2BCustomer(page) {

@@ -239,7 +239,7 @@ def settle(payment_request):
 
 
 def _thank_you(sales_order):
-	return f"/thank_you?sales_order={sales_order}"
+	return f"/thank-you?sales_order={sales_order}"
 
 
 # //// Neoffice — added helper for open_payment_request: who may read an order's payment request.

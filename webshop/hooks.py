@@ -344,6 +344,14 @@ website_route_rules = [
 	{"from_route": "/my-addresses", "to_route": "my_addresses"},
 	{"from_route": "/gift-cards", "to_route": "gift_cards"},
 	{"from_route": "/loyalty-points", "to_route": "loyalty_points"},
+	# //// Neoffice — the shop's pages at English hyphenated addresses too (2026-10-25, maintenance#1862); the
+	# //// files keep their names (a module has no hyphen, and the checkout's code and its tests import them).
+	# //// The old addresses lead here with their query string (neoffice_theme.renamed_routes): a payment
+	# //// comes back to /thank-you?sales_order=…, so website_redirects, which drops the query, would not do.
+	{"from_route": "/thank-you", "to_route": "thank_you"},
+	{"from_route": "/checkout-b2b", "to_route": "checkout_b2b"},
+	{"from_route": "/customer-reviews", "to_route": "customer_reviews"},
+	{"from_route": "/terms-and-conditions", "to_route": "cgv"},
 ]
 
 page_renderer = [

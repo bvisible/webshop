@@ -419,7 +419,7 @@ class PaymentHandler:
                     )
                 return {
                     "status": "success",
-                    "redirect_to": f"/thank_you?sales_order={payment_request.reference_name}",
+                    "redirect_to": f"/thank-you?sales_order={payment_request.reference_name}",
                     "message": _("Payment already processed")
                 }
 
@@ -437,7 +437,7 @@ class PaymentHandler:
                 ):
                     return {
                         "status": "success",
-                        "redirect_to": f"/thank_you?sales_order={payment_request.reference_name}",
+                        "redirect_to": f"/thank-you?sales_order={payment_request.reference_name}",
                         "message": _("Payment already processed")
                     }
                 # //// Neoffice — Paid but still on the cart's placeholder: the order was never made (a gateway marked
@@ -587,7 +587,7 @@ class PaymentHandler:
             self._invoice_paid_order(sales_order_name, payment_request)
 
             # Build default success URL
-            success_url = f"/thank_you?sales_order={sales_order_name}"
+            success_url = f"/thank-you?sales_order={sales_order_name}"
             
             return {
                 "status": "success",
@@ -809,7 +809,7 @@ class PaymentHandler:
             save_as_shop(si, submit=True)
 
             # Redirect to thank you page
-            success_url = f"/thank_you?sales_order={sales_order_name}"
+            success_url = f"/thank-you?sales_order={sales_order_name}"
             
             return {
                 "status": "success",

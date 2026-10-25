@@ -48,6 +48,8 @@ PRIVATE_PATHS = (
 	"/my-requests",
 	"/my-bookings",
 	"/thank_you",
+	# //// Neoffice — its English address (2026-10-25); the old one stays listed while it leads here
+	"/thank-you",
 	"/payment-success",
 	"/search$",
 	"/search?",

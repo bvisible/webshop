@@ -253,7 +253,7 @@ def on_payment_authorized(gateway_settings , birthday=None, contactName=None):
 			}
 
 		# Success URL
-		success_url = f"/thank_you?sales_order={sales_order_name}"
+		success_url = f"/thank-you?sales_order={sales_order_name}"
 
 		return {
 			"status": "success",
