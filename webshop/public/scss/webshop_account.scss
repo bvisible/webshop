@@ -94,12 +94,12 @@ body.wsp-account {
 		--nb-radius-lg: var(--wsh-radius-lg);
 		--nb-action: var(--wsh-primary);
 		--nb-action-hover: var(--wsh-primary-hover);
-		--sv-on-action: var(--wsh-on-primary);
-		--sv-line-strong: var(--wsh-line-strong);
+		--sup-on-action: var(--wsh-on-primary);
+		--sup-line-strong: var(--wsh-line-strong);
 	}
 
 	// ---- surfaces ----------------------------------------------------------------------------
-	:is(.frappe-card, .card, .account-info, .page-card, .web-list-item, .nb-card, .nb-panel, .sv-row, .sv-msg) {
+	:is(.frappe-card, .card, .account-info, .page-card, .web-list-item, .nb-card, .nb-panel, .sup-row, .sup-msg) {
 		background-color: var(--wsh-surface);
 		border: 1px solid var(--wsh-line);
 		border-radius: var(--wsh-radius);
@@ -107,7 +107,7 @@ body.wsp-account {
 		color: var(--wsh-text);
 	}
 	// the customer's own words sit on the paper, as in the support page
-	.sv-msg--mine { background-color: var(--wsh-surface-muted); }
+	.sup-msg--mine { background-color: var(--wsh-surface-muted); }
 	.card-header {
 		background-color: transparent;
 		border-bottom: 1px solid var(--wsh-line);

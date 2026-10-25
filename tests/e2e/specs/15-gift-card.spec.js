@@ -26,7 +26,7 @@ async function quotationTotal(page) {
 //// The codes the customer sees on their own page. Empty when the shop has gift
 //// cards switched off, or when this account owns none.
 async function customerGiftCards(page) {
-	await page.goto('/gift_cards');
+	await page.goto('/gift-cards');
 	await page.waitForLoadState('networkidle');
 	return page.locator('.gift-card-code').allInnerTexts();
 }

@@ -77,7 +77,7 @@
     },
     {
       "name": "gift_cards",
-      "path": "/gift_cards"
+      "path": "/gift-cards"
     },
     {
       "name": "cart",
@@ -103,12 +103,12 @@
     },
     {
       "name": "my_addresses",
-      "path": "/my_addresses",
+      "path": "/my-addresses",
       "auth": true
     },
     {
       "name": "loyalty_points",
-      "path": "/loyalty_points",
+      "path": "/loyalty-points",
       "auth": true
     },
     {

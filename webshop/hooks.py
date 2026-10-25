@@ -50,8 +50,14 @@ website_redirects = [
 	# //// Neoffice — « Addresses » of the customer's account (ERPNext's portal menu) opens Frappe's web form
 	# //// list, which shows a portal customer only the addresses they created themselves: « Nothing to
 	# //// show » for a customer whose addresses the shop or the office made. The shop's address book
-	# //// (/my_addresses) lists every address of the customer (maintenance#1032).
-	{"source": "/addresses", "target": "/my_addresses"},
+	# //// (/my-addresses) lists every address of the customer (maintenance#1032).
+	{"source": "/addresses", "target": "/my-addresses"},
+	# //// Neoffice — the account's pages had underscores in their addresses and the rest of the site hyphens
+	# //// (2026-10-25): the English hyphenated address serves the page (website_route_rules below), and the
+	# //// old one leads to it for good. Nothing sends a query string to these three.
+	{"source": "/my_addresses", "target": "/my-addresses", "redirect_http_status": 301},
+	{"source": "/gift_cards", "target": "/gift-cards", "redirect_http_status": 301},
+	{"source": "/loyalty_points", "target": "/loyalty-points", "redirect_http_status": 301},
 ]
 
 update_website_context = [
@@ -110,11 +116,13 @@ override_doctype_dashboards = {
 	"Quotation": "webshop.webshop.utils.follow_ups.quotation_dashboard",
 }
 
-# //// Neoffice — the customer's gift cards page (/gift_cards) in the account's menu: the
-# //// page existed with no link to it anywhere (2026-09-13). Portal Settings lets a shop
-# //// without gift cards switch the entry off.
+# //// Neoffice — the customer's gift cards page (/gift-cards) in the account's menu: the
+# //// page existed with no link to it anywhere (2026-09-13). A shop without gift cards, or without
+# //// loyalty points, does not offer the entry (utils/account_menu.py), whatever the row says.
+# //// The loyalty entry was only ever created by a patch that ran once, when the setting was off.
 standard_portal_menu_items = [
-	{"title": "Gift Cards", "route": "/gift_cards", "reference_doctype": "Coupon Code", "role": "Customer"},
+	{"title": "Gift cards", "route": "/gift-cards", "reference_doctype": "Coupon Code", "role": "Customer"},
+	{"title": "Loyalty", "route": "/loyalty-points", "reference_doctype": "Loyalty Program", "role": "Customer"},
 ]
 
 # //// Neoffice — added (2026-09-22). A reminder about an abandoned cart is a trace,
@@ -332,6 +340,10 @@ website_route_rules = [
 	{"from_route": "/api/payment/callback", "to_route": "webshop.controllers.payment_handler.payment_callback"},
 	# //// Neoffice — a brand's page (#691 lot 2): /brands/<slug> renders www/brand with its slug.
 	{"from_route": "/brands/<brand_slug>", "to_route": "brand"},
+	# //// Neoffice — the account's pages at English hyphenated addresses (2026-10-25); the files keep their names
+	{"from_route": "/my-addresses", "to_route": "my_addresses"},
+	{"from_route": "/gift-cards", "to_route": "gift_cards"},
+	{"from_route": "/loyalty-points", "to_route": "loyalty_points"},
 ]
 
 page_renderer = [

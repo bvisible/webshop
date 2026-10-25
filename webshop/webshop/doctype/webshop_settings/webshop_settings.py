@@ -163,103 +163,51 @@ class WebshopSettings(Document):
 		"""Updates gift cards menu in Portal Settings based on enable_gift_cards"""
 		if self.enable_gift_cards == self.enable_gift_cards_pre_save:
 			return
-
-		# //// Neoffice — the portal menu entries for loyalty points and gift cards are created
-		# //// or removed here, matching the switches; the old hyphenated route is cleaned up
-		# //// (2f63a51219 / 9909429ca3, 2025-12-12).
-		# Check if entry already exists (check both old and new routes)
-		exists = frappe.db.exists("Portal Menu Item", {
-			"route": "/gift_cards",
-			"parenttype": "Portal Settings"
-		})
-
-		# Also check for old route with hyphen
-		old_exists = frappe.db.exists("Portal Menu Item", {
-			"route": "/gift-cards",
-			"parenttype": "Portal Settings"
-		})
-
-		if self.enable_gift_cards and not exists:
-			# Delete old route if exists
-			if old_exists:
-				frappe.db.delete("Portal Menu Item", {
-					"route": "/gift-cards",
-					"parenttype": "Portal Settings"
-				})
-
-			# Get last idx
-			last_idx = frappe.db.sql("""
-				SELECT MAX(idx)
-				FROM `tabPortal Menu Item`
-				WHERE parenttype='Portal Settings'
-			""")[0][0] or 0
-
-			# Create menu entry with new route
-			portal_settings = frappe.get_doc("Portal Settings")
-			portal_settings.append("menu", {
-				"title": "Gift cards",
-				"enabled": 1,
-				"route": "/gift_cards",
-				"role": "Customer",
-				"idx": last_idx + 1
-			})
-
-			portal_settings.save()
-
-		elif not self.enable_gift_cards:
-			# Delete both old and new routes if they exist
-			if exists:
-				frappe.db.delete("Portal Menu Item", {
-					"route": "/gift_cards",
-					"parenttype": "Portal Settings"
-				})
-			if old_exists:
-				frappe.db.delete("Portal Menu Item", {
-					"route": "/gift-cards",
-					"parenttype": "Portal Settings"
-				})
-			frappe.db.commit()
+		# //// Neoffice — the portal menu entries for loyalty points and gift cards are created or removed
+		# //// here, matching the switches (2f63a51219 / 9909429ca3, 2025-12-12). Their addresses are the
+		# //// English hyphenated ones since 2026-10-25; a row of an old address (/gift_cards, and /gift-cards
+		# //// before it) is renamed rather than doubled, and removed with the others.
+		self.update_account_menu_entry("/gift-cards", ("/gift_cards",), "Gift cards", self.enable_gift_cards)
 
 	def update_loyalty_points_menu(self):
 		"""Updates loyalty points menu in Portal Settings based on enable_loyalty_points"""
 		if self.enable_loyalty_points == self.enable_loyalty_points_pre_save:
 			return
+		# //// Neoffice — same entry-by-switch rule as the gift cards, English address (2026-10-25)
+		self.update_account_menu_entry("/loyalty-points", ("/loyalty_points",), "Loyalty", self.enable_loyalty_points)
 
-		# Check if entry already exists
-		# //// Neoffice — the loyalty entry of the portal menu, added or removed with the
-		# //// switch (2f63a51219, 2025-12-12).
-		exists = frappe.db.exists("Portal Menu Item", {
-			"route": "/loyalty_points",
-			"parenttype": "Portal Settings"
-		})
-
-		if self.enable_loyalty_points and not exists:
-			# Get last idx
-			last_idx = frappe.db.sql("""
-				SELECT MAX(idx)
-				FROM `tabPortal Menu Item`
-				WHERE parenttype='Portal Settings'
-			""")[0][0] or 0
-
-			# Create menu entry
-			portal_settings = frappe.get_doc("Portal Settings")
-			portal_settings.append("menu", {
-				"title": "Loyalty Points",
-				"enabled": 1,
-				"route": "/loyalty_points",
-				"role": "Customer",
-				"idx": last_idx + 1
-			})
-
-			portal_settings.save()
-
-		elif not self.enable_loyalty_points and exists:
-			# Delete menu entry
-			frappe.db.delete("Portal Menu Item", {
-				"route": "/loyalty_points",
-				"parenttype": "Portal Settings"
-			})
-			frappe.db.commit()
+	# //// Neoffice — one helper for both switches: the two copies had drifted (one removed the old
+	# //// address, the other did not), and a row of an old address must be renamed, not doubled.
+	@staticmethod
+	def update_account_menu_entry(route, old_routes, title, enabled):
+		rows = frappe.get_all(
+			"Portal Menu Item",
+			filters={"route": ("in", (route, *old_routes)), "parenttype": "Portal Settings"},
+			fields=["name", "route"],
+		)
+		if not enabled:
+			if rows:
+				frappe.db.delete("Portal Menu Item", {"name": ("in", [row.name for row in rows])})
+				frappe.db.commit()
+				frappe.cache.delete_key("portal_menu_items")
+			return
+		if any(row.route == route for row in rows):
+			return
+		if rows:
+			# the row of an old address: same entry, new address
+			frappe.db.set_value("Portal Menu Item", rows[0].name, {"route": route, "title": title})
+			frappe.cache.delete_key("portal_menu_items")
+			return
+		last_idx = frappe.db.sql(
+			"""
+			SELECT MAX(idx)
+			FROM `tabPortal Menu Item`
+			WHERE parenttype='Portal Settings'
+		"""
+		)[0][0] or 0
+		portal_settings = frappe.get_doc("Portal Settings")
+		portal_settings.append("menu", {"title": title, "enabled": 1, "route": route, "role": "Customer", "idx": last_idx + 1})
+		portal_settings.save()
 
 	@staticmethod
 	def validate_field_filters(filter_fields, enable_field_filters):

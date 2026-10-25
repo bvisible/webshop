@@ -41,6 +41,12 @@ PRIVATE_PATHS = (
 	"/wishlist$",
 	"/gift_cards$",
 	"/loyalty_points$",
+	# //// Neoffice — the account's pages at their English hyphenated addresses (2026-10-25)
+	"/my-addresses$",
+	"/gift-cards$",
+	"/loyalty-points$",
+	"/my-requests",
+	"/my-bookings",
 	"/thank_you",
 	"/payment-success",
 	"/search$",

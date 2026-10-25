@@ -90,6 +90,14 @@ ACCOUNT_PAGES = (
 	"my_addresses",
 	"gift_cards",
 	"loyalty_points",
+	# //// Neoffice — the same pages at their English hyphenated addresses, and the account's other pages of
+	# //// the theme and of the activity app (2026-10-25)
+	"my-addresses",
+	"gift-cards",
+	"loyalty-points",
+	"my-requests",
+	"my-bookings",
+	"my-projects",
 )
 
 

@@ -1,5 +1,5 @@
 # //// Neoffice — added file (no upstream equivalent).
-# //// Portal Menu Items for /loyalty_points and /gift_cards, added only when the
+# //// Portal Menu Items for /loyalty-points and /gift-cards, added only when the
 # //// matching Webshop Setting is on. Upstream's portal knows Orders, Invoices and
 # //// Addresses and nothing else (2f63a51219, 2025-12-12). reference_doctype is left
 # //// empty on purpose: setting it made the portal check a permission the customer
@@ -14,27 +14,18 @@ def execute():
     # Add loyalty points menu if enabled
     if settings.enable_loyalty_points:
         add_portal_menu_item_if_not_exists(
-            title="Loyalty Points",
-            route="/loyalty_points",
+            title="Loyalty",
+            route="/loyalty-points",
             role="Customer"
         )
 
     # Add gift cards menu if enabled
     if settings.enable_gift_cards:
-        # Remove old route with hyphen if exists
-        old_exists = frappe.db.exists("Portal Menu Item", {
-            "route": "/gift-cards",
-            "parenttype": "Portal Settings"
-        })
-        if old_exists:
-            frappe.db.delete("Portal Menu Item", {
-                "route": "/gift-cards",
-                "parenttype": "Portal Settings"
-            })
-
+        # //// Neoffice — the page's address is /gift-cards since 2026-10-25 (it was /gift_cards, and before that
+        # //// /gift-cards again); this patch used to delete a row with the hyphen, which is now the right one.
         add_portal_menu_item_if_not_exists(
             title="Gift cards",
-            route="/gift_cards",
+            route="/gift-cards",
             role="Customer"
         )
 

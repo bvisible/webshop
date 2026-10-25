@@ -56,6 +56,103 @@ def heal_stale_roles(user: str) -> bool:
 	return True
 
 
+# --- what the menu calls its entries, and when it offers them (2026-10-25) --------------------------
+#
+# The portal menu is the rows of Portal Settings, aggregated from five apps, and a row keeps the title
+# and the route it was created with: `sync_menu` never renames one. A customer therefore read « Mes
+# réservations » and « Assistance/Support » on two lines, French addresses (/sav, /mes-reservations) next
+# to English ones, and an entry for courses on a site that has none. What a customer reads is said here,
+# once, whatever the row says; the data of the instances is left as it is.
+
+# An entry's old address and its address now (the old one redirects, so a row that still holds it works).
+MOVED = {
+	"/sav": "/my-requests",
+	"/mes-reservations": "/my-bookings",
+	"/gift_cards": "/gift-cards",
+	"/loyalty_points": "/loyalty-points",
+	"/addresses": "/my-addresses",
+	"/my_addresses": "/my-addresses",
+}
+
+
+def N_(text: str) -> str:
+	"""Marks a msgid for the extractor (gettext's own convention) and returns it: the sidebar's template
+	translates `item.title` when it draws it, so the catalogue needs the word, not a translated copy."""
+	return text
+
+
+def shop_is_on() -> bool:
+	"""The e-commerce is active: the shopping cart of Webshop Settings is on."""
+	return bool(frappe.db.get_single_value("Webshop Settings", "enabled"))
+
+
+def support_title() -> str:
+	"""The word for the support. After the sale in a shop (« SAV »); a ticket anywhere else.
+
+	English msgids, translated where the menu is drawn. The support page names itself the same way
+	(neoffice_theme.support.support_label): change both together.
+	"""
+	return N_("After-sales") if shop_is_on() else N_("Tickets")
+
+
+def support_is_offered() -> bool:
+	try:
+		from neoffice_theme.support import support_enabled
+	except ImportError:
+		return True
+	return support_enabled()
+
+
+def courses_are_offered() -> bool:
+	"""Courses are offered when the site shows them and one is published (LMS's own rule for its public page)."""
+	if not frappe.db.exists("DocType", "LMS Course"):
+		return False
+	if frappe.get_meta("LMS Settings").has_field("neo_show_on_website") and not frappe.db.get_single_value(
+		"LMS Settings", "neo_show_on_website"
+	):
+		return False
+	return bool(frappe.db.exists("LMS Course", {"published": 1}))
+
+
+def switch_is_on(field: str):
+	return lambda: bool(frappe.db.get_single_value("Webshop Settings", field))
+
+
+# route -> (title, is it offered). A title is an English msgid, or a function that returns one.
+ENTRIES = {
+	"/my-requests": (support_title, support_is_offered),
+	"/my-bookings": (N_("Bookings"), None),
+	# "Courses" is « Plats » in the catalogue of the site (ERPNext's restaurant meals): a word of its own.
+	"/lms/courses": (N_("Trainings"), courses_are_offered),
+	"/my-projects": (N_("Projects"), None),
+	"/gift-cards": (N_("Gift cards"), switch_is_on("enable_gift_cards")),
+	"/loyalty-points": (N_("Loyalty"), switch_is_on("enable_loyalty_points")),
+}
+
+
+def adapt_menu(items) -> list:
+	"""The portal's rows as the customer reads them: new addresses, short titles, only what the site offers.
+
+	Each row is copied (the cached list is shared by every page of the user), an entry two rows give is
+	drawn once, and an entry the site does not offer is left out.
+	"""
+	seen, adapted = set(), []
+	for item in items or []:
+		route = MOVED.get(item.get("route"), item.get("route"))
+		if route in seen:
+			continue
+		title, offered = ENTRIES.get(route, (None, None))
+		if offered is not None and not offered():
+			continue
+		seen.add(route)
+		row = frappe._dict(item)
+		row["route"] = route
+		if title:
+			row["title"] = title() if callable(title) else title
+		adapted.append(row)
+	return adapted
+
+
 def give_the_account_its_menu(context) -> None:
 	"""Make a page of the signed-in customer's account show the account's menu.
 
@@ -77,3 +174,5 @@ def give_the_account_its_menu(context) -> None:
 		from frappe.website.utils import get_portal_sidebar_items
 
 		context["sidebar_items"] = get_portal_sidebar_items()
+
+	context["sidebar_items"] = adapt_menu(context.get("sidebar_items"))

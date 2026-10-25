@@ -66,3 +66,5 @@ webshop.patches.compute_seo_scores
 webshop.patches.switch_on_product_identifiers
 # //// Neoffice — the Sales Order field of an order held until its account's address is confirmed (2026-09-26, #691 D-9)
 webshop.patches.add_email_confirmation_hold_field
+# //// Neoffice — the account's menu rows take their English hyphenated addresses (2026-10-25, #1859)
+webshop.patches.english_account_menu_routes

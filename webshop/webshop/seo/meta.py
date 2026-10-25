@@ -19,6 +19,10 @@ NOINDEX_ROUTES = {
 	"wishlist",
 	"gift_cards",
 	"loyalty_points",
+	# //// Neoffice — the same pages at their English hyphenated addresses (2026-10-25)
+	"gift-cards",
+	"loyalty-points",
+	"my-addresses",
 	"login",
 	"search",
 	"product_search",
