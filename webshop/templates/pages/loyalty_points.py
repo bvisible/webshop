@@ -74,18 +74,22 @@ def get_context(context):
     context.total_points = loyalty_details.get("loyalty_points", 0)
 
     # Calculate points value
-    if context.conversion_factor and context.total_points:
-        points_value = flt(context.total_points) * flt(context.conversion_factor)
+    # //// Neoffice — the value of ONE point does not depend on the balance. It was only computed when the
+    # //// customer had points, so a customer with none read "1 point = None" under a balance of 0 (2026-10-25).
+    context.points_value = None
+    context.conversion_rate = None
+    if context.conversion_factor:
         currency = frappe.get_cached_value(
             "Company", loyalty_program.company, "default_currency"
         ) if loyalty_program.company else "CHF"
-        context.points_value = format_currency_value(points_value, currency=currency)
+        # //// Neoffice — the rate of one point, whatever the balance (see the marker above)
         context.conversion_rate = format_currency_value(
             context.conversion_factor, currency=currency
         )
-    else:
-        context.points_value = None
-        context.conversion_rate = None
+        # //// Neoffice — the value of the balance only when there is one
+        if context.total_points:
+            points_value = flt(context.total_points) * flt(context.conversion_factor)
+            context.points_value = format_currency_value(points_value, currency=currency)
 
     # Get points history
     context.points_history = get_loyalty_points_history_for_customer(customer, limit=10)

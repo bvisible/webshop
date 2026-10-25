@@ -464,6 +464,20 @@ class TestLoyaltyAndPaymentUnderUpstreamChecks(ShopFixture):
 		self.assertEqual(context.customer, CUSTOMER)
 		self.assertEqual(flt(context.total_points), POINTS)
 
+	def test_the_loyalty_page_names_the_value_of_a_point_to_a_customer_with_none(self):
+		# 2026-10-25: the value of one point was only computed with a balance, and a customer with none
+		# read "1 point = None" under a balance of 0.
+		frappe.set_user(USER)
+		context = frappe._dict()
+		with upstream_checks(), patch(
+			"webshop.webshop.shopping_cart.loyalty_rights.customer_loyalty_details",
+			return_value={"loyalty_points": 0},
+		):
+			loyalty_page.get_context(context)
+		self.assertTrue(context.conversion_rate)
+		self.assertNotIn("None", context.conversion_rate)
+		self.assertIsNone(context.points_value)
+
 	def test_the_order_page_shows_their_balance_and_redemption_factor(self):
 		order = self.place_an_order()
 		frappe.set_user(USER)
