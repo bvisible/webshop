@@ -59,11 +59,19 @@ def update_website_context(context):
 		if "product-page" not in classes:
 			context["body_class"] = " ".join(classes + ["product-page"])
 
+		# //// Neoffice — and the account's menu on each of them (2026-10-25): the links of /me led to
+		# //// pages with no sidebar, and a web form builds none of its own (utils/account_menu.py).
+		from webshop.webshop.utils.account_menu import give_the_account_its_menu
+
+		give_the_account_its_menu(context)
+
 
 # //// Neoffice — added (2026-09-14), see update_website_context.
 # //// Neoffice — "addresses" too: the shop's own address page (/my_addresses) and the checkout
 # //// send the customer to ERPNext's address web form, which a portal menu may not list
-ACCOUNT_PAGES = ("me", "update-password", "update-profile", "third_party_apps", "addresses")
+# //// Neoffice — "address" is that web form's own route (/address/new, /address/<name>): the menu's
+# //// route is /addresses, so the form was not recognised as a page of the account (2026-10-25)
+ACCOUNT_PAGES = ("me", "update-password", "update-profile", "third_party_apps", "addresses", "address")
 
 
 def is_account_page(context) -> bool:
