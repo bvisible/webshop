@@ -156,10 +156,14 @@ class TestAccountMenu(FrappeTestCase):
 			stale = get_portal_sidebar_items()
 		self.assertEqual([row.route for row in stale], ["/orders", "/sav"])
 
-		context = self.render(PLAIN, path="me", show_sidebar=1, sidebar_items=stale)
+		with patch.object(account_menu.frappe, "logger") as logger:
+			context = self.render(PLAIN, path="me", show_sidebar=1, sidebar_items=stale)
 
 		self.assertEqual(routes(context), ["/sav"])
 		self.assertNotIn("Customer", frappe.cache.hget("roles", PLAIN) or [])
+		# The heal leaves a trace at a level frappe's loggers keep (they start at ERROR).
+		logged = [call.args[0] for call in logger.return_value.error.call_args_list]
+		self.assertTrue(any("Stale roles cache" in line for line in logged), logged)
 
 	def cache_the_stored_roles(self, user, *automatic):
 		"""What `frappe.get_roles` caches for `user`: the rows of Has Role (apps add baseline roles at

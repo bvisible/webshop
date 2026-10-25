@@ -44,7 +44,9 @@ def heal_stale_roles(user: str) -> bool:
 	if known == stored:
 		return False
 
-	frappe.logger("webshop").warning(
+	# frappe's loggers start at ERROR (`frappe.log_level` is unset): a `warning` is dropped, and the
+	# heal would leave no trace. A GET is never committed, so an Error Log row would be lost too.
+	frappe.logger("webshop").error(
 		"Stale roles cache for %s: cached %s, stored %s",
 		user,
 		sorted(known),
