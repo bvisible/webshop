@@ -266,7 +266,7 @@ class TestShopRightsKeepsTheSession(FrappeTestCase):
 		# while the block ran would answer for the customer afterwards.
 		from webshop.webshop.shopping_cart.shop_rights import shop_rights
 
-		saved, saved_perms = frappe.local.session, frappe.local.get("user_perms")
+		saved, saved_perms = frappe.local.session, getattr(frappe.local, "user_perms", None)
 		try:
 			frappe.local.session = frappe._dict(user="portal-customer@yopmail.com", sid="s1", data=frappe._dict())
 			frappe.local.user_perms = None
