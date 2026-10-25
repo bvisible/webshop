@@ -274,6 +274,8 @@ jobs:
           # //// and Item checks) is blocking from its first push: on stock ERPNext those checks are real.
           # //// Neoffice — test_pending_order (the card payment raised on a placeholder order, #1802) too: it runs
           # //// the checkout under the Payment Request checks stock ERPNext has.
+          # //// Neoffice — test_page_addresses (the shop's English addresses and their old ones, #1862) reads
+          # //// the route rules and the templates and needs no site fixture either.
           for m in \
             webshop.controllers.test_payment_handler \
             webshop.controllers.test_payment_mode_enabled \
@@ -304,6 +306,7 @@ jobs:
             webshop.webshop.tests.test_account_pages \
             webshop.webshop.tests.test_account_menu \
             webshop.webshop.tests.test_account_look \
+            webshop.webshop.tests.test_page_addresses \
             webshop.webshop.utils.test_store_hours \
             webshop.webshop.utils.test_holidays \
             webshop.webshop.assistant.test_assistant \

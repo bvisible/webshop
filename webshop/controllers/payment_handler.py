@@ -419,6 +419,8 @@ class PaymentHandler:
                     )
                 return {
                     "status": "success",
+                    # //// Neoffice — upstream sends the buyer to /thank_you. Here the page is /thank-you (English hyphenated
+                    # //// addresses, #1862); /thank_you stays as a 301 that keeps the query string (neoffice_theme.renamed_routes).
                     "redirect_to": f"/thank-you?sales_order={payment_request.reference_name}",
                     "message": _("Payment already processed")
                 }
@@ -437,6 +439,8 @@ class PaymentHandler:
                 ):
                     return {
                         "status": "success",
+                        # //// Neoffice — upstream sends the buyer to /thank_you. Here the page is /thank-you (English hyphenated
+                        # //// addresses, #1862); /thank_you stays as a 301 that keeps the query string (neoffice_theme.renamed_routes).
                         "redirect_to": f"/thank-you?sales_order={payment_request.reference_name}",
                         "message": _("Payment already processed")
                     }
@@ -587,6 +591,8 @@ class PaymentHandler:
             self._invoice_paid_order(sales_order_name, payment_request)
 
             # Build default success URL
+            # //// Neoffice — upstream sends the buyer to /thank_you. Here the page is /thank-you (English hyphenated
+            # //// addresses, #1862); /thank_you stays as a 301 that keeps the query string (neoffice_theme.renamed_routes).
             success_url = f"/thank-you?sales_order={sales_order_name}"
             
             return {
@@ -809,6 +815,8 @@ class PaymentHandler:
             save_as_shop(si, submit=True)
 
             # Redirect to thank you page
+            # //// Neoffice — upstream sends the buyer to /thank_you. Here the page is /thank-you (English hyphenated
+            # //// addresses, #1862); /thank_you stays as a 301 that keeps the query string (neoffice_theme.renamed_routes).
             success_url = f"/thank-you?sales_order={sales_order_name}"
             
             return {

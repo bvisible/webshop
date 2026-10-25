@@ -64,6 +64,8 @@
 
 				{% if total_reviews > 4 %}
 					<div class="text-center mt-4">
+						<!-- //// Neoffice — upstream's /customer_reviews is /customer-reviews here (English hyphenated addresses, #1862); the old
+						     address stays as a 301 that keeps the query string (neoffice_theme.renamed_routes). -->
 						<a href="/customer-reviews?web_item={{ doc.name }}" class="btn btn-outline-primary">
 							{{ _("View all") }} {{ total_reviews }} {{ _("reviews") }}
 							<svg class="icon icon-sm ml-2">

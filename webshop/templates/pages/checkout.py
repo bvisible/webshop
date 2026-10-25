@@ -223,6 +223,8 @@ def get_context(context):
 		
 		# If it's a B2B customer, redirect to B2B checkout
 		if cart_info.get("is_b2b_customer"):
+			# //// Neoffice — upstream's /checkout_b2b is /checkout-b2b here (English hyphenated addresses, #1862); the old
+			# //// address stays as a 301 that keeps the query string (neoffice_theme.renamed_routes).
 			frappe.local.flags.redirect_location = '/checkout-b2b'
 			raise frappe.Redirect
 	
@@ -1334,6 +1336,8 @@ def cart_intent_state(intent: str) -> dict:
 
 	order = pending_order.confirmed_order(payment_request)
 	if order:
+		# //// Neoffice — upstream sends the buyer to /thank_you. Here the page is /thank-you (English hyphenated
+		# //// addresses, #1862); /thank_you stays as a 301 that keeps the query string (neoffice_theme.renamed_routes).
 		return {"done": True, "redirect_to": "/thank-you?sales_order={0}".format(order)}
 	if payment_request.status in ("Paid", "Completed"):
 		return {"done": True, "redirect_to": None}
