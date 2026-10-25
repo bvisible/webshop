@@ -45,3 +45,8 @@ class TestTheAccountLook(unittest.TestCase):
 		for title in (".my-account-header", ".web-form-title", ".page-card-head", ".mrz-head .nb-title--lg"):
 			self.assertIn(title, rule)
 		self.assertIn(":has(.site-page-header)", rule)
+
+	def test_the_menu_button_of_a_phone_takes_its_own_row(self):
+		# The shell pins it over the page (absolute, top right) beside a title row the account no longer prints.
+		rule = without_comments(ACCOUNT_STYLESHEET.read_text())
+		self.assertRegex(rule, r"\.sidebar-button\s*\{\s*position:\s*static;")

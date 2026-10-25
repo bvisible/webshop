@@ -158,4 +158,10 @@ body.wsp-account {
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
+
+	// ---- the menu's button on a phone --------------------------------------------------------
+	// The shell pins it (position: absolute, top right) at the corner of a title row the account's pages
+	// no longer print: the chrome's band is the title. Pinned over a zero-height wrapper it landed on the
+	// first line of every page; in the flow, it takes its own row above the content.
+	.sidebar-button { position: static; }
 }
