@@ -261,6 +261,22 @@ class TestShopRightsKeepsTheSession(FrappeTestCase):
 			frappe.local.session = saved
 			frappe.local.form_dict = saved_form
 
+	def test_the_permissions_cached_for_the_shop_do_not_outlive_the_block(self):
+		# frappe.get_user() keeps its UserPermissions in local.user_perms: the ones built for Administrator
+		# while the block ran would answer for the customer afterwards.
+		from webshop.webshop.shopping_cart.shop_rights import shop_rights
+
+		saved, saved_perms = frappe.local.session, frappe.local.get("user_perms")
+		try:
+			frappe.local.session = frappe._dict(user="portal-customer@yopmail.com", sid="s1", data=frappe._dict())
+			frappe.local.user_perms = None
+			with shop_rights():
+				frappe.local.user_perms = "built for Administrator"
+			self.assertIsNone(frappe.local.user_perms)
+		finally:
+			frappe.local.session = saved
+			frappe.local.user_perms = saved_perms
+
 	def test_administrator_passes_through_untouched(self):
 		from webshop.webshop.shopping_cart.shop_rights import shop_rights
 

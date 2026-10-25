@@ -67,6 +67,10 @@ def shop_rights():
 		frappe.local.jenv = None
 		frappe.local.role_permissions = {}
 		frappe.local.new_doc_templates = {}
+		# //// Neoffice — frappe.get_user() caches its UserPermissions in local.user_perms: whatever it cached for
+		# //// Administrator while the block ran must not stay for the customer (frappe/webshop a1b22e1aac, 2026-09-15,
+		# //// swaps this cache along with the user; set_user empties it on the way in, nothing did on the way out)
+		frappe.local.user_perms = None
 
 
 def save_as_shop(doc, submit=False, **save_kwargs):
