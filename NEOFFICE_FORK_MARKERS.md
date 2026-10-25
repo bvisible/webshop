@@ -17,6 +17,9 @@ divergences no marker can sit on.
 | our branch | `bvisible/webshop` `version-15` |
 | divergence base | `1a5239d4482800b8fe1cb7d88c4ea0d9e837a03e` — tip of **`frappe/webshop` `develop`** (2026-06-05, "fix: bad import caused due to erpnext refactor (#362)"), fully contained in our branch |
 | our commits since | ~494 |
+| upstream reviewed through | `a1b22e1aac` — tip of `frappe/webshop` `develop` on 2026-09-15, sorted on 2026-10-25 (neoffice-maintenance#1868): 22 commits, **none merged as a block** |
+| taken from it | the idea of `a1b22e1aac` (reset `local.user_perms` when the shop's rights end, in `shop_rights.py`) and of `b2b697361d` (`TaxService`, behind `cart.tax_builder()` so it holds on an erpnext that has none) |
+| not taken | `a1b22e1aac`/`80588995e0` as written (our `shop_rights`/`save_as_shop`, #277, already run the cart as the shop and keep the customer as owner); `bc423688be` (`db.sql` for other databases: we run MariaDB, and `product.py`/`item_group.py` are rewritten here); the `ruff`/pre-commit/CI/dependency commits (73 files of style, conflicts with all our divergence); the test and translation-quote tweaks (ours already say the same) |
 
 Careful: the branch is called `version-15` but its content is upstream
 **`develop`**, plus upstream's `version-15` backport line (whose last commit here
