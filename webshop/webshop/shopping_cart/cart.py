@@ -2394,6 +2394,16 @@ def _set_price_list(cart_settings, quotation=None):
 
 	return selling_price_list
 
+# //// Neoffice — added function, see set_taxes (upstream webshop b2b697361d, 2026-09-15).
+def tax_builder(quotation):
+	"""What builds the tax table of `quotation`: erpnext's TaxService when its version has one, else the document."""
+	try:
+		from erpnext.accounts.services.taxes import TaxService
+	except ImportError:
+		return quotation
+	return TaxService(quotation)
+
+
 def set_taxes(quotation, cart_settings):
 	"""set taxes based on billing territory"""
 	from erpnext.accounts.party import set_taxes
@@ -2419,8 +2429,12 @@ def set_taxes(quotation, cart_settings):
 	quotation.set("taxes", [])
 	#
 	# 	# append taxes
-	quotation.append_taxes_from_master()
-	quotation.append_taxes_from_item_tax_template()
+	# //// Neoffice — erpnext moved the tax-table builders off the document onto a TaxService (upstream
+	# //// webshop b2b697361d, 2026-09-15). The fleet's erpnext has no such service yet (#138): use it when it
+	# //// exists and the document's own methods otherwise, so the cart holds on both sides of that merge.
+	taxes = tax_builder(quotation)
+	taxes.append_taxes_from_master()
+	taxes.append_taxes_from_item_tax_template()
 	
 # //// Neoffice — added function. ERPNext books loyalty redemption on the invoice only;
 # //// the cart has to show the discount before there is an invoice, so the points are
