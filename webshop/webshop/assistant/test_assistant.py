@@ -831,6 +831,68 @@ class TestAssistant(FrappeTestCase):
 			frappe.set_user("Administrator")
 		self.assertEqual(ctx.page_route, "")
 
+	def test_no_tool_description_carries_a_number_that_could_be_a_real_document(self):
+		"""The model copies the example of a description into its answers ("par exemple BC-2026-00402").
+
+		Measured on 2026-10-30: it offered that number to a visitor who has no order, and the number was a real order of
+		a test customer. On a live shop an example like it can be a real customer's document: a format says it without
+		naming one."""
+		import re
+
+		document_number = re.compile(r"\b[A-Z]{2,6}(?:-[A-Z]{2,6})*-\d{4}-\d{3,6}\b")
+		for tool in tools.TOOLS:
+			texts = [tool.description] + [p.get("description", "") for p in tool.parameters["properties"].values()]
+			for text in texts:
+				with self.subTest(tool=tool.name, text=text[:50]):
+					self.assertIsNone(document_number.search(text), text)
+
+	# --- the language of the answer ----------------------------------------------------------------------
+
+	def test_the_language_of_every_message_of_the_quality_battery_is_recognised(self):
+		"""A visitor who writes German, English or Italian is answered in it, a refusal included.
+
+		A reminder in the prompt was not enough for this model (measured: German visitors still refused in French 4 times
+		out of 9), so the code finds the language of the last message and says it. French is the default: no hint."""
+		from webshop.webshop.assistant import prompt
+		from webshop.webshop.assistant.quality import cases
+
+		for case in cases.CASES:
+			for turn in case["turns"]:
+				if "{" in turn:
+					continue
+				with self.subTest(case=case["id"], turn=turn[:40]):
+					expected = case["lang"] if case["lang"] != "fr" else None
+					self.assertEqual(prompt.visitor_language(turn), expected)
+
+	def test_a_message_too_short_to_tell_is_left_in_the_default_language(self):
+		from webshop.webshop.assistant import prompt
+
+		for text in ("", "OK", "Bonjour", "Hello", "Merci !", "🙂"):
+			with self.subTest(text):
+				self.assertIsNone(prompt.visitor_language(text))
+
+	def test_the_prompt_says_which_language_the_last_message_is_in(self):
+		from webshop.webshop.assistant import prompt
+
+		ctx = self.guest_context("_WSTEST-guest-language")
+		ctx.last_message = "Schreib mir ein Gedicht über den Herbst."
+		german = prompt.build(ctx)
+		self.assertIn("est en allemand", german)
+		ctx.last_message = "Où se trouve votre magasin ?"
+		french = prompt.build(ctx)
+		self.assertNotIn("Le dernier message du visiteur est en", french)
+		# the reminder stays whatever the language: it is the default's
+		self.assertIn("Rappel : ta réponse", french)
+
+	def test_the_engine_hands_the_last_message_to_the_prompt(self):
+		fake = FakeModel(["Sure."])
+		llm.complete = fake
+		ctx = self.guest_context("_WSTEST-guest-engine-language")
+		conversation = self.new_conversation(ctx)
+		engine.respond(conversation, "What are your opening hours on Saturday?", ctx)
+		system = fake.seen[0][0]["content"]
+		self.assertIn("est en anglais", system)
+
 	def test_a_cookie_that_is_not_a_session_id_is_not_trusted(self):
 		"""The guest cookie is a string the visitor writes: a long one overflowed the field and made the insert raise."""
 		from webshop.webshop.shopping_cart import guest_cart

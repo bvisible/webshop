@@ -25,6 +25,8 @@ FALLBACK = "Je n'arrive pas à répondre pour le moment. Voulez-vous que je tran
 def respond(conversation, text, ctx):
 	"""Answer `text` inside `conversation`. Returns the reply and what the call cost."""
 	ctx.summary = conversation.summary
+	# //// Neoffice — the prompt names the language of this message (prompt.visitor_language; lot B of the 2026-10-30 audit)
+	ctx.last_message = text
 	conversation.add_message("user", text)
 	messages = _messages(conversation, ctx)
 	schemas = tools.schemas()

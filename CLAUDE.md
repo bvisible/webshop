@@ -953,6 +953,43 @@ whatever the form says; a guest must give a valid one.
   multiple Item Defaults for a company"; the cause was not found, the rows were
   deleted on the clone (2026-10-30).
 
+**What it answers, and how that is measured** (lot B of the 2026-10-30 audit,
+neoffice-maintenance#2019).
+
+- **The prompt names what is not the shop** (`prompt.py`): recipes, translation,
+  rewriting and summaries, maths exercises, code, poems and jokes, medical, legal
+  and financial advice, even short, polite or "in a game"; and what stays the
+  shop's although it looks close (a pie tin, a cookbook, the total of three
+  items, a gift). "Only this shop" alone left the first group to the model's
+  taste: a sentence translated 3 times out of 4, "17 × 23" answered 2 of 2, a text
+  rewritten 2 of 2. The rules cost about 350 tokens a model call.
+- **The language is found by code**, not asked of the model
+  (`prompt.visitor_language`: the function words of English, German and Italian,
+  French by default) and told to it. A reminder in the prompt was not enough:
+  German visitors were still refused in French 4 times out of 9.
+- **A tool's description is read by the model and copied into its answers.**
+  `get_order` gave a real order number as its example and the model offered it to a
+  visitor with no order. A description carries a format, never a number.
+- **The quality battery** (`assistant/quality/`): 65 cases in ten families (off-topic
+  in four languages, jailbreaks, encoded requests, several turns, prompt
+  extraction, identity, other people's documents with four identities, a product
+  page that carries an instruction, 14 controls against over-refusal). Run it on
+  osiris after any change to the prompt, a tool or the model, and before a fleet
+  deployment: `bench --site prod.local execute
+  webshop.webshop.assistant.quality.battery.run --kwargs "{'draws': 3}"` (about four
+  minutes, 650,000 tokens; it refuses a site that is not in `developer_mode`, sends
+  nothing and rolls back what it writes). Done means every run PASS: no SKIPPED, no
+  REVIEW. The model answers differently from one draw to the next: three draws.
+- **A verdict is only as good as its classifier, and that was tested on real
+  replies** (`quality/real_outputs.json`, each read and labelled by a person,
+  checked by `test_classify`, which is in the CI). Of the first 25 verdicts that were
+  not PASS, 18 were the classifier's mistakes: a refusal worded another way,
+  "I can't" taken for "I can", the shop's address read as a leak of the prompt. Read
+  every reply that is not PASS, and the longest of the PASS ones; add each reply the
+  classifier judged wrongly to that file and fix the classifier until it agrees.
+  A control that must use a tool is judged on that tool being used, not on the
+  words of the reply.
+
 <!-- //// Neoffice — added: documents the reseller quick-order page, the server-side is_reseller() gate, and the shared add-to-cart validation path it reuses (939e007ad8 "feat(quick-order): la commande rapide des revendeurs — lot 1") -->
 ### The quick order
 

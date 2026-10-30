@@ -492,7 +492,7 @@ TOOLS = [
 	frappe._dict(
 		name="get_order",
 		description="Le détail d'une commande du client connecté : lignes, livraison, facturation. Refusé si la commande n'est pas la sienne.",
-		parameters=_schema({"number": {"type": "string", "description": "Numéro de la commande, par exemple BC-2026-00402"}}, ["number"]),
+		parameters=_schema({"number": {"type": "string", "description": "Numéro de la commande, au format BC-AAAA-NNNNN"}}, ["number"]),
 		handler=get_order,
 	),
 	frappe._dict(
