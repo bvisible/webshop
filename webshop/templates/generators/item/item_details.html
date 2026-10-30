@@ -129,6 +129,12 @@
 	{# //// Neoffice — not under a gift card: nothing ships, nothing comes back (2026-09-13). #}
 	{% if not doc.is_gift_card %}
 	{% include "templates/generators/item/item_promises.html" %}
+	{# //// Neoffice — the product's sheet, a PDF: the shop's, and the reseller's own (catalogue/sheet_links.py, 2026-10-30) #}
+	{% if sheet_links %}
+	<div class="wsp-sheet-links mt-3">
+		{% for link in sheet_links %}<a class="btn btn-outline-primary btn-sm mr-2 mb-2" href="{{ link.href | e }}" target="_blank" rel="noopener">{{ link.label | e }}</a>{% endfor %}
+	</div>
+	{% endif %}
 	{% endif %}
 	{% set _trust_items = cart_settings.get("trust_items") or [] %}
 	{% if _trust_items %}

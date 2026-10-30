@@ -1,0 +1,86 @@
+{# //// Neoffice — added file (no upstream equivalent). The product sheet, one page: the issuer's header, the
+   photographs, the price and what the page promises, the text, the characteristics, a QR code. #}
+{# //// Frappe's environment does not autoescape: every text goes through |e, none through |safe but the CSS, #}
+{# //// which sheet.py builds and escapes itself. #}
+<!doctype html>
+<html lang="{{ sheet.lang | e }}">
+<head>
+<meta charset="utf-8">
+<title>{{ sheet.title | e }}</title>
+<style>{{ css | safe }}</style>
+</head>
+<body>
+<header class="head">
+	<div class="logo">
+		{% if sheet.issuer.logo %}<img src="{{ sheet.issuer.logo }}" alt="{{ sheet.issuer.name | e }}">
+		{% else %}<div class="brandname">{{ sheet.issuer.name | e }}</div>{% endif %}
+	</div>
+	<div class="contact">{% for line in sheet.issuer.contact %}<div>{{ line | e }}</div>{% endfor %}</div>
+</header>
+
+{% if sheet.category %}<div class="kicker">{{ sheet.category | e }}</div>{% endif %}
+<h1>{{ sheet.name | e }}</h1>
+<div class="meta">
+	{% if sheet.brand %}<span>{{ sheet.brand | e }}</span>{% endif %}
+	{% if sheet.reference %}<span>{{ _("Ref.") }} {{ sheet.reference | e }}</span>{% endif %}
+	{% for label, value in sheet.identifiers %}<span>{{ label | e }} {{ value | e }}</span>{% endfor %}
+</div>
+
+<div class="cols">
+	<div class="gallery">
+		<div class="main">
+			{% if sheet.pictures %}<img src="{{ sheet.pictures[0] }}" alt="{{ sheet.name | e }}">
+			{% else %}<div class="noimage">{{ sheet.abbreviation | e }}</div>{% endif %}
+		</div>
+		{% if sheet.pictures | length > 1 %}
+		<div class="thumbs">{% for picture in sheet.pictures[1:] %}<div class="t"><img src="{{ picture }}" alt=""></div>{% endfor %}</div>
+		{% endif %}
+	</div>
+	<div class="side">
+		{% if sheet.price %}
+			<div class="price">{{ sheet.price.amount | e }}</div>
+			{% if sheet.price.struck %}<div class="struck">{{ sheet.price.struck | e }}</div>{% endif %}
+			{% if sheet.price.note %}<div class="note">{{ sheet.price.note | e }}</div>{% endif %}
+		{% endif %}
+		{% if sheet.availability %}<div class="pill {{ sheet.availability.tone | e }}">{{ sheet.availability.label | e }}</div>{% endif %}
+		{% if sheet.used %}
+			<div class="used"><b>{{ sheet.used.condition | e }}{% if sheet.used.grade %} · {{ sheet.used.grade | e }}{% endif %}</b>
+			{% if sheet.used.details %}{{ sheet.used.details | e }}<br>{% endif %}
+			{% if sheet.used.warranty %}{{ sheet.used.warranty | e }}{% endif %}</div>
+		{% endif %}
+		{% if sheet.promises %}<ul class="promises">{% for line in sheet.promises %}<li>{{ line | e }}</li>{% endfor %}</ul>{% endif %}
+		{% if sheet.choices %}<div class="choices">{{ _("{0} choices").format(sheet.choices) | e }}</div>{% endif %}
+		<div class="qrbox">
+			{% if sheet.qr %}<img src="{{ sheet.qr }}" alt="">{% endif %}
+			<div>
+				{% if sheet.qr_caption %}<div class="cap">{{ sheet.qr_caption | e }}</div>{% endif %}
+				<div class="date">{{ sheet.date_line | e }}</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% if sheet.description %}
+<h2>{{ _("Description") }}</h2>
+<div class="desc">{% for paragraph in sheet.description %}<p>{{ paragraph | e }}</p>{% endfor %}</div>
+{% endif %}
+
+{% if sheet.variants %}
+<h2>{{ _("Choices") }}</h2>
+<table class="variants">
+	<thead><tr><th>{{ _("Choice") }}</th><th>{{ _("EAN") }}</th>{% if sheet.show_variant_prices %}<th class="p">{{ _("Price") }}</th>{% endif %}</tr></thead>
+	<tbody>{% for row in sheet.variants %}
+		<tr><td>{{ row.name | e }}</td><td>{{ row.ean | e }}</td>{% if sheet.show_variant_prices %}<td class="p">{{ (row.price or "") | e }}</td>{% endif %}</tr>
+	{% endfor %}</tbody>
+</table>
+{% endif %}
+
+{% if sheet.specs %}
+<h2>{{ _("Characteristics") }}</h2>
+<table>{% for name, value in sheet.specs %}<tr><td class="k">{{ name | e }}</td><td>{{ value | e }}</td></tr>{% endfor %}</table>
+{% endif %}
+
+{% if sheet.issuer.footer %}<div class="credit">{{ sheet.issuer.footer | e }}</div>{% endif %}
+{% if sheet.issuer.credit %}<div class="credit">{{ sheet.issuer.credit | e }}</div>{% endif %}
+</body>
+</html>

@@ -397,6 +397,11 @@ class WebsiteItem(WebsiteGenerator):
 		from webshop.webshop.utils.promises import shopping_promises
 
 		context.promises = shopping_promises(settings)
+		# //// Neoffice — the links to the product's sheet, a PDF, printed under the promises: the shop's,
+		# //// and the reseller's own (catalogue/sheet_links.py, 2026-10-30).
+		from webshop.webshop.catalogue.sheet_links import sheet_links
+
+		context.sheet_links = sheet_links(self, settings)
 		context.brand_info = None
 		if self.brand:
 			brand = frappe.get_cached_value("Brand", self.brand, ["description", "image"], as_dict=True) or {}

@@ -113,7 +113,8 @@ Custom Fields if we ever want to shrink the divergence.
   e-mails (`abandoned_cart_section` + its delays/template/incentive fields,
   `follow_up_section`, `enable_purchase_follow_ups`, `follow_up_audience`,
   `follow_up_status`, `follow_up_note`); reseller catalogue (`tab_reseller_catalogue`,
-  `enable_reseller_catalogue`, `reseller_catalogue_groups`, `catalogue_credit_text`).
+  `product_sheet_section`, `enable_product_sheet`, `reseller_catalogue_section`, `enable_reseller_catalogue`,
+  `reseller_catalogue_groups`, `catalogue_credit_text`).
 - **Removed**: `search_index_fields`, `item_search_settings_section`,
   `is_redisearch_loaded`, `redisearch_warning`, `is_redisearch_enabled` —
   RediSearch was disabled in favour of plain SQL search (`c54680b459` /

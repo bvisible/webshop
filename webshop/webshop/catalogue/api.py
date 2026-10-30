@@ -11,6 +11,7 @@ put it beside the field; a refusal of permission raises.
 
 import base64
 import binascii
+import html
 
 import frappe
 from frappe import _
@@ -65,7 +66,20 @@ def starting_values(customer):
 	return values
 
 
+def _plain(value):
+	"""A text as the reseller typed it. Frappe stores a Data field with its HTML characters escaped (`&`
+	becomes `&amp;`), as it does a product's name; the form, the sheets and the catalogues print what was typed."""
+	return html.unescape(value) if isinstance(value, str) else value
+
+
 def _values(profile, customer):
+	values = _stored_values(profile, customer)
+	for field in (*brand.TEXT_LIMITS, brand.ADDRESS_FIELD):
+		values[field] = _plain(values.get(field))
+	return values
+
+
+def _stored_values(profile, customer):
 	if not profile:
 		return starting_values(customer)
 	values = {field: profile.get(field) for field in BRAND_FIELDS}
@@ -116,7 +130,7 @@ def _payload(customer):
 		"values": values,
 		"logo": _logo_data_url(profile),
 		"ink": _inks(values),
-		"credit_line": (access.shop_settings().get("catalogue_credit_text") or "").strip(),
+		"credit_line": _plain((access.shop_settings().get("catalogue_credit_text") or "").strip()),
 		"roundings": list(markup.ROUNDINGS),
 		"displays": list(brand.PRICE_DISPLAYS),
 		"max_markup": float(markup.MAX_MARKUP_PERCENT),

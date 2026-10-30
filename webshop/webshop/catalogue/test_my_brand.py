@@ -181,6 +181,15 @@ class TestMyBrand(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value(DOCTYPE, A_CUSTOMER, "default_markup_percent"), 30)
 		self.assertFalse(frappe.db.get_value(DOCTYPE, A_CUSTOMER, "logo"), "the logo is set by the upload, never by a value")
 
+	def test_a_name_with_an_ampersand_reads_back_as_it_was_typed(self):
+		# Frappe stores a Data field escaped; the form and every sheet print what the reseller wrote
+		frappe.set_user(A_USER)
+		api.save_my_brand({"brand_name": "Müller & Fils", "footer_text": "Tom & Jerry", "contact_address": "Rue A & B 1\n1950 Sion"})
+		values = api.get_my_brand()["values"]
+		self.assertEqual(values["brand_name"], "Müller & Fils")
+		self.assertEqual(values["footer_text"], "Tom & Jerry")
+		self.assertEqual(values["contact_address"], "Rue A & B 1\n1950 Sion")
+
 	def test_two_resellers_keep_their_own_brand(self):
 		frappe.set_user(A_USER)
 		api.save_my_brand({"brand_name": "Shop A", "default_markup_percent": 20})

@@ -281,6 +281,9 @@ jobs:
           # //// Neoffice — the brand page: the field checks and the logo are pure (Pillow only); test_my_brand runs
           # //// the endpoints on a published item priced on two lists, the proof that a catalogue prints each
           # //// reseller's own price.
+          # //// Neoffice — the product sheet (lot 1): the pictures are pure (Pillow only); test_sheet makes the sheet
+          # //// of real items and, where the bench has the Chrome PDF generator's Chromium, its PDF — a bench
+          # //// without it (this site) skips those two tests, and the count of skipped says so.
           for m in \
             webshop.controllers.test_payment_handler \
             webshop.controllers.test_payment_mode_enabled \
@@ -366,7 +369,9 @@ jobs:
             webshop.webshop.catalogue.test_access \
             webshop.webshop.catalogue.test_brand \
             webshop.webshop.catalogue.test_logo \
-            webshop.webshop.catalogue.test_my_brand
+            webshop.webshop.catalogue.test_my_brand \
+            webshop.webshop.catalogue.test_images \
+            webshop.webshop.catalogue.test_sheet
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || failed="$failed $m"

@@ -52,6 +52,11 @@ class BrandRefused(ValueError):
 		self.reason = reason
 
 
+def is_colour(value):
+	"""Whether `value` is a colour written #rrggbb."""
+	return isinstance(value, str) and bool(_COLOUR.fullmatch(value))
+
+
 def _text(field, value, limit):
 	value = "" if value is None else str(value)
 	if _CONTROL.search(value):
