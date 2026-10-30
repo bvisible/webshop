@@ -12,7 +12,7 @@ import json
 
 import frappe
 from frappe import _
-from frappe.utils import cint
+from frappe.utils import cint, now_datetime
 
 from webshop.webshop.assistant import llm, prompt, tools
 
@@ -131,11 +131,37 @@ def _maybe_summarise(conversation, ctx):
 		frappe.log_error("Shop assistant: summary failed", frappe.get_traceback())
 
 
-def monthly_tokens():
-	"""Prompt + completion tokens of every conversation touched this month."""
+# //// Neoffice ▼▼▼ — lot C of the 2026-10-30 audit: every page of the shop and every message asked for this sum, which reads
+# //// the month's conversations. It is kept for a minute: the cap is a ceiling, not an exact meter, and the site's hourly
+# //// budget bounds what a minute can add.
+MONTHLY_TOKENS_CACHE_SECONDS = 60
+
+
+def _monthly_tokens_key():
+	return "webshop_assistant_month_tokens:" + now_datetime().strftime("%Y%m")
+
+
+def count_monthly_tokens():
+	"""Prompt + completion tokens of every conversation touched this month, from the database."""
 	row = frappe.db.sql(
 		"""select coalesce(sum(prompt_tokens), 0) + coalesce(sum(completion_tokens), 0)
 		from `tabShop Assistant Conversation`
 		where last_message_on >= date_format(now(), '%%Y-%%m-01')""",
 	)
 	return cint(row[0][0]) if row else 0
+
+
+def monthly_tokens():
+	"""Prompt + completion tokens of every conversation touched this month, at most a minute old."""
+	cache = frappe.cache()
+	cached = cache.get_value(_monthly_tokens_key(), expires=True)
+	if cached is not None:
+		return cint(cached)
+	total = count_monthly_tokens()
+	cache.set_value(_monthly_tokens_key(), total, expires_in_sec=MONTHLY_TOKENS_CACHE_SECONDS)
+	return total
+
+
+def forget_monthly_tokens():
+	frappe.cache().delete_value(_monthly_tokens_key())
+# //// Neoffice ▲▲▲

@@ -10,6 +10,36 @@ webshop.assistant = {
 	busy: false,
 	el: {},
 
+	//// Neoffice ▼▼▼ — lot C of the 2026-10-30 audit. Every page view used to ask the server for the bubble
+	//// (`get_config` looks a conversation up), a crawler's or a probe's as well as a person's. The page now asks
+	//// once a visitor shows up — a touch, a key, a scroll — or, for somebody who only reads, after a quiet while.
+	//// A visitor who had the bubble open on the previous page finds it at once.
+	SIGNS_OF_A_VISITOR: ["pointerdown", "pointermove", "keydown", "scroll", "touchstart", "wheel"],
+	QUIET_WHILE_MS: 6000,
+
+	whenWanted(start) {
+		let started = false;
+		let timer = null;
+		const go = () => {
+			if (started) return;
+			started = true;
+			this.SIGNS_OF_A_VISITOR.forEach((sign) => window.removeEventListener(sign, go));
+			clearTimeout(timer);
+			start();
+		};
+		this.SIGNS_OF_A_VISITOR.forEach((sign) => window.addEventListener(sign, go, { passive: true }));
+		timer = setTimeout(go, this.QUIET_WHILE_MS);
+	},
+
+	wasOpen() {
+		try {
+			return sessionStorage.getItem("wsh-assistant-open") === "1";
+		} catch (e) {
+			return false;
+		}
+	},
+	//// Neoffice ▲▲▲
+
 	async init() {
 		if (document.getElementById("wsh-assistant")) return;
 		let config;
@@ -351,4 +381,9 @@ webshop.assistant = {
 	},
 };
 
-frappe.ready(() => webshop.assistant.init());
+//// Neoffice — was `frappe.ready(() => webshop.assistant.init())`: see whenWanted()
+frappe.ready(() => {
+	const assistant = webshop.assistant;
+	if (assistant.wasOpen()) assistant.init();
+	else assistant.whenWanted(() => assistant.init());
+});

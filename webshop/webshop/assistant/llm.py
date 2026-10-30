@@ -57,6 +57,8 @@ def config(settings=None):
 		api_key=api_key,
 		model=model or DEFAULT_MODEL,
 		timeout=cint(settings.get("assistant_llm_timeout")) or DEFAULT_TIMEOUT,
+		# //// Neoffice — lot C of the 2026-10-30 audit: empty or 0 sends nothing
+		priority=cint(settings.get("assistant_llm_priority")) or None,
 	)
 
 
@@ -75,6 +77,11 @@ def complete(messages, tools=None, settings=None, temperature=0.2, max_tokens=70
 	if tools:
 		payload["tools"] = tools
 		payload["tool_choice"] = "auto"
+	# //// Neoffice — a model shared with the team's own use may serve its requests by priority (vLLM's `priority`: the
+	# //// lower the number, the sooner). The shop sets a high one so that anonymous visitors never delay the team; the
+	# //// field is not sent when empty, because an endpoint without that scheduling refuses it (lot C of the 2026-10-30 audit)
+	if cfg.priority:
+		payload["priority"] = cfg.priority
 	headers = {"Content-Type": "application/json"}
 	if cfg.api_key:
 		headers["Authorization"] = f"Bearer {cfg.api_key}"

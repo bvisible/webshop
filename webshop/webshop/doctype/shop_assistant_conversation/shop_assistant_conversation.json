@@ -48,13 +48,15 @@
    "fieldname": "user",
    "fieldtype": "Link",
    "label": "User",
-   "options": "User"
+   "options": "User",
+   "search_index": 1
   },
   {
    "description": "The visitor's cart cookie when nobody is signed in",
    "fieldname": "guest_session",
    "fieldtype": "Data",
-   "label": "Guest Session"
+   "label": "Guest Session",
+   "search_index": 1
   },
   {
    "fieldname": "column_break_head",
@@ -71,7 +73,8 @@
    "fieldtype": "Datetime",
    "in_list_view": 1,
    "label": "Last Message On",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "description": "The last page the visitor wrote from",

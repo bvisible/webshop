@@ -214,6 +214,9 @@ class TestAssistant(FrappeTestCase):
 		api.clear_outage()
 		# //// Neoffice — the site's hourly budget lives in Redis too: a test must not inherit the previous one's messages
 		api.clear_site_hour()
+		# //// Neoffice — and the places being answered (lot C): a test that died inside one must not hold it for the next
+		api.clear_answer_slots()
+		engine.forget_monthly_tokens()
 
 	def tearDown(self):
 		llm.complete = self.real_complete
@@ -221,6 +224,8 @@ class TestAssistant(FrappeTestCase):
 		api.settings = self.real_settings
 		api.clear_outage()
 		api.clear_site_hour()
+		api.clear_answer_slots()
+		engine.forget_monthly_tokens()
 		frappe.set_user("Administrator")
 
 	def guest_context(self, session="_WSTEST-guest-1"):
@@ -634,6 +639,187 @@ class TestAssistant(FrappeTestCase):
 					api.leave_message("Rappelez-moi")
 		finally:
 			frappe.set_user("Administrator")
+
+	# --- how many answers the site gives at once (lot C) ---------------------------------------
+	# Each answer holds one of the shop's few web workers for as long as the model takes (25 s and more). Ten visitors
+	# asking together would hold them all, and the shop itself would stop answering.
+
+	def test_the_site_gives_a_few_answers_at_once_and_the_next_visitor_is_told_to_come_back(self):
+		with api.answer_slot(2) as first:
+			with api.answer_slot(2) as second:
+				with api.answer_slot(2) as third:
+					self.assertEqual((first, second, third), (True, True, False))
+				# the refused one took nothing: a place freed now is the next visitor's
+			with api.answer_slot(2) as again:
+				self.assertTrue(again)
+		with api.answer_slot(2) as free:
+			self.assertTrue(free)
+
+	def test_a_place_is_given_back_when_the_answer_fails(self):
+		with self.assertRaises(RuntimeError):
+			with api.answer_slot(1) as granted:
+				self.assertTrue(granted)
+				raise RuntimeError("the answer broke")
+		with api.answer_slot(1) as after:
+			self.assertTrue(after)
+
+	def test_a_place_whose_holder_died_is_free_again_after_the_lock_time(self):
+		import time
+
+		key = frappe.cache().make_key(api.ANSWER_SLOTS_KEY)
+		frappe.cache().zadd(key, {"dead-worker": time.time() - api.LOCK_SECONDS - 5})
+		with api.answer_slot(1) as granted:
+			self.assertTrue(granted)
+
+	def test_the_merchant_sets_how_many_answers_at_once_and_an_empty_field_means_three(self):
+		self.assertEqual(api.max_simultaneous(self.settings), api.DEFAULT_SIMULTANEOUS_ANSWERS)
+		self.assertEqual(api.DEFAULT_SIMULTANEOUS_ANSWERS, 3)
+		self.settings.assistant_max_simultaneous_answers = 5
+		self.assertEqual(api.max_simultaneous(self.settings), 5)
+
+	def test_a_visitor_met_with_no_free_place_gets_the_busy_notice_and_the_model_is_not_called(self):
+		def never(*args, **kwargs):
+			raise AssertionError("the model must not be called while every place is taken")
+
+		self.settings.assistant_max_simultaneous_answers = 1
+		llm.complete = never
+		frappe.set_user(USER)
+		try:
+			with api.answer_slot(1):
+				out = api.send("Bonjour")
+			llm.complete = FakeModel(["Oui."])
+			after = api.send("Et maintenant ?")
+		finally:
+			frappe.set_user("Administrator")
+		self.assertEqual(out["unavailable"], "busy")
+		self.assertIn("very busy", out["reply"])
+		self.assertTrue(out["limited"])
+		self.assertTrue(out["leave_message"])
+		# a busy site is not a dead model: nobody else is sent to the answering machine
+		self.assertFalse(api.in_outage())
+		# the visitor's words were not kept: asking again later is the way on, and the retry is answered
+		self.assertEqual(after["reply"], "Oui.")
+		conversation = frappe.get_all("Shop Assistant Conversation", filters={"user": USER}, pluck="name")
+		(shown,) = [
+			m for c in conversation for m in frappe.get_doc("Shop Assistant Conversation", c).messages if m.role == "user"
+		]
+		self.assertEqual(shown.content, "Et maintenant ?")
+
+	def test_the_place_is_held_for_the_whole_answer_and_given_back_after_it(self):
+		held = []
+
+		def watching(messages, tools_schema=None, settings=None, **kwargs):
+			with api.answer_slot(1) as granted:
+				held.append(not granted)  # no place left for a second one while this answer runs
+			return FakeModel(["Oui."])(messages, tools_schema, settings)
+
+		llm.complete = watching
+		frappe.set_user(USER)
+		try:
+			api.send("Bonjour")
+		finally:
+			frappe.set_user("Administrator")
+		self.assertEqual(held, [True])
+		with api.answer_slot(1) as granted:
+			self.assertTrue(granted)
+
+	# --- what every page and every message costs the database (lot C) -------------------------
+
+	def test_the_columns_a_visitor_is_found_by_are_indexed(self):
+		"""The bubble's config and every message look the visitor's conversation up by user or cookie, newest first."""
+		for column in ("user", "guest_session", "last_message_on"):
+			with self.subTest(column=column):
+				self.assertTrue(
+					frappe.db.get_column_index("tabShop Assistant Conversation", column, unique=False),
+					f"no index on {column}: every page of the shop would read the whole table",
+				)
+
+	def test_the_month_s_tokens_are_summed_once_a_minute_not_once_a_page(self):
+		engine.forget_monthly_tokens()
+		calls = []
+		real = engine.count_monthly_tokens
+		engine.count_monthly_tokens = lambda: calls.append(1) or 1234
+		try:
+			first = engine.monthly_tokens()
+			second = engine.monthly_tokens()
+			engine.forget_monthly_tokens()
+			third = engine.monthly_tokens()
+		finally:
+			engine.count_monthly_tokens = real
+			engine.forget_monthly_tokens()
+		self.assertEqual((first, second, third), (1234, 1234, 1234))
+		self.assertEqual(len(calls), 2, "one sum for the first two reads, one more after the cache was forgotten")
+
+	def test_the_cached_sum_is_the_database_s_sum(self):
+		engine.forget_monthly_tokens()
+		try:
+			self.assertEqual(engine.monthly_tokens(), engine.count_monthly_tokens())
+		finally:
+			engine.forget_monthly_tokens()
+
+	def test_a_conversation_that_reached_its_size_is_closed_and_the_next_message_opens_a_new_one(self):
+		"""Every message loads the whole thread; a visitor who stays for weeks must not make it ever heavier."""
+		real = api.MAX_CONVERSATION_MESSAGES
+		api.MAX_CONVERSATION_MESSAGES = 3  # one exchange is two messages
+		llm.complete = FakeModel(["Un.", "Deux.", "Trois."])
+		frappe.set_user(USER)
+		try:
+			first = api.send("Bonjour")
+			still_open = frappe.db.get_value("Shop Assistant Conversation", first["conversation"], "status")
+			second = api.send("Et ensuite ?")
+			closed = frappe.db.get_value("Shop Assistant Conversation", first["conversation"], "status")
+			third = api.send("Encore une question")
+		finally:
+			api.MAX_CONVERSATION_MESSAGES = real
+			frappe.set_user("Administrator")
+		self.assertEqual(still_open, "Open")
+		self.assertEqual(second["conversation"], first["conversation"], "under its size, the thread goes on")
+		self.assertEqual(closed, "Closed")
+		self.assertNotEqual(third["conversation"], first["conversation"])
+		self.assertEqual(frappe.db.get_value("Shop Assistant Conversation", third["conversation"], "status"), "Open")
+
+	def test_a_full_conversation_is_not_found_again_but_an_escalated_one_keeps_its_thread_for_the_team(self):
+		real = api.MAX_CONVERSATION_MESSAGES
+		api.MAX_CONVERSATION_MESSAGES = 2
+		llm.complete = FakeModel(["Un."])
+		frappe.set_user(USER)
+		try:
+			out = api.send("Bonjour")
+			name = out["conversation"]
+			frappe.db.set_value("Shop Assistant Conversation", name, "status", "Escalated")
+			ctx = self.customer_context()
+			found = api.find_conversation(ctx)
+		finally:
+			api.MAX_CONVERSATION_MESSAGES = real
+			frappe.set_user("Administrator")
+		self.assertIsNone(found, "a thread at its size is not resumed, whatever its status")
+		self.assertEqual(frappe.db.get_value("Shop Assistant Conversation", name, "status"), "Escalated")
+
+	def test_the_priority_goes_to_the_model_only_when_the_merchant_set_one(self):
+		"""A shared model serves the team's own use and the shop's visitors: the shop may ask to be served after."""
+		sent = []
+
+		class Answer:
+			def raise_for_status(self):
+				pass
+
+			def json(self):
+				return {"choices": [{"message": {"content": "ok"}, "finish_reason": "stop"}], "usage": {}}
+
+		def post(url, json=None, headers=None, timeout=None):
+			sent.append(json)
+			return Answer()
+
+		real_post = llm.requests.post
+		llm.requests.post = post
+		try:
+			llm.complete([{"role": "user", "content": "x"}], settings=self.settings)
+			self.settings.assistant_llm_priority = 10
+			llm.complete([{"role": "user", "content": "x"}], settings=self.settings)
+		finally:
+			llm.requests.post = real_post
+		self.assertNotIn("priority", sent[0])
+		self.assertEqual(sent[1]["priority"], 10)
 
 	def test_a_fault_of_ours_is_not_blamed_on_the_model(self):
 		def bug(*args, **kwargs):

@@ -140,9 +140,11 @@
   "assistant_column_llm",
   "assistant_llm_model",
   "assistant_llm_timeout",
+  "assistant_llm_priority",
   "assistant_limits_section",
   "assistant_guest_daily_limit",
   "assistant_user_daily_limit",
+  "assistant_max_simultaneous_answers",
   "assistant_retention_days",
   "assistant_column_limits",
   "assistant_monthly_token_cap",
@@ -434,6 +436,12 @@
    "label": "Timeout (seconds)"
   },
   {
+   "description": "Empty or 0: not sent. For a model shared with the team's own use that serves requests by priority (vLLM): the higher the number, the later the visitors are served. An endpoint without that scheduling refuses the field.",
+   "fieldname": "assistant_llm_priority",
+   "fieldtype": "Int",
+   "label": "Priority of the visitors' requests"
+  },
+  {
    "depends_on": "enable_assistant",
    "fieldname": "assistant_limits_section",
    "fieldtype": "Section Break",
@@ -450,6 +458,12 @@
    "fieldname": "assistant_user_daily_limit",
    "fieldtype": "Int",
    "label": "Messages per day, signed-in customer"
+  },
+  {
+   "description": "Answers the assistant gives at the same moment, whoever asks. Each one holds one of the shop's web workers while the model answers. Empty: 3.",
+   "fieldname": "assistant_max_simultaneous_answers",
+   "fieldtype": "Int",
+   "label": "Answers at the same moment"
   },
   {
    "default": "90",

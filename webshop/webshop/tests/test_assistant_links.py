@@ -117,6 +117,109 @@ def glyph():
 	return json.loads(run.stdout)[0]
 
 
+START_RUNNER = r"""
+const vm = require("vm");
+const fs = require("fs");
+const wanted = JSON.parse(process.argv[2]);
+const calls = [];
+const listeners = {};
+const timers = [];
+let ready = null;
+const sandbox = {
+	frappe: { provide() {}, ready(callback) { ready = callback; }, csrf_token: "tok" },
+	webshop: {},
+	document: { getElementById: () => null },
+	window: {
+		addEventListener(name, callback) { (listeners[name] = listeners[name] || []).push(callback); },
+		removeEventListener(name, callback) { listeners[name] = (listeners[name] || []).filter((c) => c !== callback); },
+	},
+	sessionStorage: { getItem: (key) => (wanted.stored && key === "wsh-assistant-open" ? "1" : null) },
+	setTimeout: (callback, ms) => { timers.push({ callback, ms, cleared: false }); return timers.length - 1; },
+	clearTimeout: (id) => { if (timers[id]) timers[id].cleared = true; },
+	URL,
+	URLSearchParams,
+	location: { origin: "https://shop.example", host: "shop.example", pathname: "/" },
+	fetch: async (url) => {
+		calls.push(url);
+		return { ok: true, status: 200, json: async () => ({ message: { enabled: false } }) };
+	},
+};
+vm.createContext(sandbox);
+vm.runInContext(fs.readFileSync(process.argv[1], "utf8"), sandbox);
+const fire = (name) => (listeners[name] || []).slice().forEach((callback) => callback({}));
+const asked = () => calls.filter((url) => url.includes("get_config")).length;
+(async () => {
+	ready();
+	const seen = { at_load: asked() };
+	for (const step of wanted.steps) {
+		if (step === "timer") timers.filter((t) => !t.cleared).forEach((t) => t.callback());
+		else fire(step);
+		await new Promise((resolve) => setImmediate(resolve));
+		seen[step] = asked();
+	}
+	seen.fallback_ms = timers.map((t) => t.ms);
+	seen.listening = Object.keys(listeners).filter((name) => listeners[name].length);
+	console.log(JSON.stringify(seen));
+})();
+"""
+
+
+def start_page(steps, stored=False):
+	"""How many times the page asked the server for the bubble, after each step a visitor (or the clock) took."""
+	node = shutil.which("node")
+	if not node:
+		raise AssertionError("Node is needed to run assistant.js: install it, this test does not skip")
+	run = subprocess.run(
+		[node, "-e", START_RUNNER, str(ASSISTANT_JS), json.dumps({"steps": steps, "stored": stored})],
+		capture_output=True,
+		text=True,
+		timeout=60,
+	)
+	if run.returncode:
+		raise AssertionError(run.stderr)
+	return json.loads(run.stdout)
+
+
+class TestAssistantStart(FrappeTestCase):
+	"""Every page view used to ask the server for the bubble, whether anybody was there or not (lot C of the 2026-10-30 audit).
+
+	A crawler that renders the page, a monitoring probe, a bot reading a thousand product pages: each one cost a
+	`get_config`, which looks up a conversation. The bubble now asks once the visitor shows up.
+	"""
+
+	def test_a_page_nobody_touches_does_not_ask_the_server_for_the_bubble_at_once(self):
+		seen = start_page([])
+		self.assertEqual(seen["at_load"], 0)
+		# it waits for a sign of the visitor, and for the clock
+		self.assertIn("pointermove", seen["listening"])
+		self.assertTrue(seen["fallback_ms"])
+
+	def test_the_first_sign_of_a_visitor_asks_once_whatever_comes_after(self):
+		seen = start_page(["pointermove", "scroll", "keydown", "timer"])
+		self.assertEqual(seen["at_load"], 0)
+		self.assertEqual((seen["pointermove"], seen["scroll"], seen["keydown"], seen["timer"]), (1, 1, 1, 1))
+
+	def test_each_kind_of_visitor_is_heard(self):
+		for sign in ("pointerdown", "pointermove", "keydown", "scroll", "touchstart", "wheel"):
+			with self.subTest(sign=sign):
+				seen = start_page([sign])
+				self.assertEqual((seen["at_load"], seen[sign]), (0, 1))
+
+	def test_a_visitor_who_only_reads_gets_the_bubble_after_a_quiet_while(self):
+		seen = start_page(["timer", "pointermove"])
+		self.assertEqual(seen["at_load"], 0)
+		self.assertEqual(seen["timer"], 1)
+		self.assertTrue(seen["fallback_ms"])
+		self.assertEqual(seen["pointermove"], 1)
+		self.assertTrue(all(2000 <= ms <= 15000 for ms in seen["fallback_ms"]), seen["fallback_ms"])
+
+	def test_the_page_stops_listening_once_it_has_asked(self):
+		self.assertEqual(start_page(["pointermove"])["listening"], [])
+
+	def test_a_visitor_who_had_the_bubble_open_on_the_last_page_finds_it_at_once(self):
+		self.assertEqual(start_page([], stored=True)["at_load"], 1)
+
+
 class TestAssistantGlyph(FrappeTestCase):
 	"""The glyph belongs to every shop: it takes its colours from the theme and its size from the stylesheet."""
 

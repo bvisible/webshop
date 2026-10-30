@@ -9,6 +9,7 @@ the session and nothing else:
 """
 
 import re
+import time
 from contextlib import contextmanager
 
 import frappe
@@ -24,6 +25,8 @@ from webshop.webshop.utils import throttle
 
 MAX_MESSAGE_CHARS = 1000
 RESUME_WITHIN_DAYS = 30
+# //// Neoffice — every message loads the whole thread: a visitor who comes back for weeks starts a new one past this (lot C of the 2026-10-30 audit)
+MAX_CONVERSATION_MESSAGES = 200
 HISTORY_SHOWN = 12
 # //// Neoffice — budgets that exist when the merchant sets none (lot A of the 2026-10-30 audit).
 # //// An empty monthly cap used to mean "no cap": a flood of fresh visitors could burn the model's
@@ -35,6 +38,10 @@ DEFAULT_MONTHLY_TOKEN_CAP = 3_000_000
 SITE_HOURLY_MESSAGES = 300
 # a visitor's lock outlives the slowest answer (a few model calls of 25 s) and ends by itself if the worker dies
 LOCK_SECONDS = 120
+# //// Neoffice — answers the whole site gives at the same moment when the merchant sets none (lot C of the 2026-10-30 audit)
+# each one holds one of the shop's web workers for as long as the model takes
+DEFAULT_SIMULTANEOUS_ANSWERS = 3
+ANSWER_SLOTS_KEY = "webshop_assistant_inflight"
 # what uuid.uuid4() writes: the only shape the shop's guest cookie takes
 GUEST_SESSION_SHAPE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 # letters of any language (a French shop's routes keep their accents), digits and . _ - / : no space, no line break
@@ -132,6 +139,44 @@ def conversation_lock(ctx):
 		# only the holder lets go: a lock that expired and was taken again belongs to somebody else
 		if cache.get(key) in (token, token.encode()):
 			cache.delete(key)
+
+
+def max_simultaneous(s=None):
+	"""Answers the site gives at the same moment: the merchant's figure, else DEFAULT_SIMULTANEOUS_ANSWERS."""
+	return cint((s or settings()).get("assistant_max_simultaneous_answers")) or DEFAULT_SIMULTANEOUS_ANSWERS
+
+
+@contextmanager
+def answer_slot(limit):
+	"""A place among the few answers the site gives at once: yields True when there is one, False when they are all taken.
+
+	An answer holds a web worker for as long as the model takes. The shop has a handful of them, and ten visitors
+	asking together would hold them all: the shop itself would stop answering. A sorted set in Redis holds who is being
+	answered, scored by the moment they started; a holder that dies is forgotten after LOCK_SECONDS.
+
+	The place is taken first and checked after: of two visitors racing for the last place, the one that started first
+	keeps it, and neither is refused by the other's trial.
+	"""
+	cache = frappe.cache()
+	key = cache.make_key(ANSWER_SLOTS_KEY)
+	token = frappe.generate_hash(length=16)
+	now = time.time()
+	cache.zremrangebyscore(key, 0, now - LOCK_SECONDS)
+	cache.zadd(key, {token: now})
+	cache.expire(key, LOCK_SECONDS * 2)
+	rank = cache.zrank(key, token)
+	if rank is None or rank >= limit:
+		cache.zrem(key, token)
+		yield False
+		return
+	try:
+		yield True
+	finally:
+		cache.zrem(key, token)
+
+
+def clear_answer_slots():
+	frappe.cache().delete(frappe.cache().make_key(ANSWER_SLOTS_KEY))
 # //// Neoffice ▲▲▲
 
 
@@ -156,12 +201,16 @@ def store_status_line(s):
 def unavailable(ctx, reason):
 	"""The notice the visitor reads instead of an answer, and what the widget does with it.
 
-	`reason` is "outage" (the model failed), "limit" (the visitor's messages for today)
-	or "cap" (the shop's tokens for the month). The words are the merchant's when set.
+	`reason` is "outage" (the model failed), "limit" (the visitor's messages for today),
+	"cap" (the shop's tokens for the month) or "busy" (the site's hour, or every place taken).
+	The words are the merchant's when set.
 	"""
 	s = ctx.settings
 	if reason == "limit":
 		lead = labels()["limit"]
+	elif reason == "busy":
+		# //// Neoffice — a busy site is not a paused assistant: the merchant's "pause" sentence would lie (lot C of the 2026-10-30 audit)
+		lead = _("The assistant is very busy at the moment: please try again in a little while.")
 	else:
 		lead = (s.get("assistant_offline_message") or "").strip() or _("The assistant is not available at the moment.")
 	invite = _("Leave us your message below: the team will reply by email.")
@@ -240,7 +289,12 @@ def context(page_route=None, conversation=None):
 def find_conversation(ctx, create=False):
 	"""The visitor's open conversation, resumed for RESUME_WITHIN_DAYS."""
 	since = add_days(now_datetime(), -RESUME_WITHIN_DAYS)
-	filters = {"status": ["in", ("Open", "Escalated")], "last_message_on": [">=", since]}
+	filters = {
+		"status": ["in", ("Open", "Escalated")],
+		"last_message_on": [">=", since],
+		# //// Neoffice — a thread at its size is not resumed, whatever its status (lot C of the 2026-10-30 audit)
+		"message_count": ["<", MAX_CONVERSATION_MESSAGES],
+	}
 	if ctx.user and ctx.user != "Guest":
 		filters["user"] = ctx.user
 	elif ctx.guest_session:
@@ -399,7 +453,7 @@ def _answering_machine(conversation, ctx, reason, user_text=None):
 		conversation.add_message("assistant", out["reply"])
 		conversation.flags.ignore_permissions = True
 		conversation.save()
-	out["conversation"] = conversation.name
+	out["conversation"] = conversation.name if conversation else None
 	out["limited"] = reason in ("limit", "cap", "busy")
 	return out
 
@@ -440,6 +494,15 @@ def _answer(ctx, text):
 	reason = unavailable_reason(ctx, conversation)
 	if reason:
 		return _answering_machine(conversation, ctx, reason, user_text=text)
+	# //// Neoffice — only a few answers at once: each holds a web worker for as long as the model takes (lot C of the 2026-10-30 audit). Nothing is written for the visitor who is turned away, who asks again in a moment.
+	with answer_slot(max_simultaneous(ctx.settings)) as granted:
+		if not granted:
+			return _answering_machine(conversation, ctx, "busy")
+		return _respond(conversation, ctx, text)
+
+
+def _respond(conversation, ctx, text):
+	"""The model's answer to one message, within a place taken by `answer_slot`."""
 	bump_site_hour()
 	try:
 		out = engine.respond(conversation, text, ctx)
@@ -460,6 +523,9 @@ def _answer(ctx, text):
 		result = unavailable(ctx, "outage")
 		result.update(failed=True, conversation=conversation.name, limited=False)
 		return result
+	# //// Neoffice — a thread that reached its size is closed (an escalated one stays the team's); the visitor's next message opens a new one (lot C of the 2026-10-30 audit)
+	if conversation.status == "Open" and cint(conversation.message_count) >= MAX_CONVERSATION_MESSAGES:
+		frappe.db.set_value("Shop Assistant Conversation", conversation.name, "status", "Closed", update_modified=False)
 	return {"reply": out.reply, "conversation": out.conversation, "escalated": conversation.status == "Escalated"}
 
 
