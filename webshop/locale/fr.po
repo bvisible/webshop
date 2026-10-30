@@ -10064,3 +10064,14 @@ msgstr "utile"
 #: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:40
 msgid "Visitor's opinion"
 msgstr "Avis du visiteur"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:775
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:776
+#, python-brace-format
+msgid "{0} answered, {1} turned away"
+msgstr "{0} répondues, {1} refusées"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:781
+#, python-brace-format
+msgid "{0} useful · {1} not useful · {2} reported"
+msgstr "{0} utiles · {1} pas utiles · {2} signalées"

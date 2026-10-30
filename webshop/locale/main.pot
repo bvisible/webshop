@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-10-30 16:33+0000\n"
-"PO-Revision-Date: 2026-10-30 16:33+0000\n"
+"POT-Creation-Date: 2026-10-30 16:41+0000\n"
+"PO-Revision-Date: 2026-10-30 16:41+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -1372,7 +1372,7 @@ msgstr ""
 msgid "Choose a stock source"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:850
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:851
 #: webshop/webshop/utils/holidays.py:283
 msgid "Choose the country of the store first."
 msgstr ""
@@ -1684,7 +1684,7 @@ msgstr ""
 msgid "Conversation"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:787
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:788
 #: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:63
 msgid "Conversations"
 msgstr ""
@@ -2746,7 +2746,7 @@ msgstr ""
 msgid "Escalation Note"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:791
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:792
 #: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:76
 msgid "Estimated cost"
 msgstr ""
@@ -2893,15 +2893,15 @@ msgstr ""
 msgid "Fees have been updated"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:808
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:809
 msgid "Fetch public holidays"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:885
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:886
 msgid "Fetched from openholidaysapi.org; nothing is called while a visitor loads a page."
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:853
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:854
 msgid "Fetching the public holidays…"
 msgstr ""
 
@@ -3249,7 +3249,7 @@ msgid "Good"
 msgstr ""
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:920
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:921
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:622
 #: webshop/webshop/doctype/website_item/website_item.js:29
 msgid "Google Shopping"
@@ -3260,7 +3260,7 @@ msgstr ""
 msgid "Google Shopping Status"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:906
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:907
 msgid "Google Shopping feed"
 msgstr ""
 
@@ -3317,7 +3317,7 @@ msgstr ""
 msgid "HD Team that gets the tickets; needs the Helpdesk app"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:790
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:791
 #: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:75
 msgid "Handed over to the team"
 msgstr ""
@@ -4324,7 +4324,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Shop Assistant Conversation'
 #. Label of a Table field in DocType 'Shop Assistant Conversation'
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json:88
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:788
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:789
 #: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:71
 msgid "Messages"
 msgstr ""
@@ -6367,7 +6367,7 @@ msgstr ""
 msgid "Public holiday"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:862
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:863
 msgid "Public holidays"
 msgstr ""
 
@@ -7962,7 +7962,7 @@ msgstr ""
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
 #. Option for the 'Icon' (Select) field in DocType 'Webshop Trust Item'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:808
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:809
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:246
 #: webshop/webshop/doctype/webshop_trust_item/webshop_trust_item.json:25
 msgid "Store"
@@ -8458,7 +8458,7 @@ msgstr ""
 msgid "The server is taking too long to answer. Please check your connection and try again."
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:883
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:884
 msgid "The shop closes automatically on the days of this list, on top of the exceptional closures above."
 msgstr ""
 
@@ -8746,7 +8746,7 @@ msgstr ""
 msgid "To the franc"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:789
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:790
 #: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:74
 msgid "Tokens used"
 msgstr ""
@@ -9788,7 +9788,7 @@ msgstr ""
 msgid "Write a Review"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:899
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:900
 msgid "Write the Google Shopping feed now"
 msgstr ""
 
@@ -9796,7 +9796,7 @@ msgstr ""
 msgid "Write your message…"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:913
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:914
 msgid "Writing the feed…"
 msgstr ""
 
@@ -10128,11 +10128,6 @@ msgstr ""
 msgid "an item code longer than 50 characters"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:775
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:776
-msgid "answered"
-msgstr ""
-
 #. Option for the 'Role' (Select) field in DocType 'Shop Assistant Message'
 #: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:35
 msgid "assistant"
@@ -10246,10 +10241,6 @@ msgstr ""
 msgid "none"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:780
-msgid "not useful"
-msgstr ""
-
 #: webshop/templates/generators/item_group.html:167
 #: webshop/www/all-products/index.html:154
 msgid "of"
@@ -10336,10 +10327,6 @@ msgstr ""
 msgid "relevance"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:780
-msgid "reported"
-msgstr ""
-
 #: webshop/templates/generators/item/item_reviews.html:70
 #: webshop/templates/includes/macros.html:275
 msgid "reviews"
@@ -10396,21 +10383,12 @@ msgstr ""
 msgid "transferred to card"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:775
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:776
-msgid "turned away"
-msgstr ""
-
 #: webshop/webshop/assistant/api.py:370
 msgid "typing…"
 msgstr ""
 
 #: webshop/public/js/override/seo_preview.js:416
 msgid "updating…"
-msgstr ""
-
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:780
-msgid "useful"
 msgstr ""
 
 #. Option for the 'Role' (Select) field in DocType 'Shop Assistant Message'
@@ -10440,6 +10418,12 @@ msgstr ""
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.py:91
 #, python-brace-format
 msgid "{0} already carries pricing rule {1} (priority {2}); on that line, the higher priority wins."
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:775
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:776
+#, python-brace-format
+msgid "{0} answered, {1} turned away"
 msgstr ""
 
 #: webshop/webshop/seo/meta.py:144 webshop/www/shop-by-category/index.py:31
@@ -10503,7 +10487,7 @@ msgstr ""
 msgid "{0} days"
 msgstr ""
 
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:867
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:868
 #, python-brace-format
 msgid "{0} days fetched into {1}, for {2}."
 msgstr ""
@@ -10644,6 +10628,11 @@ msgstr ""
 #: webshop/public/js/override/item.js:244
 #, python-brace-format
 msgid "{0} used units"
+msgstr ""
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:781
+#, python-brace-format
+msgid "{0} useful · {1} not useful · {2} reported"
 msgstr ""
 
 #: webshop/webshop/quick_order/api.py:772
