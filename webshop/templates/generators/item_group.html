@@ -151,6 +151,8 @@
 	window.discount_count = {{ discount_count or 0 }};
 	{# //// Neoffice — the quick order offered next to the search box (2026-09-14) #}
 	window.quick_order_url = {{ (quick_order_url or "")|tojson }};
+	{% if content_language %}{# //// Neoffice — multilingual lot 1: the language the listing's API calls ask for; nothing is printed on a site that offers none #}
+	window.webshop_content_language = {{ content_language|tojson }};{% endif %}
 	window.product_translations = {
 		"New": {{ _("New")|json }},
 		"Refurbished": {{ _("Refurbished")|json }},

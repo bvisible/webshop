@@ -30,6 +30,11 @@ def attach_cards(items, settings, eager=0):
 	The first `eager` pictures load at once, the very first ahead of everything (a listing's
 	first page, its first row): they are what the visitor sees first (the LCP), and lazy
 	loading only delayed them. #691 lot 5."""
+	# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the tiles and the listing's JSON speak
+	# //// the language of the address; the source columns are never touched.
+	from webshop.webshop.utils.localized import localize_rows
+
+	localize_rows("Website Item", items, ["web_item_name", "short_description"])
 	from webshop.webshop.seo.variants import link_variants_to_models
 
 	# a variant sold on its model's page links that page opened on it (decision D-1)

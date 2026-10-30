@@ -331,6 +331,17 @@ class WebsiteItem(WebsiteGenerator):
 		if self.name in (excluded_item_names() or []):
 			raise frappe.PageDoesNotExistError
 
+		# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the page reads its texts from this
+		# //// document, so they are replaced here, for this request only (nothing is saved), by the translation
+		# //// in the language of the address: the title, the meta tags, the JSON-LD and the template follow.
+		from webshop.webshop.utils.localized import localize_rows
+
+		localize_rows(
+			"Website Item",
+			[self],
+			["web_item_name", "short_description", "web_long_description", "seo_title", "seo_description", "website_image_alt"],
+		)
+
 		context.show_search = True
 		context.search_link = "/search"
 		context.body_class = "product-page"

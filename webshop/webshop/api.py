@@ -724,7 +724,10 @@ def get_discount_items_preview(limit=20, price_list=None):
 	_site_cond = site_sql_condition("wi")
 
 	# Use user cache
-	cache_key = f"discount_preview:{frappe.session.user}:{get_current_profile_name() or 'all'}:{price_list}:{limit}"
+	# //// Neoffice — multilingual lot 1: the language is part of the key (empty in the site's own language)
+	from webshop.webshop.utils.localized import cache_suffix, localize_rows
+
+	cache_key = f"discount_preview:{frappe.session.user}:{get_current_profile_name() or 'all'}:{price_list}:{limit}{cache_suffix()}"
 	cached = frappe.cache().get_value(cache_key)
 	if cached:
 		return cached
@@ -804,6 +807,9 @@ def get_discount_items_preview(limit=20, price_list=None):
 			if field in item:
 				del item[field]
 	
+	# //// Neoffice — multilingual lot 1: translated before the cache write, so each language's entry holds its own text
+	localize_rows("Website Item", items, ["web_item_name", "short_description"])
+
 	# Cache for 5 minutes
 	frappe.cache().set_value(cache_key, items, expires_in_sec=300)
 	return items

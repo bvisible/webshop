@@ -576,9 +576,8 @@ webshop.ProductView =  class {
 
 		frappe.call({
 			method: "webshop.webshop.api.get_product_filter_data",
-			args: {
-				query_args: args
-			},
+			//// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the call asks for the page's additional language, which its address-less request cannot carry
+			args: Object.assign({ query_args: args }, window.webshop_content_language ? { _lang: window.webshop_content_language } : {}),
 			callback: function(result) {
 				//// Neoffice — the script's result replaces the server's first page (#691 lot 2)
 				me.drop_ssr_listing();
@@ -1009,9 +1008,8 @@ webshop.ProductView =  class {
 		return new Promise((resolve) => {
 			frappe.call({
 				method: "webshop.webshop.api.get_product_filter_data",
-				args: {
-					query_args: args
-				},
+				//// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the call asks for the page's additional language, which its address-less request cannot carry
+				args: Object.assign({ query_args: args }, window.webshop_content_language ? { _lang: window.webshop_content_language } : {}),
 				callback: function(result) {
 					resolve(result.message.items_count);
 				}
@@ -1251,9 +1249,8 @@ webshop.ProductView =  class {
 
 		frappe.call({
 			method: "webshop.webshop.api.get_product_filter_data",
-			args: {
-				query_args: args
-			},
+			//// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the call asks for the page's additional language, which its address-less request cannot carry
+			args: Object.assign({ query_args: args }, window.webshop_content_language ? { _lang: window.webshop_content_language } : {}),
 			callback: function(result) {
 				//// Neoffice — a filter change resets the state while a page may still be in
 				//// flight: its callback then wrote on null ("Cannot set properties of null",
