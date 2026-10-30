@@ -740,6 +740,17 @@ class TestAssistant(FrappeTestCase):
 
 	# --- what every page and every message costs the database (lot C) -------------------------
 
+	def test_a_new_conversation_takes_its_name_from_no_series(self):
+		"""A series name is numbered by a row of `tabSeries` that stays locked until the request commits.
+
+		The request commits after the model has answered, so every new conversation waited for the answer of the one
+		before it, each holding a web worker: measured on the development server, a second insert waited 8.5 s for a
+		first request that was answering. A random name takes no lock.
+		"""
+		meta = frappe.get_meta("Shop Assistant Conversation")
+		self.assertEqual(meta.autoname, "hash")
+		self.assertFalse((meta.autoname or "").startswith(("format:", "naming_series:")))
+
 	def test_the_columns_a_visitor_is_found_by_are_indexed(self):
 		"""The bubble's config and every message look the visitor's conversation up by user or cookie, newest first."""
 		for column in ("user", "guest_session", "last_message_on"):
