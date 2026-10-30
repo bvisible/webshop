@@ -181,6 +181,10 @@
   "google_feed_report_section",
   "google_feed_generated_on",
   "google_feed_report",
+  "tab_reseller_catalogue",
+  "enable_reseller_catalogue",
+  "reseller_catalogue_groups",
+  "catalogue_credit_text",
   "tab_advanced",
   "sitemap_section",
   "sitemap_info",
@@ -1474,12 +1478,39 @@
    "fieldtype": "Link",
    "label": "Delivery Holiday List",
    "options": "Holiday List"
+  },
+  {
+   "fieldname": "tab_reseller_catalogue",
+   "fieldtype": "Tab Break",
+   "label": "Reseller Catalogue"
+  },
+  {
+   "fieldname": "enable_reseller_catalogue",
+   "fieldtype": "Check",
+   "label": "Enable the Reseller Catalogue",
+   "default": "0",
+   "description": "Lets the customers of the groups below set up their brand (logo, colours, contact details, markup) and make catalogues and product sheets in their own name. Off, nothing is offered to anyone and nothing changes on this site."
+  },
+  {
+   "fieldname": "reseller_catalogue_groups",
+   "fieldtype": "Table MultiSelect",
+   "label": "Customer Groups Allowed",
+   "options": "Reseller Catalogue Group",
+   "depends_on": "enable_reseller_catalogue",
+   "description": "A group covers its sub-groups. Leave empty and nobody is offered the catalogue."
+  },
+  {
+   "fieldname": "catalogue_credit_text",
+   "fieldtype": "Data",
+   "label": "Credit Line on Reseller Catalogues",
+   "depends_on": "enable_reseller_catalogue",
+   "description": "Printed on every catalogue a reseller makes, and the reseller cannot remove it. Leave empty for none: the catalogue is then entirely the reseller's own."
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-26 21:00:00.000000",
+ "modified": "2026-10-30 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

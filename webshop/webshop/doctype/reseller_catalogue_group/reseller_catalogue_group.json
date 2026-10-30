@@ -1,0 +1,32 @@
+{
+ "actions": [],
+ "creation": "2026-10-30 16:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "allowed_customer_group"
+ ],
+ "fields": [
+  {
+   "description": "Not called customer_group on purpose: Frappe fills a Link field of that name with the session default at insert time, which would allow a group nobody chose.",
+   "fieldname": "allowed_customer_group",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer Group",
+   "options": "Customer Group",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-30 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Reseller Catalogue Group",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

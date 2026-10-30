@@ -48,6 +48,7 @@ No upstream equivalent; the whole file is ours.
 | `webshop/webshop/doctype/webshop_warehouse_source/webshop_warehouse_source.json`, `website_item_warehouse_source/website_item_warehouse_source.json` | multi-warehouse: the shop's sources, and the per-product override | `5bf2e88a1b` (2026-08-25), `98bdb60ccf` (2026-08-26) |
 | `webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json`, `webshopsi_country/webshopsi_country.json`, `webshopsi_invoice_installments/webshopsi_invoice_installments.json` | the "Facture" (pay-on-invoice) method, folded in from the standalone `webshopsi_integration` app | `662c26b650` (2026-05-26) |
 | `webshop/webshop/doctype/website_item_video/website_item_video.json` | child table of a product's videos (YouTube, Vimeo or a hosted file, title, poster), drawn by the gallery | `b89dd9080b` (2026-09-13) |
+| `webshop/webshop/doctype/reseller_catalogue_group/reseller_catalogue_group.json` | child table of the customer groups allowed to use the reseller catalogue, a row of Webshop Settings | reseller catalogue, lot 0 (2026-10-30) |
 | `webshop/webshop/assistant/quality/real_outputs.json` | what the shop assistant really answered, each reply read and labelled by a person; the classifier of the quality battery is tested against it (`quality/test_classify.py`) | neoffice-maintenance#2019 (2026-10-30) |
 | `webshop/webshop/workspace/webshop/webshop.json` | the "Webshop" desk workspace — a **root** page of the Website module, so the Neoffice sidebar lists it. Its « SEO dashboard » link is a URL (`/app/dashboard-view/Webshop%20SEO`): a Workspace Link accepts DocType, Page, Report or URL, and the `Dashboard` type it had was refused when the hub copied the workspace to an instance (neoffice-maintenance#1278) | `86e2609b57`, `01c6358b19` (2026-09-03), 2026-10-07 |
 
@@ -107,7 +108,8 @@ Custom Fields if we ever want to shrink the divergence.
   `warehouse_sources`, `reserve_stock_on_receipt`, `delivery_holiday_list`);
   e-mails (`abandoned_cart_section` + its delays/template/incentive fields,
   `follow_up_section`, `enable_purchase_follow_ups`, `follow_up_audience`,
-  `follow_up_status`, `follow_up_note`).
+  `follow_up_status`, `follow_up_note`); reseller catalogue (`tab_reseller_catalogue`,
+  `enable_reseller_catalogue`, `reseller_catalogue_groups`, `catalogue_credit_text`).
 - **Removed**: `search_index_fields`, `item_search_settings_section`,
   `is_redisearch_loaded`, `redisearch_warning`, `is_redisearch_enabled` —
   RediSearch was disabled in favour of plain SQL search (`c54680b459` /
@@ -284,6 +286,7 @@ webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json
 webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json
 webshop/webshop/doctype/purchase_follow_up_log/purchase_follow_up_log.json
 webshop/webshop/doctype/purchase_follow_up_step/purchase_follow_up_step.json
+webshop/webshop/doctype/reseller_catalogue_group/reseller_catalogue_group.json
 webshop/webshop/doctype/store_closure/store_closure.json
 webshop/webshop/doctype/store_opening_hours/store_opening_hours.json
 webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json

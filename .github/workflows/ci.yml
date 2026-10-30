@@ -276,6 +276,8 @@ jobs:
           # //// the checkout under the Payment Request checks stock ERPNext has.
           # //// Neoffice — test_page_addresses (the shop's English addresses and their old ones, #1862) reads
           # //// the route rules and the templates and needs no site fixture either.
+          # //// Neoffice — the reseller catalogue (2026-10-30): the markup arithmetic is pure and needs no
+          # //// site; the access rule reads real customers in a tree of groups of its own, green on the clone.
           for m in \
             webshop.controllers.test_payment_handler \
             webshop.controllers.test_payment_mode_enabled \
@@ -352,7 +354,9 @@ jobs:
             webshop.webshop.tests.test_payment_request_release_undoes_a_refused_cancel \
             webshop.webshop.page_renderers.test_maintenance_renderer \
             webshop.templates.payments.test_paypal_owns_the_cart \
-            webshop.webshop.shopping_cart.test_administrator_is_not_a_shop_customer
+            webshop.webshop.shopping_cart.test_administrator_is_not_a_shop_customer \
+            webshop.webshop.catalogue.test_markup \
+            webshop.webshop.catalogue.test_access
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || failed="$failed $m"
