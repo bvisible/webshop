@@ -21,8 +21,8 @@ KEPT_DAYS = 4
 
 # why a request got no answer; each is a column of the day's row (`refused_<reason>`)
 REFUSAL_REASONS = ("rate", "day_limit", "month_cap", "outage", "busy", "locked", "off")
-# the columns that are plain sums, in the order of the day's row
-SUMS = (
+# the columns that are plain sums, in the order of the day's row (the answer-time buckets are added below)
+_SUMS = (
 	"received",
 	"answered",
 	"errors",
@@ -41,6 +41,8 @@ SUMS = (
 # answer times are counted in buckets (upper bounds, milliseconds), so a median and a 95th percentile need no list of
 # every duration: eleven counters a day
 DURATION_BUCKETS = (500, 1000, 2000, 3000, 5000, 8000, 12000, 20000, 30000, 60000, 120000)
+BUCKETS = tuple(f"ms_{bound}" for bound in DURATION_BUCKETS)
+SUMS = _SUMS + BUCKETS
 
 
 def _day(day=None):
@@ -137,7 +139,8 @@ def flush(day):
 	The counters are renamed first, atomically, to a key of their own: a request that counts while the row is written lands in
 	a fresh hash, which the next flush finds, instead of being lost between the read and the delete. The renamed counters are
 	deleted only once the row is saved, so a write that fails loses nothing: the next flush finds them again. Returns the row's
-	name, or None when nobody counted anything that day. A day written twice keeps the percentiles of the first writing.
+	name, or None when nobody counted anything that day. A day written again is added to its row, and its percentiles are read
+	from the row's buckets, so they are those of everything counted.
 	"""
 	day = _day(day)
 	cache = frappe.cache()
@@ -162,13 +165,22 @@ def flush(day):
 	row.day = day
 	for field in SUMS:
 		row.set(field, cint(row.get(field)) + seen.get(field, 0))
-	if not name:
-		row.median_ms, row.p95_ms = percentiles(seen)
+	# read from everything the row has counted so far, so that a day written several times has its true percentiles
+	row.median_ms, row.p95_ms = percentiles({bucket: row.get(bucket) for bucket in BUCKETS})
 	row.flags.ignore_permissions = True
 	row.save() if name else row.insert()
 	for name in pending:
 		cache.delete(name)
 	return row.name
+
+
+def hourly():
+	"""Hourly: write today's counters so far (the row of today is added to each hour).
+
+	`bench clear-cache` empties Redis (measured on osiris: a day's counters, the outage flag and the rate windows all went), and
+	every deployment runs it: waiting for the night to write the day would lose the day's figures at each update. Written
+	every hour, a clear-cache costs at most the hour that was running. A scheduled job is committed by the scheduler."""
+	return flush(nowdate())
 
 
 def flush_finished_days():

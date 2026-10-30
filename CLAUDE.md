@@ -1041,11 +1041,16 @@ neoffice-maintenance#2015).
   busy, previous message still answered, off), visitors and signed-in customers, model
   and tool calls, tokens, answer times (11 buckets, so a median and a 95th percentile
   with no list), bubbles shown, opinions. The throttle counts its own refusals
-  (`on_refuse`: they happen before the endpoint runs). Each night
-  `flush_finished_days` writes the finished days to `Shop Assistant Usage Day`
-  (figures only, no word, no address; kept as long as the shop is billed from it);
-  the counters are renamed first and deleted only once the row is saved, so a failed
-  write loses nothing. The Assistant tab and the usage report read the same figures.
+  (`on_refuse`: they happen before the endpoint runs). **Every hour** `usage.hourly`
+  writes today so far, and each night `flush_finished_days` the days that are over,
+  to `Shop Assistant Usage Day` (figures only, no word, no address; kept as long as
+  the shop is billed from it; the answer-time buckets are columns of the row, so
+  the percentiles are those of the whole day). The counters are renamed first and
+  deleted only once the row is saved, so a failed write loses nothing. **`bench
+  clear-cache` empties Redis** (measured on osiris: the day's counters, the outage
+  flag and the rate windows all went) and every update runs it: that is why the day
+  is written every hour and not at night; a clear-cache costs at most the hour that
+  was running. The Assistant tab and the usage report read the same figures.
   **Use the connection's own Redis commands for a hash of integers**: Frappe's
   `cache().hgetall(name)` prefixes the name again and unpickles the values, so it
   returns nothing for a key written with `hincrby(make_key(...))`.

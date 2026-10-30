@@ -28,7 +28,19 @@
   "p95_ms",
   "feedback_up",
   "feedback_down",
-  "reported"
+  "reported",
+  "buckets_section",
+  "ms_500",
+  "ms_1000",
+  "ms_2000",
+  "ms_3000",
+  "ms_5000",
+  "ms_8000",
+  "ms_12000",
+  "ms_20000",
+  "ms_30000",
+  "ms_60000",
+  "ms_120000"
  ],
  "fields": [
   {
@@ -193,6 +205,79 @@
    "fieldname": "reported",
    "fieldtype": "Int",
    "label": "Reported",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "description": "How many answers took no longer than each bound: what the median and the 95th percentile are read from",
+   "fieldname": "buckets_section",
+   "fieldtype": "Section Break",
+   "label": "Answer times"
+  },
+  {
+   "fieldname": "ms_500",
+   "fieldtype": "Int",
+   "label": "Up to 500 ms",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ms_1000",
+   "fieldtype": "Int",
+   "label": "Up to 1000 ms",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ms_2000",
+   "fieldtype": "Int",
+   "label": "Up to 2000 ms",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ms_3000",
+   "fieldtype": "Int",
+   "label": "Up to 3000 ms",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ms_5000",
+   "fieldtype": "Int",
+   "label": "Up to 5000 ms",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ms_8000",
+   "fieldtype": "Int",
+   "label": "Up to 8000 ms",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ms_12000",
+   "fieldtype": "Int",
+   "label": "Up to 12000 ms",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ms_20000",
+   "fieldtype": "Int",
+   "label": "Up to 20000 ms",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ms_30000",
+   "fieldtype": "Int",
+   "label": "Up to 30000 ms",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ms_60000",
+   "fieldtype": "Int",
+   "label": "Up to 60000 ms",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ms_120000",
+   "fieldtype": "Int",
+   "label": "Up to 120000 ms",
    "read_only": 1
   }
  ],

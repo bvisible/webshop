@@ -141,6 +141,34 @@ class TestUsageCounters(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value("Shop Assistant Usage Day", name, "received"), 7)
 		self.assertEqual(usage.counters(DAY), {})
 
+	def test_a_day_written_twice_has_the_percentiles_of_everything_counted(self):
+		for _ in range(10):
+			usage.record_turn(model_calls=1, tool_calls=0, prompt_tokens=1, completion_tokens=1, duration_ms=400, day=DAY)
+		usage.flush(DAY)
+		for _ in range(10):
+			usage.record_turn(model_calls=1, tool_calls=0, prompt_tokens=1, completion_tokens=1, duration_ms=25000, day=DAY)
+		row = frappe.get_doc("Shop Assistant Usage Day", usage.flush(DAY))
+		self.assertEqual((row.answered, row.median_ms, row.p95_ms), (20, 500, 30000))
+
+	def test_the_hourly_job_writes_today_so_far_so_that_a_clear_cache_costs_at_most_an_hour(self):
+		"""`bench clear-cache` empties the Redis counters (measured on osiris: a day's figures, the outage flag, the rate windows).
+		Each deployment runs it, so the day's figures cannot wait for the night to be written."""
+		today = nowdate()
+		before = usage.counters(today)
+		usage.forget(today)
+		try:
+			usage.count("received", 3, day=today)
+			usage.count("received", 2, day=today)
+			name = usage.hourly()
+			self.assertEqual(frappe.db.get_value("Shop Assistant Usage Day", name, "received"), 5)
+			self.assertEqual(usage.counters(today), {}, "today's counters are in the row now")
+			usage.count("received", 4, day=today)
+			self.assertEqual(usage.totals(today, today)["received"], 9, "the written part and the part still counting")
+		finally:
+			usage.forget(today)
+			for field, number in before.items():
+				usage.count(field, number, day=today)
+
 	def test_nothing_is_written_for_a_day_without_requests(self):
 		self.assertIsNone(usage.flush(DAY))
 		self.assertFalse(frappe.db.exists("Shop Assistant Usage Day", {"day": DAY}))
@@ -190,7 +218,7 @@ class TestUsageCounters(FrappeTestCase):
 
 	def test_the_row_holds_no_word_and_no_address(self):
 		"""Nothing a visitor wrote, nothing that names a visitor: the row can be kept as long as the shop is billed from it."""
-		fields = [f.fieldname for f in frappe.get_meta("Shop Assistant Usage Day").fields if f.fieldtype not in ("Int", "Date")]
+		fields = [f.fieldname for f in frappe.get_meta("Shop Assistant Usage Day").fields if f.fieldtype not in ("Int", "Date", "Section Break", "Column Break")]
 		self.assertEqual(fields, [])
 
 

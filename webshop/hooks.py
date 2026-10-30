@@ -96,6 +96,8 @@ scheduler_events = {
 	"daily_long": ["webshop.webshop.seo.score.refresh_all"],
 	# //// Neoffice — abandoned carts: one look per hour at the carts left behind
 	"hourly": [
+		# //// Neoffice — the day's counters of the shop assistant, written to their row every hour: `bench clear-cache` empties Redis and every update runs it (lot D of the 2026-10-30 audit)
+		"webshop.webshop.assistant.usage.hourly",
 		"webshop.webshop.utils.abandoned_carts.send_abandoned_cart_reminders",
 		# //// Neoffice — the placeholder orders a card payment never came for (shopping_cart/pending_order.py)
 		"webshop.webshop.shopping_cart.pending_order.release_stale",
