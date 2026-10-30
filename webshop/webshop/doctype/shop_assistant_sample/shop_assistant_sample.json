@@ -38,7 +38,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Visitor's opinion",
-   "options": "Useful\nNot useful",
+   "options": "\nUseful\nNot useful",
    "read_only": 1
   },
   {

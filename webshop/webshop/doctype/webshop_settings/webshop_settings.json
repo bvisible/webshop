@@ -158,6 +158,7 @@
   "assistant_samples_section",
   "assistant_collect_samples",
   "assistant_consent_text",
+  "assistant_history_days",
   "assistant_sample_retention_days",
   "tab_emails",
   "abandoned_cart_section",
@@ -189,9 +190,6 @@
   "google_feed_generated_on",
   "google_feed_report",
   "tab_reseller_catalogue",
-  "product_sheet_section",
-  "enable_product_sheet",
-  "reseller_catalogue_section",
   "enable_reseller_catalogue",
   "reseller_catalogue_groups",
   "catalogue_credit_text",
@@ -1543,14 +1541,14 @@
   },
   {
    "default": "0",
-   "description": "Off by default, and nothing is kept while it is off. When on, anonymised pairs of question and answer from visitors who were not signed in, and whom the visitor rated, are kept to improve the service. Switch it on only once your terms allow it and the visitor is told (the sentence below).",
+   "description": "Off by default, and nothing is kept longer while it is off. When on, the full conversations are kept for the time set below instead of the retention of the Limits section, and anonymised pairs of question and answer from visitors who were not signed in are kept to improve the service. You read the history in Shop Assistant Conversation. Switch it on only once your privacy policy says so; the visitors are told by the sentence below.",
    "fieldname": "assistant_collect_samples",
    "fieldtype": "Check",
-   "label": "Keep anonymised samples of conversations"
+   "label": "Keep the history and anonymised samples of conversations"
   },
   {
    "depends_on": "assistant_collect_samples",
-   "description": "Shown to visitors under the message field. Empty: \"Conversations may be used, anonymously, to improve the service.\"",
+   "description": "Shown to visitors under the message field. Empty: \"Conversations are kept, and anonymised excerpts may be used to improve the service.\"",
    "fieldname": "assistant_consent_text",
    "fieldtype": "Small Text",
    "label": "Sentence shown to the visitor"
@@ -1563,27 +1561,17 @@
    "label": "Keep samples (days)"
   },
   {
-   "fieldname": "product_sheet_section",
-   "fieldtype": "Section Break",
-   "label": "Product Sheet"
-  },
-  {
-   "fieldname": "enable_product_sheet",
-   "fieldtype": "Check",
-   "label": "Offer the Product Sheet",
-   "default": "0",
-   "description": "Adds a button to each product page that gives the visitor a PDF sheet of the product: photographs, price, availability, the shop's promises, characteristics and a QR code to the page. It says what the page says. Off, the page is unchanged."
-  },
-  {
-   "fieldname": "reseller_catalogue_section",
-   "fieldtype": "Section Break",
-   "label": "Reseller Catalogue"
+   "depends_on": "assistant_collect_samples",
+   "description": "Empty: 730 days (two years). The conversations handed to the team are never purged.",
+   "fieldname": "assistant_history_days",
+   "fieldtype": "Int",
+   "label": "Keep conversations while the history is kept (days)"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-30 17:56:33.000000",
+ "modified": "2026-10-30 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",

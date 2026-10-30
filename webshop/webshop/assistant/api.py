@@ -27,6 +27,8 @@ MAX_MESSAGE_CHARS = 1000
 RESUME_WITHIN_DAYS = 30
 # //// Neoffice — every message loads the whole thread: a visitor who comes back for weeks starts a new one past this (lot C of the 2026-10-30 audit)
 MAX_CONVERSATION_MESSAGES = 200
+# //// Neoffice — how long full conversations live while the merchant keeps the history (the 2026-10-30 audit, lot E)
+DEFAULT_HISTORY_DAYS = 730
 HISTORY_SHOWN = 12
 # //// Neoffice — budgets that exist when the merchant sets none (lot A of the 2026-10-30 audit).
 # //// An empty monthly cap used to mean "no cap": a flood of fresh visitors could burn the model's
@@ -421,7 +423,7 @@ def get_config(page_route: str | None = None):
 		"signed_in": bool(ctx.user and ctx.user != "Guest"),
 		"history": history,
 		"labels": labels(),
-		"consent": consent_line(s, bool(ctx.user and ctx.user != "Guest")),
+		"consent": consent_line(s),
 		# //// Neoffice — the answering machine (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 		# the answering machine speaks from the first screen when it has to
 		"notice": unavailable(ctx, reason) if (reason := unavailable_reason(ctx, conversation)) else None,
@@ -429,14 +431,17 @@ def get_config(page_route: str | None = None):
 
 
 # //// Neoffice — lot E of the 2026-10-30 audit: the sentence a visitor reads while anonymised samples are kept
-def consent_line(s, signed_in):
-	"""What the visitor is told when samples are collected, None when they are not or when this visitor is not collected.
+def consent_line(s):
+	"""What every visitor is told while the merchant keeps the history, None when they do not.
 
-	Only visitors who are not signed in are sampled, so only they are told. The merchant's own sentence wins.
+	The history keeps a signed-in customer's conversation too (for the time the merchant sets), and the anonymised
+	samples come from the visitors who are not signed in: both are told. The merchant's own sentence wins.
 	"""
-	if not cint(s.get("assistant_collect_samples")) or signed_in:
+	if not cint(s.get("assistant_collect_samples")):
 		return None
-	return (s.get("assistant_consent_text") or "").strip() or _("Conversations may be used, anonymously, to improve the service.")
+	return (s.get("assistant_consent_text") or "").strip() or _(
+		"Conversations are kept, and anonymised excerpts may be used to improve the service."
+	)
 
 
 # //// Neoffice — lot D of the 2026-10-30 audit: an answer is drawn again with its name and the opinion already given
@@ -752,8 +757,17 @@ def usage_stats():
 # //// Neoffice — nightly purge job feeding the usage report and retention policy (84412d0bec "feat(assistant): usage report, nightly purge, conversations on the customer record")
 def purge_old_conversations():
 	"""Nightly: forget conversations older than the retention, except the ones
-	that were handed to the team — those are the trace the team may need."""
-	days = cint(settings().get("assistant_retention_days")) or 90
+	that were handed to the team — those are the trace the team may need.
+
+	While the merchant keeps the history (`assistant_collect_samples`) the time is the history's, two years unless they say
+	otherwise; the retention of the limits (ninety days) applies when they do not keep it. The merchant reads the history
+	on the desk (Shop Assistant Conversation); their privacy policy covers it.
+	"""
+	s = settings()
+	if cint(s.get("assistant_collect_samples")):
+		days = cint(s.get("assistant_history_days")) or DEFAULT_HISTORY_DAYS
+	else:
+		days = cint(s.get("assistant_retention_days")) or 90
 	cutoff = add_days(now_datetime(), -days)
 	names = frappe.get_all(
 		"Shop Assistant Conversation",

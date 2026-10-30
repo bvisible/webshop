@@ -1073,19 +1073,20 @@ neoffice-maintenance#2015).
   (answers marked `unanswered`, handed to the team, not useful or reported, the
   question each followed, the same question once with its count) and a weekly mail with
   the same list, **off until `assistant_weekly_digest` is ticked**.
-- **Samples for improving the service** (`samples.py`, `anonymise.py`): **off by default,
-  and nothing is kept while it is off.** When `assistant_collect_samples` is ticked, once
-  a day, the pairs a visitor who was not signed in rated become anonymised samples
-  (emails, phones, bank and card numbers, document numbers and the names a visitor
-  gave are replaced; a pair that still looks like it names somebody is left out and
-  counted). A sample holds the day, the language, the opinion, the prompt version and the
-  two texts: no link to the conversation, no user, no cookie, no address. It has a
-  retention of its own (`assistant_sample_retention_days`, 365 by default) and is not
-  used until a person has ticked "approved". The visitor reads the sentence of
-  `assistant_consent_text` under the message field while it is on. **Switching it on is a
-  decision with a legal side** (the visitor told, the merchant's terms, nLPD and RGPD):
-  to be validated by a person, this is not legal advice. Measure first whether the
-  prompt, the knowledge base and the battery are enough: a fine-tuning only pays if it
+- **The history and the samples, behind one switch the merchant ticks** (`assistant_collect_samples`;
+  `samples.py`, `anonymise.py`): **off by default, and nothing is kept longer while it is off** (the conversations
+  live the ninety days of the Limits section). Ticked, the merchant keeps **everything**: the full conversations
+  stay for `assistant_history_days` (two years by default, the ones handed to the team never purged) and the merchant reads
+  them on the desk (Shop Assistant Conversation, the Assistant tab's links, the usage and unanswered-questions
+  reports: System Manager and Website Manager); and once a day the pairs of question and answer of every visitor who
+  was not signed in, rated or not, become anonymised samples (emails, phones, bank and card numbers, document
+  numbers and the names a visitor gave are replaced; a pair that still looks like it names somebody is left out and
+  counted; a busy day is taken in batches). A sample holds the day, the language, the opinion when there is one, the
+  prompt version and the two texts: no link to the conversation, no user, no cookie, no address. It has a
+  retention of its own (`assistant_sample_retention_days`, 365 by default) and is not used until a person has ticked
+  "approved". Every visitor, signed in or not, reads the sentence of `assistant_consent_text` under the message field
+  while it is on. **The legal side is the merchant's**: they choose to tick it, their privacy policy says so (nLPD, RGPD).
+  Measure first whether the prompt, the knowledge base and the battery are enough: a fine-tuning only pays if it
   beats the battery.
 
 <!-- //// Neoffice — added: documents the reseller quick-order page, the server-side is_reseller() gate, and the shared add-to-cart validation path it reuses (939e007ad8 "feat(quick-order): la commande rapide des revendeurs — lot 1") -->

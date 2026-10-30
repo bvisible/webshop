@@ -32,7 +32,13 @@ def leaf_item_group():
 
 	Some sites forbid items in the root group, so never return the root.
 	"""
-	group = frappe.db.get_value("Item Group", {"is_group": 0}, "name")
+	# //// Neoffice — was `get_value(..., {"is_group": 0})`: the first row the database hands back, which is not the same one from one
+	# //// day to the next. A group that carries default rows hands them to every item made in it, and ERPNext refuses two defaults
+	# //// for one company: on a copy of production data (duplicate rows since 2023) the suite failed in setUpClass whenever the
+	# //// database picked such a group. Ordered, and a group with no default row first.
+	groups = frappe.get_all("Item Group", filters={"is_group": 0}, pluck="name", order_by="name asc", limit_page_length=0)
+	with_defaults = set(frappe.get_all("Item Default", filters={"parenttype": "Item Group"}, pluck="parent", limit_page_length=0))
+	group = next((name for name in groups if name not in with_defaults), None) or (groups[0] if groups else None)
 	if group:
 		return group
 

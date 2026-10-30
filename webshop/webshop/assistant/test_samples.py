@@ -123,7 +123,7 @@ class TestSamples(FrappeTestCase):
 
 	def test_a_rated_pair_of_a_visitor_becomes_a_sample_without_its_origin(self):
 		conversation("Livrez-vous en Islande ? [wstest]", "Non, nous livrons en Suisse.", feedback="Not useful")
-		self.assertEqual(self.collect(), 1)
+		self.collect()
 		(sample,) = self.mine()
 		self.assertEqual((sample.opinion, sample.language), ("Not useful", "fr"))
 		self.assertEqual(sample.answer, "Non, nous livrons en Suisse.")
@@ -132,9 +132,25 @@ class TestSamples(FrappeTestCase):
 		for column in frappe.get_meta("Shop Assistant Sample").get_valid_columns():
 			self.assertNotIn(column, ("conversation", "guest_session", "user", "customer", "ip_hash"))
 
-	def test_an_answer_nobody_rated_is_not_collected(self):
+	def test_an_answer_nobody_rated_is_collected_too_without_an_opinion(self):
+		"""When the merchant switches the collection on, everything a visitor said is kept, rated or not."""
 		conversation("Livrez-vous en Islande ? [wstest]", "Non.", feedback="")
-		self.assertEqual(self.collect(), 0)
+		self.collect()
+		(sample,) = self.mine()
+		self.assertFalse(sample.opinion)
+
+	def test_a_busy_day_is_collected_in_several_batches(self):
+		real = samples.BATCH
+		samples.BATCH = 2
+		try:
+			for number in range(5):
+				conversation(f"Question {number} ? [wstest]", "Réponse.", feedback="")
+			self.collect()
+			again = self.collect()
+		finally:
+			samples.BATCH = real
+		self.assertEqual(len(self.mine()), 5)
+		self.assertEqual(again, 0, "the second night finds nothing new")
 
 	def test_a_signed_in_customer_is_not_collected(self):
 		if not frappe.db.exists("User", SIGNED_IN):
@@ -143,20 +159,22 @@ class TestSamples(FrappeTestCase):
 			).insert(ignore_permissions=True)
 		try:
 			conversation("Où est ma commande ? [wstest]", "Elle arrive.", user=SIGNED_IN)
-			self.assertEqual(self.collect(), 0)
+			self.collect()
+			self.assertEqual(self.mine(), [])
 		finally:
 			self.purge()
 			frappe.delete_doc("User", SIGNED_IN, force=True, ignore_permissions=True)
 
 	def test_a_conversation_handed_to_the_team_is_not_collected(self):
 		conversation("Mon colis est cassé [wstest]", "J'ai prévenu l'équipe.", status="Escalated")
-		self.assertEqual(self.collect(), 0)
+		self.collect()
+		self.assertEqual(self.mine(), [])
 
 	def test_what_names_a_person_does_not_reach_the_sample(self):
 		conversation(
 			"Je m'appelle Jean Dupont, écrivez-moi à jean@example.com [wstest]", "Bien noté, Jean Dupont.", feedback="Useful"
 		)
-		self.assertEqual(self.collect(), 1)
+		self.collect()
 		(sample,) = self.mine()
 		self.assertNotIn("Dupont", sample.question + sample.answer)
 		self.assertNotIn("jean@example.com", sample.question + sample.answer)
@@ -164,12 +182,13 @@ class TestSamples(FrappeTestCase):
 	def test_a_pair_that_still_looks_like_it_names_somebody_is_left_out_and_counted(self):
 		conversation("Mon dossier 12345678 [wstest]", "Merci.", feedback="Useful")
 		conversation("Livrez-vous en Islande ? [wstest]", "Non.", feedback="Useful")
-		self.assertEqual(self.collect(), 1)
-		self.assertEqual(samples.last_skipped, 1)
+		self.collect()
+		self.assertEqual(len(self.mine()), 1)
+		self.assertGreaterEqual(samples.last_skipped, 1)  # the site's own conversations may be left out too
 
 	def test_the_same_pair_is_collected_once(self):
 		conversation("Livrez-vous en Islande ? [wstest]", "Non.", feedback="Useful")
-		self.assertEqual(self.collect(), 1)
+		self.collect()
 		self.assertEqual(self.collect(), 0)
 		self.assertEqual(len(self.mine()), 1)
 
@@ -198,12 +217,74 @@ class TestSamples(FrappeTestCase):
 
 
 class TestTheConsentLine(FrappeTestCase):
-	def test_the_visitor_is_told_only_while_samples_are_collected_and_only_a_visitor(self):
-		self.assertIsNone(api.consent_line(frappe._dict(assistant_collect_samples=0), signed_in=False))
-		self.assertIsNone(api.consent_line(frappe._dict(assistant_collect_samples=1), signed_in=True))
-		line = api.consent_line(frappe._dict(assistant_collect_samples=1), signed_in=False)
+	def test_every_visitor_is_told_while_conversations_are_kept_and_nobody_otherwise(self):
+		"""The history keeps a signed-in customer's conversation too, so the sentence is not for visitors only."""
+		self.assertIsNone(api.consent_line(frappe._dict(assistant_collect_samples=0)))
+		line = api.consent_line(frappe._dict(assistant_collect_samples=1))
+		self.assertIn("kept", line)
 		self.assertIn("improve the service", line)
 
 	def test_the_merchant_s_own_sentence_wins(self):
 		settings = frappe._dict(assistant_collect_samples=1, assistant_consent_text="Vos messages servent à améliorer Nora.")
-		self.assertEqual(api.consent_line(settings, signed_in=False), "Vos messages servent à améliorer Nora.")
+		self.assertEqual(api.consent_line(settings), "Vos messages servent à améliorer Nora.")
+
+
+class TestTheHistory(FrappeTestCase):
+	"""While the merchant keeps the history, conversations live for the time they set instead of the ninety days of the
+	limits, and the ones handed to the team are never purged. The merchant reads them on the desk."""
+
+	NAMES = {}
+
+	def setUp(self):
+		self.real_settings = api.settings
+		self.settings = frappe._dict(assistant_collect_samples=0, assistant_retention_days=0, assistant_history_days=0)
+		api.settings = lambda: self.settings
+		self.purge()
+
+	def tearDown(self):
+		api.settings = self.real_settings
+		self.purge()
+
+	@staticmethod
+	def purge():
+		for name in frappe.get_all("Shop Assistant Conversation", filters={"guest_session": "_wstest-history"}, pluck="name"):
+			frappe.delete_doc("Shop Assistant Conversation", name, force=True, ignore_permissions=True)
+
+	def aged(self, days, status="Open"):
+		doc = conversation("Une question ? [wstest]", "Une réponse.", status=status, guest="_wstest-history")
+		frappe.db.set_value(
+			"Shop Assistant Conversation", doc.name, "last_message_on", add_days(frappe.utils.now_datetime(), -days), update_modified=False
+		)
+		return doc.name
+
+	def left(self, *names):
+		return [name for name in names if frappe.db.exists("Shop Assistant Conversation", name)]
+
+	def test_without_the_history_the_limits_retention_applies_ninety_days_by_default(self):
+		recent, old = self.aged(60), self.aged(100)
+		api.purge_old_conversations()
+		self.assertEqual(self.left(recent, old), [recent])
+
+	def test_the_merchant_s_own_retention_of_the_limits_applies_while_the_history_is_off(self):
+		self.settings.assistant_retention_days = 30
+		recent, old = self.aged(10), self.aged(40)
+		api.purge_old_conversations()
+		self.assertEqual(self.left(recent, old), [recent])
+
+	def test_with_the_history_on_conversations_live_two_years_by_default(self):
+		self.settings.assistant_collect_samples = 1
+		old, ancient = self.aged(100), self.aged(800)
+		api.purge_old_conversations()
+		self.assertEqual(self.left(old, ancient), [old])
+
+	def test_with_the_history_on_the_merchant_sets_how_long(self):
+		self.settings.assistant_collect_samples = 1
+		self.settings.assistant_history_days = 365
+		year, more = self.aged(300), self.aged(400)
+		api.purge_old_conversations()
+		self.assertEqual(self.left(year, more), [year])
+
+	def test_a_conversation_handed_to_the_team_is_never_purged(self):
+		ancient = self.aged(5000, status="Escalated")
+		api.purge_old_conversations()
+		self.assertEqual(self.left(ancient), [ancient])
