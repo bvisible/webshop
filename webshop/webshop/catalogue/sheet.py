@@ -143,14 +143,13 @@ def used_lines(doc):
 
 
 def price_text(amount, currency):
-	"""A price with its currency: the one the price carries, else its price list's (a site whose price
-	information carries none printed "160.65" and no currency, measured on osiris)."""
-	if not currency:
-		from webshop.webshop.multi_site import effective_price_list
-		from webshop.webshop.utils.customer_pricing import currency_of
-
-		currency = currency_of(effective_price_list())
-	return fmt_money(flt(amount), currency=currency or None)
+	"""A price with its currency, always. Global Defaults' "hide currency symbol" is a preference of the
+	desk's screens and makes `fmt_money` drop it; a sheet is read away from the site, where a bare figure
+	says nothing (osiris printed "160.65" for a price in CHF)."""
+	text = fmt_money(flt(amount), currency=currency or None)
+	if currency and frappe.defaults.get_global_default("hide_currency_symbol") == "Yes":
+		text = f"{currency} {text}"
+	return text
 
 
 def shop_price(offer):

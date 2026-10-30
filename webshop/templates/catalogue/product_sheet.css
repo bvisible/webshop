@@ -41,6 +41,8 @@ h2 { font-size: 11pt; margin: 7mm 0 2.5mm; color: var(--brand); border-bottom: .
 .desc p { margin: 0 0 2mm; }
 table { width: 100%; border-collapse: collapse; break-inside: auto; }
 tr { break-inside: avoid; }
+/* a short table with its heading goes to the next page whole, never one row alone at the foot of this one */
+.keep { break-inside: avoid; }
 td, th { padding: 1.4mm 2mm; border-bottom: .2mm solid var(--line); vertical-align: top; text-align: left; }
 td.k { width: 34%; color: var(--muted); font-weight: 600; }
 table.variants th { font-size: 8pt; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border-bottom: .4mm solid var(--line); }
@@ -48,8 +50,10 @@ table.variants td.p { text-align: right; font-weight: 700; white-space: nowrap; 
 table.variants th.p { text-align: right; }
 
 .choices { margin-top: 3mm; font-size: 11pt; font-weight: 700; color: var(--brand); }
-.qrbox { margin-top: auto; padding-top: 6mm; display: flex; align-items: center; gap: 4mm; break-inside: avoid; }
+.qrbox { margin-top: auto; padding-top: 6mm; break-inside: avoid; }
+.qrrow { display: flex; align-items: center; gap: 4mm; }
 .qrbox img { width: 26mm; height: 26mm; flex: none; }
 .qrbox .cap { font-size: 8.5pt; color: var(--muted); }
-.qrbox .date { color: var(--faint); font-size: 8pt; margin-top: 1mm; white-space: nowrap; }
+/* its own line under the code: beside the caption the column left room for half a date */
+.qrbox .date { color: var(--faint); font-size: 8pt; margin-top: 2mm; }
 .credit { font-size: 7.5pt; color: var(--faint); margin-top: 4mm; }

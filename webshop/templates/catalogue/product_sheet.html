@@ -51,11 +51,11 @@
 		{% if sheet.promises %}<ul class="promises">{% for line in sheet.promises %}<li>{{ line | e }}</li>{% endfor %}</ul>{% endif %}
 		{% if sheet.choices %}<div class="choices">{{ _("{0} choices").format(sheet.choices) | e }}</div>{% endif %}
 		<div class="qrbox">
-			{% if sheet.qr %}<img src="{{ sheet.qr }}" alt="">{% endif %}
-			<div>
+			<div class="qrrow">
+				{% if sheet.qr %}<img src="{{ sheet.qr }}" alt="">{% endif %}
 				{% if sheet.qr_caption %}<div class="cap">{{ sheet.qr_caption | e }}</div>{% endif %}
-				<div class="date">{{ sheet.date_line | e }}</div>
 			</div>
+			<div class="date">{{ sheet.date_line | e }}</div>
 		</div>
 	</div>
 </div>
@@ -76,8 +76,10 @@
 {% endif %}
 
 {% if sheet.specs %}
+<div class="keep">
 <h2>{{ _("Characteristics") }}</h2>
 <table>{% for name, value in sheet.specs %}<tr><td class="k">{{ name | e }}</td><td>{{ value | e }}</td></tr>{% endfor %}</table>
+</div>
 {% endif %}
 
 {% if sheet.issuer.footer %}<div class="credit">{{ sheet.issuer.footer | e }}</div>{% endif %}

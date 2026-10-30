@@ -197,18 +197,18 @@ class TestProductSheet(FrappeTestCase):
 		self.assertEqual(data.description[-2:], ["One", "Two"])
 		self.assertEqual(data.specs, [("Weight", "180 g"), ("Material", "Cotton")])
 
-	def test_a_price_whose_information_carries_no_currency_gets_the_price_list_s(self):
-		# measured on osiris: a product's price information had no currency, and the sheet printed "160.65".
-		# The site's default currency is not the price list's here, so the test tells the two apart.
+	def test_a_price_names_its_currency_even_when_the_site_hides_the_currency_symbol(self):
+		# measured on osiris: Global Defaults' "hide currency symbol" is on, `fmt_money` drops the currency
+		# and the sheet printed "160.65" for a price in CHF
 		from unittest.mock import patch
 
-		with patch("webshop.webshop.multi_site.effective_price_list", return_value="Some List"), patch(
-			"webshop.webshop.utils.customer_pricing.currency_of", return_value="EUR"
-		) as currency_of:
-			self.assertEqual(sheet.price_text(100, ""), fmt_money(100, currency="EUR"))
-			self.assertEqual(sheet.price_text(100, None), fmt_money(100, currency="EUR"))
-			currency_of.assert_called_with("Some List")
-			self.assertEqual(sheet.price_text(100, "USD"), fmt_money(100, currency="USD"), "a currency the price carries wins")
+		with patch("frappe.defaults.get_global_default", return_value="Yes"):
+			self.assertEqual(fmt_money(160.65, currency="CHF"), "160.65", "the premise: the site hides it")
+			text = sheet.price_text(160.65, "CHF")
+		self.assertEqual(text, "CHF 160.65")
+		with patch("frappe.defaults.get_global_default", return_value="No"):
+			self.assertEqual(sheet.price_text(160.65, "CHF"), fmt_money(160.65, currency="CHF"))
+			self.assertEqual(sheet.price_text(160.65, "CHF").count("CHF"), 1, "a symbol already printed is not doubled")
 
 	def test_a_visitor_s_text_cannot_become_markup(self):
 		html = sheet.render_html(sheet.build_sheet(self.doc()))
