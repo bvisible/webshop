@@ -772,12 +772,13 @@ function fill_assistant_status(frm) {
 			const feedback = d.feedback || {};
 			//// Neoffice — the rows of lot D's counters, built apart so that this marker sits right above them
 			const requests_html =
-				row(__("Requests today"), `${today.received || 0} (${__("answered")} ${today.answered || 0}, ${__("turned away")} ${today.refused || 0})`, "/app/query-report/Shop%20Assistant%20Usage") +
-				row(__("Requests this month"), `${d.requests || 0} (${__("answered")} ${d.answered || 0}, ${__("turned away")} ${d.refused_total || 0})`, "/app/query-report/Shop%20Assistant%20Usage") +
+				row(__("Requests today"), `${today.received || 0} (${__("{0} answered, {1} turned away", [today.answered || 0, today.refused || 0])})`, "/app/query-report/Shop%20Assistant%20Usage") +
+				row(__("Requests this month"), `${d.requests || 0} (${__("{0} answered, {1} turned away", [d.answered || 0, d.refused_total || 0])})`, "/app/query-report/Shop%20Assistant%20Usage") +
 				(refused ? `<div class="text-muted small py-1">${frappe.utils.escape_html(refused)}</div>` : "") +
 				row(
 					__("Opinions of visitors"),
-					`${feedback.up || 0} ${__("useful")} · ${feedback.down || 0} ${__("not useful")} · ${feedback.reported || 0} ${__("reported")}`,
+					//// Neoffice — one sentence to translate, its numbers as placeholders
+					__("{0} useful · {1} not useful · {2} reported", [feedback.up || 0, feedback.down || 0, feedback.reported || 0]),
 					"/app/query-report/Shop%20Assistant%20Unanswered%20Questions"
 				);
 			field.$wrapper.html(
