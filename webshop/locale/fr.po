@@ -10075,3 +10075,154 @@ msgstr "{0} répondues, {1} refusées"
 #, python-brace-format
 msgid "{0} useful · {1} not useful · {2} reported"
 msgstr "{0} utiles · {1} pas utiles · {2} signalées"
+
+#. Label of a Section Break field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:215
+msgid "Answer times"
+msgstr "Temps de réponse"
+
+#: webshop/webshop/assistant/api.py:443
+msgid "Conversations are kept, and anonymised excerpts may be used to improve the service."
+msgstr "Les conversations sont conservées, et des extraits anonymisés peuvent servir à améliorer le service."
+
+#. Description of the 'Keep conversations while the history is kept (days)'
+#. (Int) field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1565
+msgid "Empty: 730 days (two years). The conversations handed to the team are never purged."
+msgstr "Vide : 730 jours (deux ans). Les conversations transmises à l'équipe ne sont jamais purgées."
+
+#. Description of the 'Answer times' (Section Break) field in DocType 'Shop
+#. Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:212
+msgid "How many answers took no longer than each bound: what the median and the 95th percentile are read from"
+msgstr "Nombre de réponses ayant pris au plus autant que chaque seuil : c'est à partir d'elles que l'on lit la médiane et le 95e centile"
+
+#. Label of a Int field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1568
+msgid "Keep conversations while the history is kept (days)"
+msgstr "Conserver les conversations (jours)"
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1547
+msgid "Keep the history and anonymised samples of conversations"
+msgstr "Conserver l'historique et des échantillons anonymisés de conversations"
+
+#. Description of the 'Keep the history and anonymised samples of
+#. conversations' (Check) field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1544
+msgid "Off by default, and nothing is kept longer while it is off. When on, the full conversations are kept for the time set below instead of the retention of the Limits section, and anonymised pairs of question and answer from visitors who were not signed in are kept to improve the service. You read the history in Shop Assistant Conversation. Switch it on only once your privacy policy says so; the visitors are told by the sentence below."
+msgstr "Désactivé par défaut, et rien n'est conservé plus longtemps tant qu'il l'est. Activé, les conversations complètes sont conservées pendant la durée indiquée ci-dessous au lieu de la durée de conservation de la section Limites, et les couples question-réponse anonymisés des visiteurs non connectés sont conservés pour améliorer le service. Vous lisez l'historique dans Shop Assistant Conversation. N'activez-le que lorsque votre politique de confidentialité le prévoit ; les visiteurs en sont informés par la phrase ci-dessous."
+
+#: webshop/webshop/catalogue/sheet.py:125
+msgid "On order"
+msgstr "Sur commande"
+
+#: webshop/webshop/catalogue/sheet.py:331
+#, python-brace-format
+msgid "Prices valid on {0}"
+msgstr "Prix valables au {0}"
+
+#: webshop/webshop/catalogue/sheet_links.py:17
+msgid "Product sheet (PDF)"
+msgstr "Fiche produit (PDF)"
+
+#: webshop/webshop/catalogue/sheet_links.py:22
+msgid "Product sheet in my name (PDF)"
+msgstr "Fiche produit à mon nom (PDF)"
+
+#: webshop/webshop/catalogue/sheet_api.py:48
+msgid "Product sheets are not available on this site."
+msgstr "Les fiches produit ne sont pas disponibles sur ce site."
+
+#: webshop/webshop/catalogue/sheet.py:298
+msgid "Scan to see this product online"
+msgstr "Scannez pour voir ce produit en ligne"
+
+#: webshop/webshop/catalogue/sheet.py:293
+#, python-brace-format
+msgid "Scan to visit {0}"
+msgstr "Scannez pour visiter {0}"
+
+#: webshop/webshop/catalogue/sheet_api.py:91
+msgid "Set up your brand first: your logo, your colours and your markup."
+msgstr "Configurez d'abord votre marque : votre logo, vos couleurs et votre marge."
+
+#. Description of the 'Sentence shown to the visitor' (Small Text) field in
+#. DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1551
+msgid "Shown to visitors under the message field. Empty: \"Conversations are kept, and anonymised excerpts may be used to improve the service.\""
+msgstr "Affichée aux visiteurs sous le champ du message. Vide : « Les conversations sont conservées, et des extraits anonymisés peuvent servir à améliorer le service. »"
+
+#: webshop/webshop/catalogue/sheet_api.py:53
+msgid "The sheet could not be made. Try again in a moment."
+msgstr "La fiche n'a pas pu être générée. Réessayez dans un instant."
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:226
+msgid "Up to 1000 ms"
+msgstr "Jusqu'à 1000 ms"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:256
+msgid "Up to 12000 ms"
+msgstr "Jusqu'à 12000 ms"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:280
+msgid "Up to 120000 ms"
+msgstr "Jusqu'à 120000 ms"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:232
+msgid "Up to 2000 ms"
+msgstr "Jusqu'à 2000 ms"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:262
+msgid "Up to 20000 ms"
+msgstr "Jusqu'à 20000 ms"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:238
+msgid "Up to 3000 ms"
+msgstr "Jusqu'à 3000 ms"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:268
+msgid "Up to 30000 ms"
+msgstr "Jusqu'à 30000 ms"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:220
+msgid "Up to 500 ms"
+msgstr "Jusqu'à 500 ms"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:244
+msgid "Up to 5000 ms"
+msgstr "Jusqu'à 5000 ms"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:274
+msgid "Up to 60000 ms"
+msgstr "Jusqu'à 60000 ms"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:250
+msgid "Up to 8000 ms"
+msgstr "Jusqu'à 8000 ms"
+
+#: webshop/webshop/catalogue/sheet.py:245
+#, python-brace-format
+msgid "VAT no. {0}"
+msgstr "N° TVA {0}"
+
+#: webshop/templates/catalogue/product_sheet.html:52
+#, python-brace-format
+msgid "{0} choices"
+msgstr "{0} choix"
+
+#: webshop/webshop/catalogue/sheet.py:141
+#, python-brace-format
+msgid "{0}-month warranty"
+msgstr "Garantie {0} mois"
