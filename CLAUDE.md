@@ -935,6 +935,13 @@ whatever the form says; a guest must give a valid one.
   (`clean_route`: it is written in the SYSTEM prompt, where a sentence speaks with
   the system's voice); the bubble links only paths of this shop (`safeHref`: never
   `//host`, never another origin).
+- **The bubble asks the server with its own `fetch`, never `frappe.call`.** On a
+  429 `frappe.call` never calls its error callback (only `always` fires) and pops
+  a Frappe dialog over the shop's page: the visitor stayed on "typing…" for ever.
+  `assistant.js` `api()` always ends, with the message or an error carrying
+  `status` and `responseJSON`; `test_assistant_links.py` runs the real file under
+  Node. The glyph (`icon()`) is one svg with no size of its own: the stylesheet
+  sizes it (30px button, 22px header), `currentColor` inks it.
 - **The team's door is not a mail relay.** One address, not a list
   (`escalation.single_email`: `validate_email_address` returns `a@x,b@y` whole);
   a stranger's address gets 3 receipts a day; receipts do not quote the visitor.
