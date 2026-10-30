@@ -9611,3 +9611,456 @@ msgstr "{0} doit être une seule adresse e-mail."
 #, python-brace-format
 msgid "{0} must be one of the choices offered."
 msgstr "{0} doit être l'un des choix proposés."
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:174
+msgid "95th percentile answer time (ms)"
+msgstr "Temps de réponse au 95e centile (ms)"
+
+#. Description of the 'Faults' (Int) field in DocType 'Shop Assistant Usage
+#. Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:107
+msgid "A fault of the shop's own while answering"
+msgstr "Une panne de la boutique pendant la réponse"
+
+#. Description of the 'Source key' (Data) field in DocType 'Shop Assistant
+#. Sample'
+#: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:85
+msgid "A one-way fingerprint of the message, only to avoid keeping the same pair twice"
+msgstr "Une empreinte à sens unique du message, uniquement pour éviter de garder deux fois la même paire"
+
+#. Description of the 'Read and approved by a person' (Check) field in DocType
+#. 'Shop Assistant Sample'
+#: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:63
+msgid "A sample is not used for anything until a person has read it"
+msgstr "Un échantillon n'est utilisé à aucune fin tant qu'une personne ne l'a pas lu"
+
+#. Description of a DocType
+#: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:5
+msgid "An anonymised pair of question and answer from a visitor who was not signed in, kept for improving the service. Empty until the merchant switches the collection on."
+msgstr "Une paire question-réponse anonymisée, provenant d'un visiteur non connecté, conservée pour améliorer le service. Vide tant que le marchand n'active pas la collecte."
+
+#. Description of the 'Not useful' (Int) field in DocType 'Shop Assistant Usage
+#. Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:185
+msgid "Answers a visitor marked not useful"
+msgstr "Réponses qu'un visiteur a jugées pas utiles"
+
+#. Description of the 'Useful' (Int) field in DocType 'Shop Assistant Usage
+#. Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:178
+msgid "Answers a visitor marked useful"
+msgstr "Réponses qu'un visiteur a jugées utiles"
+
+#. Description of the 'Reported' (Int) field in DocType 'Shop Assistant Usage
+#. Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:192
+msgid "Answers a visitor reported"
+msgstr "Réponses signalées par un visiteur"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:765
+msgid "Assistant off"
+msgstr "Assistant désactivé"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:131
+msgid "Bubbles shown"
+msgstr "Bulles affichées"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:143
+msgid "Calls to the model"
+msgstr "Appels au modèle"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:161
+msgid "Completion tokens"
+msgstr "Jetons générés"
+
+#: webshop/webshop/assistant/api.py:439
+msgid "Conversations may be used, anonymously, to improve the service."
+msgstr "Les conversations peuvent être utilisées, de façon anonyme, pour améliorer le service."
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:760
+msgid "Daily limit"
+msgstr "Limite quotidienne"
+
+#. Description of the 'Keep samples (days)' (Int) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1557
+msgid "Empty: 365 days"
+msgstr "Vide : 365 jours"
+
+#. Description of the 'Requests received' (Int) field in DocType 'Shop
+#. Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:44
+msgid "Every call that reached the shop's server, the ones it refused included"
+msgstr "Chaque appel reçu par le serveur de la boutique, y compris ceux qui ont été refusés"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:110
+msgid "Faults"
+msgstr "Pannes"
+
+#. Description of the 'Prompt version' (Data) field in DocType 'Shop Assistant
+#. Message'
+#: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:94
+msgid "Fingerprint of the rules the model was given for this answer"
+msgstr "Empreinte des règles fournies au modèle pour cette réponse"
+
+#. Label of a Data field in DocType 'Shop Assistant Message'
+#: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:103
+msgid "Finish reason"
+msgstr "Motif de fin"
+
+#: webshop/webshop/assistant/unanswered.py:26
+msgid "Handed to the team"
+msgstr "Transmise à l'équipe"
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1539
+msgid "Improving the service"
+msgstr "Amélioration du service"
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1546
+msgid "Keep anonymised samples of conversations"
+msgstr "Conserver des échantillons anonymisés de conversations"
+
+#. Label of a Int field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1560
+msgid "Keep samples (days)"
+msgstr "Durée de conservation des échantillons (jours)"
+
+#. Label of a Date field in DocType 'Shop Assistant Sample'
+#: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:58
+msgid "Kept until"
+msgstr "Conservé jusqu'au"
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1533
+msgid "Mail the unanswered questions every week"
+msgstr "Envoyer chaque semaine par e-mail les questions sans réponse"
+
+#: webshop/webshop/assistant/unanswered.py:28
+msgid "Marked not useful"
+msgstr "Jugée pas utile"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:168
+msgid "Median answer time (ms)"
+msgstr "Temps de réponse médian (ms)"
+
+#. Description of the 'Signed-in customers' (Int) field in DocType 'Shop
+#. Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:121
+msgid "Messages from signed-in customers"
+msgstr "Messages de clients connectés"
+
+#. Description of the 'Visitors' (Int) field in DocType 'Shop Assistant Usage
+#. Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:114
+msgid "Messages from visitors who were not signed in"
+msgstr "Messages de visiteurs non connectés"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:137
+msgid "Messages left for the team"
+msgstr "Messages laissés à l'équipe"
+
+#. Description of the 'Answered' (Int) field in DocType 'Shop Assistant Usage
+#. Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:52
+msgid "Messages the assistant answered"
+msgstr "Messages auxquels l'assistant a répondu"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:762
+msgid "Model not answering"
+msgstr "Modèle sans réponse"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:761
+msgid "Monthly cap"
+msgstr "Plafond mensuel"
+
+#. Option for the 'Visitor's opinion' (Select) field in DocType 'Shop Assistant
+#. Message'
+#. Sample'
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/assistant/api.py:387
+#: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:135
+#: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:41
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:188
+msgid "Not useful"
+msgstr "Pas utile"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:780
+msgid "not useful"
+msgstr "pas utile"
+
+#. Description of the 'Keep anonymised samples of conversations' (Check) field
+#. in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1543
+msgid "Off by default, and nothing is kept while it is off. When on, anonymised pairs of question and answer from visitors who were not signed in, and whom the visitor rated, are kept to improve the service. Switch it on only once your terms allow it and the visitor is told (the sentence below)."
+msgstr "Désactivé par défaut, et rien n'est conservé tant qu'il l'est. Une fois activé, les paires question-réponse anonymisées de visiteurs non connectés, et que le visiteur a notées, sont conservées pour améliorer le service. Ne l'activez qu'une fois vos conditions générales le permettant et le visiteur informé (la phrase ci-dessous)."
+
+#. Description of the 'Mail the unanswered questions every week' (Check) field
+#. in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1530
+msgid "Off by default: nothing is sent until you switch it on. Once a week, the questions visitors asked that the assistant could not answer, to the support email."
+msgstr "Désactivé par défaut : rien n'est envoyé tant que vous ne l'activez pas. Chaque semaine, les questions posées par les visiteurs auxquelles l'assistant n'a pas pu répondre, envoyées à l'adresse d'assistance."
+
+#. Label of a Datetime field in DocType 'Shop Assistant Message'
+#: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:147
+msgid "Opinion given on"
+msgstr "Avis donné le"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:779
+msgid "Opinions of visitors"
+msgstr "Avis des visiteurs"
+
+#. Description of the 'Bubbles shown' (Int) field in DocType 'Shop Assistant
+#. Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:128
+msgid "Pages that asked for the bubble"
+msgstr "Pages où la bulle a été demandée"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:764
+msgid "Previous message still answered"
+msgstr "Message précédent encore en cours de réponse"
+
+#: webshop/webshop/assistant/unanswered.py:101
+msgid "Questions visitors asked the assistant this week that it could not answer. They show what the shop’s knowledge or catalogue lacks."
+msgstr "Questions posées cette semaine par les visiteurs à l'assistant, auxquelles il n'a pas pu répondre. Elles montrent ce qui manque aux connaissances ou au catalogue de la boutique."
+
+#: webshop/webshop/assistant/unanswered.py:108
+msgid "Questions your shop assistant could not answer this week"
+msgstr "Questions auxquelles votre assistant n'a pas pu répondre cette semaine"
+
+#. Label of a Check field in DocType 'Shop Assistant Sample'
+#: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:66
+msgid "Read and approved by a person"
+msgstr "Lu et approuvé par une personne"
+
+#. Description of the 'Median answer time (ms)' (Int) field in DocType 'Shop
+#. Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:165
+msgid "Read from 11 buckets: the upper bound of the bucket that holds it"
+msgstr "Lu parmi 11 tranches : la borne supérieure de la tranche qui la contient"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:103
+msgid "Refused: assistant off"
+msgstr "Refus : assistant désactivé"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:70
+msgid "Refused: daily limit"
+msgstr "Refus : limite quotidienne"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:84
+msgid "Refused: model down"
+msgstr "Refus : modèle indisponible"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:77
+msgid "Refused: monthly cap"
+msgstr "Refus : plafond mensuel"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:97
+msgid "Refused: previous message still answered"
+msgstr "Refus : message précédent encore en cours de réponse"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:91
+msgid "Refused: too busy"
+msgstr "Refus : trop d'activité"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:63
+msgid "Refused: too many requests"
+msgstr "Refus : trop de demandes"
+
+#: webshop/webshop/assistant/api.py:389
+msgid "Report a problem"
+msgstr "Signaler un problème"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/assistant/unanswered.py:30
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:195
+msgid "Reported"
+msgstr "Signalées"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:780
+msgid "reported"
+msgstr "signalées"
+
+#. Label of a Check field in DocType 'Shop Assistant Message'
+#: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:141
+msgid "Reported by the visitor"
+msgstr "Signalée par le visiteur"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:48
+#: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:67
+msgid "Requests received"
+msgstr "Demandes reçues"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:776
+msgid "Requests this month"
+msgstr "Demandes ce mois-ci"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:775
+msgid "Requests today"
+msgstr "Demandes aujourd'hui"
+
+#. Label of a Small Text field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1553
+msgid "Sentence shown to the visitor"
+msgstr "Phrase affichée au visiteur"
+
+#. Name of a DocType
+#: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:99
+msgid "Shop Assistant Sample"
+msgstr "Échantillon de l'assistant"
+
+#. Name of a report
+#: webshop/webshop/report/shop_assistant_unanswered_questions/shop_assistant_unanswered_questions.json:19
+msgid "Shop Assistant Unanswered Questions"
+msgstr "Questions sans réponse de l'assistant"
+
+#. Name of a DocType
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:204
+msgid "Shop Assistant Usage Day"
+msgstr "Usage de l'assistant par jour"
+
+#. Description of the 'Sentence shown to the visitor' (Small Text) field in
+#. DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1550
+msgid "Shown to visitors under the message field. Empty: \"Conversations may be used, anonymously, to improve the service.\""
+msgstr "Affichée aux visiteurs sous le champ du message. Vide : « Les conversations peuvent être utilisées, de façon anonyme, pour améliorer le service. »"
+
+#. Label of a Data field in DocType 'Shop Assistant Message'
+#: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:110
+msgid "Signals"
+msgstr "Signaux"
+
+#. Description of the 'Signals' (Data) field in DocType 'Shop Assistant
+#. Message'
+#: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:107
+msgid "Signals for the person reading the log: injection_suspected, off_topic_refused, unanswered, escalated. Written between commas."
+msgstr "Signaux pour la personne qui lit le journal : injection_suspected, off_topic_refused, unanswered, escalated. Écrits entre virgules."
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:124
+msgid "Signed-in customers"
+msgstr "Clients connectés"
+
+#. Label of a Data field in DocType 'Shop Assistant Message'
+#: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:124
+msgid "Source (daily hash)"
+msgstr "Source (empreinte du jour)"
+
+#. Label of a Data field in DocType 'Shop Assistant Sample'
+#: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:89
+msgid "Source key"
+msgstr "Clé de source"
+
+#: webshop/webshop/assistant/api.py:390
+msgid "Thank you for your opinion."
+msgstr "Merci pour votre avis."
+
+#. Description of the 'Day' (Date) field in DocType 'Shop Assistant Sample'
+#: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:23
+msgid "The day only: nothing says which conversation, which visitor or which address"
+msgstr "Le jour seulement : rien n'indique quelle conversation, quel visiteur ni quelle adresse"
+
+#. Description of the 'Refused: model down' (Int) field in DocType 'Shop
+#. Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:81
+msgid "The model did not answer, or an outage was already known"
+msgstr "Le modèle n'a pas répondu, ou une panne était déjà connue"
+
+#. Description of the 'Source (daily hash)' (Data) field in DocType 'Shop
+#. Assistant Message'
+#: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:121
+msgid "The same for one source all day, different the next: not an address"
+msgstr "La même pour une source toute la journée, différente le lendemain : ce n'est pas une adresse"
+
+#. Description of the 'Refused: monthly cap' (Int) field in DocType 'Shop
+#. Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:74
+msgid "The shop's tokens for the month were spent"
+msgstr "Les jetons de la boutique pour le mois ont été épuisés"
+
+#. Description of the 'Refused: too busy' (Int) field in DocType 'Shop
+#. Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:88
+msgid "The site's hourly ceiling, or every place for an answer was taken"
+msgstr "Le plafond horaire du site, ou toutes les places pour répondre étaient prises"
+
+#. Description of the 'Refused: daily limit' (Int) field in DocType 'Shop
+#. Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:67
+msgid "The visitor's messages for the day were spent"
+msgstr "Les messages du visiteur pour la journée ont été épuisés"
+
+#: webshop/webshop/assistant/unanswered.py:103
+#: webshop/webshop/report/shop_assistant_unanswered_questions/shop_assistant_unanswered_questions.py:21
+msgid "Times asked"
+msgstr "Nombre de fois posée"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:763
+msgid "Too busy"
+msgstr "Trop d'activité"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:759
+msgid "Too many requests"
+msgstr "Trop de demandes"
+
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:149
+msgid "Tool calls"
+msgstr "Appels d'outils"
+
+#: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:68
+msgid "Turned away"
+msgstr "Refus"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:775
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:776
+msgid "turned away"
+msgstr "refusés"
+
+#. Description of the 'Refused: too many requests' (Int) field in DocType 'Shop
+#. Assistant Usage Day'
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:60
+msgid "Turned away by the rate limit before the assistant was asked"
+msgstr "Refusés par la limite de débit avant que l'assistant ne soit sollicité"
+
+#: webshop/webshop/assistant/api.py:662
+msgid "Unknown opinion."
+msgstr "Avis inconnu."
+
+#. Option for the 'Visitor's opinion' (Select) field in DocType 'Shop Assistant
+#. Message'
+#. Sample'
+#. Label of a Int field in DocType 'Shop Assistant Usage Day'
+#: webshop/webshop/assistant/api.py:386
+#: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:135
+#: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:41
+#: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:181
+msgid "Useful"
+msgstr "Utile"
+
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.js:780
+msgid "useful"
+msgstr "utile"
+
+#. Label of a Select field in DocType 'Shop Assistant Message'
+#. Label of a Select field in DocType 'Shop Assistant Sample'
+#: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:134
+#: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:40
+msgid "Visitor's opinion"
+msgstr "Avis du visiteur"
