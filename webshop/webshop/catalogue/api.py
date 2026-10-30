@@ -32,6 +32,7 @@ DOCTYPE = "Reseller Catalogue Profile"
 SAMPLE_SIZE = 5
 SAMPLE_CHUNK = 10
 SAMPLE_SCAN_MAX = 50
+PRICED_CODES_MAX = 1000
 # a logo of 2 MB is 2.8 MB once written in base64: refuse a longer body before decoding it
 MAX_LOGO_BASE64 = 3 * 1024 * 1024
 
@@ -222,13 +223,24 @@ def preview_prices(
 	party = frappe.get_cached_doc("Customer", customer)
 	price_list = customer_pricing.customer_price_list(settings, party)
 	currency = customer_pricing.currency_of(price_list)
-	items = frappe.get_all(
-		"Website Item",
-		filters=visible_item_filters(),
-		fields=["item_code", "web_item_name"],
-		order_by="modified desc",
-		limit=SAMPLE_SCAN_MAX,
+	# the products this customer's list prices at all: a list that prices a handful of products would
+	# otherwise show nothing, those few rarely being among the newest of the shop
+	priced_codes = frappe.get_all(
+		"Item Price",
+		filters={"price_list": price_list, "selling": 1},
+		pluck="item_code",
+		distinct=True,
+		limit=PRICED_CODES_MAX,
 	)
+	items = []
+	if priced_codes:
+		items = frappe.get_all(
+			"Website Item",
+			filters={**visible_item_filters(), "item_code": ["in", priced_codes]},
+			fields=["item_code", "web_item_name"],
+			order_by="modified desc",
+			limit=SAMPLE_SCAN_MAX,
+		)
 	including_vat = current["price_display"] == "Including VAT"
 	rows = []
 	for start in range(0, len(items), SAMPLE_CHUNK):

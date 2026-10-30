@@ -33,6 +33,7 @@ GROUP = f"{PREFIX} Brand Resellers"
 OTHER_GROUP = f"{PREFIX} Brand Consumers"
 LIST_B = f"{PREFIX} Brand Reseller B"
 ITEM = f"{PREFIX} Brand Shirt"
+ITEM_B_ONLY = f"{PREFIX} Brand Scarf"
 A_USER, A_CUSTOMER = "wstest-brand-a@example.com", f"{PREFIX} Brand Shop A"
 B_USER, B_CUSTOMER = "wstest-brand-b@example.com", f"{PREFIX} Brand Shop B"
 OUT_USER, OUT_CUSTOMER = "wstest-brand-out@example.com", f"{PREFIX} Brand Outsider"
@@ -85,6 +86,15 @@ class TestMyBrand(FrappeTestCase):
 		website_item = frappe.get_doc("Website Item", {"item_code": item.name})
 		website_item.published = 1
 		website_item.save(ignore_permissions=True)
+		# priced on reseller B's list only, and made after the first: the newest published item of the shop
+		scarf = make_test_item(ITEM_B_ONLY, item_name="Foulard de marque", is_stock_item=0)
+		frappe.get_doc(
+			{"doctype": "Item Price", "item_code": scarf.name, "price_list": LIST_B, "price_list_rate": 50}
+		).insert(ignore_permissions=True)
+		make_website_item(scarf)
+		scarf_site = frappe.get_doc("Website Item", {"item_code": scarf.name})
+		scarf_site.published = 1
+		scarf_site.save(ignore_permissions=True)
 		# reseller B pays from its own list; A, with none, falls back to the shop's
 		frappe.db.set_value("Customer", B_CUSTOMER, "default_price_list", LIST_B)
 		# a rollback at the end of the class would take uncommitted fixtures with it
@@ -97,11 +107,12 @@ class TestMyBrand(FrappeTestCase):
 		would fail the second run ("Already Published") and sit in every later module's catalogue."""
 		if frappe.db.exists("Customer", B_CUSTOMER):
 			frappe.db.set_value("Customer", B_CUSTOMER, "default_price_list", "")
-		for name in frappe.get_all("Website Item", filters={"item_code": ITEM}, pluck="name"):
-			frappe.delete_doc("Website Item", name, force=True, ignore_permissions=True)
-		frappe.db.delete("Item Price", {"item_code": ITEM})
-		if frappe.db.exists("Item", ITEM):
-			frappe.delete_doc("Item", ITEM, force=True, ignore_permissions=True)
+		for code in (ITEM, ITEM_B_ONLY):
+			for name in frappe.get_all("Website Item", filters={"item_code": code}, pluck="name"):
+				frappe.delete_doc("Website Item", name, force=True, ignore_permissions=True)
+			frappe.db.delete("Item Price", {"item_code": code})
+			if frappe.db.exists("Item", code):
+				frappe.delete_doc("Item", code, force=True, ignore_permissions=True)
 		frappe.db.delete("Item Price", {"price_list": LIST_B})
 		if frappe.db.exists("Price List", LIST_B):
 			frappe.delete_doc("Price List", LIST_B, force=True, ignore_permissions=True)
@@ -270,6 +281,17 @@ class TestMyBrand(FrappeTestCase):
 		# A pays 100 and sells at 130; B pays 80 and sells at 104
 		self.assertEqual((digits(row_a["cost"]), digits(row_a["price"])), ("10000", "13000"))
 		self.assertEqual((digits(row_b["cost"]), digits(row_b["price"])), ("8000", "10400"))
+
+	def test_the_preview_looks_among_the_products_the_list_prices_not_among_the_newest(self):
+		# the newest published product is the scarf, which only B's list prices: a preview that scanned the
+		# newest products and priced them afterwards would show A nothing at all, with a window this small
+		with mock.patch.object(api, "SAMPLE_SCAN_MAX", 1):
+			frappe.set_user(A_USER)
+			rows_a = api.preview_prices(price_rounding="none")["rows"]
+			frappe.set_user(B_USER)
+			rows_b = api.preview_prices(price_rounding="none")["rows"]
+		self.assertEqual([row["item_code"] for row in rows_a], [ITEM], "A sees the shirt, the one product its list prices")
+		self.assertIn(ITEM_B_ONLY, [row["item_code"] for row in rows_b], "B sees the scarf its list prices")
 
 	def test_the_preview_uses_the_saved_settings_when_none_are_tried(self):
 		frappe.set_user(A_USER)

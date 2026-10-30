@@ -20,7 +20,7 @@ def brand_message(field, reason):
 		"footer_text": _("Footer text"),
 		"primary_colour": _("Primary colour"),
 		"secondary_colour": _("Secondary colour"),
-		"default_markup_percent": _("Markup"),
+		"default_markup_percent": _("Price markup"),
 		"price_rounding": _("Rounding"),
 		"price_display": _("Show prices"),
 		"vat_rate": _("VAT rate"),
