@@ -49,6 +49,95 @@ def draw(*texts):
 	return json.loads(run.stdout)
 
 
+API_RUNNER = r"""
+const vm = require("vm");
+const fs = require("fs");
+const wanted = JSON.parse(process.argv[2]);
+const calls = [];
+const sandbox = {
+	frappe: { provide() {}, ready() {}, csrf_token: "tok123" },
+	webshop: {},
+	document: {},
+	sessionStorage: {},
+	URL,
+	URLSearchParams,
+	location: { origin: "https://shop.example", host: "shop.example" },
+	fetch: async (url, options) => {
+		options = options || {};
+		calls.push({ url, method: options.method || "GET", headers: options.headers || {}, body: options.body ? String(options.body) : null });
+		return {
+			ok: wanted.status < 400,
+			status: wanted.status,
+			json: async () => {
+				if (wanted.body === null) throw new SyntaxError("not json");
+				return wanted.body;
+			},
+		};
+	},
+};
+vm.createContext(sandbox);
+vm.runInContext(fs.readFileSync(process.argv[1], "utf8"), sandbox);
+sandbox.webshop.assistant
+	.api("webshop.x.y", wanted.args, wanted.verb)
+	.then(
+		(message) => console.log(JSON.stringify({ resolved: message, calls })),
+		(error) => console.log(JSON.stringify({ rejected: { status: error.status, json: error.responseJSON }, calls }))
+	);
+"""
+
+
+def call_api(status, body, verb="POST", args=None):
+	"""What the bubble's own request does when the server answers `status` with `body` (None: not JSON)."""
+	node = shutil.which("node")
+	if not node:
+		raise AssertionError("Node is needed to run assistant.js: install it, this test does not skip")
+	run = subprocess.run(
+		[node, "-e", API_RUNNER, str(ASSISTANT_JS), json.dumps({"status": status, "body": body, "verb": verb, "args": args or {}})],
+		capture_output=True,
+		text=True,
+		timeout=60,
+	)
+	if run.returncode:
+		raise AssertionError(run.stderr)
+	return json.loads(run.stdout)
+
+
+class TestAssistantRequests(FrappeTestCase):
+	"""The bubble talks to the server with its own fetch.
+
+	`frappe.call` never ends its promise on a 429 (its error callback is not called: measured on a shop page, only
+	`always` fires), so a visitor who met a limit saw "typing…" for ever, under a Frappe dialog in the middle of the page.
+	"""
+
+	def test_a_refusal_ends_the_request_with_its_status(self):
+		out = call_api(429, {"exc_type": "RateLimitExceededError"})
+		self.assertEqual(out["rejected"]["status"], 429)
+		self.assertEqual(out["rejected"]["json"]["exc_type"], "RateLimitExceededError")
+
+	def test_a_server_error_that_is_not_json_still_ends_the_request(self):
+		out = call_api(502, None)
+		self.assertEqual(out["rejected"]["status"], 502)
+
+	def test_an_answer_resolves_with_the_message(self):
+		out = call_api(200, {"message": {"reply": "Bonjour"}})
+		self.assertEqual(out["resolved"], {"reply": "Bonjour"})
+
+	def test_a_post_carries_the_csrf_token_and_the_form(self):
+		out = call_api(200, {"message": {}}, "POST", {"message": "é & ?", "page_route": "a", "email": None})
+		(call,) = out["calls"]
+		self.assertEqual(call["url"], "/api/method/webshop.x.y")
+		self.assertEqual(call["method"], "POST")
+		self.assertEqual(call["headers"]["X-Frappe-CSRF-Token"], "tok123")
+		self.assertEqual(call["body"], "message=%C3%A9+%26+%3F&page_route=a")
+
+	def test_a_get_puts_its_arguments_in_the_address(self):
+		out = call_api(200, {"message": {}}, "GET", {"page_route": "all-products"})
+		(call,) = out["calls"]
+		self.assertEqual(call["url"], "/api/method/webshop.x.y?page_route=all-products")
+		self.assertEqual(call["method"], "GET")
+		self.assertIsNone(call["body"])
+
+
 class TestAssistantLinks(FrappeTestCase):
 	def test_a_path_of_the_shop_is_a_link(self):
 		(html,) = draw("[Voir](/orders/BC-1)")

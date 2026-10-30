@@ -29,16 +29,37 @@ webshop.assistant = {
 		return location.pathname.replace(/^\//, "");
 	},
 
-	api(method, args, type) {
-		return new Promise((resolve, reject) => {
-			frappe.call({
-				method,
-				type: type || "POST",
-				args: args || {},
-				callback: (r) => resolve(r.message),
-				error: (e) => reject(e),
-			});
+	//// Neoffice — the bubble asks the server with its own fetch (lot A of the 2026-10-30 audit). It was
+	//// frappe.call, which never ends its promise on a 429: the error callback is not called (measured on a
+	//// shop page: only `always` fires), so a visitor who met a limit saw "typing…" for ever, under a Frappe
+	//// dialog in the middle of the page. A request here always ends: with the message, or with an error that
+	//// carries `status` and `responseJSON` (what serverMessage() reads).
+	async api(method, args, type) {
+		const verb = type || "POST";
+		const params = new URLSearchParams();
+		Object.entries(args || {}).forEach(([key, value]) => {
+			if (value !== undefined && value !== null) params.append(key, value);
 		});
+		const headers = { Accept: "application/json" };
+		if (frappe.csrf_token) headers["X-Frappe-CSRF-Token"] = frappe.csrf_token;
+		const url = "/api/method/" + method;
+		const response =
+			verb === "GET"
+				? await fetch(`${url}?${params}`, { headers, credentials: "same-origin" })
+				: await fetch(url, {
+						method: verb,
+						headers: { ...headers, "Content-Type": "application/x-www-form-urlencoded" },
+						body: params,
+						credentials: "same-origin",
+				  });
+		const data = await response.json().catch(() => ({}));
+		if (!response.ok) {
+			const error = new Error(`HTTP ${response.status}`);
+			error.status = response.status;
+			error.responseJSON = data;
+			throw error;
+		}
+		return data.message;
 	},
 
 	build() {
