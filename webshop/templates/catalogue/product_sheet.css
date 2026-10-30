@@ -51,5 +51,5 @@ table.variants th.p { text-align: right; }
 .qrbox { margin-top: auto; padding-top: 6mm; display: flex; align-items: center; gap: 4mm; break-inside: avoid; }
 .qrbox img { width: 26mm; height: 26mm; flex: none; }
 .qrbox .cap { font-size: 8.5pt; color: var(--muted); }
-.qrbox .date { color: var(--faint); font-size: 8pt; margin-top: 1mm; }
+.qrbox .date { color: var(--faint); font-size: 8pt; margin-top: 1mm; white-space: nowrap; }
 .credit { font-size: 7.5pt; color: var(--faint); margin-top: 4mm; }

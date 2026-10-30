@@ -23,7 +23,7 @@ from webshop.webshop.seo.text import truncate
 MAX_PICTURES = 4
 MAIN_PICTURE = (1000, 82)
 THUMBNAIL = (420, 78)
-MAX_DESCRIPTION = 1200
+MAX_DESCRIPTION = 800
 MAX_SPECS = 14
 MAX_VARIANTS = 24
 DEFAULT_COLOUR = "#1f2933"
@@ -136,13 +136,20 @@ def used_lines(doc):
 	months = info.warranty_months
 	return frappe._dict(
 		condition=_(info.condition),
-		grade=info.grade or "",
+		grade=_(info.grade) if info.grade else "",
 		details=truncate(frappe.utils.strip_html(info.details or ""), 240),
 		warranty=_("{0}-month warranty").format(months) if months else "",
 	)
 
 
 def price_text(amount, currency):
+	"""A price with its currency: the one the price carries, else its price list's (a site whose price
+	information carries none printed "160.65" and no currency, measured on osiris)."""
+	if not currency:
+		from webshop.webshop.multi_site import effective_price_list
+		from webshop.webshop.utils.customer_pricing import currency_of
+
+		currency = currency_of(effective_price_list())
 	return fmt_money(flt(amount), currency=currency or None)
 
 

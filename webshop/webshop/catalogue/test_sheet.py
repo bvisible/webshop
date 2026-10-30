@@ -197,6 +197,19 @@ class TestProductSheet(FrappeTestCase):
 		self.assertEqual(data.description[-2:], ["One", "Two"])
 		self.assertEqual(data.specs, [("Weight", "180 g"), ("Material", "Cotton")])
 
+	def test_a_price_whose_information_carries_no_currency_gets_the_price_list_s(self):
+		# measured on osiris: a product's price information had no currency, and the sheet printed "160.65".
+		# The site's default currency is not the price list's here, so the test tells the two apart.
+		from unittest.mock import patch
+
+		with patch("webshop.webshop.multi_site.effective_price_list", return_value="Some List"), patch(
+			"webshop.webshop.utils.customer_pricing.currency_of", return_value="EUR"
+		) as currency_of:
+			self.assertEqual(sheet.price_text(100, ""), fmt_money(100, currency="EUR"))
+			self.assertEqual(sheet.price_text(100, None), fmt_money(100, currency="EUR"))
+			currency_of.assert_called_with("Some List")
+			self.assertEqual(sheet.price_text(100, "USD"), fmt_money(100, currency="USD"), "a currency the price carries wins")
+
 	def test_a_visitor_s_text_cannot_become_markup(self):
 		html = sheet.render_html(sheet.build_sheet(self.doc()))
 		self.assertNotIn("<script", html.lower())
