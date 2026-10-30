@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-10-30 17:58+0000\n"
-"PO-Revision-Date: 2026-10-30 17:58+0000\n"
+"POT-Creation-Date: 2026-10-30 18:18+0000\n"
+"PO-Revision-Date: 2026-10-30 18:18+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -87,12 +87,12 @@ msgid "<b>Online</b>: the shopper is handed to the gateway and the order follows
 msgstr ""
 
 #. Content of the 'sitemap_info' (HTML) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1296
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1299
 msgid "<p>The sitemap is automatically generated and cached for 6 hours. You can access it at:</p><ul><li><a href=\"/sitemap_index.xml\" target=\"_blank\">/sitemap_index.xml</a> - Main sitemap index</li><li><a href=\"/sitemap.xml\" target=\"_blank\">/sitemap.xml</a> - All content</li><li><a href=\"/sitemap_products.xml\" target=\"_blank\">/sitemap_products.xml</a> - Products only</li><li><a href=\"/sitemap_categories.xml\" target=\"_blank\">/sitemap_categories.xml</a> - Categories only</li><li><a href=\"/sitemap_brands.xml\" target=\"_blank\">/sitemap_brands.xml</a> - Brands only</li><li><a href=\"/sitemap_blog.xml\" target=\"_blank\">/sitemap_blog.xml</a> - Blog posts only</li><li><a href=\"/sitemap_pages.xml\" target=\"_blank\">/sitemap_pages.xml</a> - Pages only</li></ul>"
 msgstr ""
 
 #. Content of the 'follow_up_note' (HTML) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:618
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:621
 msgid "<p>Which purchase, how many days later, which template: <a href=\"/app/purchase-follow-up\">Purchase Follow-up</a>. Emails go out every morning at 08:15; what a customer received shows in the customer's timeline and in <a href=\"/app/purchase-follow-up-entry\">Purchase Follow-up Entry</a>.</p>"
 msgstr ""
 
@@ -117,19 +117,19 @@ msgstr ""
 
 #. Description of the 'Enable the shop assistant' (Check) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:348
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:351
 msgid "A chat bubble on every page of the shop: products at their selling price, opening hours, and the signed-in customer's orders, invoices and quotations"
 msgstr ""
 
 #. Description of the 'Open a new account at once' (Check) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:814
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:817
 msgid "A customer who creates an account in the shop is signed in straight away and can order. The welcome email then confirms the address; an order paid on account is held until then. An address the shop already knows, and a site for business accounts only, keep the confirmation first."
 msgstr ""
 
 #. Description of the 'Find a Product by its Supplier's Reference' (Check)
 #. field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:644
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:647
 msgid "A customer who types a supplier's reference whole, in the site's search or in the quick order, finds the product. The reference is never shown, nor sent to Google."
 msgstr ""
 
@@ -150,7 +150,7 @@ msgstr ""
 
 #. Description of the 'Customer Groups Allowed' (Table MultiSelect) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1520
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1523
 msgid "A group covers its sub-groups. Leave empty and nobody is offered the catalogue."
 msgstr ""
 
@@ -193,12 +193,12 @@ msgid "A system error occurred while processing payment failure"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:421
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:424
 msgid "API base URL"
 msgstr ""
 
 #. Label of a Password field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:426
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:429
 msgid "API key"
 msgstr ""
 
@@ -210,7 +210,7 @@ msgid "Abandoned Cart Reminder"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:534
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:537
 msgid "Abandoned Carts"
 msgstr ""
 
@@ -281,7 +281,7 @@ msgid "Actions"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1196
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1199
 msgid "Activate B2B checkout"
 msgstr ""
 
@@ -402,7 +402,7 @@ msgstr ""
 #: webshop/templates/pages/checkout.js:758
 #: webshop/webshop/catalogue/refusals.py:18
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:104
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:258
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:261
 #: webshop/www/my-brand/index.py:38
 msgid "Address"
 msgstr ""
@@ -453,8 +453,14 @@ msgstr ""
 msgid "Address updated successfully"
 msgstr ""
 
+#. Description of the 'Offer the Product Sheet' (Check) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1583
+msgid "Adds a button to each product page that gives the visitor a PDF sheet of the product: photographs, price, availability, the shop's promises, characteristics and a QR code to the page. It says what the page says. Off, the page is unchanged."
+msgstr ""
+
 #. Label of a Tab Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:709
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:712
 msgid "Advanced"
 msgstr ""
 
@@ -475,7 +481,7 @@ msgstr ""
 
 #. Description of the 'Payment Success Url' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:993
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:996
 msgid "After payment completion redirect user to selected page."
 msgstr ""
 
@@ -489,7 +495,7 @@ msgid "Age control"
 msgstr ""
 
 #. Name of a role
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1592
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1612
 #: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.js:16
 msgid "All"
 msgstr ""
@@ -507,13 +513,13 @@ msgstr ""
 
 #. Option for the 'Who receives them' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:603
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:606
 msgid "All customers"
 msgstr ""
 
 #. Description of the 'Who receives them' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:599
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:602
 msgid "All customers: orders and invoices from the counter or the desk enrol too, when the follow-up itself allows it"
 msgstr ""
 
@@ -544,41 +550,41 @@ msgid "All transactions are secure and encrypted."
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1237
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1240
 msgid "Allow Non Website Items in Cart Quotation"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1391
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1394
 msgid "Allow System Users During Maintenance"
 msgstr ""
 
 #. Description of the 'Enable Custom Amount' (Check) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1094
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1097
 msgid "Allow customers to enter a custom amount for gift cards"
 msgstr ""
 
 #. Description of the 'Enable Gift Cards' (Check) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1078
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1081
 msgid "Allow customers to purchase gift cards"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:916
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:919
 msgid "Allow items not in stock to be added to cart"
 msgstr ""
 
 #. Description of the 'Enable Guest Cart' (Check) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:798
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:801
 msgid "Allow non-logged users to create cart"
 msgstr ""
 
 #. Description of the 'Allow System Users During Maintenance' (Check) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1388
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1391
 msgid "Allow users with System Manager or Website Manager roles to access the site during maintenance"
 msgstr ""
 
@@ -734,13 +740,13 @@ msgid "Answers a visitor reported"
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:472
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:475
 msgid "Answers at the same moment"
 msgstr ""
 
 #. Description of the 'Answers at the same moment' (Int) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:469
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:472
 msgid "Answers the assistant gives at the same moment, whoever asks. Each one holds one of the shop's web workers while the model answers. Empty: what the web workers can spare, keeping more than half of them for the shop (1 on a bench with 3 workers)."
 msgstr ""
 
@@ -774,13 +780,13 @@ msgstr ""
 
 #. Description of the 'Address' (Small Text) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:255
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:258
 msgid "As it should read on the opening-hours page and in the assistant's answers"
 msgstr ""
 
 #. Description of the 'Delivery Time' (Data) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1409
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1412
 msgid "As the customer reads it, e.g. 2-4 working days."
 msgstr ""
 
@@ -791,19 +797,19 @@ msgstr ""
 
 #. Description of the 'Product Card Aspect Ratio' (Data) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:859
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:862
 msgid "Aspect ratio (width/height) of product cards. Only applied when fit is Cover. Examples: 1/1 (square), 3/4 (portrait), 4/3 (landscape)."
 msgstr ""
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
 #: webshop/webshop/assistant/api.py:369
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:339
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:342
 #: webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.py:57
 msgid "Assistant"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:358
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:361
 msgid "Assistant name"
 msgstr ""
 
@@ -827,7 +833,7 @@ msgid "Attachments"
 msgstr ""
 
 #. Label of a Table field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:785
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:788
 msgid "Attributes"
 msgstr ""
 
@@ -880,7 +886,7 @@ msgid "Available"
 msgstr ""
 
 #. Label of a Table field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1104
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1107
 msgid "Available Amounts"
 msgstr ""
 
@@ -941,7 +947,7 @@ msgstr ""
 #. Name of a DocType
 #. Label of a Table MultiSelect field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/b2b_customer_group/b2b_customer_group.json:27
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1202
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1205
 msgid "B2B Customer Group"
 msgstr ""
 
@@ -1054,12 +1060,12 @@ msgid "Bottom Right"
 msgstr ""
 
 #. Option for the 'Position' (Select) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:384
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:387
 msgid "Bottom left"
 msgstr ""
 
 #. Option for the 'Position' (Select) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:384
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:387
 msgid "Bottom right"
 msgstr ""
 
@@ -1102,7 +1108,7 @@ msgid "Brands"
 msgstr ""
 
 #. Label of a Color field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:391
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:394
 msgid "Bubble colour"
 msgstr ""
 
@@ -1176,13 +1182,13 @@ msgid "Canton"
 msgstr ""
 
 #. Label of a Select field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:318
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:321
 msgid "Canton / Region"
 msgstr ""
 
 #. Description of the 'Canton / Region' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:319
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:322
 msgid "Cantonal holidays differ: Valais closes on Saint Joseph's day, Geneva does not. Leave empty to keep only the nationwide ones."
 msgstr ""
 
@@ -1227,7 +1233,7 @@ msgid "Cart"
 msgstr ""
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:237
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:240
 msgid "Cart & Checkout"
 msgstr ""
 
@@ -1285,12 +1291,12 @@ msgid "Categories that hold products"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1064
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1067
 msgid "Category Display Order"
 msgstr ""
 
 #. Label of a HTML field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1069
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1072
 msgid "Category Order"
 msgstr ""
 
@@ -1314,11 +1320,11 @@ msgstr ""
 
 #. Description of the 'Raven channel' (Data) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:504
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:507
 msgid "Channel name or id that receives the requests; empty when Raven is not used"
 msgstr ""
 
-#: webshop/templates/catalogue/product_sheet.html:79
+#: webshop/templates/catalogue/product_sheet.html:80
 #: webshop/templates/generators/item/item_details.html:189
 #: webshop/webshop/seo/score.py:559
 msgid "Characteristics"
@@ -1349,7 +1355,7 @@ msgid "Checkout"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:974
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:977
 msgid "Checkout Settings"
 msgstr ""
 
@@ -1393,13 +1399,13 @@ msgstr ""
 
 #. Description of the 'Default View Type' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:729
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:732
 msgid "Choose the default display type for products"
 msgstr ""
 
 #. Description of the 'Default Product Sort Order' (Select) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:737
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:740
 msgid "Choose the default sort order for products"
 msgstr ""
 
@@ -1492,7 +1498,7 @@ msgstr ""
 
 #. Description of the 'Public Holidays' (Section Break) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:305
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:308
 msgid "Closes the shop automatically on the public holidays where it stands. Fetched from openholidaysapi.org and kept in a Holiday List."
 msgstr ""
 
@@ -1535,7 +1541,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Webshop Settings'
 #: webshop/templates/pages/checkout.html:83
 #: webshop/templates/pages/checkout_b2b.html:29
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:928
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:931
 msgid "Company"
 msgstr ""
 
@@ -1544,7 +1550,7 @@ msgid "Company Information"
 msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:947
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:950
 msgid "Compare-at Price List"
 msgstr ""
 
@@ -1646,7 +1652,7 @@ msgstr ""
 
 #. Option for the 'Product Image Fit' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:846
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:849
 msgid "Contain"
 msgstr ""
 
@@ -1690,7 +1696,7 @@ msgstr ""
 
 #. Description of the 'Hide Currency Symbol in Shop' (Select) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:865
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:868
 msgid "Control currency symbol display in the webshop. If empty, uses the global ERPNext setting. 'Yes' hides the symbol, 'No' shows it."
 msgstr ""
 
@@ -1722,7 +1728,7 @@ msgid "Copy code"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1074
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1077
 msgid "Core Features"
 msgstr ""
 
@@ -1760,7 +1766,7 @@ msgstr ""
 #: webshop/templates/pages/checkout.html:199
 #: webshop/templates/pages/checkout.html:324
 #: webshop/templates/pages/checkout.js:761
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:310
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:313
 #: webshop/webshop/doctype/webshopsi_country/webshopsi_country.json:16
 #: webshop/www/my_addresses.html:87
 msgid "Country"
@@ -1798,12 +1804,12 @@ msgid "Coupon code removed"
 msgstr ""
 
 #. Label of a Percent field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:575
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:578
 msgid "Coupon discount (%)"
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:582
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:585
 msgid "Coupon valid for (days)"
 msgstr ""
 
@@ -1813,7 +1819,7 @@ msgstr ""
 
 #. Option for the 'Product Image Fit' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:846
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:849
 msgid "Cover"
 msgstr ""
 
@@ -1862,7 +1868,7 @@ msgid "Credit Card"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1525
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1528
 msgid "Credit Line on Reseller Catalogues"
 msgstr ""
 
@@ -1936,7 +1942,7 @@ msgid "Customer Group"
 msgstr ""
 
 #. Label of a Table MultiSelect field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1517
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1520
 msgid "Customer Groups Allowed"
 msgstr ""
 
@@ -2048,18 +2054,18 @@ msgid "Default Customer"
 msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:959
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:962
 msgid "Default Customer Group"
 msgstr ""
 
 #. Label of a Select field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:740
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:743
 msgid "Default Product Sort Order"
 msgstr ""
 
 #. Description of the 'Terms and Conditions for Quotations' (Link) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1035
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1038
 msgid "Default Terms and Conditions for all quotations generated from the webshop"
 msgstr ""
 
@@ -2068,13 +2074,13 @@ msgid "Default Validity Date"
 msgstr ""
 
 #. Label of a Select field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:732
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:735
 msgid "Default View Type"
 msgstr ""
 
 #. Description of the 'Guest Customer' (Link) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:805
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:808
 msgid "Default customer used for guest cart"
 msgstr ""
 
@@ -2084,7 +2090,7 @@ msgstr ""
 
 #. Description of the 'Available Amounts' (Table) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1101
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1104
 msgid "Define the available amounts for gift cards"
 msgstr ""
 
@@ -2106,7 +2112,7 @@ msgid "Delivery"
 msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1499
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1502
 msgid "Delivery Holiday List"
 msgstr ""
 
@@ -2116,7 +2122,7 @@ msgid "Delivery Lead Time"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1408
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1411
 msgid "Delivery Time"
 msgstr ""
 
@@ -2136,7 +2142,7 @@ msgid "Delivery instructions"
 msgstr ""
 
 #. Description of the 'Knowledge' (Text) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:405
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:408
 msgid "Delivery, returns, payment, warranty, anything the assistant must be able to answer. Plain text; it is read by the model, not shown as is."
 msgstr ""
 
@@ -2233,7 +2239,7 @@ msgid "Display Label"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:827
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:830
 msgid "Display Settings"
 msgstr ""
 
@@ -2357,7 +2363,7 @@ msgstr ""
 #: webshop/templates/pages/checkout.js:756
 #: webshop/webshop/doctype/abandoned_cart_reminder/abandoned_cart_reminder.json:42
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json:61
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:273
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:276
 #: webshop/www/my_addresses.html:101
 msgid "Email"
 msgstr ""
@@ -2366,7 +2372,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Webshop Settings'
 #. Label of a Link in the Webshop Workspace
 #: webshop/webshop/doctype/purchase_follow_up_step/purchase_follow_up_step.json:41
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:555
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:558
 #: webshop/webshop/workspace/webshop/webshop.json:189
 msgid "Email Template"
 msgstr ""
@@ -2384,7 +2390,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Purchase Follow-up'
 #. Label of a Tab Break field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json:120
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:529
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:532
 msgid "Emails"
 msgstr ""
 
@@ -2402,48 +2408,48 @@ msgstr ""
 
 #. Description of the 'Priority of the visitors' requests' (Int) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:445
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:448
 msgid "Empty or 0: not sent. For a model shared with the team's own use that serves requests by priority (vLLM): the higher the number, the later the visitors are served. An endpoint without that scheduling refuses the field."
 msgstr ""
 
 #. Description of the 'Monthly token cap' (Int) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:486
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:489
 msgid "Empty: 3,000,000 tokens a month. Beyond it the assistant asks the visitor to write to the team."
 msgstr ""
 
 #. Description of the 'Keep samples (days)' (Int) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1558
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1561
 msgid "Empty: 365 days"
 msgstr ""
 
 #. Description of the 'Keep conversations while the history is kept (days)'
 #. (Int) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1565
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1568
 msgid "Empty: 730 days (two years). The conversations handed to the team are never purged."
 msgstr ""
 
 #. Description of the 'Welcome message' (Small Text) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:362
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:365
 msgid "Empty: a default greeting, with the customer's first name when signed in"
 msgstr ""
 
 #. Description of the 'Offer a coupon from email number' (Select) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:564
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:567
 msgid "Empty: no coupon, ever. The literature says not before the second email; your call."
 msgstr ""
 
 #. Description of the 'Model' (Data) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:433
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:436
 msgid "Empty: the default model of the endpoint"
 msgstr ""
 
 #. Description of the 'Bubble colour' (Color) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:388
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:391
 msgid "Empty: the theme's primary colour"
 msgstr ""
 
@@ -2453,124 +2459,124 @@ msgstr ""
 
 #. Description of the 'Support email' (Data) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:510
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:513
 msgid "Empty: the website's email"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:772
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:775
 msgid "Enable Attribute Filters"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:980
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:983
 msgid "Enable Checkout"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:988
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:991
 msgid "Enable Checkout Page"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1097
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1100
 msgid "Enable Custom Amount"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:766
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:769
 msgid "Enable Field Filters (Categories)"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1169
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1172
 msgid "Enable Frequently Bought Together"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1081
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1084
 msgid "Enable Gift Cards"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:801
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:804
 msgid "Enable Guest Cart"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:748
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:751
 msgid "Enable Infinite Scroll"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1450
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1453
 msgid "Enable Multi-Warehouse Stock"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1216
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1219
 msgid "Enable Price Filter"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1163
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1166
 msgid "Enable Recommendations"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1127
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1130
 msgid "Enable Reviews and Ratings"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:793
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:796
 msgid "Enable Shopping Cart"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1222
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1225
 msgid "Enable Stock Filter"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1210
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1213
 msgid "Enable Tag Filters"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:887
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:890
 msgid "Enable Variant Selection"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1121
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1124
 msgid "Enable Wishlist"
 msgstr ""
 
 #. Description of the 'Maintenance Mode - Website' (Check) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1347
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1350
 msgid "Enable maintenance mode for the entire website"
 msgstr ""
 
 #. Description of the 'Maintenance Mode - Webshop' (Check) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1354
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1357
 msgid "Enable maintenance mode for webshop features only (requires Website maintenance to be enabled)"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:659
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:662
 msgid "Enable the Google Shopping Feed"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1510
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1513
 msgid "Enable the Reseller Catalogue"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:351
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:354
 msgid "Enable the shop assistant"
 msgstr ""
 
@@ -2798,7 +2804,7 @@ msgstr ""
 
 #. Description of the 'Notify Search Engines of Changes' (Check) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1322
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1325
 msgid "Every ten minutes, the pages of the products published, withdrawn or repriced since the last run are sent, for each site open to search engines."
 msgstr ""
 
@@ -2807,7 +2813,7 @@ msgid "Excel File"
 msgstr ""
 
 #. Label of a Table field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:292
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:295
 msgid "Exceptional Closures"
 msgstr ""
 
@@ -2822,7 +2828,7 @@ msgstr ""
 
 #. Option for the 'Show Prices' (Select) field in DocType 'Reseller Catalogue
 #. Profile'
-#: webshop/webshop/catalogue/sheet.py:173
+#: webshop/webshop/catalogue/sheet.py:179
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:144
 #: webshop/www/my-brand/index.py:51
 msgid "Excluding VAT"
@@ -2837,7 +2843,7 @@ msgid "Expand All"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1383
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1386
 msgid "Expected End Time"
 msgstr ""
 
@@ -2850,7 +2856,7 @@ msgid "Expired"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1423
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1426
 msgid "Extra Promise"
 msgstr ""
 
@@ -2890,7 +2896,7 @@ msgid "Featured products"
 msgstr ""
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:242
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:245
 msgid "Features"
 msgstr ""
 
@@ -2910,7 +2916,7 @@ msgid "Fee Percentage"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:677
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:680
 msgid "Feed Token"
 msgstr ""
 
@@ -2943,7 +2949,7 @@ msgid "Filter Fields Row #{0}: Fieldname {1} must be of type 'Link', 'Select' or
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:753
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:756
 msgid "Filter Options"
 msgstr ""
 
@@ -2955,17 +2961,17 @@ msgid "Filters"
 msgstr ""
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:232
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:235
 msgid "Filters & Categories"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:854
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:857
 msgid "Filters in a Drawer on Every Screen"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:647
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:650
 msgid "Find a Product by its Supplier's Reference"
 msgstr ""
 
@@ -3035,7 +3041,7 @@ msgstr ""
 
 #. Description of the 'Note under the hours' (Small Text) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:296
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:299
 msgid "For example: closed on public holidays"
 msgstr ""
 
@@ -3045,7 +3051,7 @@ msgstr ""
 
 #. Description of the 'Price per 1,000 tokens' (Currency) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:492
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:495
 msgid "For the estimated cost on the usage report; what the service is billed at"
 msgstr ""
 
@@ -3060,7 +3066,7 @@ msgid "Free"
 msgstr ""
 
 #. Label of a Currency field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1402
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1405
 msgid "Free Shipping From"
 msgstr ""
 
@@ -3121,18 +3127,18 @@ msgid "GTIN {0}"
 msgstr ""
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:227
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:230
 msgid "General"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:714
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:717
 msgid "General Settings"
 msgstr ""
 
 #. Description of the 'Terms and conditions for Checkout' (Link) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1043
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1046
 msgid "General Terms and Conditions (GTC) to be displayed on the checkout page"
 msgstr ""
 
@@ -3179,7 +3185,7 @@ msgstr ""
 #: webshop/templates/pages/gift_cards.py:21
 #: webshop/templates/pages/thank_you.html:195
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:213
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:719
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:722
 msgid "Gift Cards"
 msgstr ""
 
@@ -3211,7 +3217,7 @@ msgid "Gift card code {0} already exists"
 msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1188
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1191
 msgid "Gift card notification"
 msgstr ""
 
@@ -3276,7 +3282,7 @@ msgstr ""
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:921
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:623
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:626
 #: webshop/webshop/doctype/website_item/website_item.js:29
 msgid "Google Shopping"
 msgstr ""
@@ -3313,7 +3319,7 @@ msgstr ""
 
 #. Option for the 'Default View Type' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:733
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:736
 msgid "Grid"
 msgstr ""
 
@@ -3323,12 +3329,12 @@ msgid "Group By"
 msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:808
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:811
 msgid "Guest Customer"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1143
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1146
 msgid "Guest Display Settings"
 msgstr ""
 
@@ -3339,7 +3345,7 @@ msgstr ""
 
 #. Description of the 'Helpdesk team' (Data) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:521
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:524
 msgid "HD Team that gets the tickets; needs the Helpdesk app"
 msgstr ""
 
@@ -3353,7 +3359,7 @@ msgid "Handed to the team"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:501
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:504
 msgid "Handing over to the team"
 msgstr ""
 
@@ -3428,7 +3434,7 @@ msgid "Helpdesk Ticket"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:524
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:527
 msgid "Helpdesk team"
 msgstr ""
 
@@ -3437,17 +3443,17 @@ msgid "Hide"
 msgstr ""
 
 #. Label of a Select field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:868
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:871
 msgid "Hide Currency Symbol in Shop"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1134
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1137
 msgid "Hide Price for Guest"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:759
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:762
 msgid "Hide Variants"
 msgstr ""
 
@@ -3458,7 +3464,7 @@ msgstr ""
 
 #. Description of the 'Filters in a Drawer on Every Screen' (Check) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:851
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:854
 msgid "Hide the filter sidebar on wide screens too: the products take the whole width and a Filters button opens the sidebar as a drawer, as on a phone."
 msgstr ""
 
@@ -3472,13 +3478,13 @@ msgid "Hold the order until it is paid"
 msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:328
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:331
 msgid "Holiday List"
 msgstr ""
 
 #. Description of the 'Exceptional Closures' (Table) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:289
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:292
 msgid "Holidays, inventory, a move: the day counts as closed whatever the weekly hours say"
 msgstr ""
 
@@ -3518,7 +3524,7 @@ msgstr ""
 
 #. Description of the 'Product Image Fit' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:842
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:845
 msgid "How the image fills the product card. 'Cover' crops to fill without distortion; 'Contain' keeps the whole image visible with padding."
 msgstr ""
 
@@ -3565,13 +3571,13 @@ msgstr ""
 
 #. Description of the 'Number of valid months' (Int) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1110
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1113
 msgid "If 0, no expiry date"
 msgstr ""
 
 #. Description of the 'Enable Checkout Page' (Check) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:985
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:988
 msgid "If enabled, customers will be redirected to a dedicated checkout page instead of showing address and terms in cart"
 msgstr ""
 
@@ -3633,7 +3639,7 @@ msgid "Impressions"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1540
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1543
 msgid "Improving the service"
 msgstr ""
 
@@ -3666,7 +3672,7 @@ msgstr ""
 
 #. Description of the 'Show the EAN and the Manufacturer's Reference on the
 #. Product Page' (Check) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:633
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:636
 msgid "In the product page's characteristics. A search for a code only finds a page whose text says it; switch it off if you would rather not make price comparison easy."
 msgstr ""
 
@@ -3677,7 +3683,7 @@ msgstr ""
 
 #. Option for the 'Show Prices' (Select) field in DocType 'Reseller Catalogue
 #. Profile'
-#: webshop/webshop/catalogue/sheet.py:173
+#: webshop/webshop/catalogue/sheet.py:179
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:144
 #: webshop/www/my-brand/index.py:52
 msgid "Including VAT"
@@ -3697,13 +3703,13 @@ msgid "Increase quantity"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1336
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1339
 msgid "IndexNow Key"
 msgstr ""
 
 #. Description of the 'Search Engine Notifications' (Section Break) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1315
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1318
 msgid "IndexNow tells Bing, Yandex, Seznam, Naver and a few other engines which product pages changed, instead of waiting for their next visit. Google does not take part."
 msgstr ""
 
@@ -3759,7 +3765,7 @@ msgstr ""
 
 #. Option for the 'Payment Success Url' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:998
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1001
 msgid "Invoices"
 msgstr ""
 
@@ -3910,22 +3916,22 @@ msgid "John Doe"
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:479
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:482
 msgid "Keep conversations (days)"
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1568
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1571
 msgid "Keep conversations while the history is kept (days)"
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1561
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1564
 msgid "Keep samples (days)"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1547
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1550
 msgid "Keep the history and anonymised samples of conversations"
 msgstr ""
 
@@ -3950,7 +3956,7 @@ msgid "Know your references? Order them by code, name or barcode."
 msgstr ""
 
 #. Label of a Text field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:408
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:411
 msgid "Knowledge"
 msgstr ""
 
@@ -3980,7 +3986,7 @@ msgid "Language"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:415
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:418
 msgid "Language model"
 msgstr ""
 
@@ -3990,12 +3996,12 @@ msgid "Last Calculated"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:692
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:695
 msgid "Last Feed"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1305
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1308
 msgid "Last Generated"
 msgstr ""
 
@@ -4086,7 +4092,7 @@ msgstr ""
 
 #. Description of the 'Enable the Reseller Catalogue' (Check) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1512
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1515
 msgid "Lets the customers of the groups below set up their brand (logo, colours, contact details, markup) and make catalogues and product sheets in their own name. Off, nothing is offered to anyone and nothing changes on this site."
 msgstr ""
 
@@ -4096,19 +4102,19 @@ msgid "Like New"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:454
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:457
 msgid "Limits and usage"
 msgstr ""
 
 #. Description of the 'Redirect on Action' (Data) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1146
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1149
 msgid "Link to redirect Guest on actions that need login such as add to cart, wishlist, etc. <b>E.g.: /login</b>"
 msgstr ""
 
 #. Option for the 'Default View Type' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:733
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:736
 msgid "List"
 msgstr ""
 
@@ -4179,7 +4185,7 @@ msgid "Log"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1182
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1185
 msgid "Login Required to View Products"
 msgstr ""
 
@@ -4228,7 +4234,7 @@ msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
 #. Label of a Link field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1246
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1249
 msgid "Loyalty Program"
 msgstr ""
 
@@ -4258,27 +4264,27 @@ msgid "Loyalty program is not enabled."
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1534
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1537
 msgid "Mail the unanswered questions every week"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1372
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1375
 msgid "Maintenance Message"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1343
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1346
 msgid "Maintenance Mode"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1357
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1360
 msgid "Maintenance Mode - Webshop"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1350
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1353
 msgid "Maintenance Mode - Website"
 msgstr ""
 
@@ -4321,7 +4327,7 @@ msgstr ""
 
 #. Option for the 'Procurement Mode' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1471
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1474
 msgid "Material Request"
 msgstr ""
 
@@ -4386,12 +4392,12 @@ msgid "Messages left for the team"
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:466
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:469
 msgid "Messages per day, signed-in customer"
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:460
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:463
 msgid "Messages per day, visitor"
 msgstr ""
 
@@ -4448,13 +4454,13 @@ msgstr ""
 #. Label of a Data field in DocType 'Shop Assistant Message'
 #. Label of a Data field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:70
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:436
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:439
 #: webshop/webshop/seo/score.py:592
 msgid "Model"
 msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1087
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1090
 msgid "Model Gift Card"
 msgstr ""
 
@@ -4475,7 +4481,7 @@ msgid "Monthly cap"
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:489
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:492
 msgid "Monthly token cap"
 msgstr ""
 
@@ -4507,7 +4513,7 @@ msgid "Move to Cart"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1443
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1446
 msgid "Multi-Warehouse Stock"
 msgstr ""
 
@@ -4519,7 +4525,7 @@ msgstr ""
 
 #. Description of the 'Multi-Warehouse Stock' (Section Break) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1440
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1443
 msgid "Multi-warehouse feature: expose several stock sources per product, with labels, lead times and supplier procurement."
 msgstr ""
 
@@ -4548,7 +4554,7 @@ msgstr ""
 #. Option for the 'Payment Success Url' (Select) field in DocType 'Webshop
 #. Settings'
 #: webshop/templates/pages/thank_you.html:223
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:998
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1001
 msgid "My Account"
 msgstr ""
 
@@ -4645,7 +4651,7 @@ msgstr ""
 
 #. Option for the 'Hide Currency Symbol in Shop' (Select) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:869
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:872
 msgid "No"
 msgstr ""
 
@@ -5037,7 +5043,7 @@ msgid "Note"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:299
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:302
 msgid "Note under the hours"
 msgstr ""
 
@@ -5047,7 +5053,7 @@ msgstr ""
 
 #. Description of the 'Send follow-up emails after a purchase' (Check) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:591
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:594
 msgid "Nothing is enrolled and nothing goes out while this is off"
 msgstr ""
 
@@ -5065,12 +5071,12 @@ msgid "Nothing written: this is what the page says on its own"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1325
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1328
 msgid "Notify Search Engines of Changes"
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1113
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1116
 msgid "Number of valid months"
 msgstr ""
 
@@ -5086,13 +5092,13 @@ msgstr ""
 
 #. Description of the 'Keep the history and anonymised samples of
 #. conversations' (Check) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1544
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1547
 msgid "Off by default, and nothing is kept longer while it is off. When on, the full conversations are kept for the time set below instead of the retention of the Limits section, and anonymised pairs of question and answer from visitors who were not signed in are kept to improve the service. You read the history in Shop Assistant Conversation. Switch it on only once your privacy policy says so; the visitors are told by the sentence below."
 msgstr ""
 
 #. Description of the 'Mail the unanswered questions every week' (Check) field
 #. in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1531
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1534
 msgid "Off by default: nothing is sent until you switch it on. Once a week, the questions visitors asked that the assistant could not answer, to the support email."
 msgstr ""
 
@@ -5112,8 +5118,13 @@ msgid "Offer Title"
 msgstr ""
 
 #. Label of a Select field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:567
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:570
 msgid "Offer a coupon from email number"
+msgstr ""
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1581
+msgid "Offer the Product Sheet"
 msgstr ""
 
 #. Description of the 'Offered To' (Link) field in DocType 'Webshop Payment
@@ -5144,7 +5155,7 @@ msgstr ""
 
 #. Description of the 'Keep conversations (days)' (Int) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:476
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:479
 msgid "Older closed conversations are deleted by the nightly job"
 msgstr ""
 
@@ -5175,13 +5186,13 @@ msgstr ""
 
 #. Description of the 'Reminders (hours after the last change)' (Data) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:546
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:549
 msgid "One email per delay, comma separated"
 msgstr ""
 
 #. Description of the 'Extra Promise' (Data) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1424
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1427
 msgid "One more line, e.g. pick-up in store within the hour."
 msgstr ""
 
@@ -5209,7 +5220,7 @@ msgstr ""
 
 #. Description of the 'Opening Hours' (Section Break) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:277
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:280
 msgid "One row per opening period: a day with a lunch break has two rows. Shown on /store-hours, in the opening-hours block, and told by the assistant."
 msgstr ""
 
@@ -5275,7 +5286,7 @@ msgid "Open"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:817
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:820
 msgid "Open a new account at once"
 msgstr ""
 
@@ -5298,13 +5309,13 @@ msgid "Open the report"
 msgstr ""
 
 #. Description of the 'API base URL' (Data) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:418
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:421
 msgid "OpenAI-compatible endpoint, e.g. https://host/v1. Empty: Nora's model of this instance."
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
 #. Label of a Table field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:280
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:283
 msgid "Opening Hours"
 msgstr ""
 
@@ -5369,13 +5380,13 @@ msgstr ""
 
 #. Description of the 'Compare-at Price List' (Link) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:944
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:947
 msgid "Optional. The list a struck-through \"was\" price is compared against, e.g. an MRP. Leave empty to show discounts from Pricing Rules only."
 msgstr ""
 
 #. Description of the 'Expected End Time' (Datetime) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1380
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1383
 msgid "Optional: When maintenance is expected to end"
 msgstr ""
 
@@ -5424,13 +5435,13 @@ msgstr ""
 
 #. Description of the 'Prepare Supplier Orders' (Check) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1459
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1462
 msgid "Order lines sourced from a supplier warehouse prepare a draft Purchase Order (stacked per supplier) or a Material Request on order submission."
 msgstr ""
 
 #. Description of the 'Warehouse Sources' (Table) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1480
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1483
 msgid "Order matters: first source that covers the requested quantity is preselected. The item's own Website Warehouse is always shown first."
 msgstr ""
 
@@ -5459,7 +5470,7 @@ msgstr ""
 
 #. Option for the 'Payment Success Url' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:998
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1001
 msgid "Orders"
 msgstr ""
 
@@ -5561,7 +5572,7 @@ msgid "Paid on account from an account opened in the shop whose address is not c
 msgstr ""
 
 #. Description of the 'Feed Token' (Data) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:674
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:677
 msgid "Part of the feed's address: whoever does not know it gets nothing."
 msgstr ""
 
@@ -5583,7 +5594,7 @@ msgstr ""
 
 #. Description of the 'Payment Methods' (Table) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1016
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1019
 msgid "Path to the payment template. If left empty, the default template in webshop/templates/payments will be used. To use a template from another app, specify the path starting with 'apps/myapp/...' (e.g., apps/myapp/templates/payments/custom.html)"
 msgstr ""
 
@@ -5631,7 +5642,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Webshop Settings'
 #. Label of a Link in the Webshop Workspace
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json:23
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1004
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1007
 #: webshop/webshop/workspace/webshop/webshop.json:298
 msgid "Payment Gateway Account"
 msgstr ""
@@ -5666,12 +5677,12 @@ msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
 #. Label of a Table field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1012
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1015
 msgid "Payment Methods"
 msgstr ""
 
 #. Label of a Select field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:996
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:999
 msgid "Payment Success Url"
 msgstr ""
 
@@ -5782,7 +5793,7 @@ msgstr ""
 #: webshop/templates/pages/checkout.js:757
 #: webshop/webshop/catalogue/refusals.py:16
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:90
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:267
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:270
 #: webshop/webshop/doctype/webshop_trust_item/webshop_trust_item.json:25
 #: webshop/www/my-brand/index.py:36 webshop/www/my_addresses.html:97
 msgid "Phone"
@@ -6041,12 +6052,12 @@ msgid "Points"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1278
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1281
 msgid "Points Conversion Text"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1286
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1289
 msgid "Points Earned Text"
 msgstr ""
 
@@ -6059,7 +6070,7 @@ msgid "Points are credited after order completion"
 msgstr ""
 
 #. Label of a Select field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:383
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:386
 msgid "Position"
 msgstr ""
 
@@ -6093,7 +6104,7 @@ msgid "Preferred Shipping Address"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1462
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1465
 msgid "Prepare Supplier Orders"
 msgstr ""
 
@@ -6125,7 +6136,7 @@ msgid "Price"
 msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:938
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:941
 msgid "Price List"
 msgstr ""
 
@@ -6146,7 +6157,7 @@ msgid "Price on request"
 msgstr ""
 
 #. Label of a Currency field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:495
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:498
 msgid "Price per 1,000 tokens"
 msgstr ""
 
@@ -6176,13 +6187,13 @@ msgstr ""
 msgid "Prices of your price list: {0}."
 msgstr ""
 
-#: webshop/webshop/catalogue/sheet.py:331
+#: webshop/webshop/catalogue/sheet.py:337
 #, python-brace-format
 msgid "Prices valid on {0}"
 msgstr ""
 
 #. Description of the 'Price List' (Link) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:935
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:938
 msgid "Prices will not be shown if Price List is not set"
 msgstr ""
 
@@ -6215,13 +6226,13 @@ msgstr ""
 
 #. Description of the 'Credit Line on Reseller Catalogues' (Data) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1527
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1530
 msgid "Printed on every catalogue a reseller makes, and the reseller cannot remove it. Leave empty for none: the catalogue is then entirely the reseller's own."
 msgstr ""
 
 #. Description of the 'Shopping Promises' (Section Break) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1397
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1400
 msgid "Printed on every product page under the buy button. A Website Profile can override them for its site."
 msgstr ""
 
@@ -6231,7 +6242,7 @@ msgid "Priority"
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:448
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:451
 msgid "Priority of the visitors' requests"
 msgstr ""
 
@@ -6265,7 +6276,7 @@ msgid "Procurement"
 msgstr ""
 
 #. Label of a Select field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1470
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1473
 msgid "Procurement Mode"
 msgstr ""
 
@@ -6274,7 +6285,7 @@ msgid "Product"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:862
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:865
 msgid "Product Card Aspect Ratio"
 msgstr ""
 
@@ -6284,28 +6295,33 @@ msgid "Product Details"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:653
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:656
 msgid "Product Feed"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:629
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:632
 msgid "Product Identifiers"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:838
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:841
 msgid "Product Image Display"
 msgstr ""
 
 #. Label of a Select field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:845
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:848
 msgid "Product Image Fit"
 msgstr ""
 
 #: webshop/templates/pages/product_search.html:3
 #: webshop/templates/pages/product_search.html:6
 msgid "Product Search"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1576
+msgid "Product Sheet"
 msgstr ""
 
 #: webshop/webshop/catalogue/sheet_links.py:17
@@ -6356,12 +6372,12 @@ msgstr ""
 
 #. Description of the 'Enable Multi-Warehouse Stock' (Check) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1447
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1450
 msgid "Products can display and sell from several stock sources (below). Off: historical single-warehouse behaviour."
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:725
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:728
 msgid "Products per Page"
 msgstr ""
 
@@ -6421,7 +6437,7 @@ msgid "Précise le code ou le nom de l'article."
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:304
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:307
 msgid "Public Holidays"
 msgstr ""
 
@@ -6435,7 +6451,7 @@ msgstr ""
 
 #. Description of the 'Delivery Holiday List' (Link) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1496
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1499
 msgid "Public holidays skipped when counting business days for delivery estimates. Empty: Saturdays and Sundays only."
 msgstr ""
 
@@ -6510,19 +6526,19 @@ msgid "Purchase Follow-up Step"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:587
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:590
 msgid "Purchase Follow-ups"
 msgstr ""
 
 #. Option for the 'Procurement Mode' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1471
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1474
 msgid "Purchase Order"
 msgstr ""
 
 #. Description of the 'Procurement Mode' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1467
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1470
 msgid "Purchase Order: one draft per supplier, new webshop orders stack into it. Material Request: submitted requests, consolidate them into Purchase Orders with the native \"Get Items From\" button."
 msgstr ""
 
@@ -6581,7 +6597,7 @@ msgid "Quick order"
 msgstr ""
 
 #. Label of a Select field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:967
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:970
 msgid "Quotation Series"
 msgstr ""
 
@@ -6610,7 +6626,7 @@ msgid "Rating"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:507
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:510
 msgid "Raven channel"
 msgstr ""
 
@@ -6678,17 +6694,17 @@ msgstr ""
 
 #. Description of the 'Redirect to Login' (Check) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1362
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1365
 msgid "Redirect directly to login page instead of showing maintenance page"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1149
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1152
 msgid "Redirect on Action"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1365
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1368
 msgid "Redirect to Login"
 msgstr ""
 
@@ -6776,7 +6792,7 @@ msgid "Refused: too many requests"
 msgstr ""
 
 #. Label of a Button field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1311
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1314
 msgid "Regenerate Sitemap Now"
 msgstr ""
 
@@ -6801,12 +6817,12 @@ msgid "Remaining amount"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:541
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:544
 msgid "Remind customers of an abandoned cart"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:549
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:552
 msgid "Reminders (hours after the last change)"
 msgstr ""
 
@@ -6834,7 +6850,7 @@ msgstr ""
 
 #. Description of the 'Enable Infinite Scroll' (Check) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:745
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:748
 msgid "Replace pagination with infinite scroll - automatically load more products when scrolling"
 msgstr ""
 
@@ -6845,7 +6861,7 @@ msgid "Replaces the days: the item must carry a replenishment cycle, or the step
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:703
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:706
 msgid "Report"
 msgstr ""
 
@@ -6896,7 +6912,8 @@ msgid "Required columns: code, value"
 msgstr ""
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1505
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1508
 msgid "Reseller Catalogue"
 msgstr ""
 
@@ -6911,7 +6928,7 @@ msgid "Reseller Catalogue Profile"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1492
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1495
 msgid "Reserve Received Goods for the Customer Order"
 msgstr ""
 
@@ -6940,7 +6957,7 @@ msgid "Resume the entry from {0} ({1} lines, {2} pieces)?"
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1418
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1421
 msgid "Return Period (days)"
 msgstr ""
 
@@ -7087,7 +7104,7 @@ msgid "Save Order"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1031
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1034
 msgid "Save Quotations as Draft"
 msgstr ""
 
@@ -7112,11 +7129,11 @@ msgstr ""
 msgid "Savings"
 msgstr ""
 
-#: webshop/webshop/catalogue/sheet.py:298
+#: webshop/webshop/catalogue/sheet.py:304
 msgid "Scan to see this product online"
 msgstr ""
 
-#: webshop/webshop/catalogue/sheet.py:293
+#: webshop/webshop/catalogue/sheet.py:299
 #, python-brace-format
 msgid "Scan to visit {0}"
 msgstr ""
@@ -7134,7 +7151,7 @@ msgid "Search"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1318
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1321
 msgid "Search Engine Notifications"
 msgstr ""
 
@@ -7293,7 +7310,7 @@ msgid "Send"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:666
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:669
 msgid "Send Second-hand Units"
 msgstr ""
 
@@ -7302,7 +7319,7 @@ msgid "Send everything to the cart"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:594
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:597
 msgid "Send follow-up emails after a purchase"
 msgstr ""
 
@@ -7344,12 +7361,12 @@ msgid "Sent to Google Shopping"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1554
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1557
 msgid "Sentence shown to the visitor"
 msgstr ""
 
 #. Description of the 'IndexNow Key' (Data) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1333
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1336
 msgid "Served at the root of every site, in a file named after it: the engines read it before trusting a notification."
 msgstr ""
 
@@ -7491,7 +7508,7 @@ msgid "Shop"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:344
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:347
 msgid "Shop Assistant"
 msgstr ""
 
@@ -7540,20 +7557,20 @@ msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/override_doctype/item_group.py:201
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1053
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1056
 msgid "Shop by Category"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
 #: webshop/templates/pages/cart.html:3 webshop/templates/pages/cart.html:6
 #: webshop/templates/pages/cart.py:105
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:921
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:924
 msgid "Shopping Cart"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
 #: webshop/templates/generators/item/item_promises.html:12
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1396
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1399
 msgid "Shopping Promises"
 msgstr ""
 
@@ -7574,32 +7591,32 @@ msgid "Show"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:910
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:913
 msgid "Show Apply Coupon Code"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:897
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:900
 msgid "Show Contact Us Button"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1267
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1270
 msgid "Show Loyalty Points for Guests"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1252
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1255
 msgid "Show Loyalty Points on Shop"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:875
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:878
 msgid "Show Price"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1176
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1179
 msgid "Show Price in Quotation"
 msgstr ""
 
@@ -7609,17 +7626,17 @@ msgid "Show Prices"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:833
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:836
 msgid "Show Public Attachments"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:881
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:884
 msgid "Show Stock Availability"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:904
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:907
 msgid "Show Stock Quantity"
 msgstr ""
 
@@ -7693,7 +7710,7 @@ msgid "Show successful imports"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:636
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:639
 msgid "Show the EAN and the Manufacturer's Reference on the Product Page"
 msgstr ""
 
@@ -7714,7 +7731,7 @@ msgid "Shown in the gallery before the video plays. Empty: YouTube's own thumbna
 msgstr ""
 
 #. Description of the 'Trust Items' (Table) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1433
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1436
 msgid "Shown in the product page buy box, under the Add to Cart button. Icon defaults to a check mark."
 msgstr ""
 
@@ -7735,13 +7752,13 @@ msgstr ""
 
 #. Description of the 'Sentence shown to the visitor' (Small Text) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1551
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1554
 msgid "Shown to visitors under the message field. Empty: \"Conversations are kept, and anonymised excerpts may be used to improve the service.\""
 msgstr ""
 
 #. Description of the 'Unavailable message' (Small Text) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:369
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:372
 msgid "Shown when the assistant cannot answer: model unreachable, daily limit or monthly cap reached. The store's opening status and a form to leave a message to the team follow it. Empty: a default sentence."
 msgstr ""
 
@@ -7776,7 +7793,7 @@ msgstr ""
 
 #. Description of the 'Remind customers of an abandoned cart' (Check) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:538
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:541
 msgid "Signed-in customers only: a guest cart has no address to write to"
 msgstr ""
 
@@ -7801,7 +7818,7 @@ msgid "Sitemap"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1291
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1294
 msgid "Sitemap Settings"
 msgstr ""
 
@@ -7824,7 +7841,7 @@ msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Settings'
 #. Label of a Link field in DocType 'Website Item'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1058
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1061
 #: webshop/webshop/doctype/website_item/website_item.json:89
 msgid "Slideshow"
 msgstr ""
@@ -7832,7 +7849,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Purchase Follow-up'
 #. Label of a HTML field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json:132
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:612
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:615
 msgid "So far"
 msgstr ""
 
@@ -7981,7 +7998,7 @@ msgid "Stock Basis"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1229
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1232
 msgid "Stock Filter Checked by Default"
 msgstr ""
 
@@ -8042,7 +8059,7 @@ msgstr ""
 #. Label of a Tab Break field in DocType 'Webshop Settings'
 #. Option for the 'Icon' (Select) field in DocType 'Webshop Trust Item'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:809
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:247
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:250
 #: webshop/webshop/doctype/webshop_trust_item/webshop_trust_item.json:25
 msgid "Store"
 msgstr ""
@@ -8158,7 +8175,7 @@ msgid "Supplier order prepared: {0} for {1}"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:513
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:516
 msgid "Support email"
 msgstr ""
 
@@ -8174,7 +8191,7 @@ msgstr ""
 #: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:107
 #: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:296
 #: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json:107
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1586
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1606
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json:116
 #: webshop/webshop/doctype/website_item/website_item.json:588
 #: webshop/webshop/doctype/wishlist/wishlist.json:49
@@ -8233,7 +8250,7 @@ msgid "Terms and Conditions"
 msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1038
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1041
 msgid "Terms and Conditions for Quotations"
 msgstr ""
 
@@ -8243,7 +8260,7 @@ msgid "Terms and Conditions of Sale"
 msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1046
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1049
 msgid "Terms and conditions for Checkout"
 msgstr ""
 
@@ -8277,7 +8294,7 @@ msgstr ""
 
 #. Description of the 'Product Identifiers' (Section Break) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:626
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:629
 msgid "The EAN (GTIN) and the manufacturer's reference are always sent to Google Shopping and declared in the product page's structured data: Google needs them to recognise the product."
 msgstr ""
 
@@ -8383,7 +8400,7 @@ msgstr ""
 
 #. Description of the 'Enable Field Filters (Categories)' (Check) field in
 #. DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:763
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:766
 msgid "The field filters will also work as categories in the <b>Shop by Category</b> page."
 msgstr ""
 
@@ -8471,7 +8488,7 @@ msgstr ""
 
 #. Description of the 'Free Shipping From' (Currency) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1403
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1406
 msgid "The order amount from which delivery is free. Empty: no such promise."
 msgstr ""
 
@@ -8667,7 +8684,7 @@ msgid "This model is not available in this shop."
 msgstr ""
 
 #. Label of a HTML field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:396
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:399
 msgid "This month"
 msgstr ""
 
@@ -8759,7 +8776,7 @@ msgid "Tickets"
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:442
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:445
 msgid "Timeout (seconds)"
 msgstr ""
 
@@ -8933,12 +8950,12 @@ msgid "Truck"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1430
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1433
 msgid "Trust Badges"
 msgstr ""
 
 #. Label of a Table field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1436
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1439
 msgid "Trust Items"
 msgstr ""
 
@@ -8965,7 +8982,7 @@ msgid "Turned away by the rate limit before the assistant was asked"
 msgstr ""
 
 #. Description of the 'Country' (Data) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:313
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:316
 msgid "Two-letter country code, CH for Switzerland."
 msgstr ""
 
@@ -8995,7 +9012,7 @@ msgid "Unable to open a conversation for this session."
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:372
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:375
 msgid "Unavailable message"
 msgstr ""
 
@@ -9133,7 +9150,7 @@ msgstr ""
 
 #. Description of the 'Points Earned Text' (Data) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1283
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1286
 #, python-brace-format
 msgid "Use {points} for points count and {value} for monetary value"
 msgstr ""
@@ -9203,7 +9220,7 @@ msgstr ""
 msgid "VAT Rate (%)"
 msgstr ""
 
-#: webshop/webshop/catalogue/sheet.py:245
+#: webshop/webshop/catalogue/sheet.py:251
 #, python-brace-format
 msgid "VAT no. {0}"
 msgstr ""
@@ -9276,7 +9293,7 @@ msgid "Variant"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:686
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:689
 msgid "Variant Attributes"
 msgstr ""
 
@@ -9481,7 +9498,7 @@ msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
 #. Label of a Table field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1477
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1480
 msgid "Warehouse Sources"
 msgstr ""
 
@@ -9557,7 +9574,7 @@ msgstr ""
 #. Name of a DocType
 #. Label of a Link in the Webshop Workspace
 #. Label of a shortcut in the Webshop Workspace
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1577
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1597
 #: webshop/webshop/doctype/website_item/website_item.js:22
 #: webshop/webshop/workspace/webshop/webshop.json:278
 msgid "Webshop Settings"
@@ -9579,7 +9596,7 @@ msgstr ""
 
 #. Option for the 'Who receives them' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:603
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:606
 msgid "Webshop customers only"
 msgstr ""
 
@@ -9655,7 +9672,7 @@ msgid "Website Item"
 msgstr ""
 
 #. Label of a Table field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:778
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:781
 msgid "Website Item Fields"
 msgstr ""
 
@@ -9789,7 +9806,7 @@ msgid "Welcome in checkout. Please fill in your information below."
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:365
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:368
 msgid "Welcome message"
 msgstr ""
 
@@ -9811,7 +9828,7 @@ msgid "What the assistant remembers"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:402
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:405
 msgid "What the assistant should know"
 msgstr ""
 
@@ -9834,7 +9851,7 @@ msgid "Where is my order?"
 msgstr ""
 
 #. Description of the 'Holiday List' (Link) field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:330
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:333
 msgid "Where the fetched holidays are stored. Edit it on the desk to add or remove a day."
 msgstr ""
 
@@ -9850,7 +9867,7 @@ msgid "Where the image anchors when 'Product Image Fit' is set to Cover in Websh
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:252
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:255
 msgid "Where the store is"
 msgstr ""
 
@@ -9860,7 +9877,7 @@ msgid "Which purchase, how many days later, which template: {0}."
 msgstr ""
 
 #. Label of a Select field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:602
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:605
 msgid "Who receives them"
 msgstr ""
 
@@ -9944,7 +9961,7 @@ msgid "Writing the feed…"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:697
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:700
 msgid "Written On"
 msgstr ""
 
@@ -9966,7 +9983,7 @@ msgstr ""
 
 #. Option for the 'Hide Currency Symbol in Shop' (Select) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:869
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:872
 msgid "Yes"
 msgstr ""
 
@@ -10350,7 +10367,7 @@ msgstr ""
 
 #. Option for the 'Default Product Sort Order' (Select) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:741
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:744
 msgid "new_arrivals"
 msgstr ""
 
@@ -10427,13 +10444,13 @@ msgstr ""
 
 #. Option for the 'Default Product Sort Order' (Select) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:741
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:744
 msgid "price_high_to_low"
 msgstr ""
 
 #. Option for the 'Default Product Sort Order' (Select) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:741
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:744
 msgid "price_low_to_high"
 msgstr ""
 
@@ -10460,13 +10477,13 @@ msgstr ""
 
 #. Option for the 'Default Product Sort Order' (Select) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:741
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:744
 msgid "rating"
 msgstr ""
 
 #. Option for the 'Default Product Sort Order' (Select) field in DocType
 #. 'Webshop Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:741
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:744
 msgid "relevance"
 msgstr ""
 

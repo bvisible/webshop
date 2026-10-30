@@ -10226,3 +10226,23 @@ msgstr "{0} choix"
 #, python-brace-format
 msgid "{0}-month warranty"
 msgstr "Garantie {0} mois"
+
+#. Description of the 'Offer the Product Sheet' (Check) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1583
+msgid "Adds a button to each product page that gives the visitor a PDF sheet of the product: photographs, price, availability, the shop's promises, characteristics and a QR code to the page. It says what the page says. Off, the page is unchanged."
+msgstr "Ajoute à chaque page produit un bouton qui permet au visiteur de télécharger une fiche PDF du produit : photos, prix, disponibilité, engagements de la boutique, caractéristiques et QR code menant à la page. Elle reprend exactement ce que dit la page. Désactivé, la page reste inchangée."
+
+#: webshop/webshop/report/shop_assistant_unanswered_questions/shop_assistant_unanswered_questions.py:23
+msgid "Last asked"
+msgstr "Dernière question"
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1581
+msgid "Offer the Product Sheet"
+msgstr "Proposer la fiche produit"
+
+#. Label of a Section Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1576
+msgid "Product Sheet"
+msgstr "Fiche produit"
