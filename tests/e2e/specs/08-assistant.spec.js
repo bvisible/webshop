@@ -37,6 +37,8 @@ test.describe('Shop assistant', () => {
 		);
 		await page.reload();
 		await page.waitForLoadState('networkidle');
+		//// Neoffice — the bubble asks the server for itself once a visitor shows up (lot C of the 2026-10-30 audit); a move of the mouse is that.
+		await page.mouse.move(40, 40);
 	});
 
 	test('the bubble is there and opens on a greeting', async ({page}) => {

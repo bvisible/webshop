@@ -14,7 +14,17 @@
   "model",
   "prompt_tokens",
   "completion_tokens",
-  "duration_ms"
+  "duration_ms",
+  "log_section",
+  "prompt_version",
+  "finish_reason",
+  "signals",
+  "language",
+  "ip_hash",
+  "feedback_column",
+  "feedback",
+  "reported",
+  "feedback_on"
  ],
  "fields": [
   {
@@ -73,6 +83,69 @@
    "fieldname": "duration_ms",
    "fieldtype": "Int",
    "label": "Duration (ms)"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "log_section",
+   "fieldtype": "Section Break",
+   "label": "Log"
+  },
+  {
+   "description": "Fingerprint of the rules the model was given for this answer",
+   "fieldname": "prompt_version",
+   "fieldtype": "Data",
+   "label": "Prompt version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "finish_reason",
+   "fieldtype": "Data",
+   "label": "Finish reason",
+   "read_only": 1
+  },
+  {
+   "description": "Signals for the person reading the log: injection_suspected, off_topic_refused, unanswered, escalated. Written between commas.",
+   "fieldname": "signals",
+   "fieldtype": "Data",
+   "label": "Signals",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Data",
+   "label": "Language",
+   "read_only": 1
+  },
+  {
+   "description": "The same for one source all day, different the next: not an address",
+   "fieldname": "ip_hash",
+   "fieldtype": "Data",
+   "label": "Source (daily hash)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "feedback_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "feedback",
+   "fieldtype": "Select",
+   "label": "Visitor's opinion",
+   "options": "\nUseful\nNot useful",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reported",
+   "fieldtype": "Check",
+   "label": "Reported by the visitor",
+   "read_only": 1
+  },
+  {
+   "fieldname": "feedback_on",
+   "fieldtype": "Datetime",
+   "label": "Opinion given on",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 0,

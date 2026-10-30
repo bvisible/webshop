@@ -51,6 +51,8 @@ No upstream equivalent; the whole file is ours.
 | `webshop/webshop/doctype/reseller_catalogue_group/reseller_catalogue_group.json` | child table of the customer groups allowed to use the reseller catalogue, a row of Webshop Settings | reseller catalogue, lot 0 (2026-10-30) |
 | `webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json` | a reseller's brand: logo, colours, contact details and the markup they apply to the prices of their catalogues | reseller catalogue, lot 0 (2026-10-30) |
 | `webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json`, `shop_assistant_message/shop_assistant_message.json` | a visitor's thread with the shop assistant and its messages (what was said, the tokens each turn cost, the tools it used) | the shop assistant (2026-09), indexed and bounded by neoffice-maintenance#2015 (2026-10-30) |
+| `webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json` | one row a day of what the shop assistant was asked, answered and refused, and why (figures only, written each night from the Redis counters) | neoffice-maintenance#2015, lot D (2026-10-30) |
+| `webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json` | an anonymised pair of question and answer kept to improve the service; empty until the merchant switches the collection on | neoffice-maintenance#2015, lot E (2026-10-30) |
 | `webshop/webshop/assistant/quality/real_outputs.json` | what the shop assistant really answered, each reply read and labelled by a person; the classifier of the quality battery is tested against it (`quality/test_classify.py`) | neoffice-maintenance#2019 (2026-10-30) |
 | `webshop/webshop/workspace/webshop/webshop.json` | the "Webshop" desk workspace — a **root** page of the Website module, so the Neoffice sidebar lists it. Its « SEO dashboard » link is a URL (`/app/dashboard-view/Webshop%20SEO`): a Workspace Link accepts DocType, Page, Report or URL, and the `Dashboard` type it had was refused when the hub copied the workspace to an instance (neoffice-maintenance#1278) | `86e2609b57`, `01c6358b19` (2026-09-03), 2026-10-07 |
 
@@ -292,6 +294,8 @@ webshop/webshop/doctype/reseller_catalogue_group/reseller_catalogue_group.json
 webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json
 webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json
 webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json
+webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json
+webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json
 webshop/webshop/doctype/store_closure/store_closure.json
 webshop/webshop/doctype/store_opening_hours/store_opening_hours.json
 webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json
@@ -311,6 +315,7 @@ webshop/webshop/number_card/products_without_a_description/products_without_a_de
 webshop/webshop/number_card/products_without_gtin_or_reference/products_without_gtin_or_reference.json
 webshop/webshop/number_card/products_without_picture_descriptions/products_without_picture_descriptions.json
 webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.json
+webshop/webshop/report/shop_assistant_unanswered_questions/shop_assistant_unanswered_questions.json
 webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.json
 webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.json
 webshop/webshop/webshop_dashboard/webshop_seo/webshop_seo.json

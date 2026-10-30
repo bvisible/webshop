@@ -82,10 +82,15 @@ scheduler_events = {
 	"daily": [
 		# //// Neoffice — nightly purge of old shop-assistant conversations, except the escalated ones (84412d0bec "feat(assistant): rapport d'usage, purge de nuit, conversations sur la fiche client")
 		"webshop.webshop.assistant.api.purge_old_conversations",
+		"webshop.webshop.assistant.usage.flush_finished_days",
+		# //// Neoffice — anonymised samples (lot E of the 2026-10-30 audit): does nothing while the merchant's switch is off, which is its default
+		"webshop.webshop.assistant.samples.daily",
 		"webshop.webshop.utils.frequently_bought_together.calculate_frequently_bought_together",
 		# //// Neoffice — each site's Google Merchant Center feed, written for Google's daily fetch (#691 lot 3)
 		"webshop.webshop.seo.feeds.google.generate_feeds",
 	],
+	# //// Neoffice — the assistant (lot D of the 2026-10-30 audit): each night the finished days' counters go to their row, and each week the questions it could not answer go to the team (that mail is off until the merchant switches it on)
+	"weekly": ["webshop.webshop.assistant.unanswered.weekly_digest"],
 	# //// Neoffice — every product's SEO score, and the day's figures of each site for the workspace's
 	# //// charts (seo/score.py, #691 plan note 20): a pass over the catalogue, in the long queue
 	"daily_long": ["webshop.webshop.seo.score.refresh_all"],

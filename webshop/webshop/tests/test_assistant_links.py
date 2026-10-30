@@ -220,6 +220,92 @@ class TestAssistantStart(FrappeTestCase):
 		self.assertEqual(start_page([], stored=True)["at_load"], 1)
 
 
+RATING_RUNNER = r"""
+const vm = require("vm");
+const fs = require("fs");
+const wanted = JSON.parse(process.argv[2]);
+const calls = [];
+const sandbox = {
+	frappe: { provide() {}, ready() {}, csrf_token: "tok" },
+	webshop: {},
+	document: {},
+	sessionStorage: {},
+	URL,
+	URLSearchParams,
+	location: { origin: "https://shop.example", host: "shop.example", pathname: "/" },
+	fetch: async (url, options) => {
+		calls.push({ url, body: options && options.body ? String(options.body) : null });
+		return { ok: true, status: 200, json: async () => ({ message: { ok: true } }) };
+	},
+};
+vm.createContext(sandbox);
+vm.runInContext(fs.readFileSync(process.argv[1], "utf8"), sandbox);
+const assistant = sandbox.webshop.assistant;
+assistant.config = { labels: wanted.labels };
+(async () => {
+	const out = {};
+	if (wanted.row) out.row = assistant.rateRowHtml(...wanted.row);
+	if (wanted.rate) { await assistant.rate(...wanted.rate); out.calls = calls; }
+	console.log(JSON.stringify(out));
+})();
+"""
+
+LABELS = {"useful": "Useful", "not_useful": "Not useful", "report": "Report", "thanks": "Thank you"}
+
+
+def rating(**wanted):
+	node = shutil.which("node")
+	if not node:
+		raise AssertionError("Node is needed to run assistant.js: install it, this test does not skip")
+	run = subprocess.run(
+		[node, "-e", RATING_RUNNER, str(ASSISTANT_JS), json.dumps({"labels": LABELS, **wanted})],
+		capture_output=True,
+		text=True,
+		timeout=60,
+	)
+	if run.returncode:
+		raise AssertionError(run.stderr)
+	return json.loads(run.stdout)
+
+
+class TestAssistantOpinion(FrappeTestCase):
+	"""Under each answer of the log, the visitor can say whether it helped, or report it (lot D of the 2026-10-30 audit)."""
+
+	def test_an_answer_gets_a_useful_a_not_useful_and_a_report_button_named_by_the_server(self):
+		html = rating(row=["abc123", "", False])["row"]
+		self.assertEqual(html.count("<button"), 3)
+		for label in ("Useful", "Not useful", "Report"):
+			self.assertIn(label, html)
+		self.assertIn('data-id="abc123"', html)
+		for choice in ("up", "down", "report"):
+			self.assertIn(f'data-rating="{choice}"', html)
+
+	def test_the_opinion_already_given_is_shown_pressed(self):
+		html = rating(row=["abc123", "down", False])["row"]
+		self.assertIn('data-rating="down" aria-label="Not useful" title="Not useful" aria-pressed="true"', html)
+		self.assertIn('data-rating="up" aria-label="Useful" title="Useful" aria-pressed="false"', html)
+
+	def test_a_reported_answer_cannot_be_reported_again(self):
+		html = rating(row=["abc123", "", True])["row"]
+		self.assertRegex(html, r'data-rating="report"[^>]*disabled')
+
+	def test_the_icons_are_drawn_not_typed_and_the_button_has_a_name_for_a_screen_reader(self):
+		html = rating(row=["abc123", "", False])["row"]
+		self.assertEqual(html.count("<svg"), 2)
+		self.assertNotRegex(html, "[\U0001F44D\U0001F44E]")  # an emoji is not an icon
+		self.assertEqual(html.count("aria-label="), 2)
+
+	def test_the_name_of_an_answer_is_escaped_into_the_markup(self):
+		html = rating(row=['"><img src=x onerror=alert(1)>', "", False])["row"]
+		self.assertNotIn("<img", html)
+
+	def test_the_opinion_goes_to_the_server_as_a_form(self):
+		out = rating(rate=["abc123", "up"])
+		(call,) = out["calls"]
+		self.assertEqual(call["url"], "/api/method/webshop.webshop.assistant.api.rate_message")
+		self.assertEqual(call["body"], "message=abc123&rating=up")
+
+
 class TestAssistantGlyph(FrappeTestCase):
 	"""The glyph belongs to every shop: it takes its colours from the theme and its size from the stylesheet."""
 

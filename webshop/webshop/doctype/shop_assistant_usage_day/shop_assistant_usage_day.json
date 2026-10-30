@@ -1,0 +1,224 @@
+{
+ "actions": [],
+ "autoname": "field:day",
+ "creation": "2026-10-30 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "day",
+  "received",
+  "answered",
+  "refused_rate",
+  "refused_day_limit",
+  "refused_month_cap",
+  "refused_outage",
+  "refused_busy",
+  "refused_locked",
+  "refused_off",
+  "errors",
+  "guests",
+  "signed_in",
+  "config_calls",
+  "leave_messages",
+  "model_calls",
+  "tool_calls",
+  "prompt_tokens",
+  "completion_tokens",
+  "median_ms",
+  "p95_ms",
+  "feedback_up",
+  "feedback_down",
+  "reported"
+ ],
+ "fields": [
+  {
+   "fieldname": "day",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Day",
+   "read_only": 1,
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "Every call that reached the shop's server, the ones it refused included",
+   "fieldname": "received",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Requests received",
+   "read_only": 1
+  },
+  {
+   "description": "Messages the assistant answered",
+   "fieldname": "answered",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Answered",
+   "read_only": 1
+  },
+  {
+   "description": "Turned away by the rate limit before the assistant was asked",
+   "fieldname": "refused_rate",
+   "fieldtype": "Int",
+   "label": "Refused: too many requests",
+   "read_only": 1
+  },
+  {
+   "description": "The visitor's messages for the day were spent",
+   "fieldname": "refused_day_limit",
+   "fieldtype": "Int",
+   "label": "Refused: daily limit",
+   "read_only": 1
+  },
+  {
+   "description": "The shop's tokens for the month were spent",
+   "fieldname": "refused_month_cap",
+   "fieldtype": "Int",
+   "label": "Refused: monthly cap",
+   "read_only": 1
+  },
+  {
+   "description": "The model did not answer, or an outage was already known",
+   "fieldname": "refused_outage",
+   "fieldtype": "Int",
+   "label": "Refused: model down",
+   "read_only": 1
+  },
+  {
+   "description": "The site's hourly ceiling, or every place for an answer was taken",
+   "fieldname": "refused_busy",
+   "fieldtype": "Int",
+   "label": "Refused: too busy",
+   "read_only": 1
+  },
+  {
+   "fieldname": "refused_locked",
+   "fieldtype": "Int",
+   "label": "Refused: previous message still answered",
+   "read_only": 1
+  },
+  {
+   "fieldname": "refused_off",
+   "fieldtype": "Int",
+   "label": "Refused: assistant off",
+   "read_only": 1
+  },
+  {
+   "description": "A fault of the shop's own while answering",
+   "fieldname": "errors",
+   "fieldtype": "Int",
+   "label": "Faults",
+   "read_only": 1
+  },
+  {
+   "description": "Messages from visitors who were not signed in",
+   "fieldname": "guests",
+   "fieldtype": "Int",
+   "label": "Visitors",
+   "read_only": 1
+  },
+  {
+   "description": "Messages from signed-in customers",
+   "fieldname": "signed_in",
+   "fieldtype": "Int",
+   "label": "Signed-in customers",
+   "read_only": 1
+  },
+  {
+   "description": "Pages that asked for the bubble",
+   "fieldname": "config_calls",
+   "fieldtype": "Int",
+   "label": "Bubbles shown",
+   "read_only": 1
+  },
+  {
+   "fieldname": "leave_messages",
+   "fieldtype": "Int",
+   "label": "Messages left for the team",
+   "read_only": 1
+  },
+  {
+   "fieldname": "model_calls",
+   "fieldtype": "Int",
+   "label": "Calls to the model",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tool_calls",
+   "fieldtype": "Int",
+   "label": "Tool calls",
+   "read_only": 1
+  },
+  {
+   "fieldname": "prompt_tokens",
+   "fieldtype": "Int",
+   "label": "Prompt tokens",
+   "read_only": 1
+  },
+  {
+   "fieldname": "completion_tokens",
+   "fieldtype": "Int",
+   "label": "Completion tokens",
+   "read_only": 1
+  },
+  {
+   "description": "Read from 11 buckets: the upper bound of the bucket that holds it",
+   "fieldname": "median_ms",
+   "fieldtype": "Int",
+   "label": "Median answer time (ms)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "p95_ms",
+   "fieldtype": "Int",
+   "label": "95th percentile answer time (ms)",
+   "read_only": 1
+  },
+  {
+   "description": "Answers a visitor marked useful",
+   "fieldname": "feedback_up",
+   "fieldtype": "Int",
+   "label": "Useful",
+   "read_only": 1
+  },
+  {
+   "description": "Answers a visitor marked not useful",
+   "fieldname": "feedback_down",
+   "fieldtype": "Int",
+   "label": "Not useful",
+   "read_only": 1
+  },
+  {
+   "description": "Answers a visitor reported",
+   "fieldname": "reported",
+   "fieldtype": "Int",
+   "label": "Reported",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-30 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Shop Assistant Usage Day",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  },
+  {
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Website Manager"
+  }
+ ],
+ "sort_field": "day",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

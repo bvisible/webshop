@@ -14,9 +14,9 @@ from contextlib import contextmanager
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, cint, now_datetime
+from frappe.utils import add_days, cint, now_datetime, nowdate
 
-from webshop.webshop.assistant import engine, llm
+from webshop.webshop.assistant import engine, llm, usage
 from webshop.webshop.doctype.shop_assistant_conversation.shop_assistant_conversation import (
 	ShopAssistantConversation,
 )
@@ -38,6 +38,8 @@ DEFAULT_MONTHLY_TOKEN_CAP = 3_000_000
 SITE_HOURLY_MESSAGES = 300
 # a visitor's lock outlives the slowest answer (a few model calls of 25 s) and ends by itself if the worker dies
 LOCK_SECONDS = 120
+# //// Neoffice — the reason `unavailable_reason` gives, as the day's counters name it (lot D of the 2026-10-30 audit)
+REFUSAL_OF_REASON = {"outage": "outage", "limit": "day_limit", "cap": "month_cap", "busy": "busy"}
 # //// Neoffice — answers the whole site gives at the same moment when the merchant sets none (lot C of the 2026-10-30 audit)
 # each one holds one of the shop's web workers for as long as the model takes
 BENCH_DEFAULT_WORKERS = 2
@@ -380,6 +382,11 @@ def labels():
 		"leave_send": _("Send to the team"),
 		"leave_cancel": _("Cancel"),
 		"leave_error": _("The message could not be sent. Please try again, or write to us directly."),
+		# //// Neoffice — the visitor's opinion of an answer (lot D of the 2026-10-30 audit)
+		"useful": _("Useful"),
+		"not_useful": _("Not useful"),
+		"report": _("Report"),
+		"thanks": _("Thank you for your opinion."),
 		"suggestions": [
 			_("What are your opening hours?"),
 			_("Where is my order?"),
@@ -389,20 +396,21 @@ def labels():
 	}
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method -- reviewed in the 2026-10-30 audit of the assistant (neoffice-maintenance#2015, #2019): open to visitors on purpose, throttled per connection, the identity read from the session only
 # //// Neoffice — every page of the shop asks for this, and it was open to any number of calls: it reads the month's token sum and looks the visitor's conversation up (lot A of the 2026-10-30 audit)
 @throttle.throttle("config", 120, 60)
-def get_config(page_route=None):
+def get_config(page_route: str | None = None):
 	s = settings()
 	if not enabled(s):
 		return {"enabled": False}
+	usage.count("config_calls")
 	# //// Neoffice — the page is not needed to draw the bubble (`page_route` stays in the signature for the widget's call); not looking it up spares this hot path three queries
 	ctx = context()
 	conversation = find_conversation(ctx)
 	history = []
 	if conversation:
 		visible = [m for m in conversation.messages if m.role in ("user", "assistant") and m.content and not m.tool_calls]
-		history = [{"role": m.role, "content": m.content, "sent_on": str(m.sent_on)} for m in visible[-HISTORY_SHOWN:]]
+		history = [_shown(m) for m in visible[-HISTORY_SHOWN:]]
 	return {
 		"enabled": True,
 		"name": (s.get("assistant_name") or "Nora").strip(),
@@ -412,10 +420,33 @@ def get_config(page_route=None):
 		"signed_in": bool(ctx.user and ctx.user != "Guest"),
 		"history": history,
 		"labels": labels(),
+		"consent": consent_line(s, bool(ctx.user and ctx.user != "Guest")),
 		# //// Neoffice — the answering machine (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 		# the answering machine speaks from the first screen when it has to
 		"notice": unavailable(ctx, reason) if (reason := unavailable_reason(ctx, conversation)) else None,
 	}
+
+
+# //// Neoffice — lot E of the 2026-10-30 audit: the sentence a visitor reads while anonymised samples are kept
+def consent_line(s, signed_in):
+	"""What the visitor is told when samples are collected, None when they are not or when this visitor is not collected.
+
+	Only visitors who are not signed in are sampled, so only they are told. The merchant's own sentence wins.
+	"""
+	if not cint(s.get("assistant_collect_samples")) or signed_in:
+		return None
+	return (s.get("assistant_consent_text") or "").strip() or _("Conversations may be used, anonymously, to improve the service.")
+
+
+# //// Neoffice — lot D of the 2026-10-30 audit: an answer is drawn again with its name and the opinion already given
+OPINIONS = {"Useful": "up", "Not useful": "down"}
+
+
+def _shown(m):
+	entry = {"role": m.role, "content": m.content, "sent_on": str(m.sent_on)}
+	if m.role == "assistant":
+		entry.update(id=m.name, feedback=OPINIONS.get(m.feedback, ""), reported=bool(m.reported))
+	return entry
 
 
 def _daily_limit_reached(conversation, ctx):
@@ -467,23 +498,28 @@ def _answering_machine(conversation, ctx, reason, user_text=None):
 	return out
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method -- reviewed in the 2026-10-30 audit of the assistant (neoffice-maintenance#2015, #2019): open to visitors on purpose, throttled per connection, the identity read from the session only
 # //// Neoffice — was frappe's @rate_limit(limit=20, seconds=600), keyed on the first X-Forwarded-For entry; a day's ceiling per connection is new (lot A of the 2026-10-30 audit)
-@throttle.throttle("send", 20, 600)
-@throttle.throttle("send-day", 150, 86400)
-def send(message, page_route=None):
+@throttle.throttle("send", 20, 600, on_refuse=lambda: usage.refused("rate"))
+@throttle.throttle("send-day", 150, 86400, on_refuse=lambda: usage.refused("rate"))
+def send(message: str, page_route: str | None = None):
 	s = settings()
 	if not enabled(s):
+		# //// Neoffice — counted, then refused (lot D of the 2026-10-30 audit)
+		usage.refused("off")
 		frappe.throw(_("The assistant is not enabled."), frappe.PermissionError)
+	usage.count("received")
 	# //// Neoffice — msgids were French, now English (house rule); the French screen is unchanged, served by the translation catalogue.
 	text = (message or "").strip()
 	if not text:
 		frappe.throw(_("The message is empty."))
 	text = text[:MAX_MESSAGE_CHARS]
 	ctx = context(page_route)
+	usage.count("signed_in" if signed_in(ctx) else "guests")
 	# //// Neoffice — one message at a time per visitor (lot A of the 2026-10-30 audit): the second of two parallel sends is told to wait instead of raising on a stale conversation
 	with conversation_lock(ctx) as free:
 		if not free:
+			usage.declined("locked")
 			return {"reply": _("Your previous message is still being answered. One moment, please."), "busy": True}
 		return _answer(ctx, text)
 
@@ -502,10 +538,12 @@ def _answer(ctx, text):
 	# //// next visitors get the notice at once instead of a 25 s wait.
 	reason = unavailable_reason(ctx, conversation)
 	if reason:
+		usage.declined(REFUSAL_OF_REASON[reason])
 		return _answering_machine(conversation, ctx, reason, user_text=text)
 	# //// Neoffice — only a few answers at once: each holds a web worker for as long as the model takes (lot C of the 2026-10-30 audit). Nothing is written for the visitor who is turned away, who asks again in a moment.
 	with answer_slot(max_simultaneous(ctx.settings)) as granted:
 		if not granted:
+			usage.declined("busy")
 			return _answering_machine(conversation, ctx, "busy")
 		return _respond(conversation, ctx, text)
 
@@ -520,6 +558,7 @@ def _respond(conversation, ctx, text):
 		# //// Neoffice — the answering machine: arm the outage flag so the next visitors get the notice at once, and answer this one the same way instead of a bare error (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 		# //// Neoffice — only the model's failure arms it; this branch used to be `except Exception` (lot A of the 2026-10-30 audit)
 		mark_outage()
+		usage.declined("outage")
 		# respond() already wrote the visitor's words on the conversation
 		result = _answering_machine(conversation, ctx, "outage")
 		result["failed"] = True
@@ -529,13 +568,20 @@ def _respond(conversation, ctx, text):
 		# //// next ones are not (the flag switches the assistant off for everybody for OUTAGE_SECONDS). Nothing is
 		# //// saved here: the conversation may be the very thing that failed.
 		frappe.log_error("Shop assistant: reply failed", frappe.get_traceback())
+		usage.count("errors")
 		result = unavailable(ctx, "outage")
 		result.update(failed=True, conversation=conversation.name, limited=False)
 		return result
+	usage.record_turn(out.model_calls, out.tool_calls, out.prompt_tokens, out.completion_tokens, out.duration_ms)
 	# //// Neoffice — a thread that reached its size is closed (an escalated one stays the team's); the visitor's next message opens a new one (lot C of the 2026-10-30 audit)
 	if conversation.status == "Open" and cint(conversation.message_count) >= MAX_CONVERSATION_MESSAGES:
 		frappe.db.set_value("Shop Assistant Conversation", conversation.name, "status", "Closed", update_modified=False)
-	return {"reply": out.reply, "conversation": out.conversation, "escalated": conversation.status == "Escalated"}
+	return {
+		"reply": out.reply,
+		"message_id": out.message_id,
+		"conversation": out.conversation,
+		"escalated": conversation.status == "Escalated",
+	}
 
 
 # //// Neoffice ▼▼▼ — the answering machine's tape: the "leave a message" endpoint and the escalation it triggers, reached with no model involved when the model is down or a limit is hit (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
@@ -592,7 +638,52 @@ def leave(ctx, text, email=None):
 	conversation.add_message("assistant", reply)
 	conversation.flags.ignore_permissions = True
 	conversation.save()
+	usage.count("leave_messages")
 	return {"reply": reply, "conversation": conversation.name, "escalated": True, "via": out.get("via")}
+# //// Neoffice ▲▲▲
+
+
+# //// Neoffice ▼▼▼ — lot D of the 2026-10-30 audit: the visitor says whether an answer helped, or reports it
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method -- reviewed in the 2026-10-30 audit of the assistant (neoffice-maintenance#2015, #2019): open to visitors on purpose, throttled per connection, the identity read from the session only
+@throttle.throttle("rate", 30, 600)
+@throttle.throttle("rate-day", 200, 86400)
+def rate_message(message: str, rating: str):
+	"""Record the visitor's opinion of one answer: "up" (useful), "down" (not useful) or "report".
+
+	The answer must belong to the visitor's own conversation, by the session and nothing the browser says: an answer of
+	somebody else, the visitor's own words and the assistant's tool rounds are all "not found". An opinion is counted
+	when it changes, so a double click is one opinion.
+	"""
+	s = settings()
+	if not enabled(s):
+		frappe.throw(_("The assistant is not enabled."), frappe.PermissionError)
+	if rating not in ("up", "down", "report"):
+		frappe.throw(_("Unknown opinion."))
+	ctx = context()
+	row = frappe.db.get_value(
+		"Shop Assistant Message",
+		{"name": message, "parenttype": "Shop Assistant Conversation", "role": "assistant"},
+		["name", "parent", "tool_calls", "feedback", "reported"],
+		as_dict=True,
+	)
+	owner = row and frappe.db.get_value("Shop Assistant Conversation", row.parent, ["user", "guest_session"], as_dict=True)
+	mine = bool(owner) and (
+		owner.user == ctx.user if signed_in(ctx) else (not owner.user and bool(ctx.guest_session) and owner.guest_session == ctx.guest_session)
+	)
+	if not row or row.tool_calls or not mine:
+		frappe.throw(_("Message not found."), frappe.DoesNotExistError)
+	changes = {}
+	if rating == "report":
+		if not row.reported:
+			changes = {"reported": 1}
+			usage.count("reported")
+	elif row.feedback != ("Useful" if rating == "up" else "Not useful"):
+		changes = {"feedback": "Useful" if rating == "up" else "Not useful"}
+		usage.count("feedback_up" if rating == "up" else "feedback_down")
+	if changes:
+		changes["feedback_on"] = now_datetime()
+		frappe.db.set_value("Shop Assistant Message", row.name, changes, update_modified=False)
+	return {"ok": True}
 # //// Neoffice ▲▲▲
 
 
@@ -633,6 +724,21 @@ def get_usage_stats():
 		"estimated_cost": round(tokens / 1000.0 * price, 2) if price else None,
 		# //// Neoffice — the cap in force (the default when the merchant set none), not "no cap"
 		"monthly_cap": monthly_cap(),
+		# //// Neoffice — what the counters of lot D say: every request, those turned away included (the 2026-10-30 audit)
+		**_request_stats(month_start),
+	}
+
+
+def _request_stats(month_start):
+	month = usage.totals(month_start, nowdate())
+	today = usage.totals(nowdate(), nowdate())
+	return {
+		"requests": month["received"],
+		"answered": month["answered"],
+		"refused": {reason: month[f"refused_{reason}"] for reason in usage.REFUSAL_REASONS},
+		"refused_total": month["refused"],
+		"feedback": {"up": month["feedback_up"], "down": month["feedback_down"], "reported": month["reported"]},
+		"today": {"received": today["received"], "answered": today["answered"], "refused": today["refused"]},
 	}
 
 

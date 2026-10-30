@@ -57,6 +57,25 @@
 		&--assistant { align-self: flex-start; background: var(--wsh-surface); border: 1px solid var(--wsh-line); border-bottom-left-radius: var(--wsh-radius); }
 		&--user { align-self: flex-end; background: var(--wsh-assistant-user); border-bottom-right-radius: var(--wsh-radius); }
 	}
+
+	// //// Neoffice — the visitor's opinion of an answer (lot D of the 2026-10-30 audit): quiet until looked at, and never louder than the answer
+	&__rate {
+		display: flex; align-items: center; gap: 2px; margin-top: 6px; color: var(--wsh-muted, #6b7280);
+		&[data-thanks]::after { content: attr(data-thanks); margin-left: 8px; font-size: .78rem; }
+	}
+	&__rate-btn {
+		display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0;
+		border: 0; border-radius: var(--wsh-radius); background: transparent; color: inherit; cursor: pointer; opacity: .7;
+		svg { width: 15px; height: 15px; }
+		&:hover, &:focus-visible { opacity: 1; background: var(--wsh-assistant-user); }
+		&[aria-pressed="true"] { opacity: 1; color: var(--wsh-assistant-color); }
+		&:disabled { cursor: default; }
+	}
+	&__rate-report {
+		margin-left: 6px; padding: 4px 6px; border: 0; background: transparent; color: inherit; font-size: .78rem; text-decoration: underline; cursor: pointer; opacity: .7;
+		&:hover, &:focus-visible { opacity: 1; }
+		&:disabled { cursor: default; text-decoration: none; }
+	}
 	&__note { align-self: center; font-size: .8rem; color: var(--wsh-muted); }
 
 	//// Neoffice — the answering machine's "leave a message" card and form (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
@@ -119,3 +138,6 @@
 	}
 	.wsh-assistant.is-open .wsh-assistant__bubble { display: none; }
 }
+
+// //// Neoffice — the sentence that tells the visitor samples are kept (lot E of the 2026-10-30 audit): small and legible, not hidden
+.wsh-assistant__consent { margin: 4px 12px 8px; font-size: .74rem; line-height: 1.35; color: var(--wsh-muted, #6b7280); }

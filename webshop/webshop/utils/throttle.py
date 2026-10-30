@@ -56,13 +56,19 @@ def reset(name, identity):
 	frappe.cache().delete(_key(name, identity))
 
 
-def throttle(name, limit, seconds):
-	"""Refuse (429) the call number `limit + 1` of one connection within `seconds`. Stack two for a short and a long window."""
+def throttle(name, limit, seconds, on_refuse=None):
+	"""Refuse (429) the call number `limit + 1` of one connection within `seconds`. Stack two for a short and a long window.
+
+	`on_refuse`, when given, is called with no argument just before the refusal: the refusal happens before the endpoint
+	runs, so it is the only place that can count it.
+	"""
 
 	def decorator(fn):
 		@wraps(fn)
 		def wrapper(*args, **kwargs):
 			if getattr(frappe.local, "request", None) and hit(name, peer_ip(), seconds) > limit:
+				if on_refuse:
+					on_refuse()
 				frappe.throw(
 					_("You hit the rate limit because of too many requests. Please try after sometime."),
 					frappe.RateLimitExceededError,

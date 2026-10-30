@@ -14,7 +14,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, now_datetime
 
-from webshop.webshop.assistant import llm, prompt, tools
+from webshop.webshop.assistant import flags, llm, prompt, tools
 
 MAX_TOOL_ROUNDS = 4
 HISTORY_TURNS = 20
@@ -27,12 +27,18 @@ def respond(conversation, text, ctx):
 	ctx.summary = conversation.summary
 	# //// Neoffice — the prompt names the language of this message (prompt.visitor_language; lot B of the 2026-10-30 audit)
 	ctx.last_message = text
-	conversation.add_message("user", text)
+	# //// Neoffice — the log says what the visitor wrote in, from which source (a hash that changes every day) and whether it asked to forget the rules (lot D of the 2026-10-30 audit)
+	conversation.add_message(
+		"user", text, language=flags.language_of(text), ip_hash=flags.ip_hash(), signals=flags.pack(flags.user_flags(text))
+	)
+	version = prompt.version()
 	messages = _messages(conversation, ctx)
 	schemas = tools.schemas()
 	rounds = 0
 	reply = ""
 	spent = []
+	executed = 0  # tools actually run: what the day's counters are told
+	handed_over = False  # this turn gave the visitor to the team
 	while True:
 		# //// Neoffice — a model that asked for a tool on the last round used to get the
 		# //// canned fallback sentence; it is now called once more without tools and must
@@ -50,16 +56,20 @@ def respond(conversation, text, ctx):
 				prompt_tokens=out.prompt_tokens,
 				completion_tokens=out.completion_tokens,
 				duration_ms=out.duration_ms,
+				prompt_version=version,
+				finish_reason=out.get("finish_reason"),
 			)
 			for call in out.tool_calls:
 				name = (call.get("function") or {}).get("name")
 				args = _arguments(call)
 				result = tools.run(name, args, ctx)
+				executed += 1
 				payload = tools.to_json(result)
 				messages.append({"role": "tool", "tool_call_id": call.get("id"), "name": name, "content": payload})
 				conversation.add_message("tool", payload, tool_name=name, tool_call_id=call.get("id"))
 				if name in ("contact_team", "create_support_ticket") and isinstance(result, dict) and result.get("escalated"):
 					conversation.status = "Escalated"
+					handed_over = True
 			rounds += 1
 			continue
 		reply = (out.content or "").strip() or FALLBACK
@@ -70,17 +80,27 @@ def respond(conversation, text, ctx):
 			prompt_tokens=out.prompt_tokens,
 			completion_tokens=out.completion_tokens,
 			duration_ms=out.duration_ms,
+			prompt_version=version,
+			finish_reason=out.get("finish_reason"),
+			signals=flags.pack(flags.reply_flags(reply, escalated=handed_over)),
 		)
 		break
 	_maybe_summarise(conversation, ctx)
 	conversation.flags.ignore_permissions = True
 	conversation.save()
+	# //// Neoffice — the row of the answer, so that the visitor can say whether it helped (lot D of the 2026-10-30 audit)
+	answer = next((m for m in reversed(conversation.messages) if m.role == "assistant" and not m.tool_calls), None)
 	return frappe._dict(
 		reply=reply,
+		message_id=answer.name if answer else None,
 		conversation=conversation.name,
 		prompt_tokens=sum(o.prompt_tokens for o in spent),
 		completion_tokens=sum(o.completion_tokens for o in spent),
 		rounds=rounds,
+		# //// Neoffice — what the day's counters are told (lot D of the 2026-10-30 audit)
+		model_calls=len(spent),
+		tool_calls=executed,
+		duration_ms=sum(cint(o.duration_ms) for o in spent),
 	)
 
 

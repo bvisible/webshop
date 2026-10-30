@@ -111,7 +111,10 @@ webshop.assistant = {
 			`<div class="wsh-assistant__suggestions"></div>` +
 			`<form class="wsh-assistant__form"><input class="wsh-assistant__input" type="text" maxlength="1000" autocomplete="off" placeholder="${this.escape(L.placeholder)}">` +
 			`<button type="submit" class="wsh-assistant__send">${this.escape(L.send)}</button></form>` +
-			`<div class="wsh-assistant__foot"><button type="button" class="wsh-assistant__team">${this.escape(L.talk_to_team)}</button></div>` +
+			`<div class="wsh-assistant__foot"><button type="button" class="wsh-assistant__team">${this.escape(L.talk_to_team)}</button>` +
+			//// Neoffice — lot E of the 2026-10-30 audit: the visitor is told while anonymised samples are kept; the server sends the sentence only then
+			(c.consent ? `<p class="wsh-assistant__consent">${this.escape(c.consent)}</p>` : "") +
+			`</div>` +
 			`</section>`;
 		document.body.appendChild(root);
 		this.el = {
@@ -139,7 +142,58 @@ webshop.assistant = {
 			this.scroll();
 		});
 		this.el.reset.addEventListener("click", () => this.reset());
+		//// Neoffice — the opinion buttons are drawn under each answer, so one handler listens for all of them (lot D of the 2026-10-30 audit)
+		this.el.messages.addEventListener("click", (event) => {
+			const button = event.target.closest && event.target.closest("[data-rating]");
+			if (button) this.onRate(button);
+		});
 	},
+
+	//// Neoffice ▼▼▼ — lot D of the 2026-10-30 audit. Under each answer the visitor can say whether it helped, or report
+	//// it. What the shop learns is which answers did not help; the visitor's words stay where they are. The icons are
+	//// drawn (an emoji looks different on every platform), take the ink of the message and are named for a screen reader.
+	THUMB_UP: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>',
+	THUMB_DOWN: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>',
+
+	rateRowHtml(id, feedback, reported) {
+		const L = this.config.labels;
+		const choice = (rating, label, icon) =>
+			`<button type="button" class="wsh-assistant__rate-btn" data-rating="${rating}" aria-label="${this.escape(label)}" title="${this.escape(label)}" aria-pressed="${feedback === rating}">${icon}</button>`;
+		return (
+			`<div class="wsh-assistant__rate" data-id="${this.escape(id)}">` +
+			choice("up", L.useful, this.THUMB_UP) +
+			choice("down", L.not_useful, this.THUMB_DOWN) +
+			`<button type="button" class="wsh-assistant__rate-report" data-rating="report"${reported ? " disabled" : ""}>${this.escape(L.report)}</button>` +
+			`</div>`
+		);
+	},
+
+	rate(id, rating) {
+		return this.api("webshop.webshop.assistant.api.rate_message", { message: id, rating });
+	},
+
+	async onRate(button) {
+		const box = button.closest(".wsh-assistant__rate");
+		const rating = button.dataset.rating;
+		const buttons = Array.from(box.querySelectorAll("button"));
+		buttons.forEach((b) => (b.disabled = true));
+		let sent = false;
+		try {
+			await this.rate(box.dataset.id, rating);
+			sent = true;
+		} catch (e) {
+			// the opinion is lost, nothing else is
+		}
+		buttons.forEach((b) => (b.disabled = false));
+		if (!sent) return;
+		if (rating === "report") {
+			button.disabled = true;
+		} else {
+			box.querySelectorAll(".wsh-assistant__rate-btn").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.rating === rating)));
+		}
+		box.setAttribute("data-thanks", this.config.labels.thanks);
+	},
+	//// Neoffice ▲▲▲
 
 	//// Neoffice — the glyph, redrawn (2026-10-30). Was the stock "message in outline" at 24px in a 56px
 	//// circle: thin, off-centre, small, and the same on every site. Now a solid speech bubble with a smile
@@ -172,7 +226,7 @@ webshop.assistant = {
 		this.addMessage("assistant", c.greeting);
 		if (c.history && c.history.length) {
 			this.addNote(c.labels.resume);
-			c.history.forEach((m) => this.addMessage(m.role, m.content));
+			c.history.forEach((m) => this.addMessage(m.role, m.content, m.id, m));
 			this.el.suggestions.innerHTML = "";
 		} else {
 			this.renderSuggestions();
@@ -264,10 +318,14 @@ webshop.assistant = {
 		);
 	},
 
-	addMessage(role, text) {
+	addMessage(role, text, id, opinion) {
 		const div = document.createElement("div");
 		div.className = `wsh-assistant__msg wsh-assistant__msg--${role === "user" ? "user" : "assistant"}`;
 		div.innerHTML = role === "user" ? this.escape(text) : this.markdown(text);
+		//// Neoffice — an answer that has a name in the log can be rated; the greeting and the notices cannot (lot D of the 2026-10-30 audit)
+		if (role !== "user" && id) {
+			div.insertAdjacentHTML("beforeend", this.rateRowHtml(id, opinion && opinion.feedback, opinion && opinion.reported));
+		}
 		this.el.messages.appendChild(div);
 		this.scroll();
 		return div;
@@ -304,7 +362,7 @@ webshop.assistant = {
 		try {
 			const out = await this.api("webshop.webshop.assistant.api.send", { message: text, page_route: this.route() });
 			this.typing(false);
-			this.addMessage("assistant", (out && out.reply) || this.config.labels.error);
+			this.addMessage("assistant", (out && out.reply) || this.config.labels.error, out && !out.unavailable ? out.message_id : null);
 			// //// Neoffice — the answering machine: switch to the "leave a message" form once the endpoint itself reports it cannot answer (814347b504 "feat(assistant): un répondeur quand le modèle tombe ou la limite est atteinte")
 			// the answering machine: the notice was just shown, now the form, with the words it could not answer
 			if (out && out.unavailable && out.leave_message) this.showLeaveForm(text, out.email_required);

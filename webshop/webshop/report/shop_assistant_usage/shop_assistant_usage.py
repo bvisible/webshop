@@ -10,6 +10,8 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, cint, flt, getdate, nowdate
 
+from webshop.webshop.assistant import usage
+
 
 def execute(filters=None):
 	filters = frappe._dict(filters or {})
@@ -37,13 +39,35 @@ def execute(filters=None):
 		{"from_date": from_date, "to_date": to_date},
 		as_dict=True,
 	)
+	# //// Neoffice — lot D of the 2026-10-30 audit: the day's counters beside its conversations, so that a day on which
+	# //// nobody was answered (a flood the rate limit turned away) is a line of the report like any other
+	if group != "Customer":
+		by_date = {str(row.grouping): row for row in rows}
+		for day, mine in usage.by_day(from_date, to_date).items():
+			row = by_date.get(day)
+			if not row:
+				row = frappe._dict(
+					grouping=getdate(day), conversations=0, messages=0, prompt_tokens=0, completion_tokens=0, escalated=0
+				)
+				rows.append(row)
+				by_date[day] = row
+			row.requests, row.refused = mine["received"], mine["refused"]
+		rows.sort(key=lambda row: str(row.grouping))
 	for row in rows:
 		row.tokens = cint(row.prompt_tokens) + cint(row.completion_tokens)
 		row.estimated_cost = flt(row.tokens) / 1000.0 * price if price else 0
+		row.requests, row.refused = cint(row.get("requests")), cint(row.get("refused"))
 
 	columns = [
 		{"fieldname": "grouping", "label": key_label, "fieldtype": key_type, "width": 160},
 		{"fieldname": "conversations", "label": _("Conversations"), "fieldtype": "Int", "width": 120},
+	]
+	if group != "Customer":
+		columns += [
+			{"fieldname": "requests", "label": _("Requests received"), "fieldtype": "Int", "width": 130},
+			{"fieldname": "refused", "label": _("Turned away"), "fieldtype": "Int", "width": 110},
+		]
+	columns += [
 		{"fieldname": "messages", "label": _("Messages"), "fieldtype": "Int", "width": 100},
 		{"fieldname": "prompt_tokens", "label": _("Prompt Tokens"), "fieldtype": "Int", "width": 120},
 		{"fieldname": "completion_tokens", "label": _("Completion Tokens"), "fieldtype": "Int", "width": 130},

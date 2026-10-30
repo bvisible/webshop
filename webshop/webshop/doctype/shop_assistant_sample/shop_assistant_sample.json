@@ -1,0 +1,115 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-30 19:00:00.000000",
+ "description": "An anonymised pair of question and answer from a visitor who was not signed in, kept for improving the service. Empty until the merchant switches the collection on.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "day",
+  "language",
+  "opinion",
+  "column_break_one",
+  "prompt_version",
+  "kept_until",
+  "reviewed",
+  "section_text",
+  "question",
+  "answer",
+  "source_key"
+ ],
+ "fields": [
+  {
+   "description": "The day only: nothing says which conversation, which visitor or which address",
+   "fieldname": "day",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Day",
+   "read_only": 1
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Data",
+   "label": "Language",
+   "read_only": 1
+  },
+  {
+   "fieldname": "opinion",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Visitor's opinion",
+   "options": "Useful\nNot useful",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_one",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "prompt_version",
+   "fieldtype": "Data",
+   "label": "Prompt version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "kept_until",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Kept until",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "A sample is not used for anything until a person has read it",
+   "fieldname": "reviewed",
+   "fieldtype": "Check",
+   "label": "Read and approved by a person"
+  },
+  {
+   "fieldname": "section_text",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "question",
+   "fieldtype": "Small Text",
+   "label": "Question",
+   "read_only": 1
+  },
+  {
+   "fieldname": "answer",
+   "fieldtype": "Long Text",
+   "label": "Answer",
+   "read_only": 1
+  },
+  {
+   "description": "A one-way fingerprint of the message, only to avoid keeping the same pair twice",
+   "fieldname": "source_key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Source key",
+   "read_only": 1,
+   "unique": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-30 19:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Shop Assistant Sample",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

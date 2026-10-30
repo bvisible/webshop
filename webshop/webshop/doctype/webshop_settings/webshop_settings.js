@@ -753,8 +753,37 @@ function fill_assistant_status(frm) {
 			const row = (label, value, route) =>
 				`<div class="d-flex justify-content-between py-1 border-bottom"><a class="text-muted" href="${route}">${label}</a><strong>${value}</strong></div>`;
 			const cap = d.monthly_cap ? ` / ${d.monthly_cap}` : "";
+			//// Neoffice — the counters of lot D of the 2026-10-30 audit: every request that reached the shop, the ones turned
+			//// away included, and why. Counted on the server (a counter in the browser is a counter anyone can write).
+			const reasons = {
+				rate: __("Too many requests"),
+				day_limit: __("Daily limit"),
+				month_cap: __("Monthly cap"),
+				outage: __("Model not answering"),
+				busy: __("Too busy"),
+				locked: __("Previous message still answered"),
+				off: __("Assistant off"),
+			};
+			const refused = Object.keys(reasons)
+				.filter((key) => (d.refused || {})[key])
+				.map((key) => `${reasons[key]}: ${d.refused[key]}`)
+				.join(" · ");
+			const today = d.today || {};
+			const feedback = d.feedback || {};
+			//// Neoffice — the rows of lot D's counters, built apart so that this marker sits right above them
+			const requests_html =
+				row(__("Requests today"), `${today.received || 0} (${__("answered")} ${today.answered || 0}, ${__("turned away")} ${today.refused || 0})`, "/app/query-report/Shop%20Assistant%20Usage") +
+				row(__("Requests this month"), `${d.requests || 0} (${__("answered")} ${d.answered || 0}, ${__("turned away")} ${d.refused_total || 0})`, "/app/query-report/Shop%20Assistant%20Usage") +
+				(refused ? `<div class="text-muted small py-1">${frappe.utils.escape_html(refused)}</div>` : "") +
+				row(
+					__("Opinions of visitors"),
+					`${feedback.up || 0} ${__("useful")} · ${feedback.down || 0} ${__("not useful")} · ${feedback.reported || 0} ${__("reported")}`,
+					"/app/query-report/Shop%20Assistant%20Unanswered%20Questions"
+				);
 			field.$wrapper.html(
 				`<div style="max-width: 420px">` +
+					//// Neoffice — lot D's figures come first
+					requests_html +
 					row(__("Conversations"), d.conversations || 0, "/app/shop-assistant-conversation") +
 					row(__("Messages"), d.messages || 0, "/app/shop-assistant-conversation") +
 					row(__("Tokens used"), `${(d.tokens || 0).toLocaleString()}${cap}`, "/app/shop-assistant-conversation") +

@@ -949,9 +949,12 @@ whatever the form says; a guest must give a valid one.
   --skip-before-tests`.** On `prodclone.local` the `before_tests` hook ends the run
   with a traceback before any test (no "Ran N tests" line, only tracebacks). And
   the clone had collected 32 and 33 duplicate "Item Default" rows on two item
-  groups (`prod.local`: none), which makes `make_test_item` raise "Cannot set
-  multiple Item Defaults for a company"; the cause was not found, the rows were
-  deleted on the clone (2026-10-30).
+  groups, which makes `make_test_item` raise "Cannot set multiple Item Defaults for
+  a company". They are prod data from 2023 (the clone is a copy of it), and
+  `leaf_item_group()` takes the first non-group item group the database hands back,
+  without an order: the group it picks, hence the duplicates it meets, changes from
+  one day to the next (two other groups, 5 rows each, on 2026-10-30). Delete the
+  duplicates on the clone only (keep one row per parent and company).
 
 **What it answers, and how that is measured** (lot B of the 2026-10-30 audit,
 neoffice-maintenance#2019).
@@ -989,6 +992,88 @@ neoffice-maintenance#2019).
   classifier judged wrongly to that file and fix the classifier until it agrees.
   A control that must use a tool is judged on that tool being used, not on the
   words of the reply.
+
+**Throughput, the log and the samples** (lots C, D and E of the 2026-10-30 audit,
+neoffice-maintenance#2015).
+
+- **nginx counts before Frappe does** (`neoffice-devops`:
+  `server_configs/nginx/webshop_assistant_limits.conf`, deployed to `/etc/nginx/conf.d/`
+  by the update's CONFIGS sub-phase, previous file kept and put back if `nginx -t`
+  refuses). A `map` gives the address as the key of two zones only for the visitor's
+  endpoints (`get_config`, `send`, `leave_message`, `reset`, `rate_message`, under
+  `/api/`, `/api/v1/`, `/api/v2/`); every other request has an empty key, which nginx
+  does not count. 30 a minute with a burst of 20, 6 calls at once, answered 429. No
+  vhost changes: the limits are set at `http` level. Measured on the development server
+  with a private nginx and on the live vhost: 21 of 60 calls pass, pages and other API
+  methods are untouched, a location with a limit of its own keeps it. A test that stands
+  a `return 200` in a location proves nothing: `return` runs before `limit_req`;
+  use `proxy_pass`.
+- **An answer holds a web worker for as long as the model takes, and the server has
+  three.** `api.answer_slot` (a sorted set in Redis, the place taken first and checked
+  after) limits the answers given at once; the default is what the workers can spare
+  (`max_simultaneous`: more than half are left to the shop, 1 for up to 4 workers), and
+  `assistant_max_simultaneous_answers` overrides it. A fixed 3 was tried first: eight
+  visitors writing together held all three workers, the rest waited for a worker, and
+  the model, asked by three at once, went past its timeout and armed the outage flag
+  for the whole site. A visitor turned away gets the "busy" notice; nothing is written.
+- **A naming series serialises everything that inserts under it.** The conversation was
+  `CHAT-nnnnn`: the series row stays locked until the request commits, which is after
+  the model answered, so every new conversation waited for the one before (8.5 s
+  measured with two connections, 0.9 s once the name is random). The conversation is
+  named `hash` now. Any document created on a visitor's request, before a slow call,
+  must not take a series name.
+- **Pages cost the database nothing they do not need to.** `user`, `guest_session` and
+  `last_message_on` are indexed (Link fields are not indexed by Frappe); the month's
+  token sum is kept 60 s (`engine.monthly_tokens`, `forget_monthly_tokens` in tests);
+  a thread of 200 messages is closed and the next message opens a new one (every
+  message loads the whole thread). The bubble asks the server for itself when a
+  visitor shows up (a touch, a key, a scroll, a move) or after 6 s, not at every page
+  view; one that was open on the previous page appears at once.
+- **`assistant_llm_priority`** (vLLM's `priority`, a high number is served later) is sent
+  only when set: the shop's endpoint accepts the field (200 with and without it), but an
+  endpoint without priority scheduling refuses it.
+- **Every request is counted, in Redis, by the server** (`assistant/usage.py`): received,
+  answered, refused by reason (rate limit, daily limit, monthly cap, model down, too
+  busy, previous message still answered, off), visitors and signed-in customers, model
+  and tool calls, tokens, answer times (11 buckets, so a median and a 95th percentile
+  with no list), bubbles shown, opinions. The throttle counts its own refusals
+  (`on_refuse`: they happen before the endpoint runs). Each night
+  `flush_finished_days` writes the finished days to `Shop Assistant Usage Day`
+  (figures only, no word, no address; kept as long as the shop is billed from it);
+  the counters are renamed first and deleted only once the row is saved, so a failed
+  write loses nothing. The Assistant tab and the usage report read the same figures.
+  **Use the connection's own Redis commands for a hash of integers**: Frappe's
+  `cache().hgetall(name)` prefixes the name again and unpickles the values, so it
+  returns nothing for a key written with `hincrby(make_key(...))`.
+- **Beside each message of the log**: the language, a daily hash of the peer's address
+  (the same all day, another tomorrow: it names a source without keeping an address),
+  the version of the prompt (`prompt.version()`, a fingerprint of `prompt.RULES`), the
+  finish reason, and **signals** for the person who reads the log
+  (`injection_suspected`, `off_topic_refused`, `unanswered`, `escalated`;
+  `assistant/flags.py`). They are signals, not verdicts, and they are tested against the
+  battery's cases and `real_outputs.json`. **A field of a Document must not be called
+  `flags`**: `doc.flags` is Frappe's own dict; the field is `signals`.
+- **The visitor's opinion**: useful, not useful, report, under each answer
+  (`rate_message`; the answer must belong to the visitor's own conversation by the
+  session, an opinion is counted when it changes). Icons are drawn, not emoji.
+- **What the shop does not know**: the report `Shop Assistant Unanswered Questions`
+  (answers marked `unanswered`, handed to the team, not useful or reported, the
+  question each followed, the same question once with its count) and a weekly mail with
+  the same list, **off until `assistant_weekly_digest` is ticked**.
+- **Samples for improving the service** (`samples.py`, `anonymise.py`): **off by default,
+  and nothing is kept while it is off.** When `assistant_collect_samples` is ticked, once
+  a day, the pairs a visitor who was not signed in rated become anonymised samples
+  (emails, phones, bank and card numbers, document numbers and the names a visitor
+  gave are replaced; a pair that still looks like it names somebody is left out and
+  counted). A sample holds the day, the language, the opinion, the prompt version and the
+  two texts: no link to the conversation, no user, no cookie, no address. It has a
+  retention of its own (`assistant_sample_retention_days`, 365 by default) and is not
+  used until a person has ticked "approved". The visitor reads the sentence of
+  `assistant_consent_text` under the message field while it is on. **Switching it on is a
+  decision with a legal side** (the visitor told, the merchant's terms, nLPD and RGPD):
+  to be validated by a person, this is not legal advice. Measure first whether the
+  prompt, the knowledge base and the battery are enough: a fine-tuning only pays if it
+  beats the battery.
 
 <!-- //// Neoffice — added: documents the reseller quick-order page, the server-side is_reseller() gate, and the shared add-to-cart validation path it reuses (939e007ad8 "feat(quick-order): la commande rapide des revendeurs — lot 1") -->
 ### The quick order

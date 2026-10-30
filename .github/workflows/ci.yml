@@ -315,6 +315,10 @@ jobs:
             webshop.webshop.utils.test_store_hours \
             webshop.webshop.utils.test_holidays \
             webshop.webshop.assistant.test_assistant \
+            webshop.webshop.assistant.test_usage \
+            webshop.webshop.assistant.test_flags \
+            webshop.webshop.assistant.test_unanswered \
+            webshop.webshop.assistant.test_samples \
             webshop.webshop.assistant.quality.test_classify \
             webshop.webshop.utils.test_throttle \
             webshop.webshop.tests.test_assistant_links \

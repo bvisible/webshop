@@ -152,8 +152,13 @@
   "assistant_escalation_section",
   "assistant_escalation_channel",
   "assistant_support_email",
+  "assistant_weekly_digest",
   "assistant_column_escalation",
   "assistant_helpdesk_team",
+  "assistant_samples_section",
+  "assistant_collect_samples",
+  "assistant_consent_text",
+  "assistant_sample_retention_days",
   "tab_emails",
   "abandoned_cart_section",
   "enable_abandoned_cart_emails",
@@ -1519,6 +1524,40 @@
    "label": "Credit Line on Reseller Catalogues",
    "depends_on": "enable_reseller_catalogue",
    "description": "Printed on every catalogue a reseller makes, and the reseller cannot remove it. Leave empty for none: the catalogue is then entirely the reseller's own."
+  },
+  {
+   "default": "0",
+   "description": "Off by default: nothing is sent until you switch it on. Once a week, the questions visitors asked that the assistant could not answer, to the support email.",
+   "fieldname": "assistant_weekly_digest",
+   "fieldtype": "Check",
+   "label": "Mail the unanswered questions every week"
+  },
+  {
+   "depends_on": "enable_assistant",
+   "fieldname": "assistant_samples_section",
+   "fieldtype": "Section Break",
+   "label": "Improving the service"
+  },
+  {
+   "default": "0",
+   "description": "Off by default, and nothing is kept while it is off. When on, anonymised pairs of question and answer from visitors who were not signed in, and whom the visitor rated, are kept to improve the service. Switch it on only once your terms allow it and the visitor is told (the sentence below).",
+   "fieldname": "assistant_collect_samples",
+   "fieldtype": "Check",
+   "label": "Keep anonymised samples of conversations"
+  },
+  {
+   "depends_on": "assistant_collect_samples",
+   "description": "Shown to visitors under the message field. Empty: \"Conversations may be used, anonymously, to improve the service.\"",
+   "fieldname": "assistant_consent_text",
+   "fieldtype": "Small Text",
+   "label": "Sentence shown to the visitor"
+  },
+  {
+   "depends_on": "assistant_collect_samples",
+   "description": "Empty: 365 days",
+   "fieldname": "assistant_sample_retention_days",
+   "fieldtype": "Int",
+   "label": "Keep samples (days)"
   }
  ],
  "index_web_pages_for_search": 1,
