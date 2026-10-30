@@ -9305,3 +9305,309 @@ msgstr "Bonjour,<br><br>Votre demande a été enregistrée sous le numéro {0}. 
 #: webshop/webshop/assistant/api.py:424 webshop/webshop/assistant/api.py:484
 msgid "Your previous message is still being answered. One moment, please."
 msgstr "Votre message précédent est encore en cours de traitement. Un instant, je vous prie."
+
+#. Description of the 'Customer Groups Allowed' (Table MultiSelect) field in
+#. DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1514
+msgid "A group covers its sub-groups. Leave empty and nobody is offered the catalogue."
+msgstr "Un groupe couvre ses sous-groupes. Laissé vide, personne ne se voit proposer le catalogue."
+
+#: webshop/www/my-brand/index.py:27
+msgid "A PNG or a JPEG, 2 MB at most."
+msgstr "Un PNG ou un JPEG, 2 Mo au maximum."
+
+#. Description of the 'Markup (%)' (Float) field in DocType 'Reseller Catalogue
+#. Profile'
+#: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:127
+msgid "Added to the price this customer pays the supplier, between 0 and 300."
+msgstr "Ajoutée au prix que ce client paie au fournisseur, entre 0 et 300."
+
+#: webshop/www/my-brand/index.py:44
+msgid "Added to the price you pay. Between 0 and 300."
+msgstr "Ajoutée au prix que vous payez. Entre 0 et 300."
+
+#. Label of a Int field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:466
+msgid "Answers at the same moment"
+msgstr "Réponses simultanées"
+
+#. Description of the 'Answers at the same moment' (Int) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:463
+msgid "Answers the assistant gives at the same moment, whoever asks. Each one holds one of the shop's web workers while the model answers. Empty: what the web workers can spare, keeping more than half of them for the shop (1 on a bench with 3 workers)."
+msgstr "Réponses que l'assistant donne en même temps, quel que soit le demandeur. Chacune occupe un des workers web de la boutique pendant que le modèle répond. Vide : ce que les workers web peuvent se permettre, en gardant plus de la moitié pour la boutique (1 sur un bench à 3 workers)."
+
+#: webshop/www/my-brand/index.py:28
+msgid "Choose a logo"
+msgstr "Choisir un logo"
+
+#. Label of a Data field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1519
+msgid "Credit Line on Reseller Catalogues"
+msgstr "Mention d'attribution sur les catalogues revendeur"
+
+#. Label of a Table MultiSelect field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1511
+msgid "Customer Groups Allowed"
+msgstr "Groupes de clients autorisés"
+
+#. Description of the 'Priority of the visitors' requests' (Int) field in
+#. DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:439
+msgid "Empty or 0: not sent. For a model shared with the team's own use that serves requests by priority (vLLM): the higher the number, the later the visitors are served. An endpoint without that scheduling refuses the field."
+msgstr "Vide ou 0 : non envoyé. Pour un modèle partagé avec l'usage interne de l'équipe, qui sert les requêtes par priorité (vLLM) : plus le nombre est élevé, plus les visiteurs sont servis tard. Un point d'accès sans cette planification refuse le champ."
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1504
+msgid "Enable the Reseller Catalogue"
+msgstr "Activer le catalogue revendeur"
+
+#: webshop/webshop/catalogue/refusals.py:20 webshop/www/my-brand/index.py:40
+msgid "Footer text"
+msgstr "Texte de pied de page"
+
+#: webshop/www/my-brand/index.py:33
+msgid "How your name reads on your colours"
+msgstr "Le rendu de votre nom sur vos couleurs"
+
+#. Description of the 'Enable the Reseller Catalogue' (Check) field in DocType
+#. 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1506
+msgid "Lets the customers of the groups below set up their brand (logo, colours, contact details, markup) and make catalogues and product sheets in their own name. Off, nothing is offered to anyone and nothing changes on this site."
+msgstr "Permet aux clients des groupes ci-dessous de configurer leur marque (logo, couleurs, coordonnées, majoration) et de réaliser des catalogues et des fiches produits à leur nom. Désactivé, rien n'est proposé à personne et rien ne change sur ce site."
+
+#. Label of a Float field in DocType 'Reseller Catalogue Profile'
+#: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:124
+#: webshop/www/my-brand/index.py:43
+msgid "Markup (%)"
+msgstr "Majoration (%)"
+
+#: webshop/www/my-brand/index.py:30
+msgid "No logo yet."
+msgstr "Pas encore de logo."
+
+#: webshop/www/my-brand/index.py:60
+msgid "No product to show yet."
+msgstr "Aucun produit à afficher pour l'instant."
+
+#: webshop/www/my-brand/index.py:49
+msgid "No rounding"
+msgstr "Sans arrondi"
+
+#. Description of the 'Customer Group' (Link) field in DocType 'Reseller
+#. Catalogue Group'
+#: webshop/webshop/doctype/reseller_catalogue_group/reseller_catalogue_group.json:12
+msgid "Not called customer_group on purpose: Frappe fills a Link field of that name with the session default at insert time, which would allow a group nobody chose."
+msgstr "Volontairement pas nommé customer_group : Frappe remplit à l'insertion un champ Lien de ce nom avec la valeur par défaut de la session, ce qui permettrait un groupe que personne n'a choisi."
+
+#. Description of the 'Customer' (Link) field in DocType 'Reseller Catalogue
+#. Profile'
+#: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:41
+msgid "One profile per customer. The customer is set by the server from the signed-in account and never taken from a request."
+msgstr "Un profil par client. Le client est fixé par le serveur à partir du compte connecté et n'est jamais repris d'une requête."
+
+#: webshop/www/my-brand/index.py:54
+msgid "One rate for the whole catalogue."
+msgstr "Un seul taux pour tout le catalogue."
+
+#. Description of the 'VAT Rate (%)' (Float) field in DocType 'Reseller
+#. Catalogue Profile'
+#: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:154
+msgid "One rate for the whole catalogue: items at a reduced rate are not told apart yet."
+msgstr "Un seul taux pour tout le catalogue : les articles à taux réduit ne sont pas encore distingués."
+
+#: webshop/webshop/catalogue/refusals.py:46
+msgid "Only a PNG or a JPEG can be used as a logo."
+msgstr "Seuls un PNG ou un JPEG peuvent servir de logo."
+
+#: webshop/webshop/catalogue/refusals.py:23
+msgid "Price markup"
+msgstr "Majoration"
+
+#: webshop/www/my-brand/index.py:59
+#, python-brace-format
+msgid "Prices of your price list: {0}."
+msgstr "Prix de votre liste de prix : {0}."
+
+#. Label of a Color field in DocType 'Reseller Catalogue Profile'
+#: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:68
+msgid "Primary Colour"
+msgstr "Couleur principale"
+
+#: webshop/webshop/catalogue/refusals.py:21 webshop/www/my-brand/index.py:31
+msgid "Primary colour"
+msgstr "Couleur principale"
+
+#: webshop/www/my-brand/index.py:41
+msgid "Printed at the bottom of every page."
+msgstr "Imprimé en bas de chaque page."
+
+#. Description of the 'Credit Line on Reseller Catalogues' (Data) field in
+#. DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1521
+msgid "Printed on every catalogue a reseller makes, and the reseller cannot remove it. Leave empty for none: the catalogue is then entirely the reseller's own."
+msgstr "Imprimée sur chaque catalogue que réalise un revendeur, et le revendeur ne peut pas la retirer. Laissé vide, aucune mention : le catalogue appartient alors entièrement au revendeur."
+
+#. Label of a Int field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:442
+msgid "Priority of the visitors' requests"
+msgstr "Priorité des requêtes des visiteurs"
+
+#: webshop/www/my-brand/index.py:29
+msgid "Remove the logo"
+msgstr "Retirer le logo"
+
+#. Label of a Tab Break field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1499
+msgid "Reseller Catalogue"
+msgstr "Catalogue revendeur"
+
+#. Name of a DocType
+#: webshop/webshop/doctype/reseller_catalogue_group/reseller_catalogue_group.json:26
+msgid "Reseller Catalogue Group"
+msgstr "Groupe du catalogue revendeur"
+
+#. Name of a DocType
+#: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:162
+msgid "Reseller Catalogue Profile"
+msgstr "Profil du catalogue revendeur"
+
+#: webshop/www/my-brand/index.py:63
+msgid "Saved."
+msgstr "Enregistré."
+
+#. Label of a Color field in DocType 'Reseller Catalogue Profile'
+#: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:74
+msgid "Secondary Colour"
+msgstr "Couleur secondaire"
+
+#: webshop/webshop/catalogue/refusals.py:22 webshop/www/my-brand/index.py:32
+msgid "Secondary colour"
+msgstr "Couleur secondaire"
+
+#. Label of a Select field in DocType 'Reseller Catalogue Profile'
+#: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:143
+msgid "Show Prices"
+msgstr "Afficher les prix"
+
+#: webshop/webshop/assistant/api.py:222
+msgid "The assistant is very busy at the moment: please try again in a little while."
+msgstr "L'assistant est très sollicité pour l'instant : réessayez dans quelques instants."
+
+#: webshop/webshop/catalogue/refusals.py:44 webshop/www/my-brand/index.py:66
+msgid "The logo is too large: 2 MB at most."
+msgstr "Le logo est trop volumineux : 2 Mo au maximum."
+
+#: webshop/webshop/catalogue/access.py:66 webshop/www/my-brand/index.py:78
+msgid "The reseller catalogue is not available for your account."
+msgstr "Le catalogue revendeur n'est pas disponible pour votre compte."
+
+#: webshop/www/my-brand/index.py:61
+#, python-brace-format
+msgid "The supplier adds this line to every catalogue you make: {0}"
+msgstr "Le fournisseur ajoute cette ligne à chaque catalogue que vous réalisez : {0}"
+
+#: webshop/www/my-brand/index.py:65
+msgid "This could not be done. Try again."
+msgstr "L'opération n'a pas pu aboutir. Réessayez."
+
+#: webshop/webshop/catalogue/refusals.py:45
+msgid "This file is not an image that can be read. Send a PNG or a JPEG."
+msgstr "Ce fichier n'est pas une image lisible. Envoyez un PNG ou un JPEG."
+
+#: webshop/webshop/catalogue/refusals.py:49
+msgid "This logo cannot be used."
+msgstr "Ce logo ne peut pas être utilisé."
+
+#: webshop/webshop/catalogue/refusals.py:47
+msgid "This picture has too many pixels. Send a smaller one."
+msgstr "Cette image a trop de pixels. Envoyez-en une plus petite."
+
+#: webshop/www/my-brand/index.py:47
+msgid "To 10 centimes"
+msgstr "À 10 centimes près"
+
+#: webshop/www/my-brand/index.py:46
+msgid "To 5 centimes"
+msgstr "À 5 centimes près"
+
+#: webshop/www/my-brand/index.py:48
+msgid "To the franc"
+msgstr "Au franc près"
+
+#. Description of the 'Logo' (Attach Image) field in DocType 'Reseller
+#. Catalogue Profile'
+#: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:59
+msgid "Uploaded from the customer's account page: only a PNG or a JPEG is kept, rebuilt from its pixels, up to 800 px. Private."
+msgstr "Déposé depuis la page de compte du client : seuls un PNG ou un JPEG sont conservés, reconstruits à partir de leurs pixels, jusqu'à 800 px. Privé."
+
+#. Label of a Float field in DocType 'Reseller Catalogue Profile'
+#: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:150
+msgid "VAT Rate (%)"
+msgstr "Taux de TVA (%)"
+
+#: webshop/www/my-brand/index.py:53
+msgid "VAT rate (%)"
+msgstr "Taux de TVA (%)"
+
+#: webshop/www/my-brand/index.py:57
+msgid "You pay"
+msgstr "Vous payez"
+
+#: webshop/www/my-brand/index.py:58
+msgid "You sell at"
+msgstr "Vous vendez à"
+
+#: webshop/www/my-brand/index.py:21
+msgid "Your logo, your colours and your contact details appear on the catalogues and the product sheets you make. The prices are yours too: your markup is added to what you pay."
+msgstr "Votre logo, vos couleurs et vos coordonnées figurent sur les catalogues et les fiches produits que vous réalisez. Les prix sont aussi les vôtres : votre majoration s'ajoute à ce que vous payez."
+
+#: webshop/www/my-brand/index.py:55
+msgid "Your prices with this markup"
+msgstr "Vos prix avec cette majoration"
+
+#: webshop/webshop/catalogue/refusals.py:30
+#, python-brace-format
+msgid "{0} contains characters that cannot be printed."
+msgstr "{0} contient des caractères qui ne peuvent pas être imprimés."
+
+#: webshop/webshop/catalogue/refusals.py:39
+#, python-brace-format
+msgid "{0} is not valid."
+msgstr "{0} n'est pas valide."
+
+#: webshop/webshop/catalogue/refusals.py:29
+#, python-brace-format
+msgid "{0} is too long."
+msgstr "{0} est trop long."
+
+#: webshop/webshop/catalogue/refusals.py:31
+#, python-brace-format
+msgid "{0} must be a colour written like #0b6e4f."
+msgstr "{0} doit être une couleur écrite comme #0b6e4f."
+
+#: webshop/webshop/catalogue/refusals.py:37
+#, python-brace-format
+msgid "{0} must be a number between 0 and 100."
+msgstr "{0} doit être un nombre entre 0 et 100."
+
+#: webshop/webshop/catalogue/refusals.py:34
+#, python-brace-format
+msgid "{0} must be a number between 0 and 300."
+msgstr "{0} doit être un nombre entre 0 et 300."
+
+#: webshop/webshop/catalogue/refusals.py:33
+#, python-brace-format
+msgid "{0} must be a web address, like www.example.ch."
+msgstr "{0} doit être une adresse web, par exemple www.example.ch."
+
+#: webshop/webshop/catalogue/refusals.py:32
+#, python-brace-format
+msgid "{0} must be one e-mail address."
+msgstr "{0} doit être une seule adresse e-mail."
+
+#: webshop/webshop/catalogue/refusals.py:35
+#: webshop/webshop/catalogue/refusals.py:36
+#, python-brace-format
+msgid "{0} must be one of the choices offered."
+msgstr "{0} doit être l'un des choix proposés."
