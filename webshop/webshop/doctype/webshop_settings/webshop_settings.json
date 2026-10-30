@@ -190,6 +190,9 @@
   "google_feed_generated_on",
   "google_feed_report",
   "tab_reseller_catalogue",
+  "product_sheet_section",
+  "enable_product_sheet",
+  "reseller_catalogue_section",
   "enable_reseller_catalogue",
   "reseller_catalogue_groups",
   "catalogue_credit_text",
@@ -1566,12 +1569,29 @@
    "fieldname": "assistant_history_days",
    "fieldtype": "Int",
    "label": "Keep conversations while the history is kept (days)"
+  },
+  {
+   "fieldname": "product_sheet_section",
+   "fieldtype": "Section Break",
+   "label": "Product Sheet"
+  },
+  {
+   "fieldname": "enable_product_sheet",
+   "fieldtype": "Check",
+   "label": "Offer the Product Sheet",
+   "default": "0",
+   "description": "Adds a button to each product page that gives the visitor a PDF sheet of the product: photographs, price, availability, the shop's promises, characteristics and a QR code to the page. It says what the page says. Off, the page is unchanged."
+  },
+  {
+   "fieldname": "reseller_catalogue_section",
+   "fieldtype": "Section Break",
+   "label": "Reseller Catalogue"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-30 16:00:00.000000",
+ "modified": "2026-10-30 19:30:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Webshop Settings",
