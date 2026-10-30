@@ -111,8 +111,13 @@ webshop.assistant = {
 		this.el.reset.addEventListener("click", () => this.reset());
 	},
 
+	//// Neoffice — the glyph, redrawn (2026-10-30). Was the stock "message in outline" at 24px in a 56px
+	//// circle: thin, off-centre, small, and the same on every site. Now a solid speech bubble with a smile
+	//// cut out of it. The ink is currentColor (the button's own), the smile is the button's colour so it
+	//// reads as a hole whatever colour the shop chose, and the size comes from the stylesheet (30px on
+	//// the button, 22px in the header).
 	icon() {
-		return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H8l-5 3 1.5-4.5A8 8 0 1 1 21 12z"/></svg>';
+		return '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 3.5H16A4.5 4.5 0 0 1 20.5 8V12.5A4.5 4.5 0 0 1 16 17H9.6L4.3 21.2A.5.5 0 0 1 3.5 20.8V8A4.5 4.5 0 0 1 8 3.5Z"/><path fill="none" stroke-width="1.8" stroke-linecap="round" style="stroke: var(--wsh-assistant-color)" d="M8.4 9.7Q12 13.7 15.6 9.7"/></svg>';
 	},
 
 	open(remember = true) {

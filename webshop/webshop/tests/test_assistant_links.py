@@ -102,6 +102,38 @@ def call_api(status, body, verb="POST", args=None):
 	return json.loads(run.stdout)
 
 
+def glyph():
+	"""The SVG the bubble draws on its button and in its header, as assistant.js builds it."""
+	node = shutil.which("node")
+	if not node:
+		raise AssertionError("Node is needed to run assistant.js: install it, this test does not skip")
+	script = RUNNER.replace(
+		"const drawn = JSON.parse(process.argv[2]).map((text) => sandbox.webshop.assistant.markdown(text));",
+		"const drawn = [sandbox.webshop.assistant.icon()];",
+	)
+	run = subprocess.run([node, "-e", script, str(ASSISTANT_JS), "[]"], capture_output=True, text=True, timeout=60)
+	if run.returncode:
+		raise AssertionError(run.stderr)
+	return json.loads(run.stdout)[0]
+
+
+class TestAssistantGlyph(FrappeTestCase):
+	"""The glyph belongs to every shop: it takes its colours from the theme and its size from the stylesheet."""
+
+	def test_the_glyph_is_one_svg_that_takes_the_theme_s_colours(self):
+		svg = glyph()
+		self.assertTrue(svg.startswith("<svg") and svg.rstrip().endswith("</svg>"))
+		self.assertEqual(svg.count("<svg"), 1)
+		self.assertIn("currentColor", svg)  # the ink of the button, whatever the shop's colour
+		self.assertIn("var(--wsh-assistant-color)", svg)  # the smile is cut out in the button's own colour
+		self.assertNotRegex(svg, r"#[0-9a-fA-F]{3,8}\b")  # no colour of ours
+
+	def test_the_size_comes_from_the_stylesheet_not_from_the_glyph(self):
+		"""The same glyph is 30px on the button and 22px in the header."""
+		opening_tag = glyph().split(">", 1)[0]
+		self.assertNotRegex(opening_tag, r"\s(width|height)=")  # `stroke-width` on a path is not the size
+
+
 class TestAssistantRequests(FrappeTestCase):
 	"""The bubble talks to the server with its own fetch.
 
