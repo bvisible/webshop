@@ -1190,6 +1190,32 @@ to the Single) and `tests/e2e/specs/10-quick-order.spec.js` (`b2b` types,
 reloads and sends; `client` is served; `invite` fills a guest cart where the
 shop sells to visitors, and is sent to sign in elsewhere).
 
+<!-- //// Neoffice — added: documents the reseller catalogue and the product sheet, whose pitfalls cost a day each (32de12e576 "feat(catalogue): lot 1 — the product sheet, a PDF made from what the page says") -->
+### The reseller catalogue and the product sheet (`webshop/webshop/catalogue/`, 2026-10-30)
+
+Off by default (Webshop Settings, tab "Reseller Catalogue"; the sheet has its own switch, `enable_product_sheet`).
+A customer of an allowed group saves a brand on `/my-brand` (logo, colour, contact lines, markup, rounding, VAT);
+`markup.py` prices what they pay plus their markup. Study, plan, measures and pitfalls: the Obsidian folder
+`Neoffice/Catalogue-Revendeur/`.
+
+- **The product sheet is a dedicated A4 template** (`templates/catalogue/product_sheet.*`) printed by the shared
+  Chromium (`pdf.py`), never a print of the page. `sheet.py` reads `seo.facts.product_facts`, so it cannot say what
+  the page, the JSON-LD and the feed do not. Two doors in `sheet_api.py`: `product_sheet` (anybody, throttled per
+  connection, kept five minutes) and `my_product_sheet` (`access.require_reseller`, the identity is the session's);
+  the reseller's sheet never prints the buying price, the struck price or the supplier's promises.
+- **A picture is read only from the site's public files** (`images.public_file_path`), rebuilt small and embedded as a
+  data URI: the engine fetches nothing.
+
+> **`fmt_money` drops the currency when Global Defaults hides the symbol** (osiris does): a sheet read away from the
+> site printed `160.65` for a price in CHF. `price_text` puts the currency back. The first diagnosis ("the offer has
+> no currency") was wrong, and its test stayed green on the old code: see a test fail before trusting it.
+
+> **`frappe.get_site_path("public")` answers `./site/public`**, relative to the sites folder: compared with a
+> normalised path, every photo was refused. Normalise both sides.
+
+> **A Data field comes back HTML-escaped from the database** (`Salt &amp; Pepper`), and a template that escapes again
+> prints `&amp;amp;`: decode once (`_plain`) before the text enters the sheet.
+
 ### What search engines, feeds and AI crawlers read (`webshop/webshop/seo/`)
 
 One package says what the shop tells the outside world, so a page, its structured data
