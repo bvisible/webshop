@@ -1001,7 +1001,11 @@ neoffice-maintenance#2015).
   by the update's CONFIGS sub-phase, previous file kept and put back if `nginx -t`
   refuses). A `map` gives the address as the key of two zones only for the visitor's
   endpoints (`get_config`, `send`, `leave_message`, `reset`, `rate_message`, under
-  `/api/`, `/api/v1/`, `/api/v2/`); every other request has an empty key, which nginx
+  `/api/`, `/api/v1/`, `/api/v2/`, **and `/?cmd=<name>`, and a POST to `/`**: Frappe
+  dispatches `cmd` on any address, and the first version of the map, which read the
+  address only, let 40 calls of 40 through while the API address was refused from the 22nd;
+  a POST's body can carry `cmd` where nginx cannot read it, and nobody who uses a shop posts
+  to `/`); every other request has an empty key, which nginx
   does not count. 30 a minute with a burst of 20, 6 calls at once, answered 429. No
   vhost changes: the limits are set at `http` level. Measured on the development server
   with a private nginx and on the live vhost: 21 of 60 calls pass, pages and other API
@@ -1053,9 +1057,13 @@ neoffice-maintenance#2015).
   `assistant/flags.py`). They are signals, not verdicts, and they are tested against the
   battery's cases and `real_outputs.json`. **A field of a Document must not be called
   `flags`**: `doc.flags` is Frappe's own dict; the field is `signals`.
-- **The visitor's opinion**: useful, not useful, report, under each answer
+- **The visitor's opinion**: useful, not useful, report a problem, under each answer
   (`rate_message`; the answer must belong to the visitor's own conversation by the
-  session, an opinion is counted when it changes). Icons are drawn, not emoji.
+  session, an opinion is counted when it changes). Icons are drawn, not emoji (the
+  thumbs are Lucide's line paths: the Streamline set of the design system has none,
+  and its clay second tone would not suit a shop that wears its own colours). The
+  button's msgid is "Report a problem", not "Report": the catalogue already says
+  "Rapport" (a document) for that word.
 - **What the shop does not know**: the report `Shop Assistant Unanswered Questions`
   (answers marked `unanswered`, handed to the team, not useful or reported, the
   question each followed, the same question once with its count) and a weekly mail with
