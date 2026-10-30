@@ -436,13 +436,13 @@
    "label": "Limits and usage"
   },
   {
-   "default": "30",
+   "default": "20",
    "fieldname": "assistant_guest_daily_limit",
    "fieldtype": "Int",
    "label": "Messages per day, visitor"
   },
   {
-   "default": "200",
+   "default": "100",
    "fieldname": "assistant_user_daily_limit",
    "fieldtype": "Int",
    "label": "Messages per day, signed-in customer"
@@ -459,7 +459,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Empty: no cap. Beyond it the assistant asks the visitor to write to the team.",
+   "description": "Empty: 3,000,000 tokens a month. Beyond it the assistant asks the visitor to write to the team.",
    "fieldname": "assistant_monthly_token_cap",
    "fieldtype": "Int",
    "label": "Monthly token cap"

@@ -8,22 +8,39 @@ the session and nothing else:
 - `reset`: close the conversation, start afresh next time.
 """
 
+import re
+from contextlib import contextmanager
+
 import frappe
 from frappe import _
-from frappe.rate_limiter import rate_limit
-# //// Neoffice — the answering machine's "leave a message" form validates a guest's email before escalating (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
-from frappe.utils import add_days, cint, now_datetime, validate_email_address
+from frappe.utils import add_days, cint, now_datetime
 
-from webshop.webshop.assistant import engine
+from webshop.webshop.assistant import engine, llm
 from webshop.webshop.doctype.shop_assistant_conversation.shop_assistant_conversation import (
 	ShopAssistantConversation,
 )
+# //// Neoffice — Frappe's rate_limit counts the first X-Forwarded-For entry, which a caller writes on the shop vhosts that append to the header; this one counts the last (lot A of the 2026-10-30 audit)
+from webshop.webshop.utils import throttle
 
 MAX_MESSAGE_CHARS = 1000
 RESUME_WITHIN_DAYS = 30
 HISTORY_SHOWN = 12
-DEFAULT_GUEST_DAILY = 30
-DEFAULT_USER_DAILY = 200
+# //// Neoffice — budgets that exist when the merchant sets none (lot A of the 2026-10-30 audit).
+# //// An empty monthly cap used to mean "no cap": a flood of fresh visitors could burn the model's
+# //// capacity, shared with the rest of the fleet, with nothing to stop it. Was 30 and 200 a day.
+DEFAULT_GUEST_DAILY = 20
+DEFAULT_USER_DAILY = 100
+DEFAULT_MONTHLY_TOKEN_CAP = 3_000_000
+# messages the whole site may send to the model in one clock hour, whoever sends them
+SITE_HOURLY_MESSAGES = 300
+# a visitor's lock outlives the slowest answer (a few model calls of 25 s) and ends by itself if the worker dies
+LOCK_SECONDS = 120
+# what uuid.uuid4() writes: the only shape the shop's guest cookie takes
+GUEST_SESSION_SHAPE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+# letters of any language (a French shop's routes keep their accents), digits and . _ - / : no space, no line break
+ROUTE_SHAPE = re.compile(r"^\w[\w\-./]{0,138}$")
+# pages of the shop that are not documents
+SHOP_PAGES = ("all-products", "cart", "checkout", "orders", "store-hours", "occasions", "shop-by-category", "wishlist")
 # //// Neoffice — the answering machine: after the model fails, nobody is made to wait
 # //// on the dead endpoint for OUTAGE_SECONDS; the notice is served at once from this flag.
 OUTAGE_KEY = "webshop_assistant_outage"
@@ -67,6 +84,57 @@ def clear_outage():
 	frappe.cache().delete(_outage_key())
 
 
+# //// Neoffice ▼▼▼ — lot A of the 2026-10-30 audit: the site's hourly budget, and one message at a time per visitor
+def _site_hour_key():
+	return frappe.cache().make_key("webshop_assistant_hour:" + now_datetime().strftime("%Y%m%d%H"))
+
+
+def site_hour_count():
+	"""Messages the whole site has sent to the model during this clock hour."""
+	# nosemgrep: frappe-semgrep-rules.rules.frappe-cache-breaks-multitenancy -- the key goes through make_key (site-prefixed), and get_value would keep a miss for the whole request
+	return cint(frappe.cache().get(_site_hour_key()))
+
+
+def bump_site_hour():
+	cache = frappe.cache()
+	key = _site_hour_key()
+	# the key outlives its hour a little; written before the count so a dead process cannot leave a counter without end
+	cache.set(key, 0, ex=3700, nx=True)
+	cache.incr(key)
+
+
+def clear_site_hour():
+	frappe.cache().delete(_site_hour_key())
+
+
+@contextmanager
+def conversation_lock(ctx):
+	"""One message at a time per visitor: yields True when the visitor may go on, False when one is already answered.
+
+	Two parallel sends of one visitor load the same conversation and the second to save raised
+	TimestampMismatchError. `send` took every exception for a dead model and armed the outage flag for the whole
+	site: two requests were enough to switch the assistant off for everybody. The second request now waits its
+	turn by being told so, and nothing else happens.
+	"""
+	who = ctx.user if signed_in(ctx) else ctx.guest_session
+	if not who:
+		yield True
+		return
+	cache = frappe.cache()
+	key = cache.make_key(f"webshop_assistant_busy:{who}")
+	token = frappe.generate_hash(length=16)
+	if not cache.set(key, token, ex=LOCK_SECONDS, nx=True):
+		yield False
+		return
+	try:
+		yield True
+	finally:
+		# only the holder lets go: a lock that expired and was taken again belongs to somebody else
+		if cache.get(key) in (token, token.encode()):
+			cache.delete(key)
+# //// Neoffice ▲▲▲
+
+
 def store_status_line(s):
 	"""What an answering machine says about the shop: open until when, or opens again when."""
 	from webshop.webshop.utils.store_hours import opening_hours
@@ -105,10 +173,45 @@ def unavailable(ctx, reason):
 	}
 
 
+# //// Neoffice ▼▼▼ — lot A of the 2026-10-30 audit: what the browser sends is not trusted into the prompt or the database
+def _guest_session():
+	"""The guest cookie, when it has the shape the shop gives it; None for anything else.
+
+	The cookie is a string the visitor writes. A long one overflowed the 140 characters of the field and made the
+	insert raise; any one of them was a Redis key and a SQL parameter.
+	"""
+	from webshop.webshop.shopping_cart.guest_cart import get_guest_session_id
+
+	try:
+		guest = str(get_guest_session_id() or "")
+	except Exception:
+		return None
+	return guest if GUEST_SESSION_SHAPE.match(guest) else None
+
+
+def clean_route(route):
+	"""The page route the browser names, kept only when it is the route of a page the shop serves.
+
+	It is written into the SYSTEM prompt ("the visitor writes from the page /..."): a sentence there speaks with the
+	system's voice. A shape check removes spaces and line breaks, and the lookup removes everything that is not a page.
+	"""
+	route = (route or "").strip().strip("/")
+	if not route or ".." in route or not ROUTE_SHAPE.match(route):
+		return ""
+	if (
+		route in SHOP_PAGES
+		or frappe.db.exists("Website Item", {"route": route, "published": 1})
+		or frappe.db.exists("Item Group", {"route": route})
+		or frappe.db.exists("Web Page", {"route": route, "published": 1})
+	):
+		return route
+	return ""
+# //// Neoffice ▲▲▲
+
+
 def context(page_route=None, conversation=None):
 	"""Who is asking, resolved on the server. The browser only says which page."""
 	from webshop.webshop.shopping_cart.cart import get_party
-	from webshop.webshop.shopping_cart.guest_cart import get_guest_session_id
 
 	user = frappe.session.user
 	customer = None
@@ -121,16 +224,14 @@ def context(page_route=None, conversation=None):
 		except Exception:
 			frappe.log_error("Shop assistant: party resolution failed", frappe.get_traceback())
 	else:
-		try:
-			guest_session = get_guest_session_id()
-		except Exception:
-			guest_session = None
+		guest_session = _guest_session()
 	return frappe._dict(
 		user=user,
 		customer=customer,
 		guest_session=guest_session,
 		settings=settings(),
-		page_route=(page_route or "").strip()[:140],
+		# //// Neoffice — was (page_route or "").strip()[:140], written as it came into the system prompt
+		page_route=clean_route(page_route),
 		conversation=conversation,
 		summary=None,
 	)
@@ -169,12 +270,7 @@ def find_conversation(ctx, create=False):
 
 def _adopt_guest_conversation(ctx, since):
 	"""A visitor who talked as a guest and then signed in keeps the thread."""
-	from webshop.webshop.shopping_cart.guest_cart import get_guest_session_id
-
-	try:
-		guest = get_guest_session_id()
-	except Exception:
-		return None
+	guest = _guest_session()
 	if not guest:
 		return None
 	name = frappe.db.get_value(
@@ -231,11 +327,14 @@ def labels():
 
 
 @frappe.whitelist(allow_guest=True)
+# //// Neoffice — every page of the shop asks for this, and it was open to any number of calls: it reads the month's token sum and looks the visitor's conversation up (lot A of the 2026-10-30 audit)
+@throttle.throttle("config", 120, 60)
 def get_config(page_route=None):
 	s = settings()
 	if not enabled(s):
 		return {"enabled": False}
-	ctx = context(page_route)
+	# //// Neoffice — the page is not needed to draw the bubble (`page_route` stays in the signature for the widget's call); not looking it up spares this hot path three queries
+	ctx = context()
 	conversation = find_conversation(ctx)
 	history = []
 	if conversation:
@@ -267,9 +366,14 @@ def _daily_limit_reached(conversation, ctx):
 	return sent_today >= limit
 
 
+# //// Neoffice — the cap the merchant set, else the default: an empty field used to mean no cap at all (lot A of the 2026-10-30 audit)
+def monthly_cap(s=None):
+	"""Tokens the shop may spend in a month: the merchant's figure, else DEFAULT_MONTHLY_TOKEN_CAP."""
+	return cint((s or settings()).get("assistant_monthly_token_cap")) or DEFAULT_MONTHLY_TOKEN_CAP
+
+
 def _monthly_cap_reached(ctx):
-	cap = cint(ctx.settings.get("assistant_monthly_token_cap"))
-	return bool(cap) and engine.monthly_tokens() >= cap
+	return engine.monthly_tokens() >= monthly_cap(ctx.settings)
 
 
 # //// Neoffice — the answering machine: what a "no answer" actually means (outage, daily limit, monthly cap), and what to write on the conversation for the outage case (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
@@ -280,6 +384,9 @@ def unavailable_reason(ctx, conversation=None):
 		return "limit"
 	if _monthly_cap_reached(ctx):
 		return "cap"
+	# //// Neoffice — the whole site's hour: a flood that keeps changing visitor still meets a ceiling (lot A of the 2026-10-30 audit)
+	if site_hour_count() >= SITE_HOURLY_MESSAGES:
+		return "busy"
 	return None
 
 
@@ -293,12 +400,14 @@ def _answering_machine(conversation, ctx, reason, user_text=None):
 		conversation.flags.ignore_permissions = True
 		conversation.save()
 	out["conversation"] = conversation.name
-	out["limited"] = reason in ("limit", "cap")
+	out["limited"] = reason in ("limit", "cap", "busy")
 	return out
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
-@rate_limit(limit=20, seconds=600)
+# //// Neoffice — was frappe's @rate_limit(limit=20, seconds=600), keyed on the first X-Forwarded-For entry; a day's ceiling per connection is new (lot A of the 2026-10-30 audit)
+@throttle.throttle("send", 20, 600)
+@throttle.throttle("send-day", 150, 86400)
 def send(message, page_route=None):
 	s = settings()
 	if not enabled(s):
@@ -309,6 +418,15 @@ def send(message, page_route=None):
 		frappe.throw(_("The message is empty."))
 	text = text[:MAX_MESSAGE_CHARS]
 	ctx = context(page_route)
+	# //// Neoffice — one message at a time per visitor (lot A of the 2026-10-30 audit): the second of two parallel sends is told to wait instead of raising on a stale conversation
+	with conversation_lock(ctx) as free:
+		if not free:
+			return {"reply": _("Your previous message is still being answered. One moment, please."), "busy": True}
+		return _answer(ctx, text)
+
+
+def _answer(ctx, text):
+	"""One message in, one reply out, for a visitor nobody else is answering."""
 	conversation = find_conversation(ctx, create=True)
 	if not conversation:
 		frappe.throw(_("Unable to open a conversation for this session."))
@@ -322,22 +440,34 @@ def send(message, page_route=None):
 	reason = unavailable_reason(ctx, conversation)
 	if reason:
 		return _answering_machine(conversation, ctx, reason, user_text=text)
+	bump_site_hour()
 	try:
 		out = engine.respond(conversation, text, ctx)
-	except Exception:
-		frappe.log_error("Shop assistant: reply failed", frappe.get_traceback())
+	except llm.ModelUnavailable:
+		frappe.log_error("Shop assistant: the model did not answer", frappe.get_traceback())
 		# //// Neoffice — the answering machine: arm the outage flag so the next visitors get the notice at once, and answer this one the same way instead of a bare error (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
+		# //// Neoffice — only the model's failure arms it; this branch used to be `except Exception` (lot A of the 2026-10-30 audit)
 		mark_outage()
 		# respond() already wrote the visitor's words on the conversation
 		result = _answering_machine(conversation, ctx, "outage")
 		result["failed"] = True
+		return result
+	except Exception:
+		# //// Neoffice — a fault of ours is not the model's: this visitor is told, with the way to the team, and the
+		# //// next ones are not (the flag switches the assistant off for everybody for OUTAGE_SECONDS). Nothing is
+		# //// saved here: the conversation may be the very thing that failed.
+		frappe.log_error("Shop assistant: reply failed", frappe.get_traceback())
+		result = unavailable(ctx, "outage")
+		result.update(failed=True, conversation=conversation.name, limited=False)
 		return result
 	return {"reply": out.reply, "conversation": out.conversation, "escalated": conversation.status == "Escalated"}
 
 
 # //// Neoffice ▼▼▼ — the answering machine's tape: the "leave a message" endpoint and the escalation it triggers, reached with no model involved when the model is down or a limit is hit (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
 @frappe.whitelist(allow_guest=True, methods=["POST"])
-@rate_limit(limit=5, seconds=600)
+# //// Neoffice — was frappe's @rate_limit(limit=5, seconds=600), keyed on the first X-Forwarded-For entry; the day's ceiling is new (lot A of the 2026-10-30 audit)
+@throttle.throttle("leave", 5, 600)
+@throttle.throttle("leave-day", 15, 86400)
 def leave_message(message, email=None, page_route=None):
 	"""The answering machine's tape: the visitor's words go to the team as they are."""
 	s = settings()
@@ -347,7 +477,12 @@ def leave_message(message, email=None, page_route=None):
 	text = (message or "").strip()[:MAX_MESSAGE_CHARS]
 	if not text:
 		frappe.throw(_("The message is empty."))
-	return leave(context(page_route), text, email)
+	ctx = context(page_route)
+	# //// Neoffice — saves the same conversation `send` is answering on: one at a time (lot A of the 2026-10-30 audit); an error, not a reply, so the form stays open and the words are not lost
+	with conversation_lock(ctx) as free:
+		if not free:
+			frappe.throw(_("Your previous message is still being answered. One moment, please."))
+		return leave(ctx, text, email)
 
 
 def leave(ctx, text, email=None):
@@ -362,7 +497,8 @@ def leave(ctx, text, email=None):
 	if signed_in(ctx):
 		email = frappe.db.get_value("User", ctx.user, "email") or ctx.user
 	else:
-		email = validate_email_address((email or "").strip()) if email else None
+		# //// Neoffice — validate_email_address accepts a whole list ("a@x.ch,b@y.ch"), which went on as ONE recipient: the team's door was a mail relay for strangers (lot A of the 2026-10-30 audit)
+		email = escalation.single_email(email)
 		if not email:
 			frappe.throw(_("Enter a valid email address so the team can reply to you."))
 	conversation = ctx.conversation or find_conversation(ctx, create=True)
@@ -386,6 +522,8 @@ def leave(ctx, text, email=None):
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
+# //// Neoffice — was open to any number of calls (lot A of the 2026-10-30 audit)
+@throttle.throttle("reset", 10, 600)
 def reset():
 	ctx = context()
 	conversation = find_conversation(ctx)
@@ -418,7 +556,8 @@ def get_usage_stats():
 		"tokens": tokens,
 		"escalated": cint(row.escalated),
 		"estimated_cost": round(tokens / 1000.0 * price, 2) if price else None,
-		"monthly_cap": cint(settings().get("assistant_monthly_token_cap")) or None,
+		# //// Neoffice — the cap in force (the default when the merchant set none), not "no cap"
+		"monthly_cap": monthly_cap(),
 	}
 
 

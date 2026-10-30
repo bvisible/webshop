@@ -310,6 +310,8 @@ jobs:
             webshop.webshop.utils.test_store_hours \
             webshop.webshop.utils.test_holidays \
             webshop.webshop.assistant.test_assistant \
+            webshop.webshop.utils.test_throttle \
+            webshop.webshop.tests.test_assistant_links \
             webshop.webshop.shopping_cart.test_shop_rights \
             webshop.webshop.shopping_cart.test_tax_builder \
             webshop.webshop.shopping_cart.test_loyalty_rights \

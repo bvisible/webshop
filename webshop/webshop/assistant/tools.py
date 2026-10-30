@@ -420,10 +420,10 @@ def get_my_cart(args, ctx):
 def _visitor_email(args, ctx):
 	if ctx.user and ctx.user != "Guest":
 		return ctx.user
-	email = (args.get("email") or "").strip()
-	from frappe.utils import validate_email_address
+	# //// Neoffice — one address, not a list: validate_email_address accepted "a@x.ch,b@y.ch" whole (lot A of the 2026-10-30 audit)
+	from webshop.webshop.assistant.escalation import single_email
 
-	return email if email and validate_email_address(email) else None
+	return single_email(args.get("email"))
 
 
 def contact_team(args, ctx):

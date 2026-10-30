@@ -17,6 +17,17 @@ DEFAULT_TIMEOUT = 25
 DEFAULT_MODEL = "nora"
 
 
+# //// Neoffice — the one failure that means "the model is down" (lot A of the 2026-10-30 audit).
+# //// `send` used to arm the shop-wide outage flag on ANY exception, so a database error caused by one
+# //// visitor's two parallel requests switched the assistant off for everybody for two minutes.
+class ModelUnavailable(Exception):
+	"""The model could not be reached, refused, or answered in a form that cannot be read.
+
+	Raised by `complete()` and by nothing else: it is the only failure that sends the visitors to the
+	answering machine for everyone. A fault of ours stays a fault of ours.
+	"""
+
+
 def config(settings=None):
 	"""Endpoint, key and model: the shop's own when set, otherwise Nora's.
 
@@ -51,7 +62,10 @@ def config(settings=None):
 
 def complete(messages, tools=None, settings=None, temperature=0.2, max_tokens=700):
 	"""One round trip. Returns content, tool calls, usage and timing."""
-	cfg = config(settings)
+	try:
+		cfg = config(settings)
+	except frappe.ValidationError as error:  # nothing configured: as unavailable as a model that is down
+		raise ModelUnavailable(str(error)) from error
 	payload = {
 		"model": cfg.model,
 		"messages": messages,
@@ -65,20 +79,24 @@ def complete(messages, tools=None, settings=None, temperature=0.2, max_tokens=70
 	if cfg.api_key:
 		headers["Authorization"] = f"Bearer {cfg.api_key}"
 	started = time.monotonic()
-	response = requests.post(
-		f"{cfg.base_url}/chat/completions", json=payload, headers=headers, timeout=cfg.timeout
-	)
-	response.raise_for_status()
-	data = response.json()
-	choice = (data.get("choices") or [{}])[0]
-	message = choice.get("message") or {}
-	usage = data.get("usage") or {}
-	return frappe._dict(
-		content=message.get("content") or "",
-		tool_calls=message.get("tool_calls") or [],
-		finish_reason=choice.get("finish_reason"),
-		prompt_tokens=cint(usage.get("prompt_tokens")),
-		completion_tokens=cint(usage.get("completion_tokens")),
-		model=data.get("model") or cfg.model,
-		duration_ms=int((time.monotonic() - started) * 1000),
-	)
+	try:
+		response = requests.post(
+			f"{cfg.base_url}/chat/completions", json=payload, headers=headers, timeout=cfg.timeout
+		)
+		response.raise_for_status()
+		data = response.json()
+		choice = (data.get("choices") or [{}])[0]
+		message = choice.get("message") or {}
+		usage = data.get("usage") or {}
+		return frappe._dict(
+			content=message.get("content") or "",
+			tool_calls=message.get("tool_calls") or [],
+			finish_reason=choice.get("finish_reason"),
+			prompt_tokens=cint(usage.get("prompt_tokens")),
+			completion_tokens=cint(usage.get("completion_tokens")),
+			model=data.get("model") or cfg.model,
+			duration_ms=int((time.monotonic() - started) * 1000),
+		)
+	except (requests.RequestException, ValueError, KeyError, IndexError, TypeError, AttributeError) as error:
+		# transport, HTTP status, a body that is not JSON, a JSON that is not an answer: all the model's
+		raise ModelUnavailable(f"{type(error).__name__}: {error}") from error

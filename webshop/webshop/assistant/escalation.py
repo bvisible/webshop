@@ -5,9 +5,29 @@ Raven and Helpdesk are optional on a site; both paths degrade to email when
 the app or the setting is missing, and always tell the customer what was done.
 """
 
+import re
+
 import frappe
 from frappe import _
-from frappe.utils import escape_html, get_url, now_datetime
+from frappe.utils import escape_html, get_url, now_datetime, validate_email_address
+
+from webshop.webshop.utils import throttle
+
+# //// Neoffice — lot A of the 2026-10-30 audit: a stranger chooses the address a receipt goes to, so one address is
+# //// written to a few times a day, whoever asks, and the receipt does not carry the stranger's words.
+RECEIPTS_PER_ADDRESS_PER_DAY = 3
+
+
+def single_email(value):
+	"""One address and nothing else, or None.
+
+	`validate_email_address` accepts a whole list ("a@x.ch, b@y.ch" comes back whole) and, in our frappe fork, an
+	address with a display name; both went on as a single recipient. A visitor gives exactly one address.
+	"""
+	value = (value or "").strip()
+	if not value or re.search(r"[\s,;<>]", value):
+		return None
+	return value if validate_email_address(value) else None
 
 
 # //// Neoffice — a public visitor must never see the shop's mail-server error. frappe.sendmail
@@ -84,6 +104,10 @@ def _notify_customer(email, subject, message, ctx):
 	# //// this confirmation for a customer who had opted out of the follow-ups.
 	from webshop.webshop.utils.follow_ups import outgoing_sender
 
+	if not (ctx.user and ctx.user != "Guest"):
+		# a stranger chose this address: it is not written to over and over (a signed-in customer writes to themselves)
+		if throttle.hit("receipt", email.lower(), 86400) > RECEIPTS_PER_ADDRESS_PER_DAY:
+			return
 	conversation = ctx.conversation
 	try:
 		# //// Neoffice — logged straight on the Customer's timeline instead of through the follow-ups' outgoing path, whose Customer-scoped unsubscribe would otherwise swallow it (814347b504 "feat(assistant): an answering machine when the model is down or the limit is reached")
@@ -141,8 +165,9 @@ def contact_team(ctx, summary, email):
 	_notify_customer(
 		email,
 		_("Your request has been passed to the team"),
-		_("Hello,<br><br>Your request has been passed to our team: “{0}”. Someone will get back to you shortly at this address.<br><br>{1}").format(
-			escape_html(summary), frappe.db.get_single_value("Website Settings", "app_name") or ""
+		# //// Neoffice — was: "...passed to our team: “{summary}”...". The receipt went to an address the visitor chose, from the shop's domain, carrying the visitor's words (lot A of the 2026-10-30 audit)
+		_("Hello,<br><br>Your request has been passed to our team. Someone will get back to you shortly at this address.<br><br>{0}").format(
+			frappe.db.get_single_value("Website Settings", "app_name") or ""
 		),
 		ctx,
 	)
@@ -196,8 +221,9 @@ def create_support_ticket(ctx, subject, description, email):
 	_notify_customer(
 		email,
 		_("Your request {0} has been registered").format(ticket.name),
-		_("Hello,<br><br>Your request “{0}” has been registered under number {1}. Our team is handling it and will reply to you at this address.").format(
-			escape_html(subject), ticket.name
+		# //// Neoffice — was: "Your request “{subject}” has been registered under number {ticket}": the visitor's words again, to an address the visitor chose (lot A of the 2026-10-30 audit)
+		_("Hello,<br><br>Your request has been registered under number {0}. Our team is handling it and will reply to you at this address.").format(
+			ticket.name
 		),
 		ctx,
 	)

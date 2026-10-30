@@ -282,14 +282,31 @@ webshop.assistant = {
 		);
 	},
 
+	//// Neoffice — lot A of the 2026-10-30 audit. A link the bubble draws goes to THIS shop: a path of the
+	//// shop ("/orders/…"; never "//host" or "/\host", which a browser reads as another host) or an absolute
+	//// address on this very origin. Before, any address the model wrote became a link, so a model asked to
+	//// (or one that read an instruction in a product page) could send the customer anywhere. Anything else
+	//// stays readable text. `url` comes escaped from markdown(): "&amp;" is turned back for the check only.
+	safeHref(url) {
+		const plain = String(url).replace(/&amp;/g, "&");
+		if (plain.startsWith("/")) return !/^\/[\/\\]/.test(plain);
+		try {
+			return new URL(plain).origin === location.origin;
+		} catch (e) {
+			return false;
+		}
+	},
+
 	// Bold, links, bullet lists and line breaks: what an answer needs, nothing a
 	// model could turn into markup. Everything is escaped first.
 	markdown(text) {
 		let html = this.escape(text);
 		html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-		html = html.replace(/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^\s)]+)\)/g, (m, label, url) => `<a href="${url}">${label}</a>`);
+		html = html.replace(/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^\s)]+)\)/g, (m, label, url) =>
+			this.safeHref(url) ? `<a href="${url}">${label}</a>` : `${label} (${url})`
+		);
 		html = html.replace(/(^|[\s(])((?:https?:\/\/[^\s<]+)|(?:\/[a-z0-9][^\s<),.]*))/gi, (m, before, url) =>
-			/href="/.test(m) ? m : `${before}<a href="${url}">${url}</a>`
+			/href="/.test(m) || !this.safeHref(url) ? m : `${before}<a href="${url}">${url}</a>`
 		);
 		const lines = html.split(/\n/);
 		let out = "", inList = false;

@@ -907,6 +907,45 @@ carries the notice from the first screen. The "Talk to the team" link opens
 that form directly. A signed-in visitor is written to at the session's address
 whatever the form says; a guest must give a valid one.
 
+<!-- //// Neoffice — added: what a stranger can do to the assistant and what stops it (maintenance#2015, audit of 2026-10-30) -->
+**What a stranger can do to the assistant, and what stops it** (lot A of the
+2026-10-30 audit, neoffice-maintenance#2015). Every line below was a measured defect.
+
+- **Calls are counted per connection, not per header.** `utils/throttle.py` reads
+  the LAST `X-Forwarded-For` entry. Frappe's `rate_limit` reads the first, which a
+  caller writes wherever nginx appends (`$proxy_add_x_forwarded_for`, what the
+  shop vhosts of the domain script used to carry): 25 requests out of 25 went
+  through a limit of 20. `get_config` (every page asks), `send`, `leave_message`
+  and `reset` go through it. Behind a CDN that nginx does not unwrap the last
+  entry is the CDN's: handle the real address in nginx first.
+- **One message at a time per visitor** (`conversation_lock`: a Redis key per user
+  or guest cookie, ending by itself after 120 s). The second of two parallel sends
+  raised `TimestampMismatchError`, and `send` took every exception for a dead
+  model: the shop-wide outage flag went up and everybody got the notice.
+- **Only `llm.ModelUnavailable` arms the outage flag.** `llm.complete` turns every
+  transport, status and parsing failure into it. Any other exception is logged and
+  that visitor gets the notice with the way to the team; the next ones are served.
+- **Budgets exist by default.** Visitor 20 a day, signed-in customer 100 a day,
+  3,000,000 tokens a month when the merchant sets none (an empty cap used to mean
+  no cap), 300 messages an hour for the whole site (reason `busy`), 150 sends a day
+  per connection. A visitor with no cookie gets a fresh conversation each call, so
+  only the site-wide and per-connection ceilings bind a flood.
+- **What the browser sends is not trusted.** The guest cookie must be a uuid4
+  (`_guest_session`); `page_route` must be the route of a page the shop serves
+  (`clean_route`: it is written in the SYSTEM prompt, where a sentence speaks with
+  the system's voice); the bubble links only paths of this shop (`safeHref`: never
+  `//host`, never another origin).
+- **The team's door is not a mail relay.** One address, not a list
+  (`escalation.single_email`: `validate_email_address` returns `a@x,b@y` whole);
+  a stranger's address gets 3 receipts a day; receipts do not quote the visitor.
+- **Run the assistant's tests on the clone with `--skip-test-records
+  --skip-before-tests`.** On `prodclone.local` the `before_tests` hook ends the run
+  with a traceback before any test (no "Ran N tests" line, only tracebacks). And
+  the clone had collected 32 and 33 duplicate "Item Default" rows on two item
+  groups (`prod.local`: none), which makes `make_test_item` raise "Cannot set
+  multiple Item Defaults for a company"; the cause was not found, the rows were
+  deleted on the clone (2026-10-30).
+
 <!-- //// Neoffice — added: documents the reseller quick-order page, the server-side is_reseller() gate, and the shared add-to-cart validation path it reuses (939e007ad8 "feat(quick-order): la commande rapide des revendeurs — lot 1") -->
 ### The quick order
 
