@@ -385,7 +385,8 @@ def labels():
 		# //// Neoffice — the visitor's opinion of an answer (lot D of the 2026-10-30 audit)
 		"useful": _("Useful"),
 		"not_useful": _("Not useful"),
-		"report": _("Report"),
+		# //// Neoffice — not "Report": the catalogue already says "Rapport" for a report (a document), which on a French shop read as a link to a report
+		"report": _("Report a problem"),
 		"thanks": _("Thank you for your opinion."),
 		"suggestions": [
 			_("What are your opening hours?"),
