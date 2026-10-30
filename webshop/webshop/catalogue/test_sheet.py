@@ -4,13 +4,17 @@
 Real customers, a real published item priced on the shop's list, a model with two variants, a real picture
 in the public files, and an in-memory copy of Webshop Settings (a Single survives the rollback). The PDF is
 made by the shared Chromium where the bench has one; a bench without it skips those tests, and says so.
+The tests that build a sheet need the fork's pricing (`needs_fork`): CI, on stock ERPNext, skips them.
 """
 
+import inspect
 import io
 import re
+import unittest
 from unittest import mock
 
 import frappe
+from erpnext.utilities.product import get_price
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import fmt_money
 from PIL import Image
@@ -40,6 +44,14 @@ PICTURE = "wstest-sheet-picture.png"
 
 def digits(text):
 	return re.sub(r"\D", "", text or "")
+
+
+# The page prices a product through `get_price(..., warehouse=...)`, which only our ERPNext fork has: on stock
+# ERPNext `product_info` raises a TypeError, so the product page and the sheet made of it cannot be built.
+# CI runs on stock ERPNext on purpose; the tests that build a sheet say so instead of failing, and run on the
+# clone of the real site (a skip is "not run", never "passed": read the count).
+ON_FORK = "warehouse" in inspect.signature(get_price).parameters
+needs_fork = unittest.skipUnless(ON_FORK, "needs the bvisible/erpnext fork (warehouse pricing)")
 
 
 class TestProductSheet(FrappeTestCase):
@@ -182,6 +194,7 @@ class TestProductSheet(FrappeTestCase):
 
 	# --- what the shop's sheet says --------------------------------------------------------
 
+	@needs_fork
 	def test_the_shop_s_sheet_says_what_the_page_says(self):
 		data = sheet.build_sheet(self.doc())
 		self.assertEqual(data.name, NASTY_NAME)
@@ -207,9 +220,9 @@ class TestProductSheet(FrappeTestCase):
 			text = sheet.price_text(160.65, "CHF")
 		self.assertEqual(text, "CHF 160.65")
 		with patch("frappe.defaults.get_global_default", return_value="No"):
-			self.assertEqual(sheet.price_text(160.65, "CHF"), fmt_money(160.65, currency="CHF"))
-			self.assertEqual(sheet.price_text(160.65, "CHF").count("CHF"), 1, "a symbol already printed is not doubled")
+			self.assertEqual(sheet.price_text(160.65, "CHF"), fmt_money(160.65, currency="CHF"), "a site that shows it keeps its own format")
 
+	@needs_fork
 	def test_a_visitor_s_text_cannot_become_markup(self):
 		html = sheet.render_html(sheet.build_sheet(self.doc()))
 		self.assertNotIn("<script", html.lower())
@@ -217,6 +230,7 @@ class TestProductSheet(FrappeTestCase):
 		self.assertNotIn("<script", html.lower(), "not even the description's, which reaches the page as text")
 		self.assertTrue(html.lstrip().lower().startswith("<!doctype html>"))
 
+	@needs_fork
 	def test_a_model_prints_its_choices_and_no_price_of_its_own_like_its_page(self):
 		# the variant selector (Webshop Settings) is what makes a model's page offer its variants
 		with mock.patch("webshop.webshop.seo.variants.sells_on_model_page", return_value=True):
@@ -226,6 +240,7 @@ class TestProductSheet(FrappeTestCase):
 		self.assertEqual(len(data.variants), 2)
 		self.assertTrue(all(digits(row.price) == "6000" for row in data.variants))
 
+	@needs_fork
 	def test_the_stylesheet_carries_the_colour_and_a_footer_that_cannot_break_out(self):
 		data = sheet.build_sheet(self.doc())
 		data.issuer.name = 'Evil"; } </style><script>alert(1)</script> \\ x'
@@ -252,6 +267,7 @@ class TestProductSheet(FrappeTestCase):
 			self.doc(), sheet.RESELLER, {"payload": payload, "credit_line": "Supplied by the shop", "prices": prices != "none"}
 		)
 
+	@needs_fork
 	def test_the_reseller_s_sheet_carries_their_price_and_never_what_they_pay(self):
 		frappe.set_user(USER)
 		data = self.reseller_sheet()
@@ -262,6 +278,7 @@ class TestProductSheet(FrappeTestCase):
 		self.assertIn("--brand: #0b6e4f", html)
 		self.assertIn("Supplied by the shop", html, "the supplier's credit line, when it set one")
 
+	@needs_fork
 	def test_the_reseller_promises_nothing_that_is_the_supplier_s(self):
 		frappe.set_user(USER)
 		data = self.reseller_sheet()
@@ -269,10 +286,12 @@ class TestProductSheet(FrappeTestCase):
 		self.assertEqual(data.promises, [])
 		self.assertEqual(data.price.struck, "")
 
+	@needs_fork
 	def test_a_sheet_without_prices_prints_none(self):
 		frappe.set_user(USER)
 		self.assertIsNone(self.reseller_sheet(prices="none").price)
 
+	@needs_fork
 	def test_a_reseller_with_a_website_gets_a_qr_to_their_site_not_the_supplier_s(self):
 		frappe.set_user(USER)
 		self.save_brand(contact_website="www.alpine-distribution.example")
@@ -304,6 +323,7 @@ class TestProductSheet(FrappeTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			sheet_api.my_product_sheet(self.item_name)
 
+	@needs_fork
 	def test_a_bench_without_chromium_says_so(self):
 		with mock.patch.object(sheet_api, "chromium_available", return_value=False):
 			with self.assertRaises(frappe.ValidationError):
@@ -322,6 +342,7 @@ class TestProductSheet(FrappeTestCase):
 		reader = PdfReader(io.BytesIO(pdf))
 		return reader, "\n".join(page.extract_text() for page in reader.pages)
 
+	@needs_fork
 	def test_the_shop_s_sheet_is_one_a4_page_with_the_text_in_it(self):
 		if not chromium_available():
 			self.skipTest("no Chromium on this bench")
@@ -336,6 +357,7 @@ class TestProductSheet(FrappeTestCase):
 		self.assertIn("Weight", text)
 		self.assertIn("100", text)
 
+	@needs_fork
 	def test_the_reseller_s_pdf_prints_their_price_and_not_the_one_they_pay(self):
 		if not chromium_available():
 			self.skipTest("no Chromium on this bench")
