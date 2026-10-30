@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-10-25 14:16+0000\n"
-"PO-Revision-Date: 2026-10-25 14:16+0000\n"
+"POT-Creation-Date: 2026-10-30 13:24+0000\n"
+"PO-Revision-Date: 2026-10-30 13:24+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -115,7 +115,7 @@ msgstr ""
 msgid "A follow-up needs at least one email."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:4192
+#: webshop/webshop/shopping_cart/cart.py:4206
 #, python-brace-format
 msgid "A new gift card has been created with the remaining amount of {0}. Card code: {1}"
 msgstr ""
@@ -137,7 +137,7 @@ msgstr ""
 msgid "A selling price is required."
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:746
+#: webshop/controllers/payment_handler.py:752
 msgid "A system error occurred while processing payment failure"
 msgstr ""
 
@@ -185,12 +185,12 @@ msgstr ""
 msgid "About {0}"
 msgstr ""
 
-#: webshop/templates/pages/checkout.html:490
-#: webshop/templates/pages/checkout.py:1241
+#: webshop/templates/pages/checkout.html:492
+#: webshop/templates/pages/checkout.py:1243
 msgid "Accept the terms and conditions below to pay"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:1239
+#: webshop/templates/pages/checkout.py:1241
 msgid "Accept the terms and conditions to pay"
 msgstr ""
 
@@ -430,7 +430,7 @@ msgid "All"
 msgstr ""
 
 #: webshop/templates/includes/breadcrumbs.html:46
-#: webshop/webshop/doctype/override_doctype/item_group.py:201
+#: webshop/webshop/doctype/override_doctype/item_group.py:203
 #: webshop/www/all-products/index.py:16
 msgid "All Products"
 msgstr ""
@@ -551,8 +551,8 @@ msgstr ""
 
 #: webshop/webshop/shopping_cart/cart.py:778
 #: webshop/webshop/shopping_cart/cart.py:780
-#: webshop/webshop/shopping_cart/cart.py:4159
-#: webshop/webshop/shopping_cart/cart.py:4161
+#: webshop/webshop/shopping_cart/cart.py:4173
+#: webshop/webshop/shopping_cart/cart.py:4175
 msgid "Amount adjusted on"
 msgstr ""
 
@@ -617,12 +617,12 @@ msgstr ""
 msgid "An error occurred while sending the login link"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:823
+#: webshop/templates/pages/checkout.py:825
 msgid "An error occurred while updating the shipping method. Please try again."
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:824
-#: webshop/controllers/payment_handler.py:964
+#: webshop/controllers/payment_handler.py:832
+#: webshop/controllers/payment_handler.py:972
 msgid "An error occurred while validating the order"
 msgstr ""
 
@@ -682,7 +682,7 @@ msgid "Aspect ratio (width/height) of product cards. Only applied when fit is Co
 msgstr ""
 
 #. Label of a Tab Break field in DocType 'Webshop Settings'
-#: webshop/webshop/assistant/api.py:206
+#: webshop/webshop/assistant/api.py:302
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:327
 #: webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.py:57
 msgid "Assistant"
@@ -845,7 +845,7 @@ msgstr ""
 msgid "Back to information"
 msgstr ""
 
-#: webshop/templates/pages/checkout.html:448
+#: webshop/templates/pages/checkout.html:450
 msgid "Back to shipping"
 msgstr ""
 
@@ -861,8 +861,8 @@ msgstr ""
 msgid "Based on"
 msgstr ""
 
-#: webshop/templates/generators/item/item_reviews.html:85
 #: webshop/templates/generators/item/item_reviews.html:87
+#: webshop/templates/generators/item/item_reviews.html:89
 msgid "Be the first to review this product"
 msgstr ""
 
@@ -990,12 +990,12 @@ msgstr ""
 msgid "Buy a gift card"
 msgstr ""
 
-#: webshop/templates/pages/checkout.html:489
-#: webshop/templates/pages/checkout.py:1243
+#: webshop/templates/pages/checkout.html:491
+#: webshop/templates/pages/checkout.py:1245
 msgid "By paying, I accept the"
 msgstr ""
 
-#: webshop/templates/pages/checkout.html:491
+#: webshop/templates/pages/checkout.html:493
 msgid "By using this payment form, you accept the"
 msgstr ""
 
@@ -1007,7 +1007,7 @@ msgstr ""
 msgid "Calculating frequently bought together items..."
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:222 webshop/www/my_addresses.html:133
+#: webshop/webshop/assistant/api.py:318 webshop/www/my_addresses.html:133
 msgid "Cancel"
 msgstr ""
 
@@ -1210,7 +1210,7 @@ msgstr ""
 msgid "Checkout Settings"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:232
+#: webshop/templates/pages/checkout.py:234
 msgid "Checkout is disabled. Please enable it in Webshop Settings."
 msgstr ""
 
@@ -1303,7 +1303,7 @@ msgstr ""
 
 #: webshop/public/js/auth_dialog.js:130
 #: webshop/templates/generators/item/item_image.html:138
-#: webshop/webshop/assistant/api.py:213 webshop/webshop/quick_order/api.py:876
+#: webshop/webshop/assistant/api.py:309 webshop/webshop/quick_order/api.py:876
 #: webshop/www/my_addresses.html:27
 msgid "Close"
 msgstr ""
@@ -1471,7 +1471,7 @@ msgstr ""
 msgid "Contact Us"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3325
+#: webshop/webshop/shopping_cart/cart.py:3339
 msgid "Contact information updated successfully"
 msgstr ""
 
@@ -1511,7 +1511,7 @@ msgid "Continue to Payment"
 msgstr ""
 
 #: webshop/templates/pages/checkout.js:3317
-#: webshop/templates/pages/checkout.py:1230
+#: webshop/templates/pages/checkout.py:1232
 msgid "Continue to payment"
 msgstr ""
 
@@ -1569,11 +1569,11 @@ msgstr ""
 msgid "Could not start the Payrexx payment"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3342
+#: webshop/webshop/shopping_cart/cart.py:3356
 msgid "Could not update the contact details"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3193
+#: webshop/webshop/shopping_cart/cart.py:3207
 msgid "Could not update the customer details"
 msgstr ""
 
@@ -1662,7 +1662,7 @@ msgstr ""
 msgid "Created from gift card"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:4141
+#: webshop/webshop/shopping_cart/cart.py:4155
 #, python-brace-format
 msgid "Created from gift card: {0} (remaining amount after order {1})"
 msgstr ""
@@ -1765,7 +1765,7 @@ msgstr ""
 msgid "Customer emails and assistant"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3183
+#: webshop/webshop/shopping_cart/cart.py:3197
 msgid "Customer information updated successfully"
 msgstr ""
 
@@ -1825,7 +1825,7 @@ msgstr ""
 msgid "Days After Purchase"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:2793
+#: webshop/webshop/shopping_cart/cart.py:2807
 #, python-brace-format
 msgid "Debtors ({0})"
 msgstr ""
@@ -1992,7 +1992,7 @@ msgstr ""
 msgid "Discount Percentage"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3464
+#: webshop/webshop/shopping_cart/cart.py:3478
 msgid "Discount value cannot exceed total amount"
 msgstr ""
 
@@ -2189,16 +2189,16 @@ msgstr ""
 msgid "Emails sent"
 msgstr ""
 
+#. Description of the 'Monthly token cap' (Int) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:462
+msgid "Empty: 3,000,000 tokens a month. Beyond it the assistant asks the visitor to write to the team."
+msgstr ""
+
 #. Description of the 'Welcome message' (Small Text) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:350
 msgid "Empty: a default greeting, with the customer's first name when signed in"
-msgstr ""
-
-#. Description of the 'Monthly token cap' (Int) field in DocType 'Webshop
-#. Settings'
-#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:462
-msgid "Empty: no cap. Beyond it the assistant asks the visitor to write to the team."
 msgstr ""
 
 #. Description of the 'Offer a coupon from email number' (Select) field in
@@ -2358,11 +2358,11 @@ msgid "Enter Coupon Code"
 msgstr ""
 
 #: webshop/templates/pages/order.html:171
-#: webshop/webshop/shopping_cart/cart.py:3598
+#: webshop/webshop/shopping_cart/cart.py:3612
 msgid "Enter Loyalty Points"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:367
+#: webshop/webshop/assistant/api.py:503
 msgid "Enter a valid email address so the team can reply to you."
 msgstr ""
 
@@ -2438,7 +2438,7 @@ msgstr ""
 msgid "Error creating invoice"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:783
+#: webshop/controllers/payment_handler.py:789
 #: webshop/webshop/doctype/override_doctype/payment_request.py:105
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:238
 #: webshop/webshop/shopping_cart/offline_payment.py:125
@@ -2484,7 +2484,7 @@ msgstr ""
 msgid "Error loading shipping methods. Please try again."
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:1570
+#: webshop/templates/pages/checkout.py:1574
 #, python-brace-format
 msgid "Error loading template: {0}"
 msgstr ""
@@ -2499,12 +2499,12 @@ msgstr ""
 msgid "Error processing gift card for Sales Order {0}"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:602
-#: webshop/controllers/payment_handler.py:938
+#: webshop/controllers/payment_handler.py:608
+#: webshop/controllers/payment_handler.py:946
 msgid "Error processing payment"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:951
+#: webshop/controllers/payment_handler.py:959
 msgid "Error processing payment failure"
 msgstr ""
 
@@ -2876,8 +2876,8 @@ msgstr ""
 #: webshop/webshop/shopping_cart/cart.py:700
 #: webshop/webshop/shopping_cart/cart.py:710
 #: webshop/webshop/shopping_cart/cart.py:764
-#: webshop/webshop/shopping_cart/cart.py:3874
-#: webshop/webshop/shopping_cart/cart.py:4102
+#: webshop/webshop/shopping_cart/cart.py:3888
+#: webshop/webshop/shopping_cart/cart.py:4116
 msgid "Gift Card"
 msgstr ""
 
@@ -2890,11 +2890,11 @@ msgstr ""
 msgid "Gift Card Code"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:4196
+#: webshop/webshop/shopping_cart/cart.py:4210
 msgid "Gift Card Split"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:4115
+#: webshop/webshop/shopping_cart/cart.py:4129
 #, python-brace-format
 msgid "Gift Card {0} - {1} - {2}"
 msgstr ""
@@ -2913,7 +2913,7 @@ msgstr ""
 msgid "Gift card"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3441
+#: webshop/webshop/shopping_cart/cart.py:3455
 #, python-brace-format
 msgid "Gift card amount ({0}) exceeds order total ({1}). The excess amount ({2}) will be converted to a new gift card upon order submission."
 msgstr ""
@@ -2941,16 +2941,16 @@ msgstr ""
 msgid "Gift card notification"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:4201
+#: webshop/webshop/shopping_cart/cart.py:4215
 msgid "Gift card split successfully"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3915
+#: webshop/webshop/shopping_cart/cart.py:3929
 #, python-brace-format
 msgid "Gift card {0} - {1} - {2}"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3907
+#: webshop/webshop/shopping_cart/cart.py:3921
 #, python-brace-format
 msgid "Gift card {0} - {1} - {2} ({3}/{4})"
 msgstr ""
@@ -3095,7 +3095,7 @@ msgid "Has Video"
 msgstr ""
 
 #. Label of a Data field in DocType 'Cross Sell Offer'
-#: webshop/templates/generators/item/item_reviews.html:117
+#: webshop/templates/generators/item/item_reviews.html:119
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json:190
 msgid "Headline"
 msgstr ""
@@ -3105,7 +3105,7 @@ msgstr ""
 msgid "Heart"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:633
+#: webshop/templates/pages/checkout.py:635
 msgid "Height"
 msgstr ""
 
@@ -3114,28 +3114,28 @@ msgstr ""
 msgid "Hello"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:199
+#: webshop/webshop/assistant/api.py:295
 #, python-brace-format
 msgid "Hello {0}!"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:199
+#: webshop/webshop/assistant/api.py:295
 msgid "Hello!"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:201
+#: webshop/webshop/assistant/api.py:297
 #, python-brace-format
 msgid "Hello! I am {0}, the shop assistant. A product, our opening hours, an order? I am here to help."
 msgstr ""
 
-#: webshop/webshop/assistant/escalation.py:144
+#: webshop/webshop/assistant/escalation.py:169
 #, python-brace-format
-msgid "Hello,<br><br>Your request has been passed to our team: “{0}”. Someone will get back to you shortly at this address.<br><br>{1}"
+msgid "Hello,<br><br>Your request has been passed to our team. Someone will get back to you shortly at this address.<br><br>{0}"
 msgstr ""
 
-#: webshop/webshop/assistant/escalation.py:199
+#: webshop/webshop/assistant/escalation.py:225
 #, python-brace-format
-msgid "Hello,<br><br>Your request “{0}” has been registered under number {1}. Our team is handling it and will reply to you at this address."
+msgid "Hello,<br><br>Your request has been registered under number {0}. Our team is handling it and will reply to you at this address."
 msgstr ""
 
 #. Option for the 'Escalated To' (Select) field in DocType 'Shop Assistant
@@ -3206,7 +3206,7 @@ msgstr ""
 
 #: webshop/templates/includes/breadcrumbs.html:16
 #: webshop/templates/includes/breadcrumbs.html:18
-#: webshop/webshop/doctype/override_doctype/item_group.py:214
+#: webshop/webshop/doctype/override_doctype/item_group.py:216
 #: webshop/webshop/product_data_engine/listing_context.py:36
 #: webshop/www/shop-by-category/index.py:20 webshop/www/store-hours/index.py:16
 msgid "Home"
@@ -3246,7 +3246,7 @@ msgstr ""
 msgid "How to use your gift card"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:1244
+#: webshop/templates/pages/checkout.py:1246
 #: webshop/templates/payments/paypal.html:28
 #: webshop/templates/payments/payrexx.html:25
 #: webshop/templates/payments/stripe.html:29
@@ -3261,11 +3261,11 @@ msgstr ""
 msgid "I agree to the"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:227
+#: webshop/webshop/assistant/api.py:323
 msgid "I am looking for a product"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:200
+#: webshop/webshop/assistant/api.py:296
 #, python-brace-format
 msgid "I am {0}, the shop assistant. An order to track, a product to find?"
 msgstr ""
@@ -3636,7 +3636,7 @@ msgstr ""
 msgid "L'outil n'a pas pu répondre. Propose au client de contacter l'équipe."
 msgstr ""
 
-#: webshop/webshop/assistant/escalation.py:152
+#: webshop/webshop/assistant/escalation.py:177
 #, python-brace-format
 msgid "La demande est transmise à l'équipe ; elle recontactera le client à {0}. Dis-le lui, sans promettre de délai précis."
 msgstr ""
@@ -3690,11 +3690,11 @@ msgstr ""
 msgid "Le panier est vide."
 msgstr ""
 
-#: webshop/webshop/assistant/escalation.py:184
+#: webshop/webshop/assistant/escalation.py:209
 msgid "Le ticket n'a pas pu être créé ; la demande est partie à l'équipe par message."
 msgstr ""
 
-#: webshop/webshop/assistant/escalation.py:207
+#: webshop/webshop/assistant/escalation.py:233
 #, python-brace-format
 msgid "Le ticket {0} est ouvert au nom du client ; l'équipe lui répondra par email. Donne-lui le numéro."
 msgstr ""
@@ -3713,7 +3713,7 @@ msgstr ""
 msgid "Lead Time Mode"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:218
+#: webshop/webshop/assistant/api.py:314
 msgid "Leave a message for the team"
 msgstr ""
 
@@ -3732,7 +3732,7 @@ msgstr ""
 msgid "Leave unchecked until this method has been proven on this site. Unchecked, it takes exactly the path it has always taken."
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:99
+#: webshop/webshop/assistant/api.py:167
 msgid "Leave us your message below: the team will reply by email."
 msgstr ""
 
@@ -3747,7 +3747,7 @@ msgstr ""
 msgid "Left out"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:625
+#: webshop/templates/pages/checkout.py:627
 msgid "Length"
 msgstr ""
 
@@ -3881,7 +3881,7 @@ msgstr ""
 msgid "Loyalty Program"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:2465
+#: webshop/webshop/shopping_cart/cart.py:2479
 #, python-brace-format
 msgid "Loyalty Program {0} has no expense account"
 msgstr ""
@@ -3894,11 +3894,11 @@ msgstr ""
 msgid "Loyalty points removed"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3645
+#: webshop/webshop/shopping_cart/cart.py:3659
 msgid "Loyalty points value cannot exceed total amount"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:2482
+#: webshop/webshop/shopping_cart/cart.py:2496
 msgid "Loyalty program"
 msgstr ""
 
@@ -3935,7 +3935,7 @@ msgid "Manage your gift cards"
 msgstr ""
 
 #: webshop/webshop/doctype/website_item/website_item.py:57
-#: webshop/webshop/shopping_cart/cart.py:2787
+#: webshop/webshop/shopping_cart/cart.py:2801
 msgid "Mandatory"
 msgstr ""
 
@@ -4206,7 +4206,7 @@ msgstr ""
 msgid "New address"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:211
+#: webshop/webshop/assistant/api.py:307
 msgid "New conversation"
 msgstr ""
 
@@ -4262,7 +4262,7 @@ msgid "No SEO score yet: it is computed after each save and every night."
 msgstr ""
 
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:149
-#: webshop/webshop/shopping_cart/cart.py:3220
+#: webshop/webshop/shopping_cart/cart.py:3234
 msgid "No active quotation found"
 msgstr ""
 
@@ -4291,7 +4291,7 @@ msgstr ""
 msgid "No characteristics listed"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:783
+#: webshop/templates/pages/checkout.py:785
 #, python-brace-format
 msgid "No conversion factor found between {0} and {1}"
 msgstr ""
@@ -4341,7 +4341,7 @@ msgstr ""
 msgid "No page on the site yet"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:1467
+#: webshop/templates/pages/checkout.py:1471
 msgid "No payment gateway account specified"
 msgstr ""
 
@@ -4417,7 +4417,7 @@ msgstr ""
 msgid "No quantity entered."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3144
+#: webshop/webshop/shopping_cart/cart.py:3158
 msgid "No quotation or customer found"
 msgstr ""
 
@@ -4430,7 +4430,7 @@ msgstr ""
 msgid "No review yet"
 msgstr ""
 
-#: webshop/templates/generators/item/item_reviews.html:81
+#: webshop/templates/generators/item/item_reviews.html:83
 msgid "No reviews yet."
 msgstr ""
 
@@ -4572,12 +4572,12 @@ msgstr ""
 
 #: webshop/controllers/payment_handler.py:93
 #: webshop/controllers/payment_handler.py:378
-#: webshop/controllers/payment_handler.py:723
-#: webshop/templates/pages/checkout.py:927
-#: webshop/templates/pages/checkout.py:1327
-#: webshop/templates/pages/checkout.py:1641
+#: webshop/controllers/payment_handler.py:729
+#: webshop/templates/pages/checkout.py:929
+#: webshop/templates/pages/checkout.py:1329
 #: webshop/templates/pages/checkout.py:1645
-#: webshop/templates/pages/checkout.py:1652
+#: webshop/templates/pages/checkout.py:1649
+#: webshop/templates/pages/checkout.py:1656
 #: webshop/webshop/shopping_cart/cart.py:1776
 #: webshop/webshop/shopping_cart/loyalty_rights.py:92
 #: webshop/webshop/shopping_cart/offline_payment.py:188
@@ -4611,8 +4611,8 @@ msgstr ""
 msgid "Nothing is enrolled and nothing goes out while this is off"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:1300
-#: webshop/templates/pages/checkout.py:1311
+#: webshop/templates/pages/checkout.py:1302
+#: webshop/templates/pages/checkout.py:1313
 msgid "Nothing to pay"
 msgstr ""
 
@@ -4743,7 +4743,7 @@ msgstr ""
 msgid "Online"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:947
+#: webshop/templates/pages/checkout.py:949
 msgid "Online payment is not enabled"
 msgstr ""
 
@@ -4804,12 +4804,12 @@ msgstr ""
 msgid "Open request {0}"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:214
+#: webshop/webshop/assistant/api.py:310
 msgid "Open the assistant"
 msgstr ""
 
 #: webshop/templates/pages/checkout.js:3314
-#: webshop/templates/pages/checkout.py:1249
+#: webshop/templates/pages/checkout.py:1251
 msgid "Open the payment page in a new tab"
 msgstr ""
 
@@ -4887,7 +4887,7 @@ msgid "Optional: When maintenance is expected to end"
 msgstr ""
 
 #: webshop/templates/pages/checkout.js:3321
-#: webshop/templates/pages/checkout.py:1231
+#: webshop/templates/pages/checkout.py:1233
 #, python-brace-format
 msgid "Or type {0} in the app."
 msgstr ""
@@ -4945,7 +4945,7 @@ msgstr ""
 msgid "Order not available"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:817
+#: webshop/controllers/payment_handler.py:825
 msgid "Order validated successfully"
 msgstr ""
 
@@ -5028,7 +5028,7 @@ msgstr ""
 msgid "Outil inconnu : {0}."
 msgstr ""
 
-#: webshop/templates/generators/item/item_reviews.html:118
+#: webshop/templates/generators/item/item_reviews.html:120
 msgid "Overall Rating"
 msgstr ""
 
@@ -5065,7 +5065,7 @@ msgstr ""
 msgid "Part of the feed's address: whoever does not know it gets nothing."
 msgstr ""
 
-#: webshop/webshop/assistant/escalation.py:161
+#: webshop/webshop/assistant/escalation.py:186
 msgid "Pas de helpdesk sur cette boutique : la demande est partie à l'équipe par message."
 msgstr ""
 
@@ -5119,7 +5119,7 @@ msgstr ""
 #: webshop/templates/pages/checkout.html:33
 #: webshop/templates/pages/checkout.html:393
 #: webshop/templates/pages/checkout.js:3311
-#: webshop/templates/pages/checkout.py:1250
+#: webshop/templates/pages/checkout.py:1252
 msgid "Payment"
 msgstr ""
 
@@ -5140,7 +5140,7 @@ msgstr ""
 msgid "Payment Gateway Account not found"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:2787
+#: webshop/webshop/shopping_cart/cart.py:2801
 msgid "Payment Gateway Account not set"
 msgstr ""
 
@@ -5186,9 +5186,9 @@ msgstr ""
 msgid "Payment Terms Template"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:423
-#: webshop/controllers/payment_handler.py:441
-#: webshop/controllers/payment_handler.py:449
+#: webshop/controllers/payment_handler.py:425
+#: webshop/controllers/payment_handler.py:445
+#: webshop/controllers/payment_handler.py:453
 msgid "Payment already processed"
 msgstr ""
 
@@ -5197,8 +5197,8 @@ msgstr ""
 msgid "Payment booked"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:731
-#: webshop/controllers/payment_handler.py:738
+#: webshop/controllers/payment_handler.py:737
+#: webshop/controllers/payment_handler.py:744
 #: webshop/templates/payments/twint.html:96
 msgid "Payment failed"
 msgstr ""
@@ -5218,7 +5218,7 @@ msgid "Payment methods could not be loaded. Please try again."
 msgstr ""
 
 #: webshop/templates/pages/checkout.js:3412
-#: webshop/templates/pages/checkout.py:1233
+#: webshop/templates/pages/checkout.py:1235
 msgid "Payment not received. You can try again."
 msgstr ""
 
@@ -5226,7 +5226,7 @@ msgstr ""
 msgid "Payment options"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:595
+#: webshop/controllers/payment_handler.py:601
 msgid "Payment processed successfully"
 msgstr ""
 
@@ -5334,7 +5334,7 @@ msgstr ""
 msgid "Place Order"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:1065
+#: webshop/templates/pages/checkout.py:1067
 msgid "Place order"
 msgstr ""
 
@@ -5349,8 +5349,8 @@ msgstr ""
 msgid "Played from the gallery: a YouTube or Vimeo address, or a file the shop hosts. The catalogue tile shows a play badge."
 msgstr ""
 
-#: webshop/templates/pages/checkout.html:492
-#: webshop/templates/pages/checkout.py:1247
+#: webshop/templates/pages/checkout.html:494
+#: webshop/templates/pages/checkout.py:1249
 msgid "Please accept the terms and conditions first."
 msgstr ""
 
@@ -5381,7 +5381,7 @@ msgid "Please enable 'Frequently Bought Together' first"
 msgstr ""
 
 #: webshop/templates/pages/checkout.js:2670
-#: webshop/webshop/shopping_cart/cart.py:3350
+#: webshop/webshop/shopping_cart/cart.py:3364
 msgid "Please enter a coupon code"
 msgstr ""
 
@@ -5389,7 +5389,7 @@ msgstr ""
 msgid "Please enter a valid amount"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3359
+#: webshop/webshop/shopping_cart/cart.py:3373
 msgid "Please enter a valid coupon code"
 msgstr ""
 
@@ -5453,8 +5453,8 @@ msgstr ""
 msgid "Please log in to shop on this site."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3604
-#: webshop/webshop/shopping_cart/cart.py:3609
+#: webshop/webshop/shopping_cart/cart.py:3618
+#: webshop/webshop/shopping_cart/cart.py:3623
 msgid "Please log in to use your loyalty points"
 msgstr ""
 
@@ -5464,7 +5464,7 @@ msgid "Please log in to view your gift cards."
 msgstr ""
 
 #: webshop/templates/pages/loyalty_points.html:18
-#: webshop/templates/pages/loyalty_points.py:151
+#: webshop/templates/pages/loyalty_points.py:155
 msgid "Please log in to view your loyalty points."
 msgstr ""
 
@@ -5494,7 +5494,7 @@ msgstr ""
 msgid "Please select a shipping address first"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:791
+#: webshop/templates/pages/checkout.py:793
 msgid "Please select a shipping method"
 msgstr ""
 
@@ -5612,7 +5612,7 @@ msgstr ""
 
 #: webshop/templates/includes/cart/cart_dropdown.html:14
 #: webshop/templates/includes/macros.html:7
-#: webshop/templates/pages/checkout.py:621
+#: webshop/templates/pages/checkout.py:623
 msgid "Price"
 msgstr ""
 
@@ -6153,8 +6153,8 @@ msgstr ""
 msgid "Relation"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:4159
-#: webshop/webshop/shopping_cart/cart.py:4161
+#: webshop/webshop/shopping_cart/cart.py:4173
+#: webshop/webshop/shopping_cart/cart.py:4175
 msgid "Remaining amount"
 msgstr ""
 
@@ -6207,7 +6207,7 @@ msgstr ""
 msgid "Request for Quote"
 msgstr ""
 
-#: webshop/webshop/assistant/escalation.py:168
+#: webshop/webshop/assistant/escalation.py:193
 msgid "Request from the shop assistant"
 msgstr ""
 
@@ -6271,7 +6271,7 @@ msgid "Returns"
 msgstr ""
 
 #: webshop/public/js/customer_reviews.js:44
-#: webshop/templates/generators/item/item_reviews.html:138
+#: webshop/templates/generators/item/item_reviews.html:140
 msgid "Review Submitted"
 msgstr ""
 
@@ -6511,7 +6511,7 @@ msgstr ""
 msgid "See all item groups"
 msgstr ""
 
-#: webshop/templates/pages/checkout.html:441
+#: webshop/templates/pages/checkout.html:443
 msgid "See full page"
 msgstr ""
 
@@ -6567,7 +6567,7 @@ msgid "Selling price"
 msgstr ""
 
 #: webshop/templates/generators/item/item_inquiry.js:44
-#: webshop/webshop/assistant/api.py:208
+#: webshop/webshop/assistant/api.py:304
 msgid "Send"
 msgstr ""
 
@@ -6589,7 +6589,7 @@ msgstr ""
 msgid "Send login link"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:221
+#: webshop/webshop/assistant/api.py:317
 msgid "Send to the team"
 msgstr ""
 
@@ -6687,7 +6687,7 @@ msgstr ""
 msgid "Settlement"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:212
+#: webshop/webshop/assistant/api.py:308
 msgid "Shall we pick up where we left off?"
 msgstr ""
 
@@ -6748,7 +6748,7 @@ msgstr ""
 msgid "Shipping method required"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:727
+#: webshop/templates/pages/checkout.py:729
 #, python-brace-format
 msgid "Shipping to {0}"
 msgstr ""
@@ -6788,13 +6788,13 @@ msgstr ""
 msgid "Shop assistant"
 msgstr ""
 
-#: webshop/webshop/assistant/escalation.py:131
+#: webshop/webshop/assistant/escalation.py:155
 #, python-brace-format
 msgid "Shop assistant: {0} is asking for the team"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/override_doctype/item_group.py:199
+#: webshop/webshop/doctype/override_doctype/item_group.py:201
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1029
 msgid "Shop by Category"
 msgstr ""
@@ -7284,7 +7284,7 @@ msgid "Subject"
 msgstr ""
 
 #: webshop/public/js/customer_reviews.js:53
-#: webshop/templates/generators/item/item_reviews.html:147
+#: webshop/templates/generators/item/item_reviews.html:149
 msgid "Submit"
 msgstr ""
 
@@ -7297,7 +7297,7 @@ msgid "Submitted"
 msgstr ""
 
 #: webshop/public/js/customer_reviews.js:39
-#: webshop/templates/generators/item/item_reviews.html:133
+#: webshop/templates/generators/item/item_reviews.html:135
 msgid "Submitting Review ..."
 msgstr ""
 
@@ -7405,11 +7405,11 @@ msgstr ""
 msgid "Tags"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:228
+#: webshop/webshop/assistant/api.py:324
 msgid "Talk to someone"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:210
+#: webshop/webshop/assistant/api.py:306
 msgid "Talk to the team"
 msgstr ""
 
@@ -7466,7 +7466,7 @@ msgstr ""
 msgid "Thank you for submitting your review"
 msgstr ""
 
-#: webshop/templates/generators/item/item_reviews.html:137
+#: webshop/templates/generators/item/item_reviews.html:139
 msgid "Thank you for the review"
 msgstr ""
 
@@ -7498,15 +7498,15 @@ msgstr ""
 msgid "The amount will be deducted from your total"
 msgstr ""
 
-#: webshop/webshop/assistant/llm.py:43
+#: webshop/webshop/assistant/llm.py:54
 msgid "The assistant has no language model configured."
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:98
+#: webshop/webshop/assistant/api.py:166
 msgid "The assistant is not available at the moment."
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:305 webshop/webshop/assistant/api.py:345
+#: webshop/webshop/assistant/api.py:414 webshop/webshop/assistant/api.py:475
 msgid "The assistant is not enabled."
 msgstr ""
 
@@ -7541,7 +7541,7 @@ msgstr ""
 msgid "The calls the model asked for, as it sent them"
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:500
+#: webshop/controllers/payment_handler.py:504
 msgid "The cart changed after the payment was started. The payment is kept: please contact us."
 msgstr ""
 
@@ -7628,15 +7628,15 @@ msgstr ""
 msgid "The main picture is {0} px wide: {1} px or more"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:223
+#: webshop/webshop/assistant/api.py:319
 msgid "The message could not be sent. Please try again, or write to us directly."
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:309 webshop/webshop/assistant/api.py:349
+#: webshop/webshop/assistant/api.py:418 webshop/webshop/assistant/api.py:479
 msgid "The message is empty."
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:215
+#: webshop/webshop/assistant/api.py:311
 msgid "The message was not sent. Please try again in a moment."
 msgstr ""
 
@@ -7768,15 +7768,15 @@ msgstr ""
 msgid "This cart cannot be paid online."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3386
+#: webshop/webshop/shopping_cart/cart.py:3400
 msgid "This coupon code has expired"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3370
+#: webshop/webshop/shopping_cart/cart.py:3384
 msgid "This coupon code has reached its maximum usage limit"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3383
+#: webshop/webshop/shopping_cart/cart.py:3397
 msgid "This coupon code is not yet valid"
 msgstr ""
 
@@ -7784,11 +7784,11 @@ msgstr ""
 msgid "This email is already linked to an administrator account. Please contact your administrator or use a different email."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3375
+#: webshop/webshop/shopping_cart/cart.py:3389
 msgid "This gift card has already been used and cannot be applied again"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3398
+#: webshop/webshop/shopping_cart/cart.py:3412
 msgid "This gift card has no remaining balance"
 msgstr ""
 
@@ -7818,7 +7818,7 @@ msgid "This order has already been paid"
 msgstr ""
 
 #: webshop/controllers/payment_handler.py:173
-#: webshop/controllers/payment_handler.py:773
+#: webshop/controllers/payment_handler.py:779
 #: webshop/templates/payments/paypal.py:56
 #, python-brace-format
 msgid "This order has already been processed. Order ID: {0}"
@@ -8083,7 +8083,7 @@ msgstr ""
 msgid "Unable to obtain PayPal payment URL"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:314 webshop/webshop/assistant/api.py:370
+#: webshop/webshop/assistant/api.py:432 webshop/webshop/assistant/api.py:506
 msgid "Unable to open a conversation for this session."
 msgstr ""
 
@@ -8194,7 +8194,7 @@ msgstr ""
 msgid "User"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3208
+#: webshop/webshop/shopping_cart/cart.py:3222
 msgid "User not logged in"
 msgstr ""
 
@@ -8354,7 +8354,7 @@ msgstr ""
 msgid "View Website Item"
 msgstr ""
 
-#: webshop/templates/generators/item/item_reviews.html:68
+#: webshop/templates/generators/item/item_reviews.html:70
 msgid "View all"
 msgstr ""
 
@@ -8407,7 +8407,7 @@ msgid "Visits From AI Assistants"
 msgstr ""
 
 #: webshop/templates/pages/checkout.js:3325
-#: webshop/templates/pages/checkout.py:1232
+#: webshop/templates/pages/checkout.py:1234
 msgid "Waiting for your payment…"
 msgstr ""
 
@@ -8748,7 +8748,7 @@ msgstr ""
 msgid "Weekly"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:617
+#: webshop/templates/pages/checkout.py:619
 msgid "Weight"
 msgstr ""
 
@@ -8769,7 +8769,7 @@ msgstr ""
 msgid "Welcome to the B2B checkout process."
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:225
+#: webshop/webshop/assistant/api.py:321
 msgid "What are your opening hours?"
 msgstr ""
 
@@ -8801,7 +8801,7 @@ msgstr ""
 msgid "Where"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:226
+#: webshop/webshop/assistant/api.py:322
 msgid "Where is my order?"
 msgstr ""
 
@@ -8840,7 +8840,7 @@ msgstr ""
 msgid "Why left out"
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:629
+#: webshop/templates/pages/checkout.py:631
 msgid "Width"
 msgstr ""
 
@@ -8893,7 +8893,7 @@ msgstr ""
 
 #: webshop/public/js/customer_reviews.js:21
 #: webshop/templates/generators/item/item_reviews.html:32
-#: webshop/templates/generators/item/item_reviews.html:115
+#: webshop/templates/generators/item/item_reviews.html:117
 #: webshop/templates/pages/customer_reviews.html:20
 msgid "Write a Review"
 msgstr ""
@@ -8902,7 +8902,7 @@ msgstr ""
 msgid "Write the Google Shopping feed now"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:207
+#: webshop/webshop/assistant/api.py:303
 msgid "Write your message…"
 msgstr ""
 
@@ -8962,7 +8962,7 @@ msgstr ""
 msgid "You are not verified to write a review yet."
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:84
+#: webshop/webshop/assistant/api.py:152
 #, python-brace-format
 msgid "You can also call us at {0}."
 msgstr ""
@@ -8983,11 +8983,11 @@ msgstr ""
 msgid "You cannot use loyalty points when a promo code is applied"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3614
+#: webshop/webshop/shopping_cart/cart.py:3628
 msgid "You do not have an active loyalty program"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3636
+#: webshop/webshop/shopping_cart/cart.py:3650
 #, python-brace-format
 msgid "You do not have enough loyalty points ({0} points available)"
 msgstr ""
@@ -9012,8 +9012,12 @@ msgstr ""
 msgid "You have a coupon code or gift card?"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:216
+#: webshop/webshop/assistant/api.py:312
 msgid "You have reached the message limit for today."
+msgstr ""
+
+#: webshop/webshop/utils/throttle.py:67
+msgid "You hit the rate limit because of too many requests. Please try after sometime."
 msgstr ""
 
 #: webshop/templates/generators/item/item.html:88
@@ -9051,7 +9055,7 @@ msgstr ""
 msgid "Your Gift Cards"
 msgstr ""
 
-#: webshop/templates/generators/item/item_reviews.html:120
+#: webshop/templates/generators/item/item_reviews.html:122
 msgid "Your Review"
 msgstr ""
 
@@ -9063,9 +9067,9 @@ msgstr ""
 msgid "Your account is open. Confirm your email address with the link we sent you: you will choose your password there."
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:801
-#: webshop/templates/pages/checkout.py:1146
-#: webshop/templates/pages/checkout.py:1499
+#: webshop/templates/pages/checkout.py:803
+#: webshop/templates/pages/checkout.py:1148
+#: webshop/templates/pages/checkout.py:1503
 msgid "Your basket is empty"
 msgstr ""
 
@@ -9073,7 +9077,7 @@ msgstr ""
 msgid "Your cart is Empty"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:220
+#: webshop/webshop/assistant/api.py:316
 msgid "Your email address"
 msgstr ""
 
@@ -9101,11 +9105,11 @@ msgstr ""
 msgid "Your loyalty program"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:219
+#: webshop/webshop/assistant/api.py:315
 msgid "Your message for the team…"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:377
+#: webshop/webshop/assistant/api.py:513
 #, python-brace-format
 msgid "Your message has been passed on. The team will reply to {0}."
 msgstr ""
@@ -9123,15 +9127,15 @@ msgstr ""
 msgid "Your order has been confirmed."
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:892
+#: webshop/templates/pages/checkout.py:894
 msgid "Your order is registered and held until payment is received. You will get the payment details with your order confirmation."
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:905
+#: webshop/templates/pages/checkout.py:907
 msgid "Your order is registered and invoiced under your agreed payment terms."
 msgstr ""
 
-#: webshop/templates/pages/checkout.py:902
+#: webshop/templates/pages/checkout.py:904
 msgid "Your order is registered and invoiced under your agreed payment terms. It is prepared once your email address is confirmed."
 msgstr ""
 
@@ -9147,15 +9151,19 @@ msgstr ""
 msgid "Your payment has been processed successfully. Redirecting..."
 msgstr ""
 
-#: webshop/controllers/payment_handler.py:620
+#: webshop/controllers/payment_handler.py:626
 msgid "Your payment is not confirmed yet. If your card was charged, do not pay again: the order will appear in your orders as soon as the payment is confirmed."
 msgstr ""
 
-#: webshop/webshop/assistant/escalation.py:143
+#: webshop/webshop/assistant/api.py:424 webshop/webshop/assistant/api.py:484
+msgid "Your previous message is still being answered. One moment, please."
+msgstr ""
+
+#: webshop/webshop/assistant/escalation.py:167
 msgid "Your request has been passed to the team"
 msgstr ""
 
-#: webshop/webshop/assistant/escalation.py:198
+#: webshop/webshop/assistant/escalation.py:223
 #, python-brace-format
 msgid "Your request {0} has been registered"
 msgstr ""
@@ -9407,7 +9415,7 @@ msgstr ""
 msgid "relevance"
 msgstr ""
 
-#: webshop/templates/generators/item/item_reviews.html:68
+#: webshop/templates/generators/item/item_reviews.html:70
 #: webshop/templates/includes/macros.html:275
 msgid "reviews"
 msgstr ""
@@ -9427,8 +9435,8 @@ msgstr ""
 
 #: webshop/templates/pages/checkout.js:2804
 #: webshop/templates/pages/checkout.js:3173
-#: webshop/templates/pages/checkout.py:296
-#: webshop/templates/pages/checkout.py:1245
+#: webshop/templates/pages/checkout.py:298
+#: webshop/templates/pages/checkout.py:1247
 #: webshop/templates/payments/paypal.html:29
 #: webshop/templates/payments/payrexx.html:26
 #: webshop/templates/payments/stripe.html:30
@@ -9458,12 +9466,12 @@ msgstr ""
 
 #: webshop/webshop/shopping_cart/cart.py:778
 #: webshop/webshop/shopping_cart/cart.py:780
-#: webshop/webshop/shopping_cart/cart.py:4159
-#: webshop/webshop/shopping_cart/cart.py:4161
+#: webshop/webshop/shopping_cart/cart.py:4173
+#: webshop/webshop/shopping_cart/cart.py:4175
 msgid "transferred to card"
 msgstr ""
 
-#: webshop/webshop/assistant/api.py:209
+#: webshop/webshop/assistant/api.py:305
 msgid "typing…"
 msgstr ""
 

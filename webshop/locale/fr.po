@@ -9285,3 +9285,23 @@ msgstr "Ce panier ne peut pas être payé en ligne."
 #: webshop/webshop/shopping_cart/pending_order.py:363
 msgid "This is the draft of a payment in progress, not an order: it cannot be submitted."
 msgstr "Il s'agit du brouillon d'un paiement en cours, et non d'une commande : il ne peut pas être soumis."
+
+#. Description of the 'Monthly token cap' (Int) field in DocType 'Webshop
+#. Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:462
+msgid "Empty: 3,000,000 tokens a month. Beyond it the assistant asks the visitor to write to the team."
+msgstr "Vide : 3 000 000 jetons par mois. Au-delà, l'assistant invite le visiteur à écrire à l'équipe."
+
+#: webshop/webshop/assistant/escalation.py:169
+#, python-brace-format
+msgid "Hello,<br><br>Your request has been passed to our team. Someone will get back to you shortly at this address.<br><br>{0}"
+msgstr "Bonjour,<br><br>Votre demande a bien été transmise à notre équipe. Quelqu'un vous répondra prochainement à cette adresse.<br><br>{0}"
+
+#: webshop/webshop/assistant/escalation.py:225
+#, python-brace-format
+msgid "Hello,<br><br>Your request has been registered under number {0}. Our team is handling it and will reply to you at this address."
+msgstr "Bonjour,<br><br>Votre demande a été enregistrée sous le numéro {0}. Notre équipe la traite et vous répondra à cette adresse."
+
+#: webshop/webshop/assistant/api.py:424 webshop/webshop/assistant/api.py:484
+msgid "Your previous message is still being answered. One moment, please."
+msgstr "Votre message précédent est encore en cours de traitement. Un instant, je vous prie."
