@@ -157,6 +157,9 @@ def make_rendition(name, width):
 	os.close(handle)
 	try:
 		copy.save(temporary, "WEBP", quality=QUALITY, method=4)
+		# mkstemp makes the file readable by its owner only (0600): nginx runs as another user and answered 403
+		# for a copy that exists, instead of handing it to Frappe, so every card lost its picture (#2012)
+		os.chmod(temporary, 0o644)
 		os.replace(temporary, target)
 	finally:
 		if os.path.exists(temporary):

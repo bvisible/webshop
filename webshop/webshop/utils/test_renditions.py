@@ -116,6 +116,12 @@ class TestACopy(RenditionsTestCase):
 		with Image.open(path) as copy:
 			self.assertEqual((copy.format, copy.size), ("WEBP", (400, 200)))
 
+	def test_it_can_be_read_by_the_web_server(self):
+		# the copy goes through a temporary file (0600) and nginx, another user, answered 403 (#2012)
+		url = self.picture("readable.jpg", (1000, 500))
+		path = renditions.make_rendition(renditions.source_name(url), 400)
+		self.assertEqual(os.stat(path).st_mode & 0o044, 0o044)
+
 	def test_it_keeps_a_transparent_background(self):
 		url = self.picture("clear.png", (900, 900), mode="RGBA", fmt="PNG")
 		path = renditions.make_rendition(renditions.source_name(url), 400)
