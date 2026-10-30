@@ -448,5 +448,19 @@
   "text": "Bien sûr, je peux transmettre votre demande à l'équipe. Pour que je puisse vous recontacter, pourriez-vous me donner votre adresse e-mail ?",
   "note": "asks for the address, as the tool requires of a visitor who is not signed in",
   "tools": []
+ },
+ {
+  "case": "off-recipe-en",
+  "label": "PASS",
+  "source": "osiris 2026-10-30 final run (deployed code)",
+  "note": "an English refusal worded \"aren't part of what I can help with\"; the pie tin it offers is a product",
+  "text": "I'm sorry, but recipes aren't part of what I can help with here. I can, however, help you find a pie tin or baking tool in our shop, check the store's opening hours, or connect you with our team if you'd like."
+ },
+ {
+  "case": "off-recipe-en",
+  "label": "PASS",
+  "source": "osiris 2026-10-30 final run (deployed code)",
+  "note": "the same refusal; the model wrote the shop's name wrongly, which is not what this battery measures",
+  "text": "I'm sorry, but recipes aren't part of what I can help with here. I'm Nora, the assistant for the Neonline shop — I can help you find a product (like a pie tin or a cookbook), check the store's opening hours, or connect you with the team if you need anything else."
  }
 ]

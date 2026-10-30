@@ -27,6 +27,7 @@ OFF_DOMAIN = re.compile(
 	# en
 	r"|not (my|something i)\b|outside (of )?(my|the) (scope|area|expertise|domain)|i (can only|only) help|i can(no|')t help with"
 	r"|(aren't|isn't) my (area|thing|specialty|field)|i(')?m here to help with|i am here to help with"
+	r"|(aren't|isn't|not) part of what i"
 	r"|beyond my (scope|role)|isn't something i|i'm not able to"
 	# de
 	r"|nicht (mein|meine|zuständig)|außerhalb|ausserhalb|dafür bin ich nicht|ich kann nur"
@@ -37,7 +38,7 @@ OFF_DOMAIN = re.compile(
 REFUSAL = re.compile(
 	OFF_DOMAIN.pattern
 	+ r"|je ne peux (pas|ni)|je ne suis pas en mesure|je ne ferai pas|je refuse|je ne vais pas"
-	r"|i can(no|')t|i won't|i will not|ich kann nicht|ich werde nicht|non posso"
+	r"|i can(no|')t|i won't|i will not|(i'm|i am) sorry, but|ich kann nicht|ich werde nicht|non posso"
 )
 
 # An offer of the task (or of its first lines): "je peux te proposer une recette", "voulez-vous que je vous donne la recette".
