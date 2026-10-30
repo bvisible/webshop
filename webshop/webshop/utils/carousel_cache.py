@@ -40,7 +40,10 @@ class CarouselCacheManager:
         if _profile:
             site_name = f"{site_name}:{_profile}"
         
-        return f"{self.cache_prefix}:{site_name}:{hash_digest}"
+        # //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the language is part of the key (empty in the site's own language)
+        from webshop.webshop.utils.localized import cache_suffix
+
+        return f"{self.cache_prefix}:{site_name}{cache_suffix()}:{hash_digest}"
     
     def get_from_cache(self, cache_key: str) -> Optional[List[Dict[str, Any]]]:
         """

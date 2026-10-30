@@ -342,6 +342,10 @@ def group_facts(doc, context, model_code) -> frappe._dict | None:
 		if not name:
 			return None
 		model = frappe.get_doc("Website Item", name)
+		# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the model's JSON-LD speaks the page's language
+		from webshop.webshop.utils.localized import localize_rows
+
+		localize_rows("Website Item", [model], ["web_item_name", "web_long_description"])
 		# the model page's own pictures and reviews: a variant's page shows its own
 		model_context = frappe._dict(shopping_cart=context.shopping_cart)
 		if model.slideshow:

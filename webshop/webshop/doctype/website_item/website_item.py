@@ -621,6 +621,11 @@ class WebsiteItem(WebsiteGenerator):
 		# //// seo/variants.py), as the listing's tiles do: its own page names the model's as canonical
 		from webshop.webshop.seo.variants import link_variants_to_models
 
+		# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the tiles under the page speak its language
+		from webshop.webshop.utils.localized import localize_items
+
+		localize_items(context.recommended_items)
+		localize_items(context.frequently_bought_together)
 		link_variants_to_models(context.recommended_items or [], settings)
 		link_variants_to_models(context.frequently_bought_together or [], settings)
 

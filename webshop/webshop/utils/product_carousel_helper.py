@@ -267,6 +267,11 @@ def get_carousel_items(item_group=None, only_promotions=False, limit=20,
             if len(items) >= limit:
                 break
     
+    # //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): translated before the cache write, so each language's entry holds its own text
+    from webshop.webshop.utils.localized import localize_items
+
+    localize_items(items)
+
     # Cache the results if cache is enabled
     if use_cache and 'cache_manager' in locals():
         cache_manager.set_cache(cache_key, items, cache_ttl)
