@@ -49,6 +49,7 @@ No upstream equivalent; the whole file is ours.
 | `webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json`, `webshopsi_country/webshopsi_country.json`, `webshopsi_invoice_installments/webshopsi_invoice_installments.json` | the "Facture" (pay-on-invoice) method, folded in from the standalone `webshopsi_integration` app | `662c26b650` (2026-05-26) |
 | `webshop/webshop/doctype/website_item_video/website_item_video.json` | child table of a product's videos (YouTube, Vimeo or a hosted file, title, poster), drawn by the gallery | `b89dd9080b` (2026-09-13) |
 | `webshop/webshop/doctype/reseller_catalogue_group/reseller_catalogue_group.json` | child table of the customer groups allowed to use the reseller catalogue, a row of Webshop Settings | reseller catalogue, lot 0 (2026-10-30) |
+| `webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json` | a reseller's brand: logo, colours, contact details and the markup they apply to the prices of their catalogues | reseller catalogue, lot 0 (2026-10-30) |
 | `webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json`, `shop_assistant_message/shop_assistant_message.json` | a visitor's thread with the shop assistant and its messages (what was said, the tokens each turn cost, the tools it used) | the shop assistant (2026-09), indexed and bounded by neoffice-maintenance#2015 (2026-10-30) |
 | `webshop/webshop/assistant/quality/real_outputs.json` | what the shop assistant really answered, each reply read and labelled by a person; the classifier of the quality battery is tested against it (`quality/test_classify.py`) | neoffice-maintenance#2019 (2026-10-30) |
 | `webshop/webshop/workspace/webshop/webshop.json` | the "Webshop" desk workspace — a **root** page of the Website module, so the Neoffice sidebar lists it. Its « SEO dashboard » link is a URL (`/app/dashboard-view/Webshop%20SEO`): a Workspace Link accepts DocType, Page, Report or URL, and the `Dashboard` type it had was refused when the hub copied the workspace to an instance (neoffice-maintenance#1278) | `86e2609b57`, `01c6358b19` (2026-09-03), 2026-10-07 |
@@ -288,6 +289,7 @@ webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json
 webshop/webshop/doctype/purchase_follow_up_log/purchase_follow_up_log.json
 webshop/webshop/doctype/purchase_follow_up_step/purchase_follow_up_step.json
 webshop/webshop/doctype/reseller_catalogue_group/reseller_catalogue_group.json
+webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json
 webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json
 webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json
 webshop/webshop/doctype/store_closure/store_closure.json

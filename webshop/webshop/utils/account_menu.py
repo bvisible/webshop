@@ -114,6 +114,13 @@ def courses_are_offered() -> bool:
 	return bool(frappe.db.exists("LMS Course", {"published": 1}))
 
 
+def reseller_catalogue_is_offered() -> bool:
+	"""The brand page of the reseller catalogue: the customers of the groups the shop allowed, nobody else."""
+	from webshop.webshop.catalogue.access import is_offered
+
+	return is_offered()
+
+
 def switch_is_on(field: str):
 	return lambda: bool(frappe.db.get_single_value("Webshop Settings", field))
 
@@ -127,6 +134,7 @@ ENTRIES = {
 	"/my-projects": (N_("Projects"), None),
 	"/gift-cards": (N_("Gift cards"), switch_is_on("enable_gift_cards")),
 	"/loyalty-points": (N_("Loyalty"), switch_is_on("enable_loyalty_points")),
+	"/my-brand": (N_("Brand"), reseller_catalogue_is_offered),
 }
 
 

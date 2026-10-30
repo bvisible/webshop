@@ -123,6 +123,9 @@ override_doctype_dashboards = {
 standard_portal_menu_items = [
 	{"title": "Gift cards", "route": "/gift-cards", "reference_doctype": "Coupon Code", "role": "Customer"},
 	{"title": "Loyalty", "route": "/loyalty-points", "reference_doctype": "Loyalty Program", "role": "Customer"},
+	# //// Neoffice — the reseller's brand page (2026-10-30). Only the customers of the groups the shop
+	# //// allowed see the entry (utils/account_menu.py), whatever the row says.
+	{"title": "Brand", "route": "/my-brand", "reference_doctype": "Reseller Catalogue Profile", "role": "Customer"},
 ]
 
 # //// Neoffice — added (2026-09-22). A reminder about an abandoned cart is a trace,

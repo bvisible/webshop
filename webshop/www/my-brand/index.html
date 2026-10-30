@@ -1,0 +1,138 @@
+{# //// Neoffice — added file (the reseller's brand page, no upstream equivalent). #}
+{# //// One form, no framework: index.js next to this file fills it from the server, saves it, #}
+{# //// sends the logo and shows the prices the markup gives. Every label comes from the server. #}
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Brand") }}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block page_content %}
+<div class="wsp-brand" id="wsp-brand">
+	<script type="application/json" id="wsp-brand-config">{{ config | json }}</script>
+	<p class="text-muted">{{ config.labels.lead }}</p>
+	<div class="alert alert-info d-none" id="wsp-brand-credit" role="status"></div>
+
+	<form id="wsp-brand-form" novalidate>
+		<section class="frappe-card p-4 mb-4">
+			<h2 class="h5 mb-3">{{ config.labels.brand }}</h2>
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label class="mb-1" for="wsp-brand_name">{{ config.labels.brand_name }}</label>
+					<input class="form-control" id="wsp-brand_name" name="brand_name" maxlength="80" autocomplete="organization">
+					<div class="invalid-feedback d-block" data-error-for="brand_name"></div>
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="mb-1" for="wsp-logo-file">{{ config.labels.logo }}</label>
+					<div id="wsp-logo-preview" class="mb-2 p-3 border rounded text-muted">{{ config.labels.logo_none }}</div>
+					<input class="form-control" id="wsp-logo-file" type="file" accept="image/png,image/jpeg">
+					<div class="form-text">{{ config.labels.logo_hint }}</div>
+					<button class="btn btn-sm btn-light mt-2 d-none" id="wsp-logo-remove" type="button">{{ config.labels.logo_remove }}</button>
+					<div class="invalid-feedback d-block" data-error-for="logo"></div>
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="mb-1" for="wsp-primary_colour">{{ config.labels.primary_colour }}</label>
+					<input class="form-control p-1" id="wsp-primary_colour" name="primary_colour" type="color">
+					<div class="invalid-feedback d-block" data-error-for="primary_colour"></div>
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="mb-1" for="wsp-secondary_colour">{{ config.labels.secondary_colour }}</label>
+					<input class="form-control p-1" id="wsp-secondary_colour" name="secondary_colour" type="color">
+					<div class="invalid-feedback d-block" data-error-for="secondary_colour"></div>
+				</div>
+				<div class="col-12">
+					<div class="form-text mb-1">{{ config.labels.sample }}</div>
+					<div class="d-flex flex-wrap">
+						<span class="px-3 py-2 mr-2 mb-2 rounded font-weight-bold" id="wsp-sample-primary"></span>
+						<span class="px-3 py-2 mr-2 mb-2 rounded font-weight-bold" id="wsp-sample-secondary"></span>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="frappe-card p-4 mb-4">
+			<h2 class="h5 mb-3">{{ config.labels.contact }}</h2>
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label class="mb-1" for="wsp-contact_email">{{ config.labels.contact_email }}</label>
+					<input class="form-control" id="wsp-contact_email" name="contact_email" type="email" maxlength="120" autocomplete="email">
+					<div class="invalid-feedback d-block" data-error-for="contact_email"></div>
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="mb-1" for="wsp-contact_phone">{{ config.labels.contact_phone }}</label>
+					<input class="form-control" id="wsp-contact_phone" name="contact_phone" type="tel" maxlength="40" autocomplete="tel">
+					<div class="invalid-feedback d-block" data-error-for="contact_phone"></div>
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="mb-1" for="wsp-contact_website">{{ config.labels.contact_website }}</label>
+					<input class="form-control" id="wsp-contact_website" name="contact_website" maxlength="120" autocomplete="url">
+					<div class="invalid-feedback d-block" data-error-for="contact_website"></div>
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="mb-1" for="wsp-vat_number">{{ config.labels.vat_number }}</label>
+					<input class="form-control" id="wsp-vat_number" name="vat_number" maxlength="40">
+					<div class="invalid-feedback d-block" data-error-for="vat_number"></div>
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="mb-1" for="wsp-contact_address">{{ config.labels.contact_address }}</label>
+					<textarea class="form-control" id="wsp-contact_address" name="contact_address" rows="3" maxlength="300" autocomplete="street-address"></textarea>
+					<div class="invalid-feedback d-block" data-error-for="contact_address"></div>
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="mb-1" for="wsp-footer_text">{{ config.labels.footer_text }}</label>
+					<input class="form-control" id="wsp-footer_text" name="footer_text" maxlength="140">
+					<div class="form-text">{{ config.labels.footer_hint }}</div>
+					<div class="invalid-feedback d-block" data-error-for="footer_text"></div>
+				</div>
+			</div>
+		</section>
+
+		<section class="frappe-card p-4 mb-4">
+			<h2 class="h5 mb-3">{{ config.labels.prices }}</h2>
+			<div class="row">
+				<div class="col-md-3 mb-3">
+					<label class="mb-1" for="wsp-default_markup_percent">{{ config.labels.markup }}</label>
+					<input class="form-control" id="wsp-default_markup_percent" name="default_markup_percent" type="number" min="0" max="300" step="0.01" inputmode="decimal">
+					<div class="form-text">{{ config.labels.markup_hint }}</div>
+					<div class="invalid-feedback d-block" data-error-for="default_markup_percent"></div>
+				</div>
+				<div class="col-md-3 mb-3">
+					<label class="mb-1" for="wsp-price_rounding">{{ config.labels.rounding }}</label>
+					<select class="form-control" id="wsp-price_rounding" name="price_rounding"></select>
+					<div class="invalid-feedback d-block" data-error-for="price_rounding"></div>
+				</div>
+				<div class="col-md-3 mb-3">
+					<label class="mb-1" for="wsp-price_display">{{ config.labels.price_display }}</label>
+					<select class="form-control" id="wsp-price_display" name="price_display"></select>
+					<div class="invalid-feedback d-block" data-error-for="price_display"></div>
+				</div>
+				<div class="col-md-3 mb-3" id="wsp-vat-group">
+					<label class="mb-1" for="wsp-vat_rate">{{ config.labels.vat_rate }}</label>
+					<input class="form-control" id="wsp-vat_rate" name="vat_rate" type="number" min="0" max="100" step="0.01" inputmode="decimal">
+					<div class="form-text">{{ config.labels.vat_hint }}</div>
+					<div class="invalid-feedback d-block" data-error-for="vat_rate"></div>
+				</div>
+			</div>
+
+			<h3 class="h6 mt-2">{{ config.labels.try }}</h3>
+			<p class="text-muted small mb-2" id="wsp-try-list"></p>
+			<div class="table-responsive">
+				<table class="table table-sm" aria-live="polite">
+					<thead>
+						<tr>
+							<th>{{ config.labels.try_product }}</th>
+							<th class="text-right">{{ config.labels.try_cost }}</th>
+							<th class="text-right">{{ config.labels.try_price }}</th>
+						</tr>
+					</thead>
+					<tbody id="wsp-try-rows"></tbody>
+				</table>
+			</div>
+		</section>
+
+		<div class="d-flex align-items-center">
+			<button class="btn btn-primary mr-3" id="wsp-brand-save" type="submit">{{ config.labels.save }}</button>
+			<span class="text-muted" id="wsp-brand-status" role="status"></span>
+		</div>
+	</form>
+</div>
+{% endblock %}

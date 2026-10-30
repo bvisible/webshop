@@ -278,6 +278,9 @@ jobs:
           # //// the route rules and the templates and needs no site fixture either.
           # //// Neoffice — the reseller catalogue (2026-10-30): the markup arithmetic is pure and needs no
           # //// site; the access rule reads real customers in a tree of groups of its own, green on the clone.
+          # //// Neoffice — the brand page: the field checks and the logo are pure (Pillow only); test_my_brand runs
+          # //// the endpoints on a published item priced on two lists, the proof that a catalogue prints each
+          # //// reseller's own price.
           for m in \
             webshop.controllers.test_payment_handler \
             webshop.controllers.test_payment_mode_enabled \
@@ -356,7 +359,10 @@ jobs:
             webshop.templates.payments.test_paypal_owns_the_cart \
             webshop.webshop.shopping_cart.test_administrator_is_not_a_shop_customer \
             webshop.webshop.catalogue.test_markup \
-            webshop.webshop.catalogue.test_access
+            webshop.webshop.catalogue.test_access \
+            webshop.webshop.catalogue.test_brand \
+            webshop.webshop.catalogue.test_logo \
+            webshop.webshop.catalogue.test_my_brand
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || failed="$failed $m"

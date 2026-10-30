@@ -70,3 +70,5 @@ webshop.patches.add_email_confirmation_hold_field
 webshop.patches.english_account_menu_routes
 # //// Neoffice — the WebP copies of the shop's pictures are readable by the web server (2026-10-30, #2012)
 webshop.patches.make_picture_copies_readable
+# //// Neoffice — the reseller's brand page in the account menu of existing sites (2026-10-30)
+webshop.patches.add_my_brand_portal_menu
