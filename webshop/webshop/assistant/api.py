@@ -40,7 +40,7 @@ SITE_HOURLY_MESSAGES = 300
 LOCK_SECONDS = 120
 # //// Neoffice — answers the whole site gives at the same moment when the merchant sets none (lot C of the 2026-10-30 audit)
 # each one holds one of the shop's web workers for as long as the model takes
-DEFAULT_SIMULTANEOUS_ANSWERS = 3
+BENCH_DEFAULT_WORKERS = 2
 ANSWER_SLOTS_KEY = "webshop_assistant_inflight"
 # what uuid.uuid4() writes: the only shape the shop's guest cookie takes
 GUEST_SESSION_SHAPE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
@@ -142,8 +142,17 @@ def conversation_lock(ctx):
 
 
 def max_simultaneous(s=None):
-	"""Answers the site gives at the same moment: the merchant's figure, else DEFAULT_SIMULTANEOUS_ANSWERS."""
-	return cint((s or settings()).get("assistant_max_simultaneous_answers")) or DEFAULT_SIMULTANEOUS_ANSWERS
+	"""Answers the site gives at the same moment: the merchant's figure, else what the web workers can spare.
+
+	The shop and the ERP run on a handful of web workers (three on the development server), and an answer holds one for
+	as long as the model takes. Left to itself the assistant leaves the shop more than half of them: 1 for up to 4
+	workers, 2 for 5, then one more for every two.
+	"""
+	chosen = cint((s or settings()).get("assistant_max_simultaneous_answers"))
+	if chosen:
+		return chosen
+	workers = cint(frappe.conf.get("gunicorn_workers")) or BENCH_DEFAULT_WORKERS
+	return max(1, (workers - 1) // 2)
 
 
 @contextmanager

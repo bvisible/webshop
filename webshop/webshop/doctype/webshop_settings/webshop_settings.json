@@ -460,7 +460,7 @@
    "label": "Messages per day, signed-in customer"
   },
   {
-   "description": "Answers the assistant gives at the same moment, whoever asks. Each one holds one of the shop's web workers while the model answers. Empty: 3.",
+   "description": "Answers the assistant gives at the same moment, whoever asks. Each one holds one of the shop's web workers while the model answers. Empty: what the web workers can spare, keeping more than half of them for the shop (1 on a bench with 3 workers).",
    "fieldname": "assistant_max_simultaneous_answers",
    "fieldtype": "Int",
    "label": "Answers at the same moment"

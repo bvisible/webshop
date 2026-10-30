@@ -671,11 +671,26 @@ class TestAssistant(FrappeTestCase):
 		with api.answer_slot(1) as granted:
 			self.assertTrue(granted)
 
-	def test_the_merchant_sets_how_many_answers_at_once_and_an_empty_field_means_three(self):
-		self.assertEqual(api.max_simultaneous(self.settings), api.DEFAULT_SIMULTANEOUS_ANSWERS)
-		self.assertEqual(api.DEFAULT_SIMULTANEOUS_ANSWERS, 3)
-		self.settings.assistant_max_simultaneous_answers = 5
-		self.assertEqual(api.max_simultaneous(self.settings), 5)
+	def test_the_merchant_sets_how_many_answers_at_once_and_an_empty_field_follows_the_web_workers(self):
+		"""An answer holds a web worker for as long as the model takes: the shop keeps more than half of them for its pages."""
+		real = frappe.conf.get("gunicorn_workers")
+		try:
+			expected = {1: 1, 2: 1, 3: 1, 4: 1, 5: 2, 7: 3, 9: 4, 17: 8}
+			for workers, answers in expected.items():
+				frappe.conf["gunicorn_workers"] = workers
+				with self.subTest(workers=workers):
+					self.assertEqual(api.max_simultaneous(self.settings), answers)
+			# a bench that does not say how many workers it runs is read as bench's own default of two
+			frappe.conf.pop("gunicorn_workers", None)
+			self.assertEqual(api.max_simultaneous(self.settings), 1)
+			frappe.conf["gunicorn_workers"] = 9
+			self.settings.assistant_max_simultaneous_answers = 5
+			self.assertEqual(api.max_simultaneous(self.settings), 5)
+		finally:
+			if real is None:
+				frappe.conf.pop("gunicorn_workers", None)
+			else:
+				frappe.conf["gunicorn_workers"] = real
 
 	def test_a_visitor_met_with_no_free_place_gets_the_busy_notice_and_the_model_is_not_called(self):
 		def never(*args, **kwargs):
