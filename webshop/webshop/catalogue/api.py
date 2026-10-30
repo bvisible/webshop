@@ -26,9 +26,12 @@ from webshop.webshop.product_data_engine.catalogue_scope import visible_item_fil
 from webshop.webshop.utils import customer_pricing
 
 DOCTYPE = "Reseller Catalogue Profile"
-# the products the price preview draws from, and how many of them it shows
-SAMPLE_POOL = 40
+# the price preview shows SAMPLE_SIZE products. A customer's price costs about 21 ms an item (measured
+# on osiris, 42 pricing rules): products are priced SAMPLE_CHUNK at a time and the scan stops as soon as
+# enough are priced, so a keystroke in the markup field costs a fraction of a second, not a catalogue.
 SAMPLE_SIZE = 5
+SAMPLE_CHUNK = 10
+SAMPLE_SCAN_MAX = 50
 # a logo of 2 MB is 2.8 MB once written in base64: refuse a longer body before decoding it
 MAX_LOGO_BASE64 = 3 * 1024 * 1024
 
@@ -224,26 +227,30 @@ def preview_prices(
 		filters=visible_item_filters(),
 		fields=["item_code", "web_item_name"],
 		order_by="modified desc",
-		limit=SAMPLE_POOL,
+		limit=SAMPLE_SCAN_MAX,
 	)
-	priced = customer_pricing.prices_for([item.item_code for item in items], price_list, party, settings)
 	including_vat = current["price_display"] == "Including VAT"
 	rows = []
-	for item in items:
-		cost = (priced.get(item.item_code) or {}).get("price")
-		if cost is None:
-			continue
-		selling = markup.selling_price(
-			cost, current["default_markup_percent"], current["price_rounding"], current["vat_rate"], including_vat
-		)
-		rows.append(
-			{
-				"item_code": item.item_code,
-				"name": item.web_item_name or item.item_code,
-				"cost": fmt_money(cost, currency=currency),
-				"price": fmt_money(float(selling), currency=currency),
-			}
-		)
+	for start in range(0, len(items), SAMPLE_CHUNK):
+		chunk = items[start : start + SAMPLE_CHUNK]
+		priced = customer_pricing.prices_for([item.item_code for item in chunk], price_list, party, settings)
+		for item in chunk:
+			cost = (priced.get(item.item_code) or {}).get("price")
+			if cost is None:
+				continue
+			selling = markup.selling_price(
+				cost, current["default_markup_percent"], current["price_rounding"], current["vat_rate"], including_vat
+			)
+			rows.append(
+				{
+					"item_code": item.item_code,
+					"name": item.web_item_name or item.item_code,
+					"cost": fmt_money(cost, currency=currency),
+					"price": fmt_money(float(selling), currency=currency),
+				}
+			)
+			if len(rows) == SAMPLE_SIZE:
+				break
 		if len(rows) == SAMPLE_SIZE:
 			break
 	return {
