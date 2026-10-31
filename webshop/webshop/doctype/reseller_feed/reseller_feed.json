@@ -1,0 +1,170 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:customer",
+ "creation": "2026-10-31 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer",
+  "status",
+  "progress",
+  "stage",
+  "error",
+  "files_section",
+  "item_count",
+  "generated_on",
+  "prices_as_of",
+  "last_fetched",
+  "address_section",
+  "token",
+  "token_hash",
+  "settings_section",
+  "selection",
+  "options",
+  "website_profile"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1,
+   "unique": 1,
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "Set by the server from the signed-in account and never taken from a request. One feed a customer."
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Queued\nRunning\nReady\nFailed",
+   "default": "Queued",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "progress",
+   "fieldtype": "Percent",
+   "label": "Progress",
+   "read_only": 1
+  },
+  {
+   "fieldname": "stage",
+   "fieldtype": "Data",
+   "label": "Stage",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Small Text",
+   "label": "Error",
+   "read_only": 1
+  },
+  {
+   "fieldname": "files_section",
+   "fieldtype": "Section Break",
+   "label": "The Feed"
+  },
+  {
+   "fieldname": "item_count",
+   "fieldtype": "Int",
+   "label": "Lines",
+   "read_only": 1
+  },
+  {
+   "fieldname": "generated_on",
+   "fieldtype": "Datetime",
+   "label": "Made On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "prices_as_of",
+   "fieldtype": "Date",
+   "label": "Prices As Of",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_fetched",
+   "fieldtype": "Datetime",
+   "label": "Last Fetched",
+   "read_only": 1,
+   "description": "When a script or a shop last read the feed, to the hour. A feed nobody has read for 14 days is no longer refreshed each night."
+  },
+  {
+   "fieldname": "address_section",
+   "fieldtype": "Section Break",
+   "label": "The Secret Address",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "token",
+   "fieldtype": "Password",
+   "label": "Token",
+   "read_only": 1,
+   "description": "The secret in the feed's address, kept encrypted. Whoever knows it reads the feed: replacing it closes the old address."
+  },
+  {
+   "fieldname": "token_hash",
+   "fieldtype": "Data",
+   "label": "Token Hash",
+   "read_only": 1,
+   "unique": 1,
+   "length": 64,
+   "description": "SHA-256 of the token: how an address is matched to its feed without keeping the secret in the clear."
+  },
+  {
+   "fieldname": "settings_section",
+   "fieldtype": "Section Break",
+   "label": "What It Is Made From",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "selection",
+   "fieldtype": "Long Text",
+   "label": "Selection",
+   "read_only": 1,
+   "description": "Item groups, brands and products as JSON. Never a price."
+  },
+  {
+   "fieldname": "options",
+   "fieldtype": "Long Text",
+   "label": "Options",
+   "read_only": 1,
+   "description": "Markup and price mode as JSON."
+  },
+  {
+   "fieldname": "website_profile",
+   "fieldtype": "Data",
+   "label": "Website Profile",
+   "read_only": 1,
+   "description": "The site the feed was asked on: its price list is the one the prices come from."
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-31 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Reseller Feed",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

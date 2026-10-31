@@ -118,7 +118,7 @@ def _cheapest_variants(models, price_list):
 	return found
 
 
-def _price_many(codes, price_list, party, settings, progress):
+def price_many(codes, price_list, party, settings, progress):
 	"""{item code: price dict} for every code the customer has a price for, reporting as it goes."""
 	prices = {}
 	for start in range(0, len(codes), PRICE_CHUNK):
@@ -163,7 +163,7 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 	if with_prices:
 		to_price = [row.item_code for row in rows if not row.has_variants]
 		to_price += [cheapest for cheapest, _count in variants_of.values() if cheapest]
-		prices = _price_many(to_price, price_list, party, settings, progress)
+		prices = price_many(to_price, price_list, party, settings, progress)
 
 	def selling(code):
 		cost = (prices.get(code) or {}).get("price")

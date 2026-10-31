@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
+  "format",
   "customer",
   "status",
   "progress",
@@ -33,6 +34,17 @@
    "in_list_view": 1,
    "reqd": 1,
    "length": 80
+  },
+  {
+   "fieldname": "format",
+   "fieldtype": "Select",
+   "label": "Format",
+   "options": "PDF\nXLSX\nCSV",
+   "default": "PDF",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "What the file is: a PDF catalogue, an Excel workbook or a CSV file. A record made before the formats existed has none and is a PDF."
   },
   {
    "fieldname": "customer",
@@ -77,13 +89,15 @@
    "fieldname": "item_count",
    "fieldtype": "Int",
    "label": "Products",
-   "read_only": 1
+   "read_only": 1,
+   "description": "Products of a PDF, lines of a workbook or a CSV."
   },
   {
    "fieldname": "page_count",
    "fieldtype": "Int",
    "label": "Pages",
-   "read_only": 1
+   "read_only": 1,
+   "description": "Pages of a PDF; empty for a workbook or a CSV."
   },
   {
    "fieldname": "generated_on",
@@ -114,7 +128,7 @@
    "fieldtype": "Attach",
    "label": "File",
    "read_only": 1,
-   "description": "A private PDF."
+   "description": "A private file: the PDF, the workbook or the CSV."
   },
   {
    "fieldname": "settings_section",
@@ -152,7 +166,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-31 09:00:00.000000",
+ "modified": "2026-10-31 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Reseller Catalogue",

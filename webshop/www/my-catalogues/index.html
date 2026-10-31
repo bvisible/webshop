@@ -15,10 +15,32 @@
 	</div>
 	<div class="alert alert-warning d-none" id="wsp-cat-no-engine" role="alert">{{ config.labels.no_engine }}</div>
 
+	<section class="frappe-card p-4 mb-4 d-none" id="wsp-feed" aria-labelledby="wsp-feed-title">
+		<h2 class="h5 mb-2" id="wsp-feed-title">{{ config.labels.feed_title }}</h2>
+		<p class="mb-1 font-weight-bold" id="wsp-feed-status" role="status" aria-live="polite"></p>
+		<p class="text-muted small mb-1" id="wsp-feed-facts"></p>
+		<p class="text-muted small mb-3" id="wsp-feed-choices"></p>
+		<p class="text-danger small mb-2 d-none" id="wsp-feed-message" role="alert"></p>
+		<div id="wsp-feed-addresses"></div>
+		<p class="text-muted small mt-2 mb-3">{{ config.labels.feed_secret }}</p>
+		<div class="d-flex flex-wrap" id="wsp-feed-actions"></div>
+		<p class="text-muted small mt-3 mb-0">{{ config.labels.feed_change }}</p>
+	</section>
+
 	<form id="wsp-cat-form" novalidate>
 		<section class="frappe-card p-4 mb-4">
 			<h2 class="h5 mb-3">{{ config.labels.new }}</h2>
 			<div class="row">
+				<div class="col-md-4 mb-3">
+					<label class="mb-1" for="wsp-cat-format">{{ config.labels.format }}</label>
+					<select class="form-control" id="wsp-cat-format"></select>
+					<div class="invalid-feedback d-block" data-error-for="format"></div>
+				</div>
+				<div class="col-md-8 mb-3 d-flex align-items-end">
+					<p class="text-muted small mb-1" id="wsp-cat-format-hint"></p>
+				</div>
+			</div>
+			<div class="row" id="wsp-cat-title-row">
 				<div class="col-md-8 mb-3">
 					<label class="mb-1" for="wsp-cat-title">{{ config.labels.title }}</label>
 					<input class="form-control" id="wsp-cat-title" maxlength="80" placeholder="{{ config.labels.title_example }}">
@@ -66,7 +88,7 @@
 					<select class="form-control" id="wsp-cat-prices"></select>
 					<div class="invalid-feedback d-block" data-error-for="prices"></div>
 				</div>
-				<div class="col-md-4 mb-3">
+				<div class="col-md-4 mb-3" id="wsp-cat-layout-col">
 					<label class="mb-1" for="wsp-cat-layout">{{ config.labels.layout }}</label>
 					<select class="form-control" id="wsp-cat-layout"></select>
 					<div class="invalid-feedback d-block" data-error-for="layout"></div>
@@ -87,6 +109,7 @@
 				<thead>
 					<tr>
 						<th>{{ config.labels.col_title }}</th>
+						<th>{{ config.labels.col_format }}</th>
 						<th>{{ config.labels.col_date }}</th>
 						<th class="text-right">{{ config.labels.col_products }}</th>
 						<th class="text-right">{{ config.labels.col_pages }}</th>

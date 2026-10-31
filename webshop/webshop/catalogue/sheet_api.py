@@ -28,10 +28,10 @@ from webshop.webshop.utils import throttle
 CACHE_SECONDS = 300
 
 
-def _filename(name):
+def _filename(name, extension="pdf", fallback="product-sheet"):
 	"""A name any browser saves: ASCII letters, digits and dashes."""
 	ascii_name = unicodedata.normalize("NFKD", name or "").encode("ascii", "ignore").decode()
-	return (re.sub(r"[^A-Za-z0-9]+", "-", ascii_name).strip("-")[:60] or "product-sheet") + ".pdf"
+	return (re.sub(r"[^A-Za-z0-9]+", "-", ascii_name).strip("-")[:60] or fallback) + "." + extension
 
 
 def _response(pdf, name, private):

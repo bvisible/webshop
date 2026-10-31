@@ -1214,6 +1214,35 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
   (`jobs.purge`, daily). The price the reseller pays is never printed: `test_book` fails when it is (nine tests turned
   red when a mutation printed it). Measured on osiris: 308 products in 14 s of work, 43 pages, 2.6 MB.
 
+- **Files and a feed** (lot 3, 2026-10-31): the same selection, job and page, three more outputs. `rows.py` makes
+  the lines — one per thing that can be bought, so a model is its variants — and `tables.py` writes them as CSV and
+  JSON (the machine names of `rows.columns_for`, English, the same whatever the language) or as an Excel workbook
+  (translated headers, figures that stay numbers). A workbook or a CSV is a `Reseller Catalogue` with a `format`,
+  asked on the same page (`create_catalogue(format=…)`), made by `jobs.generate`, listed, downloaded and kept like a
+  PDF; it needs no Chromium, and no brand when it carries no selling price. The price mode is the server's decision:
+  `customers` (what they pay plus their markup), `tariff` (what they pay, for themselves), `both`, `none` — **a PDF
+  and a feed refuse `tariff` and `both`**, the PDF because it is for their customers, the feed because its address is
+  a secret that can leak. The shop's own price is in no line. Limits: 5000 lines (`rows.MAX_ROWS`), counted in
+  lines at the request, so the page says "too many" before the job does.
+- **The feed** (`feed.py`, `feed_api.py`, doctype `Reseller Feed`, one per customer) is a file a script or a shop's
+  importer reads at `/feeds/reseller/<token>/products.csv` (or `.json`): the products, with photos as whole public
+  addresses, descriptions, EAN, manufacturer's reference, availability and the selling price. It is written by a job
+  (`feed.refresh`: when saved, by the button, each night for the feeds read in the last 14 days or made in the last 14;
+  six saves or refreshes a day), never while somebody reads. The token is 24 random bytes; the table keeps its
+  SHA-256 (to find the feed) and the Password field keeps it encrypted (so the page can show the address again).
+  A new address closes the old one at once; an address that leads nowhere, a reseller the shop no longer allows and a
+  feed with no file yet are the same 404, and a connection that asks for many wrong ones is slowed (`throttle`).
+  `ETag` and `If-None-Match` answer 304; the last read is written to the hour (a GET is never committed by Frappe).
+
+> **The feed's files are in the site's private folder, not File records.** File shares the file on disk between
+> records with the same content, so the refresh of one reseller would have deleted the file of another whose feed was
+> byte for byte the same. Named by a hash of the customer, written beside and moved over (`os.replace`), so a reader
+> never sees half a file. A failed refresh leaves the last good file in service.
+
+> **openpyxl turns a string that starts with `=` into a formula.** Every text cell of the workbook is set to a
+> string (`cell.data_type = "s"`). The CSV is left as it is on purpose: it is for another system, and an apostrophe
+> added to a name would be imported with it.
+
 > **`fmt_money` drops the currency when Global Defaults hides the symbol** (osiris does): a sheet read away from the
 > site printed `160.65` for a price in CHF. `price_text` puts the currency back. The first diagnosis ("the offer has
 > no currency") was wrong, and its test stayed green on the old code: see a test fail before trusting it.

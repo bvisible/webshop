@@ -17,12 +17,20 @@ import json
 import frappe
 from frappe.utils import add_days, add_to_date, now_datetime, nowdate
 
-from webshop.webshop.catalogue import book, book_pdf, selection
+from webshop.webshop.catalogue import book, book_pdf, rows, selection, tables
 from webshop.webshop.catalogue import api as brand_api
 from webshop.webshop.catalogue.pdf import chromium_available
 from webshop.webshop.catalogue.refusals import catalogue_message
 from webshop.webshop.catalogue.sheet_api import _filename
-from webshop.webshop.doctype.reseller_catalogue.reseller_catalogue import FAILED, QUEUED, READY, RUNNING
+from webshop.webshop.doctype.reseller_catalogue.reseller_catalogue import (
+	CSV,
+	FAILED,
+	PDF,
+	QUEUED,
+	READY,
+	RUNNING,
+	XLSX,
+)
 
 DOCTYPE = "Reseller Catalogue"
 KEEP_DAYS = 30
@@ -31,7 +39,14 @@ JOB_TIMEOUT = 1500  # seconds: the long queue's own limit is 1500
 STALLED_MINUTES = 40  # a catalogue Queued or Running for longer lost its worker: it blocks nobody and is closed
 # the share of the progress bar each stage covers: prices dominate, then the pictures, then the two renders
 STAGES = {"prices": (2, 45), "pictures": (45, 75), "render": (75, 98)}
-NUMBERS = {"too_many_products": selection.MAX_PRODUCTS, "too_many_pages": book_pdf.MAX_PAGES}
+# a table of products has no pictures to prepare and nothing to lay out: the prices are nearly all of it
+TABLE_STAGES = {"prices": (2, 92), "file": (92, 98)}
+NUMBERS = {
+	"too_many_products": selection.MAX_PRODUCTS,
+	"too_many_pages": book_pdf.MAX_PAGES,
+	"too_many_rows": rows.MAX_ROWS,
+}
+EXTENSIONS = {PDF: "pdf", XLSX: "xlsx", CSV: "csv"}
 
 
 def enqueue_generation(name):
@@ -51,27 +66,56 @@ def _set(name, **values):
 	frappe.db.commit()
 
 
-def _reporter(name):
-	"""progress(stage, done, total) for the builders: the bar moves when a figure changes, not on every product."""
+def reporter(name, stages=STAGES, setter=None):
+	"""progress(stage, done, total) for the builders: the bar moves when a figure changes, not on every product.
+	`setter(name, **values)` writes it (the catalogue's `_set`, or the feed's)."""
 	last = {"percent": -1, "stage": None}
+	write = setter or _set
 
 	def report(stage, done, total):
-		low, high = STAGES.get(stage, (0, 100))
+		low, high = stages.get(stage, (0, 100))
 		percent = int(low + (high - low) * (done / total if total else 1))
 		if percent != last["percent"] or stage != last["stage"]:
 			last.update(percent=percent, stage=stage)
-			_set(name, progress=percent, stage=stage)
+			write(name, progress=percent, stage=stage)
 
 	return report
 
 
-def _pin_site(doc):
+def pin_site(doc):
 	"""Compute on the site the catalogue was asked on: a job has no request, so no profile, so the default list."""
 	profile = doc.get("website_profile")
 	if not profile or not frappe.db.exists("DocType", "Website Profile") or not frappe.db.exists("Website Profile", profile):
 		return
 	frappe.local.website_profile = profile
 	frappe.local.website_profile_doc = frappe.get_doc("Website Profile", profile).as_dict()
+
+
+def _make_pdf(doc, payload, clean):
+	"""(content, file name, products, pages) of a PDF catalogue."""
+	if not chromium_available():
+		raise book.CatalogueRefused("no_engine")
+	options = book.clean_options(json.loads(doc.options or "{}"), payload["values"]["default_markup_percent"])
+	report = reporter(doc.name)
+	data = book.build_book(doc.customer, payload, payload["credit_line"], doc.title, clean, options, report)
+	pdf, pages = book_pdf.make_pdf(data, report)
+	if pages > book_pdf.MAX_PAGES:
+		raise book.CatalogueRefused("too_many_pages")
+	return pdf, _filename(doc.title), data.product_count, pages
+
+
+def _make_table(doc, payload, clean, fmt):
+	"""(content, file name, lines, no pages) of a workbook or a CSV file."""
+	options = rows.clean_options(json.loads(doc.options or "{}"), payload["values"]["default_markup_percent"])
+	report = reporter(doc.name, TABLE_STAGES)
+	data = rows.build_rows(doc.customer, payload, clean, options, report)
+	report("file", 0, 1)
+	if fmt == XLSX:
+		issuer = payload["values"].get("brand_name") or ""
+		content = tables.xlsx_bytes(data, rows.labels(data, doc.title, issuer))
+	else:
+		content = tables.csv_bytes(data)
+	return content, _filename(doc.title, EXTENSIONS[fmt], "catalogue"), len(data.rows), None
 
 
 def generate(catalogue):
@@ -82,27 +126,23 @@ def generate(catalogue):
 	_set(catalogue, status=RUNNING, progress=1, stage="start", error="")
 	try:
 		frappe.set_user_lang(doc.owner)
-		_pin_site(doc)
-		if not chromium_available():
-			raise book.CatalogueRefused("no_engine")
+		pin_site(doc)
 		payload = brand_api._payload(doc.customer)
 		clean = selection.clean_selection(doc.selection)
-		options = book.clean_options(json.loads(doc.options or "{}"), payload["values"]["default_markup_percent"])
-		data = book.build_book(
-			doc.customer, payload, payload["credit_line"], doc.title, clean, options, _reporter(catalogue)
-		)
-		pdf, pages = book_pdf.make_pdf(data, _reporter(catalogue))
-		if pages > book_pdf.MAX_PAGES:
-			raise book.CatalogueRefused("too_many_pages")
+		fmt = doc.get("format") or PDF
+		if fmt == PDF:
+			content, name, count, pages = _make_pdf(doc, payload, clean)
+		else:
+			content, name, count, pages = _make_table(doc, payload, clean, fmt)
 		file = frappe.get_doc(
 			{
 				"doctype": "File",
-				"file_name": _filename(doc.title),
+				"file_name": name,
 				"attached_to_doctype": DOCTYPE,
 				"attached_to_name": catalogue,
 				"attached_to_field": "file",
 				"is_private": 1,
-				"content": pdf,
+				"content": content,
 			}
 		).insert(ignore_permissions=True)
 		_set(
@@ -111,8 +151,8 @@ def generate(catalogue):
 			progress=100,
 			stage="",
 			file=file.file_url,
-			item_count=data.product_count,
-			page_count=pages,
+			item_count=count,
+			page_count=pages or 0,
 			generated_on=now_datetime(),
 			prices_as_of=nowdate(),
 			expires_on=add_days(nowdate(), KEEP_DAYS),

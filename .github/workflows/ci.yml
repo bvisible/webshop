@@ -291,6 +291,9 @@ jobs:
           # //// Neoffice — the product sheet (lot 1): the pictures are pure (Pillow only); test_sheet makes the sheet
           # //// of real items and, where the bench has the Chrome PDF generator's Chromium, its PDF — a bench
           # //// without it (this site) skips those two tests, and the count of skipped says so.
+          # //// Neoffice — the reseller's files and feed (lot 3): test_tables writes and reads back the CSV, the JSON
+          # //// and the workbook from lines written by hand and needs no site; test_rows, test_files and test_feed
+          # //// run on the same small shop as the catalogues' tests and need no Chromium — a file is not a PDF.
           for m in \
             webshop.controllers.test_payment_handler \
             webshop.controllers.test_payment_mode_enabled \
@@ -382,7 +385,11 @@ jobs:
             webshop.webshop.catalogue.test_sheet \
             webshop.webshop.catalogue.test_selection \
             webshop.webshop.catalogue.test_book \
-            webshop.webshop.catalogue.test_catalogue_api
+            webshop.webshop.catalogue.test_catalogue_api \
+            webshop.webshop.catalogue.test_tables \
+            webshop.webshop.catalogue.test_rows \
+            webshop.webshop.catalogue.test_files \
+            webshop.webshop.catalogue.test_feed
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || failed="$failed $m"

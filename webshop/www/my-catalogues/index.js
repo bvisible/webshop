@@ -2,7 +2,8 @@
 // Picks what goes in a catalogue (categories, brands, single products), asks the server for it and follows
 // it while it is made. Nothing the server sends goes through innerHTML: it is written with textContent or as
 // a property of an element. The page never computes a price and never sends one: it sends a title, a
-// selection and three options.
+// selection and the options (a markup, a price mode, a layout) and a format: a PDF, an Excel workbook, a CSV
+// file, or a product feed (an address a shop or a script reads).
 (function () {
 	"use strict";
 
@@ -10,7 +11,17 @@
 	if (!configNode) return;
 	const L = JSON.parse(configNode.textContent).labels;
 	const API = "webshop.webshop.catalogue.catalogue_api.";
+	const FEED_API = "webshop.webshop.catalogue.feed_api.";
+	const FORMATS = ["pdf", "xlsx", "csv", "feed"];
+	// the price modes each format offers, and the label of each
+	const PRICES = {
+		pdf: [["customers", "prices_customers"], ["none", "prices_none"]],
+		xlsx: [["customers", "prices_selling"], ["tariff", "prices_tariff"], ["both", "prices_both"], ["none", "prices_none"]],
+		csv: [["customers", "prices_selling"], ["tariff", "prices_tariff"], ["both", "prices_both"], ["none", "prices_none"]],
+		feed: [["customers", "prices_selling"], ["none", "prices_none"]],
+	};
 	const POLL_MS = 2000;
+	const FORMAT_NAMES = { PDF: "PDF", XLSX: "Excel", CSV: "CSV" };
 	const $ = (id) => document.getElementById(id);
 	const form = $("wsp-cat-form");
 
@@ -24,10 +35,30 @@
 
 	const fmt = (text, ...args) => String(text || "").replace(/\{(\d+)\}/g, (m, i) => (args[i] == null ? "" : args[i]));
 
-	function call(method, args, type) {
+	function call(method, args, type, api) {
 		return new Promise((resolve, reject) => {
-			frappe.call({ method: API + method, type: type || "POST", args: args || {}, callback: (r) => resolve(r.message), error: (e) => reject(e) });
+			frappe.call({ method: (api || API) + method, type: type || "POST", args: args || {}, callback: (r) => resolve(r.message), error: (e) => reject(e) });
 		});
+	}
+
+	// --- the format ------------------------------------------------------------------------------
+
+	const format = () => $("wsp-cat-format").value;
+	const isFile = () => format() !== "pdf";
+
+	function applyFormat() {
+		const kind = format();
+		$("wsp-cat-format-hint").textContent = L["hint_" + kind];
+		$("wsp-cat-title-row").classList.toggle("d-none", kind === "feed");
+		$("wsp-cat-layout-col").classList.toggle("d-none", kind !== "pdf");
+		const prices = $("wsp-cat-prices");
+		const kept = prices.value;
+		prices.textContent = "";
+		PRICES[kind].forEach(([value, label]) => prices.appendChild(option(value, L[label])));
+		if (PRICES[kind].some(([value]) => value === kept)) prices.value = kept;
+		$("wsp-cat-create").textContent = kind === "pdf" ? L.create : L["create_" + kind];
+		clearErrors();
+		selectionChanged();
 	}
 
 	function setStatus(text) {
@@ -178,13 +209,14 @@
 		}
 		countTimer = setTimeout(() => {
 			const seq = ++countSeq;
-			call("count_products", { picked: JSON.stringify(selection()) })
+			call("count_products", { picked: JSON.stringify(selection()), format: isFile() ? "csv" : "pdf" })
 				.then((answer) => {
 					if (seq !== countSeq) return;
+					const lines = answer.unit === "lines";
 					node.textContent = answer.too_many
-						? fmt(L.count_too_many, state ? state.limits.products : "")
+						? fmt(lines ? L.count_lines_too_many : L.count_too_many, answer.limit)
 						: answer.count
-						? fmt(L.count_n, answer.count)
+						? fmt(lines ? L.count_lines : L.count_n, answer.count)
 						: L.count_none_offered;
 				})
 				.catch(() => {});
@@ -219,6 +251,7 @@
 				title.appendChild(el("div", fmt(L.kept, row.prices_as_of, row.expires_on), "text-muted small"));
 			}
 			tr.appendChild(title);
+			tr.appendChild(el("td", FORMAT_NAMES[row.format] || row.format || ""));
 			tr.appendChild(el("td", (row.creation || "").slice(0, 16)));
 			tr.appendChild(el("td", row.item_count ? String(row.item_count) : "", "text-right"));
 			tr.appendChild(el("td", row.page_count ? String(row.page_count) : "", "text-right"));
@@ -241,15 +274,105 @@
 		});
 	}
 
+	// a PDF carries the brand; a file or a feed needs it only for a selling price (its markup and rounding)
+	function brandNeeded() {
+		return format() === "pdf" || ["customers", "both"].indexOf($("wsp-cat-prices").value) !== -1;
+	}
+
+	function updateCreate() {
+		if (!state) return;
+		const kind = format();
+		let off;
+		if (kind === "feed") off = !!(state.feed && state.feed.active);
+		else off = state.busy || (kind === "pdf" && state.engine === false);
+		$("wsp-cat-create").disabled = off || (brandNeeded() && !state.brand_saved);
+		$("wsp-cat-brand-needed").classList.toggle("d-none", state.brand_saved || !brandNeeded());
+		$("wsp-cat-no-engine").classList.toggle("d-none", state.engine !== false || kind !== "pdf");
+	}
+
 	function applyState(next) {
 		state = next;
-		$("wsp-cat-brand-needed").classList.toggle("d-none", state.brand_saved);
-		$("wsp-cat-no-engine").classList.toggle("d-none", state.engine !== false);
-		$("wsp-cat-create").disabled = state.busy || !state.brand_saved || state.engine === false;
+		updateCreate();
 		if (state.busy) setStatus(L.busy);
 		else if ($("wsp-cat-status").textContent === L.busy) setStatus("");
 		renderRows();
-		if (state.busy) schedulePoll();
+		renderFeed();
+		if (state.busy || (state.feed && state.feed.active)) schedulePoll();
+	}
+
+	// --- the product feed -----------------------------------------------------------------------
+
+	function copyButton(input) {
+		const button = el("button", L.copy, "btn btn-sm btn-light ml-2");
+		button.type = "button";
+		button.addEventListener("click", () => {
+			const done = () => {
+				button.textContent = L.copied;
+				setTimeout(() => (button.textContent = L.copy), 1500);
+			};
+			input.select();
+			if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(input.value).then(done, () => document.execCommand("copy") && done());
+			else if (document.execCommand("copy")) done();
+		});
+		return button;
+	}
+
+	function feedAction(method, text, confirmText) {
+		return actionButton(text, "btn btn-sm btn-light mr-2 mb-1", () => {
+			if (confirmText && !window.confirm(confirmText)) return;
+			$("wsp-feed-message").classList.add("d-none");
+			call(method, {}, "POST", FEED_API)
+				.then((answer) => {
+					if (answer.ok) return applyState(answer);
+					$("wsp-feed-message").textContent = answer.message;
+					$("wsp-feed-message").classList.remove("d-none");
+				})
+				.catch(() => {
+					$("wsp-feed-message").textContent = L.failed;
+					$("wsp-feed-message").classList.remove("d-none");
+				});
+		});
+	}
+
+	function renderFeed() {
+		const feed = state.feed;
+		$("wsp-feed").classList.toggle("d-none", !feed);
+		if (!feed) return;
+		const status = $("wsp-feed-status");
+		status.textContent = (L["feed_status_" + feed.status] || feed.status) + (feed.active && feed.progress ? " · " + Math.round(feed.progress) + " %" : "");
+		if (feed.status === "Failed") {
+			status.appendChild(el("div", [feed.error, feed.served ? L.feed_kept : ""].filter(Boolean).join(" "), "text-danger small font-weight-normal"));
+		}
+		const facts = [];
+		if (feed.generated_on) facts.push(fmt(L.feed_lines, feed.lines, feed.prices_as_of));
+		facts.push(feed.last_fetched ? fmt(L.feed_fetched, feed.last_fetched.slice(0, 16)) : L.feed_never_fetched);
+		$("wsp-feed-facts").textContent = facts.join(" · ");
+		$("wsp-feed-choices").textContent =
+			fmt(L.feed_choices, feed.groups, feed.brands, feed.products, feed.markup_percent) +
+			" · " + (feed.prices === "none" ? L.feed_prices_none : L.feed_prices_customers);
+		const addresses = $("wsp-feed-addresses");
+		addresses.textContent = "";
+		["csv", "json"].forEach((kind) => {
+			if (!feed.addresses || !feed.addresses[kind]) return;
+			const row = el("div", null, "d-flex align-items-center mb-2");
+			const input = document.createElement("input");
+			input.className = "form-control form-control-sm";
+			input.readOnly = true;
+			input.value = feed.addresses[kind];
+			input.setAttribute("aria-label", L["feed_" + kind]);
+			input.addEventListener("focus", () => input.select());
+			row.appendChild(el("span", L["feed_" + kind], "text-muted small mr-2 text-nowrap"));
+			row.appendChild(input);
+			row.appendChild(copyButton(input));
+			addresses.appendChild(row);
+		});
+		const actions = $("wsp-feed-actions");
+		actions.textContent = "";
+		const refresh = feedAction("refresh_feed", L.feed_refresh);
+		refresh.disabled = feed.active;
+		actions.appendChild(refresh);
+		actions.appendChild(feedAction("new_feed_address", L.feed_rotate, L.feed_rotate_confirm));
+		actions.appendChild(feedAction("delete_feed", L.feed_delete, L.feed_delete_confirm));
 	}
 
 	function schedulePoll() {
@@ -284,27 +407,26 @@
 		clearErrors();
 		setStatus("");
 		$("wsp-cat-create").disabled = true;
-		call("create_catalogue", {
-			title: $("wsp-cat-title").value,
-			picked: JSON.stringify(selection()),
-			options: JSON.stringify({
-				markup_percent: $("wsp-cat-markup").value,
-				prices: $("wsp-cat-prices").value,
-				layout: $("wsp-cat-layout").value,
-			}),
-		})
+		const kind = format();
+		const options = { markup_percent: $("wsp-cat-markup").value, prices: $("wsp-cat-prices").value };
+		if (kind === "pdf") options.layout = $("wsp-cat-layout").value;
+		const request =
+			kind === "feed"
+				? call("save_feed", { picked: JSON.stringify(selection()), options: JSON.stringify(options) }, "POST", FEED_API)
+				: call("create_catalogue", { title: $("wsp-cat-title").value, picked: JSON.stringify(selection()), options: JSON.stringify(options), format: kind });
+		request
 			.then((answer) => {
 				if (!answer.ok) {
 					showError(answer.field, answer.message);
-					$("wsp-cat-create").disabled = false;
+					updateCreate();
 					return;
 				}
-				$("wsp-cat-title").value = "";
+				if (kind !== "feed") $("wsp-cat-title").value = "";
 				applyState(answer);
 			})
 			.catch(() => {
 				setStatus(L.failed);
-				$("wsp-cat-create").disabled = false;
+				updateCreate();
 			});
 	});
 
@@ -315,12 +437,17 @@
 
 	// --- start ----------------------------------------------------------------------------------
 
-	[["prices", [["customers", L.prices_customers], ["none", L.prices_none]]], ["layout", [["grid", L.layout_grid], ["list", L.layout_list]]]].forEach(
-		([name, choices]) => {
-			const select = $("wsp-cat-" + name);
-			choices.forEach(([value, text]) => select.appendChild(option(value, text)));
-		}
-	);
+	FORMATS.forEach((kind) => $("wsp-cat-format").appendChild(option(kind, L["format_" + kind])));
+	[["layout", [["grid", L.layout_grid], ["list", L.layout_list]]]].forEach(([name, choices]) => {
+		const select = $("wsp-cat-" + name);
+		choices.forEach(([value, text]) => select.appendChild(option(value, text)));
+	});
+	$("wsp-cat-format").addEventListener("change", () => {
+		applyFormat();
+		updateCreate();
+	});
+	$("wsp-cat-prices").addEventListener("change", updateCreate);
+	applyFormat();
 	renderChosen();
 	$("wsp-cat-count").textContent = L.count_zero;
 	$("wsp-cat-rows").appendChild(el("tr", null)).appendChild(el("td", L.loading));

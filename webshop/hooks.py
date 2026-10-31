@@ -95,7 +95,11 @@ scheduler_events = {
 	"weekly": ["webshop.webshop.assistant.unanswered.weekly_digest"],
 	# //// Neoffice — every product's SEO score, and the day's figures of each site for the workspace's
 	# //// charts (seo/score.py, #691 plan note 20): a pass over the catalogue, in the long queue
-	"daily_long": ["webshop.webshop.seo.score.refresh_all"],
+	"daily_long": [
+		"webshop.webshop.seo.score.refresh_all",
+		# //// Neoffice — the resellers' product feeds that are being read, written again for the day (catalogue/feed.py)
+		"webshop.webshop.catalogue.feed.refresh_all",
+	],
 	# //// Neoffice — abandoned carts: one look per hour at the carts left behind
 	"hourly": [
 		# //// Neoffice — the day's counters of the shop assistant, written to their row every hour: `bench clear-cache` empties Redis and every update runs it (lot D of the 2026-10-30 audit)
@@ -372,6 +376,8 @@ page_renderer = [
 	"webshop.webshop.page_renderers.maintenance_renderer.MaintenancePageRenderer",
 	# //// Neoffice — each site's Google Merchant Center feed, /feeds/google.xml (#691 lot 3)
 	"webshop.webshop.seo.feeds.google.FeedRenderer",
+	# //// Neoffice — a reseller's product feed, /feeds/reseller/<token>/products.csv (reseller catalogue, lot 3)
+	"webshop.webshop.catalogue.feed.FeedRenderer",
 	# //// Neoffice — the IndexNow key at each site's root, /<key>.txt (#691 lot 4)
 	"webshop.webshop.seo.indexnow.KeyRenderer",
 	# //// Neoffice — /llms.txt, the shop's card for language models (#691 lot 4)
