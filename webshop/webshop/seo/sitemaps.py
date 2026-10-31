@@ -222,7 +222,10 @@ def _brand_links(website_profile=None):
 
 
 def page_links():
-	return _page_links(get_current_profile_name())[:SITEMAP_LIMIT]
+	# //// Neoffice — multilingual lot 4 (neoffice-maintenance#2032): a copy under each language a Builder page is translated in
+	from webshop.webshop.seo.language_links import expand
+
+	return expand(_page_links(get_current_profile_name())[:SITEMAP_LIMIT], "Builder Page", _loc_in)[:SITEMAP_LIMIT]
 
 
 @redis_cache(ttl=CACHE_TTL)
@@ -231,19 +234,22 @@ def _page_links(website_profile=None):
 	home_routes = _home_routes()
 	links = {}
 
-	def add(route, modified=None, image=None):
+	def add(route, modified=None, image=None, name=None):
 		route = (route or "").strip("/")
 		loc = _loc("") if route in home_routes else _loc(route)
 		if loc in links:
 			return
 		link = {"loc": loc, "lastmod": _day(modified)}
+		if name:
+			# //// Neoffice — what the language copies of a Builder page are made from (seo/language_links.py)
+			link.update(name=name, route="" if route in home_routes else route)
 		if image:
 			link["images"] = [{"loc": _file_loc(image)}]
 		links[loc] = link
 
 	try:
 		for page in _builder_pages(website_profile):
-			add(page.route, page.modified, page.meta_image)
+			add(page.route, page.modified, page.meta_image, name=page.name)
 	except Exception:
 		# One source that fails must not take the whole sitemap down (it answered 500).
 		frappe.log_error("Sitemap: Builder pages skipped", frappe.get_traceback())
@@ -289,7 +295,7 @@ def _builder_pages(website_profile):
 	"""Published Builder pages this site serves, as builder's own resolver chooses them."""
 	if "builder" not in frappe.get_installed_apps():
 		return []
-	fields = ["route", "modified", "meta_image", "page_title", "dynamic_route", "is_template", "disable_indexing", "authenticated_access"]
+	fields = ["name", "route", "modified", "meta_image", "page_title", "dynamic_route", "is_template", "disable_indexing", "authenticated_access"]
 	has_site_field = frappe.db.has_column("Builder Page", "neo_website_profile")
 	if has_site_field:
 		fields.append("neo_website_profile")

@@ -64,13 +64,20 @@ class TestSitemapLanguages(FrappeTestCase):
 		links = [link("A", "a")]
 		self.assertIs(self._expand(links, {"de": {"A"}}, languages={}), links)
 
+	def test_the_home_page_has_a_copy_too_its_route_being_empty(self):
+		# multilingual lot 4: the site's home page is a Builder page whose address is the root, "/de" in German
+		home = {"loc": "https://shop.example.test/", "name": "HOME", "route": "", "lastmod": "2026-10-31"}
+		out = self._expand([home], {"de": {"HOME"}})
+		self.assertEqual([entry["loc"] for entry in out], ["https://shop.example.test/", "https://shop.example.test/de/"])
+		self.assertEqual(out[1]["alternates"][1], {"hreflang": "de-CH", "href": "https://shop.example.test/de/"})
+
 	def test_a_link_with_no_route_is_left_alone(self):
 		entry = {"loc": "https://shop.example.test/x", "name": "A"}
 		self.assertEqual(self._expand([entry], {"de": {"A"}}), [entry])
 
 	def test_the_sitemap_templates_print_the_alternates_and_stay_well_formed(self):
 		links = self._expand([link("A", "cours-et-s%C3%A9ances"), link("B", "b")], {"de": {"A"}})
-		for template in ("sitemap_products.xml", "sitemap_categories.xml"):
+		for template in ("sitemap_products.xml", "sitemap_categories.xml", "sitemap_pages.xml"):
 			path = frappe.get_app_path("webshop", "www", template)
 			with open(path) as handle:
 				xml_text = frappe.render_template(handle.read(), {"links": links})

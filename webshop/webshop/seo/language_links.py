@@ -21,7 +21,8 @@ def expand(links, doctype, loc_for):
 	out = []
 	for link in links:
 		have = [code for code in languages if link.get("name") in done.get(code, ())]
-		if not have or not link.get("route"):
+		# the site's home page has the route "" (its language copy is "/de"): only a link with no route at all is left alone
+		if not have or link.get("route") is None:
 			out.append(link)
 			continue
 		alternates = [{"hreflang": localized.source_hreflang(), "href": link["loc"]}]
