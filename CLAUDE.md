@@ -1716,7 +1716,7 @@ only, never to the public.
 > place when the job answers. An indicator added only by the late callback would die at the
 > next redraw (see "A custom button added from a server callback does not survive").
 
-### Multilingual: what the shop says in another language (2026-10-30/31, neoffice-maintenance#2028, lots 1 to 5)
+### Multilingual: what the shop says in another language (2026-10-30/31, neoffice-maintenance#2028, lots 1 to 7)
 
 The study, the plan, the measures and the runbook are in Obsidian (`Neoffice/Multilingue-Boutique/`). What has to stay true here:
 
@@ -1724,6 +1724,7 @@ The study, the plan, the measures and the runbook are in Obsidian (`Neoffice/Mul
 - **A line is named in the page's language, never renamed.** `localize_lines` puts `display_name` and `display_description` on the lines of a cart or an order (and `display_names`, by item code, in the cart's answer for the Builder drawer); the saved `item_name` is what was sold and is never written over. A new surface that prints a line goes through it.
 - **A document remembers the language its buyer reads the shop in.** `Quotation.language` is stamped by `stamp_language` only from a request that SPEAKS (`explicit_language`: an address in a language, a page with no prefix, a script's call carrying `_lang`), never by a payment callback or a job; the order inherits it. The follow-up and abandoned-cart mails are written in the language of the purchase or the cart (`mail_language`, `mail_texts`), with the language set BEFORE the template is rendered and the links under the language's prefix.
 - **One Merchant Center feed per added language** (`seo/feeds/google_languages.py`): the translated text, the language's addresses, only the products whose page is translated, the machine's text declared (`structured_title`, `structured_description`, `trained_algorithmic_media`), and a readiness line in the settings' report. The SEO score shows the languages of a product without counting them.
+- **A person speaks the language of the page they came from; a document is read in its own** (lot 7, #2035). The theme stamps User, Customer and Lead at `before_insert` (`stamp_person_language`: it REPLACES the default the insert filled, `Customer.language` is `fr` otherwise) and `fill_customer_language` settles the buyer of a cart who has none, never over one and never on the guests' shared stand-in customer. A PDF, a mail attachment or the portal's print view is in the document's language through the frappe fork's `document_print_language` hook (theme `print_language_of_document`; a Payment Request follows the order it asks for); a language a caller chose (`print_language()`, `language=`, `?_lang=`) always wins. `default_print_language: fr` of the Oslo formats is kept on purpose: it only prints a document that has no language.
 - **What cost time, so that it is not paid twice.**
   - Frappe drops the query string of a request whose body is JSON, so a script's call lost its `_lang`: the theme gives it back in `before_request`, and the page's script adds `_lang` to its calls.
   - `frappe.call` of a website page posts to `/`. Anything that counts or refuses a `POST /` hits the checkout: nginx's limit did (nine at once, a 429 and an error dialog on every load; neoffice-maintenance#2055).
