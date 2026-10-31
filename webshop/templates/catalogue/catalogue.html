@@ -51,7 +51,7 @@
 			<div class="buy">
 				{% if product.choices %}<div class="choices">{{ _("{0} choices").format(product.choices) | e }}</div>{% endif %}
 				{% if book.with_prices %}
-					{% if product.price %}<div class="price">{% if product.price_from %}<small>{{ _("From") }}</small>{% endif %}{{ product.price | e }}</div>
+					{% if product.price %}<div class="price">{% if product.price_from %}<small>{{ _("From", context="Before the lowest price of a product that has several") }}</small>{% endif %}{{ product.price | e }}</div>
 					{% else %}<div class="price none">{{ _("Price on request") }}</div>{% endif %}
 				{% endif %}
 			</div>
