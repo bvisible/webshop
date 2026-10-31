@@ -8445,3 +8445,8 @@ msgstr "Telefon oder E-Mail"
 #: webshop/templates/catalogue/catalogue.html:82
 msgid "Return this form to"
 msgstr "Dieses Formular zurücksenden an:"
+
+#: webshop/templates/catalogue/catalogue.html:83
+#, python-brace-format
+msgid "and {0} more"
+msgstr "und {0} weitere"

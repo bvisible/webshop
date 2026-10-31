@@ -11650,3 +11650,68 @@ msgstr "Le type de fichier : un catalogue PDF, un classeur Excel, un fichier CSV
 #: webshop/www/my-catalogues/index.py:87
 msgid "A last page with the products, a blank quantity for each, and your details to send it back to."
 msgstr "Une dernière page avec les produits, une quantité à compléter pour chacun, et vos coordonnées pour le renvoyer."
+
+#: webshop/www/my-catalogues/index.py:51
+msgid "A name for this feed (optional)"
+msgstr "Un nom pour ce flux (facultatif)"
+
+#: webshop/www/my-catalogues/index.py:133
+msgid "A new feed"
+msgstr "Un nouveau flux"
+
+#: webshop/webshop/catalogue/refusals.py:78
+msgid "Choose a cover from the list."
+msgstr "Choisissez une couverture dans la liste."
+
+#: webshop/www/my-catalogues/index.py:90
+msgid "Colour band"
+msgstr "Bandeau de couleur"
+
+#: webshop/www/my-catalogues/index.py:88
+msgctxt "The cover of a PDF catalogue"
+msgid "Cover"
+msgstr "Couverture"
+
+#: webshop/www/my-catalogues/index.py:131
+#, python-brace-format
+msgid "Feed {0}"
+msgstr "Flux {0}"
+
+#: webshop/www/my-catalogues/index.py:89
+msgid "Full colour"
+msgstr "Pleine couleur"
+
+#: webshop/webshop/catalogue/refusals.py:131
+#, python-brace-format
+msgid "Give the feed a title of {0} characters at most, without the characters < and >."
+msgstr "Donnez au flux un titre de {0} caractères au plus, sans les caractères < et >."
+
+#: webshop/www/my-catalogues/index.py:148
+msgid "Google Shopping address"
+msgstr "Adresse Google Shopping"
+
+#: webshop/www/my-catalogues/index.py:91
+msgid "Plain"
+msgstr "Sobre"
+
+#: webshop/www/my-catalogues/index.py:100
+msgid "Sheets: one product a page"
+msgstr "Fiches : un produit par page"
+
+#: webshop/www/my-catalogues/index.py:150
+msgid "To change what a feed carries, choose it here and save: its address stays the same. Leave \"A new feed\" to make another."
+msgstr "Pour changer le contenu d'un flux, choisissez-le ici et enregistrez : son adresse reste la même. Laissez « Un nouveau flux » pour en créer un autre."
+
+#. Description of the 'Title' (Data) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:40
+msgid "What the reseller calls this feed on their page; empty for none."
+msgstr "Le nom que le revendeur donne à ce flux sur sa page ; laissez vide pour n'en mettre aucun."
+
+#: webshop/www/my-catalogues/index.py:134
+msgid "You have the most feeds there can be: stop one to make another."
+msgstr "Vous avez le nombre maximal de flux : arrêtez-en un pour en créer un autre."
+
+#: webshop/webshop/catalogue/refusals.py:130
+#, python-brace-format
+msgid "You have {0} feeds, which is the most there can be. Stop one to make another."
+msgstr "Vous avez {0} flux, le maximum possible. Arrêtez-en un pour en créer un autre."

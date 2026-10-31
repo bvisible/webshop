@@ -8690,3 +8690,8 @@ msgstr "Telefono o e-mail"
 #: webshop/templates/catalogue/catalogue.html:82
 msgid "Return this form to"
 msgstr "Rinviare il presente modulo a"
+
+#: webshop/templates/catalogue/catalogue.html:83
+#, python-brace-format
+msgid "and {0} more"
+msgstr "e altri {0}"
