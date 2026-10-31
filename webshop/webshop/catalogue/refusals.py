@@ -74,6 +74,7 @@ def options_message(field, reason):
 		("markup_percent", "out_of_range"): _("The markup must be a number between 0 and 300."),
 		("prices", "not_allowed"): _("Choose which prices to show from the list."),
 		("layout", "not_allowed"): _("Choose a layout from the list."),
+		("quality", "not_allowed"): _("Choose a picture quality from the list."),
 		("format", "not_allowed"): _("Choose a format from the list."),
 		("language", "bad_language"): _("Choose a language from the list."),
 		("language", "not_offered"): _("The shop does not offer this language."),

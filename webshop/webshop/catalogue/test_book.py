@@ -42,6 +42,16 @@ class TestOptions(unittest.TestCase):
 			book.clean_options({"language": "Deutsch"}, 25)
 		self.assertEqual((caught.exception.field, caught.exception.reason), ("language", "bad_language"))
 
+	def test_a_picture_quality_is_kept_when_it_is_in_the_list_and_the_options_are_unchanged_without_one(self):
+		self.assertNotIn("quality", book.clean_options({}, 25))
+		self.assertNotIn("quality", book.clean_options({"quality": "standard"}, 25))
+		for quality in ("light", "print"):
+			self.assertEqual(book.clean_options({"quality": quality}, 25)["quality"], quality)
+		for refused in ("high", 5, "print; drop"):
+			with self.subTest(value=refused), self.assertRaises(book.OptionsRefused) as caught:
+				book.clean_options({"quality": refused}, 25)
+			self.assertEqual((caught.exception.field, caught.exception.reason), ("quality", "not_allowed"))
+
 	def test_what_is_chosen_is_kept_when_it_is_allowed(self):
 		clean = book.clean_options({"markup_percent": "40.5", "prices": "none", "layout": "list"}, 0)
 		self.assertEqual(clean, {"markup_percent": 40.5, "prices": "none", "layout": "list"})
@@ -211,6 +221,34 @@ class TestTheBook(FrappeTestCase):
 		self.assertNotEqual(source[shop.FIRST].name, "Wanderschuh")
 		self.assertEqual(products[shop.SECOND].name, source[shop.SECOND].name, "a product with no translation keeps its own")
 		self.assertEqual(products[shop.FIRST].price, source[shop.FIRST].price, "and the price is the same")
+
+	def test_the_quality_chosen_is_the_size_and_the_compression_the_pictures_are_made_with(self):
+		seen = {}
+		for quality in ("light", "standard", "print"):
+			with mock.patch.object(book.images, "site_picture", return_value=None) as picture:
+				self.make({"item_groups": [shop.PARENT_GROUP]}, options={} if quality == "standard" else {"quality": quality})
+			if picture.call_args:
+				seen[quality] = picture.call_args.kwargs
+		self.assertEqual(seen["standard"]["max_side"], book.CARD_PICTURE[0])
+		self.assertLess(seen["light"]["max_side"], seen["standard"]["max_side"])
+		self.assertLess(seen["light"]["quality"], seen["standard"]["quality"])
+		self.assertGreater(seen["print"]["max_side"], seen["standard"]["max_side"])
+		self.assertGreater(seen["print"]["quality"], seen["standard"]["quality"])
+		self.assertFalse(seen["print"]["small_copy"], "a printer is given the picture, not the shop's small copy")
+		self.assertTrue(seen["light"]["small_copy"])
+
+	def test_a_used_unit_says_so_on_its_card_and_a_new_one_says_nothing(self):
+		first = frappe.db.get_value("Website Item", {"item_code": shop.FIRST}, "name")
+		frappe.db.set_value("Website Item", first, "item_condition", "Second-hand", update_modified=False)
+		try:
+			data = self.make({"item_groups": [shop.PARENT_GROUP]})
+			html = book_pdf.render_html(data)
+		finally:
+			frappe.db.set_value("Website Item", first, "item_condition", "New", update_modified=False)
+		products = self.products(data)
+		self.assertEqual(products[shop.FIRST].condition, "Second-hand")
+		self.assertEqual(products[shop.SECOND].condition, "")
+		self.assertEqual(html.count('class="state"'), 1, "one card, the used one")
 
 	def mark_up(self, *rules):
 		answer = brand_api.save_my_brand(

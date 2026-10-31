@@ -35,6 +35,7 @@ def line(**fields):
 		"image": "https://shop.example/files/a.jpg",
 		"more_images": ["https://shop.example/files/b.jpg", "https://shop.example/files/c.jpg"],
 		"url": "https://shop.example/trail-shoe",
+		"condition": "new",
 	}
 	base.update(fields)
 	return base
@@ -137,6 +138,7 @@ class TestExcel(unittest.TestCase):
 	LABELS = {
 		"columns": {key: key.replace("_", " ").title() for key in rows.columns_for("both")},
 		"availability": {"in_stock": "In stock", "out_of_stock": "Out of stock", "backorder": "On backorder"},
+		"condition": {"new": "New", "refurbished": "Refurbished", "second_hand": "Second-hand"},
 		"yes": "Yes",
 		"no": "No",
 		"information": "Information",
@@ -180,6 +182,15 @@ class TestExcel(unittest.TestCase):
 		columns = rows.columns_for("customers")
 		self.assertEqual(sheet.cell(row=2, column=columns.index("availability") + 1).value, "In stock")
 		self.assertEqual(sheet.cell(row=2, column=columns.index("price_includes_vat") + 1).value, "No")
+
+	def test_the_condition_of_a_unit_is_worded_for_a_person_and_the_other_files_keep_the_code(self):
+		table = data([line(condition="second_hand"), line(code="SKU-2", condition="new")])
+		sheet = self.book(table=table)["Products"]
+		column = rows.columns_for("customers").index("condition") + 1
+		self.assertEqual([sheet.cell(row=2, column=column).value, sheet.cell(row=3, column=column).value], ["Second-hand", "New"])
+		records = list(csv.reader(io.StringIO(tables.csv_bytes(table).decode("utf-8"), newline="")))
+		self.assertEqual([records[1][column - 1], records[2][column - 1]], ["second_hand", "new"])
+		self.assertEqual([p["condition"] for p in json.loads(tables.json_bytes(table))["products"]], ["second_hand", "new"])
 
 	def test_a_list_of_pictures_is_one_cell(self):
 		sheet = self.book()["Products"]

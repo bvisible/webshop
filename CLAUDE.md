@@ -1305,6 +1305,17 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
   - `test_share` is in the blocking list; three mutations were run on the clone (the price they pay shareable, an expired link served,
     the message unescaped): each turned the suite red.
 
+- **A used unit says so, and the pictures have a quality** (lot 5e, 2026-10-31): a reseller who lists a used or refurbished unit
+  must say so, and the shop sells such units as items of their own. Every file now carries a `condition` column (`new`,
+  `refurbished`, `second_hand`, from `Website Item.item_condition`; **added at the end of the columns, so nobody's position moves**;
+  a variant takes its model's when it has none) and a PDF card of a used unit carries a small "Second-hand" / "Refurbished" tag; a new
+  unit says nothing. The workbook words it (`labels["condition"]`). A PDF also has a picture quality (`options.quality`, shown only for
+  a PDF): `light` (300 px, for an e-mail), `standard` (440 px, the default and unchanged) and `print` (900 px, quality 88, from the
+  picture itself rather than the shop's small copy). The condition is read only where the shop has the custom field.
+  - **A fact of the information sheet went missing for a day**: the 5c language line cut "Selling prices" out of the markup branch, so a
+    workbook without a language lost it. `test_the_information_sheet_says_whether_the_selling_prices_include_vat_…` holds it now: read a
+    block you insert into, not only the one you add.
+
 - **The partner API** (lot 4, `partner_api/`, 2026-10-31): a reseller asks for it on `/my-integration`, staff allow
   it on the desk (**Partner API Access**: Approve with the scopes — orders, submit at once, calls a minute — Refuse,
   Suspend, Resume), the reseller makes a key there. Five calls under `/partner/v1/` (a page renderer, not a

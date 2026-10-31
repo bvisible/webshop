@@ -262,6 +262,29 @@ class TestTheLines(FrappeTestCase):
 		by_code = self.by_code(self.build({"items": [shop.MODEL]}, prices="customers"))
 		self.assertEqual(sorted(row["price"] for row in by_code.values()), [62.4, 93.6], "48 and 72 on their list, plus 30 %")
 
+	# --- the condition of a unit (lot 5e) -----------------------------------------------------------
+
+	def test_a_used_or_refurbished_unit_says_so_in_its_line_and_a_new_one_says_new(self):
+		self.assertEqual(rows.columns_for("customers")[-1], "condition", "added at the end: nobody's column moves")
+		first = frappe.db.get_value("Website Item", {"item_code": shop.FIRST}, "name")
+		for stored, said in (("Second-hand", "second_hand"), ("Refurbished", "refurbished"), ("New", "new")):
+			frappe.db.set_value("Website Item", first, "item_condition", stored, update_modified=False)
+			with self.subTest(condition=stored):
+				lines = self.by_code(self.build(prices="customers"))
+				self.assertEqual(lines[shop.FIRST]["condition"], said)
+				self.assertEqual(lines[shop.SECOND]["condition"], "new")
+		frappe.db.set_value("Website Item", first, "item_condition", "New", update_modified=False)
+
+	def test_a_variant_without_a_condition_of_its_own_takes_its_model_s(self):
+		model = frappe.db.get_value("Website Item", {"item_code": shop.MODEL}, "name")
+		frappe.db.set_value("Website Item", model, "item_condition", "Refurbished", update_modified=False)
+		try:
+			lines = self.build({"items": [shop.MODEL]}, prices="customers").rows
+		finally:
+			frappe.db.set_value("Website Item", model, "item_condition", "New", update_modified=False)
+		self.assertTrue(lines)
+		self.assertTrue(all(line["condition"] in ("refurbished", "new") for line in lines))
+
 	# --- the language of the texts (lot 5c) ---------------------------------------------------------
 
 	def translations(self, *entries):
@@ -319,6 +342,17 @@ class TestTheLines(FrappeTestCase):
 				lines = {row["code"]: row["name"] for row in self.build({"items": [shop.MODEL]}, prices="customers", language="de").rows}
 			self.assertEqual(lines[variants[0]], "Variante")
 			self.assertEqual(lines[variants[1]], source[variants[1]])
+
+	def test_the_information_sheet_says_whether_the_selling_prices_include_vat_with_or_without_a_language(self):
+		facts = rows.labels(self.build(prices="customers"))["facts"]
+		self.assertIn("Selling prices", facts)
+		self.assertNotIn("Language of the texts", facts)
+		for mode in ("tariff", "none"):
+			self.assertNotIn("Selling prices", rows.labels(self.build(prices=mode))["facts"], "no selling price, nothing to say about it")
+		with self.in_german():
+			both = rows.labels(self.build(prices="customers", language="de"))["facts"]
+		self.assertIn("Selling prices", both)
+		self.assertIn("Language of the texts", both)
 
 	def test_the_workbook_says_which_language_its_texts_are_in(self):
 		with self.in_german():

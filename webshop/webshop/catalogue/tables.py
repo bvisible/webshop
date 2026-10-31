@@ -104,6 +104,8 @@ def _excel_value(key, value, labels):
 		return _sheet_text("\n".join(value or []))
 	if key == "availability":
 		return labels["availability"].get(value, value)
+	if key == "condition":
+		return labels["condition"].get(value, value)
 	return _sheet_text(str(value))
 
 

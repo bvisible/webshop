@@ -75,6 +75,7 @@
 		$("wsp-cat-format-hint").textContent = L["hint_" + kind];
 		$("wsp-cat-title-row").classList.toggle("d-none", kind === "feed");
 		$("wsp-cat-layout-col").classList.toggle("d-none", kind !== "pdf");
+		$("wsp-cat-quality-col").classList.toggle("d-none", kind !== "pdf");
 		const prices = $("wsp-cat-prices");
 		const kept = prices.value;
 		prices.textContent = "";
@@ -582,7 +583,10 @@
 		$("wsp-cat-create").disabled = true;
 		const kind = format();
 		const options = { markup_percent: $("wsp-cat-markup").value, prices: $("wsp-cat-prices").value };
-		if (kind === "pdf") options.layout = $("wsp-cat-layout").value;
+		if (kind === "pdf") {
+			options.layout = $("wsp-cat-layout").value;
+			if ($("wsp-cat-quality").value !== "standard") options.quality = $("wsp-cat-quality").value;
+		}
 		if ($("wsp-cat-language").value) options.language = $("wsp-cat-language").value;
 		const request =
 			kind === "feed"
@@ -612,7 +616,10 @@
 	// --- start ----------------------------------------------------------------------------------
 
 	FORMATS.forEach((kind) => $("wsp-cat-format").appendChild(option(kind, L["format_" + kind])));
-	[["layout", [["grid", L.layout_grid], ["list", L.layout_list]]]].forEach(([name, choices]) => {
+	[
+		["layout", [["grid", L.layout_grid], ["list", L.layout_list]]],
+		["quality", [["standard", L.quality_standard], ["light", L.quality_light], ["print", L.quality_print]]],
+	].forEach(([name, choices]) => {
 		const select = $("wsp-cat-" + name);
 		choices.forEach(([value, text]) => select.appendChild(option(value, text)));
 	});

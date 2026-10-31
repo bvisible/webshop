@@ -45,6 +45,7 @@
 			<div class="info">
 				{% if product.brand %}<div class="brand">{{ product.brand | e }}</div>{% endif %}
 				<div class="name">{{ product.name | e }}</div>
+				{% if product.condition %}<div class="state">{{ _(product.condition) | e }}</div>{% endif %}
 				<div class="ref">{{ product.reference | e }}</div>
 				{% if book.layout == "list" and product.description %}<div class="desc">{{ product.description | e }}</div>{% endif %}
 			</div>

@@ -39,6 +39,8 @@ MAX_ROWS = 5000  # lines: about two minutes of prices, the long queue's worker i
 MAX_DESCRIPTION = 2000
 MAX_MORE_IMAGES = 9
 AVAILABILITY = {stock.IN_STOCK: "in_stock", stock.BACK_ORDER: "backorder", stock.OUT_OF_STOCK: "out_of_stock"}
+# the state of a unit, as the shop writes it and as a file says it: a reseller who lists a used unit must say so
+CONDITIONS = {"New": "new", "Refurbished": "refurbished", "Second-hand": "second_hand"}
 DETAIL_FIELDS = [
 	"name",
 	"item_code",
@@ -89,7 +91,12 @@ def columns_for(prices):
 			columns.append("purchase_price")
 		if prices in ("customers", "both"):
 			columns += ["price", "price_includes_vat"]
-	return columns + ["availability", "description", "image", "more_images", "url"]
+	return columns + ["availability", "description", "image", "more_images", "url", "condition"]
+
+
+def detail_fields():
+	"""The Website Item fields a line reads, the condition of a used unit included where the shop has it."""
+	return [*DETAIL_FIELDS, "item_condition"] if frappe.get_meta("Website Item").has_field("item_condition") else list(DETAIL_FIELDS)
 
 
 def _plain(value):
@@ -201,7 +208,7 @@ def build_rows(customer, payload, clean_selection, options, progress=None, inclu
 	details = {
 		row.item_code: row
 		for row in frappe.get_all(
-			"Website Item", filters={"item_code": ["in", list({*codes, *models})]}, fields=DETAIL_FIELDS
+			"Website Item", filters={"item_code": ["in", list({*codes, *models})]}, fields=detail_fields()
 		)
 	}
 	items = {
@@ -214,7 +221,7 @@ def build_rows(customer, payload, clean_selection, options, progress=None, inclu
 		details.update(
 			{
 				row.item_code: row
-				for row in frappe.get_all("Website Item", filters={"item_code": ["in", list(absent)]}, fields=DETAIL_FIELDS)
+				for row in frappe.get_all("Website Item", filters={"item_code": ["in", list(absent)]}, fields=detail_fields())
 			}
 		)
 	language = options.get("language") or ""
@@ -297,6 +304,7 @@ def build_rows(customer, payload, clean_selection, options, progress=None, inclu
 			image=main or "",
 			more_images=more[:MAX_MORE_IMAGES],
 			url=languages.in_language(pages.get(code, ""), language),
+			condition=CONDITIONS.get(detail.get("item_condition") or model.get("item_condition"), "new"),
 		)
 		lines.append(line)
 
@@ -335,6 +343,7 @@ def labels(data, title="", issuer=""):
 		"image": _("Picture"),
 		"more_images": _("More pictures"),
 		"url": _("Page"),
+		"condition": _("Condition"),
 	}
 	facts = {_("Title"): title}
 	if issuer:
@@ -348,9 +357,9 @@ def labels(data, title="", issuer=""):
 		facts[_("Markup")] = f"{data.markup_percent:g} %"
 		if data.get("particular_markups"):
 			facts[_("Particular markups")] = data.particular_markups
+		facts[_("Selling prices")] = _("Including VAT") if data.including_vat else _("Excluding VAT")
 	if data.get("language"):
 		facts[_("Language of the texts")] = frappe.db.get_value("Language", data.language, "language_name") or data.language
-		facts[_("Selling prices")] = _("Including VAT") if data.including_vat else _("Excluding VAT")
 	if data.prices in ("tariff", "both"):
 		facts[_("Purchase prices")] = _("Your own price list, as the shop's rules apply to you. Confidential: not for your customers.")
 	return {
@@ -360,6 +369,7 @@ def labels(data, title="", issuer=""):
 			"out_of_stock": _("Out of stock"),
 			"backorder": _("On backorder"),
 		},
+		"condition": {"new": _("New"), "refurbished": _("Refurbished"), "second_hand": _("Second-hand")},
 		"yes": _("Yes"),
 		"no": _("No"),
 		"products": _("Products"),

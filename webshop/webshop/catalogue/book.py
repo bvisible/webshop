@@ -21,6 +21,7 @@ from frappe import _
 from frappe.utils import formatdate, nowdate, strip_html
 
 from webshop.webshop.catalogue import images, languages, markup, markup_rules, selection
+from webshop.webshop.utils.used_items import is_second_hand
 from webshop.webshop.catalogue.sheet import price_text, reseller_issuer
 from webshop.webshop.seo.text import truncate
 from webshop.webshop.utils import customer_pricing
@@ -29,6 +30,8 @@ LAYOUTS = ("grid", "list")
 PRICE_MODES = ("customers", "none")
 TITLE_MAX = 80
 CARD_PICTURE = (440, 74)  # longest side in pixels, JPEG quality: a card is 56 mm wide, 200 dpi is enough
+# two other qualities (lot 5e): "light" for an e-mail, "print" for a printer. (longest side, JPEG quality, the shop's small copy)
+QUALITIES = {"light": (300, 60, True), "standard": (CARD_PICTURE[0], CARD_PICTURE[1], True), "print": (900, 88, False)}
 DESCRIPTION_MAX = 180
 PRICE_CHUNK = 20  # items priced between two reports of progress
 
@@ -86,6 +89,11 @@ def clean_options(raw, default_markup):
 	if layout not in LAYOUTS:
 		raise OptionsRefused("layout", "not_allowed")
 	options = {"markup_percent": percent, "prices": prices, "layout": layout}
+	quality = raw.get("quality") or "standard"
+	if quality not in QUALITIES:
+		raise OptionsRefused("quality", "not_allowed")
+	if quality != "standard":
+		options["quality"] = quality
 	try:
 		language = languages.clean(raw.get("language"))
 	except ValueError:
@@ -194,7 +202,8 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 		picture_url = row.website_image or inherited.get(row.item_code)
 		picture = None
 		if picture_url:
-			picture = images.site_picture(picture_url, max_side=CARD_PICTURE[0], quality=CARD_PICTURE[1], small_copy=True)
+			side, jpeg_quality, small = QUALITIES[options.get("quality") or "standard"]
+			picture = images.site_picture(picture_url, max_side=side, quality=jpeg_quality, small_copy=small)
 		if row.has_variants:
 			cheapest, choices = variants_of.get(row.item_code, (None, 0))
 			text = selling(cheapest, row) if cheapest else None
@@ -211,6 +220,8 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 			price_missing=with_prices and text is None,
 			price_from=bool(row.has_variants),
 			choices=choices,
+			# a used or refurbished unit says so on its card; a new one says nothing
+			condition=row.get("item_condition") if is_second_hand(row.get("item_condition")) else "",
 		)
 		group = _plain(row.item_group)
 		if not sections or sections[-1].title != group:

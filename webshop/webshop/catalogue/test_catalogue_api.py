@@ -128,6 +128,13 @@ class TestCatalogueApi(FrappeTestCase):
 			self.assertTrue(answer["ok"], answer)
 			self.assertEqual(json.loads(frappe.db.get_value(DOCTYPE, self.newest(), "options"))["language"], "de")
 
+	def test_a_picture_quality_that_is_not_in_the_list_is_refused_beside_its_field(self):
+		answer = self.ask(options=json.dumps({"layout": "grid", "quality": "ultra"}))
+		self.assertEqual((answer["ok"], answer["field"]), (False, "quality"))
+		answer = self.ask(options=json.dumps({"layout": "grid", "quality": "light"}))
+		self.assertTrue(answer["ok"], answer)
+		self.assertEqual(json.loads(frappe.db.get_value(DOCTYPE, self.newest(), "options"))["quality"], "light")
+
 	def test_a_language_that_is_not_a_code_is_refused_beside_its_field(self):
 		answer = self.ask(options=json.dumps({"layout": "grid", "language": "German; drop table"}))
 		self.assertFalse(answer["ok"])

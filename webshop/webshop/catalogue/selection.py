@@ -39,6 +39,11 @@ FIELDS = [
 ]
 
 
+def fields():
+	"""The Website Item fields a catalogue reads: the condition of a used unit too, where the shop has it (a custom field)."""
+	return [*FIELDS, "item_condition"] if frappe.get_meta("Website Item").has_field("item_condition") else list(FIELDS)
+
+
 def scope():
 	"""The Website Item filters of what a catalogue may hold: what the shop shows a visitor, gift cards left out
 	(the buyer of a gift card picks its amount: a reseller has no price to print for it)."""
@@ -138,7 +143,7 @@ def product_rows(selection, limit=MAX_PRODUCTS + 1, variants=False):
 		"Website Item",
 		filters=filters,
 		or_filters=either,
-		fields=FIELDS,
+		fields=fields(),
 		order_by="item_group asc, web_item_name asc, item_code asc",
 		limit=limit,
 	)
