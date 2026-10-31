@@ -76,3 +76,31 @@ def localize_items(rows, fieldnames=("web_item_name", "short_description")):
 		for row in rows:
 			row.pop("_website_item", None)
 	return rows
+
+
+def label(doctype, name):
+	"""The display name of a record whose name IS its label (item group, brand, attribute): never a value to look up."""
+	return localize_value(doctype, name, "name", name)
+
+
+def localize_labels(doctype, rows, key="name"):
+	"""Display copies of rows that carry such a name under `key`. Never hand the result back to a lookup by name."""
+	if not rows or content_language() is None:
+		return rows
+	try:
+		return localize_rows(doctype, rows, ["name"], name_field=key)
+	except Exception:  # noqa: BLE001 — see the module docstring
+		frappe.log_error("Localized content: labels failed", frappe.get_traceback())
+		return rows
+
+
+def search_condition(doctype, name_sql, fieldnames, word):
+	"""``(sql, values)`` matching a search word against the visible translations, or None."""
+	engine = _engine()
+	if engine is None or content_language() is None:
+		return None
+	try:
+		return engine.search_condition(doctype, name_sql, fieldnames, word)
+	except Exception:  # noqa: BLE001 — see the module docstring
+		frappe.log_error("Localized content: search clause failed", frappe.get_traceback())
+		return None

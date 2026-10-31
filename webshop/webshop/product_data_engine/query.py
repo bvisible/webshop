@@ -20,6 +20,9 @@ from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shoppi
 
 # //// Neoffice — every price-bearing field a listing row can carry, across the pricing
 # //// paths of this file: what a visitor must not see on a site that hides its prices.
+# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the searched fields that have translations to look in
+TRANSLATED_SEARCH_FIELDS = ("web_item_name", "short_description")
+
 GUEST_HIDDEN_PRICE_FIELDS = (
 	"price_list_rate", "formatted_price", "formatted_mrp", "mrp", "current_price",
 	"discount_percent", "discount", "formatted_discount_percent", "formatted_discount_rate",
@@ -427,10 +430,24 @@ class ProductQuery:
 				conditions.append("1=0")
 				continue
 			# //// the word, in any of the searched fields
-			conditions.append(
-				"(" + " OR ".join(f"LOWER({prefix}`{field}`) LIKE %s" for field in self._search_fields) + ")"
+			alternatives = [f"LOWER({prefix}`{field}`) LIKE %s" for field in self._search_fields]
+			alternative_values = [f"%{word}%"] * len(self._search_fields)
+			# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the word is also looked for in the
+			# //// translations the visitor can read, in the language of the page. Nothing is added without one.
+			from webshop.webshop.utils.localized import search_condition
+
+			# //// the listing's own SQL has no alias (prefix is empty): an unqualified `name` inside the sub-query
+			# //// would read the translation's own name, so the table is named in that case
+			name_sql = f"{prefix}`name`" if prefix else "`tabWebsite Item`.`name`"
+			translated = search_condition(
+				"Website Item", name_sql, [f for f in self._search_fields if f in TRANSLATED_SEARCH_FIELDS], word
 			)
-			values.extend([f"%{word}%"] * len(self._search_fields))
+			# //// Neoffice — see above: the translations' clause is one more alternative of the word
+			if translated:
+				alternatives.append(translated[0])
+				alternative_values.extend(translated[1])
+			conditions.append("(" + " OR ".join(alternatives) + ")")
+			values.extend(alternative_values)
 		return conditions, values
 
 	@staticmethod

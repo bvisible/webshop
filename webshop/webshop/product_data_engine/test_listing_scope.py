@@ -102,6 +102,24 @@ class TestWhereConditions(FrappeTestCase):
 		fields = len(query._search_fields)
 		self.assertEqual(values, ["%chaise%"] * fields + ["%pliante%"] * fields)
 
+	# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029)
+	def test_the_translated_search_names_the_listings_table_whatever_the_alias(self):
+		"""The listing's own SQL has no alias: an unqualified `name` inside the translations' sub-query reads
+		the translation's name, so a German word counted one product (the aliased count) and listed none."""
+		seen = []
+
+		def record(doctype, name_sql, fieldnames, word):
+			seen.append(name_sql)
+			return ("1=1", [])
+
+		for prefix, expected in (("wi.", "wi.`name`"), ("", "`tabWebsite Item`.`name`")):
+			query = ProductQuery()
+			query._search_words = ["rueckenyoga"]
+			query._search_fields = ["web_item_name", "item_code"]
+			with patch("webshop.webshop.utils.localized.search_condition", side_effect=record):
+				query.where_conditions(prefix)
+			self.assertEqual(seen[-1], expected)
+
 	def test_empty_lists_and_unset_values_read_as_the_orm_reads_them(self):
 		query = ProductQuery()
 		query.filters = [

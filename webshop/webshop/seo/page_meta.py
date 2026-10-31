@@ -44,7 +44,10 @@ def item_group_meta(doc, own=True):
 	"""A category page: the group's name (or its website title), and what it says or holds."""
 	from webshop.webshop.seo.meta import catalogue_summary, subtree_groups, summary_description
 
-	heading = doc.get("website_title") or doc.name
+	# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the heading in the page's language
+	from webshop.webshop.utils.localized import label, localize_value
+
+	heading = localize_value("Item Group", doc.name, "website_title", doc.get("website_title")) or label("Item Group", doc.name)
 	title = (own and (doc.get("seo_title") or "").strip()) or heading
 	description = (own and one_line(doc.get("seo_description") or "", DESCRIPTION_BUDGET * 2)) or one_line(
 		doc.get("description") or "", EXCERPT

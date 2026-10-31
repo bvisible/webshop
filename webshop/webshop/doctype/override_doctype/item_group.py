@@ -133,7 +133,16 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		}
 		context.stock_filter_default_checked = bool(frappe.db.get_single_value("Webshop Settings", "stock_filter_default_checked"))
 
-		context.update({"parents": get_parent_item_groups(self.parent_item_group), "title": self.name})
+		# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the breadcrumb and the heading name the group
+		# //// in the page's language; the group's name stays what every lookup uses.
+		from webshop.webshop.utils.localized import label, localize_labels
+
+		context.update(
+			{
+				"parents": localize_labels("Item Group", get_parent_item_groups(self.parent_item_group)),
+				"title": label("Item Group", self.name),
+			}
+		)
 
 		if self.slideshow:
 			values = {"show_indicators": 1, "show_controls": 0, "rounded": 1, "slider_name": self.slideshow}

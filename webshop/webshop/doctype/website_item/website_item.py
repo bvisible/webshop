@@ -356,6 +356,10 @@ class WebsiteItem(WebsiteGenerator):
 		context.parents = get_parent_item_groups(
 			self.item_group, from_item=True
 		)  # breadcumbs
+		# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the groups are named in the page's language
+		from webshop.webshop.utils.localized import localize_labels
+
+		context.parents = localize_labels("Item Group", context.parents)
 		self.attributes = frappe.get_all(
 			"Item Variant Attribute",
 			fields=["attribute", "attribute_value"],
