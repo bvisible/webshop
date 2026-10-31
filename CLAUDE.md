@@ -1001,17 +1001,24 @@ neoffice-maintenance#2015).
   by the update's CONFIGS sub-phase, previous file kept and put back if `nginx -t`
   refuses). A `map` gives the address as the key of two zones only for the visitor's
   endpoints (`get_config`, `send`, `leave_message`, `reset`, `rate_message`, under
-  `/api/`, `/api/v1/`, `/api/v2/`, **and `/?cmd=<name>`, and a POST to `/`**: Frappe
+  `/api/`, `/api/v1/`, `/api/v2/`, **and `/?cmd=<name>`**: Frappe
   dispatches `cmd` on any address, and the first version of the map, which read the
-  address only, let 40 calls of 40 through while the API address was refused from the 22nd;
-  a POST's body can carry `cmd` where nginx cannot read it, and nobody who uses a shop posts
-  to `/`); every other request has an empty key, which nginx
+  address only, let 40 calls of 40 through while the API address was refused from the 22nd);
+  every other request has an empty key, which nginx
   does not count. 30 a minute with a burst of 20, 6 calls at once, answered 429. No
   vhost changes: the limits are set at `http` level. Measured on the development server
   with a private nginx and on the live vhost: 21 of 60 calls pass, pages and other API
   methods are untouched, a location with a limit of its own keeps it. A test that stands
   a `return 200` in a location proves nothing: `return` runs before `limit_req`;
   use `proxy_pass`.
+  **A POST to `/` is NOT counted** (neoffice-maintenance#2055, 2026-10-31). It was, for a day, because
+  a body can carry `cmd` where nginx cannot read it and nobody who uses a shop posts to `/`: wrong,
+  the `frappe.call` of every page posts there. The checkout sends nine at once, so the seventh
+  got a 429, a dialog read "something went wrong" on every load, and the checkout's hidden
+  billing-address field stayed empty (the next step then failed with "Error updating address").
+  What a call asks for by its body is limited by the application (`utils/throttle.py`). The file is
+  written over the live one by every update, so a fix to it reaches each instance, the ones that
+  hold the old file included.
 - **An answer holds a web worker for as long as the model takes, and the server has
   three.** `api.answer_slot` (a sorted set in Redis, the place taken first and checked
   after) limits the answers given at once; the default is what the workers can spare
