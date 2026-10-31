@@ -305,6 +305,10 @@ class ShopFixture(FrappeTestCase):
 				pluck="parent",
 			):
 				frappe.delete_doc("Address", name, force=True, ignore_permissions=True)
+			# helpdesk (where installed, as on the clone) makes an HD Customer of every Customer and links the Contact to it:
+			# left there, it refuses the deletion of the Contact, and every later run dies in setUpClass
+			if frappe.db.exists("DocType", "HD Customer") and frappe.db.exists("HD Customer", customer):
+				frappe.delete_doc("HD Customer", customer, force=True, ignore_permissions=True)
 			if frappe.db.exists("Customer", customer):
 				frappe.delete_doc("Customer", customer, force=True, ignore_permissions=True)
 			for name in frappe.get_all("Contact", filters={"email_id": email}, pluck="name"):
