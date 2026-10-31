@@ -11715,3 +11715,8 @@ msgstr "Vous avez le nombre maximal de flux : arrêtez-en un pour en créer un a
 #, python-brace-format
 msgid "You have {0} feeds, which is the most there can be. Stop one to make another."
 msgstr "Vous avez {0} flux, le maximum possible. Arrêtez-en un pour en créer un autre."
+
+#: webshop/www/my-catalogues/index.py:132
+msgctxt "A product feed of a reseller"
+msgid "Feed"
+msgstr "Flux"
