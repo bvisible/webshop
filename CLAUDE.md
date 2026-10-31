@@ -1282,6 +1282,13 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
 > `fetch` that says 502 or 429 (it fails on the old script with an empty message). The 429 was real: the nginx limit
 > counted a `POST /`, where every page's `frappe.call` posts, until neoffice-maintenance#2055 stopped it.
 
+> **`frappe.only_for()` does nothing while a test runs on stock Frappe v15** (`flags.in_test`); the Neoffice fork dropped that
+> shortcut. `test_a_decision_is_staffs_alone` was green on the clone and red on the CI (the only red module of the run) because
+> the staff's decisions called it. They check the roles themselves now (`access._staff_only`). A guard of ours that a test must
+> prove is written by hand; to reproduce the CI on the clone, set `frappe.flags.in_test = True` and `frappe.only_for` to a no-op
+> and run the class. The other `only_for` calls of the app (assistant, holidays, multi-warehouse, Google, offline payment) are
+> not provable in a test either.
+
 > **A stand-in for the request breaks in `get_url` and in `render_template`**, which read `request.host` and
 > `request.path`. The partner tests send real werkzeug requests (`EnvironBuilder`), which is also what shows the
 > renderer what a program's call looks like.
