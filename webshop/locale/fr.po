@@ -11646,3 +11646,7 @@ msgstr "Fichier d'import Shopify"
 #: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:53
 msgid "What the file is: a PDF catalogue, an Excel workbook, a CSV file or a Shopify product import file. A record made before the formats existed has none and is a PDF."
 msgstr "Le type de fichier : un catalogue PDF, un classeur Excel, un fichier CSV ou un fichier d'import de produits Shopify. Un enregistrement créé avant l'arrivée des formats n'en a pas et est un PDF."
+
+#: webshop/www/my-catalogues/index.py:87
+msgid "A last page with the products, a blank quantity for each, and your details to send it back to."
+msgstr "Une dernière page avec les produits, une quantité à compléter pour chacun, et vos coordonnées pour le renvoyer."
