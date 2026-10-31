@@ -10246,3 +10246,289 @@ msgstr "Proposer la fiche produit"
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1576
 msgid "Product Sheet"
 msgstr "Fiche produit"
+
+#: webshop/www/my-catalogues/index.py:77
+msgid "A catalogue is being made: the next one can start when it is ready."
+msgstr "Un catalogue est en cours de réalisation : le suivant pourra démarrer une fois celui-ci prêt."
+
+#: webshop/webshop/catalogue/refusals.py:79
+msgid "A catalogue is still being made. Wait for it to finish."
+msgstr "Un catalogue est encore en cours de réalisation. Veuillez patienter jusqu'à sa fin."
+
+#: webshop/www/my-catalogues/index.py:33
+msgid "A category brings its sub-categories."
+msgstr "Une catégorie inclut ses sous-catégories."
+
+#. Description of the 'File' (Attach) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:117
+msgid "A private PDF."
+msgstr "Un PDF privé."
+
+#: webshop/www/my-catalogues/index.py:31
+msgid "A product is in the catalogue when any of your choices brings it."
+msgstr "Un produit figure dans le catalogue dès qu'un de vos choix le désigne."
+
+#: webshop/webshop/catalogue/refusals.py:68
+msgid "Choose a layout from the list."
+msgstr "Choisissez une mise en page dans la liste."
+
+#: webshop/webshop/catalogue/refusals.py:54
+#: webshop/www/my-catalogues/index.py:43
+msgid "Choose at least one category, one brand or one product."
+msgstr "Choisissez au moins une catégorie, une marque ou un produit."
+
+#: webshop/webshop/catalogue/refusals.py:67
+msgid "Choose whether the catalogue shows prices."
+msgstr "Indiquez si le catalogue affiche les prix."
+
+#: webshop/www/my-catalogues/index.py:41
+msgid "Chosen products"
+msgstr "Produits choisis"
+
+#: webshop/www/my-catalogues/index.py:68
+msgid "Computing your prices"
+msgstr "Calcul de vos prix en cours"
+
+#: webshop/templates/catalogue/catalogue.html:29
+msgid "Contents"
+msgstr "Sommaire"
+
+#: webshop/www/my-catalogues/index.py:75
+msgid "Delete this catalogue?"
+msgstr "Supprimer ce catalogue ?"
+
+#: webshop/www/my-catalogues/index.py:36
+msgid "Filter the list"
+msgstr "Filtrer la liste"
+
+#: webshop/www/my-catalogues/index.py:29
+msgid "For example: Catalogue 2027"
+msgstr "Par exemple : Catalogue 2027"
+
+#: webshop/webshop/catalogue/refusals.py:63
+msgid "Give the catalogue a title."
+msgstr "Donnez un titre au catalogue."
+
+#: webshop/www/my-catalogues/index.py:54
+msgid "Grid: three products a row"
+msgstr "Grille : trois produits par ligne"
+
+#. Description of the 'Selection' (Long Text) field in DocType 'Reseller
+#. Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:130
+msgid "Item groups, brands and products as JSON. Never a price."
+msgstr "Groupes d'articles, marques et produits, au format JSON. Jamais de prix."
+
+#. Label of a Date field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:108
+msgid "Kept Until"
+msgstr "Conservé jusqu'au"
+
+#: webshop/www/my-catalogues/index.py:70
+msgid "Laying out the pages"
+msgstr "Mise en page des pages"
+
+#: webshop/www/my-catalogues/index.py:55
+msgid "List: one product a row"
+msgstr "Liste : un produit par ligne"
+
+#. Label of a Datetime field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:91
+msgid "Made On"
+msgstr "Fabriqué le"
+
+#: webshop/www/my-catalogues/index.py:60
+msgid "Made on"
+msgstr "Fabriqué le"
+
+#: webshop/www/my-catalogues/index.py:21
+msgid "Make a PDF catalogue of the products you choose, with your logo, your colours and your prices: your markup is added to what you pay. It takes a few seconds to a minute, and you can leave this page."
+msgstr "Composez un catalogue PDF des produits de votre choix, avec votre logo, vos couleurs et vos prix : votre plus-value s'ajoute à ce que vous payez. Comptez de quelques secondes à une minute, et vous pouvez quitter cette page."
+
+#: webshop/www/my-catalogues/index.py:72
+msgid "Make it again"
+msgstr "Refaire"
+
+#: webshop/www/my-catalogues/index.py:56
+msgid "Make the catalogue"
+msgstr "Créer le catalogue"
+
+#. Description of the 'Options' (Long Text) field in DocType 'Reseller
+#. Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:137
+msgid "Markup, price mode and layout as JSON, as they were when the catalogue was asked for."
+msgstr "Plus-value, mode de prix et mise en page au format JSON, tels qu'ils étaient au moment de la demande du catalogue."
+
+#: webshop/www/my-catalogues/index.py:27
+msgid "New catalogue"
+msgstr "Nouveau catalogue"
+
+#: webshop/www/my-catalogues/index.py:52
+msgid "No prices"
+msgstr "Sans prix"
+
+#: webshop/www/my-catalogues/index.py:38
+msgid "No product found."
+msgstr "Aucun produit trouvé."
+
+#: webshop/www/my-catalogues/index.py:25
+msgid "Open the brand page"
+msgstr "Ouvrir la page de la marque"
+
+#: webshop/www/my-catalogues/index.py:69
+msgid "Preparing the pictures"
+msgstr "Préparation des images"
+
+#. Label of a Date field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:101
+msgid "Prices As Of"
+msgstr "Prix au"
+
+#: webshop/www/my-catalogues/index.py:76
+#, python-brace-format
+msgid "Prices of {0}. Kept until {1}."
+msgstr "Prix au {0}. Conservé jusqu'au {1}."
+
+#: webshop/www/my-catalogues/index.py:73
+msgid "Same choices, prices computed again."
+msgstr "Mêmes choix, prix recalculés."
+
+#: webshop/webshop/catalogue/refusals.py:81
+#: webshop/www/my-catalogues/index.py:24
+msgid "Save your brand first: a catalogue carries your name, your logo and your colours."
+msgstr "Enregistrez d'abord votre marque : un catalogue porte votre nom, votre logo et vos couleurs."
+
+#: webshop/www/my-catalogues/index.py:37
+msgid "Search a product by name, reference or brand"
+msgstr "Rechercher un produit par nom, référence ou marque"
+
+#. Description of the 'Customer' (Link) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:46
+msgid "Set by the server from the signed-in account and never taken from a request."
+msgstr "Défini par le serveur à partir du compte connecté, jamais repris d'une requête."
+
+#: webshop/www/my-catalogues/index.py:51
+msgid "Show my prices"
+msgstr "Afficher mes prix"
+
+#: webshop/www/my-catalogues/index.py:49
+msgid "Starts from your brand's markup. Between 0 and 300."
+msgstr "Démarre de la plus-value définie pour votre marque. Entre 0 et 300."
+
+#: webshop/www/my-catalogues/index.py:46
+#, python-brace-format
+msgid "That is more than {0} products: narrow it down."
+msgstr "Cela fait plus de {0} produits : affinez votre sélection."
+
+#. Label of a Section Break field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:74
+msgid "The Catalogue"
+msgstr "Le catalogue"
+
+#: webshop/webshop/catalogue/refusals.py:86
+msgid "The catalogue could not be made."
+msgstr "Le catalogue n'a pas pu être réalisé."
+
+#: webshop/webshop/catalogue/refusals.py:83
+msgid "The catalogue could not be made. The team has been told."
+msgstr "Le catalogue n'a pas pu être réalisé. L'équipe en a été informée."
+
+#: webshop/webshop/catalogue/refusals.py:84
+msgid "The catalogue took too long and was stopped. Try again, with a smaller selection."
+msgstr "La réalisation du catalogue a duré trop longtemps et a été interrompue. Réessayez avec une sélection plus réduite."
+
+#. Description of the 'Prices As Of' (Date) field in DocType 'Reseller
+#. Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:103
+msgid "The day the prices printed in the file were computed."
+msgstr "Le jour où les prix imprimés dans le fichier ont été calculés."
+
+#. Description of the 'Kept Until' (Date) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:110
+msgid "The file and this record are deleted after this day."
+msgstr "Le fichier et cette fiche sont supprimés après ce jour."
+
+#: webshop/webshop/catalogue/refusals.py:66
+msgid "The markup must be a number between 0 and 300."
+msgstr "La plus-value doit être un nombre compris entre 0 et 300."
+
+#: webshop/webshop/catalogue/refusals.py:55
+msgid "The selection has too many entries. Choose categories rather than products one by one."
+msgstr "La sélection comporte trop d'éléments. Choisissez plutôt des catégories que des produits un à un."
+
+#: webshop/webshop/catalogue/refusals.py:76
+msgid "The shop offers none of the products of this selection."
+msgstr "La boutique ne propose aucun des produits de cette sélection."
+
+#: webshop/www/my-catalogues/index.py:44
+msgid "The shop offers none of these products."
+msgstr "La boutique ne propose aucun de ces produits."
+
+#. Description of the 'Website Profile' (Data) field in DocType 'Reseller
+#. Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:144
+msgid "The site the catalogue was asked on: its price list is the one the prices come from."
+msgstr "Le site où le catalogue a été demandé : sa liste de prix est celle dont proviennent les prix."
+
+#: webshop/webshop/catalogue/refusals.py:65
+msgid "The title cannot contain the characters < and >."
+msgstr "Le titre ne peut pas contenir les caractères < et >."
+
+#: webshop/webshop/catalogue/refusals.py:64
+msgid "The title is too long: 80 characters at most."
+msgstr "Le titre est trop long : 80 caractères au maximum."
+
+#: webshop/webshop/catalogue/refusals.py:78
+#, python-brace-format
+msgid "This catalogue would run to more than {0} pages. Narrow the selection."
+msgstr "Ce catalogue compterait plus de {0} pages. Réduisez la sélection."
+
+#: webshop/webshop/catalogue/refusals.py:70
+msgid "This option is not valid."
+msgstr "Cette option n'est pas valide."
+
+#: webshop/webshop/catalogue/refusals.py:57
+msgid "This selection could not be read."
+msgstr "Cette sélection n'a pas pu être lue."
+
+#: webshop/webshop/catalogue/refusals.py:77
+#, python-brace-format
+msgid "This selection holds more than {0} products. Narrow it down."
+msgstr "Cette sélection compte plus de {0} produits. Réduisez-la."
+
+#: webshop/webshop/catalogue/refusals.py:82
+#: webshop/www/my-catalogues/index.py:26
+msgid "This server cannot make PDF documents."
+msgstr "Ce serveur ne peut pas produire de documents PDF."
+
+#: webshop/www/my-catalogues/index.py:30
+msgid "What goes in it"
+msgstr "Ce qu'il contient"
+
+#. Label of a Section Break field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:122
+msgid "What It Was Made From"
+msgstr "Paramètres de réalisation"
+
+#. Description of the 'Stage' (Data) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:69
+msgid "What the job is doing: prices, pictures, render."
+msgstr "Ce que fait la tâche : prix, images, rendu."
+
+#: webshop/webshop/catalogue/refusals.py:80
+#, python-brace-format
+msgid "You have asked for {0} catalogues in the last 24 hours. Try again later."
+msgstr "Vous avez demandé {0} catalogues au cours des dernières 24 heures. Réessayez plus tard."
+
+#: webshop/www/my-catalogues/index.py:58
+msgid "You have not made a catalogue yet."
+msgstr "Vous n'avez pas encore réalisé de catalogue."
+
+#: webshop/www/my-catalogues/index.py:57
+msgid "Your catalogues"
+msgstr "Vos catalogues"
+
+#: webshop/www/my-catalogues/index.py:45
+#, python-brace-format
+msgid "{0} products in this catalogue."
+msgstr "{0} produits dans ce catalogue."
