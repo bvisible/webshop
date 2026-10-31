@@ -294,6 +294,10 @@ jobs:
           # //// Neoffice — the reseller's files and feed (lot 3): test_tables writes and reads back the CSV, the JSON
           # //// and the workbook from lines written by hand and needs no site; test_rows, test_files and test_feed
           # //// run on the same small shop as the catalogues' tests and need no Chromium — a file is not a PDF.
+          # //// Neoffice — multilingual lot 5 (#2033): the feed of an additional language and its readiness line,
+          # //// and the documents read in the language of their buyer (cart lines, order, mails). Both script the
+          # //// theme's side (a fake engine, patched readers, texts handed in) and read no Content Translation
+          # //// table, so a site without the theme runs them.
           for m in \
             webshop.controllers.test_payment_handler \
             webshop.controllers.test_payment_mode_enabled \
@@ -389,7 +393,9 @@ jobs:
             webshop.webshop.catalogue.test_tables \
             webshop.webshop.catalogue.test_rows \
             webshop.webshop.catalogue.test_files \
-            webshop.webshop.catalogue.test_feed
+            webshop.webshop.catalogue.test_feed \
+            webshop.webshop.seo.feeds.test_google_languages \
+            webshop.webshop.utils.test_language_of_documents
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || failed="$failed $m"
