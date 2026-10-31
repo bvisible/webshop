@@ -1503,7 +1503,7 @@ defects in neoffice-maintenance#691.
 - **The site's icon is builder's too** (`site_icon.py`): the icon somebody chose, else a PNG
   drawn from the chrome's mark or the site's initial, served at `/site-icon.png?v=<key>` and
   `/favicon.ico`; every website page names it, the desk keeps its own.
-- **`/sitemap.xml` is the index** (pages, products, categories, blog); the lists are built in
+- **`/sitemap.xml` is the index** (pages, products, categories, blog), by a `website_route_rules` entry: frappe, webshop and builder each ship a `www/sitemap.xml` and the last installed won the lookup (builder's list is not limited to the site, #2062). The lists are built in
   `seo/sitemaps.py` with the catalogue's own scope (`product_data_engine/catalogue_scope.py`,
   shared with `/shop-by-category`). No brand URLs until real brand pages exist; no
   `changefreq`/`priority`; `lastmod` only when true. The pages sitemap names the shop's
@@ -1522,8 +1522,8 @@ defects in neoffice-maintenance#691.
 - **A route change leaves a 301** (`seo/redirects.py`, `doc_events` of Website Item and Item
   Group), written straight into `Website Route Redirect` rows: `WebsiteSettings.save()` would
   validate the whole document and could refuse a product's save for an unrelated setting.
-  Frappe's `resolve_redirect` extends the hooks list it gets from `get_hooks` (cached for the
-  request), so a test resolving twice in one request clears `frappe.local.cache` in between.
+  Frappe's `resolve_redirect` used to extend the hooks list `get_hooks` hands out, which the process keeps
+  cached: the database's rows piled up in it for good and an old rule stood in front of a new one (#2063). The fork copies it now.
 - **A listing's first page is in its HTML** (lot 2): `server_listing` in
   `product_data_engine/listing_context.py` asks the listing API for the page the script's first
   request finds for a visitor with no preference (locked filters, default stock toggle, default
@@ -1734,7 +1734,7 @@ The study, the plan, the measures and the runbook are in Obsidian (`Neoffice/Mul
 - **A line is named in the page's language, never renamed.** `localize_lines` puts `display_name` and `display_description` on the lines of a cart or an order (and `display_names`, by item code, in the cart's answer for the Builder drawer); the saved `item_name` is what was sold and is never written over. A new surface that prints a line goes through it.
 - **A document remembers the language its buyer reads the shop in.** `Quotation.language` is stamped by `stamp_language` only from a request that SPEAKS (`explicit_language`: an address in a language, a page with no prefix, a script's call carrying `_lang`), never by a payment callback or a job; the order inherits it. The follow-up and abandoned-cart mails are written in the language of the purchase or the cart (`mail_language`, `mail_texts`), with the language set BEFORE the template is rendered and the links under the language's prefix.
 - **One Merchant Center feed per added language** (`seo/feeds/google_languages.py`): the translated text, the language's addresses, only the products whose page is translated, the machine's text declared (`structured_title`, `structured_description`, `trained_algorithmic_media`), and a readiness line in the settings' report. The SEO score shows the languages of a product without counting them.
-- **A person speaks the language of the page they came from; a document is read in its own** (lot 7, #2035). The theme stamps User, Customer and Lead at `before_insert` (`stamp_person_language`: it REPLACES the default the insert filled, `Customer.language` is `fr` otherwise) and `fill_customer_language` settles the buyer of a cart who has none, never over one and never on the guests' shared stand-in customer. A PDF, a mail attachment or the portal's print view is in the document's language through the frappe fork's `document_print_language` hook (theme `print_language_of_document`; a Payment Request follows the order it asks for); a language a caller chose (`print_language()`, `language=`, `?_lang=`) always wins. `default_print_language: fr` of the Oslo formats is kept on purpose: it only prints a document that has no language.
+- **A person speaks the language of the page they came from; a document is read in its own** (lot 7, #2035). The theme stamps User, Customer and Lead at `before_insert` (`stamp_person_language`: it REPLACES the default the insert filled, `Customer.language` is `fr` otherwise) and `fill_customer_language` settles the buyer of a cart who has none, never over one and never on the guests' shared stand-in customer. A PDF, a mail attachment or the portal's print view is in the document's language through the frappe fork's `document_print_language` hook (theme `print_language_of_document`; a Payment Request follows the order it asks for); a language a caller chose (`print_language()`, `language=`, `?_lang=`) always wins. The order is the desk's, extended to the customer: the document's own language, else its customer's (supplier's, lead's), else the print format's default, which for the Oslo formats is French (Jérémy, 31.10), else the session's; the hook is told the format (`print_format`).
 - **What cost time, so that it is not paid twice.**
   - Frappe drops the query string of a request whose body is JSON, so a script's call lost its `_lang`: the theme gives it back in `before_request`, and the page's script adds `_lang` to its calls.
   - `frappe.call` of a website page posts to `/`. Anything that counts or refuses a `POST /` hits the checkout: nginx's limit did (nine at once, a 429 and an error dialog on every load; neoffice-maintenance#2055).
