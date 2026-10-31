@@ -360,6 +360,11 @@ website_route_rules = [
 	{"from_route": "/api/payment/callback", "to_route": "webshop.controllers.payment_handler.payment_callback"},
 	# //// Neoffice — a brand's page (#691 lot 2): /brands/<slug> renders www/brand with its slug.
 	{"from_route": "/brands/<brand_slug>", "to_route": "brand"},
+	# //// Neoffice — /sitemap.xml IS the sitemap index (#691 D9), whichever app ships a www/sitemap.xml of its own
+	# //// (neoffice-maintenance#2062). frappe, webshop and builder each do; the last installed wins the page lookup, and on
+	# //// an instance where builder comes after webshop /sitemap.xml answered builder's flat list: every Builder page of every
+	# //// site of the instance on every domain, and none of the alternates of a language. A route rule beats the lookup.
+	{"from_route": "/sitemap.xml", "to_route": "sitemap_index.xml"},
 	# //// Neoffice — the account's pages at English hyphenated addresses (2026-10-25); the files keep their names
 	{"from_route": "/my-addresses", "to_route": "my_addresses"},
 	{"from_route": "/gift-cards", "to_route": "gift_cards"},

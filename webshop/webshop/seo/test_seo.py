@@ -430,3 +430,25 @@ class TestSitemapIndexHook(FrappeTestCase):
 		)
 		self.assertTrue(any(loc.endswith("/sitemap_pages.xml") for loc in locs))
 		self.assertTrue(any(loc.endswith("/sitemap_jobs.xml") for loc in locs))
+
+
+class TestTheIndexAnswersTheFirstDoor(FrappeTestCase):
+	"""neoffice-maintenance#2062: /sitemap.xml is the index, whichever installed app ships a page of that name."""
+
+	def test_the_address_every_tool_tries_first_is_the_index(self):
+		from werkzeug.routing import Map, Rule
+
+		rules = [
+			Rule(rule["from_route"], endpoint=rule["to_route"])
+			for rule in frappe.get_hooks("website_route_rules")
+			if isinstance(rule, dict)
+		]
+		endpoint, _args = Map(rules).bind("example.com").match("/sitemap.xml")
+		self.assertEqual(endpoint, "sitemap_index.xml")
+
+	def test_the_page_the_rule_names_exists_and_is_the_index(self):
+		folder = frappe.get_app_path("webshop", "www")
+		self.assertTrue(os.path.exists(os.path.join(folder, "sitemap_index.xml")))
+		with open(os.path.join(folder, "sitemap_index.xml"), encoding="utf-8") as page:
+			self.assertIn("<sitemapindex", page.read())
+
