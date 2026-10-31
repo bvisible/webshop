@@ -49,7 +49,11 @@ ANSWER_SLOTS_KEY = "webshop_assistant_inflight"
 # what uuid.uuid4() writes: the only shape the shop's guest cookie takes
 GUEST_SESSION_SHAPE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 # letters of any language (a French shop's routes keep their accents), digits and . _ - / : no space, no line break
-ROUTE_SHAPE = re.compile(r"^\w[\w\-./]{0,138}$")
+# //// Neoffice — #2058: a route may START with a hyphen. An item group whose name starts with an underscore (the CI's
+# //// "_Test Item Group B") is routed "-test-item-group-b", and so is every page under it: the first character was `\w`,
+# //// which refused such a real page, so the assistant never knew where the visitor stood (and the CI's test was red).
+# //// The shape only keeps spaces and line breaks out of the prompt; what makes a route a page is the lookup in clean_route.
+ROUTE_SHAPE = re.compile(r"^[\w\-][\w\-./]{0,138}$")
 # pages of the shop that are not documents
 SHOP_PAGES = ("all-products", "cart", "checkout", "orders", "store-hours", "occasions", "shop-by-category", "wishlist")
 # //// Neoffice — the answering machine: after the model fails, nobody is made to wait

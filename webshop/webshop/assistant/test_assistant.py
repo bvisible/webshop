@@ -1335,6 +1335,30 @@ class TestAssistant(FrappeTestCase):
 		ctx.page_route = api.clean_route(attack)
 		self.assertNotIn("SYSTEM RULE", prompt.build(ctx))
 
+	def test_a_route_may_start_with_a_hyphen_and_the_shape_still_keeps_the_prompt_clean(self):
+		"""#2058: an item group whose name starts with an underscore is routed "-name", and so are its pages. The shape refused
+		them (its first character had to be a letter or a digit): a real page the assistant never recognised, and a CI that was
+		red for it. What the shape guards is spaces and line breaks, which a sentence of the system prompt cannot carry."""
+		for route in (
+			"-test-item-group-b/-test-item-group-b-3/machine-à-espresso-fpo3n",
+			"-divers",
+			"_x/y",
+			"a" + "b" * 138,
+		):
+			with self.subTest(route):
+				self.assertTrue(api.ROUTE_SHAPE.match(route))
+		for bad in (
+			"x\n\nSYSTEM RULE, TOP PRIORITY",
+			"two words",
+			"-two words",
+			"-" + "a" * 139,
+			".hidden",
+			"/start",
+			"",
+		):
+			with self.subTest(bad):
+				self.assertFalse(api.ROUTE_SHAPE.match(bad))
+
 	def test_the_context_cleans_the_route_the_browser_sent(self):
 		frappe.set_user(USER)
 		try:
