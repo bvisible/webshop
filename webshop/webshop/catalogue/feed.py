@@ -27,6 +27,7 @@ import json
 import os
 import re
 import secrets
+from datetime import datetime, timezone
 
 import frappe
 from frappe.utils import add_days, add_to_date, get_datetime, getdate, now_datetime, nowdate
@@ -269,8 +270,10 @@ def refresh(customer):
 		data = rows.build_rows(customer, payload, clean, options, report)
 		report("file", 0, 1)
 		stamp = now_datetime()
+		# the JSON says when it was made with its offset: the site's clock is not the reader's
+		made_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 		write_file(customer, "csv", tables.csv_bytes(data))
-		write_file(customer, "json", tables.json_bytes(data, generated_on=stamp.isoformat(timespec="seconds")))
+		write_file(customer, "json", tables.json_bytes(data, generated_on=made_at))
 		_set(
 			customer,
 			status=READY,

@@ -73,12 +73,12 @@ def _row(row):
 
 def _state(customer, payload=None):
 	payload = payload or brand_api._payload(customer)
-	rows = frappe.get_all(
+	made = frappe.get_all(
 		DOCTYPE, filters={"customer": customer}, fields=FIELDS, order_by="creation desc", limit=LIST_MAX
 	)
 	return {
 		"ok": True,
-		"catalogues": [_row(row) for row in rows],
+		"catalogues": [_row(row) for row in made],
 		"busy": jobs.is_running(customer),
 		"brand_saved": payload["saved"],
 		"default_markup": payload["values"]["default_markup_percent"],
