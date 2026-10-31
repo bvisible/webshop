@@ -170,8 +170,18 @@ def revoke_key(customer):
 # What staff do (the buttons of the form)
 
 
+def _staff_only():
+	"""PermissionError unless the caller is staff (Administrator included).
+
+	Not `frappe.only_for()`: stock Frappe v15 returns at once from it while tests run (`flags.in_test`), the
+	Neoffice fork does not, so a test that switches to a portal user proved the guard on one and passed over it on
+	the other (the CI, which runs the stock one). A guard of ours that a test must be able to prove is explicit."""
+	if frappe.session.user != "Administrator" and set(STAFF).isdisjoint(frappe.get_roles()):
+		raise frappe.PermissionError
+
+
 def _decide(customer, status, note="", **fields):
-	frappe.only_for(STAFF)
+	_staff_only()
 	doc = get(customer, lock=True)
 	if not doc:
 		frappe.throw(api_message("no_access"))
@@ -192,7 +202,7 @@ def _decide(customer, status, note="", **fields):
 @frappe.whitelist(methods=["POST"])
 def approve(customer, scope_orders=0, submit_orders=0, calls_per_minute=60, note=""):
 	"""Staff allow the access: reading the catalogue always, placing orders when ticked."""
-	frappe.only_for(STAFF)
+	_staff_only()
 	doc = get(customer)
 	if not doc or doc.status not in (REQUESTED, REFUSED):
 		frappe.throw(api_message("not_requested"))
@@ -213,7 +223,7 @@ def approve(customer, scope_orders=0, submit_orders=0, calls_per_minute=60, note
 
 @frappe.whitelist(methods=["POST"])
 def refuse(customer, note=""):
-	frappe.only_for(STAFF)
+	_staff_only()
 	doc = get(customer)
 	if not doc or doc.status not in (REQUESTED, REFUSED):
 		frappe.throw(api_message("not_requested"))
@@ -224,7 +234,7 @@ def refuse(customer, note=""):
 @frappe.whitelist(methods=["POST"])
 def suspend(customer, note=""):
 	"""The key stops working at once; the portal, the invoices and the feeds of the customer are untouched."""
-	frappe.only_for(STAFF)
+	_staff_only()
 	doc = get(customer)
 	if not doc or doc.status != ACTIVE:
 		frappe.throw(api_message("not_active"))
@@ -233,7 +243,7 @@ def suspend(customer, note=""):
 
 @frappe.whitelist(methods=["POST"])
 def resume(customer):
-	frappe.only_for(STAFF)
+	_staff_only()
 	doc = get(customer)
 	if not doc or doc.status != SUSPENDED:
 		frappe.throw(api_message("not_suspended"))
