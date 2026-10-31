@@ -11546,3 +11546,47 @@ msgstr "{0} contient trop de lignes : 200 au maximum."
 msgctxt "Subject of the e-mail that carries a reseller's catalogue"
 msgid "{0}: {1}"
 msgstr "{0} : {1}"
+
+#. Description of the 'Customer Groups Allowed' (Table MultiSelect) field in
+#. DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1524
+msgid "A group covers its sub-groups. Leave empty and nobody is offered the catalogue or the integration."
+msgstr "Un groupe couvre ses sous-groupes. Laissez vide, et personne ne se voit proposer le catalogue ni l'Intégration."
+
+#. Description of the 'Warehouse' (Link) field in DocType 'Partner API
+#. Warehouse'
+#: webshop/webshop/doctype/partner_api_warehouse/partner_api_warehouse.json:12
+msgid "A group warehouse counts its children."
+msgstr "Un entrepôt de groupe compte ses entrepôts enfants."
+
+#. Label of a Check field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1529
+msgid "Enable the Integration (API for resellers)"
+msgstr "Activer l'Intégration (API pour les revendeurs)"
+
+#. Description of the 'Enable the Integration (API for resellers)' (Check)
+#. field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1531
+msgid "Lets the customers of the groups above ask for an API access on their Integration page, and, once your team has approved it, make a key that reads the catalogue at their price and places orders. Off, the Integration page is not offered and every key stops working at once; the catalogue is not affected."
+msgstr "Permet aux clients des groupes ci-dessus de demander un accès API sur leur page Intégration et, une fois que votre équipe l'a approuvé, de créer une clé qui lit le catalogue à leur tarif et passe des commandes. Désactivé, la page Intégration n'est plus proposée et chaque clé cesse de fonctionner aussitôt ; le catalogue n'est pas touché."
+
+#. Name of a DocType
+#: webshop/webshop/doctype/partner_api_warehouse/partner_api_warehouse.json:26
+msgid "Partner API Warehouse"
+msgstr "Entrepôt de l'API partenaire"
+
+#. Name of a DocType
+#: webshop/webshop/doctype/reseller_markup_rule/reseller_markup_rule.json:45
+msgid "Reseller Markup Rule"
+msgstr "Règle de majoration du revendeur"
+
+#. Label of a Table field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:136
+msgid "Warehouses of the stock quantity"
+msgstr "Entrepôts de la quantité en stock"
+
+#. Description of the 'Warehouses of the stock quantity' (Table) field in
+#. DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:133
+msgid "Where the stock quantity the key reads is counted. Empty: the quantity the shop itself promises its visitors (the website warehouse, or the sources of a product sold from several warehouses). Filled: the stock held by these warehouses, orders already placed deducted; an order is checked against the same quantity."
+msgstr "Où est comptée la quantité en stock que lit la clé. Vide : la quantité que la boutique promet elle-même à ses visiteurs (l'entrepôt du site, ou les sources d'un produit vendu depuis plusieurs entrepôts). Renseigné : le stock détenu par ces entrepôts, déduction faite des commandes déjà passées ; une commande est contrôlée sur cette même quantité."
