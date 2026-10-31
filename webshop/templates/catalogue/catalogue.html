@@ -10,7 +10,7 @@
 </head>
 <body class="layout-{{ book.layout }}">
 
-<section class="cover">
+<section class="cover cover-{{ book.cover or "solid" }}">
 	<div>
 		{% if book.issuer.logo %}<span class="plate"><img src="{{ book.issuer.logo }}" alt=""></span>
 		{% elif book.issuer.name %}<div class="house">{{ book.issuer.name | e }}</div>{% endif %}
@@ -41,6 +41,51 @@
 {% for section in book.sections %}
 <section class="group">
 	<h2 id="section-{{ loop.index }}">{{ section.title | e }}</h2>
+	{% if book.layout == "sheet" %}
+	<div class="leaves">
+		{% for product in section.products %}
+		<article class="leaf">
+			<div class="leaf-top">
+				<div class="pic">{% if product.picture %}<img src="{{ product.picture }}" alt="">{% else %}<span>{{ product.abbreviation | e }}</span>{% endif %}</div>
+				<div class="leaf-info">
+					{% if product.brand %}<div class="brand">{{ product.brand | e }}</div>{% endif %}
+					<h3 class="name">{{ product.name | e }}</h3>
+					{% if product.condition %}<div class="state">{{ _(product.condition) | e }}</div>{% endif %}
+					{% if product.is_new %}<div class="state fresh">{{ _("New arrival") }}</div>{% endif %}
+					<div class="ref">{{ product.reference | e }}</div>
+					{% if book.with_prices %}
+						{% if product.price %}<div class="price">{% if product.price_from %}<small>{{ _("From", context="Before the lowest price of a product that has several") }}</small>{% endif %}{{ product.price | e }}</div>
+						{% else %}<div class="price none">{{ _("Price on request") }}</div>{% endif %}
+					{% endif %}
+					{% if product.choices %}<div class="choices">{{ _("{0} choices").format(product.choices) | e }}</div>{% endif %}
+				</div>
+			</div>
+			{% if product.leaf.text %}<p class="leaf-text">{{ product.leaf.text | e }}</p>{% endif %}
+			{% if product.leaf.variants %}
+			<table class="leaf-variants">
+				<thead>
+					<tr>
+						<th>{{ _("Reference") }}</th>
+						{% for name in product.leaf.columns %}<th>{{ name | e }}</th>{% endfor %}
+						{% if book.with_prices %}<th class="r">{{ _("Price") }}</th>{% endif %}
+					</tr>
+				</thead>
+				<tbody>
+					{% for variant in product.leaf.variants %}
+					<tr>
+						<td class="ref">{{ variant.reference | e }}</td>
+						{% for value in variant.cells %}<td>{{ value | e }}</td>{% endfor %}
+						{% if book.with_prices %}<td class="r">{{ (variant.price or "") | e }}</td>{% endif %}
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+			{% if product.leaf.more %}<div class="leaf-more">{{ _("and {0} more").format(product.leaf.more) | e }}</div>{% endif %}
+			{% endif %}
+		</article>
+		{% endfor %}
+	</div>
+	{% else %}
 	<div class="cards">
 		{% for product in section.products %}
 		<article class="card">
@@ -63,6 +108,7 @@
 		</article>
 		{% endfor %}
 	</div>
+	{% endif %}
 </section>
 {% endfor %}
 

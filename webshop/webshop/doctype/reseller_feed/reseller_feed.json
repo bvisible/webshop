@@ -1,12 +1,13 @@
 {
  "actions": [],
  "allow_rename": 0,
- "autoname": "field:customer",
+ "autoname": "hash",
  "creation": "2026-10-31 18:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "customer",
+  "title",
   "status",
   "progress",
   "stage",
@@ -31,10 +32,16 @@
    "label": "Customer",
    "options": "Customer",
    "reqd": 1,
-   "unique": 1,
    "read_only": 1,
    "in_list_view": 1,
    "description": "Set by the server from the signed-in account and never taken from a request. One feed a customer."
+  },
+  {
+   "description": "What the reseller calls this feed on their page; empty for none.",
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "length": 60
   },
   {
    "fieldname": "status",
@@ -146,11 +153,11 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-31 18:00:00.000000",
+ "modified": "2026-10-31 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Reseller Feed",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

@@ -218,6 +218,69 @@ class TestShopify(unittest.TestCase):
 		self.assertEqual(self.read([]), [])
 
 
+class TestGoogle(unittest.TestCase):
+	NS = {"g": tables.GOOGLE_NS}
+
+	def items(self, lines, website="", title="Alpine shop"):
+		from xml.etree import ElementTree as ET
+
+		content = tables.google_bytes(data(lines), title, website)
+		root = ET.fromstring(content)
+		return content, root, list(root.iter("item"))
+
+	def test_it_is_a_rss_two_document_with_the_google_namespace_and_a_declaration(self):
+		content, root, _items = self.items([line()])
+		self.assertTrue(content.startswith(b"<?xml"))
+		self.assertEqual((root.tag, root.get("version")), ("rss", "2.0"))
+		self.assertIn(tables.GOOGLE_NS.encode(), content)
+		self.assertEqual(root.find("channel/title").text, "Alpine shop")
+
+	def test_an_item_carries_what_google_asks_for(self):
+		_content, _root, (item,) = self.items([line(url="https://shop.example/trail-shoe")])
+		g = lambda name: item.find(f"g:{name}", self.NS).text  # noqa: E731
+		self.assertEqual((g("id"), item.find("title").text, item.find("link").text), ("SKU-1", "Trail shoe", "https://shop.example/trail-shoe"))
+		self.assertEqual((g("price"), g("availability"), g("condition")), ("104.00 CHF", "in stock", "new"))
+		self.assertEqual((g("brand"), g("gtin"), g("mpn"), g("product_type")), ("Alpine", "4006381333931", "AB-12", "Shoes > Trail"))
+		self.assertEqual(g("image_link"), "https://shop.example/files/a.jpg")
+		self.assertEqual([node.text for node in item.findall("g:additional_image_link", self.NS)], ["https://shop.example/files/b.jpg", "https://shop.example/files/c.jpg"])
+
+	def test_the_words_of_stock_and_condition_are_googles(self):
+		cases = [("in_stock", "in stock"), ("out_of_stock", "out of stock"), ("backorder", "backorder")]
+		lines = [line(code=f"S{n}", availability=word, url="https://s.example/a") for n, (word, _expected) in enumerate(cases)]
+		_content, _root, items = self.items(lines)
+		self.assertEqual([item.find("g:availability", self.NS).text for item in items], [expected for _word, expected in cases])
+		_content, _root, (used, refurbished) = self.items([line(condition="second_hand", url="https://s.example/a"), line(code="S2", condition="refurbished", url="https://s.example/b")])
+		self.assertEqual((used.find("g:condition", self.NS).text, refurbished.find("g:condition", self.NS).text), ("used", "refurbished"))
+
+	def test_a_line_with_no_price_or_no_page_is_left_out_and_variants_share_a_group(self):
+		lines = [
+			line(code="A", url="https://s.example/a", model="M"),
+			line(code="B", url="https://s.example/b", model="M"),
+			line(code="NOPRICE", price=None, url="https://s.example/c"),
+			line(code="NOPAGE", url=""),
+		]
+		_content, _root, items = self.items(lines)
+		self.assertEqual([item.find("g:id", self.NS).text for item in items], ["A", "B"])
+		self.assertEqual({item.find("g:item_group_id", self.NS).text for item in items}, {"M"})
+
+	def test_there_are_at_most_ten_additional_pictures(self):
+		many = [f"https://s.example/{n}.jpg" for n in range(15)]
+		_content, _root, (item,) = self.items([line(more_images=many, url="https://s.example/a")])
+		self.assertEqual(len(item.findall("g:additional_image_link", self.NS)), tables.GOOGLE_IMAGES)
+
+	def test_what_a_person_typed_is_text_and_a_control_character_does_not_break_the_file(self):
+		_content, _root, (item,) = self.items([line(name="Shoe <b> & co\x0b", description="1 < 2 & \x00 3", url="https://s.example/a?x=1&y=2")])
+		self.assertEqual(item.find("title").text, "Shoe <b> & co")
+		self.assertEqual(item.find("description").text, "1 < 2 &  3")
+		self.assertEqual(item.find("link").text, "https://s.example/a?x=1&y=2")
+
+	def test_the_channel_link_is_the_resellers_site_with_a_scheme(self):
+		for website, expected in (("alpine.example", "https://alpine.example"), ("http://alpine.example", "http://alpine.example"), ("", None)):
+			with self.subTest(website=website):
+				_content, root, _items = self.items([line()], website=website)
+				self.assertEqual(root.find("channel/link").text, expected)
+
+
 class TestExcel(unittest.TestCase):
 	LABELS = {
 		"columns": {key: key.replace("_", " ").title() for key in rows.columns_for("both")},

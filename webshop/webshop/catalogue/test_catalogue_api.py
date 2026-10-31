@@ -71,6 +71,17 @@ class TestCatalogueApi(FrappeTestCase):
 	def newest(self, customer=shop.CUSTOMER):
 		return frappe.get_all(DOCTYPE, filters={"customer": customer}, fields=["name"], order_by="creation desc", limit=1)[0].name
 
+	def test_a_sheet_catalogue_over_the_pages_a_catalogue_may_have_is_refused_at_once(self):
+		from webshop.webshop.catalogue import book_pdf
+
+		with mock.patch.object(catalogue_api.selection, "count_products", return_value=book_pdf.MAX_PAGES):
+			answer = self.ask(options=json.dumps({"layout": "sheet"}))
+		self.assertEqual((answer["ok"], answer["field"]), (False, "selection"))
+		self.assertFalse(frappe.get_all(DOCTYPE, filters={"customer": shop.CUSTOMER}))
+		# the same number of products is a fine grid
+		with mock.patch.object(catalogue_api.selection, "count_products", return_value=book_pdf.MAX_PAGES):
+			self.assertTrue(self.ask(options=json.dumps({"layout": "grid"}))["ok"])
+
 	# --- who may ask -------------------------------------------------------------------------------
 
 	def test_a_visitor_an_account_the_shop_did_not_allow_and_staff_are_refused_by_every_endpoint(self):

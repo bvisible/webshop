@@ -1231,7 +1231,7 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
   and a feed refuse `tariff` and `both`**, the PDF because it is for their customers, the feed because its address is
   a secret that can leak. The shop's own price is in no line. Limits: 5000 lines (`rows.MAX_ROWS`), counted in
   lines at the request, so the page says "too many" before the job does.
-- **The feed** (`feed.py`, `feed_api.py`, doctype `Reseller Feed`, one per customer) is a file a script or a shop's
+- **The feed** (`feed.py`, `feed_api.py`, doctype `Reseller Feed`, up to three a customer since lot 5h) is a file a script or a shop's
   importer reads at `/feeds/reseller/<token>/products.csv` (or `.json`): the products, with photos as whole public
   addresses, descriptions, EAN, manufacturer's reference, availability and the selling price. It is written by a job
   (`feed.refresh`: when saved, by the button, each night for the feeds read in the last 14 days or made in the last 14;
@@ -1332,6 +1332,25 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
     cost is never shared (same rule as the others); the download is named `<title>-shopify.csv` (`jobs.download_name`).
   - Tests that count tags or rows must not count the neighbours: `class="r"` is a prefix of `class="ref"`, and a catalogue of a whole group holds
     the model and its variants too, all created the same day.
+
+- **Sheets, covers, several feeds and a Google file** (lot 5h, 2026-10-31): the last finishing touches the study (note 02) lists.
+  - **A third layout, `sheet`: one product a page** (grid and list as before). Each section starts a page, each product has its own with a large
+    picture (800 px, 95 mm), the long text (`web_long_description`, 1000 characters) and, for a model, a table of its variants with their attributes
+    and **their own selling price** (30 at most, the others counted: `book._leaf`). The variants' prices are computed only for this layout
+    (`listed`), the grid pays nothing for it. A selection of more than `MAX_PAGES - 6` products is refused at once (`catalogue_api.SHEET_SPARE_PAGES`).
+  - **Three covers** (`options.cover`, kept only when not the default): `solid` (a full page in the reseller's colour, the one made until then),
+    `band` (a colour band over white) and `minimal` (white with a rule). The title is in ink on the last two, since a light brand colour (yellow) would not
+    read on white. Page count and contents are the same whatever the cover.
+  - **Up to three feeds a customer** (`feed.MAX_FEEDS`). **The first is still named after the customer** (its files, its address and every existing
+    record keep working; `ResellerFeed.autoname` takes `flags.name_it`); the others get a random name. Every function now takes the feed's name,
+    and `feed.own_feed(customer, name)` is the one place that checks a feed is theirs: someone else's name is not told apart from none. `name` empty
+    is their first feed; **a name that is not a text is "?" (no feed), never their first** (`feed_api._name`). A feed has a `title` (optional, kept when a
+    save sends none, cleared by an empty one). The page's state carries `feeds` (and `feed`, the first, as before) and `max_feeds`; saving the form with a
+    feed chosen changes that feed, with "a new feed" makes one. Refresh allowance per customer: 12 a day, all feeds together.
+  - **A Google Shopping file** (`products.xml`, RSS 2.0 with the `g:` namespace, `tables.google_bytes`) is the third address of a feed that carries
+    prices (`prices: customers`); a feed without prices has none, and its old file is removed at the next refresh. A line with no price or no page address
+    is left out (Google refuses both); the page address is the shop's: the reseller's own shop puts its own in its place. Never the price they pay.
+  - **A `frappe._dict` cannot carry a `values` key** (`row.values` is `dict.values`): a sheet's variant says `cells`. Same trap as `seo/variants.py`.
 
 - **The partner API** (lot 4, `partner_api/`, 2026-10-31): a reseller asks for it on `/my-integration`, staff allow
   it on the desk (**Partner API Access**: Approve with the scopes — orders, submit at once, calls a minute — Refuse,

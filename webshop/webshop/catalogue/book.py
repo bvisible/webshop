@@ -23,16 +23,20 @@ from frappe.utils import add_days, cint, formatdate, getdate, nowdate, strip_htm
 from webshop.webshop.catalogue import images, languages, markup, markup_rules, qr, selection
 from webshop.webshop.utils.used_items import is_second_hand
 from webshop.webshop.catalogue.sheet import _website_address, price_text, reseller_issuer
-from webshop.webshop.seo.text import truncate
+from webshop.webshop.seo.text import html_to_text, truncate
 from webshop.webshop.utils import customer_pricing
 
-LAYOUTS = ("grid", "list")
+LAYOUTS = ("grid", "list", "sheet")
+COVERS = ("solid", "band", "minimal")  # full colour (the first one made), a colour band over white, plain white
 PRICE_MODES = ("customers", "none")
 TITLE_MAX = 80
 CARD_PICTURE = (440, 74)  # longest side in pixels, JPEG quality: a card is 56 mm wide, 200 dpi is enough
 # two other qualities (lot 5e): "light" for an e-mail, "print" for a printer. (longest side, JPEG quality, the shop's small copy)
 QUALITIES = {"light": (300, 60, True), "standard": (CARD_PICTURE[0], CARD_PICTURE[1], True), "print": (900, 88, False)}
 DESCRIPTION_MAX = 180
+LEAF_TEXT_MAX = 1000  # the long text of a sheet page
+LEAF_VARIANTS = 30  # variants a sheet page lists for a model; the others are counted
+SHEET_PICTURE = 800  # a sheet page shows its picture at 95 mm: the card's 440 px would be soft
 PRICE_CHUNK = 20  # items priced between two reports of progress
 
 
@@ -94,6 +98,11 @@ def clean_options(raw, default_markup):
 		raise OptionsRefused("quality", "not_allowed")
 	if quality != "standard":
 		options["quality"] = quality
+	cover = raw.get("cover") or "solid"
+	if cover not in COVERS:
+		raise OptionsRefused("cover", "not_allowed")
+	if cover != "solid":
+		options["cover"] = cover
 	# an order form closes the catalogue (lot 5g): kept only when asked for, so a catalogue without one is as before
 	if raw.get("order_form") in (True, 1, "1", "true"):
 		options["order_form"] = True
@@ -137,6 +146,19 @@ def _cheapest_variants(models, price_list):
 	return found
 
 
+def _variants_of_models(models):
+	"""{model code: [its variants' codes]} in code order: the ones the shop sells (published, not sold)."""
+	found = {}
+	for row in frappe.get_all(
+		"Website Item",
+		filters={"variant_of": ["in", models], "published": 1, "sold": 0},
+		fields=["item_code", "variant_of"],
+		order_by="item_code asc",
+	):
+		found.setdefault(row.variant_of, []).append(row.item_code)
+	return found
+
+
 def price_many(codes, price_list, party, settings, progress):
 	"""{item code: price dict} for every code the customer has a price for, reporting as it goes."""
 	prices = {}
@@ -159,6 +181,33 @@ def _inherited_pictures(rows):
 	return {row.item_code: by_model.get(row.variant_of) for row in rows if row.variant_of and not row.website_image}
 
 
+def _leaf(row, said, variant_codes, attributes, selling, shop_variants):
+	"""What a sheet page prints beyond a card: the long text, and for a model its variants with their own price.
+
+	`variant_codes` are the (at most LEAF_VARIANTS) variants listed, `shop_variants` is (cheapest, how many the shop sells)."""
+	text = html_to_text(
+		said.get("web_long_description") or row.get("web_long_description") or said.get("short_description") or row.get("short_description"),
+		LEAF_TEXT_MAX,
+	)
+	leaf = frappe._dict(text=text, columns=[], variants=[], more=0)
+	if variant_codes:
+		for code in variant_codes:
+			for name in attributes.get(code, {}):
+				if name not in leaf.columns:
+					leaf.columns.append(name)
+		for code in variant_codes:
+			leaf.variants.append(
+				frappe._dict(
+					reference=code,
+					# not `values`: a frappe._dict has that method
+					cells=[attributes.get(code, {}).get(name, "") for name in leaf.columns],
+					price=selling(code, row),
+				)
+			)
+		leaf.more = max(0, (shop_variants[1] if shop_variants else 0) - len(variant_codes))
+	return leaf
+
+
 def build_book(customer, payload, credit_line, title, clean_selection, options, progress=None):
 	"""Everything the template prints. `payload` is the reseller's brand (`api._payload`); `progress`, when
 	given, is called as progress(stage, done, total) with stage "prices" or "pictures"."""
@@ -178,11 +227,18 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 
 	models = {row.item_code: row for row in rows if row.has_variants}
 	variants_of = _cheapest_variants(list(models), price_list)
+	# a sheet page lists the variants of a model with their own price; the cards need only the cheapest
+	leaf_layout = options["layout"] == "sheet"
+	listed = {model: codes[:LEAF_VARIANTS] for model, codes in _variants_of_models(list(models)).items()} if leaf_layout and models else {}
 	prices = {}
 	if with_prices:
 		to_price = [row.item_code for row in rows if not row.has_variants]
 		to_price += [cheapest for cheapest, _count in variants_of.values() if cheapest]
-		prices = price_many(to_price, price_list, party, settings, progress)
+		to_price += [code for codes in listed.values() for code in codes]
+		prices = price_many(list(dict.fromkeys(to_price)), price_list, party, settings, progress)
+	from webshop.webshop.catalogue.rows import _attributes
+
+	attributes = _attributes([code for codes in listed.values() for code in codes]) if listed else {}
 
 	markups = markup_rules.load(customer, options["markup_percent"])
 
@@ -208,6 +264,8 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 		picture = None
 		if picture_url:
 			side, jpeg_quality, small = QUALITIES[options.get("quality") or "standard"]
+			if leaf_layout:
+				side = max(side, SHEET_PICTURE)
 			picture = images.site_picture(picture_url, max_side=side, quality=jpeg_quality, small_copy=small)
 		if row.has_variants:
 			cheapest, choices = variants_of.get(row.item_code, (None, 0))
@@ -228,6 +286,7 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 			# a used or refurbished unit says so on its card; a new one says nothing
 			condition=row.get("item_condition") if is_second_hand(row.get("item_condition")) else "",
 			# a used unit is its own item, created recently as a rule: its own tag says what it is, not "new"
+			leaf=_leaf(row, said, listed.get(row.item_code), attributes, selling, variants_of.get(row.item_code)) if leaf_layout else None,
 			is_new=bool(
 				new_since and row.get("creation") and getdate(row.creation) >= new_since and not is_second_hand(row.get("item_condition"))
 			),
@@ -257,6 +316,7 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 		with_prices=with_prices,
 		price_note=f"{valid} · {_('Including VAT') if including_vat else _('Excluding VAT')}" if with_prices else "",
 		layout=options["layout"],
+		cover=options.get("cover") or "solid",
 		sections=sections,
 		order_form=order_form,
 		product_count=len(rows),

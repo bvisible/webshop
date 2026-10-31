@@ -37,6 +37,17 @@ body {
 .cover .date { margin-top: 3mm; font-size: 10pt; opacity: .8; }
 .cover .contact { font-size: 9pt; line-height: 1.6; opacity: .92; }
 .cover .contact div { margin: 0; }
+/* a colour band over white: the logo sits on the band, the title in ink (a light brand colour would not read on white) */
+.cover-band { background: #fff; color: var(--ink); padding-top: 0; }
+.cover-band > div:first-child { margin: 0 -20mm; padding: 24mm 20mm 14mm; background: var(--brand); color: var(--on-brand); }
+.cover-band h1 { color: var(--ink); }
+.cover-band .sub, .cover-band .date, .cover-band .contact { color: var(--muted); opacity: 1; }
+/* plain: white, an accent rule in the brand colour above the title */
+.cover-minimal { background: #fff; color: var(--ink); }
+.cover-minimal .plate { padding: 0; background: none; }
+.cover-minimal .house { color: var(--ink); }
+.cover-minimal h1 { color: var(--ink); border-top: 1.4mm solid var(--brand); padding-top: 8mm; }
+.cover-minimal .sub, .cover-minimal .date, .cover-minimal .contact { color: var(--muted); opacity: 1; }
 
 /* --- contents ------------------------------------------------------------------------------- */
 .toc { break-after: page; }
@@ -93,6 +104,29 @@ h2 {
 .layout-list .pic { width: 24mm; }
 .layout-list .info { margin: 0; }
 .layout-list .buy { margin: 0; text-align: right; }
+
+/* --- the sheet layout: one product a page ------------------------------------------------------------ */
+.layout-sheet .group { break-before: page; }
+.layout-sheet .group h2 { margin-top: 0; }
+.leaf { break-inside: avoid; }
+.leaf + .leaf { break-before: page; }
+.leaf-top { display: grid; grid-template-columns: 95mm 1fr; gap: 9mm; align-items: start; margin-top: 4mm; }
+.leaf .pic { aspect-ratio: 1 / 1; }
+.leaf .pic span { font-size: 40pt; }
+.leaf-info .brand { font-size: 8pt; }
+.leaf-info .name { font-size: 18pt; line-height: 1.2; margin: 1mm 0 2mm; display: block; overflow: visible; }
+.leaf-info .ref { font-size: 9pt; margin: 2mm 0 4mm; }
+.leaf-info .price { font-size: 22pt; margin-top: 3mm; }
+.leaf-info .price small { font-size: 9pt; }
+.leaf-info .choices { font-size: 9pt; margin-top: 2mm; }
+.leaf-text { margin: 9mm 0 0; font-size: 9.5pt; line-height: 1.55; white-space: pre-line; }
+table.leaf-variants { width: 100%; margin-top: 9mm; border-collapse: collapse; font-size: 8.5pt; }
+.leaf-variants th { text-align: left; padding: 1.4mm 2mm; color: var(--muted); font-size: 7pt; text-transform: uppercase; letter-spacing: .06em; border-bottom: .4mm solid var(--brand); }
+.leaf-variants td { padding: 1.4mm 2mm; border-bottom: .2mm solid var(--line); }
+.leaf-variants tr { break-inside: avoid; }
+.leaf-variants .ref { color: var(--faint); font-size: 7.5pt; overflow-wrap: anywhere; }
+.leaf-variants .r { text-align: right; white-space: nowrap; }
+.leaf-more { margin-top: 2mm; color: var(--muted); font-size: 8pt; }
 
 /* --- the order form that closes the catalogue ---------------------------------------------------- */
 .order { break-before: page; }

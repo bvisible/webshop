@@ -52,6 +52,23 @@ class TestOptions(unittest.TestCase):
 				book.clean_options({"quality": refused}, 25)
 			self.assertEqual((caught.exception.field, caught.exception.reason), ("quality", "not_allowed"))
 
+	def test_a_cover_is_kept_when_it_is_in_the_list_and_the_options_are_unchanged_without_one(self):
+		self.assertNotIn("cover", book.clean_options({}, 25))
+		self.assertNotIn("cover", book.clean_options({"cover": "solid"}, 25))
+		for cover in ("band", "minimal"):
+			self.assertEqual(book.clean_options({"cover": cover}, 25)["cover"], cover)
+		for refused in ("full", "Band", "band; x", 7):
+			with self.subTest(value=refused), self.assertRaises(book.OptionsRefused) as caught:
+				book.clean_options({"cover": refused}, 25)
+			self.assertEqual((caught.exception.field, caught.exception.reason), ("cover", "not_allowed"))
+
+	def test_the_sheet_layout_is_a_layout_like_the_others(self):
+		self.assertEqual(book.clean_options({"layout": "sheet"}, 25)["layout"], "sheet")
+		for refused in ("page", "Sheet", "grid; list", 4):
+			with self.subTest(value=refused), self.assertRaises(book.OptionsRefused) as caught:
+				book.clean_options({"layout": refused}, 25)
+			self.assertEqual((caught.exception.field, caught.exception.reason), ("layout", "not_allowed"))
+
 	def test_an_order_form_is_kept_only_when_it_is_asked_for(self):
 		for asked in (True, 1, "1", "true"):
 			with self.subTest(asked=asked):
@@ -258,6 +275,82 @@ class TestTheBook(FrappeTestCase):
 		self.assertEqual(products[shop.FIRST].condition, "Second-hand")
 		self.assertEqual(products[shop.SECOND].condition, "")
 		self.assertEqual(html.count('class="state"'), 1, "one card, the used one")
+
+	# --- the covers --------------------------------------------------------------------------------
+
+	def test_the_cover_style_is_a_class_of_the_cover_and_the_first_one_stays_the_default(self):
+		self.assertIn('<section class="cover cover-solid">', book_pdf.render_html(self.make()))
+		for cover in ("band", "minimal"):
+			data = self.make({"item_groups": [shop.PARENT_GROUP]}, {"cover": cover})
+			self.assertEqual(data.cover, cover)
+			self.assertIn(f'<section class="cover cover-{cover}">', book_pdf.render_html(data))
+
+	def test_every_cover_prints_the_title_and_the_name_and_leaves_the_pages_where_they_were(self):
+		pages = {}
+		for cover in ("solid", "band", "minimal"):
+			data = self.make({"item_groups": [shop.PARENT_GROUP]}, {"cover": cover})
+			pdf, pages[cover] = self.pdf(data)
+			first = self.page_texts(pdf)[0]
+			self.assertIn("Catalogue 2027", first, cover)
+			self.assertIn("Alpine Distribution SA", first, cover)
+			self.assertIn("orders@alpine.example", first, cover)
+		self.assertEqual(len(set(pages.values())), 1, f"a cover is one page whatever its style: {pages}")
+
+	# --- one product a page ------------------------------------------------------------------------
+
+	def test_a_sheet_is_a_page_a_product_with_its_long_text_and_no_grid(self):
+		first = frappe.db.get_value("Website Item", {"item_code": shop.FIRST}, "name")
+		before = frappe.db.get_value("Website Item", first, "web_long_description")
+		frappe.db.set_value("Website Item", first, "web_long_description", "<p>The <b>long</b> text of the first product.</p>", update_modified=False)
+		try:
+			data = self.make({"item_groups": [shop.PARENT_GROUP, shop.OTHER_GROUP]}, {"layout": "sheet"})
+			html = book_pdf.render_html(data)
+		finally:
+			frappe.db.set_value("Website Item", first, "web_long_description", before, update_modified=False)
+		self.assertEqual(html.count('<article class="leaf">'), data.product_count, "a sheet for each product")
+		self.assertNotIn('class="cards"', html)
+		self.assertEqual(self.products(data)[shop.FIRST].leaf.text, "The long text of the first product.")
+		self.assertIn("The long text of the first product.", html)
+		self.assertIn('<body class="layout-sheet">', html)
+
+	def test_the_sheet_of_a_model_lists_its_variants_with_their_own_selling_price(self):
+		model = self.products(self.make({"items": [shop.MODEL]}, {"layout": "sheet"}))[shop.MODEL]
+		leaf = model.leaf
+		self.assertEqual(leaf.columns, [shop.ATTRIBUTE])
+		by_size = {variant.cells[0]: variant for variant in leaf.variants}
+		self.assertEqual(set(by_size), {"Small", "Large"})
+		self.assertEqual(by_size["Small"].price, self.selling(48))
+		self.assertEqual(by_size["Large"].price, self.selling(72))
+		self.assertEqual(leaf.more, 0)
+
+	def test_a_plain_product_has_no_variants_on_its_sheet_and_the_other_layouts_carry_no_sheet_data(self):
+		products = self.products(self.make({"items": [shop.FIRST]}, {"layout": "sheet"}))
+		self.assertEqual(products[shop.FIRST].leaf.variants, [])
+		self.assertIsNone(self.products(self.make({"items": [shop.FIRST]}))[shop.FIRST].leaf, "a grid does not pay for it")
+
+	def test_a_sheet_never_prints_what_the_reseller_pays_or_the_shops_price(self):
+		data = self.make({"item_groups": [shop.PARENT_GROUP, shop.OTHER_GROUP], "items": [shop.MODEL]}, {"layout": "sheet", "order_form": True})
+		html = book_pdf.render_html(data)
+		for number in ("80.00", "40.00", "30.00", "48.00", "72.00", "100.00", "50.00", "60.00", "90.00"):
+			with self.subTest(number=number):
+				self.assertNotIn(number, html)
+		self.assertIn(self.selling(72), html, "the selling price of a variant is printed")
+
+	def test_a_sheet_without_prices_has_no_price_column_in_its_variants(self):
+		html = book_pdf.render_html(self.make({"items": [shop.MODEL]}, {"layout": "sheet", "prices": "none"}))
+		leaf = html.split('class="leaf-variants"')[1].split("</table>")[0]
+		self.assertNotIn('class="r"', leaf)
+
+	def test_the_pdf_of_sheets_has_a_page_a_product(self):
+		data = self.make({"item_groups": [shop.PARENT_GROUP]}, {"layout": "sheet"})
+		pdf, pages = self.pdf(data)
+		texts = self.page_texts(pdf)
+		names = [product.name for section in data.sections for product in section.products]
+		for name in names:
+			# a long name wraps in the column beside the picture: read the page as one line of words
+			holders = [number for number, text in enumerate(texts, start=1) if number > 2 and name in " ".join(text.split())]
+			self.assertEqual(len(holders), 1, f"{name} is on one page of its own")
+		self.assertGreaterEqual(pages, 2 + len(names))
 
 	# --- the order form ----------------------------------------------------------------------------
 

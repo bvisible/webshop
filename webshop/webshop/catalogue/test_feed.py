@@ -46,8 +46,9 @@ class TestTheFeed(FrappeTestCase):
 	@staticmethod
 	def clean():
 		for customer in CUSTOMERS:
-			if frappe.db.exists(DOCTYPE, customer):
-				frappe.delete_doc(DOCTYPE, customer, force=True, ignore_permissions=True)
+			for name in feed.feeds_of(customer):
+				frappe.delete_doc(DOCTYPE, name, force=True, ignore_permissions=True)
+				feed.remove_files(name)
 			feed.remove_files(customer)
 			throttle.reset("feed-refresh", customer)
 		frappe.db.commit()
@@ -88,19 +89,21 @@ class TestTheFeed(FrappeTestCase):
 			feed.refresh(shop.CUSTOMER)
 		self.assertIn("Wanderschuh", {row["name"] for row in self.records(self.token())})
 
-	def make(self, customer=shop.CUSTOMER, picked=None, options=None):
-		"""feed.save with the job's enqueueing caught; returns what save answers (None when it worked)."""
+	def make(self, customer=shop.CUSTOMER, picked=None, options=None, name=None, title=None):
+		"""feed.save with the job's enqueueing caught; returns what save answers (None when it worked). `name`: change
+		that feed of theirs instead of making a new one."""
 		with mock.patch("frappe.enqueue") as enqueue:
-			answer = feed.save(customer, self.payloads[customer], picked or PICKED_A, options or {})
+			answer = feed.save(customer, self.payloads[customer], picked or PICKED_A, options or {}, name=name, title=title)
 		self.enqueue = enqueue
 		return answer
 
-	def made(self, customer=shop.CUSTOMER, picked=None, options=None):
-		"""A feed saved and refreshed."""
-		self.assertIsNone(self.make(customer, picked, options))
+	def made(self, customer=shop.CUSTOMER, picked=None, options=None, name=None, title=None):
+		"""A feed saved and refreshed (the first of the customer, named after them, unless `name` says which one)."""
+		self.assertIsNone(self.make(customer, picked, options, name, title))
 		frappe.db.commit()
-		feed.refresh(customer)
-		return feed.get_feed(customer)
+		name = name or customer
+		feed.refresh(name)
+		return feed.get_feed(name)
 
 	def token(self, customer=shop.CUSTOMER):
 		return feed.get_feed(customer).get_password("token")
@@ -139,7 +142,7 @@ class TestTheFeed(FrappeTestCase):
 		self.made()
 		token = self.token()
 		throttle.reset("feed-refresh", shop.CUSTOMER)
-		self.assertIsNone(self.make(picked=PICKED_B, options={"markup_percent": 50}))
+		self.assertIsNone(self.make(picked=PICKED_B, options={"markup_percent": 50}, name=shop.CUSTOMER))
 		self.assertEqual(self.token(), token)
 		self.assertEqual(json.loads(feed.get_feed(shop.CUSTOMER).selection), {"item_groups": [], "brands": [], "items": [shop.THIRD]})
 
@@ -211,15 +214,166 @@ class TestTheFeed(FrappeTestCase):
 		with mock.patch.object(feed, "REFRESHES_PER_DAY", 2):
 			self.assertIsNone(self.make())
 			frappe.db.set_value(DOCTYPE, shop.CUSTOMER, "status", "Ready")
-			self.assertIsNone(self.make())
+			self.assertIsNone(self.make(name=shop.CUSTOMER))
 			frappe.db.set_value(DOCTYPE, shop.CUSTOMER, "status", "Ready")
-			answer = self.make()
+			answer = self.make(name=shop.CUSTOMER)
 		self.assertEqual((answer["ok"], answer["message"]), (False, feed_message("refresh_limit", 2)))
 
 	def test_a_second_refresh_waits_for_the_first(self):
 		self.assertIsNone(self.make())
-		answer = self.make()
+		answer = self.make(name=shop.CUSTOMER)
 		self.assertEqual((answer["ok"], answer["message"]), (False, feed_message("busy")), "the feed is still Queued")
+
+	# --- several feeds -------------------------------------------------------------------------------
+
+	def test_a_reseller_may_have_three_feeds_each_with_its_own_address_and_not_a_fourth(self):
+		first = self.made(title="Shop one")
+		self.assertEqual(first.name, shop.CUSTOMER, "the first one is named after them, as it always was")
+		self.assertIsNone(self.make(picked=PICKED_B, title="Shop two"))
+		self.assertIsNone(self.make(picked=PICKED_A, title="Shop three"))
+		names = feed.feeds_of(shop.CUSTOMER)
+		self.assertEqual(len(names), 3)
+		self.assertEqual(names[0], shop.CUSTOMER)
+		self.assertEqual(len(set(names)), 3)
+		tokens = [feed.get_feed(name).get_password("token") for name in names]
+		self.assertEqual(len(set(tokens)), 3, "an address for each")
+		self.assertEqual([feed.get_feed(name).title for name in names], ["Shop one", "Shop two", "Shop three"])
+		answer = self.make(picked=PICKED_B, title="Shop four")
+		self.assertEqual((answer["ok"], answer["message"]), (False, feed_message("too_many_feeds", feed.MAX_FEEDS)))
+		self.assertEqual(len(feed.feeds_of(shop.CUSTOMER)), 3)
+
+	def test_a_second_feed_is_read_at_its_own_address_with_its_own_products(self):
+		self.made()
+		self.assertIsNone(self.make(picked=PICKED_B))
+		frappe.db.commit()
+		second = [name for name in feed.feeds_of(shop.CUSTOMER) if name != shop.CUSTOMER][0]
+		feed.refresh(second)
+		codes_first = {record["code"] for record in self.records(self.token())}
+		codes_second = {record["code"] for record in self.records(feed.get_feed(second).get_password("token"))}
+		self.assertIn(shop.FIRST, codes_first)
+		self.assertEqual(codes_second, {shop.THIRD})
+
+	def test_changing_one_feed_leaves_the_others_and_its_own_address(self):
+		self.made()
+		self.assertIsNone(self.make(picked=PICKED_B, title="Two"))
+		frappe.db.commit()
+		second = [name for name in feed.feeds_of(shop.CUSTOMER) if name != shop.CUSTOMER][0]
+		feed.refresh(second)
+		before = (self.token(), feed.get_feed(second).get_password("token"), feed.get_feed(shop.CUSTOMER).selection)
+		self.assertIsNone(self.make(picked={"items": [shop.SECOND]}, name=second))
+		self.assertEqual(feed.get_feed(second).get_password("token"), before[1], "its address stays")
+		self.assertEqual(json.loads(feed.get_feed(second).selection)["items"], [shop.SECOND])
+		self.assertEqual(feed.get_feed(second).title, "Two", "no title keeps the one it has")
+		self.assertEqual((self.token(), feed.get_feed(shop.CUSTOMER).selection), (before[0], before[2]), "the first is untouched")
+		frappe.db.commit()
+		feed.refresh(second)
+		self.assertIsNone(self.make(picked={"items": [shop.SECOND]}, name=second, title=""))
+		self.assertEqual(feed.get_feed(second).title, "", "an empty title clears it")
+
+	def test_stopping_or_renewing_one_feed_leaves_the_others(self):
+		self.made()
+		self.assertIsNone(self.make(picked=PICKED_B))
+		frappe.db.commit()
+		second = [name for name in feed.feeds_of(shop.CUSTOMER) if name != shop.CUSTOMER][0]
+		feed.refresh(second)
+		first_token, second_token = self.token(), feed.get_feed(second).get_password("token")
+		self.assertIsNone(feed.rotate(shop.CUSTOMER, second))
+		frappe.db.commit()
+		self.assertEqual(self.token(), first_token)
+		self.assertEqual(self.read(second_token).status_code, 404, "the old address of the one renewed is closed")
+		self.assertEqual(self.read(self.token()).status_code, 200)
+		feed.delete(shop.CUSTOMER, second)
+		self.assertEqual(feed.feeds_of(shop.CUSTOMER), [shop.CUSTOMER])
+		self.assertFalse(any(os.path.exists(feed.feed_path(second, kind)) for kind in feed.KINDS))
+		self.assertEqual(self.read(self.token()).status_code, 200, "the other keeps its file")
+
+	def test_a_feed_of_somebody_else_is_not_told_apart_from_none_and_cannot_be_touched(self):
+		self.made()
+		other = self.made(shop.OTHER_CUSTOMER, PICKED_B)
+		mine = shop.CUSTOMER
+		with mock.patch("frappe.enqueue"):
+			for call in (
+				lambda: feed.save(shop.OTHER_CUSTOMER, self.payloads[shop.OTHER_CUSTOMER], PICKED_B, {}, name=mine),
+				lambda: feed.refresh_now(shop.OTHER_CUSTOMER, mine),
+				lambda: feed.rotate(shop.OTHER_CUSTOMER, mine),
+				lambda: feed.save(shop.CUSTOMER, self.payloads[shop.CUSTOMER], PICKED_A, {}, name=other.name),
+				lambda: feed.refresh_now(shop.CUSTOMER, "no such feed"),
+			):
+				answer = call()
+				self.assertEqual((answer["ok"], answer["message"]), (False, feed_message("none")))
+			feed.delete(shop.OTHER_CUSTOMER, mine)
+		self.assertTrue(frappe.db.exists(DOCTYPE, mine), "the delete touched nothing")
+		self.assertEqual([row["name"] for row in feed.describe_all(shop.OTHER_CUSTOMER)], [other.name])
+
+	def test_a_name_that_is_not_a_text_names_no_feed_and_is_not_their_first(self):
+		self.assertIsNone(feed_api._name(None))
+		self.assertIsNone(feed_api._name(""))
+		self.assertEqual(feed_api._name("abc"), "abc")
+		self.assertEqual(feed_api._name(["x"]), "?")
+		self.made()
+		self.assertEqual(feed.refresh_now(shop.CUSTOMER, feed_api._name(["x"]))["message"], feed_message("none"))
+
+	def test_a_title_is_one_plain_line_of_at_most_sixty_characters(self):
+		for refused in ("x" * 61, "a <b> c"):
+			with self.subTest(title=refused[:12]):
+				answer = self.make(title=refused)
+				self.assertEqual((answer["ok"], answer["field"]), (False, "title"))
+		self.assertFalse(feed.feeds_of(shop.CUSTOMER))
+		self.assertIsNone(self.make(title="  My   shop \n two "))
+		self.assertEqual(feed.get_feed(shop.CUSTOMER).title, "My shop two")
+
+	def test_the_state_carries_every_feed_and_the_first_as_before(self):
+		self.made()
+		self.assertIsNone(self.make(picked=PICKED_B, title="Two"))
+		frappe.db.commit()
+		frappe.set_user(shop.USER)
+		state = catalogue_api._state(shop.CUSTOMER, self.payloads[shop.CUSTOMER])
+		self.assertEqual([row["title"] for row in state["feeds"]], ["", "Two"])
+		self.assertEqual(state["feed"]["name"], shop.CUSTOMER)
+		self.assertEqual(state["max_feeds"], feed.MAX_FEEDS)
+
+	def test_the_night_refreshes_every_feed_that_is_being_read(self):
+		self.made()
+		self.assertIsNone(self.make(picked=PICKED_B))
+		frappe.db.commit()
+		second = [name for name in feed.feeds_of(shop.CUSTOMER) if name != shop.CUSTOMER][0]
+		for name in (shop.CUSTOMER, second):
+			frappe.db.set_value(DOCTYPE, name, {"status": "Ready", "creation": add_days(now_datetime(), -40), "last_fetched": now_datetime()}, update_modified=False)
+		with mock.patch("frappe.enqueue") as enqueue:
+			feed.refresh_all()
+		self.assertEqual(sorted(call.kwargs["name"] for call in enqueue.call_args_list), sorted([shop.CUSTOMER, second]))
+
+	# --- the Google Shopping file ---------------------------------------------------------------------
+
+	def test_a_feed_with_prices_has_a_google_shopping_address_and_one_without_has_none(self):
+		doc = self.made()
+		addresses = feed.describe(doc.name)["addresses"]
+		self.assertEqual(set(addresses), {"csv", "json", "xml"})
+		self.assertTrue(addresses["xml"].endswith("/products.xml"))
+		response = self.read(self.token(), "xml")
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(response.content_type.startswith("application/rss+xml"))
+		self.assertIn("<g:price>", response.get_data(as_text=True))
+		throttle.reset("feed-refresh", shop.CUSTOMER)
+		self.made(options={"prices": "none"}, name=shop.CUSTOMER)
+		self.assertEqual(set(feed.describe(shop.CUSTOMER)["addresses"]), {"csv", "json"})
+		self.assertEqual(self.read(self.token(), "xml").status_code, 404, "no price, no Google file: the old one went")
+		self.assertFalse(os.path.exists(feed.feed_path(shop.CUSTOMER, "xml")))
+
+	def test_the_google_file_carries_the_resellers_selling_price_and_never_what_they_pay(self):
+		self.made()
+		text = self.read(self.token(), "xml").get_data(as_text=True)
+		from xml.etree import ElementTree as ET
+
+		root = ET.fromstring(text.encode("utf-8"))
+		ns = {"g": "http://base.google.com/ns/1.0"}
+		items = {item.find("g:id", ns).text: item for item in root.iter("item")}
+		self.assertIn(shop.FIRST, items)
+		self.assertEqual(items[shop.FIRST].find("g:price", ns).text, f"104.00 {frappe.db.get_value('Price List', shop.RESELLER_LIST, 'currency')}")
+		for cost in COSTS:
+			self.assertNotIn(f"{cost:.2f} ", text)
+		for shop_price in SHOP_PRICES:
+			self.assertNotIn(f"{shop_price:.2f} ", text)
 
 	# --- reading it ---------------------------------------------------------------------------------
 
@@ -332,7 +486,7 @@ class TestTheFeed(FrappeTestCase):
 		self.made(shop.OTHER_CUSTOMER, PICKED_A)
 		self.assertEqual(self.read(self.token(shop.CUSTOMER)).get_data(), self.read(self.token(shop.OTHER_CUSTOMER)).get_data())
 		throttle.reset("feed-refresh", shop.CUSTOMER)
-		self.made(shop.CUSTOMER, PICKED_B)
+		self.made(shop.CUSTOMER, PICKED_B, name=shop.CUSTOMER)
 		self.assertEqual(self.read(self.token(shop.OTHER_CUSTOMER)).status_code, 200)
 		self.assertIn(shop.FIRST, self.read(self.token(shop.OTHER_CUSTOMER)).get_data(as_text=True))
 		feed.delete(shop.CUSTOMER)
@@ -386,7 +540,7 @@ class TestTheFeed(FrappeTestCase):
 		frappe.db.set_value(DOCTYPE, shop.CUSTOMER, "last_fetched", add_days(now_datetime(), -2), update_modified=False)
 		with mock.patch("frappe.enqueue") as enqueue:
 			feed.refresh_all()
-		queued = [call.kwargs["customer"] for call in enqueue.call_args_list]
+		queued = [call.kwargs["name"] for call in enqueue.call_args_list]
 		self.assertEqual(queued, [shop.CUSTOMER], "read two days ago: refreshed; made 30 days ago and never read: left")
 		self.assertEqual(feed.get_feed(shop.CUSTOMER).status, "Queued")
 		self.assertEqual(feed.get_feed(shop.OTHER_CUSTOMER).status, "Ready")
@@ -401,7 +555,7 @@ class TestTheFeed(FrappeTestCase):
 		self.settings.reseller_catalogue_groups = [frappe._dict(allowed_customer_group=shop.RESELLER_GROUP)]
 		with mock.patch("frappe.enqueue") as enqueue:
 			feed.refresh_all()
-		self.assertEqual([call.kwargs["customer"] for call in enqueue.call_args_list], [shop.OTHER_CUSTOMER], "the first is still Queued")
+		self.assertEqual([call.kwargs["name"] for call in enqueue.call_args_list], [shop.OTHER_CUSTOMER], "the first is still Queued")
 
 	def test_the_night_closes_a_refresh_that_lost_its_worker(self):
 		self.assertIsNone(self.make())

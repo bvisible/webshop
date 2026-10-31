@@ -33,6 +33,7 @@ FIELDS = [
 	"item_group",
 	"website_image",
 	"short_description",
+	"web_long_description",  # a sheet page prints the long text (lot 5h)
 	"has_variants",
 	"variant_of",
 	"route",

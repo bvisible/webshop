@@ -17,7 +17,7 @@ import json
 import frappe
 from werkzeug.wrappers import Response
 
-from webshop.webshop.catalogue import access, book, feed, jobs, languages, rows, selection, share
+from webshop.webshop.catalogue import access, book, book_pdf, feed, jobs, languages, rows, selection, share
 from webshop.webshop.catalogue import api as brand_api
 from webshop.webshop.catalogue.pdf import chromium_available
 from webshop.webshop.catalogue.refusals import catalogue_message, options_message, selection_message, share_message
@@ -27,6 +27,7 @@ from webshop.webshop.utils import throttle
 
 DOCTYPE = jobs.DOCTYPE
 LIST_MAX = 50
+SHEET_SPARE_PAGES = 6  # the cover, the contents and the order form take pages too
 MIMETYPES = {
 	PDF: "application/pdf",
 	XLSX: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -80,6 +81,7 @@ def _state(customer, payload=None):
 	made = frappe.get_all(
 		DOCTYPE, filters={"customer": customer}, fields=FIELDS, order_by="creation desc", limit=LIST_MAX
 	)
+	feeds = feed.describe_all(customer)
 	return {
 		"ok": True,
 		"catalogues": [_row(row) for row in made],
@@ -89,7 +91,9 @@ def _state(customer, payload=None):
 		"particular_markups": len(payload["values"].get("markup_rules") or []),
 		"languages": languages.offered(),
 		"engine": chromium_available(),
-		"feed": feed.describe(customer),
+		"feed": feeds[0] if feeds else None,  # the first one: what the page showed before there could be several
+		"feeds": feeds,
+		"max_feeds": feed.MAX_FEEDS,
 		"limits": {
 			"products": selection.MAX_PRODUCTS,
 			"lines": rows.MAX_ROWS,
@@ -151,6 +155,9 @@ def _ask(customer, payload, title, picked, options, fmt=PDF):
 		count = selection.count_products(clean)
 		if count > selection.MAX_PRODUCTS:
 			return _refused("selection", catalogue_message("too_many_products", selection.MAX_PRODUCTS))
+		# a sheet is a page a product: the cap of pages is reached long before the cap of products
+		if clean_options.get("layout") == "sheet" and count > book_pdf.MAX_PAGES - SHEET_SPARE_PAGES:
+			return _refused("selection", catalogue_message("too_many_pages", book_pdf.MAX_PAGES))
 	if not count:
 		return _refused("selection", catalogue_message("empty"))
 	# two clicks at once: the second waits here for the first to commit, then sees it

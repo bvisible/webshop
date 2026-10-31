@@ -7,6 +7,12 @@ QUEUED, RUNNING, READY, FAILED = "Queued", "Running", "Ready", "Failed"
 
 
 class ResellerFeed(Document):
+	def autoname(self):
+		"""A reseller's first feed is named after them (what the first version did, and what its files and its
+		address are keyed by); the others get a random name. `flags.name_it` is the name feed.save chose."""
+		if self.flags.name_it:
+			self.name = self.flags.name_it
+
 	def on_trash(self):
 		"""The files go with the record: a feed nobody can reach any more is still somebody's data."""
 		from webshop.webshop.catalogue import feed

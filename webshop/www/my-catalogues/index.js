@@ -74,10 +74,12 @@
 	function applyFormat() {
 		const kind = format();
 		$("wsp-cat-format-hint").textContent = L["hint_" + kind];
-		$("wsp-cat-title-row").classList.toggle("d-none", kind === "feed");
+		$("wsp-cat-target-row").classList.toggle("d-none", kind !== "feed");
+		$("wsp-cat-title").placeholder = kind === "feed" ? L.feed_title_example : L.title_example;
 		$("wsp-cat-layout-col").classList.toggle("d-none", kind !== "pdf");
 		$("wsp-cat-quality-col").classList.toggle("d-none", kind !== "pdf");
 		$("wsp-cat-order-form-col").classList.toggle("d-none", kind !== "pdf");
+		$("wsp-cat-cover-col").classList.toggle("d-none", kind !== "pdf");
 		const prices = $("wsp-cat-prices");
 		const kept = prices.value;
 		prices.textContent = "";
@@ -455,7 +457,7 @@
 		if (!state) return;
 		const kind = format();
 		let off;
-		if (kind === "feed") off = !!(state.feed && state.feed.active);
+		if (kind === "feed") off = !!(currentFeed() && currentFeed().active) || (!$("wsp-cat-target").value && feeds().length >= (state.max_feeds || 3));
 		else off = state.busy || (kind === "pdf" && state.engine === false);
 		$("wsp-cat-create").disabled = off || (brandNeeded() && !state.brand_saved);
 		$("wsp-cat-brand-needed").classList.toggle("d-none", state.brand_saved || !brandNeeded());
@@ -472,8 +474,8 @@
 		if (state.busy) setStatus(L.busy);
 		else if ($("wsp-cat-status").textContent === L.busy) setStatus("");
 		renderRows();
-		renderFeed();
-		if (state.busy || (state.feed && state.feed.active)) schedulePoll();
+		renderFeeds();
+		if (state.busy || feeds().some((feed) => feed.active)) schedulePoll();
 	}
 
 	// --- the product feed -----------------------------------------------------------------------
@@ -493,42 +495,54 @@
 		return button;
 	}
 
-	function feedAction(method, text, confirmText) {
+	const feeds = () => (state && state.feeds) || [];
+	// the feed the form is about: the one chosen in it, none for a new one
+	const currentFeed = () => feeds().find((feed) => feed.name === $("wsp-cat-target").value) || null;
+	const feedLabel = (feed, index) => feed.title || fmt(L.feed_n, index + 1);
+
+	function feedAction(feed, method, text, confirmText, message) {
 		return actionButton(text, "btn btn-sm btn-light mr-2 mb-1", () => {
 			if (confirmText && !window.confirm(confirmText)) return;
-			$("wsp-feed-message").classList.add("d-none");
-			call(method, {}, "POST", FEED_API)
+			message.classList.add("d-none");
+			call(method, { name: feed.name }, "POST", FEED_API)
 				.then((answer) => {
 					if (answer.ok) return applyState(answer);
-					$("wsp-feed-message").textContent = answer.message;
-					$("wsp-feed-message").classList.remove("d-none");
+					message.textContent = answer.message;
+					message.classList.remove("d-none");
 				})
 				.catch(() => {
-					$("wsp-feed-message").textContent = L.failed;
-					$("wsp-feed-message").classList.remove("d-none");
+					message.textContent = L.failed;
+					message.classList.remove("d-none");
 				});
 		});
 	}
 
-	function renderFeed() {
-		const feed = state.feed;
-		$("wsp-feed").classList.toggle("d-none", !feed);
-		if (!feed) return;
-		const status = $("wsp-feed-status");
-		status.textContent = (L["feed_status_" + feed.status] || feed.status) + (feed.active && feed.progress ? " · " + Math.round(feed.progress) + " %" : "");
+	function feedCard(feed, index) {
+		const card = el("section", null, "frappe-card p-4 mb-4");
+		card.appendChild(el("h2", feedLabel(feed, index), "h5 mb-2"));
+		const status = el("p", (L["feed_status_" + feed.status] || feed.status) + (feed.active && feed.progress ? " · " + Math.round(feed.progress) + " %" : ""), "mb-1 font-weight-bold");
+		status.setAttribute("role", "status");
 		if (feed.status === "Failed") {
 			status.appendChild(el("div", [feed.error, feed.served ? L.feed_kept : ""].filter(Boolean).join(" "), "text-danger small font-weight-normal"));
 		}
+		card.appendChild(status);
 		const facts = [];
 		if (feed.generated_on) facts.push(fmt(L.feed_lines, feed.lines, feed.prices_as_of));
 		facts.push(feed.last_fetched ? fmt(L.feed_fetched, feed.last_fetched.slice(0, 16)) : L.feed_never_fetched);
-		$("wsp-feed-facts").textContent = facts.join(" · ");
-		$("wsp-feed-choices").textContent =
-			fmt(L.feed_choices, feed.groups, feed.brands, feed.products, feed.markup_percent) +
-			" · " + (feed.prices === "none" ? L.feed_prices_none : L.feed_prices_customers);
-		const addresses = $("wsp-feed-addresses");
-		addresses.textContent = "";
-		["csv", "json"].forEach((kind) => {
+		card.appendChild(el("p", facts.join(" · "), "text-muted small mb-1"));
+		card.appendChild(
+			el(
+				"p",
+				fmt(L.feed_choices, feed.groups, feed.brands, feed.products, feed.markup_percent) +
+					" · " + (feed.prices === "none" ? L.feed_prices_none : L.feed_prices_customers) +
+					(feed.language ? " · " + feed.language.toUpperCase() : ""),
+				"text-muted small mb-3"
+			)
+		);
+		const message = el("p", null, "text-danger small mb-2 d-none");
+		message.setAttribute("role", "alert");
+		card.appendChild(message);
+		["csv", "json", "xml"].forEach((kind) => {
 			if (!feed.addresses || !feed.addresses[kind]) return;
 			const row = el("div", null, "d-flex align-items-center mb-2");
 			const input = document.createElement("input");
@@ -540,15 +554,40 @@
 			row.appendChild(el("span", L["feed_" + kind], "text-muted small mr-2 text-nowrap"));
 			row.appendChild(input);
 			row.appendChild(copyButton(input));
-			addresses.appendChild(row);
+			card.appendChild(row);
 		});
-		const actions = $("wsp-feed-actions");
-		actions.textContent = "";
-		const refresh = feedAction("refresh_feed", L.feed_refresh);
+		card.appendChild(el("p", L.feed_secret, "text-muted small mt-2 mb-3"));
+		const actions = el("div", null, "d-flex flex-wrap");
+		const refresh = feedAction(feed, "refresh_feed", L.feed_refresh, null, message);
 		refresh.disabled = feed.active;
 		actions.appendChild(refresh);
-		actions.appendChild(feedAction("new_feed_address", L.feed_rotate, L.feed_rotate_confirm));
-		actions.appendChild(feedAction("delete_feed", L.feed_delete, L.feed_delete_confirm));
+		actions.appendChild(feedAction(feed, "new_feed_address", L.feed_rotate, L.feed_rotate_confirm, message));
+		actions.appendChild(feedAction(feed, "delete_feed", L.feed_delete, L.feed_delete_confirm, message));
+		card.appendChild(actions);
+		return card;
+	}
+
+	function renderFeeds() {
+		const list = feeds();
+		const holder = $("wsp-feeds");
+		holder.textContent = "";
+		list.forEach((feed, index) => holder.appendChild(feedCard(feed, index)));
+		// the feed the form is about: kept while it exists, else a new one (or the first when there can be no more)
+		const target = $("wsp-cat-target");
+		const kept = target.value;
+		target.textContent = "";
+		if (list.length < ((state && state.max_feeds) || 3)) target.appendChild(option("", L.feed_new));
+		list.forEach((feed, index) => target.appendChild(option(feed.name, feedLabel(feed, index))));
+		target.value = list.some((feed) => feed.name === kept) || (kept === "" && list.length < ((state && state.max_feeds) || 3)) ? kept : target.options[0] ? target.options[0].value : "";
+		updateCreate();
+	}
+
+	// the feed asked for: a new one (no name) or one of theirs; a title left empty keeps the feed's own
+	function feedArgs(options) {
+		const args = { picked: JSON.stringify(selection()), options: JSON.stringify(options) };
+		if ($("wsp-cat-target").value) args.name = $("wsp-cat-target").value;
+		if ($("wsp-cat-title").value.trim()) args.title = $("wsp-cat-title").value;
+		return args;
 	}
 
 	function schedulePoll() {
@@ -589,11 +628,12 @@
 			options.layout = $("wsp-cat-layout").value;
 			if ($("wsp-cat-quality").value !== "standard") options.quality = $("wsp-cat-quality").value;
 			if ($("wsp-cat-order-form").checked) options.order_form = 1;
+			if ($("wsp-cat-cover").value !== "solid") options.cover = $("wsp-cat-cover").value;
 		}
 		if ($("wsp-cat-language").value) options.language = $("wsp-cat-language").value;
 		const request =
 			kind === "feed"
-				? call("save_feed", { picked: JSON.stringify(selection()), options: JSON.stringify(options) }, "POST", FEED_API)
+				? call("save_feed", feedArgs(options), "POST", FEED_API)
 				: call("create_catalogue", { title: $("wsp-cat-title").value, picked: JSON.stringify(selection()), options: JSON.stringify(options), format: kind });
 		request
 			.then((answer) => {
@@ -602,7 +642,7 @@
 					updateCreate();
 					return;
 				}
-				if (kind !== "feed") $("wsp-cat-title").value = "";
+				$("wsp-cat-title").value = "";
 				applyState(answer);
 			})
 			.catch(() => {
@@ -620,7 +660,8 @@
 
 	FORMATS.forEach((kind) => $("wsp-cat-format").appendChild(option(kind, L["format_" + kind])));
 	[
-		["layout", [["grid", L.layout_grid], ["list", L.layout_list]]],
+		["layout", [["grid", L.layout_grid], ["list", L.layout_list], ["sheet", L.layout_sheet]]],
+		["cover", [["solid", L.cover_solid], ["band", L.cover_band], ["minimal", L.cover_minimal]]],
 		["quality", [["standard", L.quality_standard], ["light", L.quality_light], ["print", L.quality_print]]],
 	].forEach(([name, choices]) => {
 		const select = $("wsp-cat-" + name);

@@ -22,6 +22,7 @@ import io
 import json
 import re
 import unicodedata
+from xml.etree import ElementTree as ET
 
 from openpyxl import Workbook
 from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
@@ -213,6 +214,52 @@ def shopify_bytes(data):
 		for position, url in enumerate(images[1:], start=2):
 			writer.writerow({"Handle": handle, "Image Src": url, "Image Position": position, "Image Alt Text": title})
 	return out.getvalue().encode("utf-8")
+
+
+# --- Google Shopping -----------------------------------------------------------------------------
+GOOGLE_NS = "http://base.google.com/ns/1.0"
+GOOGLE_AVAILABILITY = {"in_stock": "in stock", "out_of_stock": "out of stock", "backorder": "backorder"}
+GOOGLE_CONDITION = {"new": "new", "refurbished": "refurbished", "second_hand": "used"}
+GOOGLE_IMAGES = 10
+
+
+def google_bytes(data, channel_title, website=""):
+	"""A Google Merchant Center product feed (RSS 2.0 with the `g:` namespace) of the lines, at the reseller's selling
+	prices. **Never made without a selling price**: the caller only asks for it in the mode `customers`.
+
+	A line with no selling price or no page address is left out (Google refuses both). The page address is the one the
+	shop gives the product: a reseller whose own shop reads this feed puts their own page in its place."""
+	ET.register_namespace("g", GOOGLE_NS)
+	rss = ET.Element("rss", {"version": "2.0"})
+	channel = ET.SubElement(rss, "channel")
+	ET.SubElement(channel, "title").text = _sheet_text(channel_title or "Products")
+	ET.SubElement(channel, "link").text = website if (website or "").startswith(("http://", "https://")) else (f"https://{website}" if website else "")
+	ET.SubElement(channel, "description").text = _sheet_text(channel_title or "Products")
+
+	def g(item, name, text):
+		if text not in (None, ""):
+			ET.SubElement(item, f"{{{GOOGLE_NS}}}{name}").text = _sheet_text(str(text))
+
+	for line in data.rows:
+		if line.get("price") is None or not line.get("url"):
+			continue
+		item = ET.SubElement(channel, "item")
+		g(item, "id", line["code"])
+		ET.SubElement(item, "title").text = _sheet_text(line["name"][:150])
+		ET.SubElement(item, "description").text = _sheet_text((line.get("description") or line["name"])[:5000])
+		ET.SubElement(item, "link").text = _sheet_text(line["url"])
+		g(item, "image_link", line.get("image"))
+		for url in (line.get("more_images") or [])[:GOOGLE_IMAGES]:
+			g(item, "additional_image_link", url)
+		g(item, "availability", GOOGLE_AVAILABILITY.get(line.get("availability"), "out of stock"))
+		g(item, "price", f"{amount_text(line['price'])} {data.currency}")
+		g(item, "condition", GOOGLE_CONDITION.get(line.get("condition"), "new"))
+		g(item, "brand", line.get("brand"))
+		g(item, "gtin", line.get("ean"))
+		g(item, "mpn", line.get("mpn"))
+		g(item, "item_group_id", line.get("model"))
+		g(item, "product_type", line.get("category"))
+	return ET.tostring(rss, encoding="utf-8", xml_declaration=True)
 
 
 def _sheet_text(text):
