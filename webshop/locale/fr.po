@@ -10532,3 +10532,8 @@ msgstr "Vos catalogues"
 #, python-brace-format
 msgid "{0} products in this catalogue."
 msgstr "{0} produits dans ce catalogue."
+
+#: webshop/templates/catalogue/catalogue.html:54
+msgctxt "Before the lowest price of a product that has several"
+msgid "From"
+msgstr "À partir de"

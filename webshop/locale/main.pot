@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-10-31 08:11+0000\n"
-"PO-Revision-Date: 2026-10-31 08:11+0000\n"
+"POT-Creation-Date: 2026-10-31 08:13+0000\n"
+"PO-Revision-Date: 2026-10-31 08:13+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -3179,8 +3179,12 @@ msgid "Friday"
 msgstr ""
 
 #. Label of a Date field in DocType 'Store Closure'
-#: webshop/templates/catalogue/catalogue.html:54
 #: webshop/webshop/doctype/store_closure/store_closure.json:17
+msgid "From"
+msgstr ""
+
+#: webshop/templates/catalogue/catalogue.html:54
+msgctxt "Before the lowest price of a product that has several"
 msgid "From"
 msgstr ""
 
