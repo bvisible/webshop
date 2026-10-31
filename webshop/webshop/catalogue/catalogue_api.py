@@ -17,10 +17,10 @@ import json
 import frappe
 from werkzeug.wrappers import Response
 
-from webshop.webshop.catalogue import access, book, feed, jobs, languages, rows, selection
+from webshop.webshop.catalogue import access, book, feed, jobs, languages, rows, selection, share
 from webshop.webshop.catalogue import api as brand_api
 from webshop.webshop.catalogue.pdf import chromium_available
-from webshop.webshop.catalogue.refusals import catalogue_message, options_message, selection_message
+from webshop.webshop.catalogue.refusals import catalogue_message, options_message, selection_message, share_message
 from webshop.webshop.catalogue.sheet_api import _filename
 from webshop.webshop.doctype.reseller_catalogue.reseller_catalogue import CSV, PDF, QUEUED, READY, RUNNING, XLSX
 from webshop.webshop.multi_site import get_current_profile_name
@@ -48,6 +48,7 @@ FIELDS = [
 	"error",
 	"creation",
 	"options",
+	"share_hash",
 ]
 
 
@@ -62,12 +63,15 @@ def _row(row):
 		options = json.loads(row.options or "{}")
 	except ValueError:
 		pass
-	out = {field: row.get(field) for field in FIELDS if field != "options"}
+	out = {field: row.get(field) for field in FIELDS if field not in ("options", "share_hash")}
 	out["format"] = row.get("format") or PDF
 	out["prices"] = options.get("prices")
 	out["layout"] = options.get("layout")
 	out["markup_percent"] = options.get("markup_percent")
 	out["active"] = row.status in (QUEUED, RUNNING)
+	# a link may be given to a finished catalogue that carries no price the reseller pays (share.sharable)
+	out["sharable"] = bool(share.sharable(row))
+	out["share"] = share.describe(row.name) if row.get("share_hash") else None
 	return out
 
 
@@ -267,3 +271,39 @@ def download_catalogue(name=None):
 	response.headers["X-Robots-Tag"] = "noindex"
 	response.headers["Cache-Control"] = "private, no-store"
 	return response
+
+
+@frappe.whitelist(methods=["POST"])
+@throttle.throttle("catalogues-share", 30, 60)
+def share_catalogue(name=None, days=None):
+	"""Give one of the caller's finished catalogues a link that shows it until it expires (a new link replaces the old)."""
+	customer = access.require_reseller()
+	found = _owned(customer, name)
+	try:
+		share.share(customer, found, days)
+	except share.ShareRefused as refusal:
+		return _refused("days" if refusal.reason == "bad_days" else None, share_message(refusal.reason, refusal.number))
+	return _state(customer)
+
+
+@frappe.whitelist(methods=["POST"])
+@throttle.throttle("catalogues-share", 30, 60)
+def unshare_catalogue(name=None):
+	"""Stop the link of one of the caller's catalogues: it answers 404 from this moment."""
+	customer = access.require_reseller()
+	share.unshare(customer, _owned(customer, name))
+	return _state(customer)
+
+
+@frappe.whitelist(methods=["POST"])
+@throttle.throttle("catalogues-mail", 20, 60)
+def send_catalogue(name=None, to=None, message=None):
+	"""Send the link of one of the caller's catalogues to one address, in their name. Never by itself: the reseller asks."""
+	customer = access.require_reseller()
+	found = _owned(customer, name)
+	try:
+		share.send(customer, brand_api._payload(customer), found, to, message)
+	except share.ShareRefused as refusal:
+		field = {"bad_email": "to", "message_too_long": "message"}.get(refusal.reason)
+		return _refused(field, share_message(refusal.reason, refusal.number))
+	return _state(customer)

@@ -101,6 +101,23 @@ def catalogue_message(reason, number=None):
 	return messages.get(reason, _("The catalogue could not be made."))
 
 
+def share_message(reason, number=None):
+	"""Why a catalogue was not shared or sent, in a sentence."""
+	messages = {
+		"bad_days": _("Choose how long the link lasts from the list."),
+		"not_ready": _("The catalogue is not finished yet."),
+		"not_sharable": _(
+			"A file that carries the price you pay is never shared: its link would be forwarded. Make a file with your selling prices, or a PDF."
+		),
+		"bad_email": _("Give one e-mail address."),
+		"message_too_long": _("Your message is too long: {0} characters at most.").format(number),
+		"mail_limit": _("You have sent {0} e-mails in the last 24 hours. Try again later.").format(number),
+		"mail_limit_to": _("You have already written to this address {0} times in the last 24 hours.").format(number),
+		"mail_failed": _("The e-mail could not be sent. The team has been told."),
+	}
+	return messages.get(reason, _("This could not be done."))
+
+
 def feed_message(reason, number=None):
 	"""Why a feed was not saved or refreshed, in a sentence."""
 	messages = {

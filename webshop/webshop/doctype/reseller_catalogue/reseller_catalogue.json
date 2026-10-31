@@ -24,7 +24,13 @@
   "selection",
   "options",
   "website_profile",
-  "error"
+  "error",
+  "share_section",
+  "share_hash",
+  "share_token",
+  "column_share",
+  "share_expires_on",
+  "share_opened_on"
  ],
  "fields": [
   {
@@ -162,6 +168,45 @@
    "fieldtype": "Small Text",
    "label": "Error",
    "read_only": 1
+  },
+  {
+   "fieldname": "share_section",
+   "fieldtype": "Section Break",
+   "label": "Sharing",
+   "description": "A link that shows the finished catalogue to somebody without a login, until it expires. A file that carries what the reseller pays is never shared."
+  },
+  {
+   "fieldname": "share_hash",
+   "fieldtype": "Data",
+   "label": "Link Hash",
+   "length": 64,
+   "read_only": 1,
+   "search_index": 1,
+   "description": "SHA-256 of the secret of the link: how the catalogue is found, and the secret itself is not."
+  },
+  {
+   "fieldname": "share_token",
+   "fieldtype": "Password",
+   "label": "Link Secret",
+   "read_only": 1,
+   "description": "The secret of the link, encrypted: the reseller's page shows the link again. Never given to anybody else."
+  },
+  {
+   "fieldname": "column_share",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "share_expires_on",
+   "fieldtype": "Date",
+   "label": "Link Expires On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "share_opened_on",
+   "fieldtype": "Datetime",
+   "label": "Link Last Opened On",
+   "read_only": 1,
+   "description": "To the hour."
   }
  ],
  "index_web_pages_for_search": 0,

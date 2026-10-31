@@ -392,6 +392,7 @@ jobs:
             webshop.webshop.catalogue.test_markup \
             webshop.webshop.catalogue.test_access \
             webshop.webshop.catalogue.test_languages \
+            webshop.webshop.catalogue.test_share \
             webshop.webshop.catalogue.test_brand \
             webshop.webshop.catalogue.test_logo \
             webshop.webshop.catalogue.test_my_brand \

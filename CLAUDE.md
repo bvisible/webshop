@@ -1288,6 +1288,23 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
   - **A variant keeps its own page's name**: a model's translation is the model's (the multilingual façade says the same of a cart line).
   - The tests hand `translation_rows` what the theme would answer, so they run on the CI's site, which has no theme.
 
+- **A link and an e-mail** (lot 5d, 2026-10-31, `catalogue/share.py`): a reseller gives a finished catalogue to somebody with no login, in
+  two ways, both started by them and never by the shop. **A link** (`/shared-catalogue/<secret>`, `ShareRenderer`, 7, 14 or 30 days, never
+  past the catalogue's own life) serves the file as it was made; **an e-mail** to one address carries the link, not the file, in the
+  name of the reseller's brand (the shop's outgoing account sends, the brand's contact address is the reply-to).
+  - **A file that carries what the reseller pays (`tariff`, `both`) is never shared nor sent**: the address is a secret that gets
+    forwarded, and the feed refuses the same modes (`share.sharable`; the serving rule is the sharing rule, so a catalogue whose options
+    were changed afterwards is not served either).
+  - The secret is 24 random bytes: the table keeps its SHA-256 (`share_hash`, to find the catalogue) and the Password field
+    `share_token` (so the page shows the link again); stopping the link deletes both. A wrong, expired, stopped or deleted link, or one
+    of an owner the shop no longer offers the catalogue to, is the same 404; many wrong ones from one connection are slowed (429).
+  - The e-mail goes to **one address** (`escalation.single_email`: a list, a name or a header in the field is refused), the reseller's
+    message is text (escaped, control characters dropped, 500 characters), and the day is bounded: 20 e-mails a reseller, 3 to one
+    address (counters in Redis: **a test uses an address of its own**, they outlive a run). A mail server that cannot send is told to
+    the reseller without the modal frappe would push (`_queue_mail` gives back the message log).
+  - `test_share` is in the blocking list; three mutations were run on the clone (the price they pay shareable, an expired link served,
+    the message unescaped): each turned the suite red.
+
 - **The partner API** (lot 4, `partner_api/`, 2026-10-31): a reseller asks for it on `/my-integration`, staff allow
   it on the desk (**Partner API Access**: Approve with the scopes — orders, submit at once, calls a minute — Refuse,
   Suspend, Resume), the reseller makes a key there. Five calls under `/partner/v1/` (a page renderer, not a

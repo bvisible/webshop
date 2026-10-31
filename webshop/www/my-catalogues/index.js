@@ -300,6 +300,104 @@
 		return button;
 	}
 
+	// --- sharing: a link that expires, and an e-mail that carries it (lot 5d) ---------------------------
+
+	const sharing = new Set(); // the catalogues whose sharing panel is open
+
+	function shareRequest(method, args, panel) {
+		panel.error.textContent = "";
+		return call(method, args)
+			.then((answer) => {
+				if (!answer.ok) {
+					panel.error.textContent = answer.message || L.failed;
+					return null;
+				}
+				applyState(answer);
+				return answer;
+			})
+			.catch(() => {
+				panel.error.textContent = L.failed;
+				return null;
+			});
+	}
+
+	function sharePanel(row) {
+		const tr = document.createElement("tr");
+		const cell = tr.insertCell();
+		cell.colSpan = 7;
+		cell.className = "bg-light";
+		const box = el("div", null, "p-3");
+		const panel = { error: el("div", "", "text-danger small mt-2") };
+		box.appendChild(el("p", L.share_hint, "text-muted small mb-2"));
+		const link = row.share;
+		const row1 = el("div", null, "d-flex flex-wrap align-items-center mb-2");
+		if (link && !link.expired) {
+			const input = document.createElement("input");
+			input.className = "form-control form-control-sm";
+			input.style.maxWidth = "28rem";
+			input.readOnly = true;
+			input.value = link.url;
+			row1.appendChild(input);
+			row1.appendChild(copyButton(input));
+			box.appendChild(row1);
+			box.appendChild(el("div", fmt(L.share_until, link.expires_on) + " " + (link.opened_on ? fmt(L.share_opened, link.opened_on.slice(0, 16)) : L.share_never), "text-muted small mb-2"));
+		} else if (link) {
+			box.appendChild(el("p", L.share_expired, "text-warning small mb-2"));
+		}
+		const days = document.createElement("select");
+		days.className = "form-control form-control-sm mr-2";
+		days.style.maxWidth = "9rem";
+		days.setAttribute("aria-label", L.share_days);
+		[["7", L.share_days_7], ["14", L.share_days_14], ["30", L.share_days_30]].forEach(([value, text]) => days.appendChild(option(value, text)));
+		days.value = "14";
+		const make = actionButton(link && !link.expired ? L.share_new : L.share_make, "btn btn-sm btn-primary mr-2", () => shareRequest("share_catalogue", { name: row.name, days: days.value }, panel));
+		if (link && !link.expired) make.title = L.share_new_hint;
+		const group = el("div", null, "d-flex flex-wrap align-items-center mb-3");
+		group.appendChild(el("span", L.share_days, "mr-2 small"));
+		group.appendChild(days);
+		group.appendChild(make);
+		if (link) group.appendChild(actionButton(L.share_stop, "btn btn-sm btn-light", () => shareRequest("unshare_catalogue", { name: row.name }, panel)));
+		box.appendChild(group);
+
+		box.appendChild(el("h3", L.mail_title, "h6"));
+		box.appendChild(el("p", L.mail_hint, "text-muted small mb-2"));
+		const to = document.createElement("input");
+		to.type = "email";
+		to.className = "form-control form-control-sm mb-2";
+		to.style.maxWidth = "28rem";
+		to.maxLength = 254;
+		to.placeholder = L.mail_to;
+		to.setAttribute("aria-label", L.mail_to);
+		to.autocomplete = "off";
+		const text = document.createElement("textarea");
+		text.className = "form-control form-control-sm mb-2";
+		text.style.maxWidth = "28rem";
+		text.rows = 3;
+		text.maxLength = 500;
+		text.placeholder = L.mail_message;
+		text.setAttribute("aria-label", L.mail_message);
+		const send = actionButton(L.mail_send, "btn btn-sm btn-outline-primary", () => {
+			send.disabled = true;
+			shareRequest("send_catalogue", { name: row.name, to: to.value, message: text.value }, panel).then((answer) => {
+				send.disabled = false;
+				if (answer) {
+					panel.error.textContent = "";
+					panel.done.textContent = L.mail_sent;
+					to.value = "";
+					text.value = "";
+				}
+			});
+		});
+		panel.done = el("div", "", "text-success small mt-2");
+		box.appendChild(to);
+		box.appendChild(text);
+		box.appendChild(send);
+		box.appendChild(panel.done);
+		box.appendChild(panel.error);
+		cell.appendChild(box);
+		return tr;
+	}
+
 	function renderRows() {
 		const body = $("wsp-cat-rows");
 		body.textContent = "";
@@ -322,6 +420,15 @@
 				const link = el("a", L.download, "btn btn-sm btn-primary mr-1");
 				link.href = "/api/method/" + API + "download_catalogue?name=" + encodeURIComponent(row.name);
 				actions.appendChild(link);
+				if (row.sharable) {
+					const share = actionButton(L.share, "btn btn-sm btn-light mr-1", () => {
+						if (sharing.has(row.name)) sharing.delete(row.name);
+						else sharing.add(row.name);
+						renderRows();
+					});
+					share.setAttribute("aria-expanded", sharing.has(row.name) ? "true" : "false");
+					actions.appendChild(share);
+				}
 			}
 			if (!row.active) {
 				const remake = actionButton(L.remake, "btn btn-sm btn-light mr-1", () => remakeCatalogue(row.name));
@@ -332,6 +439,7 @@
 			}
 			tr.appendChild(actions);
 			body.appendChild(tr);
+			if (sharing.has(row.name) && row.sharable) body.appendChild(sharePanel(row));
 		});
 	}
 

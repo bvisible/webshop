@@ -380,6 +380,8 @@ page_renderer = [
 	"webshop.webshop.seo.feeds.google.FeedRenderer",
 	# //// Neoffice — a reseller's product feed, /feeds/reseller/<token>/products.csv (reseller catalogue, lot 3)
 	"webshop.webshop.catalogue.feed.FeedRenderer",
+	# //// Neoffice — a finished catalogue shown through a link that expires, /shared-catalogue/<secret> (reseller catalogue, lot 5d)
+	"webshop.webshop.catalogue.share.ShareRenderer",
 	# //// Neoffice — the partner API, /partner/v1/... (reseller catalogue, lot 4): a key opens it, no session does
 	"webshop.webshop.partner_api.renderer.PartnerApiRenderer",
 	# //// Neoffice — the IndexNow key at each site's root, /<key>.txt (#691 lot 4)
