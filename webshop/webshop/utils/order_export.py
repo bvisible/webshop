@@ -58,12 +58,18 @@ def order_rows(doc):
 		_("Amount"),
 	]
 	lines = []
+	# //// Neoffice — multilingual lot 5: the spreadsheet is named in the language of the order (a link to the API says
+	# //// nothing of the page's language, so the order's own decides)
+	from webshop.webshop.utils.localized import localize_lines
+
+	localize_lines(doc)
 	for row in doc.items:
 		variant = attrs.get(row.item_code, {})
 		lines.append(
 			[
 				row.item_code,
-				row.item_name,
+				# //// Neoffice — multilingual lot 5: the name in the language of the order
+				row.get("display_name") or row.item_name,
 				*[variant.get(name, "") for name in attribute_names],
 				barcodes.get(row.item_code, ""),
 				flt(row.qty),

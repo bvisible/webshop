@@ -16,7 +16,8 @@
 		<div class="col-xs-8 col-sm-10">
 			{{ d.item_code }}
 			<div class="text-muted small item-description">
-				{{ html2text(d.description) | truncate(140) }}
+				{#- //// Neoffice — multilingual lot 5: the product's short text in the language of the page when it has one -#}
+				{{ html2text(d.get("display_description") or d.description) | truncate(140) }}
 			</div>
 			<span class="text-muted mt-2 d-l-n order-qty">
 				{{ _("Qty ") }}({{ d.get_formatted("qty") }})
@@ -33,7 +34,8 @@
 			</div>
 		</div>
 		<div class="col-xs-8 col-sm-8">
-		   {{ d.item_name|truncate(25) }}
+		   {#- //// Neoffice — multilingual lot 5: the product's name in the language of the page; the line's saved item_name is what was sold -#}
+		   {{ (d.get("display_name") or d.item_name)|truncate(25) }}
 			<div class="input-group number-spinner">
 				<span class="input-group-btn">
 					<button class="btn btn-light cart-btn" data-dir="dwn">

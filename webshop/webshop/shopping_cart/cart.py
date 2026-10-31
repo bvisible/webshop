@@ -291,6 +291,11 @@ def get_cart_quotation(doc=None):
 	return {
 		# //// Neoffice — same reason: doc may be None for a guest with no cart.
 		"doc": decorate_quotation_doc(doc) if doc else None,
+		# //// Neoffice — multilingual lot 5: the lines' names in the language of the request. The document's JSON carries
+		# //// the saved item_name (what was sold), so the drawer reads the display names from here.
+		"display_names": {row.item_code: row.display_name for row in (doc.get("items") or []) if row.get("display_name")}
+		if doc
+		else {},
 		"shipping_addresses": get_shipping_addresses(party),
 		"billing_addresses": get_billing_addresses(party),
 		# //// Neoffice — upstream passes only the party. The rules depend on the cart too
@@ -2049,9 +2054,28 @@ def decorate_quotation_doc(doc):
 			# //// (multi-warehouse) must keep it (5bf2e88a1b, 2026-08-25).
 			d.warehouse = website_warehouse
 
+	# //// Neoffice — multilingual lot 5 (neoffice-maintenance#2033): the cart, the drawer and the thank-you page name each
+	# //// line in the language they are read in. Display copies only (webshop/utils/localized.py): the line's saved
+	# //// item_name is what was sold and stays as it was.
+	from webshop.webshop.utils.localized import localize_lines
+
+	localize_lines(doc)
+	for d in doc.get("items", []):
+		if d.get("display_name"):
+			d.web_item_name = d.display_name
 	return doc
 
 def _get_cart_quotation(party=None):
+	"""Return the open Quotation of type "Shopping Cart" or make a new one"""
+	# //// Neoffice — multilingual lot 5 (neoffice-maintenance#2033): the cart remembers the language its buyer reads the
+	# //// shop in (Quotation.language), so the order, its PDF and its e-mails follow. A request that says nothing (a
+	# //// payment callback) leaves it as it was.
+	from webshop.webshop.utils.localized import stamp_language
+
+	return stamp_language(_get_cart_quotation_unstamped(party))
+
+
+def _get_cart_quotation_unstamped(party=None):
 	"""Return the open Quotation of type "Shopping Cart" or make a new one"""
 	if not party:
 		party = get_party()

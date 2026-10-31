@@ -15,6 +15,10 @@ def get_context(context):
 	context.no_cache = 1
 	context.show_sidebar = True
 	context.doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
+	# //// Neoffice — multilingual lot 5: the lines are named in the language of the page, else of the order
+	from webshop.webshop.utils.localized import localize_lines
+
+	localize_lines(context.doc)
 	# //// Neoffice — the placeholder order a card payment is raised on (pending_order.py) is no order yet: it has no
 	# //// page, whoever asks (its "Pay" button would raise a second payment on the cart's behalf). Judged on the name
 	# //// of the document LOADED: the database finds `pending-qtn-1` or an accented spelling as it finds the real name.

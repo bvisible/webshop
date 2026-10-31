@@ -54,6 +54,20 @@ def _excluded_website_items():
 		return set()
 
 
+def _conversation_language(ctx):
+	"""The additional language the visitor speaks to the assistant: that of the page it sits on, else of the message."""
+	# //// Neoffice — multilingual lot 5 (neoffice-maintenance#2033): the assistant names and links the products in the
+	# //// visitor's language, not in the site's
+	from webshop.webshop.assistant import prompt
+	from webshop.webshop.utils.localized import content_language, site_languages
+
+	languages = site_languages()
+	if not languages:
+		return None
+	spoken = content_language() or prompt.visitor_language(getattr(ctx, "last_message", "") or "")
+	return spoken if spoken in languages else None
+
+
 def _product_card(item, ctx, with_details=False):
 	"""What the shop shows about a published item: nothing more."""
 	from webshop.webshop.shopping_cart.product_info import get_product_info_for_website
@@ -101,6 +115,21 @@ def _product_card(item, ctx, with_details=False):
 		text = strip_html(item.short_description or item.description or "")
 		card["description"] = (text[:DESCRIPTION_CHARS] + "…") if len(text) > DESCRIPTION_CHARS else text
 		card["used_units"] = _used_units(item.item_code)
+	# //// Neoffice — multilingual lot 5: name, text and link in the visitor's language
+	language = _conversation_language(ctx)
+	if language:
+		from webshop.webshop.utils.localized import translation_rows
+
+		found = {
+			row["fieldname"]: row["text"]
+			for row in translation_rows("Website Item", [item.name], ("web_item_name", "short_description"), language)
+		}
+		card["name"] = found.get("web_item_name") or card["name"]
+		if with_details and found.get("short_description"):
+			text = strip_html(found["short_description"])
+			card["description"] = (text[:DESCRIPTION_CHARS] + "…") if len(text) > DESCRIPTION_CHARS else text
+		if card.get("url"):
+			card["url"] = f"/{language}{card['url']}"
 	return card
 
 
@@ -198,6 +227,14 @@ def search_products(args, ctx):
 				seen.setdefault(r.name, [r, 0])
 				seen[r.name][1] += 1
 		rows = [r for r, _count in sorted(seen.values(), key=lambda x: -x[1])]
+	# //// Neoffice — multilingual lot 5: a word of the visitor's language finds the product its translation names
+	if not rows and _conversation_language(ctx):
+		from webshop.webshop.utils.localized import translated_names
+
+		named = translated_names(
+			"Website Item", ("web_item_name", "short_description"), _conversation_language(ctx), query
+		)
+		rows = _published_items(filters={"name": ["in", named]}) if named else []
 	products = [_product_card(r, ctx) for r in rows[:limit]]
 	return {"count": len(products), "products": products}
 

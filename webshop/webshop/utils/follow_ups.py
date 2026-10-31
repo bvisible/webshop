@@ -368,12 +368,50 @@ def build_context(entry, flow):
 def send_step(entry, flow, step):
 	"""Render the step's template, log it on the customer, queue the mail."""
 	template = frappe.get_doc("Email Template", step.email_template)
-	context = build_context(entry, flow)
-	subject = frappe.render_template(template.subject, context)
-	message = frappe.render_template(template.response_, context)
-	communication = send_customer_email(entry.customer, entry.email, subject, message)
+	# //// Neoffice — multilingual lot 5 (neoffice-maintenance#2033): the mail is written in the language of the purchase, else
+	# //// of the customer, and the language is set BEFORE the template is rendered (it was set after, so only the unsubscribe
+	# //// footer was in the customer's language and the body in the instance's)
+	from webshop.webshop.utils.localized import mail_language, mail_texts
+
+	purchase_language = (
+		frappe.db.get_value(entry.source_doctype, entry.source_name, "language")
+		if entry.get("source_doctype") and entry.get("source_name")
+		else None
+	)
+	language = mail_language(
+		purchase_language,
+		frappe.db.get_value("Customer", entry.customer, "language"),
+		frappe.db.get_value("User", entry.email, "language"),
+	)
+	previous_lang = frappe.local.lang
+	frappe.local.lang = language or customer_language(entry.email)
+	try:
+		context = build_context(entry, flow)
+		subject_text, body_text = mail_texts(template, language) if language else (None, None)
+		if language:
+			context = localize_context(context, entry, language)
+		subject = frappe.render_template(subject_text or template.subject, context)
+		message = frappe.render_template(body_text or template.response_, context)
+		communication = send_customer_email(entry.customer, entry.email, subject, message, language=language)
+	finally:
+		frappe.local.lang = previous_lang
 	frappe.db.set_value("Purchase Follow-up", flow.name, "sent", cint(flow.sent) + 1, update_modified=False)
 	return communication
+
+
+def localize_context(context, entry, language):
+	"""The mail's links lead to the pages of ``language`` and its product is named in it."""
+	from webshop.webshop.utils.localized import address_in, translation_rows
+
+	for key in ("product_url", "review_url", "reorder_url", "shop_url"):
+		context[key] = address_in(context.get(key), language)
+	for offer in context.get("offers") or []:
+		offer["url"] = address_in(offer.get("url"), language)
+	site_item = frappe.db.get_value("Website Item", {"item_code": entry.item_code}, "name")
+	rows = translation_rows("Website Item", [site_item], ("web_item_name",), language) if site_item else []
+	if rows:
+		context["item_name"] = rows[0]["text"]
+	return context
 
 
 def customer_language(email):
@@ -387,14 +425,14 @@ def customer_language(email):
 	)
 
 
-def send_customer_email(customer, email, subject, message):
+def send_customer_email(customer, email, subject, message, language=None):
 	"""A Communication on the Customer (its timeline shows it), then the mail.
 
 	The mail carries Frappe's unsubscribe link, scoped to the Customer: one
 	click stops every follow-up and reminder for that customer.
 	"""
 	previous_lang = frappe.local.lang
-	frappe.local.lang = customer_language(email)
+	frappe.local.lang = language or customer_language(email)
 	try:
 		return _send_customer_email(customer, email, subject, message)
 	finally:

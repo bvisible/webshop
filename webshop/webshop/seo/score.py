@@ -173,7 +173,21 @@ def gather(doc, site, entry=_UNREAD, reason=None) -> frappe._dict:
 		found.barcode_problem = facts.barcode_problem(doc.item_code, doc.get("stock_uom"))
 	found.google_category = google.google_category(doc.get("item_group"))
 	found.reviews, found.rating = reviews_of(doc.name)
+	# //// Neoffice — multilingual lot 5 (neoffice-maintenance#2033): shown, never counted, like the reviews
+	found.translations = translation_state(doc.name)
 	return found
+
+
+def translation_state(website_item: str) -> dict:
+	"""The additional languages of the site the product is translated into, and those it is not (both empty without a language).
+
+	The page, the sitemap and the feed read the same rule: a product is translated when every main text has a translation a
+	visitor may read."""
+	from webshop.webshop.utils import localized
+
+	languages = list(localized.site_languages())
+	have = localized.translated_languages("Website Item", website_item) if languages else []
+	return {"done": [code for code in languages if code in have], "missing": [code for code in languages if code not in have]}
 
 
 def model_offers(doc, settings) -> frappe._dict:
@@ -396,6 +410,11 @@ def evaluate(found) -> frappe._dict:
 		informative=[
 			frappe._dict(code="reviews", detail={"count": found.reviews, "rating": found.rating}),
 			frappe._dict(code="videos", detail={"count": found.videos}),
+			*(
+				[frappe._dict(code="translations", detail=found.translations)]
+				if found.get("translations") and (found.translations["done"] or found.translations["missing"])
+				else []
+			),
 		],
 		missing=[criterion.code for criterion in criteria if criterion.status == MISSING],
 		sent=found.sent,
@@ -561,6 +580,7 @@ def criterion_label(code: str) -> str:
 		"sent_to_google": _("Sent to Google Shopping"),
 		"reviews": _("Customer reviews"),
 		"videos": _("Videos"),
+		"translations": _("Translations"),
 	}.get(code, code)
 
 
@@ -717,6 +737,18 @@ def explain(criterion) -> dict:
 	}
 
 
+def _translations_message(detail: dict) -> str:
+	def names(codes):
+		return ", ".join(frappe.db.get_value("Language", code, "language_name") or code for code in codes)
+
+	missing, done = detail.get("missing") or [], detail.get("done") or []
+	if missing and done:
+		return _("Translated into {0}; not yet into {1}").format(names(done), names(missing))
+	if missing:
+		return _("Not translated yet into {0}").format(names(missing))
+	return _("Translated into {0}").format(names(done))
+
+
 def explain_informative(row) -> dict:
 	detail = row.detail or {}
 	count = cint(detail.get("count"))
@@ -724,6 +756,8 @@ def explain_informative(row) -> dict:
 		message = (
 			_("{0} reviews, {1} out of 5").format(count, flt(detail.get("rating"), 1)) if count else _("No review yet")
 		)
+	elif row.code == "translations":
+		message = _translations_message(detail)
 	else:
 		message = _("Videos: {0}").format(count) if count else _("No video")
 	return {"code": row.code, "label": criterion_label(row.code), "message": message}

@@ -28,6 +28,8 @@ from werkzeug.wrappers import Response
 from webshop.webshop.seo.availability import BACK_ORDER, IN_STOCK, OUT_OF_STOCK
 
 FEED_ROUTE = "feeds/google.xml"
+# //// Neoffice — multilingual lot 5: the feed of an additional language of the site (seo/feeds/google_languages.py)
+LANGUAGE_FEED = re.compile(r"feeds/google-([a-z]{2,3}(?:-[A-Za-z]{2,4})?)\.xml")
 FEED_DONE_EVENT = "webshop_google_feed_done"
 GOOGLE_NAMESPACE = "http://base.google.com/ns/1.0"
 MAX_ADDITIONAL_IMAGES = 10
@@ -496,13 +498,21 @@ def generate_feeds(notify: str | None = None):
 	previous_lang = frappe.local.lang
 	frappe.set_user_lang(notify or frappe.session.user)
 	try:
-		reports = []
+		reports, language_reports = [], []
 		for site in feed_sites():
 			try:
 				reports.append(write_feed(site))
 			except Exception:
 				frappe.log_error(f"Google feed: site {site.key} failed", frappe.get_traceback())
+			# //// Neoffice — multilingual lot 5: one feed more for each additional language the site enabled
+			from webshop.webshop.seo.feeds.google_languages import write_language_feeds
+
+			language_reports += write_language_feeds(site)
 		report = describe(reports, settings)
+		if language_reports:
+			from webshop.webshop.seo.feeds.google_languages import describe as describe_languages
+
+			report += "\n" + "\n".join(describe_languages(language_reports, settings.google_feed_token))
 	finally:
 		frappe.local.lang = previous_lang
 	frappe.db.set_single_value(
@@ -552,7 +562,8 @@ class FeedRenderer(BaseRenderer):
 	Without the feed switched on, the right token and a file, the address does not exist."""
 
 	def can_render(self):
-		return self.path == FEED_ROUTE
+		# //// Neoffice — multilingual lot 5: feeds/google-<language>.xml is the feed of an additional language
+		return self.path == FEED_ROUTE or bool(LANGUAGE_FEED.fullmatch(self.path))
 
 	def render(self):
 		settings = frappe.get_cached_doc("Webshop Settings")
@@ -564,7 +575,13 @@ class FeedRenderer(BaseRenderer):
 			(site for site in feed_sites() if not site.profile or site.profile["name"] == getattr(frappe.local, "website_profile", None)),
 			None,
 		)
-		path = feed_path(site.key) if site else None
+		language = LANGUAGE_FEED.fullmatch(self.path)
+		if language:
+			from webshop.webshop.seo.feeds.google_languages import served_file
+
+			path = served_file(site.key, language.group(1)) if site else None
+		else:
+			path = feed_path(site.key) if site else None
 		if not path or not os.path.exists(path):
 			return Response(status=404)
 		# the path is feed_path() of the site being served: nothing in the request names it

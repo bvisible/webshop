@@ -1115,7 +1115,19 @@ def get_cart_recommendations(item_codes=None, limit=4):
 				"price": it.get("formatted_price") or "",
 			})
 			if len(out) >= limit:
-				return out
+				return _localize_suggestions(out)
+	return _localize_suggestions(out)
+
+
+def _localize_suggestions(out):
+	# //// Neoffice — multilingual lot 5: the drawer's suggestions are named in the language of the page
+	from webshop.webshop.utils.localized import localize_items
+
+	for row in out:
+		row["web_item_name"] = row["name"]
+	localize_items(out, ("web_item_name",))
+	for row in out:
+		row["name"] = row.pop("web_item_name")
 	return out
 
 def prefix_from_when_several_offers(item: dict) -> None:

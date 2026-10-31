@@ -117,7 +117,8 @@
                                                               {% endif %}
                                                             </div>
                                                             <div class="col">
-                                                                <h6>{{ item.item_name }}</h6>
+                                                                {#- //// Neoffice — multilingual lot 5: the product's name in the language of the page -#}
+                                                                <h6>{{ item.get('display_name') or item.item_name }}</h6>
                                                                 <!-- //// Neoffice — multi-warehouse: show which stock
                                                                      source serves this line and its promised date. -->
                                                                 {% if item.get('warehouse_source_label') %}

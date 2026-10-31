@@ -68,7 +68,8 @@ def get_cart_data():
                 # Create a dictionary with base information
                 item_dict = {
                     "item_code": item.item_code,
-                    "item_name": item.item_name,
+                    # //// Neoffice — multilingual lot 5: the name in the language of the page (the saved item_name stays)
+                    "item_name": item.get("display_name") or item.item_name,
                     "qty": item.qty,
                     "rate": item.rate,
                     "amount": item.amount,
@@ -215,7 +216,8 @@ def format_cart_response(cart_data):
                 for item in doc.items:
                     item_dict = {
                         "item_code": item.item_code,
-                        "item_name": item.item_name,
+                        # //// Neoffice — multilingual lot 5: the name in the language of the page (the saved item_name stays)
+                        "item_name": item.get("display_name") or item.item_name,
                         "qty": item.qty,
                         "rate": item.rate,
                         "amount": item.amount
@@ -390,6 +392,10 @@ def format_quotation_response(quotation, with_items=False):
     Returns:
         dict: Formatted quotation data
     """
+    # //// Neoffice — multilingual lot 5: the lines are named in the language they are read in
+    from webshop.webshop.utils.localized import localize_lines
+
+    localize_lines(quotation)
     try:
         if not quotation:
             return {
@@ -447,7 +453,8 @@ def format_quotation_response(quotation, with_items=False):
             for item in quotation.items:
                 item_dict = {
                     "item_code": item.item_code,
-                    "item_name": item.item_name,
+                    # //// Neoffice — multilingual lot 5: the name in the language of the page (the saved item_name stays)
+                    "item_name": item.get("display_name") or item.item_name,
                     "qty": item.qty,
                     "rate": item.rate,
                     "amount": item.amount
@@ -588,7 +595,8 @@ def cart_info_for_template():
                     # Create a dictionary with basic information
                     item_dict = {
                         "item_code": item.item_code,
-                        "item_name": item.item_name,
+                        # //// Neoffice — multilingual lot 5: the name in the language of the page (the saved item_name stays)
+                        "item_name": item.get("display_name") or item.item_name,
                         "qty": item.qty,
                         "rate": item.rate,
                         "amount": item.amount,

@@ -24,6 +24,11 @@ def get_context(context):
 
 	settings = get_shopping_cart_settings()
 	items = get_wishlist_items() if not is_guest else []
+	# //// Neoffice — multilingual lot 5: a wishlist row copied the product's name when it was added; the card shows the
+	# //// product's name in the language of the page (the row keeps what it copied)
+	from webshop.webshop.utils.localized import localize_rows
+
+	localize_rows("Website Item", items, ["web_item_name"], name_field="website_item")
 	selling_price_list = _set_price_list(settings) if not is_guest else None
 
 	items = set_stock_price_details(items, settings, selling_price_list)

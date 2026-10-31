@@ -19,7 +19,8 @@
             </div>
           <div class="item-details flex-grow-1">
             <div class="item-name">
-              {{ item["item_name"] }}
+              {#- //// Neoffice — multilingual lot 5: the product's name in the language of the page -#}
+              {{ item.get("display_name") or item["item_name"] }}
             </div>
             <!-- //// Neoffice — multi-warehouse: stock source of the line
                  (label + delivery estimate), present only when the feature

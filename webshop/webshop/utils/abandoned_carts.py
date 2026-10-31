@@ -130,9 +130,33 @@ def send_reminder(cart, step, settings, delays, previous_coupon=None):
 		"shop_name": frappe.db.get_single_value("Website Settings", "app_name") or "",
 	}
 	template = frappe.get_doc("Email Template", settings.abandoned_cart_template)
-	subject = frappe.render_template(template.subject, context)
-	message = frappe.render_template(template.response_, context)
-	communication = send_customer_email(quotation.party_name, cart.contact_email, subject, message)
+	# //// Neoffice — multilingual lot 5: the reminder is written in the language of the cart (stamped when the buyer filled it),
+	# //// else of the customer, with links to the pages in that language
+	from webshop.webshop.utils.localized import address_in, localize_lines, mail_language, mail_texts
+
+	language = mail_language(
+		quotation.get("language"),
+		frappe.db.get_value("Customer", quotation.party_name, "language"),
+		frappe.db.get_value("User", cart.contact_email, "language"),
+	)
+	subject_text = body_text = None
+	if language:
+		subject_text, body_text = mail_texts(template, language)
+		localize_lines(quotation, language=language)
+		for shown, row in zip(context["cart_items"], quotation.items):
+			shown["item_name"] = row.get("display_name") or shown["item_name"]
+		for key in ("cart_url", "shop_url"):
+			context[key] = address_in(context[key], language)
+	previous_lang = frappe.local.lang
+	frappe.local.lang = language or previous_lang
+	try:
+		subject = frappe.render_template(subject_text or template.subject, context)
+		message = frappe.render_template(body_text or template.response_, context)
+		communication = send_customer_email(
+			quotation.party_name, cart.contact_email, subject, message, language=language
+		)
+	finally:
+		frappe.local.lang = previous_lang
 
 	frappe.get_doc(
 		{
