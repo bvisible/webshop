@@ -1205,6 +1205,14 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
   the reseller's sheet never prints the buying price, the struck price or the supplier's promises.
 - **A picture is read only from the site's public files** (`images.public_file_path`), rebuilt small and embedded as a
   data URI: the engine fetches nothing.
+- **The catalogue** (`/my-catalogues`, lot 2) is made by a job, never in a request: `catalogue_api.create_catalogue`
+  writes a `Reseller Catalogue` (`Queued`) and queues `jobs.generate` in the long queue; the job prices every product
+  as that customer pays it (`customer_pricing`, their list) plus their markup (`book.py`), then renders twice
+  (`book_pdf.py`): the first render's bookmarks give the page of each section, which the second puts in the contents
+  (placeholders of the same width, so nothing moves). The page polls `get_catalogues`. A model is one card "from" its
+  cheapest variant. One catalogue at a time and ten a day per customer, 1500 products and 400 pages, kept 30 days
+  (`jobs.purge`, daily). The price the reseller pays is never printed: `test_book` fails when it is (nine tests turned
+  red when a mutation printed it). Measured on osiris: 308 products in 14 s of work, 43 pages, 2.6 MB.
 
 > **`fmt_money` drops the currency when Global Defaults hides the symbol** (osiris does): a sheet read away from the
 > site printed `160.65` for a price in CHF. `price_text` puts the currency back. The first diagnosis ("the offer has
@@ -1215,6 +1223,12 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
 
 > **A Data field comes back HTML-escaped from the database** (`Salt &amp; Pepper`), and a template that escapes again
 > prints `&amp;amp;`: decode once (`_plain`) before the text enters the sheet.
+
+> **`frappe.parse_json` raises on text that is not JSON**, so a crafted `picked="not json"` was a server error, not a
+> refusal (caught by `test_catalogue_api`). A body the browser sends is parsed with `json.loads` inside a `try`.
+
+> **`_("From")` is "De" on this site**, which reads wrongly before a price: a word another app already translates
+> needs a context of its own (`_("From", context=…)`; the second positional argument of `_()` is the language).
 
 ### What search engines, feeds and AI crawlers read (`webshop/webshop/seo/`)
 
