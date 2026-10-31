@@ -115,7 +115,7 @@ def courses_are_offered() -> bool:
 
 
 def reseller_catalogue_is_offered() -> bool:
-	"""The brand page of the reseller catalogue: the customers of the groups the shop allowed, nobody else."""
+	"""The brand and catalogues pages of the reseller catalogue: the customers of the groups the shop allowed, nobody else."""
 	from webshop.webshop.catalogue.access import is_offered
 
 	return is_offered()
@@ -135,6 +135,7 @@ ENTRIES = {
 	"/gift-cards": (N_("Gift cards"), switch_is_on("enable_gift_cards")),
 	"/loyalty-points": (N_("Loyalty"), switch_is_on("enable_loyalty_points")),
 	"/my-brand": (N_("Brand"), reseller_catalogue_is_offered),
+	"/my-catalogues": (N_("Catalogues"), reseller_catalogue_is_offered),
 }
 
 

@@ -72,3 +72,5 @@ webshop.patches.english_account_menu_routes
 webshop.patches.make_picture_copies_readable
 # //// Neoffice — the reseller's brand page in the account menu of existing sites (2026-10-30)
 webshop.patches.add_my_brand_portal_menu
+# //// Neoffice — the reseller's catalogues page in the account menu of existing sites (2026-10-31)
+webshop.patches.add_my_catalogues_portal_menu

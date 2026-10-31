@@ -50,6 +50,7 @@ No upstream equivalent; the whole file is ours.
 | `webshop/webshop/doctype/website_item_video/website_item_video.json` | child table of a product's videos (YouTube, Vimeo or a hosted file, title, poster), drawn by the gallery | `b89dd9080b` (2026-09-13) |
 | `webshop/webshop/doctype/reseller_catalogue_group/reseller_catalogue_group.json` | child table of the customer groups allowed to use the reseller catalogue, a row of Webshop Settings | reseller catalogue, lot 0 (2026-10-30) |
 | `webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json` | a reseller's brand: logo, colours, contact details and the markup they apply to the prices of their catalogues | reseller catalogue, lot 0 (2026-10-30) |
+| `webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json` | one catalogue a reseller asked for: what it was made from, how far its job is, and its private PDF (kept 30 days) | reseller catalogue, lot 2 (2026-10-31) |
 | `webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json`, `shop_assistant_message/shop_assistant_message.json` | a visitor's thread with the shop assistant and its messages (what was said, the tokens each turn cost, the tools it used) | the shop assistant (2026-09), indexed and bounded by neoffice-maintenance#2015 (2026-10-30) |
 | `webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json` | one row a day of what the shop assistant was asked, answered and refused, and why (figures only, written each night from the Redis counters) | neoffice-maintenance#2015, lot D (2026-10-30) |
 | `webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json` | an anonymised pair of question and answer kept to improve the service; empty until the merchant switches the collection on | neoffice-maintenance#2015, lot E (2026-10-30) |
@@ -293,6 +294,7 @@ webshop/webshop/doctype/purchase_follow_up_log/purchase_follow_up_log.json
 webshop/webshop/doctype/purchase_follow_up_step/purchase_follow_up_step.json
 webshop/webshop/doctype/reseller_catalogue_group/reseller_catalogue_group.json
 webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json
+webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json
 webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json
 webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json
 webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json

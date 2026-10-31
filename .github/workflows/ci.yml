@@ -378,7 +378,10 @@ jobs:
             webshop.webshop.catalogue.test_logo \
             webshop.webshop.catalogue.test_my_brand \
             webshop.webshop.catalogue.test_images \
-            webshop.webshop.catalogue.test_sheet
+            webshop.webshop.catalogue.test_sheet \
+            webshop.webshop.catalogue.test_selection \
+            webshop.webshop.catalogue.test_book \
+            webshop.webshop.catalogue.test_catalogue_api
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || failed="$failed $m"

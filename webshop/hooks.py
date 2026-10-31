@@ -88,6 +88,8 @@ scheduler_events = {
 		"webshop.webshop.utils.frequently_bought_together.calculate_frequently_bought_together",
 		# //// Neoffice — each site's Google Merchant Center feed, written for Google's daily fetch (#691 lot 3)
 		"webshop.webshop.seo.feeds.google.generate_feeds",
+		# //// Neoffice — the reseller's catalogues kept 30 days, and the ones whose worker is gone closed (catalogue/jobs.py)
+		"webshop.webshop.catalogue.jobs.purge",
 	],
 	# //// Neoffice — the assistant (lot D of the 2026-10-30 audit): each night the finished days' counters go to their row, and each week the questions it could not answer go to the team (that mail is off until the merchant switches it on)
 	"weekly": ["webshop.webshop.assistant.unanswered.weekly_digest"],
@@ -133,6 +135,8 @@ standard_portal_menu_items = [
 	# //// Neoffice — the reseller's brand page (2026-10-30). Only the customers of the groups the shop
 	# //// allowed see the entry (utils/account_menu.py), whatever the row says.
 	{"title": "Brand", "route": "/my-brand", "reference_doctype": "Reseller Catalogue Profile", "role": "Customer"},
+	# //// Neoffice — the reseller's catalogues page (2026-10-31), offered like the brand page.
+	{"title": "Catalogues", "route": "/my-catalogues", "reference_doctype": "Reseller Catalogue", "role": "Customer"},
 ]
 
 # //// Neoffice — added (2026-09-22). A reminder about an abandoned cart is a trace,

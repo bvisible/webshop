@@ -37,6 +37,9 @@ def encode_jpeg(raw, max_side=900, quality=82):
 			if header.size[0] * header.size[1] > MAX_SOURCE_PIXELS:
 				return None
 		with Image.open(io.BytesIO(raw)) as image:
+			if image.format == "JPEG":
+				# a camera file is decoded at a fraction of its size when far more than needed
+				image.draft(None, (max_side, max_side))
 			image.load()
 			image = ImageOps.exif_transpose(image)
 			if image.mode in ("RGBA", "LA") or (image.mode == "P" and "transparency" in image.info):
@@ -81,10 +84,28 @@ def public_file_path(url, public_root):
 	return path
 
 
-def site_picture(url, max_side=900, quality=82):
-	"""A product's picture, from the site's public files, as a JPEG data URI — or None."""
+def smaller_copy(url, max_side):
+	"""The address of the shop's own WebP copy of a picture (`utils/renditions.py`) when it has one at least
+	`max_side` wide, else `url`: a catalogue of three hundred products decodes a 800 px file, not a 4000 px one."""
+	from webshop.webshop.utils import renditions
+
+	name = renditions.source_name(url)
+	if not name:
+		return url
+	for width in renditions.WIDTHS:
+		if width >= max_side and os.path.isfile(renditions.rendition_path(name, width)):
+			return renditions.rendition_url(name, width)
+	return url
+
+
+def site_picture(url, max_side=900, quality=82, small_copy=False):
+	"""A product's picture, from the site's public files, as a JPEG data URI — or None.
+
+	`small_copy` reads the shop's WebP copy of the picture when there is one wide enough (see `smaller_copy`)."""
 	import frappe
 
+	if small_copy:
+		url = smaller_copy(url, max_side)
 	path = public_file_path(url, frappe.get_site_path("public"))
 	if not path or not os.path.isfile(path):
 		return None

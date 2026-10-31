@@ -1,0 +1,103 @@
+{# //// Neoffice — added file (the reseller's catalogues page, no upstream equivalent). #}
+{# //// A form that picks what goes in a catalogue and a list of the catalogues made; index.js next to this file #}
+{# //// fills both from the server and follows a catalogue while it is made. Every label comes from the server. #}
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Catalogues") }}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block page_content %}
+<div class="wsp-catalogues" id="wsp-catalogues">
+	<script type="application/json" id="wsp-catalogues-config">{{ config | json }}</script>
+	<p class="text-muted">{{ config.labels.lead }}</p>
+	<div class="alert alert-warning d-none" id="wsp-cat-brand-needed" role="alert">
+		{{ config.labels.brand_needed }} <a href="/my-brand">{{ config.labels.brand_link }}</a>
+	</div>
+	<div class="alert alert-warning d-none" id="wsp-cat-no-engine" role="alert">{{ config.labels.no_engine }}</div>
+
+	<form id="wsp-cat-form" novalidate>
+		<section class="frappe-card p-4 mb-4">
+			<h2 class="h5 mb-3">{{ config.labels.new }}</h2>
+			<div class="row">
+				<div class="col-md-8 mb-3">
+					<label class="mb-1" for="wsp-cat-title">{{ config.labels.title }}</label>
+					<input class="form-control" id="wsp-cat-title" maxlength="80" placeholder="{{ config.labels.title_example }}">
+					<div class="invalid-feedback d-block" data-error-for="title"></div>
+				</div>
+			</div>
+
+			<h3 class="h6 mt-2">{{ config.labels.what }}</h3>
+			<p class="text-muted small">{{ config.labels.what_hint }}</p>
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<div class="font-weight-bold mb-1">{{ config.labels.categories }}</div>
+					<div class="form-text mb-1">{{ config.labels.categories_hint }}</div>
+					<input class="form-control form-control-sm mb-2" id="wsp-cat-filter-groups" type="search" placeholder="{{ config.labels.filter }}" aria-label="{{ config.labels.filter }}">
+					<div class="border rounded p-2" id="wsp-cat-groups" style="max-height: 16rem; overflow: auto;"></div>
+				</div>
+				<div class="col-md-6 mb-3">
+					<div class="font-weight-bold mb-1">{{ config.labels.brands }}</div>
+					<input class="form-control form-control-sm mb-2 mt-4" id="wsp-cat-filter-brands" type="search" placeholder="{{ config.labels.filter }}" aria-label="{{ config.labels.filter }}">
+					<div class="border rounded p-2" id="wsp-cat-brands" style="max-height: 16rem; overflow: auto;"></div>
+				</div>
+				<div class="col-12 mb-3">
+					<div class="font-weight-bold mb-1">{{ config.labels.products }}</div>
+					<input class="form-control form-control-sm" id="wsp-cat-search" type="search" autocomplete="off" placeholder="{{ config.labels.search }}" aria-label="{{ config.labels.search }}">
+					<ul class="list-group mt-1" id="wsp-cat-results"></ul>
+					<div class="small text-muted mt-2">{{ config.labels.chosen }}</div>
+					<ul class="list-unstyled mb-0" id="wsp-cat-chosen"></ul>
+				</div>
+			</div>
+			<div class="invalid-feedback d-block" data-error-for="selection"></div>
+			<p class="mb-0 font-weight-bold" id="wsp-cat-count" role="status" aria-live="polite"></p>
+		</section>
+
+		<section class="frappe-card p-4 mb-4">
+			<h2 class="h5 mb-3">{{ config.labels.options }}</h2>
+			<div class="row">
+				<div class="col-md-4 mb-3">
+					<label class="mb-1" for="wsp-cat-markup">{{ config.labels.markup }}</label>
+					<input class="form-control" id="wsp-cat-markup" type="number" min="0" max="300" step="0.01" inputmode="decimal">
+					<div class="form-text">{{ config.labels.markup_hint }}</div>
+					<div class="invalid-feedback d-block" data-error-for="markup_percent"></div>
+				</div>
+				<div class="col-md-4 mb-3">
+					<label class="mb-1" for="wsp-cat-prices">{{ config.labels.prices }}</label>
+					<select class="form-control" id="wsp-cat-prices"></select>
+					<div class="invalid-feedback d-block" data-error-for="prices"></div>
+				</div>
+				<div class="col-md-4 mb-3">
+					<label class="mb-1" for="wsp-cat-layout">{{ config.labels.layout }}</label>
+					<select class="form-control" id="wsp-cat-layout"></select>
+					<div class="invalid-feedback d-block" data-error-for="layout"></div>
+				</div>
+			</div>
+		</section>
+
+		<div class="d-flex align-items-center mb-4">
+			<button class="btn btn-primary mr-3" id="wsp-cat-create" type="submit">{{ config.labels.create }}</button>
+			<span class="text-muted" id="wsp-cat-status" role="status"></span>
+		</div>
+	</form>
+
+	<section class="frappe-card p-4 mb-4">
+		<h2 class="h5 mb-3">{{ config.labels.mine }}</h2>
+		<div class="table-responsive">
+			<table class="table table-sm mb-0" aria-live="polite">
+				<thead>
+					<tr>
+						<th>{{ config.labels.col_title }}</th>
+						<th>{{ config.labels.col_date }}</th>
+						<th class="text-right">{{ config.labels.col_products }}</th>
+						<th class="text-right">{{ config.labels.col_pages }}</th>
+						<th>{{ config.labels.col_status }}</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody id="wsp-cat-rows"></tbody>
+			</table>
+		</div>
+		<p class="text-muted mb-0 mt-2" id="wsp-cat-empty"></p>
+	</section>
+</div>
+{% endblock %}

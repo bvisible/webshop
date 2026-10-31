@@ -67,6 +67,33 @@ class TestEncode(unittest.TestCase):
 		self.assertEqual(base64.b64decode(uri.split(",", 1)[1]), jpeg)
 
 
+class TestSmallerPictures(unittest.TestCase):
+	def test_a_camera_file_is_brought_down_to_the_wanted_size_even_when_it_is_decoded_small(self):
+		out = io.BytesIO()
+		Image.new("RGB", (4000, 3000), (10, 110, 79)).save(out, "JPEG", quality=90)
+		with _opened(images.encode_jpeg(out.getvalue(), max_side=440)) as image:
+			self.assertEqual(max(image.size), 440)
+			self.assertAlmostEqual(image.size[0] / image.size[1], 4 / 3, delta=0.01)
+
+	def test_the_shops_own_copy_is_preferred_when_there_is_one_wide_enough(self):
+		import tempfile
+		from unittest import mock
+
+		from webshop.webshop.utils import renditions
+
+		with tempfile.TemporaryDirectory() as folder:
+			for width in (400, 800):
+				open(os.path.join(folder, f"a.png.{width}w.webp"), "wb").close()
+			path = lambda name, width: os.path.join(folder, f"{name}.{width}w.webp")  # noqa: E731
+			with mock.patch.object(renditions, "rendition_path", side_effect=path):
+				self.assertEqual(images.smaller_copy("/files/a.png", 440), "/files/wsr/a.png.800w.webp", "400 is too small for 440")
+				self.assertEqual(images.smaller_copy("/files/a.png", 300), "/files/wsr/a.png.400w.webp", "the smallest wide enough")
+				self.assertEqual(images.smaller_copy("/files/a.png", 1000), "/files/a.png", "no copy that wide: the picture itself")
+				self.assertEqual(images.smaller_copy("/files/b.png", 300), "/files/b.png", "no copy at all")
+				for url in ("https://example.com/a.png", "/private/files/a.png", "/files/a.svg", "/files/../a.png", "", None):
+					self.assertEqual(images.smaller_copy(url, 300), url, url)
+
+
 class TestWhichFileMayBeRead(unittest.TestCase):
 	ROOT = os.path.join(os.sep, "sites", "shop.local", "public")
 

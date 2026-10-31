@@ -47,3 +47,40 @@ def logo_message(reason):
 		"too_many_pixels": _("This picture has too many pixels. Send a smaller one."),
 	}
 	return messages.get(reason, _("This logo cannot be used."))
+
+
+def selection_message(reason):
+	messages = {
+		"empty": _("Choose at least one category, one brand or one product."),
+		"too_many": _("The selection has too many entries. Choose categories rather than products one by one."),
+	}
+	return messages.get(reason, _("This selection could not be read."))
+
+
+def options_message(field, reason):
+	"""The refusal of a catalogue's title or option, worded for the field the page shows it beside."""
+	messages = {
+		("title", "required"): _("Give the catalogue a title."),
+		("title", "too_long"): _("The title is too long: 80 characters at most."),
+		("title", "not_plain"): _("The title cannot contain the characters < and >."),
+		("markup_percent", "out_of_range"): _("The markup must be a number between 0 and 300."),
+		("prices", "not_allowed"): _("Choose whether the catalogue shows prices."),
+		("layout", "not_allowed"): _("Choose a layout from the list."),
+	}
+	return messages.get((field, reason), _("This option is not valid."))
+
+
+def catalogue_message(reason, number=None):
+	"""Why a catalogue was not made, in a sentence. `number` is the limit the sentence names, when it names one."""
+	messages = {
+		"empty": _("The shop offers none of the products of this selection."),
+		"too_many_products": _("This selection holds more than {0} products. Narrow it down.").format(number),
+		"too_many_pages": _("This catalogue would run to more than {0} pages. Narrow the selection.").format(number),
+		"busy": _("A catalogue is still being made. Wait for it to finish."),
+		"daily_limit": _("You have asked for {0} catalogues in the last 24 hours. Try again later.").format(number),
+		"no_brand": _("Save your brand first: a catalogue carries your name, your logo and your colours."),
+		"no_engine": _("This server cannot make PDF documents."),
+		"failed": _("The catalogue could not be made. The team has been told."),
+		"stalled": _("The catalogue took too long and was stopped. Try again, with a smaller selection."),
+	}
+	return messages.get(reason, _("The catalogue could not be made."))

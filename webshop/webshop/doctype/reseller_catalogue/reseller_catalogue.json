@@ -1,0 +1,176 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-10-31 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "customer",
+  "status",
+  "progress",
+  "stage",
+  "details_section",
+  "item_count",
+  "page_count",
+  "generated_on",
+  "column_dates",
+  "prices_as_of",
+  "expires_on",
+  "file",
+  "settings_section",
+  "selection",
+  "options",
+  "website_profile",
+  "error"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "in_list_view": 1,
+   "reqd": 1,
+   "length": 80
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1,
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Set by the server from the signed-in account and never taken from a request."
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Queued\nRunning\nReady\nFailed",
+   "default": "Queued",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "progress",
+   "fieldtype": "Percent",
+   "label": "Progress",
+   "read_only": 1
+  },
+  {
+   "fieldname": "stage",
+   "fieldtype": "Data",
+   "label": "Stage",
+   "read_only": 1,
+   "description": "What the job is doing: prices, pictures, render."
+  },
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "The Catalogue"
+  },
+  {
+   "fieldname": "item_count",
+   "fieldtype": "Int",
+   "label": "Products",
+   "read_only": 1
+  },
+  {
+   "fieldname": "page_count",
+   "fieldtype": "Int",
+   "label": "Pages",
+   "read_only": 1
+  },
+  {
+   "fieldname": "generated_on",
+   "fieldtype": "Datetime",
+   "label": "Made On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_dates",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "prices_as_of",
+   "fieldtype": "Date",
+   "label": "Prices As Of",
+   "read_only": 1,
+   "description": "The day the prices printed in the file were computed."
+  },
+  {
+   "fieldname": "expires_on",
+   "fieldtype": "Date",
+   "label": "Kept Until",
+   "read_only": 1,
+   "description": "The file and this record are deleted after this day."
+  },
+  {
+   "fieldname": "file",
+   "fieldtype": "Attach",
+   "label": "File",
+   "read_only": 1,
+   "description": "A private PDF."
+  },
+  {
+   "fieldname": "settings_section",
+   "fieldtype": "Section Break",
+   "label": "What It Was Made From",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "selection",
+   "fieldtype": "Long Text",
+   "label": "Selection",
+   "read_only": 1,
+   "description": "Item groups, brands and products as JSON. Never a price."
+  },
+  {
+   "fieldname": "options",
+   "fieldtype": "Long Text",
+   "label": "Options",
+   "read_only": 1,
+   "description": "Markup, price mode and layout as JSON, as they were when the catalogue was asked for."
+  },
+  {
+   "fieldname": "website_profile",
+   "fieldtype": "Data",
+   "label": "Website Profile",
+   "read_only": 1,
+   "description": "The site the catalogue was asked on: its price list is the one the prices come from."
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Small Text",
+   "label": "Error",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-31 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Reseller Catalogue",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

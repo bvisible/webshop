@@ -1,0 +1,68 @@
+{# //// Neoffice — added file (no upstream equivalent). The reseller catalogue: a cover in the reseller's colour, #}
+{# //// a contents page with the page of each section, then the sections' products as cards or as rows. #}
+{# //// Everything a person typed goes through `| e`; the pictures are data URIs; nothing is fetched. #}
+<!doctype html>
+<html lang="{{ book.lang | e }}">
+<head>
+<meta charset="utf-8">
+<title>{{ book.title | e }}</title>
+<style>{{ css }}</style>
+</head>
+<body class="layout-{{ book.layout }}">
+
+<section class="cover">
+	<div>
+		{% if book.issuer.logo %}<span class="plate"><img src="{{ book.issuer.logo }}" alt=""></span>
+		{% elif book.issuer.name %}<div class="house">{{ book.issuer.name | e }}</div>{% endif %}
+	</div>
+	<div>
+		<h1>{{ book.title | e }}</h1>
+		{% if book.issuer.logo and book.issuer.name %}<div class="sub">{{ book.issuer.name | e }}</div>{% endif %}
+		<div class="date">{{ book.date | e }}</div>
+	</div>
+	<div class="contact">
+		{% for line in book.issuer.contact %}<div>{{ line | e }}</div>{% endfor %}
+	</div>
+</section>
+
+<section class="toc">
+	<div class="heading">{{ _("Contents") }}</div>
+	<ol>
+		{% for section in book.sections %}
+		<li><a href="#section-{{ loop.index }}"><span class="t">{{ section.title | e }}</span><span class="count">{{ section.products | length }}</span><span class="leader"></span>{% if show_numbers %}<span class="n">{{ numbers[loop.index0] if numbers else "000" }}</span>{% endif %}</a></li>
+		{% endfor %}
+	</ol>
+	{% if book.price_note %}<div class="note">{{ book.price_note | e }}</div>{% endif %}
+</section>
+
+{% for section in book.sections %}
+<section class="group">
+	<h2 id="section-{{ loop.index }}">{{ section.title | e }}</h2>
+	<div class="cards">
+		{% for product in section.products %}
+		<article class="card">
+			<div class="pic">{% if product.picture %}<img src="{{ product.picture }}" alt="">{% else %}<span>{{ product.abbreviation | e }}</span>{% endif %}</div>
+			<div class="info">
+				{% if product.brand %}<div class="brand">{{ product.brand | e }}</div>{% endif %}
+				<div class="name">{{ product.name | e }}</div>
+				<div class="ref">{{ product.reference | e }}</div>
+				{% if book.layout == "list" and product.description %}<div class="desc">{{ product.description | e }}</div>{% endif %}
+			</div>
+			<div class="buy">
+				{% if product.choices %}<div class="choices">{{ _("{0} choices").format(product.choices) | e }}</div>{% endif %}
+				{% if book.with_prices %}
+					{% if product.price %}<div class="price">{% if product.price_from %}<small>{{ _("From") }}</small>{% endif %}{{ product.price | e }}</div>
+					{% else %}<div class="price none">{{ _("Price on request") }}</div>{% endif %}
+				{% endif %}
+			</div>
+		</article>
+		{% endfor %}
+	</div>
+</section>
+{% endfor %}
+
+{% if book.issuer.footer %}<div class="credit">{{ book.issuer.footer | e }}</div>{% endif %}
+{% if book.issuer.credit %}<div class="credit">{{ book.issuer.credit | e }}</div>{% endif %}
+
+</body>
+</html>
