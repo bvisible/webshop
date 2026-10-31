@@ -10832,7 +10832,422 @@ msgstr "vos prix de vente"
 msgid "{0} lines in this file."
 msgstr "{0} lignes dans ce fichier."
 
-#: webshop/templates/pages/checkout.js:1626
+#: webshop/www/my-integration/index.py:35
+msgid "About how many calls?"
+msgstr "À peu près combien d'appels ?"
+
+#: webshop/www/my-integration/index.py:64
+msgid "An example"
+msgstr "Un exemple"
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:16
+msgid "Approve this access"
+msgstr "Approuver cet accès"
+
+#: webshop/www/my-integration/index.py:32
+msgid "Ask for access"
+msgstr "Demander un accès"
+
+#: webshop/www/my-integration/index.py:30
 #, python-brace-format
-msgid "Error applying changes: {0}"
-msgstr "Les modifications n'ont pas pu être appliquées : {0}"
+msgid "Asked on {0}"
+msgstr "Demandé le {0}"
+
+#. Label of a Int field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:127
+msgid "Calls Per Minute"
+msgstr "Appels par minute"
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:20
+msgid "Calls per minute"
+msgstr "Appels par minute"
+
+#: webshop/webshop/catalogue/refusals.py:121
+#, python-brace-format
+msgid "Calls per minute must be between 1 and {0}."
+msgstr "Le nombre d'appels par minute doit être compris entre 1 et {0}."
+
+#. Description of the 'Status' (Select) field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:54
+msgid "Changed by the buttons of this form only: Approve, Refuse, Suspend, Resume."
+msgstr "Modifié uniquement par les boutons de ce formulaire : Approuver, Refuser, Suspendre, Reprendre."
+
+#: webshop/www/my-integration/index.py:20
+msgid "Connect your own systems to the shop: read its catalogue with your prices and place orders without typing them. Staff look at each request first."
+msgstr "Reliez vos propres systèmes à la boutique : consultez son catalogue avec vos prix et passez vos commandes sans les ressaisir. Le personnel examine d'abord chaque demande."
+
+#: webshop/www/my-integration/index.py:57
+msgid "Copy your key now"
+msgstr "Copiez votre clé maintenant"
+
+#. Label of a Data field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:80
+msgid "Expected Volume"
+msgstr "Volume attendu"
+
+#: webshop/www/my-integration/index.py:36
+msgid "For example: a few hundred a day."
+msgstr "Par exemple : quelques centaines par jour."
+
+#: webshop/www/my-integration/index.py:37
+msgid "I also want to place orders"
+msgstr "Je souhaite aussi passer des commandes"
+
+#. Label of a Data field in DocType 'Partner API Order'
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:39
+msgid "Idempotency Key"
+msgstr "Clé d'idempotence"
+
+#: webshop/www/my-integration/index.py:58
+msgid "It is shown once and kept nowhere. Lose it, and you make another."
+msgstr "Elle n'est affichée qu'une fois et n'est conservée nulle part. Si vous la perdez, vous en créez une autre."
+
+#. Label of a Data field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:165
+msgid "Key Id"
+msgstr "Identifiant de la clé"
+
+#. Label of a Datetime field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:182
+msgid "Key Made On"
+msgstr "Clé créée le"
+
+#: webshop/www/my-integration/index.py:49
+#, python-brace-format
+msgid "Key {0}, made on {1}."
+msgstr "Clé {0}, créée le {1}."
+
+#. Label of a Datetime field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:188
+msgid "Last Used On"
+msgstr "Dernière utilisation le"
+
+#: webshop/www/my-integration/index.py:50
+#, python-brace-format
+msgid "Last used: {0}"
+msgstr "Dernière utilisation : {0}"
+
+#. Label of a Data field in DocType 'Partner API Order'
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:19
+msgid "Lookup"
+msgstr "Recherche"
+
+#: webshop/www/my-integration/index.py:52
+msgid "Make a key"
+msgstr "Créer une clé"
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:18
+msgid "May place and read orders"
+msgstr "Peut passer et consulter des commandes"
+
+#: webshop/www/my-integration/index.py:31
+msgid "Message from the shop"
+msgstr "Message de la boutique"
+
+#: webshop/www/my-integration/index.py:51
+msgid "Not used yet."
+msgstr "Pas encore utilisée."
+
+#. Label of a Small Text field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:152
+msgid "Note To The Reseller"
+msgstr "Note pour le revendeur"
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:21
+msgid "Note to the reseller"
+msgstr "Note pour le revendeur"
+
+#: webshop/www/my-integration/index.py:34
+msgid "One or two sentences: for example, keep your own shop's prices and stock up to date."
+msgstr "Une ou deux phrases : par exemple, tenir à jour les prix et le stock de votre propre boutique."
+
+#: webshop/www/my-integration/index.py:44
+msgid "Orders are submitted at once"
+msgstr "Les commandes sont validées immédiatement"
+
+#. Description of the 'Place And Read Orders' (Check) field in DocType 'Partner
+#. API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:114
+msgid "Orders are written as drafts: somebody reads them before they count."
+msgstr "Les commandes sont enregistrées en brouillon : quelqu'un les relit avant qu'elles ne comptent."
+
+#. Description of the 'Submit Orders' (Check) field in DocType 'Partner API
+#. Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:122
+msgid "Orders placed through the key are submitted at once instead of waiting as drafts."
+msgstr "Les commandes passées avec la clé sont validées immédiatement au lieu d'attendre en brouillon."
+
+#: webshop/www/my-integration/index.py:45
+msgid "Orders wait as drafts for the shop to read them"
+msgstr "Les commandes attendent en brouillon que la boutique les relise"
+
+#: webshop/www/my-integration/index.py:38
+msgid "Orders wait as drafts for the shop to read them, unless it allows more."
+msgstr "Les commandes attendent en brouillon que la boutique les relise, sauf si elle autorise davantage."
+
+#. Name of a DocType
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:198
+msgid "Partner API Access"
+msgstr "Accès API partenaire"
+
+#. Name of a DocType
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:66
+msgid "Partner API Order"
+msgstr "Commande API partenaire"
+
+#. Label of a Check field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:112
+msgid "Place And Read Orders"
+msgstr "Passer et consulter des commandes"
+
+#: webshop/www/my-integration/index.py:43
+msgid "Place and read orders"
+msgstr "Passer et consulter des commandes"
+
+#. Description of the 'Read The Catalogue' (Check) field in DocType 'Partner
+#. API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:107
+msgid "Products, with the price on this customer's own price list."
+msgstr "Les produits, avec le prix de la liste de prix propre à ce client."
+
+#. Label of a Check field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:104
+msgid "Read The Catalogue"
+msgstr "Consulter le catalogue"
+
+#: webshop/www/my-integration/index.py:42
+msgid "Read the catalogue, with your prices"
+msgstr "Consulter le catalogue, avec vos prix"
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:33
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:39
+msgid "Reason, shown to the reseller"
+msgstr "Raison, affichée au revendeur"
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:33
+msgid "Refuse this request"
+msgstr "Refuser cette demande"
+
+#: webshop/www/my-integration/index.py:53
+msgid "Replace the key"
+msgstr "Remplacer la clé"
+
+#. Label of a Data field in DocType 'Partner API Order'
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:47
+msgid "Request Hash"
+msgstr "Empreinte de la demande"
+
+#. Name of a DocType
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:152
+msgid "Reseller Feed"
+msgstr "Flux revendeur"
+
+#: webshop/www/my-integration/index.py:55
+msgid "Revoke the key"
+msgstr "Révoquer la clé"
+
+#: webshop/webshop/catalogue/refusals.py:111
+msgid "Say in a sentence what you want to do with the API."
+msgstr "Dites en une phrase ce que vous voulez faire avec l'API."
+
+#. Label of a Data field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:174
+msgid "Secret Hash"
+msgstr "Empreinte du secret"
+
+#: webshop/www/my-integration/index.py:65
+msgid "Send the key in the X-API-Key header."
+msgstr "Envoyez la clé dans l'en-tête X-API-Key."
+
+#. Description of the 'Customer' (Link) field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:43
+msgid "Set by the server from the signed-in account and never taken from a request. One access a customer."
+msgstr "Renseigné par le serveur à partir du compte connecté, jamais repris d'une requête. Un seul accès par client."
+
+#. Description of the 'Lookup' (Data) field in DocType 'Partner API Order'
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:24
+msgid "SHA-256 of the customer and the key: the name of the record, so that two requests with one key meet on one row."
+msgstr "SHA-256 du client et de la clé : le nom de l'enregistrement, afin que deux requêtes avec une même clé se retrouvent sur une même ligne."
+
+#. Description of the 'Request Hash' (Data) field in DocType 'Partner API
+#. Order'
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:50
+msgid "SHA-256 of the lines asked for: the same key with other lines is refused."
+msgstr "SHA-256 des lignes demandées : la même clé avec d'autres lignes est refusée."
+
+#. Description of the 'Secret Hash' (Data) field in DocType 'Partner API
+#. Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:177
+msgid "SHA-256 of the secret. The secret itself is shown once to the reseller and kept nowhere."
+msgstr "SHA-256 du secret. Le secret lui-même n'est montré qu'une fois au revendeur et n'est conservé nulle part."
+
+#. Label of a Check field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:119
+msgid "Submit Orders"
+msgstr "Valider les commandes"
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:19
+msgid "Submit orders at once (otherwise drafts)"
+msgstr "Valider les commandes immédiatement (sinon en brouillon)"
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:38
+msgid "Suspend"
+msgstr "Suspendre"
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:39
+msgid "Suspend this access: the key stops working at once"
+msgstr "Suspendre cet accès : la clé cesse de fonctionner immédiatement"
+
+#: webshop/www/my-integration/index.py:63
+msgid "The contract (OpenAPI)"
+msgstr "Le contrat (OpenAPI)"
+
+#: webshop/www/my-integration/index.py:54
+msgid "The current key stops working at once. Continue?"
+msgstr "La clé actuelle cesse de fonctionner immédiatement. Continuer ?"
+
+#. Label of a Section Break field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:134
+msgid "The Decision"
+msgstr "La décision"
+
+#: webshop/webshop/catalogue/refusals.py:112
+#, python-brace-format
+msgid "The description is too long ({0} characters at most) or contains the characters < and >."
+msgstr "La description est trop longue ({0} caractères au maximum) ou contient les caractères < et >."
+
+#: webshop/webshop/catalogue/refusals.py:113
+#, python-brace-format
+msgid "The expected volume is too long: {0} characters at most."
+msgstr "Le volume attendu est trop long : {0} caractères au maximum."
+
+#: webshop/www/my-integration/index.py:78
+msgid "The integration is not available for your account."
+msgstr "L'intégration n'est pas disponible pour votre compte."
+
+#. Label of a Section Break field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:159
+msgid "The Key"
+msgstr "La clé"
+
+#: webshop/www/my-integration/index.py:56
+msgid "The key stops working at once. Continue?"
+msgstr "La clé cesse de fonctionner immédiatement. Continuer ?"
+
+#. Description of the 'Requested By' (Link) field in DocType 'Partner API
+#. Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:63
+msgid "The portal account that asked. Orders made through the key are written under it."
+msgstr "Le compte du portail qui a fait la demande. Les commandes passées avec la clé sont enregistrées à son nom."
+
+#. Description of the 'Key Id' (Data) field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:169
+msgid "The public half of the key, as the reseller sees it on their page."
+msgstr "La moitié publique de la clé, telle que le revendeur la voit sur sa page."
+
+#. Description of the 'Note To The Reseller' (Small Text) field in DocType
+#. 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:154
+msgid "The reason of a refusal or a suspension: the reseller reads it on their page."
+msgstr "La raison d'un refus ou d'une suspension : le revendeur la lit sur sa page."
+
+#. Label of a Section Break field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:68
+msgid "The Request"
+msgstr "La demande"
+
+#: webshop/webshop/catalogue/refusals.py:118
+msgid "There is no access to decide on."
+msgstr "Il n'y a aucun accès à trancher."
+
+#: webshop/webshop/catalogue/refusals.py:116
+msgid "This access is not active."
+msgstr "Cet accès n'est pas actif."
+
+#: webshop/webshop/catalogue/refusals.py:120
+msgid "This access is not suspended."
+msgstr "Cet accès n'est pas suspendu."
+
+#: webshop/webshop/catalogue/refusals.py:119
+msgid "This access is not waiting for a decision."
+msgstr "Cet accès n'attend pas de décision."
+
+#: webshop/webshop/catalogue/refusals.py:123
+msgid "This could not be done."
+msgstr "Cette opération n'a pas pu être effectuée."
+
+#: webshop/www/my-integration/index.py:66
+msgid "To keep a whole catalogue up to date, the product feed on your catalogues page costs fewer calls."
+msgstr "Pour tenir à jour un catalogue entier, le flux produits de votre page des catalogues demande moins d'appels."
+
+#. Description of the 'Last Used On' (Datetime) field in DocType 'Partner API
+#. Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:190
+msgid "To the hour."
+msgstr "À l'heure près."
+
+#. Label of a Small Text field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:73
+msgid "Use Case"
+msgstr "Usage prévu"
+
+#: webshop/www/my-integration/index.py:61
+msgid "Using it"
+msgstr "Utilisation"
+
+#: webshop/www/my-integration/index.py:26
+msgid "Waiting for an answer"
+msgstr "En attente d'une réponse"
+
+#. Label of a Check field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:87
+msgid "Wants To Place Orders"
+msgstr "Souhaite passer des commandes"
+
+#: webshop/www/my-integration/index.py:33
+msgid "What do you want to do with it?"
+msgstr "Que voulez-vous en faire ?"
+
+#. Label of a Section Break field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:99
+msgid "What The Key May Do"
+msgstr "Ce que la clé peut faire"
+
+#. Description of the 'Use Case' (Small Text) field in DocType 'Partner API
+#. Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:75
+msgid "What the reseller wants to do with the API, in their words."
+msgstr "Ce que le revendeur veut faire avec l'API, dans ses propres mots."
+
+#: webshop/www/my-integration/index.py:41
+msgid "What your key may do"
+msgstr "Ce que votre clé peut faire"
+
+#: webshop/webshop/catalogue/refusals.py:114
+msgid "You already have an access, or a request waiting for an answer."
+msgstr "Vous avez déjà un accès, ou une demande en attente de réponse."
+
+#: webshop/webshop/catalogue/refusals.py:115
+msgid "You asked several times today. Try again tomorrow."
+msgstr "Vous avez fait plusieurs demandes aujourd'hui. Réessayez demain."
+
+#: webshop/www/my-integration/index.py:40
+msgid "You can ask again, saying more about what you need."
+msgstr "Vous pouvez refaire une demande en précisant davantage votre besoin."
+
+#: webshop/www/my-integration/index.py:48
+msgid "You have no key yet."
+msgstr "Vous n'avez pas encore de clé."
+
+#: webshop/webshop/catalogue/refusals.py:117
+msgid "You made several keys in the last hour. Try again later."
+msgstr "Vous avez créé plusieurs clés au cours de la dernière heure. Réessayez plus tard."
+
+#: webshop/www/my-integration/index.py:47
+msgid "Your key"
+msgstr "Votre clé"
+
+#: webshop/www/my-integration/index.py:46
+#, python-brace-format
+msgid "{0} calls a minute"
+msgstr "{0} appels par minute"

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-10-31 11:28+0000\n"
-"PO-Revision-Date: 2026-10-31 11:28+0000\n"
+"POT-Creation-Date: 2026-10-31 13:55+0000\n"
+"PO-Revision-Date: 2026-10-31 13:55+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -170,7 +170,7 @@ msgstr ""
 msgid "A group covers its sub-groups. Leave empty and nobody is offered the catalogue."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:4206
+#: webshop/webshop/shopping_cart/cart.py:4230
 #, python-brace-format
 msgid "A new gift card has been created with the remaining amount of {0}. Card code: {1}"
 msgstr ""
@@ -260,6 +260,10 @@ msgstr ""
 msgid "About 60 characters show in Google's results. Empty: the product's name and brand."
 msgstr ""
 
+#: webshop/www/my-integration/index.py:35
+msgid "About how many calls?"
+msgstr ""
+
 #: webshop/templates/generators/item/item_details.html:212
 #, python-brace-format
 msgid "About {0}"
@@ -314,7 +318,10 @@ msgstr ""
 msgid "Activate B2B checkout"
 msgstr ""
 
+#. Option for the 'Status' (Select) field in DocType 'Partner API Access'
 #: webshop/templates/pages/gift_cards.py:140
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:49
+#: webshop/www/my-integration/index.py:27
 msgid "Active"
 msgstr ""
 
@@ -433,7 +440,7 @@ msgstr ""
 #: webshop/webshop/catalogue/refusals.py:18
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:104
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:261
-#: webshop/www/my-brand/index.py:38
+#: webshop/www/my-brand/index.py:38 webshop/www/my-integration/index.py:62
 msgid "Address"
 msgstr ""
 
@@ -639,7 +646,7 @@ msgstr ""
 #. Label of a Currency field in DocType 'Gift Card Amount'
 #: webshop/templates/pages/order.html:120
 #: webshop/templates/pages/thank_you.html:102
-#: webshop/templates/pages/thank_you.html:201
+#: webshop/templates/pages/thank_you.html:202
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json:141
 #: webshop/webshop/doctype/gift_card_amount/gift_card_amount.json:15
 #: webshop/webshop/utils/order_export.py:58
@@ -650,10 +657,10 @@ msgstr ""
 msgid "Amount Paid:"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:778
-#: webshop/webshop/shopping_cart/cart.py:780
-#: webshop/webshop/shopping_cart/cart.py:4173
-#: webshop/webshop/shopping_cart/cart.py:4175
+#: webshop/webshop/shopping_cart/cart.py:783
+#: webshop/webshop/shopping_cart/cart.py:785
+#: webshop/webshop/shopping_cart/cart.py:4197
+#: webshop/webshop/shopping_cart/cart.py:4199
 msgid "Amount adjusted on"
 msgstr ""
 
@@ -661,8 +668,8 @@ msgstr ""
 msgid "Amount must be greater than 0"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:778
-#: webshop/webshop/shopping_cart/cart.py:780
+#: webshop/webshop/shopping_cart/cart.py:783
+#: webshop/webshop/shopping_cart/cart.py:785
 msgid "Amount used"
 msgstr ""
 
@@ -734,6 +741,10 @@ msgstr ""
 #: webshop/controllers/payment_handler.py:832
 #: webshop/controllers/payment_handler.py:972
 msgid "An error occurred while validating the order"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:64
+msgid "An example"
 msgstr ""
 
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.py:50
@@ -808,6 +819,15 @@ msgstr ""
 msgid "Apply points"
 msgstr ""
 
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:14
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:23
+msgid "Approve"
+msgstr ""
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:16
+msgid "Approve this access"
+msgstr ""
+
 #: webshop/www/my_addresses.py:65
 msgid "Are you sure you want to delete this address?"
 msgstr ""
@@ -827,6 +847,15 @@ msgstr ""
 #: webshop/templates/generators/item/item_inquiry.html:9
 #: webshop/templates/generators/item/item_inquiry.html:10
 msgid "Ask a question about this product"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:32
+msgid "Ask for access"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:30
+#, python-brace-format
+msgid "Asked on {0}"
 msgstr ""
 
 #. Description of the 'Product Card Aspect Ratio' (Data) field in DocType
@@ -871,17 +900,17 @@ msgstr ""
 msgid "Attributes"
 msgstr ""
 
-#: webshop/webshop/assistant/tools.py:215
+#: webshop/webshop/assistant/tools.py:252
 #, python-brace-format
 msgid "Aucun article publié ne correspond à « {0} »."
 msgstr ""
 
-#: webshop/webshop/assistant/tools.py:290
+#: webshop/webshop/assistant/tools.py:327
 #, python-brace-format
 msgid "Aucune commande « {0} » pour ce client."
 msgstr ""
 
-#: webshop/webshop/assistant/tools.py:350
+#: webshop/webshop/assistant/tools.py:387
 #, python-brace-format
 msgid "Aucune facture « {0} » pour ce client."
 msgstr ""
@@ -1123,7 +1152,7 @@ msgstr ""
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:46
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.py:34
 #: webshop/webshop/doctype/website_item/website_item.json:227
-#: webshop/webshop/seo/score.py:557 webshop/webshop/utils/account_menu.py:137
+#: webshop/webshop/seo/score.py:576 webshop/webshop/utils/account_menu.py:137
 #: webshop/webshop/workspace/webshop/webshop.json:71
 #: webshop/www/my-brand/index.html:6 webshop/www/my-brand/index.py:24
 #: webshop/www/my-brand/index.py:73
@@ -1201,6 +1230,20 @@ msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:75
 msgid "Calculating frequently bought together items..."
+msgstr ""
+
+#. Label of a Int field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:127
+msgid "Calls Per Minute"
+msgstr ""
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:20
+msgid "Calls per minute"
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:121
+#, python-brace-format
+msgid "Calls per minute must be between 1 and {0}."
 msgstr ""
 
 #. Label of a Int field in DocType 'Shop Assistant Usage Day'
@@ -1305,11 +1348,11 @@ msgid "Cart is Empty"
 msgstr ""
 
 #: webshop/controllers/payment_handler.py:189
-#: webshop/webshop/shopping_cart/offline_payment.py:105
+#: webshop/webshop/shopping_cart/offline_payment.py:111
 msgid "Cart is empty"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:1864
+#: webshop/webshop/shopping_cart/cart.py:1869
 msgid "Cart not found"
 msgstr ""
 
@@ -1386,6 +1429,11 @@ msgstr ""
 msgid "Change Warehouse"
 msgstr ""
 
+#. Description of the 'Status' (Select) field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:54
+msgid "Changed by the buttons of this form only: Approve, Refuse, Suspend, Resume."
+msgstr ""
+
 #. Description of the 'Raven channel' (Data) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:507
@@ -1394,16 +1442,16 @@ msgstr ""
 
 #: webshop/templates/catalogue/product_sheet.html:80
 #: webshop/templates/generators/item/item_details.html:189
-#: webshop/webshop/seo/score.py:559
+#: webshop/webshop/seo/score.py:578
 msgid "Characteristics"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:691
+#: webshop/webshop/seo/score.py:711
 #, python-brace-format
 msgid "Characteristics: {0}"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:690
+#: webshop/webshop/seo/score.py:710
 #, python-brace-format
 msgid "Characteristics: {0}. List at least {1}"
 msgstr ""
@@ -1592,7 +1640,7 @@ msgid "Closes the shop automatically on the public holidays where it stands. Fet
 msgstr ""
 
 #: webshop/templates/pages/gift_cards.html:78
-#: webshop/templates/pages/thank_you.html:202
+#: webshop/templates/pages/thank_you.html:203
 #: webshop/webshop/catalogue/rows.py:296
 msgid "Code"
 msgstr ""
@@ -1602,7 +1650,7 @@ msgstr ""
 msgid "Code copied to clipboard"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:599
+#: webshop/webshop/seo/score.py:619
 msgid "Code too long"
 msgstr ""
 
@@ -1718,6 +1766,10 @@ msgstr ""
 msgid "Confirm Payment"
 msgstr ""
 
+#: webshop/www/my-integration/index.py:20
+msgid "Connect your own systems to the shop: read its catalogue with your prices and place orders without typing them. Staff look at each request first."
+msgstr ""
+
 #. Option for the 'Relation' (Select) field in DocType 'Cross Sell Offer'
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json:68
 msgid "Consumable"
@@ -1740,7 +1792,7 @@ msgstr ""
 msgid "Contact details"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3339
+#: webshop/webshop/shopping_cart/cart.py:3363
 msgid "Contact information updated successfully"
 msgstr ""
 
@@ -1771,7 +1823,7 @@ msgstr ""
 
 #: webshop/templates/pages/cart.html:69
 #: webshop/templates/pages/thank_you.html:20
-#: webshop/templates/pages/thank_you.html:226
+#: webshop/templates/pages/thank_you.html:227
 msgid "Continue Shopping"
 msgstr ""
 
@@ -1817,10 +1869,12 @@ msgid "Converted"
 msgstr ""
 
 #: webshop/www/my-catalogues/index.py:120
+#: webshop/www/my-integration/index.py:60
 msgid "Copied"
 msgstr ""
 
 #: webshop/www/my-catalogues/index.py:119
+#: webshop/www/my-integration/index.py:59
 msgid "Copy"
 msgstr ""
 
@@ -1831,6 +1885,10 @@ msgstr ""
 
 #: webshop/templates/pages/gift_cards.html:82
 msgid "Copy code"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:57
+msgid "Copy your key now"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
@@ -1858,11 +1916,11 @@ msgstr ""
 msgid "Could not start the Payrexx payment"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3356
+#: webshop/webshop/shopping_cart/cart.py:3380
 msgid "Could not update the contact details"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3207
+#: webshop/webshop/shopping_cart/cart.py:3231
 msgid "Could not update the customer details"
 msgstr ""
 
@@ -1893,7 +1951,7 @@ msgstr ""
 #: webshop/templates/includes/order_summary.html:84
 #: webshop/templates/pages/checkout.js:2203
 #: webshop/templates/pages/checkout_b2b.html:448
-#: webshop/templates/pages/thank_you.html:176
+#: webshop/templates/pages/thank_you.html:177
 msgid "Coupon Discount"
 msgstr ""
 
@@ -1947,11 +2005,11 @@ msgstr ""
 msgid "Create the used unit from a specific variant, not from the template."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:726
+#: webshop/webshop/shopping_cart/cart.py:731
 msgid "Created from gift card"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:4155
+#: webshop/webshop/shopping_cart/cart.py:4179
 #, python-brace-format
 msgid "Created from gift card: {0} (remaining amount after order {1})"
 msgstr ""
@@ -2001,7 +2059,7 @@ msgid "Cross-sell offers"
 msgstr ""
 
 #: webshop/webshop/catalogue/rows.py:305 webshop/webshop/catalogue/rows.py:322
-#: webshop/webshop/utils/order_export.py:84
+#: webshop/webshop/utils/order_export.py:90
 msgid "Currency"
 msgstr ""
 
@@ -2026,6 +2084,8 @@ msgstr ""
 #. Label of a Link field in DocType 'Abandoned Cart Reminder'
 #. Label of a Link field in DocType 'Item Review'
 #. Name of a role
+#. Label of a Link field in DocType 'Partner API Access'
+#. Label of a Link field in DocType 'Partner API Order'
 #. Label of a Link field in DocType 'Purchase Follow-up Entry'
 #. Label of a Link field in DocType 'Reseller Catalogue'
 #. Label of a Link field in DocType 'Reseller Catalogue Profile'
@@ -2034,14 +2094,16 @@ msgstr ""
 #: webshop/webshop/doctype/abandoned_cart_reminder/abandoned_cart_reminder.json:34
 #: webshop/webshop/doctype/item_review/item_review.json:77
 #: webshop/webshop/doctype/item_review/item_review.json:134
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:36
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:29
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json:53
 #: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:52
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:35
 #: webshop/webshop/doctype/reseller_feed/reseller_feed.json:31
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json:44
 #: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:24
-#: webshop/webshop/shopping_cart/cart.py:710
-#: webshop/webshop/utils/order_export.py:82
+#: webshop/webshop/shopping_cart/cart.py:715
+#: webshop/webshop/utils/order_export.py:88
 msgid "Customer"
 msgstr ""
 
@@ -2073,11 +2135,11 @@ msgstr ""
 msgid "Customer emails and assistant"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3197
+#: webshop/webshop/shopping_cart/cart.py:3221
 msgid "Customer information updated successfully"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:562
+#: webshop/webshop/seo/score.py:581
 msgid "Customer reviews"
 msgstr ""
 
@@ -2106,7 +2168,7 @@ msgstr ""
 #: webshop/templates/pages/loyalty_points.html:97
 #: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json:27
 #: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:26
-#: webshop/webshop/utils/order_export.py:81
+#: webshop/webshop/utils/order_export.py:87
 msgid "Date"
 msgstr ""
 
@@ -2141,17 +2203,34 @@ msgstr ""
 msgid "Days After Purchase"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:2807
+#: webshop/webshop/shopping_cart/cart.py:2831
 #, python-brace-format
 msgid "Debtors ({0})"
+msgstr ""
+
+#. Label of a Link field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:139
+msgid "Decided By"
+msgstr ""
+
+#. Label of a Datetime field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:146
+msgid "Decided On"
 msgstr ""
 
 #: webshop/public/js/override/sales_order.js:100
 msgid "Decides the account on the QR bill."
 msgstr ""
 
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:30
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:34
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:40
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:43
+msgid "Decision"
+msgstr ""
+
 #: webshop/templates/includes/cart/cart_items.html:121
-#: webshop/templates/includes/order_summary_items.html:37
+#: webshop/templates/includes/order_summary_items.html:38
 msgid "Decrease quantity"
 msgstr ""
 
@@ -2247,7 +2326,7 @@ msgstr ""
 
 #: webshop/templates/generators/item/item_add_to_cart.html:109
 #: webshop/templates/includes/cart/cart_items.html:88
-#: webshop/templates/includes/order_summary_items.html:29
+#: webshop/templates/includes/order_summary_items.html:30
 #, python-brace-format
 msgid "Delivery in ~{0} days"
 msgstr ""
@@ -2261,11 +2340,11 @@ msgstr ""
 msgid "Delivery, returns, payment, warranty, anything the assistant must be able to answer. Plain text; it is read by the model, not shown as is."
 msgstr ""
 
-#: webshop/webshop/assistant/tools.py:443
+#: webshop/webshop/assistant/tools.py:480
 msgid "Demande au visiteur son adresse email avant d'ouvrir le ticket."
 msgstr ""
 
-#: webshop/webshop/assistant/tools.py:434
+#: webshop/webshop/assistant/tools.py:471
 msgid "Demande au visiteur son adresse email pour que l'équipe puisse le recontacter."
 msgstr ""
 
@@ -2291,11 +2370,11 @@ msgstr ""
 
 #. Label of a Small Text field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json:478
-#: webshop/webshop/seo/score.py:552
+#: webshop/webshop/seo/score.py:571
 msgid "Description for search engines"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:553
+#: webshop/webshop/seo/score.py:572
 msgid "Description of the product"
 msgstr ""
 
@@ -2314,7 +2393,7 @@ msgstr ""
 msgid "Discount Percentage"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3478
+#: webshop/webshop/shopping_cart/cart.py:3502
 msgid "Discount value cannot exceed total amount"
 msgstr ""
 
@@ -2435,7 +2514,7 @@ msgstr ""
 msgid "Each site's product feed for Google Merchant Center, written every night and served at /feeds/google.xml?token=… on the site's domain. A site that hides its prices from visitors, or serves business accounts only, has none."
 msgstr ""
 
-#: webshop/webshop/seo/score.py:581
+#: webshop/webshop/seo/score.py:601
 msgid "Each variant is sold on its own page"
 msgstr ""
 
@@ -2719,7 +2798,7 @@ msgid "Enter Coupon Code"
 msgstr ""
 
 #: webshop/templates/pages/order.html:171
-#: webshop/webshop/shopping_cart/cart.py:3612
+#: webshop/webshop/shopping_cart/cart.py:3636
 msgid "Enter Loyalty Points"
 msgstr ""
 
@@ -2771,7 +2850,7 @@ msgstr ""
 #: webshop/templates/pages/checkout.js:3545
 #: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:163
 #: webshop/webshop/doctype/reseller_feed/reseller_feed.json:64
-#: webshop/webshop/seo/score.py:600
+#: webshop/webshop/seo/score.py:620
 msgid "Error"
 msgstr ""
 
@@ -2807,7 +2886,7 @@ msgstr ""
 #: webshop/controllers/payment_handler.py:789
 #: webshop/webshop/doctype/override_doctype/payment_request.py:105
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:238
-#: webshop/webshop/shopping_cart/offline_payment.py:125
+#: webshop/webshop/shopping_cart/offline_payment.py:131
 msgid "Error creating order"
 msgstr ""
 
@@ -2860,7 +2939,7 @@ msgstr ""
 msgid "Error loading variants. Please try again."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:998
+#: webshop/webshop/shopping_cart/cart.py:1003
 #, python-brace-format
 msgid "Error processing gift card for Sales Order {0}"
 msgstr ""
@@ -2879,7 +2958,7 @@ msgstr ""
 msgid "Error reading file: {0}"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:1970
+#: webshop/webshop/shopping_cart/cart.py:1975
 msgid "Error updating address. Please try again or contact support."
 msgstr ""
 
@@ -2908,7 +2987,7 @@ msgstr ""
 msgid "Estimated cost"
 msgstr ""
 
-#: webshop/templates/pages/thank_you.html:125
+#: webshop/templates/pages/thank_you.html:126
 msgid "Estimated delivery"
 msgstr ""
 
@@ -2918,7 +2997,7 @@ msgstr ""
 msgid "Every call that reached the shop's server, the ones it refused included"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:670
+#: webshop/webshop/seo/score.py:690
 msgid "Every picture is described"
 msgstr ""
 
@@ -2952,7 +3031,7 @@ msgstr ""
 msgid "Exclude from Google Shopping"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:596
+#: webshop/webshop/seo/score.py:616
 msgid "Excluded"
 msgstr ""
 
@@ -2976,6 +3055,11 @@ msgstr ""
 #. Label of a Datetime field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1386
 msgid "Expected End Time"
+msgstr ""
+
+#. Label of a Data field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:80
+msgid "Expected Volume"
 msgstr ""
 
 #: webshop/webshop/maintenance.py:71 webshop/www/maintenance.html:343
@@ -3191,6 +3275,10 @@ msgstr ""
 msgid "For example: Catalogue 2027"
 msgstr ""
 
+#: webshop/www/my-integration/index.py:36
+msgid "For example: a few hundred a day."
+msgstr ""
+
 #. Description of the 'Note under the hours' (Small Text) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:299
@@ -3284,11 +3372,11 @@ msgstr ""
 msgid "GTIN"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:556
+#: webshop/webshop/seo/score.py:575
 msgid "GTIN (EAN) or manufacturer's reference"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:673
+#: webshop/webshop/seo/score.py:693
 #, python-brace-format
 msgid "GTIN {0}"
 msgstr ""
@@ -3320,11 +3408,11 @@ msgid "Gift"
 msgstr ""
 
 #: webshop/templates/pages/gift_cards.html:68
-#: webshop/webshop/shopping_cart/cart.py:700
-#: webshop/webshop/shopping_cart/cart.py:710
-#: webshop/webshop/shopping_cart/cart.py:764
-#: webshop/webshop/shopping_cart/cart.py:3888
-#: webshop/webshop/shopping_cart/cart.py:4116
+#: webshop/webshop/shopping_cart/cart.py:705
+#: webshop/webshop/shopping_cart/cart.py:715
+#: webshop/webshop/shopping_cart/cart.py:769
+#: webshop/webshop/shopping_cart/cart.py:3912
+#: webshop/webshop/shopping_cart/cart.py:4140
 msgid "Gift Card"
 msgstr ""
 
@@ -3333,15 +3421,15 @@ msgstr ""
 msgid "Gift Card Amount"
 msgstr ""
 
-#: webshop/templates/pages/thank_you.html:133
+#: webshop/templates/pages/thank_you.html:134
 msgid "Gift Card Code"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:4210
+#: webshop/webshop/shopping_cart/cart.py:4234
 msgid "Gift Card Split"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:4129
+#: webshop/webshop/shopping_cart/cart.py:4153
 #, python-brace-format
 msgid "Gift Card {0} - {1} - {2}"
 msgstr ""
@@ -3350,22 +3438,22 @@ msgstr ""
 #: webshop/templates/pages/gift_cards.html:6
 #: webshop/templates/pages/gift_cards.html:8
 #: webshop/templates/pages/gift_cards.py:21
-#: webshop/templates/pages/thank_you.html:195
+#: webshop/templates/pages/thank_you.html:196
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:213
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:722
 msgid "Gift Cards"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:593
+#: webshop/webshop/seo/score.py:613
 msgid "Gift card"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3455
+#: webshop/webshop/shopping_cart/cart.py:3479
 #, python-brace-format
 msgid "Gift card amount ({0}) exceeds order total ({1}). The excess amount ({2}) will be converted to a new gift card upon order submission."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:820
+#: webshop/webshop/shopping_cart/cart.py:825
 #, python-brace-format
 msgid "Gift card amount ({0}) is less than required discount amount ({1})"
 msgstr ""
@@ -3388,16 +3476,16 @@ msgstr ""
 msgid "Gift card notification"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:4215
+#: webshop/webshop/shopping_cart/cart.py:4239
 msgid "Gift card split successfully"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3929
+#: webshop/webshop/shopping_cart/cart.py:3953
 #, python-brace-format
 msgid "Gift card {0} - {1} - {2}"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3921
+#: webshop/webshop/shopping_cart/cart.py:3945
 #, python-brace-format
 msgid "Gift card {0} - {1} - {2} ({3}/{4})"
 msgstr ""
@@ -3477,14 +3565,14 @@ msgstr ""
 msgid "Google preview"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:558
+#: webshop/webshop/seo/score.py:577
 msgid "Google product category"
 msgstr ""
 
 #: webshop/templates/includes/cart/cart_payment_summary.html:171
 #: webshop/templates/includes/order/order_taxes.html:156
 #: webshop/templates/includes/order_summary.html:111
-#: webshop/webshop/utils/order_export.py:87
+#: webshop/webshop/utils/order_export.py:93
 msgid "Grand Total"
 msgstr ""
 
@@ -3730,6 +3818,10 @@ msgstr ""
 msgid "I agree to the"
 msgstr ""
 
+#: webshop/www/my-integration/index.py:37
+msgid "I also want to place orders"
+msgstr ""
+
 #: webshop/webshop/assistant/api.py:396
 msgid "I am looking for a product"
 msgstr ""
@@ -3744,6 +3836,11 @@ msgstr ""
 msgid "Icon"
 msgstr ""
 
+#. Label of a Data field in DocType 'Partner API Order'
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:39
+msgid "Idempotency Key"
+msgstr ""
+
 #. Description of the 'Number of valid months' (Int) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1113
@@ -3756,7 +3853,7 @@ msgstr ""
 msgid "If enabled, customers will be redirected to a dedicated checkout page instead of showing address and terms in cart"
 msgstr ""
 
-#: webshop/webshop/assistant/tools.py:189
+#: webshop/webshop/assistant/tools.py:218
 msgid "Il faut au moins deux caractères pour chercher."
 msgstr ""
 
@@ -3845,7 +3942,7 @@ msgstr ""
 msgid "In stock"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:705
+#: webshop/webshop/seo/score.py:725
 msgid "In the feed"
 msgstr ""
 
@@ -3878,7 +3975,7 @@ msgid "Incorrect password. Please try again."
 msgstr ""
 
 #: webshop/templates/includes/cart/cart_items.html:137
-#: webshop/templates/includes/order_summary_items.html:56
+#: webshop/templates/includes/order_summary_items.html:57
 msgid "Increase quantity"
 msgstr ""
 
@@ -3920,6 +4017,12 @@ msgstr ""
 msgid "Insufficient permissions to clear carousel cache"
 msgstr ""
 
+#: webshop/webshop/utils/account_menu.py:139
+#: webshop/www/my-integration/index.html:5
+#: webshop/www/my-integration/index.py:73
+msgid "Integration"
+msgstr ""
+
 #. Label of a Small Text field in DocType 'WebshopSI Settings'
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.json:82
 msgid "Introduction Text"
@@ -3934,7 +4037,7 @@ msgid "Invalid payment option"
 msgstr ""
 
 #: webshop/webshop/quick_order/api.py:594
-#: webshop/webshop/shopping_cart/cart.py:1361
+#: webshop/webshop/shopping_cart/cart.py:1366
 #, python-brace-format
 msgid "Invalid stock source for {0}"
 msgstr ""
@@ -3953,6 +4056,10 @@ msgstr ""
 #. Label of a Check field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json:180
 msgid "Is Gift Card"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:58
+msgid "It is shown once and kept nowhere. Lose it, and you make another."
 msgstr ""
 
 #: webshop/public/js/override/seo_preview.js:173
@@ -4094,7 +4201,7 @@ msgstr ""
 msgid "Items with higher ranking will be shown higher"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:575
+#: webshop/webshop/seo/score.py:595
 msgid "Its variants carry it"
 msgstr ""
 
@@ -4152,6 +4259,21 @@ msgstr ""
 msgid "Kept: a payment moved on a request of this draft, which was not made an order. Look at its requests."
 msgstr ""
 
+#. Label of a Data field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:165
+msgid "Key Id"
+msgstr ""
+
+#. Label of a Datetime field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:182
+msgid "Key Made On"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:49
+#, python-brace-format
+msgid "Key {0}, made on {1}."
+msgstr ""
+
 #: webshop/templates/generators/item_group.html:190
 #: webshop/www/all-products/index.html:178
 msgid "Know your references? Order them by code, name or barcode."
@@ -4162,7 +4284,7 @@ msgstr ""
 msgid "Knowledge"
 msgstr ""
 
-#: webshop/webshop/assistant/tools.py:558
+#: webshop/webshop/assistant/tools.py:595
 msgid "L'outil n'a pas pu répondre. Propose au client de contacter l'équipe."
 msgstr ""
 
@@ -4223,6 +4345,11 @@ msgstr ""
 msgid "Last Name"
 msgstr ""
 
+#. Label of a Datetime field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:188
+msgid "Last Used On"
+msgstr ""
+
 #: webshop/webshop/report/shop_assistant_unanswered_questions/shop_assistant_unanswered_questions.py:23
 msgid "Last asked"
 msgstr ""
@@ -4230,6 +4357,11 @@ msgstr ""
 #: webshop/www/my-catalogues/index.py:109
 #, python-brace-format
 msgid "Last read: {0}"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:50
+#, python-brace-format
+msgid "Last used: {0}"
 msgstr ""
 
 #: webshop/www/my-catalogues/index.py:95
@@ -4240,12 +4372,12 @@ msgstr ""
 msgid "Layout"
 msgstr ""
 
-#: webshop/webshop/assistant/tools.py:222
+#: webshop/webshop/assistant/tools.py:259
 msgid "Le magasin n'a pas publié ses horaires."
 msgstr ""
 
-#: webshop/webshop/assistant/tools.py:399
-#: webshop/webshop/assistant/tools.py:402
+#: webshop/webshop/assistant/tools.py:436
+#: webshop/webshop/assistant/tools.py:439
 msgid "Le panier est vide."
 msgstr ""
 
@@ -4404,6 +4536,7 @@ msgid "Loading..."
 msgstr ""
 
 #: webshop/www/my-brand/index.py:64 webshop/www/my-catalogues/index.py:126
+#: webshop/www/my-integration/index.py:23
 msgid "Loading…"
 msgstr ""
 
@@ -4443,6 +4576,11 @@ msgstr ""
 msgid "Logo"
 msgstr ""
 
+#. Label of a Data field in DocType 'Partner API Order'
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:19
+msgid "Lookup"
+msgstr ""
+
 #: webshop/templates/generators/item_group.html:184
 #: webshop/templates/includes/product_card.html:57
 #: webshop/templates/includes/product_card.html:58
@@ -4473,7 +4611,7 @@ msgstr ""
 msgid "Loyalty Program"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:2479
+#: webshop/webshop/shopping_cart/cart.py:2503
 #, python-brace-format
 msgid "Loyalty Program {0} has no expense account"
 msgstr ""
@@ -4486,11 +4624,11 @@ msgstr ""
 msgid "Loyalty points removed"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3659
+#: webshop/webshop/shopping_cart/cart.py:3683
 msgid "Loyalty points value cannot exceed total amount"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:2496
+#: webshop/webshop/shopping_cart/cart.py:2520
 msgid "Loyalty program"
 msgstr ""
 
@@ -4546,6 +4684,10 @@ msgstr ""
 msgid "Make a catalogue of the products you choose, with your prices: your markup is added to what you pay. A PDF with your logo and your colours, an Excel or CSV file, or a feed your own shop can read. It takes a few seconds to a minute, and you can leave this page."
 msgstr ""
 
+#: webshop/www/my-integration/index.py:52
+msgid "Make a key"
+msgstr ""
+
 #: webshop/www/my-catalogues/index.py:97
 msgid "Make it again"
 msgstr ""
@@ -4567,7 +4709,7 @@ msgid "Manage your gift cards"
 msgstr ""
 
 #: webshop/webshop/doctype/website_item/website_item.py:57
-#: webshop/webshop/shopping_cart/cart.py:2801
+#: webshop/webshop/shopping_cart/cart.py:2825
 msgid "Mandatory"
 msgstr ""
 
@@ -4575,7 +4717,7 @@ msgstr ""
 msgid "Manufacturer's reference"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:676
+#: webshop/webshop/seo/score.py:696
 #, python-brace-format
 msgid "Manufacturer's reference {0} but no GTIN: add the EAN if the product has one"
 msgstr ""
@@ -4633,6 +4775,10 @@ msgstr ""
 msgid "Maximum available quantity is {0}"
 msgstr ""
 
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:18
+msgid "May place and read orders"
+msgstr ""
+
 #. Label of a Int field in DocType 'Shop Assistant Usage Day'
 #: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:180
 msgid "Median answer time (ms)"
@@ -4644,6 +4790,10 @@ msgstr ""
 
 #: webshop/templates/generators/item/item_inquiry.js:38
 msgid "Message"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:31
+msgid "Message from the shop"
 msgstr ""
 
 #: webshop/webshop/assistant/api.py:680
@@ -4741,7 +4891,7 @@ msgstr ""
 #: webshop/webshop/catalogue/rows.py:297
 #: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:70
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:439
-#: webshop/webshop/seo/score.py:592
+#: webshop/webshop/seo/score.py:612
 msgid "Model"
 msgstr ""
 
@@ -4843,7 +4993,7 @@ msgstr ""
 
 #. Option for the 'Payment Success Url' (Select) field in DocType 'Webshop
 #. Settings'
-#: webshop/templates/pages/thank_you.html:223
+#: webshop/templates/pages/thank_you.html:224
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1001
 msgid "My Account"
 msgstr ""
@@ -4881,7 +5031,7 @@ msgstr ""
 
 #: webshop/templates/includes/cart/cart_items_total.html:5
 #: webshop/templates/includes/order/order_taxes.html:5
-#: webshop/webshop/utils/order_export.py:85
+#: webshop/webshop/utils/order_export.py:91
 msgid "Net Total"
 msgstr ""
 
@@ -4956,11 +5106,11 @@ msgstr ""
 msgid "No"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:678
+#: webshop/webshop/seo/score.py:698
 msgid "No GTIN (EAN) and no manufacturer's reference: Google shows a branded product less often without one"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:685
+#: webshop/webshop/seo/score.py:705
 #, python-brace-format
 msgid "No Google product category on the item group {0} or above it"
 msgstr ""
@@ -4975,7 +5125,7 @@ msgid "No SEO score yet: it is computed after each save and every night."
 msgstr ""
 
 #: webshop/webshop/doctype/webshopsi_settings/webshopsi_settings.py:149
-#: webshop/webshop/shopping_cart/cart.py:3234
+#: webshop/webshop/shopping_cart/cart.py:3258
 msgid "No active quotation found"
 msgstr ""
 
@@ -4988,15 +5138,15 @@ msgstr ""
 msgid "No barcode exists for this product"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:578
+#: webshop/webshop/seo/score.py:598
 msgid "No barcode exists for this product (declared on the item)"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:681
+#: webshop/webshop/seo/score.py:701
 msgid "No brand"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:1546
+#: webshop/webshop/shopping_cart/cart.py:1551
 msgid "No cart found"
 msgstr ""
 
@@ -5004,7 +5154,7 @@ msgstr ""
 msgid "No categories found. Make sure Item Groups have \"Show in Website\" enabled."
 msgstr ""
 
-#: webshop/webshop/seo/score.py:688
+#: webshop/webshop/seo/score.py:708
 msgid "No characteristics listed"
 msgstr ""
 
@@ -5014,7 +5164,7 @@ msgid "No conversion factor found between {0} and {1}"
 msgstr ""
 
 #: webshop/webshop/api.py:918 webshop/webshop/api.py:965
-#: webshop/webshop/api.py:1034 webshop/webshop/shopping_cart/cart.py:2196
+#: webshop/webshop/api.py:1034 webshop/webshop/shopping_cart/cart.py:2220
 #: webshop/www/my_addresses.py:23
 msgid "No customer account found"
 msgstr ""
@@ -5024,15 +5174,16 @@ msgstr ""
 msgid "No customer account is linked to your user."
 msgstr ""
 
-#: webshop/webshop/seo/score.py:653
+#: webshop/webshop/seo/score.py:673
 msgid "No description: the page says nothing a search could find"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:601
+#: webshop/webshop/seo/score.py:621
 msgid "No feed"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:524
+#: webshop/webshop/seo/feeds/google.py:534
+#: webshop/webshop/seo/feeds/google_languages.py:193
 #, python-brace-format
 msgid "No feed: {0}"
 msgstr ""
@@ -5074,19 +5225,19 @@ msgstr ""
 msgid "No payment method is available for your account."
 msgstr ""
 
-#: webshop/webshop/seo/score.py:598
+#: webshop/webshop/seo/score.py:618
 msgid "No picture"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:667
+#: webshop/webshop/seo/score.py:687
 msgid "No picture is described: screen readers and image searches read only the product's name"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:580
+#: webshop/webshop/seo/score.py:600
 msgid "No picture yet"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:659
+#: webshop/webshop/seo/score.py:679
 msgid "No picture: Google Shopping refuses the product"
 msgstr ""
 
@@ -5099,7 +5250,7 @@ msgstr ""
 msgid "No preview for {0}"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:597
+#: webshop/webshop/seo/score.py:617
 msgid "No price"
 msgstr ""
 
@@ -5108,7 +5259,7 @@ msgstr ""
 msgid "No price for this item on your price list (price on request)."
 msgstr ""
 
-#: webshop/webshop/seo/score.py:694
+#: webshop/webshop/seo/score.py:714
 msgid "No price shown to a visitor"
 msgstr ""
 
@@ -5150,7 +5301,7 @@ msgstr ""
 msgid "No quantity entered."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3158
+#: webshop/webshop/shopping_cart/cart.py:3182
 msgid "No quotation or customer found"
 msgstr ""
 
@@ -5159,7 +5310,7 @@ msgstr ""
 msgid "No result found for \"{0}\". Try another search."
 msgstr ""
 
-#: webshop/webshop/seo/score.py:725
+#: webshop/webshop/seo/score.py:757
 msgid "No review yet"
 msgstr ""
 
@@ -5197,7 +5348,7 @@ msgstr ""
 msgid "No variant"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:696
+#: webshop/webshop/seo/score.py:716
 msgid "No variant has a price for a visitor"
 msgstr ""
 
@@ -5206,7 +5357,7 @@ msgstr ""
 msgid "No variants available for this product"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:728
+#: webshop/webshop/seo/score.py:762
 msgid "No video"
 msgstr ""
 
@@ -5269,9 +5420,9 @@ msgstr ""
 msgid "Not Available"
 msgstr ""
 
-#: webshop/templates/pages/order.py:51 webshop/templates/pages/order.py:114
-#: webshop/templates/pages/order.py:122 webshop/templates/pages/order.py:127
-#: webshop/templates/pages/order.py:154 webshop/templates/pages/order.py:159
+#: webshop/templates/pages/order.py:55 webshop/templates/pages/order.py:118
+#: webshop/templates/pages/order.py:126 webshop/templates/pages/order.py:131
+#: webshop/templates/pages/order.py:158 webshop/templates/pages/order.py:163
 #: webshop/templates/payments/paypal.py:22
 #: webshop/webshop/utils/order_export.py:23
 #: webshop/webshop/utils/order_export.py:26
@@ -5282,7 +5433,7 @@ msgstr ""
 msgid "Not Published"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:1310
+#: webshop/webshop/shopping_cart/cart.py:1315
 msgid "Not a customer account"
 msgstr ""
 
@@ -5290,11 +5441,11 @@ msgstr ""
 msgid "Not added:"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:576
+#: webshop/webshop/seo/score.py:596
 msgid "Not asked of a gift card"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:577
+#: webshop/webshop/seo/score.py:597
 msgid "Not asked of a service"
 msgstr ""
 
@@ -5325,18 +5476,32 @@ msgstr ""
 #: webshop/templates/pages/checkout.py:1645
 #: webshop/templates/pages/checkout.py:1649
 #: webshop/templates/pages/checkout.py:1656
-#: webshop/webshop/shopping_cart/cart.py:1776
+#: webshop/webshop/shopping_cart/cart.py:1781
 #: webshop/webshop/shopping_cart/loyalty_rights.py:92
-#: webshop/webshop/shopping_cart/offline_payment.py:188
+#: webshop/webshop/shopping_cart/offline_payment.py:194
 msgid "Not permitted"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:582 webshop/webshop/seo/score.py:602
+#: webshop/webshop/seo/score.py:602 webshop/webshop/seo/score.py:622
 msgid "Not published"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:604
+#: webshop/webshop/seo/feeds/google_languages.py:201
+#, python-brace-format
+msgid "Not ready: {0}"
+msgstr ""
+
+#: webshop/webshop/seo/score.py:624
 msgid "Not scored yet"
+msgstr ""
+
+#: webshop/webshop/seo/score.py:748
+#, python-brace-format
+msgid "Not translated yet into {0}"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:51
+msgid "Not used yet."
 msgstr ""
 
 #. Option for the 'Visitor's opinion' (Select) field in DocType 'Shop Assistant
@@ -5355,12 +5520,21 @@ msgstr ""
 msgid "Note"
 msgstr ""
 
+#. Label of a Small Text field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:152
+msgid "Note To The Reseller"
+msgstr ""
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:21
+msgid "Note to the reseller"
+msgstr ""
+
 #. Label of a Small Text field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:302
 msgid "Note under the hours"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:645
+#: webshop/webshop/seo/score.py:665
 msgid "Nothing but the product's name: write one, or a description it can be taken from"
 msgstr ""
 
@@ -5514,6 +5688,10 @@ msgstr ""
 msgid "One more line, e.g. pick-up in store within the hour."
 msgstr ""
 
+#: webshop/www/my-integration/index.py:34
+msgid "One or two sentences: for example, keep your own shop's prices and stock up to date."
+msgstr ""
+
 #. Description of the 'Variant Attributes' (Small Text) field in DocType
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json
@@ -5576,7 +5754,7 @@ msgstr ""
 msgid "Only orders placed in the shop"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:887
+#: webshop/webshop/shopping_cart/cart.py:892
 #, python-brace-format
 msgid "Only {0} in Stock for item {1}"
 msgstr ""
@@ -5587,12 +5765,12 @@ msgstr ""
 msgid "Only {0} left"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:1279
+#: webshop/webshop/shopping_cart/cart.py:1284
 #, python-brace-format
 msgid "Only {0} units available at {1} for {2}. You cannot add {3} units from this source."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:1284
+#: webshop/webshop/shopping_cart/cart.py:1289
 #, python-brace-format
 msgid "Only {0} units available in stock for {1}. You cannot add {2} units to your cart."
 msgstr ""
@@ -5728,7 +5906,7 @@ msgstr ""
 
 #. Label of a Link field in DocType 'Abandoned Cart Reminder'
 #: webshop/webshop/doctype/abandoned_cart_reminder/abandoned_cart_reminder.json:103
-#: webshop/webshop/utils/order_export.py:80
+#: webshop/webshop/utils/order_export.py:86
 msgid "Order"
 msgstr ""
 
@@ -5804,12 +5982,36 @@ msgstr ""
 msgid "Orders"
 msgstr ""
 
+#: webshop/www/my-integration/index.py:44
+msgid "Orders are submitted at once"
+msgstr ""
+
+#. Description of the 'Place And Read Orders' (Check) field in DocType 'Partner
+#. API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:114
+msgid "Orders are written as drafts: somebody reads them before they count."
+msgstr ""
+
 #: webshop/templates/payments/webshopsi.html:427
 #: webshop/templates/payments/webshopsi.html:429
 #: webshop/templates/payments/webshopsi.html:432
 #: webshop/templates/payments/webshopsi.html:465
 #: webshop/templates/payments/webshopsi.html:468
 msgid "Orders from your country cannot be processed through invoice payment"
+msgstr ""
+
+#. Description of the 'Submit Orders' (Check) field in DocType 'Partner API
+#. Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:122
+msgid "Orders placed through the key are submitted at once instead of waiting as drafts."
+msgstr ""
+
+#: webshop/www/my-integration/index.py:45
+msgid "Orders wait as drafts for the shop to read them"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:38
+msgid "Orders wait as drafts for the shop to read them, unless it allows more."
 msgstr ""
 
 #: webshop/templates/generators/item/item_inquiry.js:13
@@ -5858,7 +6060,7 @@ msgstr ""
 msgid "Outcome"
 msgstr ""
 
-#: webshop/webshop/assistant/tools.py:551
+#: webshop/webshop/assistant/tools.py:588
 #, python-brace-format
 msgid "Outil inconnu : {0}."
 msgstr ""
@@ -5922,6 +6124,16 @@ msgstr ""
 #. Description of the 'Feed Token' (Data) field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:677
 msgid "Part of the feed's address: whoever does not know it gets nothing."
+msgstr ""
+
+#. Name of a DocType
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:198
+msgid "Partner API Access"
+msgstr ""
+
+#. Name of a DocType
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:66
+msgid "Partner API Order"
 msgstr ""
 
 #: webshop/webshop/assistant/escalation.py:186
@@ -5999,7 +6211,7 @@ msgstr ""
 msgid "Payment Gateway Account not found"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:2801
+#: webshop/webshop/shopping_cart/cart.py:2825
 msgid "Payment Gateway Account not set"
 msgstr ""
 
@@ -6167,7 +6379,7 @@ msgstr ""
 msgid "Picture"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:555
+#: webshop/webshop/seo/score.py:574
 msgid "Picture descriptions"
 msgstr ""
 
@@ -6177,18 +6389,23 @@ msgid "Picture descriptions written with AI assistance"
 msgstr ""
 
 #: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py:141
-#: webshop/webshop/seo/score.py:554
+#: webshop/webshop/seo/score.py:573
 msgid "Pictures"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:664
+#: webshop/webshop/seo/score.py:684
 #, python-brace-format
 msgid "Pictures: {0}"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:663
+#: webshop/webshop/seo/score.py:683
 #, python-brace-format
 msgid "Pictures: {0}. Show other views, from {1} on"
+msgstr ""
+
+#. Label of a Check field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:112
+msgid "Place And Read Orders"
 msgstr ""
 
 #: webshop/templates/includes/cart/place_order.html:25
@@ -6198,6 +6415,10 @@ msgstr ""
 #: webshop/templates/pages/checkout_b2b.html:287
 #: webshop/templates/pages/checkout_b2b.html:336
 msgid "Place Order"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:43
+msgid "Place and read orders"
 msgstr ""
 
 #: webshop/templates/pages/checkout.py:1067
@@ -6247,7 +6468,7 @@ msgid "Please enable 'Frequently Bought Together' first"
 msgstr ""
 
 #: webshop/templates/pages/checkout.js:2670
-#: webshop/webshop/shopping_cart/cart.py:3364
+#: webshop/webshop/shopping_cart/cart.py:3388
 msgid "Please enter a coupon code"
 msgstr ""
 
@@ -6255,7 +6476,7 @@ msgstr ""
 msgid "Please enter a valid amount"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3373
+#: webshop/webshop/shopping_cart/cart.py:3397
 msgid "Please enter a valid coupon code"
 msgstr ""
 
@@ -6307,7 +6528,7 @@ msgstr ""
 msgid "Please fill in the following required fields: {0}"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:1386
+#: webshop/webshop/shopping_cart/cart.py:1391
 msgid "Please log in to add items to cart"
 msgstr ""
 
@@ -6319,8 +6540,8 @@ msgstr ""
 msgid "Please log in to shop on this site."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3618
-#: webshop/webshop/shopping_cart/cart.py:3623
+#: webshop/webshop/shopping_cart/cart.py:3642
+#: webshop/webshop/shopping_cart/cart.py:3647
 msgid "Please log in to use your loyalty points"
 msgstr ""
 
@@ -6496,11 +6717,11 @@ msgstr ""
 msgid "Price List"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:560
+#: webshop/webshop/seo/score.py:579
 msgid "Price and availability"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:1343
+#: webshop/webshop/shopping_cart/cart.py:1348
 msgid "Price can only be modified for gift cards"
 msgstr ""
 
@@ -6776,6 +6997,12 @@ msgstr ""
 msgid "Products scored"
 msgstr ""
 
+#. Description of the 'Read The Catalogue' (Check) field in DocType 'Partner
+#. API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:107
+msgid "Products, with the price on this customer's own price list."
+msgstr ""
+
 #: webshop/webshop/multi_site.py:55
 msgid "Professional account required"
 msgstr ""
@@ -6829,7 +7056,7 @@ msgstr ""
 msgid "Protection or Service"
 msgstr ""
 
-#: webshop/webshop/assistant/tools.py:208
+#: webshop/webshop/assistant/tools.py:245
 msgid "Précise le code ou le nom de l'article."
 msgstr ""
 
@@ -6953,7 +7180,7 @@ msgstr ""
 msgid "Qty"
 msgstr ""
 
-#: webshop/templates/includes/order/order_macros.html:22
+#: webshop/templates/includes/order/order_macros.html:23
 msgid "Qty "
 msgstr ""
 
@@ -6962,7 +7189,7 @@ msgstr ""
 #: webshop/templates/generators/item/item_add_to_cart.html:323
 #: webshop/templates/generators/item/item_bundle_components.html:37
 #: webshop/templates/includes/cart/cart_items.html:133
-#: webshop/templates/includes/order_summary_items.html:44
+#: webshop/templates/includes/order_summary_items.html:45
 #: webshop/templates/pages/cart.html:42 webshop/templates/pages/order.html:114
 #: webshop/templates/pages/thank_you.html:100
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json:134
@@ -6970,8 +7197,8 @@ msgstr ""
 msgid "Quantity"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:1325
-#: webshop/webshop/utils/cart_helpers.py:275
+#: webshop/webshop/shopping_cart/cart.py:1330
+#: webshop/webshop/utils/cart_helpers.py:277
 msgid "Quantity must be a valid number"
 msgstr ""
 
@@ -7038,6 +7265,11 @@ msgstr ""
 msgid "Raven channel"
 msgstr ""
 
+#. Label of a Check field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:104
+msgid "Read The Catalogue"
+msgstr ""
+
 #. Label of a Check field in DocType 'Shop Assistant Sample'
 #: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:66
 msgid "Read and approved by a person"
@@ -7049,6 +7281,10 @@ msgstr ""
 msgid "Read from 11 buckets: the upper bound of the bucket that holds it"
 msgstr ""
 
+#: webshop/www/my-integration/index.py:42
+msgid "Read the catalogue, with your prices"
+msgstr ""
+
 #. Option for the 'Status' (Select) field in DocType 'Reseller Catalogue'
 #. Option for the 'Status' (Select) field in DocType 'Reseller Feed'
 #: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:64
@@ -7057,9 +7293,18 @@ msgstr ""
 msgid "Ready"
 msgstr ""
 
+#: webshop/webshop/seo/feeds/google_languages.py:199
+msgid "Ready for Merchant Center"
+msgstr ""
+
 #. Label of a Data field in DocType 'Store Closure'
 #: webshop/webshop/doctype/store_closure/store_closure.json:31
 msgid "Reason shown to customers"
+msgstr ""
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:33
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:39
+msgid "Reason, shown to the reseller"
 msgstr ""
 
 #. Label of a Int field in DocType 'Webshop Warehouse Source'
@@ -7176,6 +7421,20 @@ msgstr ""
 msgid "Refurbished"
 msgstr ""
 
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:32
+msgid "Refuse"
+msgstr ""
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:33
+msgid "Refuse this request"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:49
+#: webshop/www/my-integration/index.py:29
+msgid "Refused"
+msgstr ""
+
 #. Label of a Int field in DocType 'Shop Assistant Usage Day'
 #: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:115
 msgid "Refused: assistant off"
@@ -7231,8 +7490,8 @@ msgstr ""
 msgid "Relation"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:4173
-#: webshop/webshop/shopping_cart/cart.py:4175
+#: webshop/webshop/shopping_cart/cart.py:4197
+#: webshop/webshop/shopping_cart/cart.py:4199
 msgid "Remaining amount"
 msgstr ""
 
@@ -7275,6 +7534,10 @@ msgstr ""
 msgid "Replace pagination with infinite scroll - automatically load more products when scrolling"
 msgstr ""
 
+#: webshop/www/my-integration/index.py:53
+msgid "Replace the key"
+msgstr ""
+
 #. Description of the 'At 80% of the item's replenishment cycle' (Check) field
 #. in DocType 'Purchase Follow-up Step'
 #: webshop/webshop/doctype/purchase_follow_up_step/purchase_follow_up_step.json:36
@@ -7301,6 +7564,11 @@ msgstr ""
 msgid "Reported by the visitor"
 msgstr ""
 
+#. Label of a Data field in DocType 'Partner API Order'
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:47
+msgid "Request Hash"
+msgstr ""
+
 #: webshop/templates/includes/cart/place_order.html:30
 msgid "Request for Quote"
 msgstr ""
@@ -7312,6 +7580,21 @@ msgstr ""
 #: webshop/public/js/override/sales_order.js:56
 #: webshop/public/js/override/sales_order.js:82
 msgid "Request payment"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:49
+msgid "Requested"
+msgstr ""
+
+#. Label of a Link field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:59
+msgid "Requested By"
+msgstr ""
+
+#. Label of a Datetime field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:93
+msgid "Requested On"
 msgstr ""
 
 #. Label of a Int field in DocType 'Shop Assistant Usage Day'
@@ -7375,6 +7658,7 @@ msgstr ""
 msgid "Restriction"
 msgstr ""
 
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:43
 #: webshop/webshop/quick_order/api.py:801
 msgid "Resume"
 msgstr ""
@@ -7418,6 +7702,10 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Item Review'
 #: webshop/webshop/doctype/item_review/item_review.json:54
 msgid "Reviews"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:55
+msgid "Revoke the key"
 msgstr ""
 
 #. Description of the 'Summary' (Small Text) field in DocType 'Shop Assistant
@@ -7506,6 +7794,23 @@ msgstr ""
 msgid "SEO score: {0} / 100"
 msgstr ""
 
+#. Description of the 'Lookup' (Data) field in DocType 'Partner API Order'
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:24
+msgid "SHA-256 of the customer and the key: the name of the record, so that two requests with one key meet on one row."
+msgstr ""
+
+#. Description of the 'Request Hash' (Data) field in DocType 'Partner API
+#. Order'
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:50
+msgid "SHA-256 of the lines asked for: the same key with other lines is refused."
+msgstr ""
+
+#. Description of the 'Secret Hash' (Data) field in DocType 'Partner API
+#. Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:177
+msgid "SHA-256 of the secret. The secret itself is shown once to the reseller and kept nowhere."
+msgstr ""
+
 #. Description of the 'Token Hash' (Data) field in DocType 'Reseller Feed'
 #: webshop/webshop/doctype/reseller_feed/reseller_feed.json:117
 msgid "SHA-256 of the token: how an address is matched to its feed without keeping the secret in the clear."
@@ -7513,10 +7818,16 @@ msgstr ""
 
 #. Name of a role
 #: webshop/webshop/doctype/abandoned_cart_reminder/abandoned_cart_reminder.json:150
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:214
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json:198
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json:188
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:181
 msgid "Sales Manager"
+msgstr ""
+
+#. Label of a Link field in DocType 'Partner API Order'
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:55
+msgid "Sales Order"
 msgstr ""
 
 #. Name of a role
@@ -7588,6 +7899,10 @@ msgstr ""
 #: webshop/templates/includes/order/order_taxes.html:81
 #: webshop/templates/includes/order/order_taxes.html:135
 msgid "Savings"
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:111
+msgid "Say in a sentence what you want to do with the API."
 msgstr ""
 
 #: webshop/webshop/catalogue/sheet.py:304
@@ -7689,7 +8004,7 @@ msgstr ""
 msgid "Second-hand units"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:595
+#: webshop/webshop/seo/score.py:615
 msgid "Second-hand, not sent"
 msgstr ""
 
@@ -7704,6 +8019,11 @@ msgstr ""
 
 #: webshop/www/maintenance.html:367
 msgid "Seconds"
+msgstr ""
+
+#. Label of a Data field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:174
+msgid "Secret Hash"
 msgstr ""
 
 #: webshop/templates/includes/macros.html:459
@@ -7803,6 +8123,14 @@ msgstr ""
 msgid "Send login link"
 msgstr ""
 
+#: webshop/www/my-integration/index.py:65
+msgid "Send the key in the X-API-Key header."
+msgstr ""
+
+#: webshop/www/my-integration/index.py:39
+msgid "Send the request"
+msgstr ""
+
 #: webshop/webshop/assistant/api.py:384
 msgid "Send to the team"
 msgstr ""
@@ -7811,7 +8139,7 @@ msgstr ""
 msgid "Sending…"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:591
+#: webshop/webshop/seo/score.py:611
 msgid "Sent"
 msgstr ""
 
@@ -7832,7 +8160,7 @@ msgstr ""
 
 #. Label of a Int field in DocType 'Webshop SEO Snapshot'
 #: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json:67
-#: webshop/webshop/seo/score.py:561
+#: webshop/webshop/seo/score.py:580
 msgid "Sent to Google Shopping"
 msgstr ""
 
@@ -7846,7 +8174,7 @@ msgstr ""
 msgid "Served at the root of every site, in a file named after it: the engines read it before trusting a notification."
 msgstr ""
 
-#: webshop/webshop/seo/score.py:594
+#: webshop/webshop/seo/score.py:614
 msgid "Service"
 msgstr ""
 
@@ -7859,7 +8187,7 @@ msgstr ""
 msgid "Set Meta Tags"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:611
+#: webshop/webshop/shopping_cart/cart.py:616
 msgid "Set Shipping Address or Billing Address"
 msgstr ""
 
@@ -7870,6 +8198,11 @@ msgstr ""
 #. Description of the 'Customer' (Link) field in DocType 'Reseller Catalogue'
 #: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:58
 msgid "Set by the server from the signed-in account and never taken from a request."
+msgstr ""
+
+#. Description of the 'Customer' (Link) field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:43
+msgid "Set by the server from the signed-in account and never taken from a request. One access a customer."
 msgstr ""
 
 #. Description of the 'Customer' (Link) field in DocType 'Reseller Feed'
@@ -8032,7 +8365,7 @@ msgstr ""
 msgid "Shop Assistant Usage Day"
 msgstr ""
 
-#: webshop/webshop/utils/follow_ups.py:460
+#: webshop/webshop/utils/follow_ups.py:498
 msgid "Shop assistant"
 msgstr ""
 
@@ -8225,7 +8558,7 @@ msgstr ""
 msgid "Shown in the product page buy box, under the Add to Cart button. Icon defaults to a check mark."
 msgstr ""
 
-#: webshop/webshop/seo/score.py:700
+#: webshop/webshop/seo/score.py:720
 msgid "Shown out of stock: Google shows it less"
 msgstr ""
 
@@ -8346,7 +8679,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Website Item'
 #: webshop/templates/includes/product_card.html:54
 #: webshop/webshop/doctype/website_item/website_item.json:166
-#: webshop/webshop/seo/score.py:583 webshop/webshop/seo/score.py:603
+#: webshop/webshop/seo/score.py:603 webshop/webshop/seo/score.py:623
 #: webshop/webshop/tests/test_product_card.py:103
 #: webshop/webshop/tests/test_product_card.py:108
 msgid "Sold"
@@ -8358,7 +8691,7 @@ msgctxt "second-hand unit"
 msgid "Sold"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:574
+#: webshop/webshop/seo/score.py:594
 msgid "Sold on its model's page, which search engines read instead"
 msgstr ""
 
@@ -8446,19 +8779,22 @@ msgstr ""
 #: webshop/templates/includes/cart/cart_address.html:107
 #: webshop/templates/pages/checkout.html:187
 #: webshop/templates/pages/checkout.html:313
+#: webshop/www/my-integration/index.py:25
 msgid "State"
 msgstr ""
 
+#. Label of a Select field in DocType 'Partner API Access'
 #. Label of a Select field in DocType 'Purchase Follow-up Entry'
 #. Label of a Select field in DocType 'Reseller Catalogue'
 #. Label of a Select field in DocType 'Reseller Feed'
 #. Label of a Select field in DocType 'Shop Assistant Conversation'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:48
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json:40
 #: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:63
 #: webshop/webshop/doctype/reseller_feed/reseller_feed.json:42
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json:36
 #: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py:135
-#: webshop/webshop/utils/order_export.py:83
+#: webshop/webshop/utils/order_export.py:89
 #: webshop/www/my-catalogues/index.py:88
 msgid "Status"
 msgstr ""
@@ -8544,7 +8880,7 @@ msgstr ""
 msgid "Stop Reason"
 msgstr ""
 
-#: webshop/webshop/utils/follow_ups.py:426
+#: webshop/webshop/utils/follow_ups.py:464
 msgid "Stop receiving these emails"
 msgstr ""
 
@@ -8605,7 +8941,16 @@ msgstr ""
 msgid "Submit"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/offline_payment.py:172
+#. Label of a Check field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:119
+msgid "Submit Orders"
+msgstr ""
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:19
+msgid "Submit orders at once (otherwise drafts)"
+msgstr ""
+
+#: webshop/webshop/shopping_cart/offline_payment.py:178
 msgid "Submit the order first."
 msgstr ""
 
@@ -8619,7 +8964,7 @@ msgid "Submitting Review ..."
 msgstr ""
 
 #: webshop/templates/pages/cart.html:46
-#: webshop/templates/pages/thank_you.html:163
+#: webshop/templates/pages/thank_you.html:164
 msgid "Subtotal"
 msgstr ""
 
@@ -8693,11 +9038,27 @@ msgstr ""
 msgid "Support email"
 msgstr ""
 
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:38
+msgid "Suspend"
+msgstr ""
+
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.js:39
+msgid "Suspend this access: the key stops working at once"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:49
+#: webshop/www/my-integration/index.py:28
+msgid "Suspended"
+msgstr ""
+
 #. Name of a role
 #: webshop/webshop/doctype/abandoned_cart_reminder/abandoned_cart_reminder.json:126
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json:285
 #: webshop/webshop/doctype/frequently_bought_together/frequently_bought_together.json:89
 #: webshop/webshop/doctype/item_review/item_review.json:111
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:208
+#: webshop/webshop/doctype/partner_api_order/partner_api_order.json:76
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json:174
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json:164
 #: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:182
@@ -8739,7 +9100,7 @@ msgstr ""
 msgid "Tax"
 msgstr ""
 
-#: webshop/templates/pages/thank_you.html:169
+#: webshop/templates/pages/thank_you.html:170
 msgid "Taxes and Charges"
 msgstr ""
 
@@ -8814,13 +9175,18 @@ msgstr ""
 msgid "That is more than {0} products: narrow it down."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:1309
+#: webshop/webshop/shopping_cart/cart.py:1314
 msgid "The Administrator account cannot shop. Sign in with a customer account to try the shop."
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Reseller Catalogue'
 #: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:86
 msgid "The Catalogue"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:134
+msgid "The Decision"
 msgstr ""
 
 #. Description of the 'Product Identifiers' (Section Break) field in DocType
@@ -8838,6 +9204,16 @@ msgstr ""
 #. Conversation'
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json:142
 msgid "The HD Ticket opened for this conversation, when Helpdesk is installed"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:159
+msgid "The Key"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:68
+msgid "The Request"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Reseller Feed'
@@ -8866,27 +9242,27 @@ msgstr ""
 msgid "The assistant is very busy at the moment: please try again in a little while."
 msgstr ""
 
-#: webshop/webshop/seo/score.py:614
+#: webshop/webshop/seo/score.py:634
 #, python-brace-format
 msgid "The barcode {0} has a wrong check digit: compare it with the packaging"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:616
+#: webshop/webshop/seo/score.py:636
 #, python-brace-format
 msgid "The barcode {0} is a coupon's number: Google refuses it"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:615
+#: webshop/webshop/seo/score.py:635
 #, python-brace-format
 msgid "The barcode {0} is a number for use inside a shop (GS1 prefix 2, 02 or 04): Google refuses it"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:613
+#: webshop/webshop/seo/score.py:633
 #, python-brace-format
 msgid "The barcode {0} is not an EAN, UPC or GTIN (8, 12, 13 or 14 digits): a code of the shop's own"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:617
+#: webshop/webshop/seo/score.py:637
 #, python-brace-format
 msgid "The barcode {0} is the one of another unit ({1}), not of the product sold"
 msgstr ""
@@ -8918,6 +9294,10 @@ msgstr ""
 msgid "The consumable for your {0}"
 msgstr ""
 
+#: webshop/www/my-integration/index.py:63
+msgid "The contract (OpenAPI)"
+msgstr ""
+
 #: webshop/templates/pages/checkout.js:2075
 msgid "The coupon has been removed to apply shipping rule"
 msgstr ""
@@ -8938,6 +9318,10 @@ msgstr ""
 msgid "The current address stops working at once. Continue?"
 msgstr ""
 
+#: webshop/www/my-integration/index.py:54
+msgid "The current key stops working at once. Continue?"
+msgstr ""
+
 #. Description of the 'Day' (Date) field in DocType 'Shop Assistant Sample'
 #: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:23
 msgid "The day only: nothing says which conversation, which visitor or which address"
@@ -8953,12 +9337,22 @@ msgstr ""
 msgid "The description failed: try again later."
 msgstr ""
 
+#: webshop/webshop/catalogue/refusals.py:112
+#, python-brace-format
+msgid "The description is too long ({0} characters at most) or contains the characters < and >."
+msgstr ""
+
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.py:66
 msgid "The discount amount must be positive."
 msgstr ""
 
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.py:62
 msgid "The discount percentage must be between 1 and 100."
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:113
+#, python-brace-format
+msgid "The expected volume is too long: {0} characters at most."
 msgstr ""
 
 #: webshop/webshop/catalogue/refusals.py:105
@@ -9002,6 +9396,14 @@ msgstr ""
 msgid "The following changes will be applied:"
 msgstr ""
 
+#: webshop/www/my-integration/index.py:78
+msgid "The integration is not available for your account."
+msgstr ""
+
+#: webshop/www/my-integration/index.py:56
+msgid "The key stops working at once. Continue?"
+msgstr ""
+
 #. Description of the 'Page' (Data) field in DocType 'Shop Assistant
 #. Conversation'
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json:80
@@ -9040,7 +9442,7 @@ msgstr ""
 msgid "The loyalty points were removed so the quantity could be updated"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:661
+#: webshop/webshop/seo/score.py:681
 #, python-brace-format
 msgid "The main picture is {0} px wide: {1} px or more"
 msgstr ""
@@ -9071,7 +9473,7 @@ msgstr ""
 msgid "The new model"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:698
+#: webshop/webshop/seo/score.py:718
 msgid "The offer could not be read: see the Error Log"
 msgstr ""
 
@@ -9112,6 +9514,12 @@ msgstr ""
 msgid "The payment could not be started. Your card has not been charged. Please try again."
 msgstr ""
 
+#. Description of the 'Requested By' (Link) field in DocType 'Partner API
+#. Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:63
+msgid "The portal account that asked. Orders made through the key are written under it."
+msgstr ""
+
 #: webshop/www/my-catalogues/index.py:114
 msgid "The previous file is still served."
 msgstr ""
@@ -9125,6 +9533,11 @@ msgstr ""
 msgid "The product's warehouse is"
 msgstr ""
 
+#. Description of the 'Key Id' (Data) field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:169
+msgid "The public half of the key, as the reseller sees it on their page."
+msgstr ""
+
 #: webshop/webshop/utils/holidays.py:212
 msgid "The public holidays could not be read from the provider."
 msgstr ""
@@ -9135,6 +9548,12 @@ msgstr ""
 
 #: webshop/templates/pages/checkout.js:2568
 msgid "The quantity could not be updated. Please try again."
+msgstr ""
+
+#. Description of the 'Note To The Reseller' (Small Text) field in DocType
+#. 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:154
+msgid "The reason of a refusal or a suspension: the reseller reads it on their page."
 msgstr ""
 
 #: webshop/webshop/quick_order/api.py:808
@@ -9261,6 +9680,22 @@ msgstr ""
 msgid "Then offer"
 msgstr ""
 
+#: webshop/webshop/catalogue/refusals.py:118
+msgid "There is no access to decide on."
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:116
+msgid "This access is not active."
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:120
+msgid "This access is not suspended."
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:119
+msgid "This access is not waiting for a decision."
+msgstr ""
+
 #: webshop/templates/pages/checkout.js:1247
 msgid "This address could not be selected. Please try again."
 msgstr ""
@@ -9282,19 +9717,24 @@ msgstr ""
 msgid "This catalogue would run to more than {0} pages. Narrow the selection."
 msgstr ""
 
+#: webshop/webshop/catalogue/refusals.py:123
+msgid "This could not be done."
+msgstr ""
+
 #: webshop/www/my-brand/index.py:65 webshop/www/my-catalogues/index.py:127
+#: webshop/www/my-integration/index.py:24
 msgid "This could not be done. Try again."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3400
+#: webshop/webshop/shopping_cart/cart.py:3424
 msgid "This coupon code has expired"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3384
+#: webshop/webshop/shopping_cart/cart.py:3408
 msgid "This coupon code has reached its maximum usage limit"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3397
+#: webshop/webshop/shopping_cart/cart.py:3421
 msgid "This coupon code is not yet valid"
 msgstr ""
 
@@ -9311,11 +9751,11 @@ msgstr ""
 msgid "This file would hold more than {0} lines (a product with several variants is one line for each). Narrow the selection."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3389
+#: webshop/webshop/shopping_cart/cart.py:3413
 msgid "This gift card has already been used and cannot be applied again"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3412
+#: webshop/webshop/shopping_cart/cart.py:3436
 msgid "This gift card has no remaining balance"
 msgstr ""
 
@@ -9363,19 +9803,19 @@ msgstr ""
 msgid "This page says too little about the product to describe it without inventing: add its brand, its characteristics or a few words of description first."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/offline_payment.py:110
+#: webshop/webshop/shopping_cart/offline_payment.py:116
 msgid "This payment method is not available for your account."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/offline_payment.py:113
+#: webshop/webshop/shopping_cart/offline_payment.py:119
 msgid "This payment method is settled online."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/offline_payment.py:227
+#: webshop/webshop/shopping_cart/offline_payment.py:233
 msgid "This payment request is already settled."
 msgstr ""
 
-#: webshop/webshop/shopping_cart/offline_payment.py:225
+#: webshop/webshop/shopping_cart/offline_payment.py:231
 msgid "This payment request is not submitted."
 msgstr ""
 
@@ -9418,7 +9858,7 @@ msgstr ""
 msgid "This site has no feed: {0}."
 msgstr ""
 
-#: webshop/webshop/seo/score.py:579
+#: webshop/webshop/seo/score.py:599
 msgid "This site sends no feed to Google Shopping"
 msgstr ""
 
@@ -9473,7 +9913,7 @@ msgstr ""
 
 #. Label of a Data field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json:472
-#: webshop/webshop/seo/score.py:551
+#: webshop/webshop/seo/score.py:570
 msgid "Title for search engines"
 msgstr ""
 
@@ -9512,6 +9952,10 @@ msgstr ""
 msgid "To improve"
 msgstr ""
 
+#: webshop/www/my-integration/index.py:66
+msgid "To keep a whole catalogue up to date, the product feed on your catalogues page costs fewer calls."
+msgstr ""
+
 #: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py:137
 msgid "To show it at its best"
 msgstr ""
@@ -9522,6 +9966,12 @@ msgstr ""
 
 #: webshop/www/my-brand/index.py:48
 msgid "To the franc"
+msgstr ""
+
+#. Description of the 'Last Used On' (Datetime) field in DocType 'Partner API
+#. Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:190
+msgid "To the hour."
 msgstr ""
 
 #. Label of a Password field in DocType 'Reseller Feed'
@@ -9586,7 +10036,7 @@ msgstr ""
 msgid "Top Right"
 msgstr ""
 
-#: webshop/templates/pages/thank_you.html:182
+#: webshop/templates/pages/thank_you.html:183
 msgid "Total"
 msgstr ""
 
@@ -9598,7 +10048,7 @@ msgstr ""
 msgid "Total Amount"
 msgstr ""
 
-#: webshop/webshop/utils/order_export.py:86
+#: webshop/webshop/utils/order_export.py:92
 msgid "Total Taxes and Charges"
 msgstr ""
 
@@ -9623,6 +10073,20 @@ msgstr ""
 #. Method'
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json:42
 msgid "Transfer before shipping"
+msgstr ""
+
+#: webshop/webshop/seo/score.py:749
+#, python-brace-format
+msgid "Translated into {0}"
+msgstr ""
+
+#: webshop/webshop/seo/score.py:746
+#, python-brace-format
+msgid "Translated into {0}; not yet into {1}"
+msgstr ""
+
+#: webshop/webshop/seo/score.py:583
+msgid "Translations"
 msgstr ""
 
 #. Label of a Select field in DocType 'Cross Sell Offer'
@@ -9819,6 +10283,11 @@ msgstr ""
 msgid "Usage and escalation"
 msgstr ""
 
+#. Label of a Small Text field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:73
+msgid "Use Case"
+msgstr ""
+
 #. Label of a Check field in DocType 'Webshop Payment Method'
 #: webshop/webshop/doctype/webshop_payment_method/webshop_payment_method.json:74
 msgid "Use Payment Intent"
@@ -9887,7 +10356,7 @@ msgstr ""
 msgid "User"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3222
+#: webshop/webshop/shopping_cart/cart.py:3246
 msgid "User not logged in"
 msgstr ""
 
@@ -9900,6 +10369,10 @@ msgstr ""
 #: webshop/controllers/payment_handler.py:147
 #: webshop/controllers/payment_handler.py:181
 msgid "Using existing payment request"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:61
+msgid "Using it"
 msgstr ""
 
 #. Label of a Data field in DocType 'Reseller Catalogue Profile'
@@ -9948,7 +10421,7 @@ msgid "Valid Upto"
 msgstr ""
 
 #: webshop/templates/pages/gift_cards.html:94
-#: webshop/templates/pages/thank_you.html:203
+#: webshop/templates/pages/thank_you.html:204
 msgid "Valid from"
 msgstr ""
 
@@ -9999,7 +10472,7 @@ msgstr ""
 msgid "Variant of"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:702
+#: webshop/webshop/seo/score.py:722
 #, python-brace-format
 msgid "Variants on sale: {0}"
 msgstr ""
@@ -10031,11 +10504,11 @@ msgstr ""
 
 #. Label of a Table field in DocType 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json:96
-#: webshop/webshop/seo/score.py:563
+#: webshop/webshop/seo/score.py:582
 msgid "Videos"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:728
+#: webshop/webshop/seo/score.py:762
 #, python-brace-format
 msgid "Videos: {0}"
 msgstr ""
@@ -10140,6 +10613,10 @@ msgstr ""
 msgid "Waiting"
 msgstr ""
 
+#: webshop/www/my-integration/index.py:26
+msgid "Waiting for an answer"
+msgstr ""
+
 #: webshop/templates/pages/checkout.js:3325
 #: webshop/templates/pages/checkout.py:1234
 msgid "Waiting for your payment…"
@@ -10147,6 +10624,11 @@ msgstr ""
 
 #: webshop/www/my-catalogues/index.py:104
 msgid "Waiting to be refreshed"
+msgstr ""
+
+#. Label of a Check field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:87
+msgid "Wants To Place Orders"
 msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Warehouse Source'
@@ -10301,9 +10783,9 @@ msgstr ""
 msgid "Webshop customers only"
 msgstr ""
 
-#: webshop/webshop/utils/follow_ups.py:457
-#: webshop/webshop/utils/follow_ups.py:472
-#: webshop/webshop/utils/follow_ups.py:492
+#: webshop/webshop/utils/follow_ups.py:495
+#: webshop/webshop/utils/follow_ups.py:510
+#: webshop/webshop/utils/follow_ups.py:530
 msgid "Webshop emails"
 msgstr ""
 
@@ -10430,7 +10912,7 @@ msgstr ""
 msgid "Website Item not found"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:528
+#: webshop/webshop/seo/score.py:547
 #, python-brace-format
 msgid "Website Item {0} not found"
 msgstr ""
@@ -10540,8 +11022,17 @@ msgstr ""
 msgid "What It Was Made From"
 msgstr ""
 
+#. Label of a Section Break field in DocType 'Partner API Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:99
+msgid "What The Key May Do"
+msgstr ""
+
 #: webshop/webshop/assistant/api.py:394
 msgid "What are your opening hours?"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:33
+msgid "What do you want to do with it?"
 msgstr ""
 
 #: webshop/www/my-catalogues/index.py:46
@@ -10572,8 +11063,18 @@ msgstr ""
 msgid "What the job is doing: prices, pictures, render."
 msgstr ""
 
+#. Description of the 'Use Case' (Small Text) field in DocType 'Partner API
+#. Access'
+#: webshop/webshop/doctype/partner_api_access/partner_api_access.json:75
+msgid "What the reseller wants to do with the API, in their words."
+msgstr ""
+
 #: webshop/public/js/override/item.js:282
 msgid "What the unit cost you; its valuation in stock."
+msgstr ""
+
+#: webshop/www/my-integration/index.py:41
+msgid "What your key may do"
 msgstr ""
 
 #. Description of the 'Last Fetched' (Datetime) field in DocType 'Reseller
@@ -10744,6 +11245,10 @@ msgstr ""
 msgid "Yes, add {0}"
 msgstr ""
 
+#: webshop/webshop/catalogue/refusals.py:114
+msgid "You already have an access, or a request waiting for an answer."
+msgstr ""
+
 #: webshop/public/js/auth_dialog.js:22
 msgid "You are already logged in."
 msgstr ""
@@ -10764,9 +11269,17 @@ msgstr ""
 msgid "You are not verified to write a review yet."
 msgstr ""
 
+#: webshop/webshop/catalogue/refusals.py:115
+msgid "You asked several times today. Try again tomorrow."
+msgstr ""
+
 #: webshop/webshop/assistant/api.py:210
 #, python-brace-format
 msgid "You can also call us at {0}."
+msgstr ""
+
+#: webshop/www/my-integration/index.py:40
+msgid "You can ask again, saying more about what you need."
 msgstr ""
 
 #. Description of the 'Website Content' (HTML Editor) field in DocType 'Website
@@ -10785,11 +11298,11 @@ msgstr ""
 msgid "You cannot use loyalty points when a promo code is applied"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3628
+#: webshop/webshop/shopping_cart/cart.py:3652
 msgid "You do not have an active loyalty program"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:3650
+#: webshop/webshop/shopping_cart/cart.py:3674
 #, python-brace-format
 msgid "You do not have enough loyalty points ({0} points available)"
 msgstr ""
@@ -10823,6 +11336,10 @@ msgstr ""
 msgid "You have no feed."
 msgstr ""
 
+#: webshop/www/my-integration/index.py:48
+msgid "You have no key yet."
+msgstr ""
+
 #: webshop/www/my-catalogues/index.py:82
 msgid "You have not made a catalogue yet."
 msgstr ""
@@ -10833,6 +11350,10 @@ msgstr ""
 
 #: webshop/webshop/utils/throttle.py:73
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:117
+msgid "You made several keys in the last hour. Try again later."
 msgstr ""
 
 #: webshop/templates/generators/item/item.html:88
@@ -10908,15 +11429,15 @@ msgstr ""
 msgid "Your email address"
 msgstr ""
 
-#: webshop/templates/pages/thank_you.html:137
+#: webshop/templates/pages/thank_you.html:138
 msgid "Your gift card code will be available once the invoice has been paid in full."
 msgstr ""
 
-#: webshop/templates/pages/thank_you.html:198
+#: webshop/templates/pages/thank_you.html:199
 msgid "Your gift card codes are available :"
 msgstr ""
 
-#: webshop/templates/pages/thank_you.html:212
+#: webshop/templates/pages/thank_you.html:213
 msgid "Your gift card codes will be available once the invoice has been paid in full."
 msgstr ""
 
@@ -10926,6 +11447,10 @@ msgstr ""
 
 #: webshop/templates/pages/checkout.html:56
 msgid "Your information"
+msgstr ""
+
+#: webshop/www/my-integration/index.py:47
+msgid "Your key"
 msgstr ""
 
 #: webshop/www/my-brand/index.py:21
@@ -11022,50 +11547,50 @@ msgstr ""
 msgid "Zoom"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:63
+#: webshop/webshop/seo/feeds/google.py:65
 msgid "a bookable service"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:109
+#: webshop/webshop/seo/feeds/google.py:111
 #, python-brace-format
 msgid "a description under {0} characters"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:62
+#: webshop/webshop/seo/feeds/google.py:64
 msgid "a gift card"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:112
+#: webshop/webshop/seo/feeds/google.py:114
 #, python-brace-format
 msgid "a main picture under {0} px"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:61
+#: webshop/webshop/seo/feeds/google.py:63
 msgid "a model: its published variants are the items"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:110
+#: webshop/webshop/seo/feeds/google.py:112
 #, python-brace-format
 msgid "a name longer than {0} characters, cut in the feed"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:64
+#: webshop/webshop/seo/feeds/google.py:66
 msgid "a second-hand unit, not sent"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:111
+#: webshop/webshop/seo/feeds/google.py:113
 msgid "a single picture: add other views"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:726
+#: webshop/webshop/shopping_cart/cart.py:731
 msgid "amount used in order from quotation"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:69
+#: webshop/webshop/seo/feeds/google.py:71
 msgid "an error, see the Error Log"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:68
+#: webshop/webshop/seo/feeds/google.py:70
 msgid "an item code longer than 50 characters"
 msgstr ""
 
@@ -11093,17 +11618,17 @@ msgstr ""
 msgid "e.g., Home, Office"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:65
+#: webshop/webshop/seo/feeds/google.py:67
 msgid "excluded by the merchant (the item or its group)"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:778
-#: webshop/webshop/shopping_cart/cart.py:780
+#: webshop/webshop/shopping_cart/cart.py:783
+#: webshop/webshop/shopping_cart/cart.py:785
 msgid "for order from quotation"
 msgstr ""
 
 #: webshop/templates/includes/macros.html:613
-#: webshop/templates/includes/product_card.html:86 webshop/webshop/api.py:1143
+#: webshop/templates/includes/product_card.html:86 webshop/webshop/api.py:1155
 #: webshop/webshop/product_data_engine/query.py:1548
 #: webshop/webshop/shopping_cart/product_info.py:243
 #: webshop/webshop/shopping_cart/product_info.py:244
@@ -11119,7 +11644,7 @@ msgstr ""
 msgid "has been confirmed."
 msgstr ""
 
-#: webshop/webshop/seo/score.py:623
+#: webshop/webshop/seo/score.py:643
 msgid "in stock"
 msgstr ""
 
@@ -11138,6 +11663,11 @@ msgstr ""
 msgid "john@doe.com"
 msgstr ""
 
+#: webshop/webshop/seo/feeds/google_languages.py:84
+#, python-brace-format
+msgid "legal pages still in the site's language: {0}"
+msgstr ""
+
 #: webshop/webshop/quick_order/api.py:791
 msgid "lines"
 msgstr ""
@@ -11152,28 +11682,32 @@ msgstr ""
 msgid "new_arrivals"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:107
+#: webshop/webshop/seo/feeds/google.py:109
 msgid "no GTIN or MPN: Google shows a branded product less often without one"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:113
+#: webshop/webshop/seo/feeds/google.py:115
 msgid "no Google product category on its item group"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:108
+#: webshop/webshop/seo/feeds/google.py:110
 msgid "no brand"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:67
+#: webshop/webshop/seo/feeds/google.py:69
 msgid "no picture"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:66
+#: webshop/webshop/seo/feeds/google.py:68
 msgid "no price shown to a visitor"
 msgstr ""
 
 #: webshop/www/my-catalogues/index.py:113
 msgid "no prices"
+msgstr ""
+
+#: webshop/webshop/seo/feeds/google_languages.py:77
+msgid "no product is translated yet"
 msgstr ""
 
 #: webshop/webshop/utils/store_hours.py:156
@@ -11191,7 +11725,7 @@ msgstr ""
 msgid "of"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:624
+#: webshop/webshop/seo/score.py:644
 msgid "on backorder"
 msgstr ""
 
@@ -11203,7 +11737,7 @@ msgstr ""
 msgid "or"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:625
+#: webshop/webshop/seo/score.py:645
 msgid "out of stock"
 msgstr ""
 
@@ -11239,11 +11773,11 @@ msgstr ""
 msgid "price_low_to_high"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:180
+#: webshop/webshop/seo/feeds/google.py:182
 msgid "prices are hidden from visitors"
 msgstr ""
 
-#: webshop/webshop/assistant/tools.py:78
+#: webshop/webshop/assistant/tools.py:92
 msgid "prix sur demande"
 msgstr ""
 
@@ -11303,16 +11837,24 @@ msgstr ""
 msgid "terms and conditions"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:178
+#: webshop/webshop/seo/feeds/google_languages.py:207
+msgid "the product is not translated into this language yet"
+msgstr ""
+
+#: webshop/webshop/seo/feeds/google_languages.py:81
+msgid "the shop's own texts (cart, checkout) have no translation in this language"
+msgstr ""
+
+#: webshop/webshop/seo/feeds/google.py:180
 msgid "the shopping cart is disabled"
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:182
+#: webshop/webshop/seo/feeds/google.py:184
 msgid "the site serves business accounts only"
 msgstr ""
 
 #: webshop/templates/includes/macros.html:28
-#: webshop/templates/pages/thank_you.html:205
+#: webshop/templates/pages/thank_you.html:206
 msgid "to"
 msgstr ""
 
@@ -11321,10 +11863,10 @@ msgstr ""
 msgid "tool"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:778
-#: webshop/webshop/shopping_cart/cart.py:780
-#: webshop/webshop/shopping_cart/cart.py:4173
-#: webshop/webshop/shopping_cart/cart.py:4175
+#: webshop/webshop/shopping_cart/cart.py:783
+#: webshop/webshop/shopping_cart/cart.py:785
+#: webshop/webshop/shopping_cart/cart.py:4197
+#: webshop/webshop/shopping_cart/cart.py:4199
 msgid "transferred to card"
 msgstr ""
 
@@ -11359,7 +11901,7 @@ msgstr ""
 msgid "{0} (second-hand)"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:884
+#: webshop/webshop/shopping_cart/cart.py:889
 #, python-brace-format
 msgid "{0} Not in Stock"
 msgstr ""
@@ -11386,32 +11928,37 @@ msgstr ""
 msgid "{0} available"
 msgstr ""
 
+#: webshop/www/my-integration/index.py:46
+#, python-brace-format
+msgid "{0} calls a minute"
+msgstr ""
+
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.py:640
 #, python-brace-format
 msgid "{0} categories updated"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:650
+#: webshop/webshop/seo/score.py:670
 #, python-brace-format
 msgid "{0} characters"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:642
+#: webshop/webshop/seo/score.py:662
 #, python-brace-format
 msgid "{0} characters, shown whole"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:639 webshop/webshop/seo/score.py:649
+#: webshop/webshop/seo/score.py:659 webshop/webshop/seo/score.py:669
 #, python-brace-format
 msgid "{0} characters: Google cuts it after about {1}"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:647
+#: webshop/webshop/seo/score.py:667
 #, python-brace-format
 msgid "{0} characters: Google shows about {1}"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:641
+#: webshop/webshop/seo/score.py:661
 #, python-brace-format
 msgid "{0} characters: too short to say what the product is"
 msgstr ""
@@ -11462,12 +12009,12 @@ msgstr ""
 msgid "{0} is not a configured warehouse source"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:1274
+#: webshop/webshop/shopping_cart/cart.py:1279
 #, python-brace-format
 msgid "{0} is not in stock"
 msgstr ""
 
-#: webshop/webshop/shopping_cart/cart.py:1273
+#: webshop/webshop/shopping_cart/cart.py:1278
 #, python-brace-format
 msgid "{0} is not in stock at {1}"
 msgstr ""
@@ -11504,7 +12051,8 @@ msgstr ""
 msgid "{0} items found."
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:528
+#: webshop/webshop/seo/feeds/google.py:538
+#: webshop/webshop/seo/feeds/google_languages.py:197
 #, python-brace-format
 msgid "{0} left out: {1}"
 msgstr ""
@@ -11555,7 +12103,7 @@ msgstr ""
 msgid "{0} must be one of the choices offered."
 msgstr ""
 
-#: webshop/webshop/seo/score.py:669
+#: webshop/webshop/seo/score.py:689
 #, python-brace-format
 msgid "{0} of {1} pictures described"
 msgstr ""
@@ -11575,12 +12123,18 @@ msgstr ""
 msgid "{0} products in this catalogue."
 msgstr ""
 
-#: webshop/webshop/seo/feeds/google.py:526
+#: webshop/webshop/seo/feeds/google.py:536
+#: webshop/webshop/seo/feeds/google_languages.py:195
 #, python-brace-format
 msgid "{0} products sent"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:725
+#: webshop/webshop/seo/feeds/google_languages.py:79
+#, python-brace-format
+msgid "{0} products the French feed sends are not translated yet"
+msgstr ""
+
+#: webshop/webshop/seo/score.py:757
 #, python-brace-format
 msgid "{0} reviews, {1} out of 5"
 msgstr ""
@@ -11606,12 +12160,12 @@ msgid "{0} variants"
 msgstr ""
 
 #: webshop/public/js/override/seo_preview.js:172
-#: webshop/webshop/seo/score.py:656
+#: webshop/webshop/seo/score.py:676
 #, python-brace-format
 msgid "{0} words"
 msgstr ""
 
-#: webshop/webshop/seo/score.py:655
+#: webshop/webshop/seo/score.py:675
 #, python-brace-format
 msgid "{0} words: say more, from {1} words on"
 msgstr ""
