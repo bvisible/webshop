@@ -17,7 +17,8 @@ from pathlib import Path
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-PAGE_JS = Path(frappe.get_app_path("webshop", "www", "my-integration", "index.js"))
+# get_app_path scrubs the segments it is given (`my-integration` becomes `my_integration`): ask for the app, then join
+PAGE_JS = Path(frappe.get_app_path("webshop")) / "www" / "my-integration" / "index.js"
 
 LABELS = [
 	"failed",
