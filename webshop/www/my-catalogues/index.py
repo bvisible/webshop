@@ -19,7 +19,7 @@ def labels():
 	return {
 		"lead": _(
 			"Make a catalogue of the products you choose, with your prices: your markup is added to what you pay. "
-			"A PDF with your logo and your colours, an Excel or CSV file, or a feed your own shop can read. "
+			"A PDF with your logo and your colours, an Excel, CSV or Shopify file, or a feed your own shop can read. "
 			"It takes a few seconds to a minute, and you can leave this page."
 		),
 		"brand_needed": _("Save your brand first: a catalogue carries your name, your logo and your colours."),
@@ -30,6 +30,7 @@ def labels():
 		"format_pdf": _("PDF catalogue"),
 		"format_xlsx": _("Excel workbook"),
 		"format_csv": _("CSV file"),
+		"format_shopify": _("Shopify import file"),
 		"format_feed": _("Product feed for my shop"),
 		"hint_pdf": _("A document to print or send, with your logo and your colours."),
 		"hint_xlsx": _(
@@ -37,6 +38,10 @@ def labels():
 		),
 		"hint_csv": _(
 			"For importing into another system: comma-separated, UTF-8, the same column names every time. To read it yourself, choose Excel."
+		),
+		"hint_shopify": _(
+			"A file for Shopify's product import: one product for each model with its variants, your selling prices, "
+			"photos and barcodes. A product you have no price for is left out."
 		),
 		"hint_feed": _(
 			"An address your shop or your script reads, always up to date: photos, descriptions and your selling prices. Whoever has the address can read it."
@@ -78,6 +83,8 @@ def labels():
 		"quality_light": _("Light: for an e-mail"),
 		"quality_print": _("High: for a printer"),
 		"quality_hint": _("Light makes a small file, high keeps the pictures sharp on paper and a larger file."),
+		"order_form": _("Add an order form at the end"),
+		"order_form_hint": _("A last page with the products, a blank quantity for each, and your details to send it back to."),
 		"language": _("Language of the texts"),
 		"language_source": _("The shop's own language"),
 		"language_hint": _("The name and the description of each product, as the shop's visitors read them in that language."),
@@ -87,6 +94,7 @@ def labels():
 		"create": _("Make the catalogue"),
 		"create_xlsx": _("Make the workbook"),
 		"create_csv": _("Make the CSV file"),
+		"create_shopify": _("Make the Shopify file"),
 		"create_feed": _("Save the feed"),
 		"count_lines": _("{0} lines in this file."),
 		"count_lines_too_many": _("That is more than {0} lines: narrow it down."),

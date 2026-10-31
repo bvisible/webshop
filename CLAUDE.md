@@ -1316,6 +1316,23 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
     workbook without a language lost it. `test_the_information_sheet_says_whether_the_selling_prices_include_vat_…` holds it now: read a
     block you insert into, not only the one you add.
 
+- **An order form, new arrivals and a Shopify file** (lot 5g, 2026-10-31): the finishing touches the study (note 02) lists for the document and the files.
+  - **The order form** (`options.order_form`, a PDF only, a checkbox on `/my-catalogues`; kept only when asked, so a catalogue without it is as before) closes
+    the catalogue: the reseller's details to send it back to, blank fields (customer, address, reference, date, signature), then every product with its
+    selling price, a **blank quantity** and a blank total. It is a section of the contents like the others (`book_pdf.make_pdf` appends its title, so
+    its page number is read from the bookmarks). **Its QR leads to the reseller's own website, never to the supplier's shop**: a catalogue for their
+    customers must not name the shop (decision D-2), so the supplier's quick order, which the study had in mind, is not what the QR opens.
+  - **A "New arrival" tag** on a card: a product whose Website Item was created within `Webshop Settings.catalogue_new_days` (0, the default, = no tag;
+    a bulk import makes every product new for that many days, which is why the shop decides). A used unit never gets it: its own tag says what it is.
+  - **A Shopify import file** (format `SHOPIFY`, prices `customers` or `both`): `tables.shopify_bytes` writes Shopify's own columns (a subset of its
+    template) from the same lines as the other files: a model is one product with its variants under it (title = the model's, `model_name`, which no
+    other file prints), at most three options (the rest share the third), pictures as rows of their own, the selling price in `Variant Price` and,
+    in `both`, what they pay in Shopify's `Cost per item`. A line with no selling price is left out (Shopify refuses a variant without one, and 0 would
+    sell it for nothing); stock is not tracked. **Written from the documented template, not tested against a live Shopify import.** A file with their
+    cost is never shared (same rule as the others); the download is named `<title>-shopify.csv` (`jobs.download_name`).
+  - Tests that count tags or rows must not count the neighbours: `class="r"` is a prefix of `class="ref"`, and a catalogue of a whole group holds
+    the model and its variants too, all created the same day.
+
 - **The partner API** (lot 4, `partner_api/`, 2026-10-31): a reseller asks for it on `/my-integration`, staff allow
   it on the desk (**Partner API Access**: Approve with the scopes — orders, submit at once, calls a minute — Refuse,
   Suspend, Resume), the reseller makes a key there. Five calls under `/partner/v1/` (a page renderer, not a

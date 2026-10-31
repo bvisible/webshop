@@ -30,6 +30,7 @@ from webshop.webshop.doctype.reseller_catalogue.reseller_catalogue import (
 	QUEUED,
 	READY,
 	RUNNING,
+	SHOPIFY,
 	XLSX,
 )
 
@@ -47,7 +48,7 @@ NUMBERS = {
 	"too_many_pages": book_pdf.MAX_PAGES,
 	"too_many_rows": rows.MAX_ROWS,
 }
-EXTENSIONS = {PDF: "pdf", XLSX: "xlsx", CSV: "csv"}
+EXTENSIONS = {PDF: "pdf", XLSX: "xlsx", CSV: "csv", SHOPIFY: "csv"}
 
 
 def enqueue_generation(name):
@@ -114,9 +115,15 @@ def _make_pdf(doc, payload, clean):
 	return pdf, _filename(doc.title), data.product_count, pages
 
 
+def download_name(title, fmt):
+	"""The name a finished file is given to its owner: a Shopify file says so, being a CSV like another."""
+	return _filename(f"{title} shopify" if fmt == SHOPIFY else title, EXTENSIONS[fmt], "catalogue")
+
+
 def _make_table(doc, payload, clean, fmt):
 	"""(content, file name, lines, no pages) of a workbook or a CSV file."""
-	options = rows.clean_options(json.loads(doc.options or "{}"), payload["values"]["default_markup_percent"])
+	modes = rows.SHOPIFY_PRICE_MODES if fmt == SHOPIFY else rows.PRICE_MODES
+	options = rows.clean_options(json.loads(doc.options or "{}"), payload["values"]["default_markup_percent"], modes)
 	speak(options)
 	report = reporter(doc.name, TABLE_STAGES)
 	data = rows.build_rows(doc.customer, payload, clean, options, report)
@@ -124,9 +131,11 @@ def _make_table(doc, payload, clean, fmt):
 	if fmt == XLSX:
 		issuer = payload["values"].get("brand_name") or ""
 		content = tables.xlsx_bytes(data, rows.labels(data, doc.title, issuer))
+	elif fmt == SHOPIFY:
+		content = tables.shopify_bytes(data)
 	else:
 		content = tables.csv_bytes(data)
-	return content, _filename(doc.title, EXTENSIONS[fmt], "catalogue"), len(data.rows), None
+	return content, download_name(doc.title, fmt), len(data.rows), None
 
 
 def generate(catalogue):

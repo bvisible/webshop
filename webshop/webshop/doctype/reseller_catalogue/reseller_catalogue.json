@@ -45,12 +45,12 @@
    "fieldname": "format",
    "fieldtype": "Select",
    "label": "Format",
-   "options": "PDF\nXLSX\nCSV",
+   "options": "PDF\nXLSX\nCSV\nSHOPIFY",
    "default": "PDF",
    "read_only": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "description": "What the file is: a PDF catalogue, an Excel workbook or a CSV file. A record made before the formats existed has none and is a PDF."
+   "description": "What the file is: a PDF catalogue, an Excel workbook, a CSV file or a Shopify product import file. A record made before the formats existed has none and is a PDF."
   },
   {
    "fieldname": "customer",

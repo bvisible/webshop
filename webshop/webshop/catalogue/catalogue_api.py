@@ -21,8 +21,7 @@ from webshop.webshop.catalogue import access, book, feed, jobs, languages, rows,
 from webshop.webshop.catalogue import api as brand_api
 from webshop.webshop.catalogue.pdf import chromium_available
 from webshop.webshop.catalogue.refusals import catalogue_message, options_message, selection_message, share_message
-from webshop.webshop.catalogue.sheet_api import _filename
-from webshop.webshop.doctype.reseller_catalogue.reseller_catalogue import CSV, PDF, QUEUED, READY, RUNNING, XLSX
+from webshop.webshop.doctype.reseller_catalogue.reseller_catalogue import CSV, PDF, QUEUED, READY, RUNNING, SHOPIFY, XLSX
 from webshop.webshop.multi_site import get_current_profile_name
 from webshop.webshop.utils import throttle
 
@@ -32,6 +31,7 @@ MIMETYPES = {
 	PDF: "application/pdf",
 	XLSX: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 	CSV: "text/csv",
+	SHOPIFY: "text/csv",
 }
 FIELDS = [
 	"name",
@@ -108,20 +108,24 @@ def _owned(customer, name):
 
 
 def _format_of(value):
-	"""PDF, XLSX or CSV from what the page sent (`pdf`, `xlsx`, `csv`; nothing means a PDF), or None."""
+	"""PDF, XLSX, CSV or SHOPIFY from what the page sent (`pdf`, `xlsx`, `csv`, `shopify`; nothing means a PDF), or None."""
 	text = str(value or "pdf").strip().upper() if isinstance(value, (str, type(None))) else ""
-	return text if text in (PDF, XLSX, CSV) else None
+	return text if text in (PDF, XLSX, CSV, SHOPIFY) else None
 
 
 def _ask(customer, payload, title, picked, options, fmt=PDF):
 	"""Check a request and, when it holds, write it and queue the job. Returns the new state, or a refusal."""
-	if fmt not in (PDF, XLSX, CSV):
+	if fmt not in (PDF, XLSX, CSV, SHOPIFY):
 		return _refused("format", options_message("format", "not_allowed"))
 	table = fmt != PDF
 	try:
 		title = book.clean_title(title)
 		clean_options = (
-			rows.clean_options(options, payload["values"]["default_markup_percent"])
+			rows.clean_options(
+				options,
+				payload["values"]["default_markup_percent"],
+				rows.SHOPIFY_PRICE_MODES if fmt == SHOPIFY else rows.PRICE_MODES,
+			)
 			if table
 			else book.clean_options(options, payload["values"]["default_markup_percent"])
 		)
@@ -267,7 +271,7 @@ def download_catalogue(name=None):
 	if not content:
 		raise frappe.DoesNotExistError
 	response = Response(content, mimetype=MIMETYPES[fmt])
-	response.headers["Content-Disposition"] = f'attachment; filename="{_filename(row.title, jobs.EXTENSIONS[fmt], "catalogue")}"'
+	response.headers["Content-Disposition"] = f'attachment; filename="{jobs.download_name(row.title, fmt)}"'
 	response.headers["X-Robots-Tag"] = "noindex"
 	response.headers["Cache-Control"] = "private, no-store"
 	return response

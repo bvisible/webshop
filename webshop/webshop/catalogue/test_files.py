@@ -16,7 +16,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from openpyxl import load_workbook
 
-from webshop.webshop.catalogue import access, catalogue_api, jobs, rows
+from webshop.webshop.catalogue import access, catalogue_api, jobs, rows, tables
 from webshop.webshop.catalogue import api as brand_api
 from webshop.webshop.catalogue import fixtures as shop
 from webshop.webshop.catalogue.refusals import catalogue_message
@@ -86,11 +86,13 @@ class TestFiles(FrappeTestCase):
 	# --- asking ----------------------------------------------------------------------------------
 
 	def test_the_format_is_kept_and_a_record_without_one_is_a_pdf(self):
-		for fmt, stored in (("xlsx", "XLSX"), ("csv", "CSV")):
+		for fmt, stored in (("xlsx", "XLSX"), ("csv", "CSV"), ("shopify", "SHOPIFY")):
 			with self.subTest(fmt=fmt):
 				for name in frappe.get_all(DOCTYPE, filters={"customer": shop.CUSTOMER}, pluck="name"):
 					frappe.delete_doc(DOCTYPE, name, force=True, ignore_permissions=True)
-				self.assertTrue(self.ask(fmt)["ok"])
+				# a Shopify file is made for their customers' prices (or with their cost beside them), never their cost alone
+				options = json.dumps({"prices": "customers"}) if fmt == "shopify" else json.dumps({"prices": "tariff"})
+				self.assertTrue(self.ask(fmt, options=options)["ok"])
 				self.assertEqual(frappe.db.get_value(DOCTYPE, self.newest(), "format"), stored)
 		row = catalogue_api._row(frappe._dict(name="x", status="Ready", options="{}", format=None))
 		self.assertEqual(row["format"], "PDF")
@@ -176,6 +178,38 @@ class TestFiles(FrappeTestCase):
 		by_code = {record["code"]: record for record in records}
 		self.assertEqual((by_code[shop.FIRST]["purchase_price"], by_code[shop.FIRST]["price"]), ("80.00", "104.00"))
 		self.assertNotIn(shop.HIDDEN, by_code)
+
+	def test_a_shopify_file_has_a_selling_price_and_may_carry_their_cost_but_never_their_cost_alone_or_nothing(self):
+		for mode in ("tariff", "none"):
+			with self.subTest(mode=mode):
+				answer = self.ask("shopify", options=json.dumps({"prices": mode}))
+				self.assertEqual((answer["ok"], answer["field"]), (False, "prices"))
+		self.assertFalse(frappe.get_all(DOCTYPE, filters={"customer": shop.CUSTOMER}))
+		for mode in ("customers", "both"):
+			with self.subTest(mode=mode):
+				for name in frappe.get_all(DOCTYPE, filters={"customer": shop.CUSTOMER}, pluck="name"):
+					frappe.delete_doc(DOCTYPE, name, force=True, ignore_permissions=True)
+				self.assertTrue(self.ask("shopify", options=json.dumps({"prices": mode}))["ok"])
+
+	def test_a_shopify_file_is_made_and_downloaded_as_a_csv_named_for_shopify(self):
+		response = self.made("shopify", options=json.dumps({"prices": "both"}))
+		self.assertEqual(response.mimetype, "text/csv")
+		self.assertIn("Tariff-2027-shopify.csv", response.headers["Content-Disposition"])
+		text = response.get_data(as_text=True)
+		table = list(csv.DictReader(io.StringIO(text, newline="")))
+		self.assertEqual(list(table[0]), tables.SHOPIFY_COLUMNS)
+		by_code = {row["Variant SKU"]: row for row in table if row["Variant SKU"]}
+		self.assertEqual((by_code[shop.FIRST]["Variant Price"], by_code[shop.FIRST]["Cost per item"]), ("104.00", "80.00"))
+		self.assertNotIn(shop.HIDDEN, by_code)
+		record = frappe.get_doc(DOCTYPE, self.newest())
+		self.assertEqual((record.format, record.page_count), ("SHOPIFY", 0))
+
+	def test_a_shopify_file_for_their_customers_carries_no_cost(self):
+		text = self.made("shopify", options=json.dumps({"prices": "customers"})).get_data(as_text=True)
+		table = [row for row in csv.DictReader(io.StringIO(text, newline="")) if row["Variant SKU"]]
+		self.assertTrue(table)
+		self.assertEqual({row["Cost per item"] for row in table}, {""})
+		self.assertNotIn("80.00", text)
 
 	def test_the_mode_for_their_customers_carries_no_purchase_price_in_a_file_either(self):
 		response = self.made("csv", options=json.dumps({"prices": "customers"}))

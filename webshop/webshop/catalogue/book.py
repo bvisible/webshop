@@ -18,11 +18,11 @@ import html
 
 import frappe
 from frappe import _
-from frappe.utils import formatdate, nowdate, strip_html
+from frappe.utils import add_days, cint, formatdate, getdate, nowdate, strip_html
 
-from webshop.webshop.catalogue import images, languages, markup, markup_rules, selection
+from webshop.webshop.catalogue import images, languages, markup, markup_rules, qr, selection
 from webshop.webshop.utils.used_items import is_second_hand
-from webshop.webshop.catalogue.sheet import price_text, reseller_issuer
+from webshop.webshop.catalogue.sheet import _website_address, price_text, reseller_issuer
 from webshop.webshop.seo.text import truncate
 from webshop.webshop.utils import customer_pricing
 
@@ -94,6 +94,9 @@ def clean_options(raw, default_markup):
 		raise OptionsRefused("quality", "not_allowed")
 	if quality != "standard":
 		options["quality"] = quality
+	# an order form closes the catalogue (lot 5g): kept only when asked for, so a catalogue without one is as before
+	if raw.get("order_form") in (True, 1, "1", "true"):
+		options["order_form"] = True
 	try:
 		language = languages.clean(raw.get("language"))
 	except ValueError:
@@ -192,6 +195,8 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 		price = markup.selling_price(cost, percent, values["price_rounding"], values["vat_rate"], including_vat)
 		return price_text(price, currency)
 
+	# the shop's own window for "new" (Webshop Settings; 0 = no tag): a product published within it carries the tag
+	new_since = getdate(add_days(nowdate(), -cint(settings.get("catalogue_new_days")))) if cint(settings.get("catalogue_new_days")) else None
 	inherited = _inherited_pictures(rows)
 	# the texts a visitor of the site reads in the chosen language; a product with none keeps its source text
 	translated = languages.texts([row.name for row in rows], options.get("language") or "")
@@ -222,6 +227,10 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 			choices=choices,
 			# a used or refurbished unit says so on its card; a new one says nothing
 			condition=row.get("item_condition") if is_second_hand(row.get("item_condition")) else "",
+			# a used unit is its own item, created recently as a rule: its own tag says what it is, not "new"
+			is_new=bool(
+				new_since and row.get("creation") and getdate(row.creation) >= new_since and not is_second_hand(row.get("item_condition"))
+			),
 		)
 		group = _plain(row.item_group)
 		if not sections or sections[-1].title != group:
@@ -231,6 +240,15 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 			progress("pictures", index + 1, len(rows))
 
 	valid = _("Prices valid on {0}").format(formatdate(nowdate()))
+	order_form = None
+	if options.get("order_form"):
+		# the QR leads to the reseller's own website, never to the shop that supplies them: the page is theirs
+		website = _website_address(values.get("contact_website"))
+		order_form = frappe._dict(
+			title=_("Order form"),
+			qr=qr.qr_data_uri(website) if website else None,
+			caption=_("Scan to visit {0}").format(values.get("contact_website")) if website else "",
+		)
 	return frappe._dict(
 		lang=frappe.local.lang or "en",
 		title=title,
@@ -240,5 +258,6 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 		price_note=f"{valid} · {_('Including VAT') if including_vat else _('Excluding VAT')}" if with_prices else "",
 		layout=options["layout"],
 		sections=sections,
+		order_form=order_form,
 		product_count=len(rows),
 	)

@@ -4,8 +4,8 @@ import frappe
 from frappe.model.document import Document
 
 QUEUED, RUNNING, READY, FAILED = "Queued", "Running", "Ready", "Failed"
-PDF, XLSX, CSV = "PDF", "XLSX", "CSV"
-FORMATS = (PDF, XLSX, CSV)
+PDF, XLSX, CSV, SHOPIFY = "PDF", "XLSX", "CSV", "SHOPIFY"
+FORMATS = (PDF, XLSX, CSV, SHOPIFY)
 
 
 class ResellerCatalogue(Document):

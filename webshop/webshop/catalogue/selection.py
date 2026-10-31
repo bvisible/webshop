@@ -36,6 +36,7 @@ FIELDS = [
 	"has_variants",
 	"variant_of",
 	"route",
+	"creation",  # a product published in the last days of the shop's window is a new arrival (lot 5g)
 ]
 
 

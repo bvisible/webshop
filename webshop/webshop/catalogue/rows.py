@@ -34,6 +34,8 @@ from webshop.webshop.seo.text import html_to_text
 from webshop.webshop.utils import customer_pricing
 
 PRICE_MODES = ("customers", "tariff", "both", "none")
+# a Shopify product needs a selling price; what they pay goes to its "Cost per item", which is their own column
+SHOPIFY_PRICE_MODES = ("customers", "both")
 FEED_PRICE_MODES = ("customers", "none")
 MAX_ROWS = 5000  # lines: about two minutes of prices, the long queue's worker is shared
 MAX_DESCRIPTION = 2000
@@ -282,6 +284,8 @@ def build_rows(customer, payload, clean_selection, options, progress=None, inclu
 			"mpn": identifier.get("mpn", ""),
 			"unit": (items.get(code) and items[code].stock_uom) or "",
 			"attributes": attributes.get(code, {}),
+			# the title a Shopify product carries for all its variants; no column of the other files
+			"model_name": _plain(say(model, "web_item_name") or model.get("item_name") or "") if model_code else "",
 		}
 		if mode != "none":
 			line["currency"] = currency

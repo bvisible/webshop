@@ -78,6 +78,7 @@ h2 {
 .brand { font-size: 6.8pt; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .name { font-weight: 700; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .state { display: inline-block; margin-top: .6mm; padding: .1mm 1.4mm; border: .25mm solid var(--muted); border-radius: 1mm; color: var(--muted); font-size: 6.8pt; text-transform: uppercase; letter-spacing: .06em; }
+.state.fresh { border-color: var(--brand); color: var(--brand); }
 .ref { color: var(--faint); font-size: 7.5pt; margin-top: .5mm; overflow-wrap: anywhere; }
 .desc { color: var(--muted); font-size: 8pt; margin-top: 1mm; }
 .buy { margin-top: 1.5mm; }
@@ -92,5 +93,27 @@ h2 {
 .layout-list .pic { width: 24mm; }
 .layout-list .info { margin: 0; }
 .layout-list .buy { margin: 0; text-align: right; }
+
+/* --- the order form that closes the catalogue ---------------------------------------------------- */
+.order { break-before: page; }
+.order h2 { margin-top: 0; }
+.order-head { display: grid; grid-template-columns: 1fr 50mm; gap: 8mm; margin: 4mm 0 6mm; align-items: start; }
+.order .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 1mm 6mm; }
+.order .field { border-bottom: .25mm solid var(--muted); min-height: 9mm; padding-top: 1.2mm; color: var(--muted); font-size: 7.5pt; }
+.order .field.wide { grid-column: 1 / -1; }
+.order .send { color: var(--muted); font-size: 8pt; line-height: 1.5; }
+.order .send .to { color: var(--ink); font-weight: 700; margin-bottom: .6mm; }
+.order .send img { display: block; width: 22mm; height: 22mm; margin-top: 2.5mm; }
+.order .send .cap { font-size: 6.8pt; color: var(--faint); max-width: 46mm; overflow-wrap: anywhere; }
+table.lines { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+.lines th { text-align: left; padding: 1.4mm 2mm; color: var(--muted); font-size: 7pt; text-transform: uppercase; letter-spacing: .06em; border-bottom: .4mm solid var(--brand); }
+.lines td { padding: 0 2mm; height: 8mm; border-bottom: .2mm solid var(--line); vertical-align: middle; }
+.lines tr { break-inside: avoid; }
+.lines tr.sec th { background: var(--soft); color: var(--brand); font-size: 8.5pt; text-transform: none; letter-spacing: 0; border-bottom: .2mm solid var(--line); }
+.lines td.ref { color: var(--faint); font-size: 7.5pt; width: 30mm; overflow-wrap: anywhere; }
+.lines .r { text-align: right; white-space: nowrap; }
+.lines small { color: var(--muted); font-size: 7pt; }
+.lines .q { width: 24mm; border-left: .2mm solid var(--line); }
+.lines .t { width: 24mm; border-left: .2mm solid var(--line); }
 
 .credit { margin-top: 10mm; color: var(--muted); font-size: 8pt; break-inside: avoid; }

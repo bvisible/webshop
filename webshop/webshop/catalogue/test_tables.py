@@ -134,6 +134,90 @@ class TestJson(unittest.TestCase):
 		self.assertNotIn("purchase_price", text)
 
 
+class TestShopify(unittest.TestCase):
+	def read(self, lines, prices="customers"):
+		content = tables.shopify_bytes(data(lines, prices))
+		return list(csv.DictReader(io.StringIO(content.decode("utf-8"), newline="")))
+
+	def variants(self):
+		model = dict(model="SKU-0", model_name="Trail shoe", name="Trail shoe 42 Red")
+		return [
+			line(code="SKU-1", attributes={"Size": "42", "Colour": "Red"}, price=62.4, purchase_price=48.0, ean="4006381333931", **model),
+			line(code="SKU-2", attributes={"Size": "43", "Colour": "Red"}, price=64.9, purchase_price=50.0, ean="", image="https://shop.example/files/d.jpg", **model),
+		]
+
+	def test_the_header_is_the_words_shopify_matches_on(self):
+		content = tables.shopify_bytes(data([line()]))
+		header = next(csv.reader(io.StringIO(content.decode("utf-8"), newline="")))
+		self.assertEqual(header, tables.SHOPIFY_COLUMNS)
+		for needed in ("Handle", "Title", "Variant SKU", "Variant Price", "Image Src", "Option1 Name", "Cost per item", "Status"):
+			self.assertIn(needed, header)
+		self.assertTrue(content.endswith(b"\r\n") and not content.startswith(b"\xef\xbb\xbf"))
+
+	def test_a_plain_product_is_one_product_with_the_default_title_option(self):
+		first, *images = self.read([line()])
+		self.assertEqual((first["Handle"], first["Title"], first["Variant SKU"]), ("trail-shoe", "Trail shoe", "SKU-1"))
+		self.assertEqual((first["Option1 Name"], first["Option1 Value"]), ("Title", "Default Title"))
+		self.assertEqual((first["Vendor"], first["Type"], first["Tags"]), ("Alpine", "Trail", "Shoes, Trail"))
+		self.assertEqual((first["Published"], first["Status"], first["Gift Card"]), ("TRUE", "active", "FALSE"))
+		self.assertEqual(first["Body (HTML)"], "<p>Light.\nSecond line, with a comma.</p>")
+		self.assertEqual((first["Variant Price"], first["Variant Barcode"]), ("104.00", "4006381333931"))
+		self.assertEqual((first["Variant Inventory Tracker"], first["Variant Inventory Qty"]), ("", ""), "no stock is tracked")
+
+	def test_the_variants_of_a_model_are_the_lines_of_one_product(self):
+		table = self.read(self.variants())
+		variants = [row for row in table if row["Variant SKU"]]
+		self.assertEqual(len(variants), 2)
+		self.assertEqual({row["Handle"] for row in table}, {"trail-shoe"}, "one product, one handle")
+		self.assertEqual(variants[0]["Title"], "Trail shoe", "the model's title, not the first variant's")
+		self.assertEqual(variants[1]["Title"], "", "a variant's line carries nothing of the product")
+		self.assertEqual((variants[0]["Option1 Name"], variants[0]["Option2 Name"]), ("Size", "Colour"))
+		self.assertEqual((variants[1]["Option1 Name"], variants[1]["Option1 Value"], variants[1]["Option2 Value"]), ("", "43", "Red"))
+
+	def test_pictures_are_rows_of_their_own_in_order_without_a_repeat(self):
+		table = self.read(self.variants())
+		pictures = [(row["Image Position"], row["Image Src"]) for row in table if row["Image Src"]]
+		self.assertEqual(pictures[0], ("1", "https://shop.example/files/a.jpg"))
+		urls = [url for _position, url in pictures]
+		self.assertEqual(len(urls), len(set(urls)))
+		self.assertEqual([position for position, _url in pictures], [str(number) for number in range(1, len(pictures) + 1)])
+		self.assertIn("https://shop.example/files/d.jpg", urls, "a variant's own picture is a picture of the product")
+
+	def test_the_selling_price_is_the_price_and_what_they_pay_is_the_cost(self):
+		table = [row for row in self.read(self.variants(), "both") if row["Variant SKU"]]
+		self.assertEqual([(row["Variant Price"], row["Cost per item"]) for row in table], [("62.40", "48.00"), ("64.90", "50.00")])
+		only = [row for row in self.read([line()]) if row["Variant SKU"]]
+		self.assertEqual(only[0]["Cost per item"], "", "a file made for the customers has no cost")
+
+	def test_a_line_with_no_selling_price_is_left_out(self):
+		table = self.read([line(), line(code="SKU-9", name="No price", price=None)])
+		self.assertEqual([row["Variant SKU"] for row in table if row["Variant SKU"]], ["SKU-1"])
+
+	def test_two_products_with_one_title_get_two_handles(self):
+		table = self.read([line(), line(code="SKU-2", price=90.0)])
+		handles = [row["Handle"] for row in table if row["Variant SKU"]]
+		self.assertEqual(len(set(handles)), 2)
+		self.assertTrue(all(handle == tables.shopify_handle(handle) for handle in handles))
+
+	def test_a_handle_is_ascii_lower_case_digits_and_hyphens(self):
+		self.assertEqual(tables.shopify_handle("Chaussure d'été à lacets!"), "chaussure-d-ete-a-lacets")
+		self.assertEqual(tables.shopify_handle("  --  "), "product")
+		self.assertEqual(tables.shopify_handle("<b>X</b> 2"), "b-x-b-2")
+
+	def test_more_than_three_options_share_the_third(self):
+		many = [line(code="V1", model="M", model_name="Shoe", attributes={"A": "1", "B": "2", "C": "3", "D": "4"})]
+		first = self.read(many)[0]
+		self.assertEqual((first["Option3 Name"], first["Option3 Value"]), ("C / D", "3 / 4"))
+
+	def test_what_a_person_typed_is_escaped_in_the_body_and_a_formula_stays_text(self):
+		first = self.read([line(description="<script>alert(1)</script> & more", name="=1+1")])[0]
+		self.assertEqual(first["Body (HTML)"], "<p>&lt;script&gt;alert(1)&lt;/script&gt; &amp; more</p>")
+		self.assertEqual(first["Title"], "=1+1", "the file is for another system: the title is as it was written")
+
+	def test_a_file_with_no_line_is_just_the_header(self):
+		self.assertEqual(self.read([]), [])
+
+
 class TestExcel(unittest.TestCase):
 	LABELS = {
 		"columns": {key: key.replace("_", " ").title() for key in rows.columns_for("both")},

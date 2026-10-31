@@ -17,8 +17,11 @@ stock", "Yes").
 """
 
 import csv
+import html
 import io
 import json
+import re
+import unicodedata
 
 from openpyxl import Workbook
 from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
@@ -83,6 +86,133 @@ def json_bytes(data, generated_on=None):
 		"products": products,
 	}
 	return json.dumps(document, ensure_ascii=False, indent=1).encode("utf-8")
+
+
+# --- Shopify ------------------------------------------------------------------------------------
+# The columns of Shopify's product import (a subset of its template: the importer reads what it finds). Not the machine
+# names of the other files: Shopify matches on these exact words.
+SHOPIFY_COLUMNS = [
+	"Handle", "Title", "Body (HTML)", "Vendor", "Product Category", "Type", "Tags", "Published",
+	"Option1 Name", "Option1 Value", "Option2 Name", "Option2 Value", "Option3 Name", "Option3 Value",
+	"Variant SKU", "Variant Grams", "Variant Inventory Tracker", "Variant Inventory Qty", "Variant Inventory Policy",
+	"Variant Fulfillment Service", "Variant Price", "Variant Compare At Price", "Variant Requires Shipping",
+	"Variant Taxable", "Variant Barcode", "Image Src", "Image Position", "Image Alt Text", "Gift Card", "SEO Title",
+	"SEO Description", "Variant Image", "Variant Weight Unit", "Cost per item", "Status",
+]  # fmt: skip
+SHOPIFY_OPTIONS = 3  # a Shopify product has at most three options
+SHOPIFY_IMAGES = 10
+
+
+def shopify_handle(text):
+	"""A Shopify handle: lower-case letters, digits and hyphens, from a title that may carry accents."""
+	ascii_text = unicodedata.normalize("NFKD", text or "").encode("ascii", "ignore").decode()
+	return re.sub(r"[^a-z0-9]+", "-", ascii_text.lower()).strip("-") or "product"
+
+
+def _shopify_options(lines):
+	"""[(name, [value of each line])] of at most three options: what a model's variants are told apart by. Past the
+	third, the others share it ("Size / Fit"), so that nothing a customer chooses by is lost."""
+	names = []
+	for line in lines:
+		for name in line.get("attributes") or {}:
+			if name not in names:
+				names.append(name)
+	if not names:
+		return [("Title", ["Default Title"] * len(lines))]
+	kept = names[: SHOPIFY_OPTIONS - 1]
+	options = [(name, [(line.get("attributes") or {}).get(name, "") for line in lines]) for name in kept]
+	rest = names[SHOPIFY_OPTIONS - 1 :]
+	options.append(
+		(
+			" / ".join(rest),
+			[" / ".join(str((line.get("attributes") or {}).get(name, "")) for name in rest) for line in lines],
+		)
+	)
+	return options
+
+
+def shopify_bytes(data):
+	"""A Shopify product import file: one product for a model with its variants as lines under it, or for a plain product.
+
+	The same lines as the other files (`rows.build_rows`, in the mode `customers` or `both`): a variant's price is the
+	reseller's selling price, and what they pay goes to Shopify's own "Cost per item" column. **A line with no selling
+	price is left out**: Shopify refuses a variant with no price, and a price of 0 would sell it for nothing.
+	Stock is not tracked (the shop does not tell a quantity to a file). Not tested against a live import."""
+	groups, order = {}, []
+	for line in data.rows:
+		if line.get("price") is None:
+			continue
+		key = line.get("model") or line["code"]
+		if key not in groups:
+			groups[key] = []
+			order.append(key)
+		groups[key].append(line)
+
+	out = io.StringIO(newline="")
+	writer = csv.DictWriter(out, fieldnames=SHOPIFY_COLUMNS, lineterminator="\r\n", restval="")
+	writer.writeheader()
+	handles = set()
+	for key in order:
+		lines = groups[key]
+		first = lines[0]
+		title = first.get("model_name") or first["name"]
+		handle = shopify_handle(title)
+		if handle in handles:
+			handle = shopify_handle(f"{title} {key}")
+		base, number = handle, 2
+		while handle in handles:
+			handle, number = f"{base}-{number}", number + 1
+		handles.add(handle)
+
+		options = _shopify_options(lines)
+		images = []
+		for url in [line.get("image") for line in lines] + list(first.get("more_images") or []):
+			if url and url not in images:
+				images.append(url)
+		images = images[:SHOPIFY_IMAGES]
+		path = [part for part in (first.get("category") or "").split(" > ") if part]
+		for index, line in enumerate(lines):
+			row = {"Handle": handle}
+			if index == 0:
+				row.update(
+					{
+						"Title": title,
+						"Body (HTML)": f"<p>{html.escape(first.get('description') or '')}</p>" if first.get("description") else "",
+						"Vendor": first.get("brand") or "",
+						"Type": path[-1] if path else "",
+						"Tags": ", ".join(path),
+						"Published": "TRUE",
+						"Gift Card": "FALSE",
+						"SEO Title": title,
+						"Status": "active",
+						"Image Src": images[0] if images else "",
+						"Image Position": 1 if images else "",
+						"Image Alt Text": title if images else "",
+					}
+				)
+			for number, (name, values) in enumerate(options, start=1):
+				if index == 0:
+					row[f"Option{number} Name"] = name
+				row[f"Option{number} Value"] = values[index]
+			row.update(
+				{
+					"Variant SKU": line["code"],
+					"Variant Grams": 0,
+					"Variant Inventory Policy": "deny",
+					"Variant Fulfillment Service": "manual",
+					"Variant Price": amount_text(line["price"]),
+					"Variant Requires Shipping": "TRUE",
+					"Variant Taxable": "TRUE",
+					"Variant Barcode": line.get("ean") or "",
+					"Variant Weight Unit": "kg",
+					"Cost per item": amount_text(line["purchase_price"]) if line.get("purchase_price") is not None else "",
+				}
+			)
+			writer.writerow(row)
+		# the other pictures are rows of their own under the product, in Shopify's way
+		for position, url in enumerate(images[1:], start=2):
+			writer.writerow({"Handle": handle, "Image Src": url, "Image Position": position, "Image Alt Text": title})
+	return out.getvalue().encode("utf-8")
 
 
 def _sheet_text(text):

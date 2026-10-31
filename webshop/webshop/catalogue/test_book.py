@@ -52,6 +52,15 @@ class TestOptions(unittest.TestCase):
 				book.clean_options({"quality": refused}, 25)
 			self.assertEqual((caught.exception.field, caught.exception.reason), ("quality", "not_allowed"))
 
+	def test_an_order_form_is_kept_only_when_it_is_asked_for(self):
+		for asked in (True, 1, "1", "true"):
+			with self.subTest(asked=asked):
+				self.assertIs(book.clean_options({"order_form": asked}, 25)["order_form"], True)
+		for not_asked in (None, False, 0, "0", "", "no", "false"):
+			with self.subTest(not_asked=not_asked):
+				self.assertNotIn("order_form", book.clean_options({"order_form": not_asked}, 25))
+		self.assertNotIn("order_form", book.clean_options({}, 25))
+
 	def test_what_is_chosen_is_kept_when_it_is_allowed(self):
 		clean = book.clean_options({"markup_percent": "40.5", "prices": "none", "layout": "list"}, 0)
 		self.assertEqual(clean, {"markup_percent": 40.5, "prices": "none", "layout": "list"})
@@ -249,6 +258,116 @@ class TestTheBook(FrappeTestCase):
 		self.assertEqual(products[shop.FIRST].condition, "Second-hand")
 		self.assertEqual(products[shop.SECOND].condition, "")
 		self.assertEqual(html.count('class="state"'), 1, "one card, the used one")
+
+	# --- the order form ----------------------------------------------------------------------------
+
+	def test_a_catalogue_without_an_order_form_has_none(self):
+		data = self.make()
+		self.assertIsNone(data.order_form)
+		html = book_pdf.render_html(data)
+		self.assertNotIn("order-form", html)
+		self.assertNotIn('class="order"', html)
+
+	def test_an_order_form_closes_the_catalogue_with_every_product_a_blank_quantity_and_the_resellers_details(self):
+		data = self.make({"item_groups": [shop.PARENT_GROUP, shop.OTHER_GROUP]}, {"order_form": True})
+		self.assertEqual(data.order_form.title, "Order form")
+		html = book_pdf.render_html(data)
+		form = html.split('<section class="order">')[1]
+		self.assertEqual(form.count('<td class="q"></td>'), data.product_count, "a blank quantity for each product")
+		for reference in self.products(data):
+			self.assertIn(f'<td class="ref">{reference}</td>', form)
+		self.assertIn("orders@alpine.example", form, "who the form goes back to")
+		self.assertIn(self.selling(80), form, "the selling price is on the form")
+		self.assertEqual(form.count('<td class="r t"></td>'), data.product_count, "and a blank total")
+
+	def test_the_order_form_never_carries_what_the_reseller_pays_or_the_shops_price(self):
+		data = self.make({"item_groups": [shop.PARENT_GROUP, shop.OTHER_GROUP], "items": [shop.MODEL]}, {"order_form": True})
+		form = book_pdf.render_html(data).split('<section class="order">')[1]
+		for number in ("80.00", "40.00", "30.00", "48.00", "72.00", "100.00", "50.00", "60.00", "90.00"):
+			with self.subTest(number=number):
+				self.assertNotIn(number, form)
+
+	def test_the_order_form_of_a_catalogue_without_prices_has_no_price_or_total_column(self):
+		data = self.make({"item_groups": [shop.PARENT_GROUP]}, {"order_form": True, "prices": "none"})
+		form = book_pdf.render_html(data).split('<section class="order">')[1]
+		self.assertNotIn('class="r"', form)
+		self.assertNotIn('class="r t"', form)
+		self.assertNotIn("Total", form)
+		self.assertEqual(form.count('<td class="q"></td>'), data.product_count)
+
+	def test_the_qr_of_the_order_form_leads_to_the_resellers_own_site_and_only_when_they_have_one(self):
+		self.assertIsNone(self.make({"item_groups": [shop.PARENT_GROUP]}, {"order_form": True}).order_form.qr)
+		answer = brand_api.save_my_brand({"contact_website": "alpine.example"})
+		self.assertTrue(answer["ok"], answer)
+		self.payload = brand_api._payload(shop.CUSTOMER)
+		data = self.make({"item_groups": [shop.PARENT_GROUP]}, {"order_form": True})
+		self.assertTrue(data.order_form.qr.startswith("data:image/"))
+		self.assertIn("alpine.example", data.order_form.caption)
+		with mock.patch.object(book.qr, "qr_data_uri", return_value="data:image/png;base64,AA") as made:
+			book.build_book(shop.CUSTOMER, self.payload, "", "t", selection.clean_selection({"item_groups": [shop.PARENT_GROUP]}), {**OPTIONS, "order_form": True})
+		made.assert_called_once_with("https://alpine.example")
+
+	def test_the_contents_lists_the_order_form_with_its_page_after_the_sections(self):
+		data = self.make({"item_groups": [shop.PARENT_GROUP, shop.OTHER_GROUP]}, {"order_form": True})
+		count = len(data.sections)
+		self.assertIn("000", book_pdf.render_html(data).split('<section class="toc">')[1].split("</section>")[0])
+		pages = list(range(3, 3 + count)) + [9]
+		toc = book_pdf.render_html(data, numbers=pages).split('<section class="toc">')[1].split("</section>")[0]
+		self.assertIn('<a href="#order-form"><span class="t">Order form</span>', toc)
+		self.assertIn('<span class="n">9</span>', toc)
+		self.assertEqual(toc.count('class="n"'), count + 1)
+
+	def test_the_order_form_is_the_last_bookmark_and_the_contents_says_on_which_page_it_is(self):
+		data = self.make({"item_groups": [shop.PARENT_GROUP]}, {"order_form": True})
+		pdf, pages = self.pdf(data)
+		texts = self.page_texts(pdf)
+		form_page = next(number for number, text in enumerate(texts, start=1) if number > 2 and "Order form" in text.splitlines())
+		self.assertGreater(form_page, 2)
+		import re
+
+		self.assertRegex(texts[1], re.compile(r"Order form\s+" + str(form_page) + r"(?!\d)"))
+		self.assertIn("orders@alpine.example", texts[form_page - 1])
+
+	# --- the new arrivals ----------------------------------------------------------------------------
+
+	def new_for(self, days, **created):
+		"""The window of Webshop Settings, and the date each product was published (a number of days ago)."""
+		before = frappe.db.get_single_value("Webshop Settings", "catalogue_new_days")
+		frappe.db.set_single_value("Webshop Settings", "catalogue_new_days", days)
+		frappe.clear_document_cache("Webshop Settings", "Webshop Settings")
+		self.addCleanup(lambda: (frappe.db.set_single_value("Webshop Settings", "catalogue_new_days", before or 0), frappe.clear_document_cache("Webshop Settings", "Webshop Settings")))
+		for code, ago in created.items():
+			name = frappe.db.get_value("Website Item", {"item_code": code}, "name")
+			previous = frappe.db.get_value("Website Item", name, "creation")
+			frappe.db.set_value("Website Item", name, "creation", frappe.utils.add_days(frappe.utils.now_datetime(), -ago), update_modified=False)
+			self.addCleanup(frappe.db.set_value, "Website Item", name, "creation", previous, update_modified=False)
+
+	def test_a_product_published_in_the_shops_window_is_a_new_arrival_and_the_others_are_not(self):
+		self.new_for(30, **{shop.FIRST: 2, shop.SECOND: 100})
+		data = self.make({"item_groups": [shop.PARENT_GROUP]})
+		products = self.products(data)
+		self.assertTrue(products[shop.FIRST].is_new)
+		self.assertFalse(products[shop.SECOND].is_new)
+		fresh = [code for code, product in products.items() if product.is_new]
+		self.assertIn(shop.FIRST, fresh)
+		self.assertEqual(book_pdf.render_html(data).count('class="state fresh"'), len(fresh), "a tag for each one, and only for them")
+
+	def test_with_no_window_nothing_is_a_new_arrival(self):
+		self.new_for(0, **{shop.FIRST: 1})
+		data = self.make({"item_groups": [shop.PARENT_GROUP]})
+		self.assertFalse(any(product.is_new for product in self.products(data).values()))
+		self.assertNotIn('class="state fresh"', book_pdf.render_html(data))
+
+	def test_a_used_unit_is_not_called_a_new_arrival(self):
+		self.new_for(30, **{shop.FIRST: 1})
+		first = frappe.db.get_value("Website Item", {"item_code": shop.FIRST}, "name")
+		frappe.db.set_value("Website Item", first, "item_condition", "Second-hand", update_modified=False)
+		try:
+			product = self.products(self.make({"item_groups": [shop.PARENT_GROUP]}))[shop.FIRST]
+		finally:
+			frappe.db.set_value("Website Item", first, "item_condition", "New", update_modified=False)
+		self.assertEqual(product.condition, "Second-hand")
+		self.assertFalse(product.is_new)
 
 	def mark_up(self, *rules):
 		answer = brand_api.save_my_brand(

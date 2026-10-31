@@ -90,6 +90,8 @@ def section_pages(entries, cover_title, titles):
 def make_pdf(book, progress=None):
 	"""(the PDF, its page count). `progress(stage, done, total)` is told "render" 1 of 2, then 2 of 2."""
 	titles = [section.title for section in book.sections]
+	if book.order_form:
+		titles.append(book.order_form.title)  # the form closes the contents, with its own page number
 	first = render_pdf(render_html(book))
 	if progress:
 		progress("render", 1, 2)

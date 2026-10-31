@@ -12,16 +12,17 @@
 	const L = JSON.parse(configNode.textContent).labels;
 	const API = "webshop.webshop.catalogue.catalogue_api.";
 	const FEED_API = "webshop.webshop.catalogue.feed_api.";
-	const FORMATS = ["pdf", "xlsx", "csv", "feed"];
+	const FORMATS = ["pdf", "xlsx", "csv", "shopify", "feed"];
 	// the price modes each format offers, and the label of each
 	const PRICES = {
 		pdf: [["customers", "prices_customers"], ["none", "prices_none"]],
 		xlsx: [["customers", "prices_selling"], ["tariff", "prices_tariff"], ["both", "prices_both"], ["none", "prices_none"]],
 		csv: [["customers", "prices_selling"], ["tariff", "prices_tariff"], ["both", "prices_both"], ["none", "prices_none"]],
+		shopify: [["customers", "prices_selling"], ["both", "prices_both"]],
 		feed: [["customers", "prices_selling"], ["none", "prices_none"]],
 	};
 	const POLL_MS = 2000;
-	const FORMAT_NAMES = { PDF: "PDF", XLSX: "Excel", CSV: "CSV" };
+	const FORMAT_NAMES = { PDF: "PDF", XLSX: "Excel", CSV: "CSV", SHOPIFY: "Shopify" };
 	const $ = (id) => document.getElementById(id);
 	const form = $("wsp-cat-form");
 
@@ -76,6 +77,7 @@
 		$("wsp-cat-title-row").classList.toggle("d-none", kind === "feed");
 		$("wsp-cat-layout-col").classList.toggle("d-none", kind !== "pdf");
 		$("wsp-cat-quality-col").classList.toggle("d-none", kind !== "pdf");
+		$("wsp-cat-order-form-col").classList.toggle("d-none", kind !== "pdf");
 		const prices = $("wsp-cat-prices");
 		const kept = prices.value;
 		prices.textContent = "";
@@ -586,6 +588,7 @@
 		if (kind === "pdf") {
 			options.layout = $("wsp-cat-layout").value;
 			if ($("wsp-cat-quality").value !== "standard") options.quality = $("wsp-cat-quality").value;
+			if ($("wsp-cat-order-form").checked) options.order_form = 1;
 		}
 		if ($("wsp-cat-language").value) options.language = $("wsp-cat-language").value;
 		const request =

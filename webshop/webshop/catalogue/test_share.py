@@ -92,6 +92,12 @@ class TestShare(FrappeTestCase):
 
 	# --- what may be shared ------------------------------------------------------------------
 
+	def test_a_shopify_file_follows_the_same_rule_and_is_served_as_a_csv(self):
+		_name, token = self.shared(fmt="shopify")
+		self.assertEqual(self.read(token).mimetype, "text/csv")
+		answer = catalogue_api.share_catalogue(name=self.made(prices="both", fmt="shopify"))
+		self.assertFalse(answer["ok"], "a Shopify file with their cost is theirs alone")
+
 	def test_a_file_with_the_selling_prices_or_none_may_have_a_link_and_the_price_they_pay_never_may(self):
 		for prices, allowed in (("customers", True), ("none", True), ("tariff", False), ("both", False)):
 			with self.subTest(prices=prices):

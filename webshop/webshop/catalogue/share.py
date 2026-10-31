@@ -29,8 +29,7 @@ from werkzeug.wrappers import Response
 
 from webshop.webshop.assistant.escalation import single_email
 from webshop.webshop.catalogue import access, feed, jobs
-from webshop.webshop.catalogue.sheet_api import _filename
-from webshop.webshop.doctype.reseller_catalogue.reseller_catalogue import CSV, PDF, READY, XLSX
+from webshop.webshop.doctype.reseller_catalogue.reseller_catalogue import CSV, PDF, READY, SHOPIFY, XLSX
 from webshop.webshop.multi_site import site_url
 from webshop.webshop.utils import throttle
 
@@ -49,6 +48,7 @@ MIMETYPES = {
 	PDF: "application/pdf",
 	XLSX: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 	CSV: "text/csv",
+	SHOPIFY: "text/csv",
 }
 
 
@@ -167,7 +167,7 @@ class ShareRenderer(BaseRenderer):
 		fmt = row.format or PDF
 		response = Response(content, content_type=MIMETYPES[fmt])
 		disposition = "inline" if fmt == PDF else "attachment"
-		response.headers["Content-Disposition"] = f'{disposition}; filename="{_filename(row.title, jobs.EXTENSIONS[fmt], "catalogue")}"'
+		response.headers["Content-Disposition"] = f'{disposition}; filename="{jobs.download_name(row.title, fmt)}"'
 		response.headers["Cache-Control"] = "private, max-age=300"
 		response.headers["X-Robots-Tag"] = "noindex, nofollow"
 		self.record_open(row.name)

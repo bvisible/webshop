@@ -197,6 +197,7 @@
   "reseller_catalogue_groups",
   "enable_partner_api",
   "catalogue_credit_text",
+  "catalogue_new_days",
   "tab_advanced",
   "sitemap_section",
   "sitemap_info",
@@ -1536,6 +1537,14 @@
    "label": "Credit Line on Reseller Catalogues",
    "depends_on": "enable_reseller_catalogue",
    "description": "Printed on every catalogue a reseller makes, and the reseller cannot remove it. Leave empty for none: the catalogue is then entirely the reseller's own."
+  },
+  {
+   "fieldname": "catalogue_new_days",
+   "fieldtype": "Int",
+   "label": "Days a Product Is a New Arrival on Reseller Catalogues",
+   "default": "0",
+   "depends_on": "enable_reseller_catalogue",
+   "description": "A product published on the shop in the last days carries a New arrival tag on the catalogues the resellers make. 0, the default: no tag."
   },
   {
    "default": "0",
