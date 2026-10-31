@@ -75,6 +75,8 @@ def options_message(field, reason):
 		("prices", "not_allowed"): _("Choose which prices to show from the list."),
 		("layout", "not_allowed"): _("Choose a layout from the list."),
 		("format", "not_allowed"): _("Choose a format from the list."),
+		("language", "bad_language"): _("Choose a language from the list."),
+		("language", "not_offered"): _("The shop does not offer this language."),
 	}
 	return messages.get((field, reason), _("This option is not valid."))
 

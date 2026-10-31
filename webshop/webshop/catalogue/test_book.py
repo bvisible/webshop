@@ -18,6 +18,7 @@ from frappe.tests.utils import FrappeTestCase
 
 from webshop.webshop.catalogue import access, book, book_pdf, selection
 from webshop.webshop.catalogue import api as brand_api
+from webshop.webshop.catalogue import languages
 from webshop.webshop.catalogue import fixtures as shop
 from webshop.webshop.catalogue.pdf import chromium_available
 from webshop.webshop.catalogue.sheet import price_text
@@ -31,6 +32,15 @@ class TestOptions(unittest.TestCase):
 		self.assertEqual(book.clean_options({}, 25), {"markup_percent": 25.0, "prices": "customers", "layout": "grid"})
 		self.assertEqual(book.clean_options(None, 12.5)["markup_percent"], 12.5)
 		self.assertEqual(book.clean_options({"markup_percent": ""}, 7)["markup_percent"], 7.0)
+
+	def test_a_language_is_kept_when_it_is_a_code_and_the_options_are_unchanged_without_one(self):
+		self.assertEqual(
+			book.clean_options({"language": "de"}, 25), {"markup_percent": 25.0, "prices": "customers", "layout": "grid", "language": "de"}
+		)
+		self.assertNotIn("language", book.clean_options({"language": ""}, 25))
+		with self.assertRaises(book.OptionsRefused) as caught:
+			book.clean_options({"language": "Deutsch"}, 25)
+		self.assertEqual((caught.exception.field, caught.exception.reason), ("language", "bad_language"))
 
 	def test_what_is_chosen_is_kept_when_it_is_allowed(self):
 		clean = book.clean_options({"markup_percent": "40.5", "prices": "none", "layout": "list"}, 0)
@@ -184,6 +194,23 @@ class TestTheBook(FrappeTestCase):
 	def test_the_markup_of_the_catalogue_is_the_one_asked_for(self):
 		products = self.products(self.make(options={"markup_percent": 10}))
 		self.assertEqual(products[shop.FIRST].price, self.selling(80, 10))
+
+	def test_a_catalogue_in_a_language_prints_the_translated_names_and_descriptions(self):
+		def translations(*entries):
+			return [
+				{"ref_name": frappe.db.get_value("Website Item", {"item_code": code}, "name"), "fieldname": field, "text": text, "human": True}
+				for code, field, text in entries
+			]
+
+		found = translations((shop.FIRST, "web_item_name", "Wanderschuh"), (shop.FIRST, "short_description", "Leicht und stark."))
+		with mock.patch.object(languages.localized, "translation_rows", return_value=found):
+			products = self.products(self.make(options={"language": "de"}))
+		self.assertEqual(products[shop.FIRST].name, "Wanderschuh")
+		self.assertEqual(products[shop.FIRST].description, "Leicht und stark.")
+		source = self.products(self.make())
+		self.assertNotEqual(source[shop.FIRST].name, "Wanderschuh")
+		self.assertEqual(products[shop.SECOND].name, source[shop.SECOND].name, "a product with no translation keeps its own")
+		self.assertEqual(products[shop.FIRST].price, source[shop.FIRST].price, "and the price is the same")
 
 	def mark_up(self, *rules):
 		answer = brand_api.save_my_brand(

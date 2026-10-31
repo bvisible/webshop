@@ -221,6 +221,20 @@
 			.catch(() => {});
 	}
 
+	// --- the language of the texts (lot 5c) ----------------------------------------------------------
+
+	// Offered only where the shop enabled an additional language: the select is hidden otherwise, and the
+	// choice the reseller made is kept when the state is read again (a catalogue being made refreshes it).
+	function renderLanguages(offered) {
+		const select = $("wsp-cat-language");
+		const kept = select.value;
+		select.textContent = "";
+		select.appendChild(option("", L.language_source));
+		offered.forEach((language) => select.appendChild(option(language.code, language.name)));
+		if (offered.some((language) => language.code === kept)) select.value = kept;
+		$("wsp-cat-language-col").classList.toggle("d-none", !offered.length);
+	}
+
 	// --- a catalogue started from a page of the shop (lot 5b) ---------------------------------------
 
 	// The listing's "Make a catalogue" link carries the category, the brands and the search it shows. Only names the
@@ -339,6 +353,7 @@
 
 	function applyState(next) {
 		state = next;
+		renderLanguages(next.languages || []);
 		const particular = $("wsp-cat-markup-particular");
 		particular.textContent = next.particular_markups ? fmt(L.markup_particular, next.particular_markups) : "";
 		particular.classList.toggle("d-none", !next.particular_markups);
@@ -460,6 +475,7 @@
 		const kind = format();
 		const options = { markup_percent: $("wsp-cat-markup").value, prices: $("wsp-cat-prices").value };
 		if (kind === "pdf") options.layout = $("wsp-cat-layout").value;
+		if ($("wsp-cat-language").value) options.language = $("wsp-cat-language").value;
 		const request =
 			kind === "feed"
 				? call("save_feed", { picked: JSON.stringify(selection()), options: JSON.stringify(options) }, "POST", FEED_API)

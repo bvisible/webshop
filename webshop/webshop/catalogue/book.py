@@ -20,7 +20,7 @@ import frappe
 from frappe import _
 from frappe.utils import formatdate, nowdate, strip_html
 
-from webshop.webshop.catalogue import images, markup, markup_rules, selection
+from webshop.webshop.catalogue import images, languages, markup, markup_rules, selection
 from webshop.webshop.catalogue.sheet import price_text, reseller_issuer
 from webshop.webshop.seo.text import truncate
 from webshop.webshop.utils import customer_pricing
@@ -85,7 +85,14 @@ def clean_options(raw, default_markup):
 	layout = raw.get("layout") or "grid"
 	if layout not in LAYOUTS:
 		raise OptionsRefused("layout", "not_allowed")
-	return {"markup_percent": percent, "prices": prices, "layout": layout}
+	options = {"markup_percent": percent, "prices": prices, "layout": layout}
+	try:
+		language = languages.clean(raw.get("language"))
+	except ValueError:
+		raise OptionsRefused("language", "bad_language") from None
+	if language:
+		options["language"] = language
+	return options
 
 
 def _abbreviation(name):
@@ -93,8 +100,9 @@ def _abbreviation(name):
 	return "".join(word[0] for word in words[:2]).upper() or "?"
 
 
-def _short_text(row):
-	text = strip_html(row.get("short_description") or "")
+def _short_text(row, said=None):
+	"""A card's description; `said` is the translated short description, when a visitor of the site reads one."""
+	text = strip_html((said or row.get("short_description")) or "")
 	return truncate(" ".join(_plain(text).split()), DESCRIPTION_MAX)
 
 
@@ -177,9 +185,12 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 		return price_text(price, currency)
 
 	inherited = _inherited_pictures(rows)
+	# the texts a visitor of the site reads in the chosen language; a product with none keeps its source text
+	translated = languages.texts([row.name for row in rows], options.get("language") or "")
 	sections = []
 	for index, row in enumerate(rows):
-		name = _plain(row.web_item_name or row.item_name or row.item_code)
+		said = translated.get(row.name) or {}
+		name = _plain(said.get("web_item_name") or row.web_item_name or row.item_name or row.item_code)
 		picture_url = row.website_image or inherited.get(row.item_code)
 		picture = None
 		if picture_url:
@@ -195,7 +206,7 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 			reference=row.item_code,
 			picture=picture,
 			abbreviation=_abbreviation(name),
-			description=_short_text(row),
+			description=_short_text(row, said.get("short_description")),
 			price=text if with_prices else None,
 			price_missing=with_prices and text is None,
 			price_from=bool(row.has_variants),

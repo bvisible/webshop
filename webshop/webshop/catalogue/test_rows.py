@@ -17,7 +17,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from PIL import Image
 
-from webshop.webshop.catalogue import access, book, rows, selection
+from webshop.webshop.catalogue import access, book, languages, rows, selection
 from webshop.webshop.catalogue import api as brand_api
 from webshop.webshop.catalogue import fixtures as shop
 from webshop.webshop.seo import availability as stock
@@ -42,6 +42,14 @@ class TestOptions(unittest.TestCase):
 		self.assertEqual(rows.clean_options({}, 25), {"markup_percent": 25.0, "prices": "customers"})
 		self.assertEqual(rows.clean_options(None, 12.5)["markup_percent"], 12.5)
 		self.assertEqual(rows.clean_options({"markup_percent": ""}, 7)["markup_percent"], 7.0)
+
+	def test_a_language_is_kept_when_it_is_a_code_and_the_options_are_unchanged_without_one(self):
+		self.assertEqual(rows.clean_options({"language": "de"}, 25), {"markup_percent": 25.0, "prices": "customers", "language": "de"})
+		self.assertEqual(rows.clean_options({"language": ""}, 25), {"markup_percent": 25.0, "prices": "customers"})
+		for refused in ("German", "de; drop", 5):
+			with self.subTest(value=refused), self.assertRaises(book.OptionsRefused) as caught:
+				rows.clean_options({"language": refused}, 0)
+			self.assertEqual((caught.exception.field, caught.exception.reason), ("language", "bad_language"))
 
 	def test_each_price_mode_is_kept_and_a_layout_is_not_an_option_of_a_file(self):
 		for mode in ("customers", "tariff", "both", "none"):
@@ -253,6 +261,71 @@ class TestTheLines(FrappeTestCase):
 	def test_a_variant_is_priced_on_its_own(self):
 		by_code = self.by_code(self.build({"items": [shop.MODEL]}, prices="customers"))
 		self.assertEqual(sorted(row["price"] for row in by_code.values()), [62.4, 93.6], "48 and 72 on their list, plus 30 %")
+
+	# --- the language of the texts (lot 5c) ---------------------------------------------------------
+
+	def translations(self, *entries):
+		"""What the theme would answer: (item code, field, text) -> rows keyed by the product's Website Item."""
+		names = {code: frappe.db.get_value("Website Item", {"item_code": code}, "name") for code, _field, _text in entries}
+		return [{"ref_name": names[code], "fieldname": field, "text": text, "human": True} for code, field, text in entries]
+
+	def in_german(self, *entries):
+		return mock.patch.object(languages.localized, "translation_rows", return_value=self.translations(*entries))
+
+	def test_a_language_puts_the_translated_name_and_description_in_place_of_the_source_s(self):
+		with self.in_german((shop.FIRST, "web_item_name", "Wanderschuh"), (shop.FIRST, "short_description", "Leicht und stark.")):
+			lines = self.by_code(self.build(prices="customers", language="de"))
+		self.assertEqual(lines[shop.FIRST]["name"], "Wanderschuh")
+		self.assertEqual(lines[shop.FIRST]["description"], "Leicht und stark.")
+
+	def test_a_product_with_no_visible_translation_keeps_its_source_text(self):
+		source = self.by_code(self.build(prices="customers"))
+		with self.in_german((shop.FIRST, "web_item_name", "Wanderschuh")):
+			lines = self.by_code(self.build(prices="customers", language="de"))
+		for code in (shop.SECOND, shop.THIRD):
+			self.assertEqual((lines[code]["name"], lines[code]["description"]), (source[code]["name"], source[code]["description"]))
+		self.assertEqual(lines[shop.FIRST]["description"], source[shop.FIRST]["description"], "only the name was translated")
+
+	def test_no_language_asks_for_nothing_and_changes_nothing(self):
+		with mock.patch.object(languages.localized, "translation_rows") as asked:
+			plain = self.by_code(self.build(prices="customers"))
+		asked.assert_not_called()
+		self.assertNotEqual(plain[shop.FIRST]["name"], "Wanderschuh")
+
+	def test_the_prices_do_not_depend_on_the_language(self):
+		with self.in_german((shop.FIRST, "web_item_name", "Wanderschuh")):
+			german = {code: row["price"] for code, row in self.by_code(self.build(prices="customers", language="de")).items()}
+		self.assertEqual(german, self.prices())
+
+	def test_the_address_of_a_product_is_the_page_in_that_language(self):
+		with self.in_german():
+			lines = self.by_code(self.build(prices="customers", language="de"))
+		self.assertIn("/de/", lines[shop.FIRST]["url"])
+		self.assertNotIn("/de/", self.by_code(self.build(prices="customers"))[shop.FIRST]["url"])
+
+	def test_a_variant_keeps_its_own_name_and_takes_the_translation_of_its_own_page_when_it_has_one(self):
+		# the model's translation is the model's: a variant's name is its own page's, as the shop shows it
+		variants = sorted(frappe.get_all("Item", filters={"variant_of": shop.MODEL}, pluck="name"))
+		source = {row["code"]: row["name"] for row in self.build({"items": [shop.MODEL]}, prices="customers").rows}
+		model_name = frappe.db.get_value("Website Item", {"item_code": shop.MODEL}, "name")
+		found = [{"ref_name": model_name, "fieldname": "web_item_name", "text": "Modell", "human": True}]
+		with mock.patch.object(languages.localized, "translation_rows", return_value=found):
+			lines = {row["code"]: row["name"] for row in self.build({"items": [shop.MODEL]}, prices="customers", language="de").rows}
+		self.assertEqual(lines, source, "nothing named a variant's own page")
+		own = frappe.db.get_value("Website Item", {"item_code": variants[0]}, "name")
+		if own:
+			found = [{"ref_name": own, "fieldname": "web_item_name", "text": "Variante", "human": True}]
+			with mock.patch.object(languages.localized, "translation_rows", return_value=found):
+				lines = {row["code"]: row["name"] for row in self.build({"items": [shop.MODEL]}, prices="customers", language="de").rows}
+			self.assertEqual(lines[variants[0]], "Variante")
+			self.assertEqual(lines[variants[1]], source[variants[1]])
+
+	def test_the_workbook_says_which_language_its_texts_are_in(self):
+		with self.in_german():
+			data = self.build(prices="customers", language="de")
+		self.assertEqual(data.language, "de")
+		self.assertIn("Language of the texts", rows.labels(data)["facts"])
+		self.assertNotIn("Language of the texts", rows.labels(self.build(prices="customers"))["facts"])
 
 	# --- the markups of their own (lot 5) -----------------------------------------------------------
 

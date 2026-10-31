@@ -13,7 +13,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, add_to_date, now_datetime, nowdate
 
-from webshop.webshop.catalogue import access, book, catalogue_api, jobs, selection
+from webshop.webshop.catalogue import access, book, catalogue_api, jobs, languages, selection
 from webshop.webshop.catalogue import api as brand_api
 from webshop.webshop.catalogue import fixtures as shop
 from webshop.webshop.catalogue.pdf import chromium_available
@@ -115,6 +115,30 @@ class TestCatalogueApi(FrappeTestCase):
 		self.assertEqual(catalogue_api.get_catalogues()["particular_markups"], 2)
 		frappe.set_user(shop.OTHER_USER)
 		self.assertEqual(catalogue_api.get_catalogues()["particular_markups"], 0, "another reseller's rules are not counted")
+
+	def test_a_language_is_asked_only_among_those_the_shop_offers(self):
+		options = json.dumps({"layout": "grid", "language": "de"})
+		with mock.patch.object(languages.localized, "site_languages", return_value={}):
+			answer = self.ask(options=options)
+		self.assertFalse(answer["ok"])
+		self.assertEqual(answer["field"], "language")
+		self.assertTrue(answer["message"])
+		with mock.patch.object(languages.localized, "site_languages", return_value={"de": {}}):
+			answer = self.ask(options=options)
+			self.assertTrue(answer["ok"], answer)
+			self.assertEqual(json.loads(frappe.db.get_value(DOCTYPE, self.newest(), "options"))["language"], "de")
+
+	def test_a_language_that_is_not_a_code_is_refused_beside_its_field(self):
+		answer = self.ask(options=json.dumps({"layout": "grid", "language": "German; drop table"}))
+		self.assertFalse(answer["ok"])
+		self.assertEqual(answer["field"], "language")
+
+	def test_the_page_is_told_which_languages_the_shop_offers(self):
+		with mock.patch.object(languages.localized, "site_languages", return_value={"de": {}}):
+			offered = catalogue_api.get_catalogues()["languages"]
+		self.assertEqual([entry["code"] for entry in offered], ["de"])
+		with mock.patch.object(languages.localized, "site_languages", return_value={}):
+			self.assertEqual(catalogue_api.get_catalogues()["languages"], [])
 
 	def test_a_catalogue_needs_a_saved_brand(self):
 		frappe.set_user("Administrator")

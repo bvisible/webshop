@@ -92,11 +92,20 @@ def pin_site(doc):
 	frappe.local.website_profile_doc = frappe.get_doc("Website Profile", profile).as_dict()
 
 
+def speak(options):
+	"""The words a catalogue prints around its products (the cover, the contents, the headers of a workbook) in the
+	language asked for, as far as the shop is translated into it; the rest stays English. A job starts in English and
+	`generate` gave it its owner's language: the catalogue's own language, when it has one, comes after."""
+	if options.get("language"):
+		frappe.local.lang = options["language"]
+
+
 def _make_pdf(doc, payload, clean):
 	"""(content, file name, products, pages) of a PDF catalogue."""
 	if not chromium_available():
 		raise book.CatalogueRefused("no_engine")
 	options = book.clean_options(json.loads(doc.options or "{}"), payload["values"]["default_markup_percent"])
+	speak(options)
 	report = reporter(doc.name)
 	data = book.build_book(doc.customer, payload, payload["credit_line"], doc.title, clean, options, report)
 	pdf, pages = book_pdf.make_pdf(data, report)
@@ -108,6 +117,7 @@ def _make_pdf(doc, payload, clean):
 def _make_table(doc, payload, clean, fmt):
 	"""(content, file name, lines, no pages) of a workbook or a CSV file."""
 	options = rows.clean_options(json.loads(doc.options or "{}"), payload["values"]["default_markup_percent"])
+	speak(options)
 	report = reporter(doc.name, TABLE_STAGES)
 	data = rows.build_rows(doc.customer, payload, clean, options, report)
 	report("file", 0, 1)

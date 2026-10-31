@@ -25,7 +25,7 @@ import frappe
 from frappe import _
 from frappe.utils import formatdate, nowdate
 
-from webshop.webshop.catalogue import book, markup, markup_rules, selection
+from webshop.webshop.catalogue import book, languages, markup, markup_rules, selection
 from webshop.webshop.multi_site import site_url
 from webshop.webshop.seo import availability as stock
 from webshop.webshop.seo import variants as seo_variants
@@ -40,6 +40,7 @@ MAX_DESCRIPTION = 2000
 MAX_MORE_IMAGES = 9
 AVAILABILITY = {stock.IN_STOCK: "in_stock", stock.BACK_ORDER: "backorder", stock.OUT_OF_STOCK: "out_of_stock"}
 DETAIL_FIELDS = [
+	"name",
 	"item_code",
 	"web_item_name",
 	"item_name",
@@ -69,7 +70,14 @@ def clean_options(raw, default_markup, modes=PRICE_MODES):
 	prices = raw.get("prices") or "customers"
 	if prices not in modes:
 		raise book.OptionsRefused("prices", "not_allowed")
-	return {"markup_percent": percent, "prices": prices}
+	options = {"markup_percent": percent, "prices": prices}
+	try:
+		language = languages.clean(raw.get("language"))
+	except ValueError:
+		raise book.OptionsRefused("language", "bad_language") from None
+	if language:
+		options["language"] = language
+	return options
 
 
 def columns_for(prices):
@@ -209,6 +217,13 @@ def build_rows(customer, payload, clean_selection, options, progress=None, inclu
 				for row in frappe.get_all("Website Item", filters={"item_code": ["in", list(absent)]}, fields=DETAIL_FIELDS)
 			}
 		)
+	language = options.get("language") or ""
+	translated = languages.texts([row.get("name") for row in details.values() if row.get("name")], language)
+
+	def say(doc, field):
+		"""A product's text in the chosen language when a visitor of the site reads one, else the source's."""
+		return (translated.get(doc.get("name")) or {}).get(field) or doc.get(field)
+
 	attributes = _attributes(codes)
 	identifiers = bulk_identifiers(codes)
 	available = stock.bulk_availability(codes)
@@ -234,7 +249,7 @@ def build_rows(customer, payload, clean_selection, options, progress=None, inclu
 		detail = details.get(code) or frappe._dict()
 		model_code = (items.get(code) and items[code].variant_of) or detail.get("variant_of") or ""
 		model = details.get(model_code) or frappe._dict()
-		name = _plain(detail.get("web_item_name") or detail.get("item_name") or model.get("web_item_name") or code)
+		name = _plain(say(detail, "web_item_name") or detail.get("item_name") or say(model, "web_item_name") or code)
 		main = _public(detail.get("website_image") or model.get("website_image"))
 		show = detail.get("slideshow") or model.get("slideshow")
 		more = []
@@ -243,10 +258,10 @@ def build_rows(customer, payload, clean_selection, options, progress=None, inclu
 			if url and url != main and url not in more:
 				more.append(url)
 		text = html_to_text(
-			detail.get("web_long_description")
-			or detail.get("short_description")
-			or model.get("web_long_description")
-			or model.get("short_description"),
+			say(detail, "web_long_description")
+			or say(detail, "short_description")
+			or say(model, "web_long_description")
+			or say(model, "short_description"),
 			MAX_DESCRIPTION,
 		)
 		identifier = identifiers.get(code) or {}
@@ -281,7 +296,7 @@ def build_rows(customer, payload, clean_selection, options, progress=None, inclu
 			description=_plain(text),
 			image=main or "",
 			more_images=more[:MAX_MORE_IMAGES],
-			url=pages.get(code, ""),
+			url=languages.in_language(pages.get(code, ""), language),
 		)
 		lines.append(line)
 
@@ -292,6 +307,7 @@ def build_rows(customer, payload, clean_selection, options, progress=None, inclu
 		prices=mode,
 		markup_percent=options["markup_percent"],
 		particular_markups=len(markups),
+		language=language,
 		including_vat=including_vat,
 		prices_as_of=nowdate(),
 	)
@@ -332,6 +348,8 @@ def labels(data, title="", issuer=""):
 		facts[_("Markup")] = f"{data.markup_percent:g} %"
 		if data.get("particular_markups"):
 			facts[_("Particular markups")] = data.particular_markups
+	if data.get("language"):
+		facts[_("Language of the texts")] = frappe.db.get_value("Language", data.language, "language_name") or data.language
 		facts[_("Selling prices")] = _("Including VAT") if data.including_vat else _("Excluding VAT")
 	if data.prices in ("tariff", "both"):
 		facts[_("Purchase prices")] = _("Your own price list, as the shop's rules apply to you. Confidential: not for your customers.")

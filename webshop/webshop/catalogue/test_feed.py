@@ -18,7 +18,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, add_to_date, now_datetime
 
-from webshop.webshop.catalogue import access, catalogue_api, feed, feed_api, jobs, rows
+from webshop.webshop.catalogue import access, catalogue_api, feed, feed_api, jobs, languages, rows
 from webshop.webshop.catalogue import api as brand_api
 from webshop.webshop.catalogue import fixtures as shop
 from webshop.webshop.catalogue.refusals import catalogue_message, feed_message
@@ -74,6 +74,19 @@ class TestTheFeed(FrappeTestCase):
 
 	def tearDown(self):
 		self.clean()
+
+	def test_a_feed_in_a_language_is_asked_only_among_those_the_shop_offers_and_its_texts_follow_it(self):
+		with mock.patch.object(languages.localized, "site_languages", return_value={}):
+			answer = self.make(options={"prices": "customers", "language": "de"})
+		self.assertEqual((answer["ok"], answer["field"]), (False, "language"))
+		name = frappe.db.get_value("Website Item", {"item_code": shop.FIRST}, "name")
+		found = [{"ref_name": name, "fieldname": "web_item_name", "text": "Wanderschuh", "human": True}]
+		with mock.patch.object(languages.localized, "site_languages", return_value={"de": {}}):
+			self.assertIsNone(self.make(options={"prices": "customers", "language": "de"}))
+		frappe.db.commit()
+		with mock.patch.object(languages.localized, "translation_rows", return_value=found):
+			feed.refresh(shop.CUSTOMER)
+		self.assertIn("Wanderschuh", {row["name"] for row in self.records(self.token())})
 
 	def make(self, customer=shop.CUSTOMER, picked=None, options=None):
 		"""feed.save with the job's enqueueing caught; returns what save answers (None when it worked)."""

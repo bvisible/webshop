@@ -34,7 +34,7 @@ from frappe.utils import add_days, add_to_date, get_datetime, getdate, now_datet
 from frappe.website.page_renderers.base_renderer import BaseRenderer
 from werkzeug.wrappers import Response
 
-from webshop.webshop.catalogue import access, book, jobs, rows, selection, tables
+from webshop.webshop.catalogue import access, book, jobs, languages, rows, selection, tables
 from webshop.webshop.catalogue import api as brand_api
 from webshop.webshop.catalogue.refusals import catalogue_message, feed_message, options_message, selection_message
 from webshop.webshop.doctype.reseller_feed.reseller_feed import FAILED, QUEUED, READY, RUNNING
@@ -182,6 +182,8 @@ def save(customer, payload, picked, options):
 		)
 	except book.OptionsRefused as refusal:
 		return refused(refusal.field, options_message(refusal.field, refusal.reason))
+	if clean_options.get("language") and not languages.is_offered(clean_options["language"]):
+		return refused("language", options_message("language", "not_offered"))
 	if not payload["saved"] and clean_options["prices"] == "customers":
 		return refused(None, feed_message("no_brand"))
 	try:

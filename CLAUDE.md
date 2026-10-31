@@ -1271,6 +1271,23 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
   `/my-catalogues` also says how many particular markups apply (`particular_markups` of the page's state) and its requests end
   (own `fetch`) like `/my-brand`'s.
 
+- **The language of the texts** (lot 5c, 2026-10-31): a catalogue, a file or a feed carries `options.language` (`languages.py`): the
+  name and the short and long descriptions of each product as the shop's visitors read them in that language
+  (`localized.translation_rows`, the multilingual project's), the address of each product under that language's prefix, and the
+  words around the products (the cover, the contents, the headers of a workbook) in it as far as the shop is translated into it
+  (`jobs.speak` sets `frappe.local.lang`; the rest stays English — nothing is promised in German or Italian beyond the product
+  texts). Prices, markups and the selection do not depend on it; a product with no visible translation keeps its source text.
+  - **The language is checked when it is asked for, against what the site enabled** (`languages.is_offered`, in `catalogue_api._ask`
+    and `feed.save`); the job reads the stored option and trusts it, because a job has no request, so `site_languages()` is empty
+    there unless the site is pinned (`jobs.pin_site` sets the Website Profile the catalogue was asked on). The page only shows the
+    select when the site offers a language.
+  - **A job reads the translations as a visitor** (`languages.as_visitor`: `frappe.set_user("Guest")`, never inside a web request). The
+    theme shows System Managers and Website Managers the machine translations a site holds back until they are reviewed
+    (`can_preview`), and the nightly refresh of a feed runs as Administrator: without it the feed would print what the shop does not
+    show yet.
+  - **A variant keeps its own page's name**: a model's translation is the model's (the multilingual façade says the same of a cart line).
+  - The tests hand `translation_rows` what the theme would answer, so they run on the CI's site, which has no theme.
+
 - **The partner API** (lot 4, `partner_api/`, 2026-10-31): a reseller asks for it on `/my-integration`, staff allow
   it on the desk (**Partner API Access**: Approve with the scopes — orders, submit at once, calls a minute — Refuse,
   Suspend, Resume), the reseller makes a key there. Five calls under `/partner/v1/` (a page renderer, not a

@@ -17,7 +17,7 @@ import json
 import frappe
 from werkzeug.wrappers import Response
 
-from webshop.webshop.catalogue import access, book, feed, jobs, rows, selection
+from webshop.webshop.catalogue import access, book, feed, jobs, languages, rows, selection
 from webshop.webshop.catalogue import api as brand_api
 from webshop.webshop.catalogue.pdf import chromium_available
 from webshop.webshop.catalogue.refusals import catalogue_message, options_message, selection_message
@@ -83,6 +83,7 @@ def _state(customer, payload=None):
 		"brand_saved": payload["saved"],
 		"default_markup": payload["values"]["default_markup_percent"],
 		"particular_markups": len(payload["values"].get("markup_rules") or []),
+		"languages": languages.offered(),
 		"engine": chromium_available(),
 		"feed": feed.describe(customer),
 		"limits": {
@@ -122,6 +123,9 @@ def _ask(customer, payload, title, picked, options, fmt=PDF):
 		)
 	except book.OptionsRefused as refusal:
 		return _refused(refusal.field, options_message(refusal.field, refusal.reason))
+	# only a language the site's visitors can read: what the shop does not offer it has no translations for
+	if clean_options.get("language") and not languages.is_offered(clean_options["language"]):
+		return _refused("language", options_message("language", "not_offered"))
 	# a PDF carries the brand; a file carries a selling price, which the brand's markup and rounding make
 	if not payload["saved"] and (not table or clean_options["prices"] in ("customers", "both")):
 		return _refused(None, catalogue_message("no_brand_prices" if table else "no_brand"))
