@@ -24,6 +24,7 @@ def brand_message(field, reason):
 		"price_rounding": _("Rounding"),
 		"price_display": _("Show prices"),
 		"vat_rate": _("VAT rate"),
+		"markup_rules": _("Particular markups"),
 	}
 	reasons = {
 		"too_long": _("{0} is too long."),
@@ -35,6 +36,13 @@ def brand_message(field, reason):
 		"bad_rounding": _("{0} must be one of the choices offered."),
 		"bad_display": _("{0} must be one of the choices offered."),
 		"bad_vat": _("{0} must be a number between 0 and 100."),
+		"rule_not_a_list": _("{0} could not be read."),
+		"rule_too_many": _("{0} has too many rows: 200 at most."),
+		"rule_bad_kind": _("Each of the {0} is for a category, a brand or a product."),
+		"rule_bad_target": _("Each of the {0} must name a category, a brand or a product."),
+		"rule_bad_percent": _("Each of the {0} must be a number between 0 and 300."),
+		"rule_duplicate": _("The {0} name a category, a brand or a product twice."),
+		"rule_unknown_target": _("The {0} name something this shop does not carry."),
 	}
 	return reasons.get(reason, _("{0} is not valid.")).format(labels.get(field, field))
 

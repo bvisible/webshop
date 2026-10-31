@@ -163,15 +163,21 @@ def shop_price(offer):
 	)
 
 
-def reseller_price(offer, values):
+def reseller_price(offer, values, percent=None):
 	"""The price the reseller sells at: what they pay for it, plus their markup, rounded, VAT if shown.
 
-	The price they pay is the page's own (their price list, their rules): never printed, never struck."""
+	`percent` is the markup of this product (a rule of their own for it, its category or its brand);
+	their default markup when not given. The price they pay is the page's own (their price list, their
+	rules): never printed, never struck."""
 	if not offer:
 		return None
 	including_vat = values["price_display"] == "Including VAT"
 	selling = markup.selling_price(
-		offer.price, values["default_markup_percent"], values["price_rounding"], values["vat_rate"], including_vat
+		offer.price,
+		values["default_markup_percent"] if percent is None else percent,
+		values["price_rounding"],
+		values["vat_rate"],
+		including_vat,
 	)
 	return frappe._dict(
 		amount=price_text(selling, offer.currency),
@@ -293,7 +299,14 @@ def build_sheet(doc, issuer_kind=SHOP, reseller=None):
 		values = reseller["payload"]["values"]
 		issuer = reseller_issuer(reseller["payload"], reseller["credit_line"])
 		with_prices = bool(reseller.get("prices", True))
-		price_for = (lambda offer: reseller_price(offer, values)) if with_prices else (lambda offer: None)
+		percent = None
+		if with_prices:
+			from webshop.webshop.catalogue import markup_rules
+
+			percent = markup_rules.load(reseller["payload"].get("customer"), values["default_markup_percent"]).percent(
+				[doc.item_code], doc.get("item_group"), doc.get("brand")
+			)
+		price_for = (lambda offer: reseller_price(offer, values, percent)) if with_prices else (lambda offer: None)
 		website = _website_address(values.get("contact_website"))
 		qr_target = website
 		qr_caption = _("Scan to visit {0}").format(values.get("contact_website")) if website else ""

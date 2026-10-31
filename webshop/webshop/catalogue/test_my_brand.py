@@ -307,6 +307,100 @@ class TestMyBrand(FrappeTestCase):
 		api.save_my_brand({"default_markup_percent": 10, "price_rounding": "none"})
 		self.assertEqual(digits(self.row_of(api.preview_prices())["price"]), "11000")
 
+	# --- the markups of their own (lot 5) ----------------------------------------------------
+
+	def shirt_group(self):
+		return frappe.db.get_value("Website Item", {"item_code": ITEM}, "item_group")
+
+	def rule(self, kind, target, percent):
+		return {"rule_type": kind, "target": target, "markup_percent": percent}
+
+	def test_a_rule_is_kept_read_back_and_replaced_as_a_whole(self):
+		frappe.set_user(A_USER)
+		answer = api.save_my_brand({"markup_rules": [self.rule("Item", ITEM, 50), self.rule("Item Group", self.shirt_group(), 20)]})
+		self.assertTrue(answer["ok"], answer)
+		self.assertEqual(
+			api.get_my_brand()["values"]["markup_rules"],
+			[self.rule("Item", ITEM, 50.0), self.rule("Item Group", self.shirt_group(), 20.0)],
+		)
+		api.save_my_brand({"markup_rules": [self.rule("Item", ITEM, 10)]})
+		self.assertEqual(api.get_my_brand()["values"]["markup_rules"], [self.rule("Item", ITEM, 10.0)])
+		api.save_my_brand({"markup_rules": []})
+		self.assertEqual(api.get_my_brand()["values"]["markup_rules"], [])
+
+	def test_a_save_that_names_no_rules_leaves_the_rules_alone(self):
+		frappe.set_user(A_USER)
+		api.save_my_brand({"markup_rules": [self.rule("Item", ITEM, 50)]})
+		api.save_my_brand({"brand_name": "Another name"})
+		self.assertEqual(len(api.get_my_brand()["values"]["markup_rules"]), 1)
+
+	def test_a_rule_that_does_not_pass_is_named_and_nothing_is_saved(self):
+		frappe.set_user(A_USER)
+		many = [self.rule("Item", f"{ITEM}-{number}", 5) for number in range(201)]
+		for refused in (
+			[self.rule("Item", ITEM, 301)],
+			[self.rule("Item", ITEM, -1)],
+			[self.rule("Customer", A_CUSTOMER, 10)],
+			[self.rule("Item", "", 10)],
+			[self.rule("Item", ITEM, 10), self.rule("Item", ITEM, 20)],
+			[self.rule("Item", "A product the shop does not carry", 10)],
+			[self.rule("Brand", "A brand the shop does not carry", 10)],
+			[self.rule("Item Group", "A category the shop does not carry", 10)],
+			"not a list",
+			many,
+		):
+			with self.subTest(rules=str(refused)[:60]):
+				answer = api.save_my_brand({"brand_name": "Fine", "markup_rules": refused})
+				self.assertFalse(answer["ok"])
+				self.assertEqual(answer["field"], "markup_rules")
+				self.assertTrue(answer["message"])
+				self.assertFalse(frappe.db.exists(DOCTYPE, A_CUSTOMER), "a refused save keeps nothing, brand name included")
+
+	def test_a_product_the_shop_does_not_show_cannot_be_named(self):
+		frappe.set_user("Administrator")
+		# without touching `modified`: the preview tests read the newest published product
+		frappe.db.set_value("Website Item", {"item_code": ITEM}, "published", 0, update_modified=False)
+		self.addCleanup(frappe.db.set_value, "Website Item", {"item_code": ITEM}, "published", 1, update_modified=False)
+		frappe.set_user(A_USER)
+		answer = api.save_my_brand({"markup_rules": [self.rule("Item", ITEM, 10)]})
+		self.assertFalse(answer["ok"])
+		self.assertEqual(answer["field"], "markup_rules")
+
+	def test_two_resellers_keep_their_own_rules(self):
+		frappe.set_user(A_USER)
+		api.save_my_brand({"markup_rules": [self.rule("Item", ITEM, 50)]})
+		frappe.set_user(B_USER)
+		self.assertEqual(api.get_my_brand()["values"]["markup_rules"], [])
+		api.save_my_brand({"markup_rules": [self.rule("Item", ITEM, 70)]})
+		frappe.set_user(A_USER)
+		self.assertEqual(api.get_my_brand()["values"]["markup_rules"], [self.rule("Item", ITEM, 50.0)])
+
+	def test_rules_are_for_the_allowed_customers_alone(self):
+		for user in (OUT_USER, "Guest"):
+			frappe.set_user(user)
+			with self.subTest(user=user), self.assertRaises(frappe.PermissionError):
+				api.save_my_brand({"markup_rules": [self.rule("Item", ITEM, 10)]})
+
+	def test_the_preview_marks_a_product_up_by_its_own_rule_and_the_rest_by_the_markup_tried(self):
+		frappe.set_user(A_USER)
+		api.save_my_brand({"markup_rules": [self.rule("Item", ITEM, 50)]})
+		# A pays 100: the rule says 150, whatever markup is being tried for the other products
+		self.assertEqual(digits(self.row_of(api.preview_prices(markup_percent="30", price_rounding="none"))["price"]), "15000")
+		frappe.set_user("Administrator")
+		frappe.db.delete("Reseller Markup Rule", {"parent": A_CUSTOMER})
+		frappe.set_user(A_USER)
+		self.assertEqual(digits(self.row_of(api.preview_prices(markup_percent="30", price_rounding="none"))["price"]), "13000")
+
+	def test_the_desk_refuses_the_same_rules_as_the_page(self):
+		doc = frappe.get_doc({"doctype": DOCTYPE, "customer": A_CUSTOMER, "markup_rules": [self.rule("Item", ITEM, 301)]})
+		with self.assertRaises(frappe.ValidationError):
+			doc.insert(ignore_permissions=True)
+		doc = frappe.get_doc(
+			{"doctype": DOCTYPE, "customer": A_CUSTOMER, "markup_rules": [self.rule("Item", ITEM, 10), self.rule("Item", ITEM, 20)]}
+		)
+		with self.assertRaises(frappe.ValidationError):
+			doc.insert(ignore_permissions=True)
+
 	def test_a_preview_asked_to_try_a_value_out_of_bounds_is_refused(self):
 		frappe.set_user(A_USER)
 		answer = api.preview_prices(markup_percent="301")

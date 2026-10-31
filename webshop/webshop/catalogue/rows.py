@@ -25,7 +25,7 @@ import frappe
 from frappe import _
 from frappe.utils import formatdate, nowdate
 
-from webshop.webshop.catalogue import book, markup, selection
+from webshop.webshop.catalogue import book, markup, markup_rules, selection
 from webshop.webshop.multi_site import site_url
 from webshop.webshop.seo import availability as stock
 from webshop.webshop.seo import variants as seo_variants
@@ -221,12 +221,12 @@ def build_rows(customer, payload, clean_selection, options, progress=None, inclu
 			categories[group] = category_path(group) or _plain(group)
 		return categories[group]
 
-	def selling(cost):
+	markups = markup_rules.load(customer, options["markup_percent"])
+
+	def selling(cost, percent):
 		if cost is None:
 			return None
-		price = markup.selling_price(
-			cost, options["markup_percent"], values["price_rounding"], values["vat_rate"], including_vat
-		)
+		price = markup.selling_price(cost, percent, values["price_rounding"], values["vat_rate"], including_vat)
 		return float(price)
 
 	lines = []
@@ -267,7 +267,14 @@ def build_rows(customer, payload, clean_selection, options, progress=None, inclu
 			if mode in ("tariff", "both"):
 				line["purchase_price"] = round(float(cost), 4) if cost is not None else None
 			if mode in ("customers", "both"):
-				line["price"] = selling(cost)
+				line["price"] = selling(
+					cost,
+					markups.percent(
+						[code, model_code],
+						detail.get("item_group") or model.get("item_group"),
+						detail.get("brand") or model.get("brand"),
+					),
+				)
 				line["price_includes_vat"] = including_vat
 		line.update(
 			availability=AVAILABILITY.get(available[code].availability, "out_of_stock"),
@@ -284,6 +291,7 @@ def build_rows(customer, payload, clean_selection, options, progress=None, inclu
 		currency=currency,
 		prices=mode,
 		markup_percent=options["markup_percent"],
+		particular_markups=len(markups),
 		including_vat=including_vat,
 		prices_as_of=nowdate(),
 	)
@@ -322,6 +330,8 @@ def labels(data, title="", issuer=""):
 		facts[_("Currency")] = data.currency
 	if data.prices in ("customers", "both"):
 		facts[_("Markup")] = f"{data.markup_percent:g} %"
+		if data.get("particular_markups"):
+			facts[_("Particular markups")] = data.particular_markups
 		facts[_("Selling prices")] = _("Including VAT") if data.including_vat else _("Excluding VAT")
 	if data.prices in ("tariff", "both"):
 		facts[_("Purchase prices")] = _("Your own price list, as the shop's rules apply to you. Confidential: not for your customers.")

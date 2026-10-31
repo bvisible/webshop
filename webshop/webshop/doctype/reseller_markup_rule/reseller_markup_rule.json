@@ -1,0 +1,51 @@
+{
+ "actions": [],
+ "creation": "2026-10-31 15:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "rule_type",
+  "target",
+  "markup_percent"
+ ],
+ "fields": [
+  {
+   "description": "What the markup is for. The most specific rule that names a product decides: the product itself, then its category (the closest one above it), then its brand, then the markup of the catalogue.",
+   "fieldname": "rule_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "For",
+   "options": "Item Group\nBrand\nItem",
+   "reqd": 1
+  },
+  {
+   "description": "The name of the category, of the brand, or the reference of the product. Not a Link on purpose: Frappe fills a Link to Item Group or Brand with the session default at insert time.",
+   "fieldname": "target",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Name",
+   "length": 140,
+   "reqd": 1
+  },
+  {
+   "fieldname": "markup_percent",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Markup (%)",
+   "precision": "2",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-31 15:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Reseller Markup Rule",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

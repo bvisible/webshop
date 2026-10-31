@@ -17,7 +17,7 @@ import frappe
 from frappe import _
 from frappe.utils import fmt_money
 
-from webshop.webshop.catalogue import access, brand, logo, markup
+from webshop.webshop.catalogue import access, brand, logo, markup, markup_rules
 from webshop.webshop.catalogue.refusals import brand_message, logo_message
 from webshop.webshop.doctype.reseller_catalogue_profile.reseller_catalogue_profile import (
 	BRAND_FIELDS,
@@ -63,6 +63,7 @@ def starting_values(customer):
 	values = dict(brand.DEFAULTS)
 	values["brand_name"] = frappe.db.get_value("Customer", customer, "customer_name") or customer
 	values.update(application_defaults(customer))
+	values["markup_rules"] = []
 	return values
 
 
@@ -88,6 +89,7 @@ def _stored_values(profile, customer):
 			values[field] = default
 	values["default_markup_percent"] = float(values["default_markup_percent"])
 	values["vat_rate"] = float(values["vat_rate"])
+	values["markup_rules"] = markup_rules.stored(profile.name)
 	return values
 
 
@@ -152,6 +154,8 @@ def save_my_brand(values=None):
 		clean = brand.clean_brand(values)
 	except brand.BrandRefused as refusal:
 		return _refused(refusal.field, brand_message(refusal.field, refusal.reason))
+	if "markup_rules" in clean and markup_rules.unknown_target(clean["markup_rules"]) is not None:
+		return _refused("markup_rules", brand_message("markup_rules", "rule_unknown_target"))
 	profile = _profile(customer, create=True)
 	profile.update(clean)
 	profile.flags.ignore_permissions = True
@@ -251,11 +255,13 @@ def preview_prices(
 		items = frappe.get_all(
 			"Website Item",
 			filters={**visible_item_filters(), "item_code": ["in", priced_codes]},
-			fields=["item_code", "web_item_name"],
+			fields=["item_code", "web_item_name", "item_group", "brand"],
 			order_by="modified desc",
 			limit=SAMPLE_SCAN_MAX,
 		)
 	including_vat = current["price_display"] == "Including VAT"
+	# their rules as saved, and the markup being tried for what no rule names
+	markups = markup_rules.load(customer, current["default_markup_percent"])
 	rows = []
 	for start in range(0, len(items), SAMPLE_CHUNK):
 		chunk = items[start : start + SAMPLE_CHUNK]
@@ -265,7 +271,11 @@ def preview_prices(
 			if cost is None:
 				continue
 			selling = markup.selling_price(
-				cost, current["default_markup_percent"], current["price_rounding"], current["vat_rate"], including_vat
+				cost,
+				markups.percent([item.item_code], item.item_group, item.brand),
+				current["price_rounding"],
+				current["vat_rate"],
+				including_vat,
 			)
 			rows.append(
 				{

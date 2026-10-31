@@ -20,7 +20,7 @@ import frappe
 from frappe import _
 from frappe.utils import formatdate, nowdate, strip_html
 
-from webshop.webshop.catalogue import images, markup, selection
+from webshop.webshop.catalogue import images, markup, markup_rules, selection
 from webshop.webshop.catalogue.sheet import price_text, reseller_issuer
 from webshop.webshop.seo.text import truncate
 from webshop.webshop.utils import customer_pricing
@@ -165,13 +165,15 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 		to_price += [cheapest for cheapest, _count in variants_of.values() if cheapest]
 		prices = price_many(to_price, price_list, party, settings, progress)
 
-	def selling(code):
+	markups = markup_rules.load(customer, options["markup_percent"])
+
+	def selling(code, row):
 		cost = (prices.get(code) or {}).get("price")
 		if cost is None:
 			return None
-		price = markup.selling_price(
-			cost, options["markup_percent"], values["price_rounding"], values["vat_rate"], including_vat
-		)
+		# a model's "from" price is its cheapest variant's, marked up as the model is
+		percent = markups.percent([row.item_code], row.item_group, row.brand)
+		price = markup.selling_price(cost, percent, values["price_rounding"], values["vat_rate"], including_vat)
 		return price_text(price, currency)
 
 	inherited = _inherited_pictures(rows)
@@ -184,9 +186,9 @@ def build_book(customer, payload, credit_line, title, clean_selection, options, 
 			picture = images.site_picture(picture_url, max_side=CARD_PICTURE[0], quality=CARD_PICTURE[1], small_copy=True)
 		if row.has_variants:
 			cheapest, choices = variants_of.get(row.item_code, (None, 0))
-			text = selling(cheapest) if cheapest else None
+			text = selling(cheapest, row) if cheapest else None
 		else:
-			text, choices = selling(row.item_code), 0
+			text, choices = selling(row.item_code, row), 0
 		product = frappe._dict(
 			name=name,
 			brand=_plain(row.brand),

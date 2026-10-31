@@ -129,6 +129,49 @@
 			</div>
 		</section>
 
+		<section class="frappe-card p-4 mb-4" id="wsp-rules">
+			<h2 class="h5 mb-2">{{ config.labels.rules }}</h2>
+			<p class="text-muted small mb-3">{{ config.labels.rules_lead }}</p>
+			<div class="table-responsive">
+				<table class="table table-sm" aria-live="polite">
+					<thead>
+						<tr>
+							<th>{{ config.labels.rule_for }}</th>
+							<th>{{ config.labels.rule_name }}</th>
+							<th class="text-right">{{ config.labels.rule_percent }}</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody id="wsp-rule-rows"></tbody>
+				</table>
+			</div>
+			<div class="row align-items-end">
+				<div class="col-md-3 mb-3">
+					<label class="mb-1" for="wsp-rule-kind">{{ config.labels.rule_for }}</label>
+					<select class="form-control" id="wsp-rule-kind"></select>
+				</div>
+				<div class="col-md-4 mb-3">
+					<label class="mb-1" for="wsp-rule-group" id="wsp-rule-target-label">{{ config.labels.rule_name }}</label>
+					<select class="form-control" id="wsp-rule-group"></select>
+					<select class="form-control d-none" id="wsp-rule-brand"></select>
+					<div class="d-none" id="wsp-rule-item">
+						<input class="form-control" id="wsp-rule-search" type="search" maxlength="140" autocomplete="off" placeholder="{{ config.labels.rule_search }}" aria-label="{{ config.labels.rule_search }}">
+						<div class="list-group mt-1" id="wsp-rule-results"></div>
+						<div class="small text-muted mt-1" id="wsp-rule-chosen"></div>
+					</div>
+				</div>
+				<div class="col-md-3 mb-3">
+					<label class="mb-1" for="wsp-rule-percent">{{ config.labels.rule_percent }}</label>
+					<input class="form-control" id="wsp-rule-percent" type="number" min="0" max="300" step="0.01" inputmode="decimal">
+				</div>
+				<div class="col-md-2 mb-3">
+					<button class="btn btn-outline-primary" id="wsp-rule-add" type="button">{{ config.labels.rule_add }}</button>
+				</div>
+			</div>
+			<div class="invalid-feedback d-block" data-error-for="markup_rules"></div>
+			<div class="small text-muted">{{ config.labels.rule_apply }}</div>
+		</section>
+
 		<div class="d-flex align-items-center">
 			<button class="btn btn-primary mr-3" id="wsp-brand-save" type="submit">{{ config.labels.save }}</button>
 			<span class="text-muted" id="wsp-brand-status" role="status"></span>

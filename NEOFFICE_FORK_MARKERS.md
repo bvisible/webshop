@@ -52,8 +52,9 @@ No upstream equivalent; the whole file is ours.
 | `webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json` | a reseller's brand: logo, colours, contact details and the markup they apply to the prices of their catalogues | reseller catalogue, lot 0 (2026-10-30) |
 | `webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json` | one catalogue a reseller asked for: what it was made from, how far its job is, and its private file (a PDF, a workbook or a CSV; kept 30 days) | reseller catalogue, lots 2 and 3 (2026-10-31) |
 | `webshop/webshop/doctype/reseller_feed/reseller_feed.json` | a reseller's product feed: what it is made from, how far its refresh is, and the hashed secret of the address it is read at | reseller catalogue, lot 3 (2026-10-31) |
-| `webshop/webshop/doctype/partner_api_access/partner_api_access.json` | a reseller's access to the partner API: the request, what staff allowed, its state and the hash of its key | reseller catalogue, lot 4 (2026-11-01) |
-| `webshop/webshop/doctype/partner_api_order/partner_api_order.json` | the order an API call made, found again by the call's idempotency key | reseller catalogue, lot 4 (2026-11-01) |
+| `webshop/webshop/doctype/partner_api_access/partner_api_access.json` | a reseller's access to the partner API: the request, what staff allowed, its state and the hash of its key | reseller catalogue, lot 4 (2026-10-31) |
+| `webshop/webshop/doctype/partner_api_order/partner_api_order.json` | the order an API call made, found again by the call's idempotency key | reseller catalogue, lot 4 (2026-10-31) |
+| `webshop/webshop/doctype/reseller_markup_rule/reseller_markup_rule.json` | a markup of a reseller's own for a category, a brand or a product, a row of their profile | reseller catalogue, lot 5 (2026-10-31) |
 | `webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json`, `shop_assistant_message/shop_assistant_message.json` | a visitor's thread with the shop assistant and its messages (what was said, the tokens each turn cost, the tools it used) | the shop assistant (2026-09), indexed and bounded by neoffice-maintenance#2015 (2026-10-30) |
 | `webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json` | one row a day of what the shop assistant was asked, answered and refused, and why (figures only, written each night from the Redis counters) | neoffice-maintenance#2015, lot D (2026-10-30) |
 | `webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json` | an anonymised pair of question and answer kept to improve the service; empty until the merchant switches the collection on | neoffice-maintenance#2015, lot E (2026-10-30) |
@@ -301,6 +302,7 @@ webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json
 webshop/webshop/doctype/reseller_feed/reseller_feed.json
 webshop/webshop/doctype/partner_api_access/partner_api_access.json
 webshop/webshop/doctype/partner_api_order/partner_api_order.json
+webshop/webshop/doctype/reseller_markup_rule/reseller_markup_rule.json
 webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json
 webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json
 webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json

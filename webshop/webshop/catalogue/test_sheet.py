@@ -167,7 +167,7 @@ class TestProductSheet(FrappeTestCase):
 
 	def save_brand(self, **values):
 		frappe.set_user(USER)
-		defaults = {"brand_name": "Alpine Distribution SA", "primary_colour": "#0b6e4f", "default_markup_percent": 30, "price_rounding": "none"}
+		defaults = {"brand_name": "Alpine Distribution SA", "primary_colour": "#0b6e4f", "default_markup_percent": 30, "price_rounding": "none", "markup_rules": []}
 		answer = api.save_my_brand({**defaults, **values})
 		self.assertTrue(answer["ok"], answer)
 		return answer
@@ -277,6 +277,14 @@ class TestProductSheet(FrappeTestCase):
 		self.assertIn("Alpine Distribution SA", html)
 		self.assertIn("--brand: #0b6e4f", html)
 		self.assertIn("Supplied by the shop", html, "the supplier's credit line, when it set one")
+
+	@needs_fork
+	def test_a_markup_of_their_own_is_the_price_of_the_sheet_of_the_product_it_names(self):
+		frappe.set_user(USER)
+		self.save_brand(markup_rules=[{"rule_type": "Item", "target": ITEM, "markup_percent": 50}])
+		payload = api._payload(access.customer_of(USER))
+		data = sheet.build_sheet(self.doc(), sheet.RESELLER, {"payload": payload, "credit_line": "", "prices": True})
+		self.assertEqual(digits(data.price.amount), "15000", "100 they pay, plus the 50 % of the rule, not the 30 % of the default")
 
 	@needs_fork
 	def test_the_reseller_promises_nothing_that_is_the_supplier_s(self):

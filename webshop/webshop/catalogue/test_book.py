@@ -115,6 +115,7 @@ class TestTheBook(FrappeTestCase):
 				"price_rounding": "none",
 				"price_display": "Excluding VAT",
 				"contact_email": "orders@alpine.example",
+				"markup_rules": [],
 			}
 		)
 		self.assertTrue(answer["ok"], answer)
@@ -183,6 +184,36 @@ class TestTheBook(FrappeTestCase):
 	def test_the_markup_of_the_catalogue_is_the_one_asked_for(self):
 		products = self.products(self.make(options={"markup_percent": 10}))
 		self.assertEqual(products[shop.FIRST].price, self.selling(80, 10))
+
+	def mark_up(self, *rules):
+		answer = brand_api.save_my_brand(
+			{"markup_rules": [{"rule_type": kind, "target": target, "markup_percent": percent} for kind, target, percent in rules]}
+		)
+		self.assertTrue(answer["ok"], answer)
+		self.payload = brand_api._payload(shop.CUSTOMER)
+
+	def test_a_markup_of_their_own_is_the_price_printed_for_what_it_names(self):
+		# FIRST is in the child group, SECOND in the parent, THIRD elsewhere (brand B): 80, 40 and 30 on their list
+		self.mark_up(("Item Group", shop.PARENT_GROUP, 50), ("Item", shop.THIRD, 100))
+		products = self.products(self.make())
+		self.assertEqual(products[shop.FIRST].price, self.selling(80, 50), "the parent's rule reaches the child group")
+		self.assertEqual(products[shop.SECOND].price, self.selling(40, 50))
+		self.assertEqual(products[shop.THIRD].price, self.selling(30, 100), "a rule on the product itself")
+
+	def test_a_models_from_price_is_marked_up_as_the_model_is(self):
+		self.mark_up(("Item", shop.MODEL, 100))
+		model = self.products(self.make({"items": [shop.MODEL]}))[shop.MODEL]
+		self.assertEqual(model.price, self.selling(48, 100))
+
+	def test_what_the_reseller_pays_is_still_nowhere_when_rules_are_set(self):
+		self.mark_up(("Brand", shop.BRAND_A, 10), ("Item Group", shop.OTHER_GROUP, 75))
+		data = self.make({"item_groups": [shop.PARENT_GROUP, shop.OTHER_GROUP]})
+		haystack = frappe.as_json(data) + book_pdf.render_html(data)
+		for number in ("80.00", "40.00", "30.00", "100.00", "50.00", "60.00"):
+			with self.subTest(number=number):
+				self.assertNotIn(number, haystack)
+		self.assertIn(self.selling(80, 10), haystack)
+		self.assertIn(self.selling(30, 75), haystack)
 
 	def test_a_model_is_one_card_from_the_price_of_its_cheapest_variant(self):
 		model = self.products(self.make({"items": [shop.MODEL]}))[shop.MODEL]

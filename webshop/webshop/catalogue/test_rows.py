@@ -131,7 +131,21 @@ class TestTheLines(FrappeTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user(shop.USER)
 		answer = brand_api.save_my_brand(
-			{"brand_name": "Alpine Distribution SA", "default_markup_percent": 30, "price_rounding": "none", "price_display": "Excluding VAT"}
+			{
+				"brand_name": "Alpine Distribution SA",
+				"default_markup_percent": 30,
+				"price_rounding": "none",
+				"price_display": "Excluding VAT",
+				"markup_rules": [],
+			}
+		)
+		self.assertTrue(answer["ok"], answer)
+		self.payload = brand_api._payload(shop.CUSTOMER)
+
+	def mark_up(self, *rules):
+		"""Save the rules of the signed-in reseller, as the brand page does, and read the payload again."""
+		answer = brand_api.save_my_brand(
+			{"markup_rules": [{"rule_type": kind, "target": target, "markup_percent": percent} for kind, target, percent in rules]}
 		)
 		self.assertTrue(answer["ok"], answer)
 		self.payload = brand_api._payload(shop.CUSTOMER)
@@ -239,6 +253,72 @@ class TestTheLines(FrappeTestCase):
 	def test_a_variant_is_priced_on_its_own(self):
 		by_code = self.by_code(self.build({"items": [shop.MODEL]}, prices="customers"))
 		self.assertEqual(sorted(row["price"] for row in by_code.values()), [62.4, 93.6], "48 and 72 on their list, plus 30 %")
+
+	# --- the markups of their own (lot 5) -----------------------------------------------------------
+
+	def prices(self, **options):
+		return {code: row["price"] for code, row in self.by_code(self.build(prices="customers", **options)).items()}
+
+	def test_a_category_rule_marks_up_its_products_and_the_categories_under_it(self):
+		# FIRST sits in the child group, SECOND in the parent, THIRD elsewhere; they cost 80, 40 and 30
+		self.mark_up(("Item Group", shop.PARENT_GROUP, 50))
+		prices = self.prices()
+		self.assertEqual((prices[shop.FIRST], prices[shop.SECOND]), (120.0, 60.0))
+		self.assertEqual(prices[shop.THIRD], 39.0, "what no rule names keeps the catalogue's 30 %")
+
+	def test_the_closest_category_wins(self):
+		self.mark_up(("Item Group", shop.PARENT_GROUP, 50), ("Item Group", shop.CHILD_GROUP, 20))
+		prices = self.prices()
+		self.assertEqual((prices[shop.FIRST], prices[shop.SECOND]), (96.0, 60.0))
+
+	def test_a_brand_rule_marks_up_the_products_of_the_brand(self):
+		self.mark_up(("Brand", shop.BRAND_A, 10))
+		prices = self.prices()
+		self.assertEqual((prices[shop.FIRST], prices[shop.SECOND], prices[shop.THIRD]), (88.0, 44.0, 39.0))
+
+	def test_a_category_beats_a_brand_and_a_product_beats_both(self):
+		self.mark_up(("Brand", shop.BRAND_A, 10), ("Item Group", shop.CHILD_GROUP, 20), ("Item", shop.FIRST, 0))
+		prices = self.prices()
+		self.assertEqual(prices[shop.FIRST], 80.0, "a rule of 0 % is a rule: they sell it at what they pay")
+		self.assertEqual(prices[shop.SECOND], 44.0, "the brand, since its category has no rule of its own")
+		self.mark_up(("Brand", shop.BRAND_A, 10), ("Item Group", shop.CHILD_GROUP, 20))
+		self.assertEqual(self.prices()[shop.FIRST], 96.0, "its category, over the brand")
+
+	def test_a_rule_on_a_model_covers_its_variants(self):
+		# a variant is not a product of the shop's catalogue (it has no page of its own to be named by): the model's
+		# rule is the one its variants take
+		self.mark_up(("Item", shop.MODEL, 100))
+		priced = {row["code"]: row["price"] for row in self.build({"items": [shop.MODEL]}, prices="customers").rows}
+		self.assertEqual(sorted(priced.values()), [96.0, 144.0], "48 and 72 on their list, doubled")
+
+	def test_the_markup_of_the_catalogue_is_what_no_rule_names(self):
+		self.mark_up(("Brand", shop.BRAND_A, 50))
+		prices = self.prices(markup_percent=10)
+		self.assertEqual(prices[shop.THIRD], 33.0)
+		self.assertEqual(prices[shop.FIRST], 120.0)
+
+	def test_a_rule_does_not_touch_what_they_pay(self):
+		self.mark_up(("Item Group", shop.PARENT_GROUP, 200), ("Item", shop.FIRST, 150))
+		data = self.build(prices="both")
+		for row in data.rows:
+			self.assertIn(row["purchase_price"], COSTS)
+		first = self.by_code(data)[shop.FIRST]
+		self.assertEqual((first["purchase_price"], first["price"]), (80.0, 200.0))
+
+	def test_the_file_says_how_many_markups_of_their_own_it_holds(self):
+		self.assertEqual(self.build(prices="customers").particular_markups, 0)
+		self.mark_up(("Brand", shop.BRAND_A, 10), ("Item", shop.THIRD, 5))
+		data = self.build(prices="customers")
+		self.assertEqual(data.particular_markups, 2)
+		facts = rows.labels(data)["facts"]
+		self.assertEqual(facts["Particular markups"], 2)
+
+	def test_another_resellers_rules_do_not_apply_to_this_one(self):
+		frappe.set_user(shop.OTHER_USER)
+		answer = brand_api.save_my_brand({"markup_rules": [{"rule_type": "Brand", "target": shop.BRAND_A, "markup_percent": 99}]})
+		self.assertTrue(answer["ok"], answer)
+		frappe.set_user(shop.USER)
+		self.assertEqual(self.prices()[shop.FIRST], 104.0)
 
 	def test_the_mode_for_themselves_carries_what_they_pay_and_no_selling_price(self):
 		data = self.build(prices="tariff")

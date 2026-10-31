@@ -76,3 +76,84 @@ def selling_price(cost, markup_percent, rounding="0.05", vat_rate=None, include_
 	if vat is not None:
 		price *= 1 + vat / 100
 	return round_price(price, rounding)
+
+
+# ---------------------------------------------------------------------------------------------
+# Markups of their own for a category, a brand or a product (reseller catalogue, lot 5)
+
+# What a rule can name, from the most specific: a product, a category, a brand. The most specific rule
+# that names a product decides its markup; none names it, the catalogue's own markup does.
+RULE_KINDS = ("Item", "Item Group", "Brand")
+MAX_RULES = 200
+MAX_TARGET = 140
+
+
+class RuleRefused(ValueError):
+	"""A rule the page does not accept. `reason` is a code the caller words; `index` is the row it is about."""
+
+	def __init__(self, reason, index=None):
+		super().__init__(f"{reason} (rule {index})" if index is not None else reason)
+		self.reason = reason
+		self.index = index
+
+
+def clean_rules(raw):
+	"""The rules as a list of {"rule_type", "target", "markup_percent"}, checked, or a RuleRefused.
+
+	A closed list of kinds, a name that is not empty or long, a percentage between 0 and 300, and one rule for
+	a target: two percentages for one category would leave the printed price to the order of the rows."""
+	if raw in (None, ""):
+		return []
+	if not isinstance(raw, (list, tuple)):
+		raise RuleRefused("not_a_list")
+	if len(raw) > MAX_RULES:
+		raise RuleRefused("too_many")
+	clean, seen = [], set()
+	for index, row in enumerate(raw):
+		if not isinstance(row, dict):
+			raise RuleRefused("not_a_list", index)
+		kind = row.get("rule_type")
+		if kind not in RULE_KINDS:
+			raise RuleRefused("bad_kind", index)
+		target = row.get("target")
+		if not isinstance(target, str) or not target.strip() or len(target.strip()) > MAX_TARGET:
+			raise RuleRefused("bad_target", index)
+		target = target.strip()
+		try:
+			percent = float(clean_markup_percent(row.get("markup_percent")))
+		except ValueError:
+			raise RuleRefused("bad_percent", index) from None
+		if (kind, target) in seen:
+			raise RuleRefused("duplicate", index)
+		seen.add((kind, target))
+		clean.append({"rule_type": kind, "target": target, "markup_percent": percent})
+	return clean
+
+
+class Markups:
+	"""The markup of each product: the most specific rule that names it, else `default`.
+
+	`chain_of(group)` answers the group and the groups above it, nearest first, so that a rule on "Shoes" reaches
+	a product of "Shoes > Trail" unless "Trail" has a rule of its own. A product is named by its own code, then
+	by its model's (a rule on a model covers its variants), then by its category, then by its brand."""
+
+	def __init__(self, rules, default, chain_of=None):
+		self.default = default
+		self.chain_of = chain_of or (lambda group: [group] if group else [])
+		self._by_kind = {kind: {} for kind in RULE_KINDS}
+		for rule in rules or ():
+			self._by_kind[rule["rule_type"]][rule["target"]] = float(rule["markup_percent"])
+
+	def __len__(self):
+		return sum(len(rules) for rules in self._by_kind.values())
+
+	def percent(self, item_codes=(), group=None, brand=None):
+		for code in item_codes:
+			if code in self._by_kind["Item"]:
+				return self._by_kind["Item"][code]
+		for name in self.chain_of(group):
+			if name in self._by_kind["Item Group"]:
+				return self._by_kind["Item Group"][name]
+		if brand and brand in self._by_kind["Brand"]:
+			return self._by_kind["Brand"][brand]
+		return self.default

@@ -1246,6 +1246,21 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
   304 on revalidation, the photo of the feed's address downloads, a wrong or missing token is a 404, the old address
   of a replaced one too.
 
+- **Markups of their own** (lot 5a, 2026-10-31): a reseller marks a category, a brand or a product up by a percentage
+  of its own (`Reseller Markup Rule`, rows of their profile's `markup_rules`, edited on `/my-brand`). The most specific
+  rule that names a product decides: the product (a model's rule covers its variants), then its category (the closest
+  one above it in the item group tree), then its brand, then the catalogue's own markup (`markup.Markups.percent`, pure;
+  `markup_rules.load` reads the rows and the tree). Every output reads it: the PDF catalogue (`book.py`, a model's "from"
+  price is marked up as the model is), the files and the feed (`rows.py`), the product sheet and the page's preview;
+  what they pay is never changed, and the shop's price is in no line. A rule of 0 % is a rule.
+  - **A rule's name is a Data field, not a Link**: Frappe fills a Link to Item Group or Brand with the session's default at
+    insert time. `markup_rules.unknown_target` checks it against the shop at save (a category, a brand, a Website Item the
+    catalogue could hold), so a rule that names nothing is refused instead of sitting in the profile.
+  - **A product rule names a Website Item**, which a variant is not: the page's search finds models and plain products, and a
+    variant follows its model's rule. `Markups` still honours a rule on a variant code, for a profile written at the desk.
+  - **The feed and the nightly refresh read the profile's rules as they are then**, like the markup of an existing feed.
+  - `/my-brand` asks the server with its own `fetch` now (`frappe.call` stays mute on a 429 or a 502).
+
 - **The partner API** (lot 4, `partner_api/`, 2026-10-31): a reseller asks for it on `/my-integration`, staff allow
   it on the desk (**Partner API Access**: Approve with the scopes — orders, submit at once, calls a minute — Refuse,
   Suspend, Resume), the reseller makes a key there. Five calls under `/partner/v1/` (a page renderer, not a

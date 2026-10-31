@@ -26,7 +26,9 @@
   "price_rounding",
   "prices_column",
   "price_display",
-  "vat_rate"
+  "vat_rate",
+  "markups_section",
+  "markup_rules"
  ],
  "fields": [
   {
@@ -152,6 +154,18 @@
    "default": "8.1",
    "depends_on": "eval:doc.price_display == 'Including VAT'",
    "description": "One rate for the whole catalogue: items at a reduced rate are not told apart yet."
+  },
+  {
+   "fieldname": "markups_section",
+   "fieldtype": "Section Break",
+   "label": "Particular Markups",
+   "description": "A markup of their own for a category, a brand or a product. It replaces the catalogue's markup for what it names; the most specific rule wins."
+  },
+  {
+   "fieldname": "markup_rules",
+   "fieldtype": "Table",
+   "label": "Particular Markups",
+   "options": "Reseller Markup Rule"
   }
  ],
  "index_web_pages_for_search": 0,

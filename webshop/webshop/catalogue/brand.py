@@ -116,6 +116,11 @@ def clean_brand(values):
 			clean["vat_rate"] = float(markup.clean_vat_rate(values["vat_rate"]))
 		except ValueError:
 			raise BrandRefused("vat_rate", "bad_vat") from None
+	if "markup_rules" in values:
+		try:
+			clean["markup_rules"] = markup.clean_rules(values["markup_rules"])
+		except markup.RuleRefused as refusal:
+			raise BrandRefused("markup_rules", "rule_" + refusal.reason) from None
 	return clean
 
 

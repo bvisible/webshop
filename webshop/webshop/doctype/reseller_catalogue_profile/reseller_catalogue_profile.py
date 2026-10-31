@@ -33,6 +33,16 @@ class ResellerCatalogueProfile(Document):
 		except brand.BrandRefused as refusal:
 			frappe.throw(brand_message(refusal.field, refusal.reason), title=_("Brand"))
 		self.update(clean)
+		rows = [
+			{"rule_type": row.rule_type, "target": row.target, "markup_percent": row.markup_percent}
+			for row in self.get("markup_rules") or []
+		]
+		try:
+			rules = brand.clean_brand({"markup_rules": rows})["markup_rules"]
+		except brand.BrandRefused as refusal:
+			frappe.throw(brand_message(refusal.field, refusal.reason), title=_("Brand"))
+		for row, rule in zip(self.get("markup_rules") or [], rules, strict=True):
+			row.target = rule["target"]
 		if not self.brand_name:
 			self.brand_name = frappe.db.get_value("Customer", self.customer, "customer_name") or self.customer
 
