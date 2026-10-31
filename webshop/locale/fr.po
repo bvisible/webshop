@@ -11251,3 +11251,298 @@ msgstr "Votre clé"
 #, python-brace-format
 msgid "{0} calls a minute"
 msgstr "{0} appels par minute"
+
+#: webshop/www/my-catalogues/index.py:135
+msgid "14 days"
+msgstr "14 jours"
+
+#: webshop/webshop/catalogue/refusals.py:111
+msgid "A file that carries the price you pay is never shared: its link would be forwarded. Make a file with your selling prices, or a PDF."
+msgstr "Un fichier qui contient le prix que vous payez n'est jamais partagé : son lien serait transmis. Préparez un fichier avec vos prix de vente, ou un PDF."
+
+#: webshop/www/my-catalogues/index.py:132
+msgid "A link that shows the catalogue to somebody who has no account, and an e-mail that carries it."
+msgstr "Un lien qui montre le catalogue à une personne sans compte, et un e-mail qui le transporte."
+
+#. Description of the 'Sharing' (Section Break) field in DocType 'Reseller
+#. Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:176
+msgid "A link that shows the finished catalogue to somebody without a login, until it expires. A file that carries what the reseller pays is never shared."
+msgstr "Un lien qui affiche le catalogue terminé à une personne sans connexion, jusqu'à son expiration. Un fichier qui contient ce que le revendeur paie n'est jamais partagé."
+
+#: webshop/www/my-brand/index.py:57
+msgid "A markup of its own for a category, a brand or a product. It replaces the markup above for what it names; the most specific one wins: a product, then its category, then its brand."
+msgstr "Une majoration propre à une catégorie, une marque ou un produit. Elle remplace la majoration ci-dessus pour ce qu'elle désigne ; la plus précise l'emporte : un produit, puis sa catégorie, puis sa marque."
+
+#. Description of the 'Particular Markups' (Section Break) field in DocType
+#. 'Reseller Catalogue Profile'
+#: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:162
+msgid "A markup of their own for a category, a brand or a product. It replaces the catalogue's markup for what it names; the most specific rule wins."
+msgstr "Une majoration propre à une catégorie, une marque ou un produit. Elle remplace la majoration du catalogue pour ce qu'elle désigne ; la règle la plus précise l'emporte."
+
+#: webshop/www/my-catalogues/index.py:138
+msgid "A new link"
+msgstr "Un nouveau lien"
+
+#: webshop/www/my-brand/index.py:67
+msgid "Choose a brand"
+msgstr "Choisissez une marque"
+
+#: webshop/www/my-brand/index.py:66
+msgid "Choose a category"
+msgstr "Choisissez une catégorie"
+
+#: webshop/webshop/catalogue/refusals.py:79
+msgid "Choose a language from the list."
+msgstr "Choisissez une langue dans la liste."
+
+#: webshop/webshop/catalogue/refusals.py:77
+msgid "Choose a picture quality from the list."
+msgstr "Choisissez une qualité d'image dans la liste."
+
+#: webshop/webshop/catalogue/refusals.py:108
+msgid "Choose how long the link lasts from the list."
+msgstr "Choisissez la durée de validité du lien dans la liste."
+
+#: webshop/www/my-brand/index.py:73
+msgid "Choose what the markup is for."
+msgstr "Choisissez à quoi sert la majoration."
+
+#: webshop/www/my-brand/index.py:69
+#, python-brace-format
+msgid "Chosen: {0}"
+msgstr "Choisi : {0}"
+
+#: webshop/webshop/catalogue/refusals.py:41
+#, python-brace-format
+msgid "Each of the {0} is for a category, a brand or a product."
+msgstr "Chacune des {0} vise une catégorie, une marque ou un produit."
+
+#: webshop/webshop/catalogue/refusals.py:43
+#, python-brace-format
+msgid "Each of the {0} must be a number between 0 and 300."
+msgstr "Chacune des {0} doit être un nombre entre 0 et 300."
+
+#: webshop/webshop/catalogue/refusals.py:42
+#, python-brace-format
+msgid "Each of the {0} must name a category, a brand or a product."
+msgstr "Chacune des {0} doit désigner une catégorie, une marque ou un produit."
+
+#: webshop/www/my-brand/index.py:75
+msgid "Enter the markup in percent."
+msgstr "Indiquez la majoration en pour cent."
+
+#: webshop/webshop/catalogue/refusals.py:113
+msgid "Give one e-mail address."
+msgstr "Indiquez une seule adresse e-mail."
+
+#: webshop/www/my-catalogues/index.py:79
+msgid "High: for a printer"
+msgstr "Élevée : pour une impression"
+
+#: webshop/webshop/catalogue/rows.py:362 webshop/www/my-catalogues/index.py:81
+msgid "Language of the texts"
+msgstr "Langue des textes"
+
+#: webshop/www/my-catalogues/index.py:142
+#, python-brace-format
+msgid "Last opened: {0}."
+msgstr "Dernière ouverture : {0}."
+
+#: webshop/www/my-catalogues/index.py:80
+msgid "Light makes a small file, high keeps the pictures sharp on paper and a larger file."
+msgstr "La qualité légère donne un petit fichier ; la qualité élevée garde les images nettes sur papier, pour un fichier plus lourd."
+
+#: webshop/www/my-catalogues/index.py:78
+msgid "Light: for an e-mail"
+msgstr "Légère : pour un e-mail"
+
+#. Label of a Data field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:181
+msgid "Link Hash"
+msgstr "Empreinte du lien"
+
+#. Label of a Datetime field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:207
+msgid "Link Last Opened On"
+msgstr "Dernière ouverture du lien"
+
+#. Label of a Password field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:190
+msgid "Link Secret"
+msgstr "Secret du lien"
+
+#: webshop/templates/generators/item_group.html:192
+#: webshop/www/all-products/index.html:180
+msgid "Make a catalogue"
+msgstr "Créer un catalogue"
+
+#: webshop/www/my-catalogues/index.py:137
+msgid "Make a link"
+msgstr "Créer un lien"
+
+#: webshop/www/my-brand/index.py:72
+msgid "No particular markup: every product takes the markup above."
+msgstr "Aucune majoration particulière : chaque produit reprend la majoration ci-dessus."
+
+#: webshop/www/my-catalogues/index.py:144
+msgid "Not opened yet."
+msgstr "Pas encore ouvert."
+
+#: webshop/www/my-catalogues/index.py:148
+msgid "One e-mail address."
+msgstr "Une seule adresse e-mail."
+
+#. Label of a Section Break field in DocType 'Reseller Catalogue Profile'
+#. Label of a Table field in DocType 'Reseller Catalogue Profile'
+#: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:161
+msgid "Particular Markups"
+msgstr "Majorations particulières"
+
+#: webshop/webshop/catalogue/refusals.py:27
+#: webshop/webshop/catalogue/rows.py:359 webshop/www/my-brand/index.py:55
+msgid "Particular markups"
+msgstr "Majorations particulières"
+
+#: webshop/www/my-brand/index.py:76
+msgid "Particular markups are used once you have saved."
+msgstr "Les majorations particulières ne sont appliquées qu'après l'enregistrement."
+
+#: webshop/www/my-brand/index.py:68
+msgid "Search a product by name or reference"
+msgstr "Rechercher un produit par nom ou référence"
+
+#: webshop/www/my-catalogues/index.py:145
+msgid "Send it by e-mail"
+msgstr "L'envoyer par e-mail"
+
+#: webshop/webshop/catalogue/share.py:243
+#, python-brace-format
+msgid "Sent by {0}."
+msgstr "Envoyé par {0}."
+
+#. Description of the 'Link Hash' (Data) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:185
+msgid "SHA-256 of the secret of the link: how the catalogue is found, and the secret itself is not."
+msgstr "Empreinte SHA-256 du secret du lien : c'est elle qui permet de retrouver le catalogue ; le secret lui-même n'est pas stocké."
+
+#: webshop/templates/generators/item_group.html:193
+#: webshop/www/all-products/index.html:181
+msgid "Starts a catalogue from the category, the brands and the search of this page. The other filters are not kept."
+msgstr "Démarre un catalogue à partir de la catégorie, des marques et de la recherche de cette page. Les autres filtres ne sont pas repris."
+
+#: webshop/www/my-catalogues/index.py:140
+msgid "Stop the link"
+msgstr "Arrêter le lien"
+
+#: webshop/webshop/catalogue/refusals.py:109
+msgid "The catalogue is not finished yet."
+msgstr "Le catalogue n'est pas encore terminé."
+
+#: webshop/www/my-catalogues/index.py:139
+msgid "The current link stops working at once."
+msgstr "Le lien actuel cesse de fonctionner immédiatement."
+
+#: webshop/webshop/catalogue/refusals.py:117
+msgid "The e-mail could not be sent. The team has been told."
+msgstr "L'e-mail n'a pas pu être envoyé. L'équipe en a été informée."
+
+#: webshop/www/my-catalogues/index.py:146
+msgid "The e-mail holds the link, not the file, and goes out in the name of your brand. Nothing is sent unless you press the button."
+msgstr "L'e-mail contient le lien, et non le fichier, et part au nom de votre marque. Rien n'est envoyé tant que vous n'appuyez pas sur le bouton."
+
+#: webshop/www/my-catalogues/index.py:151
+msgid "The e-mail is on its way."
+msgstr "L'e-mail est en route."
+
+#: webshop/www/my-catalogues/index.py:133
+msgid "The link lasts"
+msgstr "Validité du lien"
+
+#: webshop/www/my-catalogues/index.py:141
+#, python-brace-format
+msgid "The link shows the catalogue until {0}."
+msgstr "Le lien affiche le catalogue jusqu'au {0}."
+
+#: webshop/www/my-catalogues/index.py:83
+msgid "The name and the description of each product, as the shop's visitors read them in that language."
+msgstr "Le nom et la description de chaque produit, tels que les visiteurs de la boutique les lisent dans cette langue."
+
+#. Description of the 'Name' (Data) field in DocType 'Reseller Markup Rule'
+#: webshop/webshop/doctype/reseller_markup_rule/reseller_markup_rule.json:23
+msgid "The name of the category, of the brand, or the reference of the product. Not a Link on purpose: Frappe fills a Link to Item Group or Brand with the session default at insert time."
+msgstr "Le nom de la catégorie, de la marque ou la référence du produit. Volontairement pas un champ Lien : Frappe remplit un lien vers Groupe d'articles ou Marque avec la valeur par défaut de la session à l'insertion."
+
+#. Description of the 'Link Secret' (Password) field in DocType 'Reseller
+#. Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:192
+msgid "The secret of the link, encrypted: the reseller's page shows the link again. Never given to anybody else."
+msgstr "Le secret du lien, chiffré : la page du revendeur peut afficher de nouveau le lien. Il n'est jamais communiqué à qui que ce soit."
+
+#: webshop/webshop/catalogue/refusals.py:80
+msgid "The shop does not offer this language."
+msgstr "La boutique ne propose pas cette langue."
+
+#: webshop/www/my-catalogues/index.py:82
+msgid "The shop's own language"
+msgstr "La langue de la boutique"
+
+#: webshop/webshop/catalogue/refusals.py:44
+#, python-brace-format
+msgid "The {0} name a category, a brand or a product twice."
+msgstr "Les {0} désignent deux fois une même catégorie, marque ou un même produit."
+
+#: webshop/webshop/catalogue/refusals.py:45
+#, python-brace-format
+msgid "The {0} name something this shop does not carry."
+msgstr "Les {0} désignent un élément que cette boutique ne propose pas."
+
+#: webshop/webshop/catalogue/share.py:241
+#, python-brace-format
+msgid "This link shows the catalogue until {0}."
+msgstr "Ce lien affiche le catalogue jusqu'au {0}."
+
+#: webshop/www/my-brand/index.py:74
+msgid "This one already has a markup."
+msgstr "Celui-ci a déjà une majoration."
+
+#. Description of the 'For' (Select) field in DocType 'Reseller Markup Rule'
+#: webshop/webshop/doctype/reseller_markup_rule/reseller_markup_rule.json:14
+msgid "What the markup is for. The most specific rule that names a product decides: the product itself, then its category (the closest one above it), then its brand, then the markup of the catalogue."
+msgstr "À quoi sert la majoration. La règle la plus précise qui désigne un produit décide : le produit lui-même, puis sa catégorie (la plus proche au-dessus de lui), puis sa marque, puis la majoration du catalogue."
+
+#: webshop/webshop/catalogue/refusals.py:116
+#, python-brace-format
+msgid "You have already written to this address {0} times in the last 24 hours."
+msgstr "Vous avez déjà écrit à cette adresse {0} fois au cours des dernières 24 heures."
+
+#: webshop/webshop/catalogue/refusals.py:115
+#, python-brace-format
+msgid "You have sent {0} e-mails in the last 24 hours. Try again later."
+msgstr "Vous avez envoyé {0} e-mails au cours des dernières 24 heures. Réessayez plus tard."
+
+#: webshop/webshop/catalogue/refusals.py:114
+#, python-brace-format
+msgid "Your message is too long: {0} characters at most."
+msgstr "Votre message est trop long : {0} caractères au maximum."
+
+#: webshop/www/my-catalogues/index.py:67
+#, python-brace-format
+msgid "Your particular markups ({0}) replace it for the categories, brands and products they name. You change them on your brand page."
+msgstr "Vos majorations particulières ({0}) le remplacent pour les catégories, marques et produits qu'elles désignent. Vous les modifiez sur votre page de marque."
+
+#: webshop/webshop/catalogue/refusals.py:39
+#, python-brace-format
+msgid "{0} could not be read."
+msgstr "{0} n'a pas pu être lu."
+
+#: webshop/webshop/catalogue/refusals.py:40
+#, python-brace-format
+msgid "{0} has too many rows: 200 at most."
+msgstr "{0} contient trop de lignes : 200 au maximum."
+
+#: webshop/webshop/catalogue/share.py:247
+#, python-brace-format
+msgctxt "Subject of the e-mail that carries a reseller's catalogue"
+msgid "{0}: {1}"
+msgstr "{0} : {1}"

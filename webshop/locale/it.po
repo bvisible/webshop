@@ -8589,3 +8589,80 @@ msgstr "{} programmati"
 #, python-brace-format
 msgid "{} sent"
 msgstr "{} inviate"
+
+#: webshop/templates/catalogue/catalogue.html:29
+msgid "Contents"
+msgstr "Indice"
+
+#: webshop/templates/catalogue/catalogue.html:55
+msgctxt "Before the lowest price of a product that has several"
+msgid "From"
+msgstr "Da"
+
+#: webshop/webshop/catalogue/rows.py:362 webshop/www/my-catalogues/index.py:81
+msgid "Language of the texts"
+msgstr "Lingua dei testi"
+
+#. Label of a Int field in DocType 'Reseller Feed'
+#: webshop/webshop/catalogue/rows.py:353
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:75
+msgid "Lines"
+msgstr "Righe"
+
+#: webshop/webshop/catalogue/rows.py:350
+msgid "Made for"
+msgstr "Destinato a"
+
+#: webshop/webshop/catalogue/rows.py:351 webshop/www/my-catalogues/index.py:96
+msgid "Made on"
+msgstr "Creato il"
+
+#: webshop/webshop/catalogue/rows.py:357
+msgid "Markup"
+msgstr "Ricarico"
+
+#: webshop/webshop/catalogue/rows.py:344
+msgid "More pictures"
+msgstr "Altre immagini"
+
+#: webshop/webshop/catalogue/rows.py:343
+msgid "Picture"
+msgstr "Immagine"
+
+#: webshop/webshop/catalogue/rows.py:340
+msgid "Price includes VAT"
+msgstr "Prezzo IVA incl."
+
+#: webshop/webshop/catalogue/rows.py:352
+msgid "Prices as of"
+msgstr "Prezzi aggiornati al"
+
+#: webshop/webshop/catalogue/rows.py:364
+msgid "Purchase prices"
+msgstr "Prezzi d'acquisto"
+
+#: webshop/webshop/catalogue/rows.py:360
+msgid "Selling prices"
+msgstr "Prezzi di vendita"
+
+#: webshop/webshop/catalogue/share.py:243
+#, python-brace-format
+msgid "Sent by {0}."
+msgstr "Inviato da {0}."
+
+#: webshop/webshop/catalogue/share.py:241
+#, python-brace-format
+msgid "This link shows the catalogue until {0}."
+msgstr "Questo link mostra il catalogo fino al {0}."
+
+#: webshop/webshop/catalogue/rows.py:335
+msgid "Unit"
+msgstr "Unità"
+
+#: webshop/webshop/catalogue/rows.py:364
+msgid "Your own price list, as the shop's rules apply to you. Confidential: not for your customers."
+msgstr "La sua lista prezzi personale, applicata secondo le regole dello shop. Riservata: non destinata ai suoi clienti."
+
+#: webshop/webshop/catalogue/rows.py:338
+msgid "Your purchase price"
+msgstr "Il suo prezzo d'acquisto"

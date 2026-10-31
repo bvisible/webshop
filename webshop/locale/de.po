@@ -8344,3 +8344,80 @@ msgstr "{} gesendet"
 #: webshop/templates/pages/checkout.js:1635
 msgid "Confirm Changes"
 msgstr "Änderungen bestätigen"
+
+#: webshop/templates/catalogue/catalogue.html:29
+msgid "Contents"
+msgstr "Inhalt"
+
+#: webshop/templates/catalogue/catalogue.html:55
+msgctxt "Before the lowest price of a product that has several"
+msgid "From"
+msgstr "ab"
+
+#: webshop/webshop/catalogue/rows.py:362 webshop/www/my-catalogues/index.py:81
+msgid "Language of the texts"
+msgstr "Sprache der Texte"
+
+#. Label of a Int field in DocType 'Reseller Feed'
+#: webshop/webshop/catalogue/rows.py:353
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:75
+msgid "Lines"
+msgstr "Zeilen"
+
+#: webshop/webshop/catalogue/rows.py:350
+msgid "Made for"
+msgstr "Erstellt für"
+
+#: webshop/webshop/catalogue/rows.py:351 webshop/www/my-catalogues/index.py:96
+msgid "Made on"
+msgstr "Erstellt am"
+
+#: webshop/webshop/catalogue/rows.py:357
+msgid "Markup"
+msgstr "Aufschlag"
+
+#: webshop/webshop/catalogue/rows.py:344
+msgid "More pictures"
+msgstr "Weitere Bilder"
+
+#: webshop/webshop/catalogue/rows.py:343
+msgid "Picture"
+msgstr "Bild"
+
+#: webshop/webshop/catalogue/rows.py:340
+msgid "Price includes VAT"
+msgstr "Preis inkl. MWST"
+
+#: webshop/webshop/catalogue/rows.py:352
+msgid "Prices as of"
+msgstr "Preisstand vom"
+
+#: webshop/webshop/catalogue/rows.py:364
+msgid "Purchase prices"
+msgstr "Einkaufspreise"
+
+#: webshop/webshop/catalogue/rows.py:360
+msgid "Selling prices"
+msgstr "Verkaufspreise"
+
+#: webshop/webshop/catalogue/share.py:243
+#, python-brace-format
+msgid "Sent by {0}."
+msgstr "Gesendet von {0}."
+
+#: webshop/webshop/catalogue/share.py:241
+#, python-brace-format
+msgid "This link shows the catalogue until {0}."
+msgstr "Dieser Link zeigt den Katalog bis {0}."
+
+#: webshop/webshop/catalogue/rows.py:335
+msgid "Unit"
+msgstr "Einheit"
+
+#: webshop/webshop/catalogue/rows.py:364
+msgid "Your own price list, as the shop's rules apply to you. Confidential: not for your customers."
+msgstr "Ihre eigene Preisliste, so wie die Regeln des Shops für Sie gelten. Vertraulich: nicht für Ihre Kunden bestimmt."
+
+#: webshop/webshop/catalogue/rows.py:338
+msgid "Your purchase price"
+msgstr "Ihr Einkaufspreis"
