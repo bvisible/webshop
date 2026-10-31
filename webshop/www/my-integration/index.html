@@ -1,0 +1,69 @@
+{# //// Neoffice — added file (the reseller's integration page, no upstream equivalent). #}
+{# //// The request, its state and the key: index.js next to this file fills them from the server. Every label comes from the server. #}
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Integration") }}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block page_content %}
+<div class="wsp-integration" id="wsp-integration">
+	<script type="application/json" id="wsp-integration-config">{{ config | json }}</script>
+	<p class="text-muted">{{ config.labels.lead }}</p>
+	<p class="text-danger d-none" id="wsp-int-error" role="alert"></p>
+
+	<section class="frappe-card p-4 mb-4" id="wsp-int-state">
+		<h2 class="h5 mb-2">{{ config.labels.status }}</h2>
+		<p class="mb-1 font-weight-bold" id="wsp-int-status" role="status" aria-live="polite">{{ config.labels.loading }}</p>
+		<p class="text-muted small mb-1" id="wsp-int-when"></p>
+		<p class="mb-0" id="wsp-int-note"></p>
+	</section>
+
+	<form class="frappe-card p-4 mb-4 d-none" id="wsp-int-form" novalidate>
+		<h2 class="h5 mb-3">{{ config.labels.request_title }}</h2>
+		<div class="mb-3">
+			<label class="mb-1" for="wsp-int-use-case">{{ config.labels.use_case }}</label>
+			<textarea class="form-control" id="wsp-int-use-case" rows="3" maxlength="500"></textarea>
+			<div class="form-text">{{ config.labels.use_case_hint }}</div>
+			<div class="invalid-feedback d-block" data-error-for="use_case"></div>
+		</div>
+		<div class="mb-3">
+			<label class="mb-1" for="wsp-int-volume">{{ config.labels.expected_volume }}</label>
+			<input class="form-control" id="wsp-int-volume" maxlength="100">
+			<div class="form-text">{{ config.labels.expected_volume_hint }}</div>
+			<div class="invalid-feedback d-block" data-error-for="expected_volume"></div>
+		</div>
+		<div class="form-check mb-3">
+			<input class="form-check-input" type="checkbox" id="wsp-int-orders">
+			<label class="form-check-label" for="wsp-int-orders">{{ config.labels.wants_orders }}</label>
+			<div class="form-text">{{ config.labels.wants_orders_hint }}</div>
+		</div>
+		<button class="btn btn-primary" type="submit" id="wsp-int-send">{{ config.labels.send_request }}</button>
+		<span class="text-muted ml-2" id="wsp-int-form-status" role="status"></span>
+	</form>
+
+	<section class="frappe-card p-4 mb-4 d-none" id="wsp-int-active">
+		<h2 class="h5 mb-3">{{ config.labels.allowed }}</h2>
+		<ul class="mb-3" id="wsp-int-scopes"></ul>
+
+		<h2 class="h5 mb-2">{{ config.labels.key_title }}</h2>
+		<p class="mb-1" id="wsp-int-key-info"></p>
+		<p class="text-muted small mb-2" id="wsp-int-key-used"></p>
+		<div class="d-none alert alert-warning" id="wsp-int-secret-box" role="alert">
+			<div class="font-weight-bold">{{ config.labels.secret_title }}</div>
+			<div class="small mb-2">{{ config.labels.secret_warning }}</div>
+			<div class="d-flex align-items-center">
+				<input class="form-control form-control-sm" id="wsp-int-secret" readonly aria-label="{{ config.labels.secret_title }}">
+				<button class="btn btn-sm btn-light ml-2" type="button" id="wsp-int-copy">{{ config.labels.copy }}</button>
+			</div>
+		</div>
+		<div class="d-flex flex-wrap" id="wsp-int-key-actions"></div>
+
+		<h2 class="h5 mt-4 mb-2">{{ config.labels.use_title }}</h2>
+		<p class="mb-1"><span class="text-muted">{{ config.labels.base_url }}</span> <code id="wsp-int-base"></code></p>
+		<p class="mb-2"><a id="wsp-int-contract" href="#">{{ config.labels.contract }}</a></p>
+		<p class="text-muted small mb-1">{{ config.labels.example_note }}</p>
+		<pre class="border rounded p-2 small mb-2" id="wsp-int-example"></pre>
+		<p class="text-muted small mb-0">{{ config.labels.feed_hint }}</p>
+	</section>
+</div>
+{% endblock %}

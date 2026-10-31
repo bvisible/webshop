@@ -165,12 +165,12 @@ def count_lines(clean_selection):
 	return len(_lines(products)[0]) if len(products) <= MAX_ROWS else MAX_ROWS + 1
 
 
-def build_rows(customer, payload, clean_selection, options, progress=None):
+def build_rows(customer, payload, clean_selection, options, progress=None, include_variants=False):
 	"""The lines a clean selection stands for, priced for `customer` (the reseller's brand is `payload`).
 
 	Returns {columns, rows, currency, prices, markup_percent, including_vat, prices_as_of}. `progress`, when
 	given, is called as progress("prices", done, total)."""
-	products = selection.product_rows(clean_selection, limit=MAX_ROWS + 1)
+	products = selection.product_rows(clean_selection, limit=MAX_ROWS + 1, variants=include_variants)
 	if not products:
 		raise book.CatalogueRefused("empty")
 	if len(products) > MAX_ROWS:

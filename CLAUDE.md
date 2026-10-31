@@ -1239,6 +1239,44 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
   304 on revalidation, the photo of the feed's address downloads, a wrong or missing token is a 404, the old address
   of a replaced one too.
 
+- **The partner API** (lot 4, `partner_api/`, 2026-11-01): a reseller asks for it on `/my-integration`, staff allow
+  it on the desk (**Partner API Access**: Approve with the scopes — orders, submit at once, calls a minute — Refuse,
+  Suspend, Resume), the reseller makes a key there. Five calls under `/partner/v1/` (a page renderer, not a
+  whitelisted method: the address is the contract's, and Frappe's own authentication would answer 401 to anything it
+  does not know): `GET products` and `products/<code>`, `GET orders`, `orders/<id>`, `POST orders`; the contract is
+  `partner_api/openapi.yaml`, served at `/partner/v1/openapi.yaml`.
+  - **The key is its own** (`wsk_<id>.<secret>`, header `X-API-Key`, never `Authorization`): the record holds the id and
+    the SHA-256 of the secret, shown once on the page. It opens `/partner/v1/` and nothing else, so a leaked key reads
+    a catalogue and places draft orders; a Frappe API key on the portal user would have reached everything that user
+    may call. Every refusal of a key is one 401, the reason only in its code; suspending, revoking, replacing it or
+    taking the group away cuts it at once and touches nothing else of the customer.
+  - **The price is the caller's own**: `products/<code>` gives `price` on THIS customer's list (what they pay,
+    `customer_pricing`, the same figure as the cart), never the shop's, never a selling price. A line of an order is
+    `{item_code, qty}`: a `rate`, a `price` or any other key is a 422, not ignored. The order is a draft unless staff
+    allowed submission; `idempotency_key` names it (`Partner API Order`, one row a customer and key), so a replayed
+    call returns the order, and the same key with other lines is a 422; `dry_run` prices without making anything.
+  - **Stock is `in_stock`, `out_of_stock` or `backorder`**, never a quantity, in the answers and in the refusals.
+  - **The models are not listed**, their variants are (even where the shop hides variants from its listings:
+    `selection.product_rows(variants=True)`).
+
+> **ERPNext refuses a second order of a customer with the same purchase order reference** (`po_no`), so `reference` is
+> one an order, and an API client that sends a constant one gets `order_refused` from the second order on. The
+> contract says so.
+
+> **Frappe's `validate_auth` runs before every route**, renderers included: a two-part `Authorization` header it does
+> not recognise (`Bearer x`, `token a:b`) is a 401 from Frappe itself, before any renderer or hook of ours.
+
+> **A stand-in for the request breaks in `get_url` and in `render_template`**, which read `request.host` and
+> `request.path`. The partner tests send real werkzeug requests (`EnvironBuilder`), which is also what shows the
+> renderer what a program's call looks like.
+
+> **A YAML plain scalar cannot hold `: `, and a flow mapping cannot hold a comma** in one: `description: A page of
+> products (no price: ask…)` and `{…, description: A part of the name, the code}` both broke the contract's file, which
+> only a test that loads it with PyYAML can see.
+
+> **The clone holds the whole catalogue of the shop**, so a list test that asks for "the first hundred" finds somebody
+> else's products: the tests narrow the listing to their own prefix.
+
 > **The feed's files are in the site's private folder, not File records.** File shares the file on disk between
 > records with the same content, so the refresh of one reseller would have deleted the file of another whose feed was
 > byte for byte the same. Named by a hash of the customer, written beside and moved over (`os.replace`), so a reader

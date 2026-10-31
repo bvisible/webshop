@@ -1,0 +1,272 @@
+# //// Neoffice — added file (no upstream equivalent). The contract of the partner API, version 1 (reseller catalogue, lot 4).
+openapi: 3.0.3
+info:
+  title: Neoffice partner API
+  version: v1
+  description: |
+    The shop's catalogue and orders, for a reseller's own systems.
+
+    **Access.** A reseller asks for access on their page of the shop ("Integration"), staff allow it, and the
+    reseller makes a key there. The key is shown once; keep it like a password. Send it in the `X-API-Key`
+    header (not in `Authorization`). One key belongs to one customer and one price list.
+
+    **Prices.** A price is the one on *your* price list, with the shop's rules: what you pay, not what you sell
+    at. It is never taken from a request: a line of an order is `{item_code, qty}` and nothing else.
+
+    **Stock.** Told as `in_stock`, `out_of_stock` or `backorder`, never as a quantity.
+
+    **Orders** wait as drafts for somebody to read them, unless staff allowed this key to submit them. Send an
+    `idempotency_key` with every order: replaying a call whose answer you never read returns the same order.
+
+    **Limits.** A key has an allowance of calls per minute (429 and `Retry-After` beyond it). Pages hold at most
+    100 items. For a whole catalogue, the product feed of your page (CSV or JSON, refreshed every night) costs
+    you fewer calls than this API.
+
+    **Time.** Every date-time is ISO 8601 in UTC (`2026-10-31T11:22:58+00:00`); `modified_since` takes the same.
+
+    **Errors.** `{"error": {"code", "message", "details"?}}`; read the `code`, it is stable.
+servers:
+  - url: /partner/v1
+security:
+  - ApiKey: []
+paths:
+  /products:
+    get:
+      summary: The products you may order, a page at a time
+      description: |
+        Sorted by `modified`, then by code, so that `modified_since` and `page` can walk a catalogue without
+        missing a product. A model with variants is not listed: its variants are (`model` names the model).
+      parameters:
+        - {name: search, in: query, schema: {type: string, maxLength: 140}, description: "A part of the name, the code or the brand"}
+        - {name: item_group, in: query, schema: {type: string}, description: "A category; its sub-categories are included"}
+        - {name: brand, in: query, schema: {type: string}}
+        - {name: model, in: query, schema: {type: string}, description: "The code of a model, to list its variants"}
+        - {name: code, in: query, schema: {type: string}}
+        - {name: modified_since, in: query, schema: {type: string, format: date-time}}
+        - {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+        - {name: page_size, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}
+      responses:
+        "200":
+          description: "A page of products (no price: ask for one product to read its price)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page: {type: integer}
+                  page_size: {type: integer}
+                  total: {type: integer}
+                  products:
+                    type: array
+                    items: {$ref: "#/components/schemas/Product"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "422": {$ref: "#/components/responses/Invalid"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+  /products/{code}:
+    get:
+      summary: One product, with your price
+      parameters:
+        - {name: code, in: path, required: true, schema: {type: string}}
+      responses:
+        "200":
+          description: The product
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - {$ref: "#/components/schemas/Product"}
+                  - type: object
+                    properties:
+                      description: {type: string, nullable: true}
+                      images: {type: array, items: {type: string, format: uri}}
+                      price: {type: number, nullable: true, description: "Your price on your price list; null when the shop gives none (price on request)"}
+                      currency: {type: string, nullable: true}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+  /orders:
+    get:
+      summary: Your orders
+      description: Needs the orders scope.
+      parameters:
+        - {name: status, in: query, schema: {type: string}}
+        - {name: reference, in: query, schema: {type: string}}
+        - {name: modified_since, in: query, schema: {type: string, format: date-time}}
+        - {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+        - {name: page_size, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}
+      responses:
+        "200":
+          description: A page of orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page: {type: integer}
+                  page_size: {type: integer}
+                  total: {type: integer}
+                  orders:
+                    type: array
+                    items: {$ref: "#/components/schemas/Order"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "403": {$ref: "#/components/responses/ScopeMissing"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+    post:
+      summary: Place an order
+      description: |
+        Needs the orders scope. The order is priced by the shop on your price list. It waits as a draft
+        (`submitted: false`) unless your key may submit. `dry_run: true` checks and prices without making anything.
+        The same `idempotency_key` with the same lines returns the order already made
+        (header `Idempotent-Replayed: true`); with other lines it is refused (`idempotency_conflict`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idempotency_key, lines]
+              additionalProperties: false
+              properties:
+                idempotency_key: {type: string, pattern: '^[A-Za-z0-9_.:-]{1,100}$'}
+                reference: {type: string, maxLength: 140, description: "Your own reference; it comes back as `reference`. One order a reference: the shop refuses a second order with the same one (order_refused)."}
+                requested_delivery_date: {type: string, format: date}
+                dry_run: {type: boolean}
+                lines:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  items:
+                    type: object
+                    required: [item_code, qty]
+                    additionalProperties: false
+                    properties:
+                      item_code: {type: string}
+                      qty: {type: number, exclusiveMinimum: 0, maximum: 100000}
+      responses:
+        "201":
+          description: The order was made
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/OrderWithLines"}
+        "200":
+          description: A replay of an order already made, or a dry run
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/OrderWithLines"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "403": {$ref: "#/components/responses/ScopeMissing"}
+        "422":
+          description: |
+            A refusal: `invalid_body`, `invalid_parameter`, `invalid_idempotency_key`, `idempotency_conflict`,
+            `order_refused`, or `invalid_lines` with `details.lines` naming each line that cannot be served
+            (`not_available`, `no_price`, `out_of_stock`, `insufficient_stock`). Nothing is ordered then.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Error"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+  /orders/{id}:
+    get:
+      summary: One order, with its lines and its confirmed delivery date
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200":
+          description: The order
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/OrderWithLines"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "403": {$ref: "#/components/responses/ScopeMissing"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    Product:
+      type: object
+      properties:
+        code: {type: string}
+        model: {type: string, nullable: true}
+        name: {type: string}
+        brand: {type: string, nullable: true}
+        category: {type: string, nullable: true}
+        unit: {type: string, nullable: true}
+        ean: {type: string, nullable: true}
+        mpn: {type: string, nullable: true}
+        attributes: {type: object, additionalProperties: {type: string}}
+        availability: {type: string, enum: [in_stock, out_of_stock, backorder]}
+        image: {type: string, format: uri, nullable: true}
+        url: {type: string, format: uri, nullable: true}
+        modified: {type: string, format: date-time}
+    Order:
+      type: object
+      properties:
+        id: {type: string, nullable: true}
+        reference: {type: string, nullable: true}
+        status: {type: string}
+        submitted: {type: boolean}
+        date: {type: string, format: date}
+        requested_delivery_date: {type: string, format: date, nullable: true}
+        confirmed_delivery_date: {type: string, format: date, nullable: true, description: "What the shop committed to, not what you asked for"}
+        currency: {type: string}
+        net_total: {type: number}
+        grand_total: {type: number}
+        modified: {type: string, format: date-time}
+    OrderWithLines:
+      allOf:
+        - {$ref: "#/components/schemas/Order"}
+        - type: object
+          properties:
+            dry_run: {type: boolean}
+            lines:
+              type: array
+              items:
+                type: object
+                properties:
+                  item_code: {type: string}
+                  name: {type: string}
+                  qty: {type: number}
+                  unit: {type: string}
+                  price: {type: number}
+                  amount: {type: number}
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: {type: string}
+            message: {type: string}
+            details: {type: object}
+  responses:
+    Unauthorized:
+      description: The key is missing, wrong, revoked or its access is suspended (the same answer for all)
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+    ScopeMissing:
+      description: This key may not use orders
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+    NotFound:
+      description: No such resource (an order of somebody else is not told apart from one that does not exist)
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+    Invalid:
+      description: A parameter is not valid
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+    RateLimited:
+      description: Too many calls this minute for this key
+      headers:
+        Retry-After: {schema: {type: integer}}
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}

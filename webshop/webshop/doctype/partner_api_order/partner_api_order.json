@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:lookup",
+ "creation": "2026-11-01 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "lookup",
+  "customer",
+  "idempotency_key",
+  "request_hash",
+  "sales_order"
+ ],
+ "fields": [
+  {
+   "fieldname": "lookup",
+   "fieldtype": "Data",
+   "label": "Lookup",
+   "reqd": 1,
+   "unique": 1,
+   "read_only": 1,
+   "length": 64,
+   "description": "SHA-256 of the customer and the key: the name of the record, so that two requests with one key meet on one row."
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1,
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "idempotency_key",
+   "fieldtype": "Data",
+   "label": "Idempotency Key",
+   "read_only": 1,
+   "in_list_view": 1,
+   "length": 100
+  },
+  {
+   "fieldname": "request_hash",
+   "fieldtype": "Data",
+   "label": "Request Hash",
+   "read_only": 1,
+   "length": 64,
+   "description": "SHA-256 of the lines asked for: the same key with other lines is refused."
+  },
+  {
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "label": "Sales Order",
+   "options": "Sales Order",
+   "read_only": 1,
+   "in_list_view": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-01 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Webshop",
+ "name": "Partner API Order",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

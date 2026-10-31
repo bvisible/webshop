@@ -136,6 +136,7 @@ ENTRIES = {
 	"/loyalty-points": (N_("Loyalty"), switch_is_on("enable_loyalty_points")),
 	"/my-brand": (N_("Brand"), reseller_catalogue_is_offered),
 	"/my-catalogues": (N_("Catalogues"), reseller_catalogue_is_offered),
+	"/my-integration": (N_("Integration"), reseller_catalogue_is_offered),
 }
 
 

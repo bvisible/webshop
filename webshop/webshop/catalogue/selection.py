@@ -104,6 +104,11 @@ def _group_names(groups):
 	return sorted(names)
 
 
+def group_names(groups):
+	"""The groups and everything under them, for a caller outside this module."""
+	return _group_names(groups)
+
+
 def _either(selection):
 	"""The `or_filters` a clean selection stands for, or None when none of its lists names anything real."""
 	either = []
@@ -117,16 +122,21 @@ def _either(selection):
 	return either or None
 
 
-def product_rows(selection, limit=MAX_PRODUCTS + 1):
+def product_rows(selection, limit=MAX_PRODUCTS + 1, variants=False):
 	"""The Website Items a clean selection holds, in the order a catalogue prints them: by item group, then name.
 
-	`limit` defaults to one above the cap, so a caller can tell "exactly the cap" from "more than the cap"."""
+	`limit` defaults to one above the cap, so a caller can tell "exactly the cap" from "more than the cap".
+	`variants` keeps the variants the shop hides from its listings (Webshop Settings' `hide_variants`): they are
+	still what is bought, and a file or the partner API names them one by one."""
 	either = _either(selection)
 	if not either:
 		return []
+	filters = scope()
+	if variants:
+		filters.pop("variant_of", None)
 	return frappe.get_all(
 		"Website Item",
-		filters=scope(),
+		filters=filters,
 		or_filters=either,
 		fields=FIELDS,
 		order_by="item_group asc, web_item_name asc, item_code asc",

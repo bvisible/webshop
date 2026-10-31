@@ -141,6 +141,8 @@ standard_portal_menu_items = [
 	{"title": "Brand", "route": "/my-brand", "reference_doctype": "Reseller Catalogue Profile", "role": "Customer"},
 	# //// Neoffice — the reseller's catalogues page (2026-10-31), offered like the brand page.
 	{"title": "Catalogues", "route": "/my-catalogues", "reference_doctype": "Reseller Catalogue", "role": "Customer"},
+	# //// Neoffice — the reseller's integration page, where the partner API is asked for (2026-11-01), offered like the catalogues.
+	{"title": "Integration", "route": "/my-integration", "reference_doctype": "Partner API Access", "role": "Customer"},
 ]
 
 # //// Neoffice — added (2026-09-22). A reminder about an abandoned cart is a trace,
@@ -378,6 +380,8 @@ page_renderer = [
 	"webshop.webshop.seo.feeds.google.FeedRenderer",
 	# //// Neoffice — a reseller's product feed, /feeds/reseller/<token>/products.csv (reseller catalogue, lot 3)
 	"webshop.webshop.catalogue.feed.FeedRenderer",
+	# //// Neoffice — the partner API, /partner/v1/... (reseller catalogue, lot 4): a key opens it, no session does
+	"webshop.webshop.partner_api.renderer.PartnerApiRenderer",
 	# //// Neoffice — the IndexNow key at each site's root, /<key>.txt (#691 lot 4)
 	"webshop.webshop.seo.indexnow.KeyRenderer",
 	# //// Neoffice — /llms.txt, the shop's card for language models (#691 lot 4)

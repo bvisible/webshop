@@ -74,3 +74,5 @@ webshop.patches.make_picture_copies_readable
 webshop.patches.add_my_brand_portal_menu
 # //// Neoffice — the reseller's catalogues page in the account menu of existing sites (2026-10-31)
 webshop.patches.add_my_catalogues_portal_menu
+# //// Neoffice — the reseller's integration page in the account menu of existing sites (2026-11-01)
+webshop.patches.add_my_integration_portal_menu

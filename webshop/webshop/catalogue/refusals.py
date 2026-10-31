@@ -103,3 +103,21 @@ def feed_message(reason, number=None):
 		"stalled": _("The feed took too long and was stopped. Try again, with a smaller selection."),
 	}
 	return messages.get(reason, _("The feed could not be made."))
+
+
+def api_message(reason, number=None):
+	"""The words of the partner API's portal page and desk buttons (the API itself answers in English)."""
+	messages = {
+		"use_case_required": _("Say in a sentence what you want to do with the API."),
+		"use_case_invalid": _("The description is too long ({0} characters at most) or contains the characters < and >.").format(number),
+		"volume_invalid": _("The expected volume is too long: {0} characters at most.").format(number),
+		"already": _("You already have an access, or a request waiting for an answer."),
+		"too_many_requests": _("You asked several times today. Try again tomorrow."),
+		"not_active": _("This access is not active."),
+		"too_many_keys": _("You made several keys in the last hour. Try again later."),
+		"no_access": _("There is no access to decide on."),
+		"not_requested": _("This access is not waiting for a decision."),
+		"not_suspended": _("This access is not suspended."),
+		"calls_invalid": _("Calls per minute must be between 1 and {0}.").format(number),
+	}
+	return messages.get(reason, _("This could not be done."))
