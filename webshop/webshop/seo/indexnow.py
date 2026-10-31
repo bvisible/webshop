@@ -190,6 +190,10 @@ def submit_queue():
 			if site_is_business_only():
 				continue
 			urls = [site_url("/" + route) for route in routes]
+			# //// Neoffice — multilingual lot 3 (neoffice-maintenance#2031): and the same pages in the languages they are translated in
+			from webshop.webshop.seo.language_links import language_urls
+
+			urls += [site_url(url) for route in routes for url in language_urls(route)]
 			key_location = site_url(f"/{key}.txt")
 		host = urlparse(key_location).netloc
 		for start in range(0, len(urls), BATCH_LIMIT):

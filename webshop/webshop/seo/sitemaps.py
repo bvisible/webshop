@@ -50,6 +50,11 @@ def index_entries():
 	return [{"loc": _loc(name)} for name in names]
 
 
+# //// Neoffice — multilingual lot 3: the same address under a language's prefix
+def _loc_in(route, prefix):
+	return _loc(f"{prefix.strip('/')}/{(route or '').strip('/')}")
+
+
 def _loc(route):
 	"""Absolute, percent-encoded and XML-escaped address of a route on this site."""
 	from webshop.www.sitemap_utils import prepare_url_for_xml
@@ -73,7 +78,10 @@ def _day(value):
 
 
 def product_links():
-	return _product_links(get_current_profile_name())[:SITEMAP_LIMIT]
+	# //// Neoffice — multilingual lot 3 (neoffice-maintenance#2031): a copy under each language the product is translated in
+	from webshop.webshop.seo.language_links import expand
+
+	return expand(_product_links(get_current_profile_name())[:SITEMAP_LIMIT], "Website Item", _loc_in)[:SITEMAP_LIMIT]
 
 
 @redis_cache(ttl=CACHE_TTL)
@@ -90,7 +98,7 @@ def _product_links(website_profile=None):
 	filters.pop("variant_of", None)
 	products = frappe.get_all(
 		"Website Item",
-		fields=["route", "item_code", "modified", "web_item_name", "website_image", "slideshow", "variant_of"],
+		fields=["name", "route", "item_code", "modified", "web_item_name", "website_image", "slideshow", "variant_of"],
 		filters=filters,
 		order_by="ranking desc, modified desc",
 	)
@@ -144,6 +152,9 @@ def _product_links(website_profile=None):
 		links.append(
 			{
 				"loc": _loc(product.route),
+				# //// Neoffice — multilingual lot 3: what the language copies are made from
+				"name": product.name,
+				"route": product.route,
 				"lastmod": _day(changed),
 				"images": [{"loc": _file_loc(image)} for image in images],
 			}
@@ -152,7 +163,10 @@ def _product_links(website_profile=None):
 
 
 def category_links():
-	return _category_links(get_current_profile_name())[:SITEMAP_LIMIT]
+	# //// Neoffice — multilingual lot 3 (neoffice-maintenance#2031): see product_links
+	from webshop.webshop.seo.language_links import expand
+
+	return expand(_category_links(get_current_profile_name())[:SITEMAP_LIMIT], "Item Group", _loc_in)[:SITEMAP_LIMIT]
 
 
 @redis_cache(ttl=CACHE_TTL)
@@ -168,14 +182,15 @@ def _category_links(website_profile=None):
 	for group in frappe.get_all(
 		"Item Group",
 		filters={"name": ["in", list(carried)]},
-		fields=["route", "modified", "image", "parent_item_group"],
+		fields=["name", "route", "modified", "image", "parent_item_group"],
 		order_by="lft asc",
 	):
 		route = (group.route or "").strip("/")
 		# The root of the tree ("All Item Groups") is not a category, and its route redirects.
 		if not route or not group.parent_item_group or route in redirected:
 			continue
-		link = {"loc": _loc(route), "lastmod": _day(group.modified)}
+		# //// Neoffice — multilingual lot 3: name and route, what the language copies are made from
+		link = {"loc": _loc(route), "lastmod": _day(group.modified), "name": group.name, "route": route}
 		if group.image:
 			link["images"] = [{"loc": _file_loc(group.image)}]
 		links.append(link)

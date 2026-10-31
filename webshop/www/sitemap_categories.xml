@@ -6,10 +6,15 @@
 {# //// generation for webshop pages"). Each one builds its URLs on the current site's #}
 {# //// domain and caches per site (3b98d9b1d4, 2026-07-08 multi-site). #}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
 	{%- for link in links %}
 	<url>
 		<loc>{{ link.loc }}</loc>
+		{#- //// Neoffice — multilingual lot 3: the page in every language it exists in, itself included #}
+		{%- for alternate in link.alternates or [] %}
+		<xhtml:link rel="alternate" hreflang="{{ alternate.hreflang }}" href="{{ alternate.href }}"/>
+		{%- endfor %}
 		{#- //// Neoffice — printed only when known: a lastmod that is not true makes Google ignore them all (2026-09-24) #}
 		{%- if link.lastmod %}
 		<lastmod>{{ link.lastmod }}</lastmod>

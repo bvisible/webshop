@@ -104,3 +104,52 @@ def search_condition(doctype, name_sql, fieldnames, word):
 	except Exception:  # noqa: BLE001 — see the module docstring
 		frappe.log_error("Localized content: search clause failed", frappe.get_traceback())
 		return None
+
+
+def site_languages():
+	"""``{language: {"hreflang", "publication"}}`` of the additional languages the site enabled; empty when none."""
+	engine = _engine()
+	if engine is None:
+		return {}
+	try:
+		return engine.site_languages()
+	except Exception:  # noqa: BLE001 — see the module docstring
+		frappe.log_error("Localized content: site languages failed", frappe.get_traceback())
+		return {}
+
+
+def hreflang_of(language):
+	return (site_languages().get(language) or {}).get("hreflang") or language
+
+
+def source_hreflang():
+	engine = _engine()
+	return engine.source_hreflang() if engine is not None else ""
+
+
+def translated_documents(doctype, names):
+	"""``{language: {names}}`` of the documents a visitor can read in that language (one rule for a page and a sitemap)."""
+	engine = _engine()
+	if engine is None or not site_languages():
+		return {}
+	try:
+		return engine.translated_documents(doctype, names)
+	except Exception:  # noqa: BLE001 — see the module docstring
+		frappe.log_error("Localized content: translated documents failed", frappe.get_traceback())
+		return {}
+
+
+def translated_languages(doctype, name):
+	engine = _engine()
+	if engine is None or not site_languages():
+		return []
+	try:
+		return engine.translated_languages(doctype, name)
+	except Exception:  # noqa: BLE001 — see the module docstring
+		frappe.log_error("Localized content: translated languages failed", frappe.get_traceback())
+		return []
+
+
+def page_identity(path):
+	engine = _engine()
+	return engine.page_identity(path) if engine is not None and site_languages() else None

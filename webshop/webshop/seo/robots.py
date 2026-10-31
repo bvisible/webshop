@@ -61,5 +61,10 @@ def default_robots_txt() -> str:
 	lines = ["User-agent: *"]
 	lines += [f"Disallow: {path}" for path in PRIVATE_PATHS]
 	lines += [f"Disallow: /*?*{parameter}=" for parameter in LISTING_PARAMETERS]
+	# //// Neoffice — multilingual lot 3 (neoffice-maintenance#2031): the private pages exist under every language's prefix too
+	from webshop.webshop.utils.localized import site_languages
+
+	for code in site_languages():
+		lines += [f"Disallow: /{code}{path}" for path in PRIVATE_PATHS if path != "/app$" and not path.startswith("/app/")]
 	lines += ["", f"Sitemap: {site_url('sitemap.xml')}"]
 	return "\n".join(lines) + "\n"
