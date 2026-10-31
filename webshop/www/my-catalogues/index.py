@@ -84,7 +84,8 @@ def labels():
 		"quality_light": _("Light: for an e-mail"),
 		"quality_print": _("High: for a printer"),
 		"quality_hint": _("Light makes a small file, high keeps the pictures sharp on paper and a larger file."),
-		"cover": _("Cover"),
+		# "Cover" alone is "Remplir" in the site's catalogue (another app's word): a context of its own
+		"cover": _("Cover", context="The cover of a PDF catalogue"),
 		"cover_solid": _("Full colour"),
 		"cover_band": _("Colour band"),
 		"cover_minimal": _("Plain"),
