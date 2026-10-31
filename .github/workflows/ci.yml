@@ -344,6 +344,7 @@ jobs:
             webshop.webshop.utils.test_address \
             webshop.webshop.tests.test_gift_card_families \
             webshop.webshop.seo.test_seo \
+            webshop.webshop.seo.test_language_links \
             webshop.webshop.seo.test_structured_data \
             webshop.webshop.auth.test_account_opening \
             webshop.webshop.seo.test_variants \
