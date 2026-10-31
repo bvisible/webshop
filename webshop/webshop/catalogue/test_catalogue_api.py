@@ -59,7 +59,8 @@ class TestCatalogueApi(FrappeTestCase):
 		"""create_catalogue as the signed-in reseller, with the job's enqueueing caught."""
 		args = {"title": "Spring 2027", "picked": json.dumps(PICKED), "options": json.dumps({"layout": "grid"})}
 		args.update(kwargs)
-		with mock.patch("frappe.enqueue") as enqueue:
+		# the request is checked and queued here, not rendered: a bench without Chromium (CI) asks all the same
+		with mock.patch("frappe.enqueue") as enqueue, mock.patch.object(catalogue_api, "chromium_available", return_value=True):
 			answer = catalogue_api.create_catalogue(**args)
 		self.enqueue = enqueue
 		return answer
@@ -128,6 +129,12 @@ class TestCatalogueApi(FrappeTestCase):
 				self.assertEqual(answer["field"], field)
 				self.assertTrue(answer["message"])
 		self.assertFalse(frappe.db.count(DOCTYPE, {"customer": shop.CUSTOMER}), "nothing was written")
+
+	def test_a_server_that_cannot_make_pdf_documents_says_so_at_the_door(self):
+		with mock.patch.object(catalogue_api, "chromium_available", return_value=False):
+			answer = catalogue_api.create_catalogue(title="x", picked=json.dumps(PICKED))
+		self.assertEqual((answer["ok"], answer["message"]), (False, catalogue_message("no_engine")))
+		self.assertFalse(frappe.db.count(DOCTYPE, {"customer": shop.CUSTOMER}))
 
 	def test_a_selection_over_the_cap_is_refused_before_any_work(self):
 		with mock.patch.object(selection, "MAX_PRODUCTS", 1):
