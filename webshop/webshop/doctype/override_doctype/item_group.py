@@ -69,6 +69,10 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		from webshop.webshop.product_data_engine.listing_context import quick_order_url
 
 		context.quick_order_url = quick_order_url()
+		# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): see listing_context.py
+		from webshop.webshop.utils.localized import content_language
+
+		context.content_language = content_language() or ""
 		context.page_length = (
 			cint(frappe.db.get_single_value("Webshop Settings", "products_per_page")) or 6
 		)

@@ -70,6 +70,11 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	context.discount_count = count_discounted(locked_field_filters)
 	# //// (2026-09-14) a quiet way in to the quick order, next to the search box, for whoever may use it
 	context.quick_order_url = quick_order_url()
+	# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the additional language of this request, which the
+	# //// listing script hands back to the API (its calls carry no address). "" on a site that offers none.
+	from webshop.webshop.utils.localized import content_language
+
+	context.content_language = content_language() or ""
 	context.no_cache = 1
 	# //// Neoffice — 2026-09-24 (#691, D15): the listings had no canonical and no description,
 	# //// and every search, facet and page of them answered as a page of its own. They now say

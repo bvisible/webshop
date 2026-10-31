@@ -38,12 +38,8 @@ def clear_cart_count(login_manager):
 
 
 def update_website_context(context):
-	# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the additional language of this request, which the
-	# //// listing scripts hand back to the API (their calls carry no address of their own). None on a site that offers none.
-	from webshop.webshop.utils.localized import content_language
-
-	context["content_language"] = content_language()
-
+	# //// Neoffice — the page's additional language is not set here: the two listing pages take it from their own
+	# //// context (listing_context.py, multilingual lot 1, neoffice-maintenance#2029)
 	cart_enabled = is_cart_enabled()
 	context["shopping_cart_enabled"] = cart_enabled
 
