@@ -1233,11 +1233,21 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
   A new address closes the old one at once; an address that leads nowhere, a reseller the shop no longer allows and a
   feed with no file yet are the same 404, and a connection that asks for many wrong ones is slowed (`throttle`).
   `ETag` and `If-None-Match` answer 304; the last read is written to the hour (a GET is never committed by Frappe).
+  Measured on osiris, 2026-10-31: the whole catalogue (324 lines) is 10.8 s with prices (33 ms a line: the customer's
+  price is the cost, as in the PDF), 0.7 s without; CSV 137 KB, JSON 236 KB, workbook 47 KB, 161 MB at the peak, so
+  5000 lines are about 165 s of a job that may run 1500. Read from outside (a plain `urllib` script): 200, `ETag`,
+  304 on revalidation, the photo of the feed's address downloads, a wrong or missing token is a 404, the old address
+  of a replaced one too.
 
 > **The feed's files are in the site's private folder, not File records.** File shares the file on disk between
 > records with the same content, so the refresh of one reseller would have deleted the file of another whose feed was
 > byte for byte the same. Named by a hash of the customer, written beside and moved over (`os.replace`), so a reader
 > never sees half a file. A failed refresh leaves the last good file in service.
+
+> **A local variable named after a module hides it.** `_state` called its list of catalogues `rows` and read
+> `rows.MAX_ROWS` three lines later: the page's state endpoint answered 500 for every reseller the moment it was
+> deployed. The tests that would have caught it were waiting their turn on the clone (twenty suites queued behind
+> one lock); the first real page load found it. Name a list for what it holds, not for a module of the same package.
 
 > **openpyxl turns a string that starts with `=` into a formula.** Every text cell of the workbook is set to a
 > string (`cell.data_type = "s"`). The CSV is left as it is on purpose: it is for another system, and an apostrophe

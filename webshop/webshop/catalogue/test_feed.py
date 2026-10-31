@@ -114,8 +114,12 @@ class TestTheFeed(FrappeTestCase):
 		self.assertEqual(doc.token_hash, feed.digest(token))
 		row = frappe.db.sql("select * from `tabReseller Feed` where name = %s", shop.CUSTOMER, as_dict=True)[0]
 		self.assertNotIn(token, [str(value) for value in row.values()], "the secret is in no column of the table")
-		stored = frappe.db.get_value("__Auth", {"doctype": DOCTYPE, "name": shop.CUSTOMER, "fieldname": "token"}, "password")
-		self.assertTrue(stored)
+		stored = frappe.db.sql(
+			"select `password` from `__Auth` where doctype = %s and name = %s and fieldname = 'token'",
+			(DOCTYPE, shop.CUSTOMER),
+		)
+		self.assertTrue(stored, "the token is kept, in __Auth (which has no `modified` column for get_value to sort by)")
+		stored = stored[0][0]
 		self.assertNotEqual(stored, token, "and it is encrypted where it is kept")
 
 	def test_saving_again_changes_what_it_is_made_from_and_keeps_the_address(self):
