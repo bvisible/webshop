@@ -8666,3 +8666,27 @@ msgstr "La sua lista prezzi personale, applicata secondo le regole dello shop. R
 #: webshop/webshop/catalogue/rows.py:338
 msgid "Your purchase price"
 msgstr "Il suo prezzo d'acquisto"
+
+#: webshop/templates/catalogue/catalogue.html:75
+msgid "Delivery address"
+msgstr "Indirizzo di consegna"
+
+#: webshop/templates/catalogue/catalogue.html:52
+msgid "New arrival"
+msgstr "Novità"
+
+#: webshop/webshop/catalogue/book.py:248
+msgid "Order form"
+msgstr "Modulo d'ordine"
+
+#: webshop/templates/catalogue/catalogue.html:77
+msgid "Order reference"
+msgstr "Riferimento ordine"
+
+#: webshop/templates/catalogue/catalogue.html:76
+msgid "Phone or e-mail"
+msgstr "Telefono o e-mail"
+
+#: webshop/templates/catalogue/catalogue.html:82
+msgid "Return this form to"
+msgstr "Rinviare il presente modulo a"

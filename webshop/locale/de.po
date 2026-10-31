@@ -8421,3 +8421,27 @@ msgstr "Ihre eigene Preisliste, so wie die Regeln des Shops für Sie gelten. Ver
 #: webshop/webshop/catalogue/rows.py:338
 msgid "Your purchase price"
 msgstr "Ihr Einkaufspreis"
+
+#: webshop/templates/catalogue/catalogue.html:75
+msgid "Delivery address"
+msgstr "Lieferadresse"
+
+#: webshop/templates/catalogue/catalogue.html:52
+msgid "New arrival"
+msgstr "Neuheit"
+
+#: webshop/webshop/catalogue/book.py:248
+msgid "Order form"
+msgstr "Bestellformular"
+
+#: webshop/templates/catalogue/catalogue.html:77
+msgid "Order reference"
+msgstr "Bestellreferenz"
+
+#: webshop/templates/catalogue/catalogue.html:76
+msgid "Phone or e-mail"
+msgstr "Telefon oder E-Mail"
+
+#: webshop/templates/catalogue/catalogue.html:82
+msgid "Return this form to"
+msgstr "Dieses Formular zurücksenden an:"

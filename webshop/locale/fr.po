@@ -11590,3 +11590,59 @@ msgstr "Entrepôts de la quantité en stock"
 #: webshop/webshop/doctype/partner_api_access/partner_api_access.json:133
 msgid "Where the stock quantity the key reads is counted. Empty: the quantity the shop itself promises its visitors (the website warehouse, or the sources of a product sold from several warehouses). Filled: the stock held by these warehouses, orders already placed deducted; an order is checked against the same quantity."
 msgstr "Où est comptée la quantité en stock que lit la clé. Vide : la quantité que la boutique promet elle-même à ses visiteurs (l'entrepôt du site, ou les sources d'un produit vendu depuis plusieurs entrepôts). Renseigné : le stock détenu par ces entrepôts, déduction faite des commandes déjà passées ; une commande est contrôlée sur cette même quantité."
+
+#: webshop/www/my-catalogues/index.py:43
+msgid "A file for Shopify's product import: one product for each model with its variants, your selling prices, photos and barcodes. A product you have no price for is left out."
+msgstr "Un fichier pour l'import de produits dans Shopify : un produit par modèle avec ses variantes, vos prix de vente, les photos et les codes-barres. Un produit pour lequel vous n'avez pas de prix est laissé de côté."
+
+#. Description of the 'Days a Product Is a New Arrival on Reseller Catalogues'
+#. (Int) field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1547
+msgid "A product published on the shop in the last days carries a New arrival tag on the catalogues the resellers make. 0, the default: no tag."
+msgstr "Un produit mis en ligne sur la boutique depuis quelques jours porte une pastille Nouveauté dans les catalogues que font les revendeurs. 0, la valeur par défaut : aucune pastille."
+
+#: webshop/www/my-catalogues/index.py:86
+msgid "Add an order form at the end"
+msgstr "Ajouter un bon de commande à la fin"
+
+#. Label of a Int field in DocType 'Webshop Settings'
+#: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1544
+msgid "Days a Product Is a New Arrival on Reseller Catalogues"
+msgstr "Nombre de jours pendant lesquels un produit porte la mention Nouveauté dans les catalogues des revendeurs"
+
+#: webshop/www/my-catalogues/index.py:21
+msgid "Make a catalogue of the products you choose, with your prices: your markup is added to what you pay. A PDF with your logo and your colours, an Excel, CSV or Shopify file, or a feed your own shop can read. It takes a few seconds to a minute, and you can leave this page."
+msgstr "Créez un catalogue des produits de votre choix, avec vos prix : votre majoration s'ajoute à ce que vous payez. Un PDF avec votre logo et vos couleurs, un fichier Excel, CSV ou Shopify, ou un flux que votre propre boutique peut lire. Cela prend de quelques secondes à une minute, et vous pouvez quitter cette page."
+
+#: webshop/www/my-catalogues/index.py:97
+msgid "Make the Shopify file"
+msgstr "Créer le fichier Shopify"
+
+#: webshop/templates/catalogue/catalogue.html:52
+msgid "New arrival"
+msgstr "Nouveauté"
+
+#: webshop/webshop/catalogue/book.py:248
+msgid "Order form"
+msgstr "Bon de commande"
+
+#: webshop/templates/catalogue/catalogue.html:77
+msgid "Order reference"
+msgstr "Référence de commande"
+
+#: webshop/templates/catalogue/catalogue.html:76
+msgid "Phone or e-mail"
+msgstr "Téléphone ou e-mail"
+
+#: webshop/templates/catalogue/catalogue.html:82
+msgid "Return this form to"
+msgstr "Renvoyez ce formulaire à"
+
+#: webshop/www/my-catalogues/index.py:33
+msgid "Shopify import file"
+msgstr "Fichier d'import Shopify"
+
+#. Description of the 'Format' (Select) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:53
+msgid "What the file is: a PDF catalogue, an Excel workbook, a CSV file or a Shopify product import file. A record made before the formats existed has none and is a PDF."
+msgstr "Le type de fichier : un catalogue PDF, un classeur Excel, un fichier CSV ou un fichier d'import de produits Shopify. Un enregistrement créé avant l'arrivée des formats n'en a pas et est un PDF."
