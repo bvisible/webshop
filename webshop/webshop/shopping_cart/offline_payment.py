@@ -81,8 +81,14 @@ def raise_payment_request(sales_order, row=None, mode_of_payment=None):
 		}
 	)
 	request.flags.ignore_permissions = True
-	request.insert(ignore_permissions=True)
-	request.submit()
+	# //// Neoffice — #2056: Payment Request.validate (ERPNext v15.123.0) asks whether the SESSION user may read the
+	# //// order, and `ignore_permissions` does not cover that question: a portal customer paying by transfer got a 403 at
+	# //// the last click. Raised with the shop's rights and handed back as the buyer's (the request stays theirs, as the
+	# //// card path's does).
+	from webshop.webshop.shopping_cart.shop_rights import save_as_shop
+
+	save_as_shop(request, ignore_permissions=True)
+	save_as_shop(request, submit=True)
 	return request.name
 
 

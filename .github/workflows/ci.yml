@@ -301,6 +301,8 @@ jobs:
           # //// and the documents read in the language of their buyer (cart lines, order, mails). Both script the
           # //// theme's side (a fake engine, patched readers, texts handed in) and read no Content Translation
           # //// table, so a site without the theme runs them.
+          # //// Neoffice — the transfer path under upstream's checks (#2056): a portal customer's order and its
+          # //// Payment Request, with the lines stock ERPNext has put on the fork (`upstream_checks`).
           for m in \
             webshop.controllers.test_payment_handler \
             webshop.controllers.test_payment_mode_enabled \
@@ -400,7 +402,8 @@ jobs:
             webshop.webshop.seo.feeds.test_google_languages \
             webshop.webshop.utils.test_language_of_documents \
             webshop.webshop.partner_api.test_partner_access \
-            webshop.webshop.partner_api.test_partner_v1
+            webshop.webshop.partner_api.test_partner_v1 \
+            webshop.webshop.shopping_cart.test_offline_payment_rights
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || failed="$failed $m"
