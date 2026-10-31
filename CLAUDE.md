@@ -1639,6 +1639,22 @@ only, never to the public.
 > place when the job answers. An indicator added only by the late callback would die at the
 > next redraw (see "A custom button added from a server callback does not survive").
 
+### Multilingual: what the shop says in another language (2026-10-30/31, neoffice-maintenance#2028, lots 1 to 5)
+
+The study, the plan, the measures and the runbook are in Obsidian (`Neoffice/Multilingue-Boutique/`). What has to stay true here:
+
+- **The translations are not webshop's.** They live in the theme (`Content Translation`, `neoffice_theme.localized`, a row per record, field and language, with its state: Pending, Machine, Reviewed, Edited, Stale, Failed, Skipped). `webshop/utils/localized.py` is the one door the shop uses; without the theme or without an added language it gives back the site's own text, and a site that activates nothing renders byte for byte as before. A language lives at its own address on the site's domain (`/de/…`, `/en/…`, `/it/…`; the French stays at the root), resolved by the theme's `language_prefix.py`.
+- **A line is named in the page's language, never renamed.** `localize_lines` puts `display_name` and `display_description` on the lines of a cart or an order (and `display_names`, by item code, in the cart's answer for the Builder drawer); the saved `item_name` is what was sold and is never written over. A new surface that prints a line goes through it.
+- **A document remembers the language its buyer reads the shop in.** `Quotation.language` is stamped by `stamp_language` only from a request that SPEAKS (`explicit_language`: an address in a language, a page with no prefix, a script's call carrying `_lang`), never by a payment callback or a job; the order inherits it. The follow-up and abandoned-cart mails are written in the language of the purchase or the cart (`mail_language`, `mail_texts`), with the language set BEFORE the template is rendered and the links under the language's prefix.
+- **One Merchant Center feed per added language** (`seo/feeds/google_languages.py`): the translated text, the language's addresses, only the products whose page is translated, the machine's text declared (`structured_title`, `structured_description`, `trained_algorithmic_media`), and a readiness line in the settings' report. The SEO score shows the languages of a product without counting them.
+- **What cost time, so that it is not paid twice.**
+  - Frappe drops the query string of a request whose body is JSON, so a script's call lost its `_lang`: the theme gives it back in `before_request`, and the page's script adds `_lang` to its calls.
+  - `frappe.call` of a website page posts to `/`. Anything that counts or refuses a `POST /` hits the checkout: nginx's limit did (nine at once, a 429 and an error dialog on every load; neoffice-maintenance#2055).
+  - A script that sets `location.href = "/cart"` leaves the buyer's language: the page carries `window.__ml.url` and a Navigation API net (modern browsers only).
+  - Frappe's sanitizer re-parses a Long Text and moves Jinja out of a table: a translated Email Template is written raw (`TRUSTED_MARKUP`).
+  - A website page's `__()` knows only what the theme lists: a label of the checkout is seeded by `checkout.html` and said by `say()`; one the script asks for and the page does not seed falls back to English without a word (`tests/test_checkout_labels.py`).
+  - A new test module is named in `ci.yml` in the same commit as its file, or the workflow's guard turns it red.
+
 ## Integration Points
 
 ### ERPNext Dependencies
