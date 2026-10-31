@@ -165,3 +165,59 @@ class TestMails(FrappeTestCase):
 		self.assertEqual(localized.address_in("/cart", "de"), "/de/cart")
 		self.assertEqual(localized.address_in("https://shop.test/cart", None), "https://shop.test/cart")
 		self.assertIsNone(localized.address_in(None, "de"))
+
+
+class TestACustomerSettlesOnTheirFirstOrder(FrappeTestCase):
+	"""Multilingual lot 7 (neoffice-maintenance#2035): a customer with no language gets the page's; the guest stand-in never."""
+
+	def _fill(self, doc, filler, guest="GUEST"):
+		engine = types.SimpleNamespace(fill_person_language=filler)
+		with (
+			patch.object(localized, "_engine", return_value=engine),
+			patch.object(frappe.db, "get_single_value", return_value=guest),
+		):
+			return localized.fill_customer_language(doc)
+
+	def _cart(self, **values):
+		return frappe._dict(quotation_to="Customer", party_name="C-1", **values)
+
+	def test_the_customer_of_the_cart_is_handed_to_the_theme(self):
+		seen = []
+		doc = self._cart()
+		self.assertIs(self._fill(doc, lambda doctype, name: seen.append((doctype, name))), doc)
+		self.assertEqual(seen, [("Customer", "C-1")])
+
+	def test_the_guest_stand_in_is_everybody_s_and_never_given_a_language(self):
+		seen = []
+		self._fill(self._cart(), lambda doctype, name: seen.append(name), guest="C-1")
+		self.assertEqual(seen, [])
+
+	def test_a_cart_for_a_lead_is_left_alone(self):
+		seen = []
+		self._fill(frappe._dict(quotation_to="Lead", party_name="L-1"), lambda doctype, name: seen.append(name))
+		self.assertEqual(seen, [])
+
+	def test_no_cart_is_no_cart(self):
+		self.assertIsNone(self._fill(None, lambda doctype, name: self.fail("nothing to fill")))
+
+	def test_without_the_theme_nothing_happens(self):
+		doc = self._cart()
+		with patch.object(localized, "_engine", return_value=None):
+			self.assertIs(localized.fill_customer_language(doc), doc)
+
+	def test_a_failure_costs_the_language_never_the_cart(self):
+		def boom(doctype, name):
+			raise RuntimeError("no database")
+
+		doc = self._cart()
+		with patch.object(frappe, "log_error") as logged:
+			self.assertIs(self._fill(doc, boom), doc)
+		logged.assert_called_once()
+
+	def test_the_cart_asks_for_it_after_stamping_the_quotation(self):
+		import inspect
+
+		from webshop.webshop.shopping_cart import cart
+
+		source = inspect.getsource(cart._get_cart_quotation)
+		self.assertIn("fill_customer_language(stamp_language(", source)

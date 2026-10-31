@@ -2070,9 +2070,10 @@ def _get_cart_quotation(party=None):
 	# //// Neoffice — multilingual lot 5 (neoffice-maintenance#2033): the cart remembers the language its buyer reads the
 	# //// shop in (Quotation.language), so the order, its PDF and its e-mails follow. A request that says nothing (a
 	# //// payment callback) leaves it as it was.
-	from webshop.webshop.utils.localized import stamp_language
+	# //// Neoffice — multilingual lot 7 (neoffice-maintenance#2035): and the buyer, if they have none yet, gets that language.
+	from webshop.webshop.utils.localized import fill_customer_language, stamp_language
 
-	return stamp_language(_get_cart_quotation_unstamped(party))
+	return fill_customer_language(stamp_language(_get_cart_quotation_unstamped(party)))
 
 
 def _get_cart_quotation_unstamped(party=None):

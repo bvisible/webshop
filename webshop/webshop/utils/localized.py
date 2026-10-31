@@ -187,6 +187,26 @@ def stamp_language(doc):
 	return doc
 
 
+def fill_customer_language(doc):
+	"""Give the customer of a cart the language of the page they order from, when they have none (multilingual lot 7,
+	neoffice-maintenance#2035). Never overwritten; a request that says nothing writes nothing.
+
+	The stand-in customer a guest carts under is everybody's: it is never given one. A customer the shop made gets theirs when
+	they are inserted (the theme's ``before_insert`` hook); this is for the ones a desk or an older shop made.
+	"""
+	engine = _engine()
+	filler = getattr(engine, "fill_person_language", None)
+	if filler is None or doc is None or doc.get("quotation_to") != "Customer":
+		return doc
+	customer = doc.get("party_name")
+	try:
+		if customer and customer != frappe.db.get_single_value("Webshop Settings", "guest_customer"):
+			filler("Customer", customer)
+	except Exception:  # noqa: BLE001 — see the module docstring
+		frappe.log_error("Localized content: the customer's language could not be written", frappe.get_traceback())
+	return doc
+
+
 def localize_lines(doc, fieldnames=("web_item_name", "short_description"), language=None):
 	"""Give each line of a cart, an order or an invoice the product's name and short text in the language it is read in.
 
