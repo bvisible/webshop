@@ -129,7 +129,7 @@ def labels():
 		"busy": _("A catalogue is being made: the next one can start when it is ready."),
 		"feed_title": _("Your product feed"),
 		"feed_n": _("Feed {0}"),
-		"feed_target": _("Feed"),
+		"feed_target": _("Feed", context="A product feed of a reseller"),
 		"feed_new": _("A new feed"),
 		"feed_full": _("You have the most feeds there can be: stop one to make another."),
 		"feed_status_Queued": _("Waiting to be refreshed"),
