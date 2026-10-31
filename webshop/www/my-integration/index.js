@@ -12,10 +12,35 @@
 	const $ = (id) => document.getElementById(id);
 	const fmt = (text, ...args) => String(text || "").replace(/\{(\d+)\}/g, (m, i) => (args[i] == null ? "" : args[i]));
 
-	function call(method, args, type) {
-		return new Promise((resolve, reject) => {
-			frappe.call({ method: API + method, type: type || "POST", args: args || {}, callback: (r) => resolve(r.message), error: (e) => reject(e) });
+	// frappe.call never ends its promise on a 429 or a 502 (the error callback is not called), so a button
+	// pressed during a busy moment stayed mute for ever: the same lesson as the shop assistant's bubble. A
+	// request here always ends, with the message or with an error that carries the status.
+	async function call(method, args, type) {
+		const verb = type || "POST";
+		const params = new URLSearchParams();
+		Object.entries(args || {}).forEach(([key, value]) => {
+			if (value !== undefined && value !== null) params.append(key, value);
 		});
+		const headers = { Accept: "application/json" };
+		if (frappe.csrf_token) headers["X-Frappe-CSRF-Token"] = frappe.csrf_token;
+		const url = "/api/method/" + API + method;
+		const response =
+			verb === "GET"
+				? await fetch(url + "?" + params, { headers, credentials: "same-origin" })
+				: await fetch(url, {
+						method: verb,
+						headers: { ...headers, "Content-Type": "application/x-www-form-urlencoded" },
+						body: params,
+						credentials: "same-origin",
+				  });
+		const data = await response.json().catch(() => ({}));
+		if (!response.ok) {
+			const error = new Error("HTTP " + response.status);
+			error.status = response.status;
+			error.responseJSON = data;
+			throw error;
+		}
+		return data.message;
 	}
 
 	function el(tag, text, className) {

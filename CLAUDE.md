@@ -1239,7 +1239,7 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
   304 on revalidation, the photo of the feed's address downloads, a wrong or missing token is a 404, the old address
   of a replaced one too.
 
-- **The partner API** (lot 4, `partner_api/`, 2026-11-01): a reseller asks for it on `/my-integration`, staff allow
+- **The partner API** (lot 4, `partner_api/`, 2026-10-31): a reseller asks for it on `/my-integration`, staff allow
   it on the desk (**Partner API Access**: Approve with the scopes — orders, submit at once, calls a minute — Refuse,
   Suspend, Resume), the reseller makes a key there. Five calls under `/partner/v1/` (a page renderer, not a
   whitelisted method: the address is the contract's, and Frappe's own authentication would answer 401 to anything it
@@ -1248,8 +1248,10 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
   - **The key is its own** (`wsk_<id>.<secret>`, header `X-API-Key`, never `Authorization`): the record holds the id and
     the SHA-256 of the secret, shown once on the page. It opens `/partner/v1/` and nothing else, so a leaked key reads
     a catalogue and places draft orders; a Frappe API key on the portal user would have reached everything that user
-    may call. Every refusal of a key is one 401, the reason only in its code; suspending, revoking, replacing it or
-    taking the group away cuts it at once and touches nothing else of the customer.
+    may call. Every refusal of a key is one 401 with one message. An unknown id or a wrong secret always says
+    `invalid_key`; only whoever holds the real secret reads why it stopped (`access_suspended`, `access_closed`).
+    Suspending, revoking, replacing it or taking the group away cuts it at once and touches nothing else of the
+    customer; resuming gives the same key back (suspending keeps it).
   - **The price is the caller's own**: `products/<code>` gives `price` on THIS customer's list (what they pay,
     `customer_pricing`, the same figure as the cart), never the shop's, never a selling price. A line of an order is
     `{item_code, qty}`: a `rate`, a `price` or any other key is a 422, not ignored. The order is a draft unless staff
@@ -1265,6 +1267,13 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
 
 > **Frappe's `validate_auth` runs before every route**, renderers included: a two-part `Authorization` header it does
 > not recognise (`Bearer x`, `token a:b`) is a 401 from Frappe itself, before any renderer or hook of ours.
+
+> **The integration page asks the server with its own `fetch`, never `frappe.call`.** Same lesson as the assistant's
+> bubble: on a 429 or a 502 `frappe.call` never calls its error callback, so "Make a key" pressed during a busy
+> moment stayed mute (seen on osiris, 2026-10-31: a 502 on the POST and a button that did nothing). `index.js`'s `call()`
+> always ends, and `test_integration_page` runs the real file under Node with a `frappe.call` that never answers and a
+> `fetch` that says 502 or 429 (it fails on the old script with an empty message). It also keeps the page's requests off
+> `POST /`, where frappe.call sends them and where nginx counts the shop assistant's calls.
 
 > **A stand-in for the request breaks in `get_url` and in `render_template`**, which read `request.host` and
 > `request.path`. The partner tests send real werkzeug requests (`EnvironBuilder`), which is also what shows the

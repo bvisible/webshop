@@ -247,8 +247,10 @@ def resume(customer):
 def authenticate(header, peer=None):
 	"""The access a key opens, as a plain dict, or an ApiError 401.
 
-	The same answer whatever is wrong, so a probe learns nothing from it; a connection that sends many wrong
-	keys in ten minutes is slowed (429) before it learns anything by volume either."""
+	The same message whatever is wrong, and a key that is unknown or whose secret is wrong always gets the same
+	code (`invalid_key`), so a probe learns nothing from it. Only whoever holds the real secret is told, in the
+	code, why it stopped working (`access_suspended`, `access_closed`). A connection that sends many wrong keys
+	in ten minutes is slowed (429) before it learns anything by volume either."""
 	match = KEY_PATTERN.match((header or "").strip())
 	row = None
 	if match:

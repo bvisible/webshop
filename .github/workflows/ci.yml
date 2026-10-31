@@ -294,6 +294,8 @@ jobs:
           # //// Neoffice — the partner API (reseller catalogue, lot 4): test_partner_access (the request, staff's
           # //// decision, the key, the 401s) and test_partner_v1 (the reads at each customer's price, the orders, the
           # //// idempotency, the door) run on the same small shop; neither needs Chromium.
+          # //// test_integration_page runs the page's own script under Node with a server that answers 429 and 502: the
+          # //// "Make a key" button must end with a message, as frappe.call's never did (Node is on the runner).
           # //// Neoffice — the reseller's files and feed (lot 3): test_tables writes and reads back the CSV, the JSON
           # //// and the workbook from lines written by hand and needs no site; test_rows, test_files and test_feed
           # //// run on the same small shop as the catalogues' tests and need no Chromium — a file is not a PDF.
@@ -403,6 +405,7 @@ jobs:
             webshop.webshop.utils.test_language_of_documents \
             webshop.webshop.partner_api.test_partner_access \
             webshop.webshop.partner_api.test_partner_v1 \
+            webshop.webshop.partner_api.test_integration_page \
             webshop.webshop.shopping_cart.test_offline_payment_rights
           do
             echo "::group::$m"
