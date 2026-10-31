@@ -315,18 +315,28 @@ class TestMyBrand(FrappeTestCase):
 	def rule(self, kind, target, percent):
 		return {"rule_type": kind, "target": target, "markup_percent": percent}
 
+	def saved_rules(self):
+		"""The rules the page is given, without the name it adds to a product's for display."""
+		return [{key: rule[key] for key in ("rule_type", "target", "markup_percent")} for rule in api.get_my_brand()["values"]["markup_rules"]]
+
 	def test_a_rule_is_kept_read_back_and_replaced_as_a_whole(self):
 		frappe.set_user(A_USER)
 		answer = api.save_my_brand({"markup_rules": [self.rule("Item", ITEM, 50), self.rule("Item Group", self.shirt_group(), 20)]})
 		self.assertTrue(answer["ok"], answer)
 		self.assertEqual(
-			api.get_my_brand()["values"]["markup_rules"],
-			[self.rule("Item", ITEM, 50.0), self.rule("Item Group", self.shirt_group(), 20.0)],
+			self.saved_rules(), [self.rule("Item", ITEM, 50.0), self.rule("Item Group", self.shirt_group(), 20.0)]
 		)
 		api.save_my_brand({"markup_rules": [self.rule("Item", ITEM, 10)]})
-		self.assertEqual(api.get_my_brand()["values"]["markup_rules"], [self.rule("Item", ITEM, 10.0)])
+		self.assertEqual(self.saved_rules(), [self.rule("Item", ITEM, 10.0)])
 		api.save_my_brand({"markup_rules": []})
 		self.assertEqual(api.get_my_brand()["values"]["markup_rules"], [])
+
+	def test_a_products_rule_comes_back_with_its_name_for_the_page_and_a_categorys_does_not(self):
+		frappe.set_user(A_USER)
+		api.save_my_brand({"markup_rules": [self.rule("Item", ITEM, 50), self.rule("Item Group", self.shirt_group(), 20)]})
+		product, category = api.get_my_brand()["values"]["markup_rules"]
+		self.assertEqual(product["label"], f"Chemise de marque ({ITEM})")
+		self.assertNotIn("label", category)
 
 	def test_a_save_that_names_no_rules_leaves_the_rules_alone(self):
 		frappe.set_user(A_USER)
@@ -373,7 +383,7 @@ class TestMyBrand(FrappeTestCase):
 		self.assertEqual(api.get_my_brand()["values"]["markup_rules"], [])
 		api.save_my_brand({"markup_rules": [self.rule("Item", ITEM, 70)]})
 		frappe.set_user(A_USER)
-		self.assertEqual(api.get_my_brand()["values"]["markup_rules"], [self.rule("Item", ITEM, 50.0)])
+		self.assertEqual(self.saved_rules(), [self.rule("Item", ITEM, 50.0)])
 
 	def test_rules_are_for_the_allowed_customers_alone(self):
 		for user in (OUT_USER, "Guest"):

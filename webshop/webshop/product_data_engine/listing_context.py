@@ -70,6 +70,8 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	context.discount_count = count_discounted(locked_field_filters)
 	# //// (2026-09-14) a quiet way in to the quick order, next to the search box, for whoever may use it
 	context.quick_order_url = quick_order_url()
+	# //// (2026-10-31) and, for a reseller of the reseller catalogue, a way to start a catalogue from what the page shows
+	context.catalogue_url = catalogue_url()
 	# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): the additional language of this request, which the
 	# //// listing script hands back to the API (its calls carry no address). "" on a site that offers none.
 	from webshop.webshop.utils.localized import content_language
@@ -164,6 +166,18 @@ def quick_order_url():
 
 	try:
 		return "/quick-order" if quick_order_offered() else ""
+	except Exception:
+		return ""
+
+
+# //// Neoffice — added (2026-10-31, reseller catalogue lot 5b): a reseller of the reseller catalogue starts a catalogue from
+# //// the category, the brands and the search of the listing in front of them. "" for everybody else, so that nothing
+# //// is drawn and nothing says the feature exists (access.is_offered is the endpoints' own rule, without the raise).
+def catalogue_url():
+	from webshop.webshop.catalogue import access
+
+	try:
+		return "/my-catalogues" if access.is_offered() else ""
 	except Exception:
 		return ""
 

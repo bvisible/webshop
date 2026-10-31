@@ -82,6 +82,7 @@ def _state(customer, payload=None):
 		"busy": jobs.is_running(customer),
 		"brand_saved": payload["saved"],
 		"default_markup": payload["values"]["default_markup_percent"],
+		"particular_markups": len(payload["values"].get("markup_rules") or []),
 		"engine": chromium_available(),
 		"feed": feed.describe(customer),
 		"limits": {

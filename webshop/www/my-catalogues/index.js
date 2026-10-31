@@ -35,10 +35,34 @@
 
 	const fmt = (text, ...args) => String(text || "").replace(/\{(\d+)\}/g, (m, i) => (args[i] == null ? "" : args[i]));
 
-	function call(method, args, type, api) {
-		return new Promise((resolve, reject) => {
-			frappe.call({ method: (api || API) + method, type: type || "POST", args: args || {}, callback: (r) => resolve(r.message), error: (e) => reject(e) });
+	// frappe.call never ends its promise on a 429 or a 502 (its error callback is not called): a button pressed
+	// during a busy moment stayed mute. A request here always ends, with the message or with an error.
+	async function call(method, args, type, api) {
+		const verb = type || "POST";
+		const params = new URLSearchParams();
+		Object.entries(args || {}).forEach(([key, value]) => {
+			if (value !== undefined && value !== null) params.append(key, value);
 		});
+		const headers = { Accept: "application/json" };
+		if (frappe.csrf_token) headers["X-Frappe-CSRF-Token"] = frappe.csrf_token;
+		const url = "/api/method/" + (api || API) + method;
+		const response =
+			verb === "GET"
+				? await fetch(url + "?" + params, { headers, credentials: "same-origin" })
+				: await fetch(url, {
+						method: verb,
+						headers: { ...headers, "Content-Type": "application/x-www-form-urlencoded" },
+						body: params,
+						credentials: "same-origin",
+				  });
+		const data = await response.json().catch(() => ({}));
+		if (!response.ok) {
+			const error = new Error("HTTP " + response.status);
+			error.status = response.status;
+			error.responseJSON = data;
+			throw error;
+		}
+		return data.message;
 	}
 
 	// --- the format ------------------------------------------------------------------------------
@@ -197,6 +221,29 @@
 			.catch(() => {});
 	}
 
+	// --- a catalogue started from a page of the shop (lot 5b) ---------------------------------------
+
+	// The listing's "Make a catalogue" link carries the category, the brands and the search it shows. Only names the
+	// shop offers are ticked (a name typed in an address is not a choice), and the search brings the products it finds.
+	function applyListingLink(choices) {
+		const params = new URLSearchParams(window.location.search);
+		const known = (entries) => new Set(entries.map((entry) => entry.name));
+		const groups = known(choices.groups);
+		const brands = known(choices.brands);
+		params.getAll("group").forEach((name) => groups.has(name) && picked.item_groups.add(name));
+		params.getAll("brand").forEach((name) => brands.has(name) && picked.brands.add(name));
+		const text = (params.get("q") || "").trim();
+		if (text.length >= 2 && text.length <= 140) {
+			call("search_products", { text }, "GET")
+				.then((answer) => {
+					((answer && answer.products) || []).forEach((product) => picked.items.set(product.item_code, product.name));
+					renderChosen();
+					selectionChanged();
+				})
+				.catch(() => {});
+		}
+	}
+
 	// --- how many products the choices bring ----------------------------------------------------
 
 	function selectionChanged() {
@@ -292,6 +339,9 @@
 
 	function applyState(next) {
 		state = next;
+		const particular = $("wsp-cat-markup-particular");
+		particular.textContent = next.particular_markups ? fmt(L.markup_particular, next.particular_markups) : "";
+		particular.classList.toggle("d-none", !next.particular_markups);
 		updateCreate();
 		if (state.busy) setStatus(L.busy);
 		else if ($("wsp-cat-status").textContent === L.busy) setStatus("");
@@ -455,8 +505,10 @@
 	Promise.all([call("get_catalogues", {}, "GET"), call("get_choices", {}, "GET")])
 		.then(([next, choices]) => {
 			$("wsp-cat-markup").value = next.default_markup;
+			applyListingLink(choices);
 			checkList($("wsp-cat-groups"), choices.groups, picked.item_groups, $("wsp-cat-filter-groups"));
 			checkList($("wsp-cat-brands"), choices.brands, picked.brands, $("wsp-cat-filter-brands"));
+			selectionChanged();
 			applyState(next);
 		})
 		.catch(() => setStatus(L.failed));

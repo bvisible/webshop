@@ -564,6 +564,7 @@ webshop.ProductView =  class {
 		let me = this;
 		this.from_filters = from_filters;
 		let args = this.get_query_filters();
+		this.update_catalogue_link(args); //// Neoffice — the reseller's "Make a catalogue" link follows the page (lot 5b)
 
 		//// Neoffice — the header/breadcrumb are updated on each query, not only on load.
 		// Update page header for search (if search term present)
@@ -1058,6 +1059,40 @@ webshop.ProductView =  class {
 				</a>
 			`);
 		}
+		//// Neoffice — and, for a reseller of the reseller catalogue, "Make a catalogue" (lot 5b), offered only to them
+		//// (listing_context.catalogue_url): it opens the catalogues page on the category, brands and search of this page.
+		if (window.catalogue_url) {
+			const t = window.product_translations || {};
+			const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+			const label = t["Make a catalogue"] || "Make a catalogue";
+			const hint = t["Starts a catalogue from the category, the brands and the search of this page. The other filters are not kept."] || "Starts a catalogue from the category, the brands and the search of this page. The other filters are not kept.";
+			$(".toolbar").append(`
+				<a class="wsp-catalogue-link mb-2 mb-md-0 mr-md-3" href="${esc(window.catalogue_url)}" title="${esc(hint)}">
+					<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg>
+					<span>${esc(label)}</span>
+				</a>
+			`);
+			try {
+				this.update_catalogue_link(this.get_query_filters()); // the page may have been filtered before the link existed
+			} catch (e) {
+				/* the link keeps the catalogues page's address; the next query updates it */
+			}
+		}
+	}
+
+	//// Neoffice — reseller catalogue lot 5b (2026-10-31): a reseller starts a catalogue from what the page shows. The
+	//// link carries the category, the brands and the search of the listing — what a catalogue can hold — and the
+	//// catalogues page ticks them. Any other filter (price, attribute, stock) is not kept, and the hint says so.
+	update_catalogue_link(args) {
+		const link = document.querySelector(".wsp-catalogue-link");
+		if (!link || !window.catalogue_url) return;
+		const params = new URLSearchParams();
+		const field_filters = (args && args.field_filters) || {};
+		new Set([].concat((args && args.item_group) || [], field_filters.item_group || [])).forEach((group) => group && params.append("group", group));
+		new Set([].concat(field_filters.brand || [])).forEach((brand) => brand && params.append("brand", brand));
+		if (args && args.search) params.set("q", args.search);
+		const query = params.toString();
+		link.href = window.catalogue_url + (query ? "?" + query : "");
 	}
 
 	render_view_toggler() {

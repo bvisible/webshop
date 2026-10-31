@@ -126,3 +126,23 @@ class TestWhoIsOffered(FrappeTestCase):
 		with mock.patch.object(access, "shop_settings", return_value=settings(PARENT)):
 			with self.assertRaises(frappe.PermissionError):
 				access.require_reseller()
+
+	def test_the_listing_offers_a_catalogue_to_a_reseller_and_draws_nothing_for_anyone_else(self):
+		"""The link on the shop's listings (lot 5b): an address for a reseller, "" for everybody else, so that
+		nothing is drawn and nothing says the feature exists."""
+		from webshop.webshop.product_data_engine.listing_context import catalogue_url
+
+		with mock.patch.object(access, "shop_settings", return_value=settings(PARENT)):
+			for user, expected in ((CHILD_USER, "/my-catalogues"), (PARENT_USER, "/my-catalogues"), (OTHER_USER, ""), (NOBODY, ""), ("Guest", "")):
+				frappe.set_user(user)
+				with self.subTest(user=user):
+					self.assertEqual(catalogue_url(), expected)
+		frappe.set_user(CHILD_USER)
+		with mock.patch.object(access, "shop_settings", return_value=settings(PARENT, enabled=0)):
+			self.assertEqual(catalogue_url(), "", "nothing while the switch is off")
+
+	def test_a_failure_of_the_door_never_breaks_a_listing(self):
+		from webshop.webshop.product_data_engine.listing_context import catalogue_url
+
+		with mock.patch.object(access, "is_offered", side_effect=RuntimeError("boom")):
+			self.assertEqual(catalogue_url(), "")

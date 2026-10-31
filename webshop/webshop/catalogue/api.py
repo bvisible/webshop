@@ -89,7 +89,7 @@ def _stored_values(profile, customer):
 			values[field] = default
 	values["default_markup_percent"] = float(values["default_markup_percent"])
 	values["vat_rate"] = float(values["vat_rate"])
-	values["markup_rules"] = markup_rules.stored(profile.name)
+	values["markup_rules"] = markup_rules.labelled(markup_rules.stored(profile.name))
 	return values
 
 

@@ -63,6 +63,10 @@ def labels():
 		"options": _("Options"),
 		"markup": _("Markup (%)"),
 		"markup_hint": _("Starts from your brand's markup. Between 0 and 300."),
+		"markup_particular": _(
+			"Your particular markups ({0}) replace it for the categories, brands and products they name. "
+			"You change them on your brand page."
+		),
 		"prices": _("Prices"),
 		"prices_customers": _("Show my prices"),
 		"prices_selling": _("My selling prices"),

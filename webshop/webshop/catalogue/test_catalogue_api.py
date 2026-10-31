@@ -52,7 +52,7 @@ class TestCatalogueApi(FrappeTestCase):
 		for user in (shop.USER, shop.OTHER_USER):
 			frappe.set_user(user)
 			answer = brand_api.save_my_brand(
-				{"brand_name": f"Brand of {user}", "primary_colour": "#0b6e4f", "default_markup_percent": 30, "price_rounding": "none"}
+				{"brand_name": f"Brand of {user}", "primary_colour": "#0b6e4f", "default_markup_percent": 30, "price_rounding": "none", "markup_rules": []}
 			)
 			self.assertTrue(answer["ok"], answer)
 		frappe.db.commit()
@@ -105,6 +105,16 @@ class TestCatalogueApi(FrappeTestCase):
 			catalogue_api.get_catalogues()
 
 	# --- what is refused -----------------------------------------------------------------------------
+
+	def test_the_page_is_told_how_many_markups_of_their_own_apply(self):
+		self.assertEqual(catalogue_api.get_catalogues()["particular_markups"], 0)
+		answer = brand_api.save_my_brand(
+			{"markup_rules": [{"rule_type": "Item Group", "target": shop.PARENT_GROUP, "markup_percent": 20}, {"rule_type": "Brand", "target": shop.BRAND_A, "markup_percent": 10}]}
+		)
+		self.assertTrue(answer["ok"], answer)
+		self.assertEqual(catalogue_api.get_catalogues()["particular_markups"], 2)
+		frappe.set_user(shop.OTHER_USER)
+		self.assertEqual(catalogue_api.get_catalogues()["particular_markups"], 0, "another reseller's rules are not counted")
 
 	def test_a_catalogue_needs_a_saved_brand(self):
 		frappe.set_user("Administrator")

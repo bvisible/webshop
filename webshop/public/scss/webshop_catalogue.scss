@@ -314,7 +314,9 @@
 /* //// Neoffice — the quiet way in to the quick order, next to the search box (2026-09-14):
    a muted link with a small bolt, underlined under the cursor; it never competes with the
    search field it sits beside */
-.wsp-quick-order-link {
+/* //// Neoffice — the reseller's link to start a catalogue from the page (reseller catalogue lot 5b) is as quiet */
+.wsp-quick-order-link,
+.wsp-catalogue-link {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
@@ -328,7 +330,8 @@
 /* on a phone the toolbar stacks sort, views, then search (webshop_responsive.scss): the link
    goes right under the search box, on its own line, at the end of it */
 @media (max-width: 767px) {
-	.toolbar .wsp-quick-order-link { order: 3; width: 100%; justify-content: flex-end; }
+	.toolbar .wsp-quick-order-link,
+	.toolbar .wsp-catalogue-link { order: 3; width: 100%; justify-content: flex-end; }
 }
 
 /* //// Neoffice — the catalogue's tiles sit on the page's grid (2026-09-14): the tiles' row kept

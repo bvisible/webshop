@@ -1261,6 +1261,16 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
   - **The feed and the nightly refresh read the profile's rules as they are then**, like the markup of an existing feed.
   - `/my-brand` asks the server with its own `fetch` now (`frappe.call` stays mute on a 429 or a 502).
 
+- **A page of the shop starts a catalogue** (lot 5b, 2026-10-31): a reseller sees a quiet "Make a catalogue" link next to the quick
+  order on `/all-products`, a category, a brand and `/occasions` (`listing_context.catalogue_url()`, `window.catalogue_url`,
+  `views.js` `update_catalogue_link`; empty for everybody else, so nothing is drawn and nothing says the feature exists). It follows
+  the page: its address carries the category, the brands and the search the listing is on (`?group=…&brand=…&q=…`), and
+  `/my-catalogues` ticks them (`applyListingLink`: only names the shop offers; the search brings the products it finds, as the
+  picker does). **What a catalogue can hold is categories, brands and products: every other filter (price, attribute, stock,
+  discount) is not kept**, and the link's hint says so. Both scripts are bundles: `bench build --app webshop` before the link shows.
+  `/my-catalogues` also says how many particular markups apply (`particular_markups` of the page's state) and its requests end
+  (own `fetch`) like `/my-brand`'s.
+
 - **The partner API** (lot 4, `partner_api/`, 2026-10-31): a reseller asks for it on `/my-integration`, staff allow
   it on the desk (**Partner API Access**: Approve with the scopes — orders, submit at once, calls a minute — Refuse,
   Suspend, Resume), the reseller makes a key there. Five calls under `/partner/v1/` (a page renderer, not a

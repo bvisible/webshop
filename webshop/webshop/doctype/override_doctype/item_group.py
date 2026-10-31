@@ -69,6 +69,10 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		from webshop.webshop.product_data_engine.listing_context import quick_order_url
 
 		context.quick_order_url = quick_order_url()
+		# //// Neoffice — a reseller starts a catalogue from this category (reseller catalogue lot 5b)
+		from webshop.webshop.product_data_engine.listing_context import catalogue_url
+
+		context.catalogue_url = catalogue_url()
 		# //// Neoffice — multilingual lot 1 (neoffice-maintenance#2029): see listing_context.py
 		from webshop.webshop.utils.localized import content_language
 

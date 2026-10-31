@@ -28,6 +28,23 @@ def stored(customer):
 	]
 
 
+def labelled(rules):
+	"""The rules for the page: a product's rule also carries its name, so that the list reads "Mouse (SKU-1)"
+	and not a code. Only for display: what is saved is the three fields."""
+	codes = [rule["target"] for rule in rules if rule["rule_type"] == "Item"]
+	names = (
+		dict(frappe.get_all("Website Item", filters={"item_code": ["in", codes]}, fields=["item_code", "web_item_name"], as_list=True))
+		if codes
+		else {}
+	)
+	return [
+		{**rule, "label": f"{names[rule['target']]} ({rule['target']})"}
+		if rule["rule_type"] == "Item" and names.get(rule["target"])
+		else dict(rule)
+		for rule in rules
+	]
+
+
 def group_chain():
 	"""A function group -> the group and the ones above it, nearest first (one query, remembered)."""
 	parents = dict(frappe.get_all("Item Group", fields=["name", "parent_item_group"], as_list=True))

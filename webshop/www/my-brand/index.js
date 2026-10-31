@@ -259,7 +259,7 @@
 		lastInk = payload.ink;
 		renderLogo(payload.logo);
 		renderCredit(payload.credit_line);
-		rules = (payload.values.markup_rules || []).map((rule) => ({ rule_type: rule.rule_type, target: rule.target, markup_percent: rule.markup_percent, label: "" }));
+		rules = (payload.values.markup_rules || []).map((rule) => ({ rule_type: rule.rule_type, target: rule.target, markup_percent: rule.markup_percent, label: rule.label || "" }));
 		renderRules();
 		renderSample();
 		toggleVat();
