@@ -1279,8 +1279,8 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
 > bubble: on a 429 or a 502 `frappe.call` never calls its error callback, so "Make a key" pressed during a busy
 > moment stayed mute (seen on osiris, 2026-10-31: a 502 on the POST and a button that did nothing). `index.js`'s `call()`
 > always ends, and `test_integration_page` runs the real file under Node with a `frappe.call` that never answers and a
-> `fetch` that says 502 or 429 (it fails on the old script with an empty message). It also keeps the page's requests off
-> `POST /`, where frappe.call sends them and where nginx counts the shop assistant's calls.
+> `fetch` that says 502 or 429 (it fails on the old script with an empty message). The 429 was real: the nginx limit
+> counted a `POST /`, where every page's `frappe.call` posts, until neoffice-maintenance#2055 stopped it.
 
 > **A stand-in for the request breaks in `get_url` and in `render_template`**, which read `request.host` and
 > `request.path`. The partner tests send real werkzeug requests (`EnvironBuilder`), which is also what shows the
