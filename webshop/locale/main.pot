@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Webshop VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-10-31 08:13+0000\n"
-"PO-Revision-Date: 2026-10-31 08:13+0000\n"
+"POT-Creation-Date: 2026-10-31 11:28+0000\n"
+"PO-Revision-Date: 2026-10-31 11:28+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -115,15 +115,15 @@ msgstr ""
 msgid "A PNG or a JPEG, 2 MB at most."
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:77
+#: webshop/www/my-catalogues/index.py:102
 msgid "A catalogue is being made: the next one can start when it is ready."
 msgstr ""
 
-#: webshop/webshop/catalogue/refusals.py:79
+#: webshop/webshop/catalogue/refusals.py:83
 msgid "A catalogue is still being made. Wait for it to finish."
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:33
+#: webshop/www/my-catalogues/index.py:49
 msgid "A category brings its sub-categories."
 msgstr ""
 
@@ -148,6 +148,10 @@ msgstr ""
 #. Description of a DocType
 #: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json:5
 msgid "A day's SEO figures of one site, written every night by the SEO score job."
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:34
+msgid "A document to print or send, with your logo and your colours."
 msgstr ""
 
 #. Description of the 'Faults' (Int) field in DocType 'Shop Assistant Usage
@@ -183,11 +187,11 @@ msgid "A payment for this cart is being processed. Please wait a moment."
 msgstr ""
 
 #. Description of the 'File' (Attach) field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:117
-msgid "A private PDF."
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:131
+msgid "A private file: the PDF, the workbook or the CSV."
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:31
+#: webshop/www/my-catalogues/index.py:47
 msgid "A product is in the catalogue when any of your choices brings it."
 msgstr ""
 
@@ -211,6 +215,10 @@ msgstr ""
 
 #: webshop/controllers/payment_handler.py:752
 msgid "A system error occurred while processing payment failure"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:36
+msgid "A workbook to read and filter: one line for each thing that can be bought. A product with variants is one line for each."
 msgstr ""
 
 #. Label of a Data field in DocType 'Webshop Settings'
@@ -318,7 +326,7 @@ msgstr ""
 #: webshop/webshop/quick_order/api.py:777
 #: webshop/webshop/quick_order/api.py:812
 #: webshop/webshop/utils/cross_sell.py:228
-#: webshop/www/my-catalogues/index.py:39
+#: webshop/www/my-catalogues/index.py:55
 msgid "Add"
 msgstr ""
 
@@ -669,6 +677,10 @@ msgstr ""
 msgid "An account already exists with this email. Please sign in instead."
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:42
+msgid "An address your shop or your script reads, always up to date: photos, descriptions and your selling prices. Whoever has the address can read it."
+msgstr ""
+
 #. Description of a DocType
 #: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:5
 msgid "An anonymised pair of question and answer from a visitor who was not signed in, kept for improving the service. Empty until the merchant switches the collection on."
@@ -896,6 +908,7 @@ msgid "Automatically set when this item is selected as gift card template in Web
 msgstr ""
 
 #: webshop/templates/includes/macros.html:48
+#: webshop/webshop/catalogue/rows.py:309
 msgid "Availability"
 msgstr ""
 
@@ -1017,6 +1030,10 @@ msgstr ""
 msgid "Behind the scenes"
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:105
+msgid "Being refreshed"
+msgstr ""
+
 #: webshop/webshop/quick_order/api.py:787
 msgid "Beyond the available stock"
 msgstr ""
@@ -1098,6 +1115,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Reseller Catalogue Profile'
 #. Label of a Link field in DocType 'Website Item'
 #. Label of a Link in the Webshop Workspace
+#: webshop/webshop/catalogue/rows.py:299
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json:89
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json:113
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json:64
@@ -1125,7 +1143,7 @@ msgstr ""
 msgid "Brand pages"
 msgstr ""
 
-#: webshop/webshop/seo/llms.py:49 webshop/www/my-catalogues/index.py:34
+#: webshop/webshop/seo/llms.py:49 webshop/www/my-catalogues/index.py:50
 msgid "Brands"
 msgstr ""
 
@@ -1162,6 +1180,19 @@ msgstr ""
 
 #: webshop/templates/pages/checkout.html:493
 msgid "By using this payment form, you accept the"
+msgstr ""
+
+#. Option for the 'Format' (Select) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:42
+msgid "CSV"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:115
+msgid "CSV address"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:32
+msgid "CSV file"
 msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:70
@@ -1303,18 +1334,28 @@ msgid "Catalogue Ready for Google"
 msgstr ""
 
 #: webshop/webshop/utils/account_menu.py:138
-#: webshop/www/my-catalogues/index.html:6 webshop/www/my-catalogues/index.py:86
+#: webshop/www/my-catalogues/index.html:6
+#: webshop/www/my-catalogues/index.py:134
 msgid "Catalogues"
 msgstr ""
 
 #: webshop/public/js/product_ui/search.js:356
 #: webshop/public/js/product_ui/search_no_jquery.js:384
-#: webshop/webshop/seo/llms.py:43 webshop/www/my-catalogues/index.py:32
+#: webshop/webshop/seo/llms.py:43 webshop/www/my-catalogues/index.py:48
 msgid "Categories"
 msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:55
 msgid "Categories that hold products"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:111
+#, python-brace-format
+msgid "Categories: {0} · Brands: {1} · Products: {2} · Markup: {3} %"
+msgstr ""
+
+#: webshop/webshop/catalogue/rows.py:300
+msgid "Category"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webshop Settings'
@@ -1406,6 +1447,10 @@ msgstr ""
 msgid "Choose Shipping Method"
 msgstr ""
 
+#: webshop/webshop/catalogue/refusals.py:69
+msgid "Choose a format from the list."
+msgstr ""
+
 #: webshop/webshop/catalogue/refusals.py:68
 msgid "Choose a layout from the list."
 msgstr ""
@@ -1424,7 +1469,7 @@ msgid "Choose a stock source"
 msgstr ""
 
 #: webshop/webshop/catalogue/refusals.py:54
-#: webshop/www/my-catalogues/index.py:43
+#: webshop/www/my-catalogues/index.py:59
 msgid "Choose at least one category, one brand or one product."
 msgstr ""
 
@@ -1446,14 +1491,14 @@ msgid "Choose the default sort order for products"
 msgstr ""
 
 #: webshop/webshop/catalogue/refusals.py:67
-msgid "Choose whether the catalogue shows prices."
+msgid "Choose which prices to show from the list."
 msgstr ""
 
 #: webshop/templates/generators/item/item_configure_grid.html:20
 msgid "Choose your options"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:41
+#: webshop/www/my-catalogues/index.py:57
 msgid "Chosen products"
 msgstr ""
 
@@ -1548,6 +1593,7 @@ msgstr ""
 
 #: webshop/templates/pages/gift_cards.html:78
 #: webshop/templates/pages/thank_you.html:202
+#: webshop/webshop/catalogue/rows.py:296
 msgid "Code"
 msgstr ""
 
@@ -1630,7 +1676,7 @@ msgstr ""
 msgid "Computing the SEO score…"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:68
+#: webshop/www/my-catalogues/index.py:93
 msgid "Computing your prices"
 msgstr ""
 
@@ -1768,6 +1814,14 @@ msgstr ""
 #. Label of a Check field in DocType 'Abandoned Cart Reminder'
 #: webshop/webshop/doctype/abandoned_cart_reminder/abandoned_cart_reminder.json:96
 msgid "Converted"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:120
+msgid "Copied"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:119
+msgid "Copy"
 msgstr ""
 
 #. Label of a Button field in DocType 'Website Item'
@@ -1946,6 +2000,7 @@ msgstr ""
 msgid "Cross-sell offers"
 msgstr ""
 
+#: webshop/webshop/catalogue/rows.py:305 webshop/webshop/catalogue/rows.py:322
 #: webshop/webshop/utils/order_export.py:84
 msgid "Currency"
 msgstr ""
@@ -1974,13 +2029,15 @@ msgstr ""
 #. Label of a Link field in DocType 'Purchase Follow-up Entry'
 #. Label of a Link field in DocType 'Reseller Catalogue'
 #. Label of a Link field in DocType 'Reseller Catalogue Profile'
+#. Label of a Link field in DocType 'Reseller Feed'
 #. Label of a Link field in DocType 'Shop Assistant Conversation'
 #: webshop/webshop/doctype/abandoned_cart_reminder/abandoned_cart_reminder.json:34
 #: webshop/webshop/doctype/item_review/item_review.json:77
 #: webshop/webshop/doctype/item_review/item_review.json:134
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json:53
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:40
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:52
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:35
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:31
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json:44
 #: webshop/webshop/report/shop_assistant_usage/shop_assistant_usage.py:24
 #: webshop/webshop/shopping_cart/cart.py:710
@@ -2148,11 +2205,11 @@ msgstr ""
 msgid "Define the available amounts for gift cards"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:74 webshop/www/my_addresses.html:178
+#: webshop/www/my-catalogues/index.py:99 webshop/www/my_addresses.html:178
 msgid "Delete"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:75
+#: webshop/www/my-catalogues/index.py:100
 msgid "Delete this catalogue?"
 msgstr ""
 
@@ -2224,6 +2281,7 @@ msgstr ""
 #: webshop/templates/catalogue/product_sheet.html:64
 #: webshop/templates/generators/item/item_details.html:179
 #: webshop/templates/pages/loyalty_points.html:98
+#: webshop/webshop/catalogue/rows.py:310
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json:196
 #: webshop/webshop/doctype/homepage_featured_product/homepage_featured_product.json:55
 #: webshop/webshop/doctype/webshopsi_invoice_installments/webshopsi_invoice_installments.json:62
@@ -2317,7 +2375,7 @@ msgstr ""
 msgid "DocType {} not found"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:71
+#: webshop/www/my-catalogues/index.py:96
 msgid "Download"
 msgstr ""
 
@@ -2363,6 +2421,7 @@ msgid "E-mail"
 msgstr ""
 
 #: webshop/templates/catalogue/product_sheet.html:71
+#: webshop/webshop/catalogue/rows.py:301
 msgid "EAN"
 msgstr ""
 
@@ -2698,6 +2757,7 @@ msgid "Equivalent Value:"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Reseller Catalogue'
+#. Label of a Small Text field in DocType 'Reseller Feed'
 #: webshop/public/js/shopping_cart.js:304
 #: webshop/templates/includes/cart_component.js:1346
 #: webshop/templates/includes/cart_component.js:1369
@@ -2709,7 +2769,8 @@ msgstr ""
 #: webshop/templates/pages/checkout.js:2855
 #: webshop/templates/pages/checkout.js:3537
 #: webshop/templates/pages/checkout.js:3545
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:149
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:163
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:64
 #: webshop/webshop/seo/score.py:600
 msgid "Error"
 msgstr ""
@@ -2877,6 +2938,10 @@ msgstr ""
 msgid "Excel File"
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:31
+msgid "Excel workbook"
+msgstr ""
+
 #. Label of a Table field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:295
 msgid "Exceptional Closures"
@@ -2893,7 +2958,8 @@ msgstr ""
 
 #. Option for the 'Show Prices' (Select) field in DocType 'Reseller Catalogue
 #. Profile'
-#: webshop/webshop/catalogue/book.py:216 webshop/webshop/catalogue/sheet.py:179
+#: webshop/webshop/catalogue/book.py:216 webshop/webshop/catalogue/rows.py:325
+#: webshop/webshop/catalogue/sheet.py:179
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:144
 #: webshop/www/my-brand/index.py:51
 msgid "Excluding VAT"
@@ -2930,8 +2996,10 @@ msgid "FREE"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:52
-#: webshop/www/my-catalogues/index.py:67
+#. Option for the 'Status' (Select) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:64
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:43
+#: webshop/www/my-catalogues/index.py:92
 msgid "Failed"
 msgstr ""
 
@@ -3015,7 +3083,7 @@ msgid "Fieldname on Item holding the quantity, e.g. neo_supplier_stock."
 msgstr ""
 
 #. Label of a Attach field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:115
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:129
 msgid "File"
 msgstr ""
 
@@ -3029,7 +3097,7 @@ msgstr ""
 msgid "Filter Options"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:36
+#: webshop/www/my-catalogues/index.py:52
 msgid "Filter the list"
 msgstr ""
 
@@ -3119,7 +3187,7 @@ msgstr ""
 msgid "Footer text"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:29
+#: webshop/www/my-catalogues/index.py:45
 msgid "For example: Catalogue 2027"
 msgstr ""
 
@@ -3127,6 +3195,10 @@ msgstr ""
 #. 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:299
 msgid "For example: closed on public holidays"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:39
+msgid "For importing into another system: comma-separated, UTF-8, the same column names every time. To read it yourself, choose Excel."
 msgstr ""
 
 #: webshop/public/js/override/seo_preview.js:403
@@ -3141,6 +3213,12 @@ msgstr ""
 
 #: webshop/public/js/auth_dialog.js:164
 msgid "Forgot Password?"
+msgstr ""
+
+#. Label of a Select field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:41
+#: webshop/www/my-catalogues/index.py:29 webshop/www/my-catalogues/index.py:87
+msgid "Format"
 msgstr ""
 
 #. Option for the 'Advantage' (Select) field in DocType 'Cross Sell Offer'
@@ -3416,7 +3494,7 @@ msgstr ""
 msgid "Grid"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:54
+#: webshop/www/my-catalogues/index.py:73
 msgid "Grid: three products a row"
 msgstr ""
 
@@ -3749,7 +3827,7 @@ msgstr ""
 msgid "In Stock Only"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:65
+#: webshop/www/my-catalogues/index.py:90
 msgid "In progress"
 msgstr ""
 
@@ -3762,7 +3840,7 @@ msgstr ""
 #: webshop/templates/includes/product_card.html:63
 #: webshop/templates/includes/product_card.html:65
 #: webshop/templates/includes/product_page.js:36
-#: webshop/webshop/catalogue/sheet.py:123
+#: webshop/webshop/catalogue/rows.py:331 webshop/webshop/catalogue/sheet.py:123
 #: webshop/www/all-products/index.html:173
 msgid "In stock"
 msgstr ""
@@ -3784,7 +3862,8 @@ msgstr ""
 
 #. Option for the 'Show Prices' (Select) field in DocType 'Reseller Catalogue
 #. Profile'
-#: webshop/webshop/catalogue/book.py:216 webshop/webshop/catalogue/sheet.py:179
+#: webshop/webshop/catalogue/book.py:216 webshop/webshop/catalogue/rows.py:325
+#: webshop/webshop/catalogue/sheet.py:179
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:144
 #: webshop/www/my-brand/index.py:52
 msgid "Including VAT"
@@ -3824,6 +3903,7 @@ msgid "Indicative total"
 msgstr ""
 
 #: webshop/templates/pages/checkout.html:25
+#: webshop/webshop/catalogue/rows.py:338
 msgid "Information"
 msgstr ""
 
@@ -3995,7 +4075,9 @@ msgstr ""
 
 #. Description of the 'Selection' (Long Text) field in DocType 'Reseller
 #. Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:130
+#. Description of the 'Selection' (Long Text) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:144
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:130
 msgid "Item groups, brands and products as JSON. Never a price."
 msgstr ""
 
@@ -4014,6 +4096,10 @@ msgstr ""
 
 #: webshop/webshop/seo/score.py:575
 msgid "Its variants carry it"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:116
+msgid "JSON address"
 msgstr ""
 
 #: webshop/templates/payments/paypal.html:11
@@ -4042,6 +4128,10 @@ msgstr ""
 msgid "Keep the history and anonymised samples of conversations"
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:117
+msgid "Keep these addresses to yourself: whoever has one can read your feed."
+msgstr ""
+
 #. Description of the 'Exclude from Google Shopping' (Check) field in DocType
 #. 'Website Item'
 #: webshop/webshop/doctype/website_item/website_item.json:171
@@ -4049,7 +4139,7 @@ msgid "Keeps this product out of the Google Merchant Center feed."
 msgstr ""
 
 #. Label of a Date field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:108
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:122
 msgid "Kept Until"
 msgstr ""
 
@@ -4112,6 +4202,11 @@ msgstr ""
 msgid "Last Feed"
 msgstr ""
 
+#. Label of a Datetime field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:93
+msgid "Last Fetched"
+msgstr ""
+
 #. Label of a Datetime field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1308
 msgid "Last Generated"
@@ -4132,11 +4227,16 @@ msgstr ""
 msgid "Last asked"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:70
+#: webshop/www/my-catalogues/index.py:109
+#, python-brace-format
+msgid "Last read: {0}"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:95
 msgid "Laying out the pages"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:53
+#: webshop/www/my-catalogues/index.py:72
 msgid "Layout"
 msgstr ""
 
@@ -4226,6 +4326,17 @@ msgstr ""
 msgid "Limits and usage"
 msgstr ""
 
+#. Label of a Int field in DocType 'Reseller Feed'
+#: webshop/webshop/catalogue/rows.py:320
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:75
+msgid "Lines"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:108
+#, python-brace-format
+msgid "Lines: {0} · Prices of {1}"
+msgstr ""
+
 #. Description of the 'Redirect on Action' (Data) field in DocType 'Webshop
 #. Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1149
@@ -4248,7 +4359,7 @@ msgstr ""
 msgid "List this Item in multiple groups on the website."
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:55
+#: webshop/www/my-catalogues/index.py:74
 msgid "List: one product a row"
 msgstr ""
 
@@ -4292,7 +4403,7 @@ msgstr ""
 msgid "Loading..."
 msgstr ""
 
-#: webshop/www/my-brand/index.py:64 webshop/www/my-catalogues/index.py:78
+#: webshop/www/my-brand/index.py:64 webshop/www/my-catalogues/index.py:126
 msgid "Loading…"
 msgstr ""
 
@@ -4388,11 +4499,17 @@ msgid "Loyalty program is not enabled."
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:91
+#. Label of a Datetime field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:105
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:81
 msgid "Made On"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:60
+#: webshop/webshop/catalogue/rows.py:317
+msgid "Made for"
+msgstr ""
+
+#: webshop/webshop/catalogue/rows.py:318 webshop/www/my-catalogues/index.py:84
 msgid "Made on"
 msgstr ""
 
@@ -4426,15 +4543,23 @@ msgid "Make Purchase Invoice"
 msgstr ""
 
 #: webshop/www/my-catalogues/index.py:21
-msgid "Make a PDF catalogue of the products you choose, with your logo, your colours and your prices: your markup is added to what you pay. It takes a few seconds to a minute, and you can leave this page."
+msgid "Make a catalogue of the products you choose, with your prices: your markup is added to what you pay. A PDF with your logo and your colours, an Excel or CSV file, or a feed your own shop can read. It takes a few seconds to a minute, and you can leave this page."
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:72
+#: webshop/www/my-catalogues/index.py:97
 msgid "Make it again"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:56
+#: webshop/www/my-catalogues/index.py:77
+msgid "Make the CSV file"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:75
 msgid "Make the catalogue"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:76
+msgid "Make the workbook"
 msgstr ""
 
 #: webshop/templates/pages/gift_cards.html:47
@@ -4446,7 +4571,7 @@ msgstr ""
 msgid "Mandatory"
 msgstr ""
 
-#: webshop/webshop/seo/facts.py:103
+#: webshop/webshop/catalogue/rows.py:302 webshop/webshop/seo/facts.py:103
 msgid "Manufacturer's reference"
 msgstr ""
 
@@ -4464,15 +4589,24 @@ msgstr ""
 msgid "Marketing"
 msgstr ""
 
+#: webshop/webshop/catalogue/rows.py:324
+msgid "Markup"
+msgstr ""
+
 #. Label of a Float field in DocType 'Reseller Catalogue Profile'
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:124
-#: webshop/www/my-brand/index.py:43 webshop/www/my-catalogues/index.py:48
+#: webshop/www/my-brand/index.py:43 webshop/www/my-catalogues/index.py:64
 msgid "Markup (%)"
+msgstr ""
+
+#. Description of the 'Options' (Long Text) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:137
+msgid "Markup and price mode as JSON."
 msgstr ""
 
 #. Description of the 'Options' (Long Text) field in DocType 'Reseller
 #. Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:137
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:151
 msgid "Markup, price mode and layout as JSON, as they were when the catalogue was asked for."
 msgstr ""
 
@@ -4604,6 +4738,7 @@ msgstr ""
 
 #. Label of a Data field in DocType 'Shop Assistant Message'
 #. Label of a Data field in DocType 'Webshop Settings'
+#: webshop/webshop/catalogue/rows.py:297
 #: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:70
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:439
 #: webshop/webshop/seo/score.py:592
@@ -4647,6 +4782,10 @@ msgstr ""
 
 #: webshop/templates/includes/macros.html:136
 msgid "More details"
+msgstr ""
+
+#: webshop/webshop/catalogue/rows.py:312
+msgid "More pictures"
 msgstr ""
 
 #: webshop/templates/pages/product_search.html:29
@@ -4713,6 +4852,11 @@ msgstr ""
 msgid "My Addresses"
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:68
+msgid "My selling prices"
+msgstr ""
+
+#: webshop/webshop/catalogue/rows.py:298
 #: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py:133
 msgid "Name"
 msgstr ""
@@ -4766,10 +4910,11 @@ msgid "New accounts cannot be created on this site. Please contact the shop."
 msgstr ""
 
 #: webshop/templates/pages/checkout.js:1168
+#: webshop/www/my-catalogues/index.py:122
 msgid "New address"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:27
+#: webshop/www/my-catalogues/index.py:28
 msgid "New catalogue"
 msgstr ""
 
@@ -4806,6 +4951,7 @@ msgstr ""
 
 #. Option for the 'Hide Currency Symbol in Shop' (Select) field in DocType
 #. 'Webshop Settings'
+#: webshop/webshop/catalogue/rows.py:336
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:872
 msgid "No"
 msgstr ""
@@ -4966,11 +5112,11 @@ msgstr ""
 msgid "No price shown to a visitor"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:52
+#: webshop/www/my-catalogues/index.py:71
 msgid "No prices"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:38
+#: webshop/www/my-catalogues/index.py:54
 msgid "No product found."
 msgstr ""
 
@@ -5074,6 +5220,10 @@ msgstr ""
 
 #: webshop/webshop/utils/holidays.py:194
 msgid "No year to fetch."
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:110
+msgid "Nobody has read it yet."
 msgstr ""
 
 #. Option for the 'Advantage' (Select) field in DocType 'Cross Sell Offer'
@@ -5214,7 +5364,7 @@ msgstr ""
 msgid "Nothing but the product's name: write one, or a description it can be taken from"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:42
+#: webshop/www/my-catalogues/index.py:58
 msgid "Nothing chosen yet."
 msgstr ""
 
@@ -5339,6 +5489,7 @@ msgstr ""
 
 #: webshop/templates/generators/item_group.html:182
 #: webshop/templates/includes/product_card.html:49
+#: webshop/webshop/catalogue/rows.py:333
 #: webshop/www/all-products/index.html:169
 msgid "On backorder"
 msgstr ""
@@ -5466,7 +5617,7 @@ msgstr ""
 msgid "Open the assistant"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:25
+#: webshop/www/my-catalogues/index.py:26
 msgid "Open the brand page"
 msgstr ""
 
@@ -5562,8 +5713,10 @@ msgid "Optional: When maintenance is expected to end"
 msgstr ""
 
 #. Label of a Long Text field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:135
-#: webshop/www/my-catalogues/index.py:47
+#. Label of a Long Text field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:149
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:135
+#: webshop/www/my-catalogues/index.py:63
 msgid "Options"
 msgstr ""
 
@@ -5682,7 +5835,7 @@ msgstr ""
 #: webshop/templates/generators/item_group.html:183
 #: webshop/templates/includes/product_card.html:54
 #: webshop/templates/includes/product_card.html:311
-#: webshop/webshop/catalogue/sheet.py:126
+#: webshop/webshop/catalogue/rows.py:332 webshop/webshop/catalogue/sheet.py:126
 #: webshop/webshop/tests/test_product_card.py:100
 #: webshop/webshop/tests/test_product_card.py:107
 #: webshop/www/all-products/index.html:170
@@ -5720,8 +5873,18 @@ msgstr ""
 msgid "Own manufacture, made to measure, one of a kind: no barcode exists for it. Google asks no GTIN of such a product, and the SEO score does not count it."
 msgstr ""
 
+#. Option for the 'Format' (Select) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:42
+msgid "PDF"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:30
+msgid "PDF catalogue"
+msgstr ""
+
 #. Label of a Data field in DocType 'Shop Assistant Conversation'
 #: webshop/templates/generators/item_group.html:168
+#: webshop/webshop/catalogue/rows.py:313
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json:83
 #: webshop/webshop/report/visits_from_ai_assistants/visits_from_ai_assistants.py:52
 #: webshop/www/all-products/index.html:155
@@ -5735,10 +5898,15 @@ msgstr ""
 
 #. Label of a Int field in DocType 'Reseller Catalogue'
 #: webshop/templates/includes/listing_ssr.html:18
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:85
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:98
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:57
-#: webshop/www/my-catalogues/index.py:62
+#: webshop/www/my-catalogues/index.py:86
 msgid "Pages"
+msgstr ""
+
+#. Description of the 'Pages' (Int) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:100
+msgid "Pages of a PDF; empty for a workbook or a CSV."
 msgstr ""
 
 #. Description of the 'Bubbles shown' (Int) field in DocType 'Shop Assistant
@@ -5993,6 +6161,10 @@ msgstr ""
 
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.py:45
 msgid "Pick what triggers the offer: an item, an item group or a brand."
+msgstr ""
+
+#: webshop/webshop/catalogue/rows.py:311
+msgid "Picture"
 msgstr ""
 
 #: webshop/webshop/seo/score.py:555
@@ -6292,7 +6464,7 @@ msgstr ""
 msgid "Preparing payment..."
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:69
+#: webshop/www/my-catalogues/index.py:94
 msgid "Preparing the pictures"
 msgstr ""
 
@@ -6332,6 +6504,10 @@ msgstr ""
 msgid "Price can only be modified for gift cards"
 msgstr ""
 
+#: webshop/webshop/catalogue/rows.py:308
+msgid "Price includes VAT"
+msgstr ""
+
 #: webshop/webshop/catalogue/refusals.py:23
 msgid "Price markup"
 msgstr ""
@@ -6363,13 +6539,19 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Reseller Catalogue Profile'
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:119
 #: webshop/webshop/doctype/website_item/website_item.js:11
-#: webshop/www/my-brand/index.py:42 webshop/www/my-catalogues/index.py:50
+#: webshop/www/my-brand/index.py:42 webshop/www/my-catalogues/index.py:66
 msgid "Prices"
 msgstr ""
 
 #. Label of a Date field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:101
+#. Label of a Date field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:115
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:87
 msgid "Prices As Of"
+msgstr ""
+
+#: webshop/webshop/catalogue/rows.py:319
+msgid "Prices as of"
 msgstr ""
 
 #: webshop/www/my-brand/index.py:59
@@ -6377,7 +6559,7 @@ msgstr ""
 msgid "Prices of your price list: {0}."
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:76
+#: webshop/www/my-catalogues/index.py:101
 #, python-brace-format
 msgid "Prices of {0}. Kept until {1}."
 msgstr ""
@@ -6519,6 +6701,10 @@ msgstr ""
 msgid "Product Sheet"
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:33
+msgid "Product feed for my shop"
+msgstr ""
+
 #: webshop/webshop/catalogue/sheet_links.py:17
 msgid "Product sheet (PDF)"
 msgstr ""
@@ -6534,12 +6720,13 @@ msgstr ""
 #. Label of a Int field in DocType 'Reseller Catalogue'
 #. Label of a Section Break field in DocType 'Webshop SEO Snapshot'
 #: webshop/setup/install.py:207 webshop/templates/pages/thank_you.html:95
+#: webshop/webshop/catalogue/rows.py:337
 #: webshop/webshop/dashboard_chart_source/webshop_google_shopping_status/webshop_google_shopping_status.py:35
 #: webshop/webshop/dashboard_chart_source/webshop_seo_score_bands/webshop_seo_score_bands.py:35
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:79
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:91
 #: webshop/webshop/doctype/webshop_seo_snapshot/webshop_seo_snapshot.json:62
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:54
-#: webshop/www/my-catalogues/index.py:35 webshop/www/my-catalogues/index.py:61
+#: webshop/www/my-catalogues/index.py:51 webshop/www/my-catalogues/index.py:85
 msgid "Products"
 msgstr ""
 
@@ -6574,6 +6761,11 @@ msgstr ""
 msgid "Products can display and sell from several stock sources (below). Off: historical single-warehouse behaviour."
 msgstr ""
 
+#. Description of the 'Products' (Int) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:93
+msgid "Products of a PDF, lines of a workbook or a CSV."
+msgstr ""
+
 #. Label of a Int field in DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:728
 msgid "Products per Page"
@@ -6589,7 +6781,9 @@ msgid "Professional account required"
 msgstr ""
 
 #. Label of a Percent field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:61
+#. Label of a Percent field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:73
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:52
 msgid "Progress"
 msgstr ""
 
@@ -6751,6 +6945,10 @@ msgstr ""
 msgid "Purchase Orders are grouped under this supplier. Falls back to the item's default supplier when empty."
 msgstr ""
 
+#: webshop/webshop/catalogue/rows.py:327
+msgid "Purchase prices"
+msgstr ""
+
 #: webshop/webshop/quick_order/api.py:811
 msgid "Qty"
 msgstr ""
@@ -6793,7 +6991,9 @@ msgid "Questions your shop assistant could not answer this week"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:52
+#. Option for the 'Status' (Select) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:64
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:43
 msgid "Queued"
 msgstr ""
 
@@ -6850,8 +7050,10 @@ msgid "Read from 11 buckets: the upper bound of the bucket that holds it"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:52
-#: webshop/www/my-catalogues/index.py:66
+#. Option for the 'Status' (Select) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:64
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:43
+#: webshop/www/my-catalogues/index.py:91 webshop/www/my-catalogues/index.py:106
 msgid "Ready"
 msgstr ""
 
@@ -6963,6 +7165,10 @@ msgstr ""
 msgid "Refresh"
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:121
+msgid "Refresh now"
+msgstr ""
+
 #. Option for the 'Condition' (Select) field in DocType 'Website Item'
 #: webshop/templates/generators/item_group.html:158
 #: webshop/webshop/doctype/website_item/website_item.json:237
@@ -7042,7 +7248,7 @@ msgstr ""
 
 #: webshop/templates/includes/cart/cart_items.html:153
 #: webshop/templates/includes/coupon_form.html:26
-#: webshop/www/my-catalogues/index.py:40
+#: webshop/www/my-catalogues/index.py:56
 msgid "Remove"
 msgstr ""
 
@@ -7129,7 +7335,7 @@ msgstr ""
 #. Name of a DocType
 #. Label of a Tab Break field in DocType 'Webshop Settings'
 #. Label of a Section Break field in DocType 'Webshop Settings'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:158
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:172
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:1508
 msgid "Reseller Catalogue"
 msgstr ""
@@ -7142,6 +7348,11 @@ msgstr ""
 #. Name of a DocType
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:162
 msgid "Reseller Catalogue Profile"
+msgstr ""
+
+#. Name of a DocType
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:152
+msgid "Reseller Feed"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webshop Settings'
@@ -7254,7 +7465,9 @@ msgid "Row #{0}: Item {1} must have a Website Item for Shopping Cart Quotations"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:52
+#. Option for the 'Status' (Select) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:64
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:43
 msgid "Running"
 msgstr ""
 
@@ -7293,6 +7506,11 @@ msgstr ""
 msgid "SEO score: {0} / 100"
 msgstr ""
 
+#. Description of the 'Token Hash' (Data) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:117
+msgid "SHA-256 of the token: how an address is matched to its feed without keeping the secret in the clear."
+msgstr ""
+
 #. Name of a role
 #: webshop/webshop/doctype/abandoned_cart_reminder/abandoned_cart_reminder.json:150
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json:198
@@ -7307,7 +7525,7 @@ msgstr ""
 msgid "Sales User"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:73
+#: webshop/www/my-catalogues/index.py:98
 msgid "Same choices, prices computed again."
 msgstr ""
 
@@ -7334,13 +7552,25 @@ msgstr ""
 msgid "Save Quotations as Draft"
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:78
+msgid "Save the feed"
+msgstr ""
+
 #: webshop/public/js/override/seo_preview.js:225
 msgid "Save the item first: the descriptions are written to the saved item."
 msgstr ""
 
-#: webshop/webshop/catalogue/refusals.py:81
-#: webshop/www/my-catalogues/index.py:24
+#: webshop/webshop/catalogue/refusals.py:85
+#: webshop/www/my-catalogues/index.py:25
 msgid "Save your brand first: a catalogue carries your name, your logo and your colours."
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:86
+msgid "Save your brand first: it keeps your markup, your rounding and whether your prices include VAT."
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:97
+msgid "Save your brand first: your feed carries prices with your markup, and your brand keeps it."
 msgstr ""
 
 #: webshop/www/my-brand/index.py:63
@@ -7398,7 +7628,7 @@ msgstr ""
 msgid "Search a category or a brand"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:37
+#: webshop/www/my-catalogues/index.py:53
 msgid "Search a product by name, reference or brand"
 msgstr ""
 
@@ -7536,12 +7766,18 @@ msgid "Selected"
 msgstr ""
 
 #. Label of a Long Text field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:128
+#. Label of a Long Text field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:142
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:128
 msgid "Selection"
 msgstr ""
 
-#: webshop/public/js/override/item.js:276
+#: webshop/public/js/override/item.js:276 webshop/webshop/catalogue/rows.py:307
 msgid "Selling price"
+msgstr ""
+
+#: webshop/webshop/catalogue/rows.py:325
+msgid "Selling prices"
 msgstr ""
 
 #: webshop/templates/generators/item/item_inquiry.js:44
@@ -7632,8 +7868,13 @@ msgid "Set Tax Rule for shopping cart"
 msgstr ""
 
 #. Description of the 'Customer' (Link) field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:46
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:58
 msgid "Set by the server from the signed-in account and never taken from a request."
+msgstr ""
+
+#. Description of the 'Customer' (Link) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:37
+msgid "Set by the server from the signed-in account and never taken from a request. One feed a customer."
 msgstr ""
 
 #. Description of the 'Sold' (Check) field in DocType 'Website Item'
@@ -7927,7 +8168,7 @@ msgstr ""
 msgid "Show more"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:51
+#: webshop/www/my-catalogues/index.py:67
 msgid "Show my prices"
 msgstr ""
 
@@ -8177,7 +8418,9 @@ msgid "Source key"
 msgstr ""
 
 #. Label of a Data field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:67
+#. Label of a Data field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:79
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:58
 msgid "Stage"
 msgstr ""
 
@@ -8196,7 +8439,7 @@ msgstr ""
 msgid "Started On"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:49
+#: webshop/www/my-catalogues/index.py:65
 msgid "Starts from your brand's markup. Between 0 and 300."
 msgstr ""
 
@@ -8208,13 +8451,15 @@ msgstr ""
 
 #. Label of a Select field in DocType 'Purchase Follow-up Entry'
 #. Label of a Select field in DocType 'Reseller Catalogue'
+#. Label of a Select field in DocType 'Reseller Feed'
 #. Label of a Select field in DocType 'Shop Assistant Conversation'
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json:40
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:51
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:63
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:42
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json:36
 #: webshop/webshop/report/catalogue_ready_for_google/catalogue_ready_for_google.py:135
 #: webshop/webshop/utils/order_export.py:83
-#: webshop/www/my-catalogues/index.py:63
+#: webshop/www/my-catalogues/index.py:88
 msgid "Status"
 msgstr ""
 
@@ -8305,6 +8550,14 @@ msgstr ""
 
 #: webshop/webshop/doctype/website_item/website_item_list.js:59
 msgid "Stop showing it on the selected items"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:124
+msgid "Stop the feed"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:125
+msgid "Stop the feed? Its address stops working at once."
 msgstr ""
 
 #. Label of a Check field in DocType 'Purchase Follow-up'
@@ -8447,8 +8700,9 @@ msgstr ""
 #: webshop/webshop/doctype/item_review/item_review.json:111
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json:174
 #: webshop/webshop/doctype/purchase_follow_up_entry/purchase_follow_up_entry.json:164
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:168
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:182
 #: webshop/webshop/doctype/reseller_catalogue_profile/reseller_catalogue_profile.json:173
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:162
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json:169
 #: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:107
 #: webshop/webshop/doctype/shop_assistant_usage_day/shop_assistant_usage_day.json:296
@@ -8550,7 +8804,12 @@ msgstr ""
 msgid "Thank you for your order!"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:46
+#: webshop/www/my-catalogues/index.py:80
+#, python-brace-format
+msgid "That is more than {0} lines: narrow it down."
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:62
 #, python-brace-format
 msgid "That is more than {0} products: narrow it down."
 msgstr ""
@@ -8560,7 +8819,7 @@ msgid "The Administrator account cannot shop. Sign in with a customer account to
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:74
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:86
 msgid "The Catalogue"
 msgstr ""
 
@@ -8570,10 +8829,20 @@ msgstr ""
 msgid "The EAN (GTIN) and the manufacturer's reference are always sent to Google Shopping and declared in the product page's structured data: Google needs them to recognise the product."
 msgstr ""
 
+#. Label of a Section Break field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:70
+msgid "The Feed"
+msgstr ""
+
 #. Description of the 'Helpdesk Ticket' (Data) field in DocType 'Shop Assistant
 #. Conversation'
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json:142
 msgid "The HD Ticket opened for this conversation, when Helpdesk is installed"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:100
+msgid "The Secret Address"
 msgstr ""
 
 #: webshop/templates/pages/gift_cards.html:144
@@ -8632,15 +8901,15 @@ msgstr ""
 msgid "The cart changed after the payment was started. The payment is kept: please contact us."
 msgstr ""
 
-#: webshop/webshop/catalogue/refusals.py:86
+#: webshop/webshop/catalogue/refusals.py:91
 msgid "The catalogue could not be made."
 msgstr ""
 
-#: webshop/webshop/catalogue/refusals.py:83
+#: webshop/webshop/catalogue/refusals.py:88
 msgid "The catalogue could not be made. The team has been told."
 msgstr ""
 
-#: webshop/webshop/catalogue/refusals.py:84
+#: webshop/webshop/catalogue/refusals.py:89
 msgid "The catalogue took too long and was stopped. Try again, with a smaller selection."
 msgstr ""
 
@@ -8665,6 +8934,10 @@ msgstr ""
 msgid "The coupon was removed so the quantity could be updated"
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:123
+msgid "The current address stops working at once. Continue?"
+msgstr ""
+
 #. Description of the 'Day' (Date) field in DocType 'Shop Assistant Sample'
 #: webshop/webshop/doctype/shop_assistant_sample/shop_assistant_sample.json:23
 msgid "The day only: nothing says which conversation, which visitor or which address"
@@ -8672,7 +8945,7 @@ msgstr ""
 
 #. Description of the 'Prices As Of' (Date) field in DocType 'Reseller
 #. Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:103
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:117
 msgid "The day the prices printed in the file were computed."
 msgstr ""
 
@@ -8688,6 +8961,27 @@ msgstr ""
 msgid "The discount percentage must be between 1 and 100."
 msgstr ""
 
+#: webshop/webshop/catalogue/refusals.py:105
+msgid "The feed could not be made."
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:102
+msgid "The feed could not be made. The team has been told."
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:98
+msgid "The feed is being refreshed. Wait for it to finish."
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:103
+msgid "The feed took too long and was stopped. Try again, with a smaller selection."
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:99
+#, python-brace-format
+msgid "The feed was refreshed {0} times in the last 24 hours. Try again later."
+msgstr ""
+
 #. Description of the 'Enable Field Filters (Categories)' (Check) field in
 #. DocType 'Webshop Settings'
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:766
@@ -8700,7 +8994,7 @@ msgid "The fields are filled: read them, then save."
 msgstr ""
 
 #. Description of the 'Kept Until' (Date) field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:110
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:124
 msgid "The file and this record are deleted after this day."
 msgstr ""
 
@@ -8712,6 +9006,10 @@ msgstr ""
 #. Conversation'
 #: webshop/webshop/doctype/shop_assistant_conversation/shop_assistant_conversation.json:80
 msgid "The last page the visitor wrote from"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:107
+msgid "The last refresh failed"
 msgstr ""
 
 #: webshop/webshop/quick_order/api.py:534
@@ -8814,6 +9112,10 @@ msgstr ""
 msgid "The payment could not be started. Your card has not been charged. Please try again."
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:114
+msgid "The previous file is still served."
+msgstr ""
+
 #: webshop/public/js/override/item.js:92
 #, python-brace-format
 msgid "The product {0} has been published on the website."
@@ -8839,8 +9141,12 @@ msgstr ""
 msgid "The request failed. Try again."
 msgstr ""
 
+#: webshop/webshop/catalogue/refusals.py:101
+msgid "The reseller catalogue is no longer available for your account."
+msgstr ""
+
 #: webshop/webshop/catalogue/access.py:66 webshop/www/my-brand/index.py:78
-#: webshop/www/my-catalogues/index.py:91
+#: webshop/www/my-catalogues/index.py:139
 msgid "The reseller catalogue is not available for your account."
 msgstr ""
 
@@ -8848,6 +9154,11 @@ msgstr ""
 #. Assistant Message'
 #: webshop/webshop/doctype/shop_assistant_message/shop_assistant_message.json:121
 msgid "The same for one source all day, different the next: not an address"
+msgstr ""
+
+#. Description of the 'Token' (Password) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:108
+msgid "The secret in the feed's address, kept encrypted. Whoever knows it reads the feed: replacing it closes the old address."
 msgstr ""
 
 #: webshop/webshop/catalogue/refusals.py:55
@@ -8870,11 +9181,11 @@ msgstr ""
 msgid "The shop did not answer. This is usually brief — wait a moment and try again."
 msgstr ""
 
-#: webshop/webshop/catalogue/refusals.py:76
+#: webshop/webshop/catalogue/refusals.py:77
 msgid "The shop offers none of the products of this selection."
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:44
+#: webshop/www/my-catalogues/index.py:60
 msgid "The shop offers none of these products."
 msgstr ""
 
@@ -8886,8 +9197,13 @@ msgstr ""
 
 #. Description of the 'Website Profile' (Data) field in DocType 'Reseller
 #. Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:144
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:158
 msgid "The site the catalogue was asked on: its price list is the one the prices come from."
+msgstr ""
+
+#. Description of the 'Website Profile' (Data) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:144
+msgid "The site the feed was asked on: its price list is the one the prices come from."
 msgstr ""
 
 #. Description of the 'Site' (Data) field in DocType 'Webshop SEO Snapshot'
@@ -8961,12 +9277,12 @@ msgstr ""
 msgid "This cart cannot be paid online."
 msgstr ""
 
-#: webshop/webshop/catalogue/refusals.py:78
+#: webshop/webshop/catalogue/refusals.py:79
 #, python-brace-format
 msgid "This catalogue would run to more than {0} pages. Narrow the selection."
 msgstr ""
 
-#: webshop/www/my-brand/index.py:65 webshop/www/my-catalogues/index.py:79
+#: webshop/www/my-brand/index.py:65 webshop/www/my-catalogues/index.py:127
 msgid "This could not be done. Try again."
 msgstr ""
 
@@ -8988,6 +9304,11 @@ msgstr ""
 
 #: webshop/webshop/catalogue/refusals.py:45
 msgid "This file is not an image that can be read. Send a PNG or a JPEG."
+msgstr ""
+
+#: webshop/webshop/catalogue/refusals.py:81
+#, python-brace-format
+msgid "This file would hold more than {0} lines (a product with several variants is one line for each). Narrow the selection."
 msgstr ""
 
 #: webshop/webshop/shopping_cart/cart.py:3389
@@ -9023,7 +9344,7 @@ msgstr ""
 msgid "This offer is no longer available."
 msgstr ""
 
-#: webshop/webshop/catalogue/refusals.py:70
+#: webshop/webshop/catalogue/refusals.py:71
 msgid "This option is not valid."
 msgstr ""
 
@@ -9078,13 +9399,13 @@ msgstr ""
 msgid "This selection could not be read."
 msgstr ""
 
-#: webshop/webshop/catalogue/refusals.py:77
+#: webshop/webshop/catalogue/refusals.py:78
 #, python-brace-format
 msgid "This selection holds more than {0} products. Narrow it down."
 msgstr ""
 
-#: webshop/webshop/catalogue/refusals.py:82
-#: webshop/www/my-catalogues/index.py:26
+#: webshop/webshop/catalogue/refusals.py:87
+#: webshop/www/my-catalogues/index.py:27
 msgid "This server cannot make PDF documents."
 msgstr ""
 
@@ -9140,12 +9461,13 @@ msgstr ""
 #. Label of a Data field in DocType 'WebshopSI Invoice Installments'
 #. Label of a Data field in DocType 'Website Item Video'
 #: webshop/public/js/override/seo_preview.js:79
+#: webshop/webshop/catalogue/rows.py:315
 #: webshop/webshop/doctype/cross_sell_offer/cross_sell_offer.json:48
 #: webshop/webshop/doctype/purchase_follow_up/purchase_follow_up.json:31
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:32
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:33
 #: webshop/webshop/doctype/webshopsi_invoice_installments/webshopsi_invoice_installments.json:21
 #: webshop/webshop/doctype/website_item_video/website_item_video.json:46
-#: webshop/www/my-catalogues/index.py:28 webshop/www/my-catalogues/index.py:59
+#: webshop/www/my-catalogues/index.py:44 webshop/www/my-catalogues/index.py:83
 msgid "Title"
 msgstr ""
 
@@ -9182,6 +9504,10 @@ msgstr ""
 msgid "To add to cart, please log in"
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:118
+msgid "To change what the feed carries, choose Product feed above and save: the address stays the same."
+msgstr ""
+
 #: webshop/public/js/override/seo_preview.js:351
 msgid "To improve"
 msgstr ""
@@ -9196,6 +9522,16 @@ msgstr ""
 
 #: webshop/www/my-brand/index.py:48
 msgid "To the franc"
+msgstr ""
+
+#. Label of a Password field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:106
+msgid "Token"
+msgstr ""
+
+#. Label of a Data field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:113
+msgid "Token Hash"
 msgstr ""
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:790
@@ -9373,6 +9709,10 @@ msgstr ""
 #: webshop/webshop/page_renderers/maintenance_renderer.py:87
 #: webshop/www/maintenance.html:12
 msgid "Under Maintenance"
+msgstr ""
+
+#: webshop/webshop/catalogue/rows.py:303
+msgid "Unit"
 msgstr ""
 
 #: webshop/webshop/quick_order/api.py:770
@@ -9639,6 +9979,7 @@ msgstr ""
 msgid "Value must be between {0} and {1}"
 msgstr ""
 
+#: webshop/webshop/catalogue/rows.py:304
 #: webshop/webshop/doctype/website_item/website_item_list.js:11
 #: webshop/webshop/doctype/website_item/website_item_list.js:13
 msgid "Variant"
@@ -9795,13 +10136,17 @@ msgstr ""
 msgid "Visits From AI Assistants"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:64
+#: webshop/www/my-catalogues/index.py:89
 msgid "Waiting"
 msgstr ""
 
 #: webshop/templates/pages/checkout.js:3325
 #: webshop/templates/pages/checkout.py:1234
 msgid "Waiting for your payment…"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:104
+msgid "Waiting to be refreshed"
 msgstr ""
 
 #. Label of a Link field in DocType 'Webshop Warehouse Source'
@@ -10111,7 +10456,9 @@ msgid "Website Offer"
 msgstr ""
 
 #. Label of a Data field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:142
+#. Label of a Data field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:156
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:142
 msgid "Website Profile"
 msgstr ""
 
@@ -10175,8 +10522,21 @@ msgstr ""
 msgid "Welcome to the B2B checkout process."
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:69
+msgid "What I pay (confidential)"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:70
+msgid "What I pay and my selling prices"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:122
+msgid "What It Is Made From"
+msgstr ""
+
 #. Label of a Section Break field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:122
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:136
 msgid "What It Was Made From"
 msgstr ""
 
@@ -10184,7 +10544,7 @@ msgstr ""
 msgid "What are your opening hours?"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:30
+#: webshop/www/my-catalogues/index.py:46
 msgid "What goes in it"
 msgstr ""
 
@@ -10202,13 +10562,24 @@ msgstr ""
 msgid "What the assistant should know"
 msgstr ""
 
+#. Description of the 'Format' (Select) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:47
+msgid "What the file is: a PDF catalogue, an Excel workbook or a CSV file. A record made before the formats existed has none and is a PDF."
+msgstr ""
+
 #. Description of the 'Stage' (Data) field in DocType 'Reseller Catalogue'
-#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:69
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:81
 msgid "What the job is doing: prices, pictures, render."
 msgstr ""
 
 #: webshop/public/js/override/item.js:282
 msgid "What the unit cost you; its valuation in stock."
+msgstr ""
+
+#. Description of the 'Last Fetched' (Datetime) field in DocType 'Reseller
+#. Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:95
+msgid "When a script or a shop last read the feed, to the hour. A feed nobody has read for 14 days is no longer refreshed each night."
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Cross Sell Offer'
@@ -10356,8 +10727,14 @@ msgstr ""
 msgid "Written with AI assistance on"
 msgstr ""
 
+#. Option for the 'Format' (Select) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:42
+msgid "XLSX"
+msgstr ""
+
 #. Option for the 'Hide Currency Symbol in Shop' (Select) field in DocType
 #. 'Webshop Settings'
+#: webshop/webshop/catalogue/rows.py:335
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.json:872
 msgid "Yes"
 msgstr ""
@@ -10437,12 +10814,16 @@ msgstr ""
 msgid "You have a coupon code or gift card?"
 msgstr ""
 
-#: webshop/webshop/catalogue/refusals.py:80
+#: webshop/webshop/catalogue/refusals.py:84
 #, python-brace-format
 msgid "You have asked for {0} catalogues in the last 24 hours. Try again later."
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:58
+#: webshop/webshop/catalogue/refusals.py:100
+msgid "You have no feed."
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:82
 msgid "You have not made a catalogue yet."
 msgstr ""
 
@@ -10519,7 +10900,7 @@ msgstr ""
 msgid "Your cart is Empty"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:57
+#: webshop/www/my-catalogues/index.py:81
 msgid "Your catalogues"
 msgstr ""
 
@@ -10597,6 +10978,10 @@ msgstr ""
 msgid "Your order will be processed according to your B2B account settings."
 msgstr ""
 
+#: webshop/webshop/catalogue/rows.py:327
+msgid "Your own price list, as the shop's rules apply to you. Confidential: not for your customers."
+msgstr ""
+
 #: webshop/templates/payments/stripe.html:348
 msgid "Your payment has been processed successfully. Redirecting..."
 msgstr ""
@@ -10611,6 +10996,14 @@ msgstr ""
 
 #: webshop/www/my-brand/index.py:55
 msgid "Your prices with this markup"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:103
+msgid "Your product feed"
+msgstr ""
+
+#: webshop/webshop/catalogue/rows.py:306
+msgid "Your purchase price"
 msgstr ""
 
 #: webshop/webshop/assistant/escalation.py:167
@@ -10777,6 +11170,10 @@ msgstr ""
 
 #: webshop/webshop/seo/feeds/google.py:66
 msgid "no price shown to a visitor"
+msgstr ""
+
+#: webshop/www/my-catalogues/index.py:113
+msgid "no prices"
 msgstr ""
 
 #: webshop/webshop/utils/store_hours.py:156
@@ -10948,6 +11345,10 @@ msgstr ""
 msgid "years old to order"
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:112
+msgid "your selling prices"
+msgstr ""
+
 #: webshop/webshop/utils/used_items.py:318
 #, python-brace-format
 msgid "{0} (refurbished)"
@@ -11108,6 +11509,11 @@ msgstr ""
 msgid "{0} left out: {1}"
 msgstr ""
 
+#: webshop/www/my-catalogues/index.py:79
+#, python-brace-format
+msgid "{0} lines in this file."
+msgstr ""
+
 #: webshop/webshop/utils/store_hours.py:144
 #, python-brace-format
 msgid "{0} min"
@@ -11164,7 +11570,7 @@ msgstr ""
 msgid "{0} products"
 msgstr ""
 
-#: webshop/www/my-catalogues/index.py:45
+#: webshop/www/my-catalogues/index.py:61
 #, python-brace-format
 msgid "{0} products in this catalogue."
 msgstr ""

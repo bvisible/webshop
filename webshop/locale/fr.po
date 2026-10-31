@@ -10537,3 +10537,297 @@ msgstr "{0} produits dans ce catalogue."
 msgctxt "Before the lowest price of a product that has several"
 msgid "From"
 msgstr "À partir de"
+
+#: webshop/www/my-catalogues/index.py:34
+msgid "A document to print or send, with your logo and your colours."
+msgstr "Un document à imprimer ou à envoyer, avec votre logo et vos couleurs."
+
+#. Description of the 'File' (Attach) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:131
+msgid "A private file: the PDF, the workbook or the CSV."
+msgstr "Un fichier privé : le PDF, le classeur ou le CSV."
+
+#: webshop/www/my-catalogues/index.py:36
+msgid "A workbook to read and filter: one line for each thing that can be bought. A product with variants is one line for each."
+msgstr "Un classeur à lire et à filtrer : une ligne par article pouvant être acheté. Un produit décliné en variantes compte une ligne par variante."
+
+#: webshop/www/my-catalogues/index.py:42
+msgid "An address your shop or your script reads, always up to date: photos, descriptions and your selling prices. Whoever has the address can read it."
+msgstr "Une adresse que votre boutique ou votre script lit, toujours à jour : photos, descriptions et vos prix de vente. Quiconque possède l'adresse peut la lire."
+
+#: webshop/www/my-catalogues/index.py:105
+msgid "Being refreshed"
+msgstr "En cours d'actualisation"
+
+#: webshop/www/my-catalogues/index.py:111
+#, python-brace-format
+msgid "Categories: {0} · Brands: {1} · Products: {2} · Markup: {3} %"
+msgstr "Catégories : {0} · Marques : {1} · Produits : {2} · Plus-value : {3} %"
+
+#: webshop/webshop/catalogue/refusals.py:69
+msgid "Choose a format from the list."
+msgstr "Choisissez un format dans la liste."
+
+#: webshop/webshop/catalogue/refusals.py:67
+msgid "Choose which prices to show from the list."
+msgstr "Choisissez les prix à afficher dans la liste."
+
+#: webshop/www/my-catalogues/index.py:115
+msgid "CSV address"
+msgstr "Adresse CSV"
+
+#: webshop/www/my-catalogues/index.py:31
+msgid "Excel workbook"
+msgstr "Classeur Excel"
+
+#: webshop/www/my-catalogues/index.py:39
+msgid "For importing into another system: comma-separated, UTF-8, the same column names every time. To read it yourself, choose Excel."
+msgstr "Pour l'importer dans un autre système : valeurs séparées par des virgules, UTF-8, mêmes noms de colonnes à chaque fois. Pour le lire vous-même, choisissez Excel."
+
+#: webshop/www/my-catalogues/index.py:116
+msgid "JSON address"
+msgstr "Adresse JSON"
+
+#: webshop/www/my-catalogues/index.py:117
+msgid "Keep these addresses to yourself: whoever has one can read your feed."
+msgstr "Gardez ces adresses pour vous : quiconque en possède une peut lire votre flux."
+
+#. Label of a Datetime field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:93
+msgid "Last Fetched"
+msgstr "Dernière lecture"
+
+#: webshop/www/my-catalogues/index.py:109
+#, python-brace-format
+msgid "Last read: {0}"
+msgstr "Dernière lecture : {0}"
+
+#: webshop/www/my-catalogues/index.py:108
+#, python-brace-format
+msgid "Lines: {0} · Prices of {1}"
+msgstr "Lignes : {0} · Prix au {1}"
+
+#: webshop/webshop/catalogue/rows.py:317
+msgid "Made for"
+msgstr "Destiné à"
+
+#: webshop/www/my-catalogues/index.py:21
+msgid "Make a catalogue of the products you choose, with your prices: your markup is added to what you pay. A PDF with your logo and your colours, an Excel or CSV file, or a feed your own shop can read. It takes a few seconds to a minute, and you can leave this page."
+msgstr "Créez un catalogue des produits que vous choisissez, avec vos prix : votre plus-value s'ajoute à ce que vous payez. Un PDF avec votre logo et vos couleurs, un fichier Excel ou CSV, ou un flux que votre propre boutique peut lire. Cela prend de quelques secondes à une minute, et vous pouvez quitter cette page."
+
+#: webshop/www/my-catalogues/index.py:77
+msgid "Make the CSV file"
+msgstr "Créer le fichier CSV"
+
+#: webshop/www/my-catalogues/index.py:76
+msgid "Make the workbook"
+msgstr "Créer le classeur"
+
+#. Description of the 'Options' (Long Text) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:137
+msgid "Markup and price mode as JSON."
+msgstr "Plus-value et mode de prix au format JSON."
+
+#: webshop/webshop/catalogue/rows.py:312
+msgid "More pictures"
+msgstr "Autres photos"
+
+#: webshop/www/my-catalogues/index.py:68
+msgid "My selling prices"
+msgstr "Mes prix de vente"
+
+#: webshop/www/my-catalogues/index.py:113
+msgid "no prices"
+msgstr "sans prix"
+
+#: webshop/www/my-catalogues/index.py:110
+msgid "Nobody has read it yet."
+msgstr "Personne ne l'a encore lu."
+
+#. Description of the 'Pages' (Int) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:100
+msgid "Pages of a PDF; empty for a workbook or a CSV."
+msgstr "Pages d'un PDF ; vide pour un classeur ou un CSV."
+
+#: webshop/www/my-catalogues/index.py:30
+msgid "PDF catalogue"
+msgstr "Catalogue PDF"
+
+#: webshop/webshop/catalogue/rows.py:308
+msgid "Price includes VAT"
+msgstr "Prix TTC"
+
+#: webshop/webshop/catalogue/rows.py:319
+msgid "Prices as of"
+msgstr "Prix au"
+
+#: webshop/www/my-catalogues/index.py:33
+msgid "Product feed for my shop"
+msgstr "Flux produits pour ma boutique"
+
+#. Description of the 'Products' (Int) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:93
+msgid "Products of a PDF, lines of a workbook or a CSV."
+msgstr "Produits d'un PDF, lignes d'un classeur ou d'un CSV."
+
+#: webshop/webshop/catalogue/rows.py:327
+msgid "Purchase prices"
+msgstr "Prix d'achat"
+
+#: webshop/www/my-catalogues/index.py:121
+msgid "Refresh now"
+msgstr "Rafraîchir maintenant"
+
+#: webshop/www/my-catalogues/index.py:78
+msgid "Save the feed"
+msgstr "Enregistrer le flux"
+
+#: webshop/webshop/catalogue/refusals.py:86
+msgid "Save your brand first: it keeps your markup, your rounding and whether your prices include VAT."
+msgstr "Enregistrez d'abord votre marque : elle conserve votre plus-value, vos arrondis et l'indication TTC ou HT de vos prix."
+
+#: webshop/webshop/catalogue/refusals.py:97
+msgid "Save your brand first: your feed carries prices with your markup, and your brand keeps it."
+msgstr "Enregistrez d'abord votre marque : votre flux contient des prix avec votre plus-value, et votre marque la conserve."
+
+#. Description of the 'Customer' (Link) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:37
+msgid "Set by the server from the signed-in account and never taken from a request. One feed a customer."
+msgstr "Renseigné par le serveur à partir du compte connecté, jamais repris d'une requête. Un seul flux par client."
+
+#. Description of the 'Token Hash' (Data) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:117
+msgid "SHA-256 of the token: how an address is matched to its feed without keeping the secret in the clear."
+msgstr "Empreinte SHA-256 du jeton : elle permet de relier une adresse à son flux sans conserver le secret en clair."
+
+#: webshop/www/my-catalogues/index.py:124
+msgid "Stop the feed"
+msgstr "Arrêter le flux"
+
+#: webshop/www/my-catalogues/index.py:125
+msgid "Stop the feed? Its address stops working at once."
+msgstr "Arrêter le flux ? Son adresse cesse de fonctionner immédiatement."
+
+#: webshop/www/my-catalogues/index.py:80
+#, python-brace-format
+msgid "That is more than {0} lines: narrow it down."
+msgstr "Cela fait plus de {0} lignes : réduisez la sélection."
+
+#: webshop/www/my-catalogues/index.py:123
+msgid "The current address stops working at once. Continue?"
+msgstr "L'adresse actuelle cesse de fonctionner immédiatement. Continuer ?"
+
+#. Label of a Section Break field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:70
+msgid "The Feed"
+msgstr "Le flux"
+
+#: webshop/webshop/catalogue/refusals.py:105
+msgid "The feed could not be made."
+msgstr "Le flux n'a pas pu être créé."
+
+#: webshop/webshop/catalogue/refusals.py:102
+msgid "The feed could not be made. The team has been told."
+msgstr "Le flux n'a pas pu être créé. L'équipe en a été informée."
+
+#: webshop/webshop/catalogue/refusals.py:98
+msgid "The feed is being refreshed. Wait for it to finish."
+msgstr "Le flux est en cours d'actualisation. Attendez qu'il soit terminé."
+
+#: webshop/webshop/catalogue/refusals.py:103
+msgid "The feed took too long and was stopped. Try again, with a smaller selection."
+msgstr "Le flux a pris trop de temps et a été arrêté. Réessayez avec une sélection plus réduite."
+
+#: webshop/webshop/catalogue/refusals.py:99
+#, python-brace-format
+msgid "The feed was refreshed {0} times in the last 24 hours. Try again later."
+msgstr "Le flux a été actualisé {0} fois au cours des dernières 24 heures. Réessayez plus tard."
+
+#: webshop/www/my-catalogues/index.py:107
+msgid "The last refresh failed"
+msgstr "La dernière actualisation a échoué"
+
+#: webshop/www/my-catalogues/index.py:114
+msgid "The previous file is still served."
+msgstr "Le fichier précédent reste servi."
+
+#: webshop/webshop/catalogue/refusals.py:101
+msgid "The reseller catalogue is no longer available for your account."
+msgstr "Le catalogue revendeur n'est plus disponible pour votre compte."
+
+#. Label of a Section Break field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:100
+msgid "The Secret Address"
+msgstr "L'adresse secrète"
+
+#. Description of the 'Token' (Password) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:108
+msgid "The secret in the feed's address, kept encrypted. Whoever knows it reads the feed: replacing it closes the old address."
+msgstr "Le secret contenu dans l'adresse du flux, conservé chiffré. Quiconque le connaît peut lire le flux : le remplacer ferme l'ancienne adresse."
+
+#. Description of the 'Website Profile' (Data) field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:144
+msgid "The site the feed was asked on: its price list is the one the prices come from."
+msgstr "Le site sur lequel le flux a été demandé : sa liste de prix est celle dont proviennent les prix."
+
+#: webshop/webshop/catalogue/refusals.py:81
+#, python-brace-format
+msgid "This file would hold more than {0} lines (a product with several variants is one line for each). Narrow the selection."
+msgstr "Ce fichier contiendrait plus de {0} lignes (un produit décliné en plusieurs variantes compte une ligne par variante). Réduisez la sélection."
+
+#: webshop/www/my-catalogues/index.py:118
+msgid "To change what the feed carries, choose Product feed above and save: the address stays the same."
+msgstr "Pour modifier le contenu du flux, choisissez Flux produits ci-dessus puis enregistrez : l'adresse ne change pas."
+
+#: webshop/www/my-catalogues/index.py:104
+msgid "Waiting to be refreshed"
+msgstr "En attente d'actualisation"
+
+#: webshop/www/my-catalogues/index.py:69
+msgid "What I pay (confidential)"
+msgstr "Ce que je paie (confidentiel)"
+
+#: webshop/www/my-catalogues/index.py:70
+msgid "What I pay and my selling prices"
+msgstr "Ce que je paie et mes prix de vente"
+
+#. Label of a Section Break field in DocType 'Reseller Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:122
+msgid "What It Is Made From"
+msgstr "Composition du flux"
+
+#. Description of the 'Format' (Select) field in DocType 'Reseller Catalogue'
+#: webshop/webshop/doctype/reseller_catalogue/reseller_catalogue.json:47
+msgid "What the file is: a PDF catalogue, an Excel workbook or a CSV file. A record made before the formats existed has none and is a PDF."
+msgstr "Le type de fichier : un catalogue PDF, un classeur Excel ou un fichier CSV. Un enregistrement créé avant l'existence des formats n'en a aucun et est un PDF."
+
+#. Description of the 'Last Fetched' (Datetime) field in DocType 'Reseller
+#. Feed'
+#: webshop/webshop/doctype/reseller_feed/reseller_feed.json:95
+msgid "When a script or a shop last read the feed, to the hour. A feed nobody has read for 14 days is no longer refreshed each night."
+msgstr "Date et heure de la dernière lecture du flux par un script ou une boutique. Un flux que personne n'a lu depuis 14 jours n'est plus actualisé chaque nuit."
+
+#: webshop/webshop/catalogue/refusals.py:100
+msgid "You have no feed."
+msgstr "Vous n'avez aucun flux."
+
+#: webshop/webshop/catalogue/rows.py:327
+msgid "Your own price list, as the shop's rules apply to you. Confidential: not for your customers."
+msgstr "Votre propre liste de prix, telle que les règles de la boutique s'appliquent à vous. Confidentielle : non destinée à vos clients."
+
+#: webshop/www/my-catalogues/index.py:103
+msgid "Your product feed"
+msgstr "Votre flux produits"
+
+#: webshop/webshop/catalogue/rows.py:306
+msgid "Your purchase price"
+msgstr "Votre prix d'achat"
+
+#: webshop/www/my-catalogues/index.py:112
+msgid "your selling prices"
+msgstr "vos prix de vente"
+
+#: webshop/www/my-catalogues/index.py:79
+#, python-brace-format
+msgid "{0} lines in this file."
+msgstr "{0} lignes dans ce fichier."
