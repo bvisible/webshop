@@ -1604,7 +1604,11 @@ frappe.ready(function() {
             }
             changesSummary += '</div>';
 
-            frappe.confirm(
+            //// Neoffice — #2057: frappe.confirm(message, ifyes, ifno, primary_label, secondary_label) takes two LABELS, strings,
+            //// as its 4th and 5th arguments. Upstream passed it an options object ({title, description}): the primary button
+            //// printed nothing, in every language, and the title and the description were read by nobody. The labels, the title
+            //// and the description are said through say(): __() resolves only what the theme lists on a website page.
+            const dialog = frappe.confirm(
                 changesSummary,
                 () => {
                     // On 'Yes'
@@ -1617,13 +1621,20 @@ frappe.ready(function() {
                         this.pendingChanges = {};
                         this.showStep('step-shipping');
                     }).catch(error => {
+                        //// Neoffice — upstream concatenated the error text into the string given to __(), so
+                        //// the key changed with every error and never matched a catalogue entry. A template
+                        //// with {0} is the key, the error text is substituted after the translation. #2057: it
+                        //// came out as "Error applying changes: {0}", in English and with the {0} left in:
+                        //// the template is seeded by checkout.html (said by say(), __() does not know it on this
+                        //// page) and a failed call rejects with an xhr, which has no `message` to put in it.
+                        const detail = (error && error.message) || '';
                         frappe.msgprint({
                             title: __('Error'),
                             indicator: 'red',
-                            //// Neoffice — upstream concatenated the error text into the string given to __(), so
-                            //// the key changed with every error and never matched a catalogue entry. A template
-                            //// with {0} is the key, the error text is substituted after the translation.
-                            message: __('Error applying changes: {0}', [error.message])
+                            //// Neoffice — #2057, see the note above: said by say(), the reason put in when there is one.
+                            message: this.say('error_applying_changes', 'Error applying changes: {0}')
+                                .replace('{0}', detail)
+                                .replace(/\s*:\s*$/, '')
                         });
                     });
                 },
@@ -1631,10 +1642,15 @@ frappe.ready(function() {
                     // On 'No'
                     return;
                 },
-                {
-                    title: __('Confirm Changes'),
-                    description: __('The following changes will be applied:')
-                }
+                //// Neoffice — #2057: the two labels, see the note above the call.
+                this.say('yes', 'Yes'),
+                this.say('no', 'No')
+            );
+            dialog.set_title(this.say('confirm_changes', 'Confirm Changes'));
+            dialog.$body.prepend(
+                $('<p class="text-muted"></p>').text(
+                    this.say('changes_will_be_applied', 'The following changes will be applied:')
+                )
             );
 
             // Prevent form submission

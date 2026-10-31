@@ -491,7 +491,14 @@
 		"by_paying_i_accept": {{ _("By paying, I accept the") | json }},
 		"accept_terms_to_pay": {{ _("Accept the terms and conditions below to pay") | json }},
 		"by_using_you_accept": {{ _("By using this payment form, you accept the") | json }},
-		"accept_terms_first": {{ _("Please accept the terms and conditions first.") | json }}
+		"accept_terms_first": {{ _("Please accept the terms and conditions first.") | json }},
+		{#- //// Neoffice — #2057: the confirmation of the changes made on the first step and the sentence of the
+		    error that follows a refusal, said by say() for the same reason as above. -#}
+		"yes": {{ _("Yes") | json }},
+		"no": {{ _("No") | json }},
+		"confirm_changes": {{ _("Confirm Changes") | json }},
+		"changes_will_be_applied": {{ _("The following changes will be applied:") | json }},
+		"error_applying_changes": {{ _("Error applying changes: {0}") | json }}
 	};
 </script>
 

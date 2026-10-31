@@ -10831,3 +10831,8 @@ msgstr "vos prix de vente"
 #, python-brace-format
 msgid "{0} lines in this file."
 msgstr "{0} lignes dans ce fichier."
+
+#: webshop/templates/pages/checkout.js:1626
+#, python-brace-format
+msgid "Error applying changes: {0}"
+msgstr "Les modifications n'ont pas pu être appliquées : {0}"

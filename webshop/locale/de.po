@@ -8340,3 +8340,7 @@ msgstr "{} geplant"
 #, python-brace-format
 msgid "{} sent"
 msgstr "{} gesendet"
+
+#: webshop/templates/pages/checkout.js:1635
+msgid "Confirm Changes"
+msgstr "Änderungen bestätigen"
