@@ -1759,6 +1759,7 @@ The study, the plan, the measures and the runbook are in Obsidian (`Neoffice/Mul
   - Frappe's sanitizer re-parses a Long Text and moves Jinja out of a table: a translated Email Template is written raw (`TRUSTED_MARKUP`).
   - A website page's `__()` knows only what the theme lists: a label of the checkout is seeded by `checkout.html` and said by `say()`; one the script asks for and the page does not seed falls back to English without a word (`tests/test_checkout_labels.py`).
   - A new test module is named in `ci.yml` in the same commit as its file, or the workflow's guard turns it red.
+- **A document's data and a mail follow the document's language** (lots 8 to 10; vault `Neoffice/Multilingue-Boutique/19`). The theme's `document_data.py` writes the lines, the total in words and the currency's fraction of a quotation, order or invoice in its language at validation and gives the print formats the unit, the payment terms, the terms of sale and the tax label; `email_language.py` and the frappe fork's `translated_document_text` write every Email Template and Notification in the language of the document the mail is about, falling back to the template's own text when a translation does not render. New content is marked in a Redis set (`Translation Settings` holds the switches and the caps): an import queues names, not jobs. A model that translates a template must keep its `{{ }}` expressions exactly (the gate checks) and the template must compile.
 
 ## Integration Points
 
