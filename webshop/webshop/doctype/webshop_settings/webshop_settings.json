@@ -195,6 +195,7 @@
   "reseller_catalogue_section",
   "enable_reseller_catalogue",
   "reseller_catalogue_groups",
+  "enable_partner_api",
   "catalogue_credit_text",
   "tab_advanced",
   "sitemap_section",
@@ -1519,8 +1520,15 @@
    "fieldtype": "Table MultiSelect",
    "label": "Customer Groups Allowed",
    "options": "Reseller Catalogue Group",
-   "depends_on": "enable_reseller_catalogue",
-   "description": "A group covers its sub-groups. Leave empty and nobody is offered the catalogue."
+   "depends_on": "eval:doc.enable_reseller_catalogue || doc.enable_partner_api",
+   "description": "A group covers its sub-groups. Leave empty and nobody is offered the catalogue or the integration."
+  },
+  {
+   "fieldname": "enable_partner_api",
+   "fieldtype": "Check",
+   "label": "Enable the Integration (API for resellers)",
+   "default": "0",
+   "description": "Lets the customers of the groups above ask for an API access on their Integration page, and, once your team has approved it, make a key that reads the catalogue at their price and places orders. Off, the Integration page is not offered and every key stops working at once; the catalogue is not affected."
   },
   {
    "fieldname": "catalogue_credit_text",

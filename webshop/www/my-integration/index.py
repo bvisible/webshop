@@ -74,7 +74,7 @@ def get_context(context):
 	if frappe.session.user == "Guest":
 		frappe.local.flags.redirect_location = f"/login?redirect-to={PAGE_ROUTE}"
 		raise frappe.Redirect
-	if not access.is_offered():
+	if not access.is_offered(switch=access.INTEGRATION):
 		raise frappe.PermissionError(_("The integration is not available for your account."))
 	context.config = {"labels": labels()}
 	return context

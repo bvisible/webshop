@@ -1334,7 +1334,17 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
     `{item_code, qty}`: a `rate`, a `price` or any other key is a 422, not ignored. The order is a draft unless staff
     allowed submission; `idempotency_key` names it (`Partner API Order`, one row a customer and key), so a replayed
     call returns the order, and the same key with other lines is a 422; `dry_run` prices without making anything.
-  - **Stock is `in_stock`, `out_of_stock` or `backorder`**, never a quantity, in the answers and in the refusals.
+  - **Stock is a quantity, counted where staff chose** (2026-10-31, Jérémy's decision; it was words only): each product tells
+    `availability` and `stock`. `Partner API Access.stock_warehouses` (a table of `Partner API Warehouse`, edited on the form)
+    names the warehouses: none = the quantity the shop promises its visitors (`seo.availability.bulk_availability`, null for a
+    service or a product on backorder); some = the stock they hold, orders deducted (`get_web_items_qty_in_stock`, a group
+    warehouse counts its children), in `partner_api/quantity.py`. An order is checked against the same quantity, a refusal
+    says what is `available`, and with ONE chosen warehouse (not a group) the order's lines leave from it.
+  - **The integration has a switch of its own** (`Webshop Settings.enable_partner_api`, off by default), beside the catalogue's.
+    The list of customer groups is shared (`catalogue.access.allowed_groups(settings, switch)`), each thing it opens reads its
+    own switch: the Integration page, its menu entry and every key (`authenticate`: 401 `access_closed`) follow
+    `INTEGRATION`, the catalogue pages and files follow `CATALOGUE`. An instance can offer one without the other; switching the
+    integration off stops every key at once and switching it on gives the same keys back.
   - **The models are not listed**, their variants are (even where the shop hides variants from its listings:
     `selection.product_rows(variants=True)`).
 

@@ -325,6 +325,8 @@ class TestShare(FrappeTestCase):
 
 	def test_a_mail_server_that_cannot_send_is_told_to_the_reseller_without_a_modal(self):
 		name = self.made()
+		# a fresh site's fixtures (users getting their role) leave notices of their own in the log: only the call is looked at
+		frappe.local.message_log = []
 		with mock.patch("frappe.sendmail", side_effect=frappe.OutgoingEmailError("no server")):
 			answer = catalogue_api.send_catalogue(name=name, to=self.address())
 		self.assertFalse(answer["ok"])

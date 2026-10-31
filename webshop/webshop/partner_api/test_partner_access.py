@@ -50,6 +50,7 @@ class TestPartnerAccess(FrappeTestCase):
 	def setUp(self):
 		self.settings = frappe.get_doc("Webshop Settings")
 		self.settings.enable_reseller_catalogue = 1
+		self.settings.enable_partner_api = 1
 		self.settings.reseller_catalogue_groups = [frappe._dict(allowed_customer_group=shop.RESELLER_GROUP)]
 		patcher = mock.patch.object(catalogue_access, "shop_settings", return_value=self.settings)
 		patcher.start()
@@ -255,6 +256,41 @@ class TestPartnerAccess(FrappeTestCase):
 		self.settings.reseller_catalogue_groups = []
 		error = self.refusal(key)
 		self.assertEqual((error.status, error.code), (401, "access_closed"))
+
+	def test_the_integration_has_a_switch_of_its_own(self):
+		key = self.keyed()
+		self.settings.enable_partner_api = 0
+		error = self.refusal(key)
+		self.assertEqual((error.status, error.code), (401, "access_closed"), "every key stops at once")
+		self.assertTrue(catalogue_access.offered_to(shop.CUSTOMER), "the catalogue is not affected")
+		self.assertFalse(catalogue_access.offered_to(shop.CUSTOMER, switch=catalogue_access.INTEGRATION))
+		frappe.set_user(shop.USER)
+		for call in (portal_api.get_integration, portal_api.new_key, portal_api.request_access, portal_api.revoke_key):
+			with self.subTest(call=call.__name__), self.assertRaises(frappe.PermissionError):
+				call()
+		frappe.set_user("Administrator")
+		self.settings.enable_partner_api = 1
+		self.assertEqual(access.authenticate(key).customer, shop.CUSTOMER, "switched on again, the same key opens")
+
+	def test_the_integration_can_be_offered_without_the_catalogue(self):
+		self.settings.enable_reseller_catalogue = 0
+		self.assertFalse(catalogue_access.offered_to(shop.CUSTOMER))
+		self.assertTrue(catalogue_access.offered_to(shop.CUSTOMER, switch=catalogue_access.INTEGRATION))
+		frappe.set_user(shop.USER)
+		self.assertTrue(portal_api.get_integration()["ok"])
+
+	def test_the_menu_follows_the_integration_switch_and_the_catalogue_s_stays_apart(self):
+		from webshop.webshop.utils import account_menu
+
+		frappe.set_user(shop.USER)
+		self.assertTrue(account_menu.integration_is_offered())
+		self.settings.enable_partner_api = 0
+		self.assertFalse(account_menu.integration_is_offered())
+		self.assertTrue(account_menu.reseller_catalogue_is_offered())
+		self.settings.enable_partner_api = 1
+		self.settings.enable_reseller_catalogue = 0
+		self.assertTrue(account_menu.integration_is_offered())
+		self.assertFalse(account_menu.reseller_catalogue_is_offered())
 
 	def test_a_connection_that_sends_many_wrong_keys_is_slowed(self):
 		with mock.patch.object(access.throttle, "hit", return_value=31):

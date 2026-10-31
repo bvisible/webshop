@@ -121,6 +121,13 @@ def reseller_catalogue_is_offered() -> bool:
 	return is_offered()
 
 
+def integration_is_offered() -> bool:
+	"""The reseller's Integration page: the same groups as the catalogue, and a switch of its own."""
+	from webshop.webshop.catalogue.access import INTEGRATION, is_offered
+
+	return is_offered(switch=INTEGRATION)
+
+
 def switch_is_on(field: str):
 	return lambda: bool(frappe.db.get_single_value("Webshop Settings", field))
 
@@ -136,7 +143,7 @@ ENTRIES = {
 	"/loyalty-points": (N_("Loyalty"), switch_is_on("enable_loyalty_points")),
 	"/my-brand": (N_("Brand"), reseller_catalogue_is_offered),
 	"/my-catalogues": (N_("Catalogues"), reseller_catalogue_is_offered),
-	"/my-integration": (N_("Integration"), reseller_catalogue_is_offered),
+	"/my-integration": (N_("Integration"), integration_is_offered),
 }
 
 

@@ -30,6 +30,7 @@ from frappe.utils import now_datetime
 from webshop.webshop.catalogue import access as catalogue_access
 from webshop.webshop.catalogue.refusals import api_message
 from webshop.webshop.doctype.partner_api_access.partner_api_access import ACTIVE, REFUSED, REQUESTED, SUSPENDED
+from webshop.webshop.partner_api import quantity
 from webshop.webshop.utils import throttle
 
 DOCTYPE = "Partner API Access"
@@ -290,8 +291,9 @@ def authenticate(header, peer=None):
 		raise ApiError(401, "invalid_key", API_TEXT["invalid_key"])
 	if row.status != ACTIVE:
 		raise ApiError(401, "access_suspended" if row.status == SUSPENDED else "access_closed", API_TEXT["invalid_key"])
-	if not catalogue_access.offered_to(row.customer):
+	if not catalogue_access.offered_to(row.customer, switch=catalogue_access.INTEGRATION):
 		raise ApiError(401, "access_closed", API_TEXT["invalid_key"])
+	row.stock_warehouses = quantity.warehouses_of(row.customer)
 	return row
 
 

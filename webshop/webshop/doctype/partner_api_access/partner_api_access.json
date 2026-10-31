@@ -19,6 +19,7 @@
   "scope_orders",
   "submit_orders",
   "calls_per_minute",
+  "stock_warehouses",
   "decision_section",
   "decided_by",
   "decided_on",
@@ -129,6 +130,13 @@
    "read_only": 1
   },
   {
+   "description": "Where the stock quantity the key reads is counted. Empty: the quantity the shop itself promises its visitors (the website warehouse, or the sources of a product sold from several warehouses). Filled: the stock held by these warehouses, orders already placed deducted; an order is checked against the same quantity.",
+   "fieldname": "stock_warehouses",
+   "fieldtype": "Table",
+   "label": "Warehouses of the stock quantity",
+   "options": "Partner API Warehouse"
+  },
+  {
    "fieldname": "decision_section",
    "fieldtype": "Section Break",
    "label": "The Decision"
@@ -192,7 +200,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-11-01 09:00:00.000000",
+ "modified": "2026-10-31 17:30:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Partner API Access",

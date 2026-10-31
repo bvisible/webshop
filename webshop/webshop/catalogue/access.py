@@ -5,6 +5,9 @@ The shop (the supplier) ticks the switch of Webshop Settings and lists the custo
 use the catalogue — « Resellers », say. A group covers its sub-groups: customer groups are a tree,
 and what is allowed to the parent has to reach the children (same rule as the payment methods).
 
+The list of groups is shared, and each thing it opens has its own switch: the catalogue (`CATALOGUE`) and the
+integration, the partner API (`INTEGRATION`). An instance can offer one without the other.
+
 Identity comes from the session, never from an argument, and the customer is found through the
 Portal User link — the authoritative one — without ever creating a Customer: get_party() mints one
 for an account that has none, which a page view or an access check must never do.
@@ -14,6 +17,10 @@ import frappe
 from frappe import _
 
 from webshop.webshop.utils.payment_methods import group_lineage
+
+
+CATALOGUE = "enable_reseller_catalogue"
+INTEGRATION = "enable_partner_api"
 
 
 def shop_settings():
@@ -29,10 +36,10 @@ def customer_of(user):
 	)
 
 
-def allowed_groups(settings=None):
-	"""The customer groups the shop allowed, as a set; empty when the switch is off."""
+def allowed_groups(settings=None, switch=CATALOGUE):
+	"""The customer groups the shop allowed, as a set; empty when the switch of what is asked for is off."""
 	settings = settings or shop_settings()
-	if not settings.get("enable_reseller_catalogue"):
+	if not settings.get(switch):
 		return set()
 	return {
 		row.get("allowed_customer_group")
@@ -41,11 +48,12 @@ def allowed_groups(settings=None):
 	}
 
 
-def offered_to(customer, settings=None):
-	"""Whether the catalogue is offered to this customer: their group, or one above it, is allowed."""
+def offered_to(customer, settings=None, switch=CATALOGUE):
+	"""Whether the catalogue (or, with `switch=INTEGRATION`, the integration) is offered to this customer:
+	their group, or one above it, is allowed."""
 	if not customer:
 		return False
-	groups = allowed_groups(settings)
+	groups = allowed_groups(settings, switch)
 	if not groups:
 		return False
 	row = frappe.db.get_value("Customer", customer, ["customer_group", "disabled"], as_dict=True)
@@ -54,14 +62,16 @@ def offered_to(customer, settings=None):
 	return bool(groups.intersection(group_lineage(row.customer_group)))
 
 
-def is_offered(user=None, settings=None):
+def is_offered(user=None, settings=None, switch=CATALOGUE):
 	"""For the links and the menu: True when require_reseller() would let `user` in."""
-	return offered_to(customer_of(user or frappe.session.user), settings)
+	return offered_to(customer_of(user or frappe.session.user), settings, switch)
 
 
-def require_reseller():
+def require_reseller(switch=CATALOGUE):
 	"""The customer of the session, or a PermissionError. Every endpoint starts here."""
 	customer = customer_of(frappe.session.user)
-	if not offered_to(customer, shop_settings()):
+	if not offered_to(customer, shop_settings(), switch):
+		if switch == INTEGRATION:
+			frappe.throw(_("The integration is not available for your account."), frappe.PermissionError)
 		frappe.throw(_("The reseller catalogue is not available for your account."), frappe.PermissionError)
 	return customer

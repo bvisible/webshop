@@ -5,7 +5,7 @@ Two resellers on two price lists (FIRST costs the first 80 and the second 70; th
 first allowed to place orders, the second to read only. Calls go through the page renderer with a stand-in for
 the request, as a program's would arrive. What is proved is what would hurt: the price read is the caller's
 own (never the shop's), an order is priced by the server whatever the body says, a replayed order is one order,
-an order of somebody else does not exist, and a stock is never told as a quantity.
+an order of somebody else does not exist, and the stock is a quantity counted where staff chose.
 """
 
 import json
@@ -19,10 +19,10 @@ from werkzeug.wrappers import Request
 
 from webshop.webshop.catalogue import access as catalogue_access
 from webshop.webshop.catalogue import fixtures as shop
-from webshop.webshop.partner_api import access, v1
+from webshop.webshop.partner_api import access, quantity, v1
 from webshop.webshop.partner_api.renderer import PartnerApiRenderer
 from webshop.webshop.seo import availability as stock
-from webshop.webshop.tests.utils import restore_webshop_settings, snapshot_webshop_settings
+from webshop.webshop.tests.utils import default_company, restore_webshop_settings, snapshot_webshop_settings
 from webshop.webshop.utils import throttle
 
 DOCTYPE = access.DOCTYPE
@@ -58,11 +58,25 @@ class TestPartnerV1(FrappeTestCase):
 		frappe.db.set_value("Customer", shop.OTHER_CUSTOMER, "default_price_list", OTHER_LIST)
 		item = shop.make_test_item(NO_PRICE, item_name="Cat no price", item_group=shop.CHILD_GROUP, brand=shop.BRAND_A, is_stock_item=0)
 		shop._publish(item, web_item_name="Cat no price")
+		# two warehouses of our own for the staff's choice (what each holds is handed to the code by the test)
+		cls.drop_warehouses()
+		cls.warehouses = {}
+		for key in ("a", "b"):
+			doc = frappe.get_doc(
+				{"doctype": "Warehouse", "warehouse_name": f"{shop.PREFIX} Cat Stock {key.upper()}", "company": default_company()}
+			).insert(ignore_permissions=True)
+			cls.warehouses[key] = doc.name
 		frappe.db.commit()
+
+	@classmethod
+	def drop_warehouses(cls):
+		for name in frappe.get_all("Warehouse", filters={"warehouse_name": ["like", f"{shop.PREFIX} Cat Stock %"]}, pluck="name"):
+			frappe.delete_doc("Warehouse", name, force=True, ignore_permissions=True)
 
 	@classmethod
 	def tearDownClass(cls):
 		cls.wipe()
+		cls.drop_warehouses()
 		shop.purge()
 		for name in frappe.get_all("Website Item", filters={"item_code": NO_PRICE}, pluck="name"):
 			frappe.delete_doc("Website Item", name, force=True, ignore_permissions=True)
@@ -88,6 +102,7 @@ class TestPartnerV1(FrappeTestCase):
 	def setUp(self):
 		self.settings = frappe.get_doc("Webshop Settings")
 		self.settings.enable_reseller_catalogue = 1
+		self.settings.enable_partner_api = 1
 		self.settings.reseller_catalogue_groups = [frappe._dict(allowed_customer_group=shop.RESELLER_GROUP)]
 		patcher = mock.patch.object(catalogue_access, "shop_settings", return_value=self.settings)
 		patcher.start()
@@ -223,11 +238,13 @@ class TestPartnerV1(FrappeTestCase):
 		self.assertIn(variant, self.codes(self.ours()[1]))
 		self.assertEqual(self.get(f"products/{variant}")[0], 200)
 
-	def test_the_list_carries_no_price_and_no_quantity_of_stock(self):
+	def test_the_list_carries_no_price_and_the_stock_as_a_quantity(self):
 		body = self.ours()[1]
 		first = next(product for product in body["products"] if product["code"] == shop.FIRST)
-		self.assertFalse({"price", "currency", "stock", "qty", "stock_qty", "purchase_price"} & set(first))
+		self.assertFalse({"price", "currency", "qty", "stock_qty", "purchase_price"} & set(first))
 		self.assertIn(first["availability"], ("in_stock", "out_of_stock", "backorder"))
+		self.assertIn("stock", first)
+		self.assertTrue(first["stock"] is None or isinstance(first["stock"], (int, float)))
 		self.assertEqual(first["name"], f"{shop.FIRST} name")
 		self.assertEqual(first["brand"], shop.BRAND_A)
 		self.assertRegex(first["modified"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\+00:00$")
@@ -314,13 +331,94 @@ class TestPartnerV1(FrappeTestCase):
 		self.assertIn(80.0, figures, "the test reads real figures")
 		self.assertFalse(SHOP_PRICES & figures)
 
-	def test_the_availability_is_the_shops_own_rule_and_never_a_quantity(self):
+	def test_without_a_choice_of_warehouse_the_stock_is_the_shops_own_rule(self):
 		listed = self.ours()[1]["products"]
 		expected = stock.bulk_availability([product["code"] for product in listed])
 		names = {stock.IN_STOCK: "in_stock", stock.OUT_OF_STOCK: "out_of_stock", stock.BACK_ORDER: "backorder"}
 		for product in listed:
 			with self.subTest(code=product["code"]):
-				self.assertEqual(product["availability"], names[expected[product["code"]].availability])
+				level = expected[product["code"]]
+				self.assertEqual(product["availability"], names[level.availability])
+				self.assertEqual(product["stock"], quantity.number(level.qty))
+
+	# --- the warehouses staff chose ------------------------------------------------------------------------
+
+	def choose(self, *warehouses):
+		doc = access.get(shop.CUSTOMER)
+		doc.set("stock_warehouses", [{"warehouse": name} for name in warehouses])
+		doc.flags.ignore_permissions = True
+		doc.save()
+		frappe.db.commit()
+
+	def counted(self, code=shop.FIRST):
+		"""Make `code` a stock item for the test: the fixtures' items are not (they are services), and a service has no quantity."""
+		frappe.db.set_value("Item", code, "is_stock_item", 1)
+		frappe.db.commit()
+		self.addCleanup(lambda: (frappe.db.set_value("Item", code, "is_stock_item", 0), frappe.db.commit()))
+
+	def held(self, **by_warehouse):
+		"""What each warehouse holds of FIRST, in place of the stock ledger: {key of WAREHOUSES: quantity}."""
+		levels = {self.warehouses[key]: {shop.FIRST: qty} for key, qty in by_warehouse.items()}
+		return mock.patch.object(
+			quantity, "get_web_items_qty_in_stock", side_effect=lambda codes, warehouse: {code: levels.get(warehouse, {}).get(code, 0) for code in codes}
+		)
+
+	def beyond_stock(self, allowed):
+		return mock.patch(
+			"webshop.webshop.doctype.webshop_settings.webshop_settings.get_shopping_cart_settings",
+			return_value={"allow_items_not_in_stock": 1 if allowed else 0},
+		)
+
+	def test_the_quantity_is_counted_in_the_warehouses_staff_chose(self):
+		self.counted()
+		self.choose(self.warehouses["a"], self.warehouses["b"])
+		with self.held(a=3, b=4.5), self.beyond_stock(False):
+			status, product, _response = self.get(f"products/{shop.FIRST}")
+			self.assertEqual((status, product["stock"], product["availability"]), (200, 7.5, "in_stock"))
+			listed = next(p for p in self.ours()[1]["products"] if p["code"] == shop.FIRST)
+			self.assertEqual((listed["stock"], listed["availability"]), (7.5, "in_stock"), "the list tells what the product page of the key tells")
+		self.choose(self.warehouses["a"])
+		with self.held(a=3, b=4.5), self.beyond_stock(False):
+			self.assertEqual(self.get(f"products/{shop.FIRST}")[1]["stock"], 3, "the other warehouse is not counted")
+		self.choose(self.warehouses["b"])
+		with self.held(a=3, b=0), self.beyond_stock(False):
+			product = self.get(f"products/{shop.FIRST}")[1]
+			self.assertEqual((product["stock"], product["availability"]), (0, "out_of_stock"))
+		with self.held(a=3, b=0), self.beyond_stock(True):
+			product = self.get(f"products/{shop.FIRST}")[1]
+			self.assertEqual((product["stock"], product["availability"]), (0, "backorder"), "the shop takes orders beyond its stock")
+
+	def test_an_order_is_checked_against_the_quantity_the_key_reads(self):
+		self.counted()
+		self.choose(self.warehouses["a"], self.warehouses["b"])
+		with self.held(a=3, b=4.5), self.beyond_stock(False):
+			status, answer, _response = self.order(key="w1", pairs=((shop.FIRST, 8),))
+			self.assertEqual(status, 422)
+			line = answer["error"]["details"]["lines"][0]
+			self.assertEqual((line["code"], line["available"]), ("insufficient_stock", 7.5), "the refusal says what is left")
+			self.assertFalse(frappe.get_all("Sales Order", filters={"customer": shop.CUSTOMER}))
+			self.assertEqual(self.order(key="w2", pairs=((shop.FIRST, 7),))[0], 201)
+
+	def test_a_product_the_shop_does_not_count_has_no_quantity_whatever_the_warehouses(self):
+		self.choose(self.warehouses["a"])
+		with self.held(a=9), self.beyond_stock(False):
+			product = self.get(f"products/{shop.FIRST}")[1]
+		self.assertIsNone(product["stock"], "a service has no quantity")
+		self.assertIn(product["availability"], ("in_stock", "backorder", "out_of_stock"))
+
+	def test_one_chosen_warehouse_is_the_one_the_goods_leave_from(self):
+		self.counted()
+		self.choose(self.warehouses["a"])
+		with self.held(a=5), self.beyond_stock(False):
+			status, made, _response = self.order(key="w3", pairs=((shop.FIRST, 2),))
+		self.assertEqual(status, 201)
+		self.assertEqual(frappe.db.get_value("Sales Order Item", {"parent": made["id"]}, "warehouse"), self.warehouses["a"])
+
+	def test_a_key_with_no_choice_still_reads_the_shops_own_quantity(self):
+		self.choose()
+		self.assertEqual(access.authenticate(self.keys[shop.CUSTOMER]).stock_warehouses, [])
+		self.choose(self.warehouses["a"], self.warehouses["b"])
+		self.assertEqual(access.authenticate(self.keys[shop.CUSTOMER]).stock_warehouses, [self.warehouses["a"], self.warehouses["b"]])
 
 	# --- ordering ----------------------------------------------------------------------------------------
 
@@ -381,7 +479,7 @@ class TestPartnerV1(FrappeTestCase):
 		self.assertEqual(found, {shop.HIDDEN: "not_available", shop.MODEL: "not_available", NO_PRICE: "no_price", "no such": "not_available"})
 		self.assertFalse(frappe.get_all("Sales Order", filters={"customer": shop.CUSTOMER}), "nothing was ordered")
 
-	def test_the_stock_stops_a_line_and_says_so_without_a_quantity(self):
+	def test_the_stock_stops_a_line_and_says_what_is_left(self):
 		def available(availability, qty):
 			return mock.patch.object(v1.stock, "bulk_availability", return_value={shop.FIRST: frappe._dict(availability=availability, qty=qty)})
 
@@ -391,7 +489,8 @@ class TestPartnerV1(FrappeTestCase):
 		with available(stock.IN_STOCK, 1):
 			status, answer, _response = self.order(key="s2", pairs=((shop.FIRST, 2),))
 			self.assertEqual((status, answer["error"]["details"]["lines"][0]["code"]), (422, "insufficient_stock"))
-			self.assertEqual(set(answer["error"]["details"]["lines"][0]), {"item_code", "code", "message"}, "no quantity of stock is told")
+			self.assertEqual(set(answer["error"]["details"]["lines"][0]), {"item_code", "code", "message", "available"})
+			self.assertEqual(answer["error"]["details"]["lines"][0]["available"], 1)
 			self.assertEqual(self.order(key="s3", pairs=((shop.FIRST, 1),))[0], 201)
 		with available(stock.BACK_ORDER, 0):
 			self.assertEqual(self.order(key="s4", pairs=((shop.FIRST, 5),))[0], 201, "the shop takes orders beyond its stock")

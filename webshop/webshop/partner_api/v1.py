@@ -12,7 +12,8 @@ and what a program may send is as small as it can be.
 - **An order waits as a draft** unless staff allowed submission for this key.
 - **A call can be replayed**: `idempotency_key` names the order, and the same key with the same lines returns the
   order that was made; the same key with other lines is a 422.
-- **The stock is told as "in_stock", "out_of_stock" or "backorder"**, never as a quantity (decision 2).
+- **The stock is told twice**: `availability` ("in_stock", "out_of_stock", "backorder") and `stock`, the quantity, counted
+  in the warehouses staff chose for this key (`quantity.py`); null where the shop does not count.
 - Every figure and word is English and stable: the contract is `openapi.yaml`, beside this file.
 """
 
@@ -26,6 +27,7 @@ import frappe
 from frappe.utils import add_days, cint, flt, getdate, nowdate
 
 from webshop.webshop.catalogue import book, rows, selection
+from webshop.webshop.partner_api import quantity
 from webshop.webshop.partner_api.access import ApiError
 from webshop.webshop.seo import availability as stock
 from webshop.webshop.shopping_cart.shop_rights import shop_rights
@@ -102,7 +104,7 @@ def text(args, name):
 # Products
 
 
-def _product(row, modified, detail=False):
+def _product(row, modified, level, detail=False):
 	product = {
 		"code": row["code"],
 		"model": row["model"] or None,
@@ -113,7 +115,8 @@ def _product(row, modified, detail=False):
 		"ean": row["ean"] or None,
 		"mpn": row["mpn"] or None,
 		"attributes": row["attributes"],
-		"availability": row["availability"],
+		"availability": quantity.word(level),
+		"stock": quantity.number(level.qty),
 		"image": row["image"] or None,
 		"url": row["url"] or None,
 		"modified": utc(modified),
@@ -171,7 +174,8 @@ def list_products(access, args):
 			include_variants=True,
 		)
 		by_code = {row["code"]: row for row in data.rows}
-		products = [_product(by_code[row.item_code], row.modified) for row in found if row.item_code in by_code]
+		level = quantity.levels(list(by_code), access.stock_warehouses)
+		products = [_product(by_code[row.item_code], row.modified, level[row.item_code]) for row in found if row.item_code in by_code]
 	return {"page": page, "page_size": size, "total": total, "products": products}
 
 
@@ -188,7 +192,8 @@ def get_product(access, code):
 	row = next((row for row in data.rows if row["code"] == code), None)
 	if not row:
 		raise ApiError(404, "not_found", "No such product.")
-	product = _product(row, found[0].modified, detail=True)
+	level = quantity.levels([code], access.stock_warehouses)
+	product = _product(row, found[0].modified, level[code], detail=True)
 	product["price"] = row.get("purchase_price")
 	product["currency"] = row.get("currency")
 	return product
@@ -304,9 +309,10 @@ def _clean_order(body):
 	return {"reference": reference, "key": key, "lines": clean, "delivery": delivery, "dry_run": body.get("dry_run") is True}
 
 
-def _check_lines(customer, lines):
+def _check_lines(customer, lines, warehouses=None):
 	"""Every line against what the shop sells this customer: published, priced on their list, in stock.
-	A list of the lines that cannot be served, empty when all can. No quantity of stock is ever told."""
+	A list of the lines that cannot be served, empty when all can. The quantity is counted where staff chose for
+	this key (`quantity.levels`), so an order is checked against what the key reads."""
 	settings = frappe.get_cached_doc("Webshop Settings")
 	party = frappe.get_doc("Customer", customer)
 	price_list = customer_pricing.customer_price_list(settings, party)
@@ -316,7 +322,7 @@ def _check_lines(customer, lines):
 		for row in frappe.get_all("Website Item", filters={**_orderable_filters(), "item_code": ["in", codes]}, fields=["item_code"])
 	}
 	prices = customer_pricing.prices_for(sorted(visible), price_list, party, settings) if visible else {}
-	available = stock.bulk_availability(sorted(visible)) if visible else {}
+	available = quantity.levels(sorted(visible), warehouses) if visible else {}
 	problems = []
 	for line in lines:
 		code, qty = line["item_code"], line["qty"]
@@ -331,8 +337,24 @@ def _check_lines(customer, lines):
 			and available[code].qty is not None
 			and flt(available[code].qty) < flt(qty)
 		):
-			problems.append({"item_code": code, "code": "insufficient_stock", "message": "Not enough in stock for this quantity."})
+			problems.append(
+				{
+					"item_code": code,
+					"code": "insufficient_stock",
+					"message": "Not enough in stock for this quantity.",
+					"available": quantity.number(available[code].qty),
+				}
+			)
 	return problems, price_list
+
+
+def _order_line(line, warehouses):
+	"""A line of the order. When staff chose one warehouse for this key, the goods leave from it: the quantity the
+	program read was counted there. With several (or a group), ERPNext's own choice stands."""
+	made = {"item_code": line["item_code"], "qty": line["qty"]}
+	if len(warehouses or []) == 1 and not frappe.get_cached_value("Warehouse", warehouses[0], "is_group"):
+		made["warehouse"] = warehouses[0]
+	return made
 
 
 def create_order(access, body):
@@ -355,7 +377,7 @@ def create_order(access, body):
 		if known.request_hash != digest:
 			raise ApiError(422, "idempotency_conflict", "This idempotency_key was used with other lines. Use a new key for a new order.")
 		return 200, get_order(access, known.sales_order), True
-	problems, price_list = _check_lines(customer, asked["lines"])
+	problems, price_list = _check_lines(customer, asked["lines"], access.stock_warehouses)
 	if problems:
 		raise ApiError(422, "invalid_lines", "Some lines cannot be served. Nothing was ordered.", details={"lines": problems})
 	settings = frappe.get_cached_doc("Webshop Settings")
@@ -371,7 +393,7 @@ def create_order(access, body):
 					"delivery_date": asked["delivery"] or add_days(nowdate(), 1),
 					"selling_price_list": price_list,
 					"po_no": asked["reference"],
-					"items": [{"item_code": line["item_code"], "qty": line["qty"]} for line in asked["lines"]],
+					"items": [_order_line(line, access.stock_warehouses) for line in asked["lines"]],
 				}
 			)
 			order.flags.ignore_permissions = True

@@ -13,7 +13,10 @@ info:
     **Prices.** A price is the one on *your* price list, with the shop's rules: what you pay, not what you sell
     at. It is never taken from a request: a line of an order is `{item_code, qty}` and nothing else.
 
-    **Stock.** Told as `in_stock`, `out_of_stock` or `backorder`, never as a quantity.
+    **Stock.** Each product tells `availability` (`in_stock`, `out_of_stock` or `backorder`) and `stock`, the quantity you can
+    order. The shop chooses where it is counted for your key: in the warehouses it picked, orders already placed deducted,
+    or, when it picked none, in the quantity it promises its own visitors. `stock` is `null` for a product the shop does
+    not count (a service, a product sold on backorder). An order is checked against the same quantity.
 
     **Orders** wait as drafts for somebody to read them, unless staff allowed this key to submit them. Send an
     `idempotency_key` with every order: replaying a call whose answer you never read returns the same order.
@@ -159,7 +162,7 @@ paths:
           description: |
             A refusal: `invalid_body`, `invalid_parameter`, `invalid_idempotency_key`, `idempotency_conflict`,
             `order_refused`, or `invalid_lines` with `details.lines` naming each line that cannot be served
-            (`not_available`, `no_price`, `out_of_stock`, `insufficient_stock`). Nothing is ordered then.
+            (`not_available`, `no_price`, `out_of_stock`, `insufficient_stock` with the quantity still `available`). Nothing is ordered then.
           content:
             application/json:
               schema: {$ref: "#/components/schemas/Error"}
@@ -199,6 +202,10 @@ components:
         mpn: {type: string, nullable: true}
         attributes: {type: object, additionalProperties: {type: string}}
         availability: {type: string, enum: [in_stock, out_of_stock, backorder]}
+        stock:
+          type: number
+          nullable: true
+          description: The quantity you can order, counted where the shop chose for your key. Null when the shop does not count this product.
         image: {type: string, format: uri, nullable: true}
         url: {type: string, format: uri, nullable: true}
         modified: {type: string, format: date-time}
