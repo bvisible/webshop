@@ -142,9 +142,9 @@ def _ask(customer, payload, title, picked, options, fmt=PDF):
 		return _refused("selection", catalogue_message("empty"))
 	# two clicks at once: the second waits here for the first to commit, then sees it
 	frappe.db.get_value("Customer", customer, "name", for_update=True)
-	if jobs.is_running(customer):
+	if jobs.is_running(customer, lock=True):
 		return _refused(None, catalogue_message("busy"))
-	if jobs.asked_since(customer) >= jobs.DAILY_LIMIT:
+	if jobs.asked_since(customer, lock=True) >= jobs.DAILY_LIMIT or not jobs.spend_ask(customer):
 		return _refused(None, catalogue_message("daily_limit", jobs.DAILY_LIMIT))
 	doc = frappe.get_doc(
 		{

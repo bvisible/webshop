@@ -186,6 +186,17 @@ class TestExcel(unittest.TestCase):
 		value = sheet.cell(row=2, column=rows.columns_for("customers").index("more_images") + 1).value
 		self.assertEqual(value, "https://shop.example/files/b.jpg\nhttps://shop.example/files/c.jpg")
 
+	def test_a_control_character_in_a_text_does_not_stop_the_workbook(self):
+		"""A vertical tab pasted from a word processor made openpyxl refuse the whole file (IllegalCharacterError)."""
+		labels = {**self.LABELS, "facts": {"Title": "Spring\x002027"}}
+		table = data([line(name="Trail\x0bshoe", brand="Al\x01pine", description="two\x08 words", more_images=["https://shop.example/a\x0c.jpg"], attributes={"Siz\x02e": "4\x1f2"})])
+		sheet = load_workbook(io.BytesIO(tables.xlsx_bytes(table, labels)))
+		columns = rows.columns_for("customers")
+		cells = {key: sheet["Products"].cell(row=2, column=columns.index(key) + 1).value for key in ("name", "brand", "description", "attributes")}
+		self.assertEqual(cells, {"name": "Trailshoe", "brand": "Alpine", "description": "two words", "attributes": "Size: 42"})
+		self.assertEqual(sheet["Information"].cell(row=1, column=2).value, "Spring2027")
+		self.assertIn("Trail\x0bshoe".encode(), tables.csv_bytes(table), "the CSV is left as it is")
+
 	def test_the_information_sheet_says_what_the_file_is(self):
 		sheet = self.book()["Information"]
 		cells = {row[0].value: row[1].value for row in sheet.iter_rows() if row[0].value}

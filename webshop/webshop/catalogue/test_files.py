@@ -21,6 +21,7 @@ from webshop.webshop.catalogue import api as brand_api
 from webshop.webshop.catalogue import fixtures as shop
 from webshop.webshop.catalogue.refusals import catalogue_message
 from webshop.webshop.doctype.reseller_catalogue.reseller_catalogue import FAILED, READY
+from webshop.webshop.utils import throttle
 
 DOCTYPE = "Reseller Catalogue"
 PICKED = {"item_groups": [shop.PARENT_GROUP, shop.OTHER_GROUP]}
@@ -48,6 +49,8 @@ class TestFiles(FrappeTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		for name in frappe.get_all(DOCTYPE, filters={"customer": ["in", [shop.CUSTOMER, shop.OTHER_CUSTOMER]]}, pluck="name"):
 			frappe.delete_doc(DOCTYPE, name, force=True, ignore_permissions=True)
+		for customer in (shop.CUSTOMER, shop.OTHER_CUSTOMER):
+			throttle.reset("catalogue-ask", customer)
 		for user in (shop.USER, shop.OTHER_USER):
 			frappe.set_user(user)
 			answer = brand_api.save_my_brand(

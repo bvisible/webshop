@@ -325,6 +325,43 @@ class TestTheFeed(FrappeTestCase):
 		feed.delete(shop.CUSTOMER)
 		self.assertIn(shop.FIRST, self.read(self.token(shop.OTHER_CUSTOMER)).get_data(as_text=True))
 
+	def test_a_feed_stopped_while_its_refresh_runs_leaves_no_file_behind(self):
+		self.assertIsNone(self.make())
+		frappe.db.commit()
+		real = rows.build_rows
+
+		def build_then_stop(*args, **kwargs):
+			data = real(*args, **kwargs)
+			feed.delete(shop.CUSTOMER)  # the reseller presses "Stop the feed" while the prices are computed
+			frappe.db.commit()
+			return data
+
+		with mock.patch.object(rows, "build_rows", side_effect=build_then_stop):
+			feed.refresh(shop.CUSTOMER)
+		self.assertFalse(frappe.db.exists(DOCTYPE, shop.CUSTOMER))
+		self.assertFalse(any(os.path.exists(feed.feed_path(shop.CUSTOMER, kind)) for kind in feed.KINDS))
+
+	def test_a_new_feed_never_serves_the_file_of_one_that_was_stopped(self):
+		for kind in feed.KINDS:
+			feed.write_file(shop.CUSTOMER, kind, b"stale")
+		self.assertIsNone(self.make())
+		self.assertFalse(any(os.path.exists(feed.feed_path(shop.CUSTOMER, kind)) for kind in feed.KINDS))
+		self.assertEqual(self.read(self.token()).status_code, 404, "nothing to serve until the first refresh")
+
+	def test_the_sentence_a_failure_leaves_is_written_in_the_owners_language(self):
+		self.assertIsNone(self.make())
+		frappe.db.commit()
+		with mock.patch("frappe.set_user_lang") as set_lang, mock.patch.object(rows, "build_rows", side_effect=RuntimeError), mock.patch(
+			"frappe.log_error"
+		):
+			feed.refresh(shop.CUSTOMER)
+		set_lang.assert_called_with(feed.get_feed(shop.CUSTOMER).owner)
+
+	def test_the_guards_read_what_the_request_before_committed(self):
+		self.assertIsNone(self.make())
+		with mock.patch("frappe.db.exists", side_effect=AssertionError("a plain read")):
+			self.assertTrue(feed.is_refreshing(shop.CUSTOMER, lock=True))
+
 	# --- the night ----------------------------------------------------------------------------------
 
 	def test_the_night_refreshes_the_feeds_that_are_read_or_new_and_leaves_the_forgotten_ones(self):

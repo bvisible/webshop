@@ -1249,6 +1249,18 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
 > deployed. The tests that would have caught it were waiting their turn on the clone (twenty suites queued behind
 > one lock); the first real page load found it. Name a list for what it holds, not for a module of the same package.
 
+> **A plain read after waiting on a row lock reads the snapshot taken before the wait.** InnoDB's REPEATABLE READ takes
+> the snapshot at the transaction's first plain read (`access.customer_of`), so "lock the customer, then check that none
+> of their catalogues is running" saw nothing when two requests came together: two catalogues, two refreshes. The
+> guards read FOR UPDATE (`jobs.is_running(lock=True)`, `asked_since(lock=True)`, `feed.get_feed(lock=True)`);
+> `frappe.get_all` takes no `for_update` in this Frappe (a plain query that ends in `for update` does). The day's cap
+> is a Redis counter besides the rows, since deleting a catalogue gave its place back; and a refresh that finds its feed
+> stopped (`_stopped`, after a `commit`, which is what lets the next read see the deletion) writes nothing.
+
+> **openpyxl refuses a string with a control character** (`IllegalCharacterError`: a vertical tab pasted from a word
+> processor in a product's name), and `jobs.generate` turned that into "could not be made" for a workbook that the CSV
+> and the feed produced. `tables._sheet_text` strips them from every text of the workbook; the CSV is left as it is.
+
 > **openpyxl turns a string that starts with `=` into a formula.** Every text cell of the workbook is set to a
 > string (`cell.data_type = "s"`). The CSV is left as it is on purpose: it is for another system, and an apostrophe
 > added to a name would be imported with it.

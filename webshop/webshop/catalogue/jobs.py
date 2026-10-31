@@ -22,6 +22,7 @@ from webshop.webshop.catalogue import api as brand_api
 from webshop.webshop.catalogue.pdf import chromium_available
 from webshop.webshop.catalogue.refusals import catalogue_message
 from webshop.webshop.catalogue.sheet_api import _filename
+from webshop.webshop.utils import throttle
 from webshop.webshop.doctype.reseller_catalogue.reseller_catalogue import (
 	CSV,
 	FAILED,
@@ -166,21 +167,39 @@ def generate(catalogue):
 		_set(catalogue, status=FAILED, error=catalogue_message("failed"))
 
 
-def is_running(customer):
+def is_running(customer, lock=False):
 	"""Whether this customer has a catalogue being made. One that has been Queued or Running for too long is not
-	counted: its worker is gone, and it must not shut its owner out."""
+	counted: its worker is gone, and it must not shut its owner out.
+
+	`lock` reads with FOR UPDATE: a plain read after waiting on the customer's row still sees the snapshot the
+	transaction took before the wait (InnoDB's REPEATABLE READ), so two parallel requests would both see nothing."""
 	since = add_to_date(now_datetime(), minutes=-STALLED_MINUTES)
-	return bool(
-		frappe.db.exists(
-			DOCTYPE, {"customer": customer, "status": ["in", [QUEUED, RUNNING]], "creation": [">", since]}
-		)
-	)
+	filters = {"customer": customer, "status": ["in", [QUEUED, RUNNING]], "creation": [">", since]}
+	if lock:
+		return bool(frappe.db.get_value(DOCTYPE, filters, "name", for_update=True))
+	return bool(frappe.db.exists(DOCTYPE, filters))
 
 
-def asked_since(customer, hours=24):
-	"""How many catalogues this customer asked for in the last `hours` hours, failed ones included."""
+def asked_since(customer, hours=24, lock=False):
+	"""How many catalogues this customer asked for in the last `hours` hours, failed ones included (`lock`: see
+	is_running). Deleting a catalogue takes it out of this count: `spend_ask` is the one that remembers."""
 	since = add_to_date(now_datetime(), hours=-hours)
-	return frappe.db.count(DOCTYPE, {"customer": customer, "creation": [">", since]})
+	filters = {"customer": customer, "creation": [">", since]}
+	if lock:
+		# get_all takes no `for_update` in this Frappe: a plain query that locks the rows it reads
+		return len(
+			frappe.db.sql(
+				"select name from `tabReseller Catalogue` where customer = %s and creation > %s for update",
+				(customer, since),
+			)
+		)
+	return frappe.db.count(DOCTYPE, filters)
+
+
+def spend_ask(customer):
+	"""Count one request of this customer in a counter that a deletion cannot lower; False once the day's allowance
+	is spent. (Without it, deleting a catalogue after ten would give its place back.)"""
+	return throttle.hit("catalogue-ask", customer, 86400) <= DAILY_LIMIT
 
 
 def purge():

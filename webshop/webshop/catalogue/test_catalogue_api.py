@@ -19,6 +19,7 @@ from webshop.webshop.catalogue import fixtures as shop
 from webshop.webshop.catalogue.pdf import chromium_available
 from webshop.webshop.catalogue.refusals import catalogue_message
 from webshop.webshop.doctype.reseller_catalogue.reseller_catalogue import FAILED, QUEUED, READY, RUNNING
+from webshop.webshop.utils import throttle
 
 DOCTYPE = "Reseller Catalogue"
 PICKED = {"item_groups": [shop.PARENT_GROUP]}
@@ -46,6 +47,8 @@ class TestCatalogueApi(FrappeTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		for name in frappe.get_all(DOCTYPE, filters={"customer": ["in", [shop.CUSTOMER, shop.OTHER_CUSTOMER]]}, pluck="name"):
 			frappe.delete_doc(DOCTYPE, name, force=True, ignore_permissions=True)
+		for customer in (shop.CUSTOMER, shop.OTHER_CUSTOMER):
+			throttle.reset("catalogue-ask", customer)
 		for user in (shop.USER, shop.OTHER_USER):
 			frappe.set_user(user)
 			answer = brand_api.save_my_brand(
@@ -156,6 +159,26 @@ class TestCatalogueApi(FrappeTestCase):
 			second = self.ask()
 		self.assertTrue(first["ok"])
 		self.assertEqual(second["message"], catalogue_message("daily_limit", 1))
+
+	def test_deleting_a_catalogue_does_not_give_its_place_in_the_day_back(self):
+		"""The day's count read the rows that were left: after ten, deleting one made room for another, again and again."""
+		with mock.patch.object(jobs, "DAILY_LIMIT", 1):
+			self.assertTrue(self.ask()["ok"])
+			name = self.newest()
+			frappe.db.set_value(DOCTYPE, name, "status", READY)
+			self.assertTrue(catalogue_api.delete_catalogue(name=name)["ok"])
+			self.assertEqual(frappe.db.count(DOCTYPE, {"customer": shop.CUSTOMER}), 0)
+			again = self.ask()
+		self.assertEqual((again["ok"], again["message"]), (False, catalogue_message("daily_limit", 1)))
+
+	def test_the_guards_of_a_request_read_what_the_request_before_it_committed(self):
+		"""A plain read after waiting on the customer's row sees the snapshot taken before the wait: the guards read FOR UPDATE."""
+		self.assertTrue(self.ask()["ok"])
+		with mock.patch("frappe.db.exists", side_effect=AssertionError("a plain read")), mock.patch(
+			"frappe.db.count", side_effect=AssertionError("a plain read")
+		):
+			self.assertTrue(jobs.is_running(shop.CUSTOMER, lock=True))
+			self.assertEqual(jobs.asked_since(shop.CUSTOMER, lock=True), 1)
 
 	# --- asking ---------------------------------------------------------------------------------------
 

@@ -59,8 +59,12 @@ def refused(field, message):
 # The record and its address
 
 
-def get_feed(customer):
-	return frappe.get_doc(DOCTYPE, customer) if customer and frappe.db.exists(DOCTYPE, customer) else None
+def get_feed(customer, lock=False):
+	"""The feed of `customer`, or None. `lock` reads the row FOR UPDATE, so that a request that waited for the
+	customer's row works on what the request before it committed, not on the snapshot it took earlier."""
+	if not customer or not frappe.db.exists(DOCTYPE, customer):
+		return None
+	return frappe.get_doc(DOCTYPE, customer, for_update=True) if lock else frappe.get_doc(DOCTYPE, customer)
 
 
 def new_token():
@@ -108,12 +112,14 @@ def remove_files(customer):
 			os.remove(path)
 
 
-def is_refreshing(customer):
-	"""Whether a refresh is waiting or running. One that has been for too long lost its worker and is not counted."""
+def is_refreshing(customer, lock=False):
+	"""Whether a refresh is waiting or running. One that has been for too long lost its worker and is not counted.
+	`lock`: see get_feed."""
 	since = add_to_date(now_datetime(), minutes=-jobs.STALLED_MINUTES)
-	return bool(
-		frappe.db.exists(DOCTYPE, {"name": customer, "status": ["in", [QUEUED, RUNNING]], "modified": [">", since]})
-	)
+	filters = {"name": customer, "status": ["in", [QUEUED, RUNNING]], "modified": [">", since]}
+	if lock:
+		return bool(frappe.db.get_value(DOCTYPE, filters, "name", for_update=True))
+	return bool(frappe.db.exists(DOCTYPE, filters))
 
 
 def describe(customer):
@@ -189,12 +195,14 @@ def save(customer, payload, picked, options):
 		return refused("selection", catalogue_message("empty"))
 	# two clicks at once: the second waits here for the first to commit, then sees it
 	frappe.db.get_value("Customer", customer, "name", for_update=True)
-	if is_refreshing(customer):
+	if is_refreshing(customer, lock=True):
 		return refused(None, feed_message("busy"))
 	if not _spend_refresh(customer):
 		return refused(None, feed_message("refresh_limit", REFRESHES_PER_DAY))
-	doc = get_feed(customer)
+	doc = get_feed(customer, lock=True)
 	if not doc:
+		# a feed stopped while its refresh was still running can leave a file behind: a new feed starts with none
+		remove_files(customer)
 		doc = frappe.new_doc(DOCTYPE)
 		doc.customer = customer
 		token = new_token()
@@ -214,7 +222,7 @@ def refresh_now(customer):
 	if not get_feed(customer):
 		return refused(None, feed_message("none"))
 	frappe.db.get_value("Customer", customer, "name", for_update=True)
-	if is_refreshing(customer):
+	if is_refreshing(customer, lock=True):
 		return refused(None, feed_message("busy"))
 	if not _spend_refresh(customer):
 		return refused(None, feed_message("refresh_limit", REFRESHES_PER_DAY))
@@ -250,6 +258,13 @@ def _set(customer, **values):
 	frappe.db.commit()
 
 
+def _stopped(customer):
+	"""Whether the feed was stopped while its refresh ran. The job reads in one long transaction: ending it first
+	is what lets the next read see a deletion committed since."""
+	frappe.db.commit()
+	return not frappe.db.exists(DOCTYPE, customer)
+
+
 def refresh(customer):
 	"""Write the files of the feed of `customer`. Does nothing for a feed that is not waiting for it."""
 	doc = get_feed(customer)
@@ -257,6 +272,8 @@ def refresh(customer):
 		return
 	_set(customer, status=RUNNING, progress=1, stage="start", error="")
 	try:
+		# a job starts in English, whatever the site speaks: the sentence a failure leaves reads in its owner's language
+		frappe.set_user_lang(doc.owner)
 		if not access.offered_to(customer):
 			_set(customer, status=FAILED, error=feed_message("not_offered"))
 			return
@@ -269,11 +286,16 @@ def refresh(customer):
 		report = jobs.reporter(customer, jobs.TABLE_STAGES, _set)
 		data = rows.build_rows(customer, payload, clean, options, report)
 		report("file", 0, 1)
+		if _stopped(customer):
+			return
 		stamp = now_datetime()
 		# the JSON says when it was made with its offset: the site's clock is not the reader's
 		made_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 		write_file(customer, "csv", tables.csv_bytes(data))
 		write_file(customer, "json", tables.json_bytes(data, generated_on=made_at))
+		if _stopped(customer):
+			remove_files(customer)
+			return
 		_set(
 			customer,
 			status=READY,
@@ -300,6 +322,7 @@ def refresh_all():
 	for name in frappe.get_all(
 		DOCTYPE, filters={"status": ["in", [QUEUED, RUNNING]], "modified": ["<", since]}, pluck="name"
 	):
+		frappe.set_user_lang(frappe.db.get_value(DOCTYPE, name, "owner"))
 		frappe.db.set_value(
 			DOCTYPE, name, {"status": FAILED, "error": feed_message("stalled"), "stage": ""}, update_modified=False
 		)

@@ -21,6 +21,7 @@ import io
 import json
 
 from openpyxl import Workbook
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
@@ -84,6 +85,12 @@ def json_bytes(data, generated_on=None):
 	return json.dumps(document, ensure_ascii=False, indent=1).encode("utf-8")
 
 
+def _sheet_text(text):
+	"""A control character (a vertical tab pasted from Word) makes openpyxl refuse the whole workbook; it prints
+	nothing, so it goes."""
+	return ILLEGAL_CHARACTERS_RE.sub("", text)
+
+
 def _excel_value(key, value, labels):
 	if value is None:
 		return None
@@ -92,12 +99,12 @@ def _excel_value(key, value, labels):
 	if isinstance(value, (int, float)):
 		return float(value)
 	if key == "attributes":
-		return attributes_text(value)
+		return _sheet_text(attributes_text(value))
 	if key == "more_images":
-		return "\n".join(value or [])
+		return _sheet_text("\n".join(value or []))
 	if key == "availability":
 		return labels["availability"].get(value, value)
-	return str(value)
+	return _sheet_text(str(value))
 
 
 def _as_text(cells):
@@ -138,7 +145,7 @@ def xlsx_bytes(data, labels):
 
 	facts = workbook.create_sheet(labels["information"])
 	for label, value in labels["facts"].items():
-		facts.append([label, value])
+		facts.append([label, _sheet_text(value) if isinstance(value, str) else value])
 		facts.cell(row=facts.max_row, column=1).font = Font(bold=True)
 		_as_text(facts[facts.max_row])
 	facts.column_dimensions["A"].width = 28
