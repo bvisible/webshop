@@ -355,6 +355,7 @@ jobs:
             webshop.webshop.quick_order.test_quick_order \
             webshop.webshop.tests.test_stylesheet_inks \
             webshop.webshop.utils.test_product_carousel \
+            webshop.webshop.tests.test_carousel_styles \
             webshop.webshop.tests.test_no_shadowed_definitions \
             webshop.webshop.tests.test_cart_is_never_locked \
             webshop.webshop.utils.test_address \
