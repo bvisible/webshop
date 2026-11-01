@@ -68,6 +68,10 @@ def raise_payment_request(sales_order, row=None, mode_of_payment=None):
 			"transaction_date": order.transaction_date,
 			"reference_doctype": "Sales Order",
 			"reference_name": sales_order,
+			# //// Neoffice — upstream's validate compares the request's company with its document's (the card path
+			# //// sets it too, payment_handler.py). Left out, the request took the site's DEFAULT company and an
+			# //// order of any other company failed at the last click ("Company X does not match the company Y").
+			"company": order.company,
 			"party_type": "Customer",
 			"party": order.customer,
 			"grand_total": flt(order.rounded_total or order.grand_total),

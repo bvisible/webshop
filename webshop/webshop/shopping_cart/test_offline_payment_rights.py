@@ -59,6 +59,7 @@ class TestATransferOrderOfAPortalCustomer(ShopFixture):
 
 		request = frappe.get_doc("Payment Request", answer["payment_request"])
 		self.assertEqual((request.reference_doctype, request.reference_name), ("Sales Order", order.name))
+		self.assertEqual(request.company, order.company, "the request is the order's company's, not the site's default")
 		self.assertEqual(request.docstatus, 1)
 		self.assertEqual(request.owner, USER, "the request stays the buyer's")
 		self.assertEqual(request.modified_by, USER)
