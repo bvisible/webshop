@@ -103,6 +103,23 @@ class TestNoindex(FrappeTestCase):
 				meta.update_website_context(context)
 				self.assertEqual(context.metatags.get("robots"), "noindex, follow", path)
 
+	def test_every_page_robots_txt_closes_says_noindex_itself(self):
+		"""The two lists had drifted: the receipt's English address was closed in robots.txt only. The language layer links a
+		page that is no document by hreflang under every prefix unless the page closes the index itself, so a private page
+		must (neoffice-maintenance#2089)."""
+		for pattern in robots.PRIVATE_PATHS:
+			if pattern.startswith("/app"):  # the desk is no page of the site
+				continue
+			if pattern in ("/orders$", "/invoices$", "/quotations$"):  # the portal menu's own lists: closed by Portal Settings
+				continue
+			path = pattern.rstrip("$?")
+			if pattern.endswith("/"):
+				path += "x"  # a prefix such as /orders/: a page under it
+			with _request_path(path):
+				context = frappe._dict(metatags=frappe._dict())
+				meta.update_website_context(context)
+				self.assertEqual(context.metatags.get("robots"), "noindex, follow", pattern)
+
 	def test_a_product_page_is_indexed(self):
 		with _request_path("/products/chaussures/ridge-runner-fjdk1"):
 			context = frappe._dict(metatags=frappe._dict())

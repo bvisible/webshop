@@ -29,6 +29,9 @@ NOINDEX_ROUTES = {
 	"my_addresses",
 	"customer_reviews",
 	"thank_you",
+	# //// Neoffice — closed in robots.txt (PRIVATE_PATHS) but not here: the receipt's English address (#2089). A page the
+	# //// language layer now links by hreflang under every prefix must say it is private itself.
+	"thank-you",
 	"payment-success",
 	"quick-order",
 	"order",
