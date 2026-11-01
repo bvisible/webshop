@@ -20,7 +20,6 @@
         max-width: 1200px;
         width: 100%;
         overflow: visible;
-        min-height: 500px;
       }
 
       /* Carousel header */
@@ -63,14 +62,16 @@
         position: relative;
       }
 
-      .carousel-wrapper {
+      /* //// Neoffice — scoped to this carousel (2026-11-01): written bare, `overflow: visible !important` reached the
+         //// brand carousel of the same page, whose row then ran past the edge of the page. */
+      .product-carousel .carousel-wrapper {
         overflow: visible !important;
         padding: 10px;
         height: auto !important;
         position: relative;
       }
 
-      .carousel-inner {
+      .product-carousel .carousel-inner {
         display: flex;
         transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
         padding: 10px 0;
@@ -317,13 +318,16 @@
         right: 0;
       }
 
-      .carousel-indicators {
+      /* //// Neoffice — in the flow of the page (2026-11-01): the site's Bootstrap sets `.carousel-indicators` absolute,
+         //// so the dots sat at the bottom of a 500px minimum height, far under cards shorter than that. */
+      .product-carousel .carousel-indicators {
+        position: static;
         display: flex;
         justify-content: center;
-        margin-top: 20px;
+        margin: 20px 0 0;
       }
 
-      .indicator {
+      .product-carousel .indicator {
         width: 10px;
         height: 10px;
         border-radius: 50%;
@@ -333,7 +337,7 @@
         transition: all var(--wsh-motion);
       }
 
-      .indicator.active {
+      .product-carousel .indicator.active {
         background-color: var(--wsh-text);
         transform: scale(1.2);
       }

@@ -97,10 +97,38 @@
         right: 0;
       }
 
+      /* //// Neoffice — `overflow: visible` (2026-11-01): the row is pushed sideways by a transform and the wrapper clips it;
+         //// the site's Bootstrap hides what leaves `.carousel-inner`, which moves with the row, and only the product
+         //// carousel's stylesheet undid that, for the pages that happened to hold both. */
       .brand-carousel .carousel-inner {
         display: flex;
         transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
         padding: 10px 0;
+        overflow: visible;
+      }
+
+      /* //// Neoffice — the dots had no styles here either (2026-11-01): same shape as the product carousel's, scoped, and
+         //// in the flow of the page, where the site's Bootstrap sets them absolute. */
+      .brand-carousel .carousel-indicators {
+        position: static;
+        display: flex;
+        justify-content: center;
+        margin: 20px 0 0;
+      }
+
+      .brand-carousel .indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: var(--wsh-line);
+        margin: 0 5px;
+        cursor: pointer;
+        transition: all var(--wsh-motion);
+      }
+
+      .brand-carousel .indicator.active {
+        background-color: var(--wsh-text);
+        transform: scale(1.2);
       }
 
       .brand-carousel .item-card {
