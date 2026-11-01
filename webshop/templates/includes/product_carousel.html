@@ -9,7 +9,7 @@
     {% set website_items = get_carousel_items(
         item_group=carousel_item_group,
         only_promotions=show_discounted_only,
-        limit=carousel_limit|default(8) * 3 if show_discounted_only else carousel_limit|default(8),
+        limit=carousel_limit|default(8) * 3 if (show_discounted_only or hide_without_image) else carousel_limit|default(8),
         sort_by=carousel_sort_by|default("creation"),
         sort_order=carousel_sort_order|default("desc"),
         brand=carousel_brand,
@@ -17,8 +17,14 @@
         cache_ttl=carousel_cache_ttl|default(3600)
     ) %}
     
+    {#- //// Neoffice — only the products with a photograph, when the option asks (2026-11-01): the three times as many fetched above fill the row
+        with pictured products, where leaving out the unpictured ones from the first eight could leave two. Without the option nothing changes. -#}
+    {% if hide_without_image %}
+        {% set website_items = website_items|selectattr("website_image")|list %}
+    {% endif %}
+
     {# If we need exactly the carousel_limit number of items, trim the list #}
-    {% if show_discounted_only and website_items|length > carousel_limit|default(8) %}
+    {% if (show_discounted_only or hide_without_image) and website_items|length > carousel_limit|default(8) %}
         {% set website_items = website_items[:carousel_limit|default(8)] %}
     {% endif %}
 {% endif %}

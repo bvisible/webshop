@@ -49,3 +49,40 @@ class TestEachCarouselStandsAlone(unittest.TestCase):
 
 	def test_the_products_leave_no_minimum_height_for_the_dots_to_fall_to(self):
 		self.assertNotIn("min-height", rules_of("webshop_product_carousel.bundle.scss")[".product-carousel"])
+
+
+class TestOnlyTheProductsWithAPhotograph(unittest.TestCase):
+	"""The head of product_carousel.html, rendered alone: what it asks the helper for and what it keeps."""
+
+	TEMPLATE = Path(__file__).resolve().parents[2] / "templates" / "includes" / "product_carousel.html"
+
+	def render(self, **context):
+		from jinja2 import Environment
+
+		text = self.TEMPLATE.read_text(encoding="utf-8")
+		head = text[: text.index("{% set unique_carousel_id")]
+		asked = {}
+
+		def get_carousel_items(**kwargs):
+			asked.update(kwargs)
+			# every third row is pictured
+			return [{"item_code": str(i), "website_image": "/files/p.jpg" if i % 3 == 0 else None} for i in range(kwargs["limit"])]
+
+		kept = Environment().from_string(head + "{{ website_items|map(attribute='item_code')|join(',') }}")
+		return kept.render(get_carousel_items=get_carousel_items, **context).strip(), asked["limit"]
+
+	def test_without_the_option_nothing_changes(self):
+		kept, limit = self.render()
+		self.assertEqual(8, limit)
+		self.assertEqual("0,1,2,3,4,5,6,7", kept)
+
+	def test_with_the_option_the_row_holds_pictured_products_only_and_stays_full(self):
+		kept, limit = self.render(hide_without_image=True)
+		self.assertEqual(24, limit)
+		self.assertEqual("0,3,6,9,12,15,18,21", kept)
+
+	def test_the_option_keeps_to_the_number_of_products_asked_for(self):
+		kept, limit = self.render(hide_without_image=True, carousel_limit=4)
+		self.assertEqual(12, limit)
+		self.assertEqual("0,3,6,9", kept)
+
