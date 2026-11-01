@@ -150,6 +150,21 @@ def translated_languages(doctype, name):
 		return []
 
 
+def interface_page_languages():
+	"""The additional languages in which a page that is no document (the catalogue, a brand's page) is offered to the search engines.
+
+	The theme's rule (the ones that publish at once): a page, its hreflang and the sitemaps read the same answer (#2089).
+	"""
+	engine = _engine()
+	if engine is None or not site_languages():
+		return []
+	try:
+		return engine.interface_page_languages()
+	except Exception:  # noqa: BLE001 — see the module docstring
+		frappe.log_error("Localized content: interface page languages failed", frappe.get_traceback())
+		return []
+
+
 def page_identity(path):
 	engine = _engine()
 	return engine.page_identity(path) if engine is not None and site_languages() else None

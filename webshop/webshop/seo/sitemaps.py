@@ -198,7 +198,10 @@ def _category_links(website_profile=None):
 
 
 def brand_links():
-	return _brand_links(get_current_profile_name())[:SITEMAP_LIMIT]
+	# //// Neoffice — multilingual (neoffice-maintenance#2089): a brand's page exists in every language that publishes at once
+	from webshop.webshop.seo.language_links import expand_interface
+
+	return expand_interface(_brand_links(get_current_profile_name())[:SITEMAP_LIMIT], _loc_in)[:SITEMAP_LIMIT]
 
 
 @redis_cache(ttl=CACHE_TTL)
@@ -215,6 +218,7 @@ def _brand_links(website_profile=None):
 		"Brand", filters={"name": ["in", list(brands)]}, fields=["name", "modified", "image"], order_by="name asc"
 	):
 		link = {"loc": _loc(brand_route(brand.name)), "lastmod": _day(brand.modified)}
+		link.update(route=brand_route(brand.name), interface=True)  # //// Neoffice — what its language copies are made from (#2089)
 		if brand.image:
 			link["images"] = [{"loc": _file_loc(brand.image)}]
 		links.append(link)
@@ -223,9 +227,12 @@ def _brand_links(website_profile=None):
 
 def page_links():
 	# //// Neoffice — multilingual lot 4 (neoffice-maintenance#2032): a copy under each language a Builder page is translated in
-	from webshop.webshop.seo.language_links import expand
+	from webshop.webshop.seo.language_links import expand, expand_interface
 
-	return expand(_page_links(get_current_profile_name())[:SITEMAP_LIMIT], "Builder Page", _loc_in)[:SITEMAP_LIMIT]
+	links = expand(_page_links(get_current_profile_name())[:SITEMAP_LIMIT], "Builder Page", _loc_in)
+	# //// Neoffice — multilingual (neoffice-maintenance#2089): the shop's listings, which no document stands for, are offered in
+	# //// every language that publishes at once
+	return expand_interface(links, _loc_in)[:SITEMAP_LIMIT]
 
 
 @redis_cache(ttl=CACHE_TTL)
@@ -234,12 +241,15 @@ def _page_links(website_profile=None):
 	home_routes = _home_routes()
 	links = {}
 
-	def add(route, modified=None, image=None, name=None):
+	def add(route, modified=None, image=None, name=None, interface=False):
 		route = (route or "").strip("/")
 		loc = _loc("") if route in home_routes else _loc(route)
 		if loc in links:
 			return
 		link = {"loc": loc, "lastmod": _day(modified)}
+		if interface:
+			# //// Neoffice — a page that is no document (the catalogue): its copy in each language is made from its route (#2089)
+			link.update(route=route, interface=True)
 		if name:
 			# //// Neoffice — what the language copies of a Builder page are made from (seo/language_links.py)
 			link.update(name=name, route="" if route in home_routes else route)
@@ -268,7 +278,7 @@ def _page_links(website_profile=None):
 	# copied onto a server, osiris 2026-09-24) makes it raise, and this sitemap with it.
 	for route in SHOP_LISTINGS:
 		if _listing_has_products(route):
-			add(route)
+			add(route, interface=True)
 
 	for doctype, route, field in (("Contact Us Settings", "contact", "heading"), ("About Us Settings", "about", "page_title")):
 		try:

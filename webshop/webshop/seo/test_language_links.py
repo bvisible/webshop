@@ -75,9 +75,58 @@ class TestSitemapLanguages(FrappeTestCase):
 		entry = {"loc": "https://shop.example.test/x", "name": "A"}
 		self.assertEqual(self._expand([entry], {"de": {"A"}}), [entry])
 
+	def _expand_interface(self, links, codes=("de",), languages=LANGS):
+		with (
+			patch(f"{FACADE}.site_languages", return_value=languages),
+			patch(f"{FACADE}.interface_page_languages", return_value=list(codes)),
+			patch(f"{FACADE}.source_hreflang", return_value="fr-CH"),
+			patch(
+				f"{FACADE}.hreflang_of",
+				side_effect=lambda code: (languages.get(code) or {}).get("hreflang") or code,
+			),
+		):
+			return language_links.expand_interface(links, loc_for)
+
+	def test_a_page_that_is_no_document_is_listed_in_each_language_that_publishes_at_once(self):
+		# neoffice-maintenance#2089: the catalogue and a brand's page have no translation to look for
+		catalogue = {"loc": "https://shop.example.test/all-products", "route": "all-products", "interface": True}
+		brand = {"loc": "https://shop.example.test/brands/canon", "route": "brands/canon", "interface": True}
+		out = self._expand_interface([catalogue, brand])
+		self.assertEqual(
+			[entry["loc"] for entry in out],
+			[
+				"https://shop.example.test/all-products",
+				"https://shop.example.test/de/all-products",
+				"https://shop.example.test/brands/canon",
+				"https://shop.example.test/de/brands/canon",
+			],
+		)
+		expected = [
+			{"hreflang": "fr-CH", "href": "https://shop.example.test/all-products"},
+			{"hreflang": "de-CH", "href": "https://shop.example.test/de/all-products"},
+			{"hreflang": "x-default", "href": "https://shop.example.test/all-products"},
+		]
+		self.assertEqual(out[0]["alternates"], expected)
+		self.assertEqual(out[1]["alternates"], expected)
+
+	def test_a_language_that_reviews_first_gets_no_copy_and_a_page_with_no_flag_is_left_alone(self):
+		catalogue = {"loc": "https://shop.example.test/all-products", "route": "all-products", "interface": True}
+		plain = {"loc": "https://shop.example.test/contact", "route": "contact"}
+		# the theme's rule answers no language: nothing is expanded, the very same list comes back
+		links = [catalogue, plain]
+		self.assertIs(self._expand_interface(links, codes=()), links)
+		# one language answers: only the flagged page is copied
+		out = self._expand_interface([catalogue, plain])
+		self.assertEqual(len(out), 3)
+		self.assertNotIn("alternates", out[2])
+
+	def test_without_an_additional_language_the_interface_links_come_back_untouched(self):
+		links = [{"loc": "https://shop.example.test/all-products", "route": "all-products", "interface": True}]
+		self.assertIs(self._expand_interface(links, codes=(), languages={}), links)
+
 	def test_the_sitemap_templates_print_the_alternates_and_stay_well_formed(self):
 		links = self._expand([link("A", "cours-et-s%C3%A9ances"), link("B", "b")], {"de": {"A"}})
-		for template in ("sitemap_products.xml", "sitemap_categories.xml", "sitemap_pages.xml"):
+		for template in ("sitemap_products.xml", "sitemap_categories.xml", "sitemap_pages.xml", "sitemap_brands.xml"):
 			path = frappe.get_app_path("webshop", "www", template)
 			with open(path) as handle:
 				xml_text = frappe.render_template(handle.read(), {"links": links})

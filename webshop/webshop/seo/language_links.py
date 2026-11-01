@@ -38,6 +38,32 @@ def expand(links, doctype, loc_for):
 	return out
 
 
+def expand_interface(links, loc_for):
+	"""The links flagged `interface` (a page that is no document: the catalogue, a brand's page, with their `route`) with a copy
+	under each language that publishes at once; every one names all the others, as `expand` does.
+
+	Such a page exists under every prefix in the language of the interface, so there is no translation to look for: the
+	theme's rule says which languages offer it to the search engines (neoffice-maintenance#2089). Without one the links come
+	back untouched.
+	"""
+	codes = localized.interface_page_languages()
+	if not codes or not links:
+		return links
+	out = []
+	for link in links:
+		if not link.get("interface") or link.get("route") is None:
+			out.append(link)
+			continue
+		alternates = [{"hreflang": localized.source_hreflang(), "href": link["loc"]}]
+		alternates += [
+			{"hreflang": localized.hreflang_of(code), "href": loc_for(link["route"], f"/{code}")} for code in codes
+		]
+		alternates.append({"hreflang": "x-default", "href": link["loc"]})
+		out.append({**link, "alternates": alternates})
+		out += [{**link, "loc": loc_for(link["route"], f"/{code}"), "alternates": alternates} for code in codes]
+	return out
+
+
 def language_urls(route):
 	"""The addresses (``/de/route``) a page has in the additional languages where it is translated: for IndexNow."""
 	identity = localized.page_identity("/" + route.strip("/"))
