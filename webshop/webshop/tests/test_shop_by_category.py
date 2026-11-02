@@ -300,7 +300,7 @@ class TestACategoryWithoutAnImage(unittest.TestCase):
 		):
 			return controller, controller._product_photos()
 
-	def test_a_private_picture_is_not_offered_to_a_visitor(self):
+	def test_a_card_does_not_keep_a_private_picture(self):
 		controller = _controller()
 		self.assertIsNone(controller._public_image("/private/files/logo.png"))
 		self.assertEqual("/files/logo.png", controller._public_image("/files/logo.png"))

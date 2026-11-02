@@ -13,7 +13,6 @@ from pathlib import Path
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import get_html_for_route
 
 from webshop.webshop.tests.utils import leaf_item_group
 
@@ -32,12 +31,21 @@ class TestItemGroupPage(FrappeTestCase):
 		group.save()
 		return group
 
-	def test_a_listing_page_has_one_h1_with_or_without_a_band(self):
-		# without band the page's own title is the h1; a band prints its own, and this one stands down
-		group = self._published_group()
-		for route in (group.route, "all-products", "shop-by-category"):
-			with self.subTest(route=route):
-				self.assertEqual(1, get_html_for_route(route).count("<h1"))
+	def test_a_listing_page_prints_its_h1_unless_the_band_does(self):
+		# the header block alone: a whole page needs the site chrome of the Builder, absent from this app's CI
+		def h1_in_header(path, **context):
+			template = frappe.get_jenv().get_template(path)
+			page = template.new_context({"title": "A title", "item_group_name": "A title", **context})
+			return "".join(template.blocks["header"](page)).count("<h1")
+
+		for path in (
+			"webshop/templates/generators/item_group.html",
+			"webshop/www/all-products/index.html",
+			"webshop/www/shop-by-category/index.html",
+		):
+			with self.subTest(path=path):
+				self.assertEqual(1, h1_in_header(path))
+				self.assertEqual(0, h1_in_header(path, band_prints_title=1))
 
 	def test_heading_is_the_name_and_tab_title_adds_the_shop(self):
 		group = self._published_group()
