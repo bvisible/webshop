@@ -231,7 +231,10 @@ def get_carousel_items(item_group=None, only_promotions=False, limit=20,
         # Build field filters
         fields = {}
         if only_promotions:
-            fields["discount"] = [10, 90]
+            # //// Neoffice — every discounted product. ProductQuery reads the first value of this
+            # //// filter as a ceiling ("20% and below", c3ba31203f): [10, 90] left a row of
+            # //// promotions holding only the products at 10% or less, one product on a real shop.
+            fields["discount"] = [100]
         if brand:
             fields["brand"] = brand
         

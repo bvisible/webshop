@@ -103,3 +103,17 @@ class TestCarouselFilters(unittest.TestCase):
 		self.assertTrue(fast.called, "the default sort no longer takes the fast path — update this test")
 		passed = fast.call_args[1].get("brand") or (fast.call_args[0][3] if len(fast.call_args[0]) > 3 else None)
 		self.assertEqual("Alpha", passed)
+
+
+class TestThePromotionsRow(unittest.TestCase):
+	"""ProductQuery reads the first value of the discount filter as a ceiling ("20% and below"). The row asked for [10, 90], which had meant a range before that:
+	a shop with hundreds of promotions showed the one at 10%."""
+
+	def asked(self):
+		with patch("webshop.webshop.product_data_engine.query.ProductQuery") as engine:
+			engine.return_value.query.return_value = {"items": []}
+			get_carousel_items(only_promotions=True, limit=8)
+		return engine.return_value.query.call_args.kwargs["fields"]["discount"]
+
+	def test_every_discounted_product_can_enter_the_row(self):
+		self.assertEqual(100, self.asked()[0])
