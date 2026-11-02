@@ -530,6 +530,8 @@ webshop.ProductView =  class {
 		const customerRating = translations["Customer Rating"] || "Customer Rating";
 		
 		// Add sort selector to toolbar (not toggle-container)
+		//// Neoffice — the select says its name itself: its label is not tied to it, and is hidden on a
+		//// phone (maintenance#2090, Lighthouse select-name).
 		$(".toolbar").append(`
 			<div class="sort-selector-container ml-md-auto d-flex align-items-center mb-2 mb-md-0">
 				<label class="mb-0 mr-2 text-muted small d-none d-sm-block">${sortByLabel}</label>
@@ -537,7 +539,7 @@ webshop.ProductView =  class {
 					<svg class="icon icon-sm mr-1 d-sm-none text-muted" style="width: 16px; height: 16px;">
 						<use href="#icon-sort"></use>
 					</svg>
-					<select class="form-control form-control-sm" id="product-sort-selector" style="width: auto; max-width: 200px;">
+					<select class="form-control form-control-sm" id="product-sort-selector" aria-label="${sortByLabel}" style="width: auto; max-width: 200px;">
 						<option value="relevance" ${saved_sort === 'relevance' ? 'selected' : ''}>${mostRelevant}</option>
 						<option value="price_low_to_high" ${saved_sort === 'price_low_to_high' ? 'selected' : ''}>${priceLowToHigh}</option>
 						<option value="price_high_to_low" ${saved_sort === 'price_high_to_low' ? 'selected' : ''}>${priceHighToLow}</option>
@@ -1101,14 +1103,18 @@ webshop.ProductView =  class {
 		//// Neoffice — the view toggles keep their own container so the toolbar can wrap.
 		$(".toolbar").append(`<div class="toggle-container d-flex justify-content-between align-items-center flex-grow-0"></div>`);
 
+		//// Neoffice — a toggle is an icon alone: it says its name to a screen reader, in the page's
+		//// language (maintenance#2090, Lighthouse button-name).
+		const toggle_names = window.product_translations || {};
 		["btn-list-view", "btn-grid-view"].forEach(view => {
 			let icon = view === "btn-list-view" ? "list" : "image-view";
 			//// Neoffice — `image-view` → `grid` (see prepare_view_toggler).
 			let view_id = view === "btn-list-view" ? "list" : "grid";
+			let view_name = view === "btn-list-view" ? (toggle_names["List"] || "List") : (toggle_names["Grid"] || "Grid");
 			//// Neoffice — the button carries the view id used everywhere else.
 			$(".toggle-container").append(`
 				<div class="form-group mb-0" id="toggle-view">
-					<button id="${ view_id }" class="btn ${ view } mr-2">
+					<button id="${ view_id }" class="btn ${ view } mr-2" aria-label="${ view_name }">
 						<span>
 							<svg class="icon icon-md">
 								<use href="#icon-${ icon }"></use>

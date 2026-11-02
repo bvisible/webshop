@@ -22,7 +22,7 @@
     `has_video`, utils/videos.py, 2026-09-13): the badge, not the video — the tile stays light. -#}
 {%- macro play_mark(item) -%}
 	{%- if item.has_video -%}
-		<span class="wsp-card__play" title="{{ _('Video') }}" aria-label="{{ _('Video') }}"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+		<span class="wsp-card__play" role="img" title="{{ _('Video') }}" aria-label="{{ _('Video') }}"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
 	{%- endif -%}
 {%- endmacro -%}
 
@@ -144,7 +144,9 @@
 			1
 		</div>
 
-		<a href="/cart">
+		{#- //// Neoffice — the link says where it goes: its button is hidden until the item is in the cart, and a
+		    hidden text is no name for a screen reader (maintenance#2090). -#}
+		<a href="/cart" aria-label="{{ _('Cart') }}">
 			<div id="{{ item.name }}" class="btn btn-sm btn-primary btn-add-to-cart-list ml-4 go-to-cart mb-0 mt-0 wsp-card__cta wsp-card__cta--go {{ '' if item.in_cart else 'hidden' }}"
 				data-item-code="{{ item.item_code }}"
 				style="padding: 0.25rem 1rem; min-width: 135px;">
@@ -162,7 +164,8 @@
 			{{ add_label }}
 		</div>
 
-		<a href="/cart">
+		{#- //// Neoffice — same as above (maintenance#2090). -#}
+		<a href="/cart" aria-label="{{ _('Cart') }}">
 			<div id="{{ item.name }}" class="btn btn-sm btn-primary btn-add-to-cart-list go-to-cart-grid wsp-card__cta wsp-card__cta--go {{ '' if item.in_cart else 'hidden' }}"
 				data-item-code="{{ item.item_code }}">
 				{{ go_label }}
