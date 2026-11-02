@@ -156,6 +156,10 @@ jobs:
           # //// silence, and a green run proved nothing about the conclusion. The app is fetched, not installed
           # //// on the site: it only has to import.
           bench get-app https://github.com/bvisible/payments --branch $WEBSHOP_BRANCH
+          # //// Neoffice — the people a test acts as (frappe.tests.roles, maintenance#2125) live in OUR frappe only,
+          # //// and this CI runs upstream's on purpose. Only that file is fetched: a test module that imports it
+          # //// would otherwise die on import here, and the run goes red without having played a single test.
+          curl -fsSL "https://raw.githubusercontent.com/bvisible/frappe/$WEBSHOP_BRANCH/frappe/tests/roles.py" -o apps/frappe/frappe/tests/roles.py
           bench get-app $GITHUB_WORKSPACE
           bench new-site --db-root-password root --admin-password admin test_site
           bench --site test_site install-app erpnext
