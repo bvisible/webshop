@@ -19,6 +19,8 @@ tab and not the page.
 import importlib.util
 import json
 import os
+import unittest
+from unittest.mock import patch
 from urllib.parse import unquote
 
 import frappe
@@ -280,3 +282,45 @@ class TestShopByCategory(FrappeTestCase):
 		self.assertIn("item_group", data)
 		self.assertIn("brand", data)
 
+
+class TestACategoryWithoutAnImage(unittest.TestCase):
+	"""A card shows a product of the category rather than its initials. The database is replaced."""
+
+	def photos(self, items, groups):
+		controller = _controller()
+
+		def get_all(doctype, **kwargs):
+			self.asked = self.asked if doctype == "Item Group" else kwargs
+			return [frappe._dict(row) for row in (items if doctype == "Website Item" else groups)]
+
+		self.asked = None
+		with (
+			patch.object(controller.frappe, "get_all", side_effect=get_all),
+			patch.object(controller, "_visible_item_filters", return_value={"published": 1}),
+		):
+			return controller, controller._product_photos()
+
+	def test_each_group_keeps_its_best_ranked_product_in_tree_order(self):
+		_controller_module, photos = self.photos(
+			[
+				{"item_group": "Pistolets", "website_image": "/files/first.jpg"},
+				{"item_group": "Pistolets", "website_image": "/files/second.jpg"},
+				{"item_group": "Fusils", "website_image": "/files/rifle.jpg"},
+			],
+			[{"name": "Pistolets", "lft": 8}, {"name": "Fusils", "lft": 4}],
+		)
+		self.assertEqual([(4, "/files/rifle.jpg"), (8, "/files/first.jpg")], photos)
+
+	def test_a_private_picture_is_not_offered_to_a_visitor(self):
+		self.photos([], [])
+		self.assertEqual(["like", "/files/%"], self.asked["filters"]["website_image"])
+		self.assertEqual(1, self.asked["filters"]["published"])
+
+	def test_a_group_shows_its_own_product_then_one_under_it_and_else_nothing(self):
+		controller = _controller()
+		photos = [(4, "/files/rifle.jpg"), (8, "/files/gun.jpg")]
+		group = lambda lft, rgt: frappe._dict(lft=lft, rgt=rgt)  # noqa: E731
+		self.assertEqual("/files/rifle.jpg", controller._photo_of(group(4, 5), photos))
+		self.assertEqual("/files/gun.jpg", controller._photo_of(group(7, 9), photos))
+		self.assertEqual("/files/rifle.jpg", controller._photo_of(group(1, 20), photos))
+		self.assertIsNone(controller._photo_of(group(10, 11), photos))

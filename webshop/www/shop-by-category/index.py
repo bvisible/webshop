@@ -137,6 +137,32 @@ def _carried_values(fieldname):
 	return set(_carried_counts(fieldname))
 
 
+# //// Neoffice — added. A category with no image of its own drew its initials: on a shop none of
+# //// whose 234 categories has one, this page was a wall of letters. The catalogue has the
+# //// pictures, so a card shows a product of the category.
+def _product_photos():
+	"""[(lft of a group, a photograph)] in tree order: the best ranked pictured product of each group.
+
+	Public files only: a picture under /private would answer 403 to a visitor.
+	"""
+	rows = frappe.get_all(
+		"Website Item",
+		filters={**_visible_item_filters(), "website_image": ["like", "/files/%"]},
+		fields=["item_group", "website_image"],
+		order_by="ranking desc, creation desc",
+	)
+	photos = {}
+	for row in rows:
+		photos.setdefault(row.item_group, row.website_image)
+	groups = frappe.get_all("Item Group", filters={"name": ("in", list(photos))}, fields=["name", "lft"])
+	return sorted((group.lft, photos[group.name]) for group in groups)
+
+
+def _photo_of(group, photos):
+	"""The group's own product first, else the first one under it: its lft comes first in the tree."""
+	return next((photo for lft, photo in photos if group.lft <= lft <= group.rgt), None)
+
+
 # //// Neoffice — added with the Select branch above.
 def _select_cards(fieldname):
 	"""Cards for a Select filter field: the values published items actually carry.
@@ -217,11 +243,15 @@ def get_category_records(categories):
 					"Item Group", filters={"name": ("in", list(carried))}, fields=["name", "lft"]
 				)
 			]
+			# //// Neoffice — a product stands in for a category that has no image, see _product_photos().
+			photos = _product_photos()
 			kept = []
 			for group in groups:
 				total = sum(count for lft, count in edges if group.lft <= lft <= group.rgt)
 				if total:
 					group.count = total
+					# //// Neoffice — see _product_photos(): the image of the category wins, a product stands in for it.
+					group.image = group.image or _photo_of(group, photos)
 					kept.append(group)
 			# //// Neoffice — each card says the category as the visitor reads it (`label`, multilingual lot 14);
 			# //// `name` stays what the card filters on.
