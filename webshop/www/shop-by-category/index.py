@@ -194,6 +194,12 @@ def _select_cards(fieldname):
 	]
 
 
+# //// Neoffice — added. A private file reaches a visitor as a broken picture (brand logos uploaded as
+# //// private): the card then falls back the way a record with no image does.
+def _public_image(url):
+	return None if (url or "").startswith("/private/") else url
+
+
 def get_category_records(categories):
 	categorical_data = {}
 	website_item_meta = frappe.get_meta("Website Item", cached=True)
@@ -251,7 +257,7 @@ def get_category_records(categories):
 				if total:
 					group.count = total
 					# //// Neoffice — see _product_photos(): the image of the category wins, a product stands in for it.
-					group.image = group.image or _photo_of(group, photos)
+					group.image = _public_image(group.image) or _photo_of(group, photos)
 					kept.append(group)
 			# //// Neoffice — each card says the category as the visitor reads it (`label`, multilingual lot 14);
 			# //// `name` stays what the card filters on.
@@ -330,6 +336,10 @@ def get_category_records(categories):
 				from webshop.webshop.utils.localized import label_rows
 
 				label_rows(doctype, rows)
+			# //// Neoffice — see _public_image(): the card draws its initials instead of a broken picture.
+			for row in rows:
+				if row.get("image"):
+					row.image = _public_image(row.image)
 			categorical_data[category] = rows
 
 	return categorical_data

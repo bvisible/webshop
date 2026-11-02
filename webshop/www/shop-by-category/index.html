@@ -30,6 +30,9 @@
 <script type="text/javascript" src="/shop-by-category/index.js"></script>
 {% endblock %}
 
+{#- //// Neoffice — the site's page band prints this page's h1; without a band the page had no title at all. #}
+{% block header %}{% if not band_prints_title %}<h1 class="webshop-page-title">{{ title }}</h1>{% endif %}{% endblock %}
+
 {% block page_content %}
 <div class="shop-by-category-content">
 	{# //// Neoffice — the wrapper is drawn only when there IS a slideshow. Empty, it #}

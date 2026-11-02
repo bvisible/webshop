@@ -22,6 +22,14 @@
 
 	   These two lines used to sit OUTSIDE this <style> block, where `/* … *\/` is not a
 	   comment but text, and printed on the catalogue page. */
+	/* //// Neoffice — the h1 of a listing page that no band tops: where the plain line stood, at a
+	   title's size; it shrinks when it becomes the sticky filter bar. */
+	h1.webshop-page-title {
+		margin: 0;
+		font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+		line-height: 1.2;
+	}
+	.sticky-filter-header.is-sticky h1.webshop-page-title { font-size: 1rem; }
 	/* Sticky filter header on mobile */
 	@media (max-width: 767.98px) {
 		.sticky-filter-header {
@@ -300,6 +308,32 @@
 		background: rgba(127, 127, 127, .14);
 		color: inherit;
 		opacity: .8;
+	}
+	/* //// Neoffice — two tiles a row on a phone: at 240px minimum the grid fell to one column, a
+	   screen per category. The picture and the initials stop following the card's square (their
+	   height and padding were meant for a 300px card), and the card grows with a two-line name. */
+	@media (max-width: 575px) {
+		.product-category-section.products-list {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 12px;
+		}
+		.category-card { aspect-ratio: auto; }
+		.category-card .card-img-wrapper,
+		.category-card .placeholder-div {
+			height: auto !important;
+			aspect-ratio: 1 / 1;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 12px !important;
+		}
+		.category-card .placeholder { font-size: 40px; }
+		.category-card .card-body {
+			flex-wrap: wrap;
+			padding: 4px 6px 10px;
+			font-size: .875rem;
+			line-height: 1.25;
+		}
 	}
 	@media (max-width: 767px) {
 		.sort-options {

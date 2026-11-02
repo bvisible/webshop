@@ -13,6 +13,7 @@ from pathlib import Path
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import get_html_for_route
 
 from webshop.webshop.tests.utils import leaf_item_group
 
@@ -30,6 +31,13 @@ class TestItemGroupPage(FrappeTestCase):
 		group.show_in_website = 1
 		group.save()
 		return group
+
+	def test_a_listing_page_has_one_h1_with_or_without_a_band(self):
+		# without band the page's own title is the h1; a band prints its own, and this one stands down
+		group = self._published_group()
+		for route in (group.route, "all-products", "shop-by-category"):
+			with self.subTest(route=route):
+				self.assertEqual(1, get_html_for_route(route).count("<h1"))
 
 	def test_heading_is_the_name_and_tab_title_adds_the_shop(self):
 		group = self._published_group()

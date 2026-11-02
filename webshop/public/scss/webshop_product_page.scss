@@ -443,12 +443,6 @@ body:has(.site-page-header) .product-header-block .like-action { margin: 0; }
 	.webshop-buybar { transition: none; }
 }
 
-/* the question button: an icon beside the cart button, words on a phone */
-.btn-inquiry__label { display: none; }
-@media (max-width: 767.98px) {
-	.btn-inquiry__label { display: inline; margin-left: 6px; }
-}
-
 /* a bundle's contents */
 .product-bundle-section { padding: 24px 0 0; margin: 24px 0 0; border-top: 1px solid var(--wsh-line); }
 .bundle-title { margin: 0 0 16px; font-size: 1.15rem; font-weight: 600; color: var(--wsh-text); }

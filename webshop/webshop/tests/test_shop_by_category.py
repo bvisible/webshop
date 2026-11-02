@@ -300,6 +300,12 @@ class TestACategoryWithoutAnImage(unittest.TestCase):
 		):
 			return controller, controller._product_photos()
 
+	def test_a_private_picture_is_not_offered_to_a_visitor(self):
+		controller = _controller()
+		self.assertIsNone(controller._public_image("/private/files/logo.png"))
+		self.assertEqual("/files/logo.png", controller._public_image("/files/logo.png"))
+		self.assertIsNone(controller._public_image(None))
+
 	def test_each_group_keeps_its_best_ranked_product_in_tree_order(self):
 		_controller_module, photos = self.photos(
 			[
