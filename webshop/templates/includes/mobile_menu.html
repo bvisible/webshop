@@ -50,7 +50,10 @@
     </div>
 </div>
 
-{# //// Neoffice — styles moved to webshop/public/scss/webshop_shell.scss (the shop bundle or the component's own; no <style> lives in a template any more) #}
+{#- //// Neoffice — a Builder navbar includes this menu, and a Builder page loads no shop
+    bundle: it carries its own compiled stylesheet, once per request (utils/assets.py). -#}
+{%- set _component_css = webshop_component_css("webshop_mobile_menu") -%}
+{%- if _component_css %}<style>{{ _component_css | safe }}</style>{% endif -%}
 <script>
     // v2.10.5: Mobile Menu with Debug Logging
     document.addEventListener('DOMContentLoaded', function() {

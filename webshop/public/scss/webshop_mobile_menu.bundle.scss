@@ -1,0 +1,169 @@
+// //// Neoffice — added file (no upstream equivalent). The mobile menu's own stylesheet,
+// printed inline once per request by the include (utils/assets.py): a Builder navbar
+// includes this menu, and a Builder page loads no shop bundle. It sat in
+// webshop_shell.scss since 4a016d1396: a Builder page lost its hamburger, the links of
+// the menu ran off a phone's screen (maintenance#2154). Not imported by
+// webshop-web.bundle.scss.
+
+// //// Neoffice — the design tokens come first: a component a Builder page includes reads
+// the same tokens as the shop's own pages.
+@import "./webshop_tokens";
+
+/* ---- from webshop/templates/includes/mobile_menu.html (block 1) ---- */
+    /* Header authentication wrapper styles */
+    .mobile-auth-wrapper {
+        width: 100%;
+        padding: 0 0 10px 0;
+    }
+    
+    .mobile-auth-wrapper .header-auth {
+        margin-left: 0 !important;
+        width: 100%;
+    }
+    
+    .mobile-auth-wrapper .auth-wrapper {
+        width: 100%;
+    }
+    
+    .mobile-auth-wrapper .auth-button {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .mobile-auth-wrapper #user-dropdown {
+        position: absolute;
+        width: 100%;
+        margin-top: 10px;
+        padding-top: 0;
+    }
+    
+    .mobile-auth-wrapper #user-dropdown.show {
+        display: block;
+    }
+    
+    .mobile-auth-wrapper .dropdown-item {
+        padding: 10px 15px;
+    }
+    
+    .mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        z-index: 1001;
+    }
+    
+    .hamburger-icon {
+        width: 24px;
+        height: 18px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .hamburger-icon .line {
+        display: block;
+        width: 100%;
+        height: 2px;
+        background-color: var(--wsh-text);
+        transition: all var(--wsh-motion);
+    }
+    
+    .mobile-menu-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--wsh-overlay);
+        z-index: 1090;
+        display: none;
+    }
+    
+    .mobile-menu {
+        position: fixed;
+        top: 0;
+        /* //// Neoffice — comment translated from French to English, no logic change (4b068b5016 "chore(rule-00): the comments, the docstrings and the last French label leave French behind") */
+        right: -300px; /* Hidden off-screen */
+        width: 280px;
+        height: 100%;
+        background-color: var(--wsh-surface);
+        z-index: 1100;
+        box-shadow: var(--wsh-shadow);
+        transition: right var(--wsh-motion);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    
+    .mobile-menu.open {
+        right: 0;
+    }
+    
+    .mobile-menu-overlay.open {
+        display: block;
+    }
+    
+    .mobile-menu-header {
+        padding: 25px;
+        border-bottom: 1px solid #ededed;
+        position: relative;
+    }
+    
+    .mobile-menu-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        cursor: pointer;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .mobile-menu-content {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+    }
+    
+    /* Mobile navigation styles - v2.10.5 */
+    .mobile-navigation-wrapper nav {
+        display: flex;
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    .mobile-navigation-wrapper nav a {
+        padding: 15px 20px !important; /* v2.10.5: Increased for touch-friendly (min 44px) */
+        text-decoration: none;
+        color: var(--wsh-text) !important;
+        border-bottom: 1px solid var(--wsh-line-light);
+        font-size: 16px !important;
+        display: block !important;
+        width: 100% !important;
+        text-align: left !important;
+        transition: background-color var(--wsh-motion); /* v2.10.5: Smooth hover */
+        min-height: 44px; /* v2.10.5: Touch target minimum */
+        display: flex;
+        align-items: center;
+    }
+
+    .mobile-navigation-wrapper nav a:hover,
+    .mobile-navigation-wrapper nav a:active {
+        background-color: var(--wsh-surface-muted); /* v2.10.5: Visual feedback */
+    }
+
+    .mobile-navigation-wrapper nav a p {
+        margin: 0 !important;
+    }
+
+    /* v2.10.5: Fallback message styling */
+    .mobile-menu-fallback {
+        width: 100%;
+        padding: 20px;
+    }
