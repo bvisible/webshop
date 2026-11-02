@@ -10,6 +10,7 @@ import importlib.util
 import re
 from pathlib import Path
 import frappe
+from frappe.tests.roles import as_role
 from frappe.tests.utils import FrappeTestCase
 
 from webshop.webshop.doctype.website_item.website_item import make_website_item
@@ -23,6 +24,13 @@ from webshop.webshop.tests.utils import (
 	snapshot_webshop_settings,
 )
 from webshop.webshop.utils import used_items
+
+
+def create_used_unit(*args, **kwargs):
+	"""Whoever keeps the stock makes a used unit from the item's form, never Administrator, whom the right on Item
+	that guards this call never refuses (neoffice-maintenance#2125)."""
+	with as_role("warehouse"):
+		return used_items.create_used_unit(*args, **kwargs)
 
 
 class TestUsedItems(FrappeTestCase):
@@ -130,7 +138,7 @@ class TestUsedItems(FrappeTestCase):
 		source = self.make_source("Mouse", is_stock_item=0)
 		make_website_item(source)
 
-		result = used_items.create_used_unit(
+		result = create_used_unit(
 			source.name,
 			price=40,
 			condition="Second-hand",
@@ -177,16 +185,26 @@ class TestUsedItems(FrappeTestCase):
 		self.assertEqual(info.reference.route, frappe.db.get_value("Website Item", {"item_code": source.name}, "route"))
 
 		# the second unit takes the next number
-		second = used_items.create_used_unit(source.name, price=35, publish=0, price_list=self.price_list)
+		second = create_used_unit(source.name, price=35, publish=0, price_list=self.price_list)
 		self.assertEqual(second["item_code"], f"{source.name}-USED-02")
 		self.assertIsNone(second["website_item"])
+
+	def test_a_used_unit_takes_nothing_the_item_says_must_not_be_copied(self):
+		"""A site's unique field is `no_copy` (neo_item_uid of the item spreadsheet): the copy repeated it and the insert
+		died on every site that has one (#2125). `last_purchase_rate` is the `no_copy` field every site has."""
+		source = self.make_source("Scale", is_stock_item=0)
+		frappe.db.set_value("Item", source.name, "last_purchase_rate", 12)
+
+		result = create_used_unit(source.name, price=30, publish=0, price_list=self.price_list)
+
+		self.assertEqual(frappe.db.get_value("Item", result["item_code"], "last_purchase_rate"), 0)
 
 	def test_used_unit_enters_the_stock(self):
 		if not self.warehouse:
 			self.fail("no leaf warehouse on this site")
 		source = self.make_source("Lamp", is_stock_item=1)
 
-		result = used_items.create_used_unit(
+		result = create_used_unit(
 			source.name, price=60, qty=1, cost=15, warehouse=self.warehouse, publish=0
 		)
 
@@ -224,7 +242,7 @@ class TestUsedItems(FrappeTestCase):
 			self.fail("no leaf warehouse on this site")
 		source = self.make_source("Speaker", is_stock_item=1)
 		self.publish_with_route(source)
-		result = used_items.create_used_unit(
+		result = create_used_unit(
 			source.name, price=50, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
 		)
 		page = result["website_item"]
@@ -273,7 +291,7 @@ class TestUsedItems(FrappeTestCase):
 			self.fail("no leaf warehouse on this site")
 		source = self.make_source("Radio", is_stock_item=1)
 		self.publish_with_route(source)
-		result = used_items.create_used_unit(
+		result = create_used_unit(
 			source.name, price=50, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
 		)
 		page = result["website_item"]
@@ -287,7 +305,7 @@ class TestUsedItems(FrappeTestCase):
 			self.fail("no leaf warehouse on this site")
 		source = self.make_source("Amplifier", is_stock_item=1)
 		self.publish_with_route(source)
-		result = used_items.create_used_unit(
+		result = create_used_unit(
 			source.name, price=50, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
 		)
 		page, unit = result["website_item"], result["item_code"]
@@ -310,7 +328,7 @@ class TestUsedItems(FrappeTestCase):
 			self.fail("no leaf warehouse on this site")
 		source = self.make_source("Turntable", is_stock_item=1)
 		self.publish_with_route(source)
-		result = used_items.create_used_unit(
+		result = create_used_unit(
 			source.name, price=50, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
 		)
 		page, unit = result["website_item"], result["item_code"]
@@ -338,10 +356,10 @@ class TestUsedItems(FrappeTestCase):
 			self.fail("no leaf warehouse on this site")
 		source = self.make_source("Camera", is_stock_item=1)
 		self.publish_with_route(source)
-		first = used_items.create_used_unit(
+		first = create_used_unit(
 			source.name, price=80, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
 		)
-		second = used_items.create_used_unit(
+		second = create_used_unit(
 			source.name, price=70, qty=1, cost=10, warehouse=self.warehouse, publish=1, price_list=self.price_list
 		)
 		page = frappe.get_doc("Website Item", first["website_item"])
@@ -363,11 +381,11 @@ class TestUsedItems(FrappeTestCase):
 		source = self.make_source("Template", is_stock_item=0)
 		# a template needs an attribute table to save; the guard only reads the flag
 		frappe.db.set_value("Item", source.name, "has_variants", 1)
-		self.assertRaises(frappe.ValidationError, used_items.create_used_unit, source.name, price=10)
+		self.assertRaises(frappe.ValidationError, create_used_unit, source.name, price=10)
 
 	def test_price_is_mandatory(self):
 		source = self.make_source("Free", is_stock_item=0)
-		self.assertRaises(frappe.ValidationError, used_items.create_used_unit, source.name, price=0)
+		self.assertRaises(frappe.ValidationError, create_used_unit, source.name, price=0)
 
 	# --- the shop follows the item ----------------------------------------
 
@@ -397,7 +415,7 @@ class TestUsedItems(FrappeTestCase):
 		make_website_item(source)
 		before = facet()
 
-		used_items.create_used_unit(source.name, price=20, condition="Refurbished", publish=1)
+		create_used_unit(source.name, price=20, condition="Refurbished", publish=1)
 		after = facet()
 
 		self.assertIsNotNone(after)

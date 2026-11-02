@@ -310,7 +310,9 @@ def create_used_unit(
 	if price <= 0:
 		frappe.throw(_("A selling price is required."))
 
-	unit = frappe.copy_doc(source)
+	# ignore_no_copy=False, as the desk's Duplicate does: by default copy_doc keeps the no_copy fields, and the unit took
+	# the source's unique neo_item_uid (item spreadsheet), which refused the insert on every site with the theme.
+	unit = frappe.copy_doc(source, ignore_no_copy=False)
 	unit.item_code = next_used_item_code(source.item_code)
 	unit.item_name = (
 		_("{0} (second-hand)").format(source.item_name)
