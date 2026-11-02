@@ -426,5 +426,9 @@ jinja = {
         # //// Neoffice — {brand: "/brands/<slug>"} for the brands that have a page (#691 lot 2):
         # //// the product page, the brand carousel and the category page link a brand there.
         "webshop.webshop.product_data_engine.brand_pages.brand_page_routes",
+        # //// Neoffice — the name of an item group or a brand as the visitor reads it: its translation
+        # //// of content, then the interface's, then the name (utils/localized.py, multilingual lot 14).
+        # //// The shop printed these through _() alone, so an added language never reached them.
+        "webshop.webshop.utils.localized.webshop_label",
 	]
 }

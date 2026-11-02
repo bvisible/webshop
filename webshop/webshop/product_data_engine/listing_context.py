@@ -241,7 +241,13 @@ def sub_categories(item_group):
 	if not children:
 		return []
 	carried = groups_carrying_items()
-	return [child for child in children if carried.get(child.name)]
+	shown = [child for child in children if carried.get(child.name)]
+	# //// Neoffice — each pill carries `label`, the name as the visitor reads it (utils/localized.py,
+	# //// multilingual lot 14); `name` stays what its link and the catalogue use. The page's template
+	# //// and views.js (render_item_sub_categories) both read it.
+	from webshop.webshop.utils.localized import label_rows
+
+	return label_rows("Item Group", shown)
 
 
 def pager(route, start, page_length, total):

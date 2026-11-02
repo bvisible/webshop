@@ -223,7 +223,11 @@ def get_category_records(categories):
 				if total:
 					group.count = total
 					kept.append(group)
-			categorical_data["item_group"] = kept
+			# //// Neoffice — each card says the category as the visitor reads it (`label`, multilingual lot 14);
+			# //// `name` stays what the card filters on.
+			from webshop.webshop.utils.localized import label_rows
+
+			categorical_data["item_group"] = label_rows("Item Group", kept)
 		else:
 			# //// Neoffice — `doctype` was read from the loop above without ever being
 			# //// initialised: a Table MultiSelect whose child has no mandatory Link left it
@@ -291,6 +295,11 @@ def get_category_records(categories):
 				routes = brand_page_routes()
 				for row in rows:
 					row.route = routes.get(row.name)
+			# //// Neoffice — a brand card says the brand as the visitor reads it (lot 14), see the item groups above.
+			if doctype in ("Brand", "Item Group"):
+				from webshop.webshop.utils.localized import label_rows
+
+				label_rows(doctype, rows)
 			categorical_data[category] = rows
 
 	return categorical_data

@@ -236,7 +236,8 @@
 		</div>
 		{%- if item.is_gift_card %}
 		<p class="product-code wsp-card__meta">
-			{{ item.item_group | e }} | {{ _("Item Code") }} : {{ item.item_code }}
+			{#- //// Neoffice — the category as the visitor reads it (utils/localized.py, lot 14): was the stored name. #}
+			{{ webshop_label("Item Group", item.item_group, False) | e }} | {{ _("Item Code") }} : {{ item.item_code }}
 		</p>
 		<div class="mt-2 wsp-card__excerpt" style="color: var(--gray-600) !important; font-size: 13px;">
 			{{ item.short_description or "" }}
@@ -244,7 +245,8 @@
 		{%- else %}
 		<div class="product-category-stock wsp-card__meta">
 			<p class="product-code" style="margin-bottom: 0.5rem;">
-				{{ item.item_group | e }} | {{ _("Item Code") }} : {{ item.item_code }}
+				{#- //// Neoffice — the category as the visitor reads it, see the gift card line above. #}
+				{{ webshop_label("Item Group", item.item_group, False) | e }} | {{ _("Item Code") }} : {{ item.item_code }}
 				{%- if settings.show_stock_availability and not item.has_variants %} | {{ stock_info(item) }}{% endif %}
 			</p>
 		</div>
@@ -287,7 +289,8 @@
 		<div class="card-body card-body-flex text-left wsp-card__body" style="width: 100%;">
 			<div class="mt-4 wsp-card__head">
 				<div class="product-title wsp-card__title">{{ title | e }}</div>
-				<div class="product-category wsp-card__category">{{ _(item.item_group) if item.item_group else "" }}</div>
+				{#- //// Neoffice — the category's translation of content first, then the interface's (_()), as the visitor reads it (lot 14). #}
+				<div class="product-category wsp-card__category">{{ webshop_label("Item Group", item.item_group) | e if item.item_group else "" }}</div>
 			</div>
 			{{ price_block(item) }}
 			{%- if (item.available and settings.show_stock_availability) or (not settings.show_stock_availability) %}
@@ -351,7 +354,8 @@
 		</div>
 		<div class="card-body text-left card-body-flex wsp-card__body">
 			{%- if item.brand %}
-			<div class="wsp-card__head"><span class="wsp-card__brand">{{ item.brand | e }}</span></div>
+			{#- //// Neoffice — the brand as the visitor reads it (utils/localized.py, lot 14): was the stored name. #}
+			<div class="wsp-card__head"><span class="wsp-card__brand">{{ webshop_label("Brand", item.brand, False) | e }}</span></div>
 			{%- endif %}
 			<a href="/{{ route }}" class="wsp-card__title-link">
 				{#- //// Neoffice — itemprop removed (#691, see price_block). #}
@@ -359,7 +363,7 @@
 			</a>
 			<div class="product-category-stock wsp-card__meta">
 				{#- //// Neoffice — itemprop removed (#691): a category is not the product's name. #}
-				<div class="product-category wsp-card__category">{{ item.item_group | e if item.item_group else "" }}</div>
+				<div class="product-category wsp-card__category">{{ webshop_label("Item Group", item.item_group, False) | e if item.item_group else "" }}</div>
 				{%- if variant == "grid" and settings.show_stock_availability and not item.has_variants %}
 				{{ stock_info(item) }}
 				{%- endif %}

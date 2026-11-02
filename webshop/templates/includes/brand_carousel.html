@@ -61,7 +61,8 @@
                 <div class="card-img-container">
                   <a href="/{{ brand.route or '#' }}" style="text-decoration: none;">
                     {% if brand.logo %}
-                      <img class="card-img" src="{{ brand.logo }}" alt="{{ brand.brand_name }}">
+                      {#- //// Neoffice — the brand as the visitor reads it (utils/localized.py, lot 14). #}
+                      <img class="card-img" src="{{ brand.logo }}" alt="{{ webshop_label("Brand", brand.brand_name, False) | e }}">
                     {% else %}
                       <div class="card-img-top no-image">
                         {{ brand.brand_name[:2].upper() }}
@@ -73,7 +74,8 @@
                   <div class="brand-header">
                     <a href="/{{ brand.route or '#' }}">
                       <div class="brand-title">
-                        {{ _(brand.brand_name) }}
+                        {#- //// Neoffice — its translation of content first, then the interface's (lot 14). #}
+                        {{ webshop_label("Brand", brand.brand_name) | e }}
                       </div>
                     </a>
                   </div>

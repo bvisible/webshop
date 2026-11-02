@@ -4,7 +4,7 @@
 {%- if brand and (brand.image or brand.description) %}
 <div class="wsp-brand-intro">
 	{%- if brand.image %}
-	<img class="wsp-brand-intro__logo" src="{{ brand.image | e }}" alt="{{ brand.name | e }}" decoding="async">
+	<img class="wsp-brand-intro__logo" src="{{ brand.image | e }}" alt="{{ webshop_label("Brand", brand.name, False) | e }}" decoding="async">
 	{%- endif %}
 	{%- if brand.description %}
 	<p class="wsp-brand-intro__text">{{ brand.description | e }}</p>

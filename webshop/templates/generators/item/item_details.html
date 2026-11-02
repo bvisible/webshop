@@ -38,14 +38,16 @@
 			{#- //// Neoffice — the brand's own page when it has one (#691 lot 2), not the filtered
 			    catalogue robots.txt closes #}
 			<a href="{{ brand_page_routes().get(doc.brand) or '/all-products?field_filters=' ~ ({'brand':[doc.brand]}|tojson|urlencode) }}" class="brand-link">
-				{{ _(doc.brand) }}
+				{#- //// Neoffice — the brand as the visitor reads it: its translation of content, then the interface's (lot 14). #}
+				{{ webshop_label("Brand", doc.brand) | e }}
 			</a>
 		</span>
 		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: · #}
 		<span class="product-separator">·</span>
 		{% endif %}
 		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: _(doc.item_group) #}
-		<span class="product-item-group">{{ _(doc.item_group) }}</span>
+		{#- //// Neoffice — the category, same rule as the brand above (lot 14). #}
+		<span class="product-item-group">{{ webshop_label("Item Group", doc.item_group) | e }}</span>
 		<span class="product-separator">·</span>
 		{#- //// Neoffice — itemprop="name" removed: the product was named "Code article:" in its microdata (#691). #}
 		<span class="product-item-code">{{ _("Item Code") }}:</span>

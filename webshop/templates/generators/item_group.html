@@ -11,7 +11,8 @@
 {# //// filter button has to stay reachable while scrolling a long listing (48db60993c / #}
 {# //// 93512008a9, 2025-12-17). #}
 <div class="mb-6 d-flex justify-content-between align-items-center sticky-filter-header">
-  <div>{{ _(item_group_name) }}</div>
+  {#- //// Neoffice — the category as the visitor reads it: its translation of content, then the interface's (lot 14). #}
+  <div>{{ webshop_label("Item Group", item_group_name) | e }}</div>
   <button id="filterButton" class="filter-button d-md-none">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
     <span>{{ _("Filters") }}</span>

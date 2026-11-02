@@ -402,7 +402,8 @@
 				{{ render_hierarchical_item_groups(values, item_field.fieldname) }}
 			{% else %}
 				{% for value in values %}
-				<div class="filter-lookup-wrapper checkbox{% if item_field.fieldname == 'brand' and loop.index > 12 %} brand-extra{% endif %}" data-value="{{ value.name if item_field.fieldname == 'brand' else value }}">
+				{#- //// Neoffice — data-label: what the lookup box matches besides the stored name, since the visitor types what they read. #}
+				<div class="filter-lookup-wrapper checkbox{% if item_field.fieldname == 'brand' and loop.index > 12 %} brand-extra{% endif %}" data-value="{{ value.name if item_field.fieldname == 'brand' else value }}"{% if item_field.fieldname == 'brand' %} data-label="{{ webshop_label("Brand", value.name) | e }}"{% endif %}>
 					<label for="{{ value.name if item_field.fieldname == 'brand' else value }}" class="mb-0 d-flex align-items-center">
 						<input type="checkbox"
 							class="product-filter field-filter"
@@ -410,7 +411,8 @@
 							data-filter-name="{{ item_field.fieldname }}"
 							data-filter-value="{{ value.name if item_field.fieldname == 'brand' else value }}"
 							style="width: 14px !important">
-						<span class="label-area">{{ _(value.name if item_field.fieldname == 'brand' else value) }}</span>
+						{#- //// Neoffice — a brand is shown under its translation of content (utils/localized.py, lot 14); the value the box filters on stays the name. #}
+						<span class="label-area">{{ (webshop_label("Brand", value.name) if item_field.fieldname == 'brand' else _(value)) | e }}</span>
 						{% if item_field.fieldname == 'brand' %}
 							<span class="badge badge-light ml-1">{{ value.count if value.count else '' }}</span>
 						{% endif %}
@@ -477,7 +479,8 @@
 
 {%- macro render_hierarchical_item_groups(item_groups, fieldname, level=0) -%}
 	{% for group in item_groups %}
-		<div class="filter-lookup-wrapper checkbox hierarchical-item-group level-{{ level }}" data-value="{{ group.name }}">
+		{#- //// Neoffice — data-label: what the lookup box matches besides the stored name (lot 14), as for the brands. #}
+		<div class="filter-lookup-wrapper checkbox hierarchical-item-group level-{{ level }}" data-value="{{ group.name }}" data-label="{{ webshop_label("Item Group", group.name) | e }}">
 			<div class="d-flex align-items-center justify-content-between w-100">
 				<div class="d-flex align-items-center">
 					<label for="{{ group.name }}" class="mb-0 d-flex align-items-center">
@@ -487,7 +490,8 @@
 							data-filter-name="{{ fieldname }}"
 							data-filter-value="{{ group.name }}"
 							style="width: 14px !important">
-						<span class="label-area">{{ _(group.name) }}</span>
+						{#- //// Neoffice — the category's translation of content first, then the interface's (lot 14); the value the box filters on stays the name. #}
+						<span class="label-area">{{ webshop_label("Item Group", group.name) | e }}</span>
 						{% if group.count %}
 							<span class="badge badge-light ml-1">{{ group.count }}</span>
 						{% endif %}

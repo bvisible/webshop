@@ -350,7 +350,9 @@ webshop.ProductView =  class {
 							//// "Second-hand" next to a sidebar reading "Occasion". The catalogue's own
 							//// translation table is the fallback now.
 							const translated = translations[value] || value;
-							const displayLabel = $checkbox.length ? $checkbox.next('label').text().trim() || translated : translated;
+							//// Neoffice — the facet's own label first (data-label: its translation of content, lot 14).
+							const facetLabel = $checkbox.length ? ($checkbox.closest('[data-label]').attr('data-label') || '').trim() : '';
+							const displayLabel = facetLabel || ($checkbox.length ? $checkbox.next('label').text().trim() || translated : translated);
 							$badges.append(`
 								<span class="badge badge-secondary active-filter-badge" data-filter-type="field" data-filter-name="${fieldName}" data-filter-value="${value}" style="cursor: pointer;">
 									${displayLabel}
@@ -1848,8 +1850,11 @@ webshop.ProductView =  class {
 				$filter_options.find('.filter-lookup-wrapper').each((i, el) => {
 					const $el = $(el);
 					const value = ($el.data('value') || '').toLowerCase();
+					//// Neoffice — the visitor types what they read: the facet's translated label (data-label, lot 14)
+					//// matches as well as the stored name.
+					const label = ($el.attr('data-label') || '').toLowerCase();
 					
-					if (value.includes(keyword)) {
+					if (value.includes(keyword) || label.includes(keyword)) {
 						// Show this element
 						$el.show();
 						
@@ -2323,7 +2328,7 @@ webshop.ProductView =  class {
 				sub_group_html += `
 					<a href="/${ category.route || '#' }" style="text-decoration: none;">
 						<div class="category-pill">
-							${ category.name }
+							${ /* //// Neoffice — the pill says the category as the visitor reads it: the server gives its translation as `label` (lot 14). */ category.label || category.name }
 						</div>
 					</a>
 				`;

@@ -94,6 +94,60 @@ def localize_labels(doctype, rows, key="name"):
 		return rows
 
 
+# Beyond this many records a doctype's labels are read one by one (memoised by the theme) instead of all at once.
+LABEL_MAP_LIMIT = 2000
+
+
+def label_map(doctype):
+	"""``{name: its translation}`` of the records of ``doctype`` that have one the visitor may read, or None when there are too
+	many records to read them all at once (``LABEL_MAP_LIMIT``). Two queries for the whole request, whatever the number of labels
+	a page prints: the item groups of a shop and its brands, a few hundred at most. Empty in the site's own language."""
+	language = content_language()
+	engine = _engine()
+	if language is None or engine is None:
+		return {}
+	cache = frappe.local.cache.setdefault("webshop_label_maps", {})
+	key = (language, doctype)
+	if key not in cache:
+		try:
+			names = frappe.get_all(doctype, pluck="name", limit_page_length=0)
+			if len(names) > LABEL_MAP_LIMIT:
+				cache[key] = None
+			else:
+				found = engine.get_translations(doctype, names, ["name"], language)
+				cache[key] = {name: text for (name, _row, _field), text in found.items() if text}
+		except Exception:  # noqa: BLE001 — see the module docstring
+			frappe.log_error("Localized content: labels failed", frappe.get_traceback())
+			cache[key] = {}
+	return cache[key]
+
+
+def webshop_label(doctype, name, interface=True):
+	"""The name of an item group or a brand as the visitor reads it: its translation of content, else (``interface``) what the
+	interface's own translation list says of it (Frappe's Translation, which a shop may have typed its categories in before),
+	else the name. A jinja method: templates print it, and never use it as a value to filter on, link to or look up.
+
+	``interface=False`` for a surface that never went through ``_()``: a site that activates nothing prints it byte for byte as before.
+	"""
+	if not name:
+		return ""
+	shown = label_map(doctype)
+	shown = shown.get(name) if shown is not None else label(doctype, name)
+	if shown and shown != name:
+		return shown
+	return frappe._(name) if interface else name
+
+
+def label_rows(doctype, rows, key="name", into="label"):
+	"""Give each row the name it is shown under, in ``into``: its translation, else its own name. The row's ``key`` stays what
+	the catalogue filters on."""
+	for row in rows or []:
+		name = row.get(key)
+		if name:
+			row[into] = webshop_label(doctype, name, interface=False)
+	return rows
+
+
 def search_condition(doctype, name_sql, fieldnames, word):
 	"""``(sql, values)`` matching a search word against the visible translations, or None."""
 	engine = _engine()

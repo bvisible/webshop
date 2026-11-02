@@ -35,13 +35,15 @@
 <div class="col-12 item-card-group-section">
 	<div class="row products-list product-category-section">
 		{%- for row in data -%}
-			{%- set title = row.name -%}
+			{#- //// Neoffice — the card says the name as the visitor reads it (row.label, multilingual lot 14); #}
+			{#- //// it filters on what is stored (the value passed below), never on what it says. #}
+			{%- set title = row.get("label") or row.name -%}
 			{%- set image = row.get("image") -%}
 			{%- if title -%}
 				{# //// Neoffice — row.get("value") passed through so a Select-facet card filters on #}
 				{# //// the stored value, not the displayed title (2bafdf34c2 "fix(catalogue): la page #}
 				{# //// « Catégories et marques » cesse de parler anglais") #}
-				{{ card(title, image, type, row.get("route"), row.get("value"), row.get("count")) }}
+				{{ card(title, image, type, row.get("route"), row.get("value") or row.name, row.get("count")) }}
 			{%- endif -%}
 		{%- endfor -%}
 	</div>
