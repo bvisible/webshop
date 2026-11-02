@@ -129,12 +129,6 @@
 	{# //// Neoffice — not under a gift card: nothing ships, nothing comes back (2026-09-13). #}
 	{% if not doc.is_gift_card %}
 	{% include "templates/generators/item/item_promises.html" %}
-	{# //// Neoffice — the product's sheet, a PDF: the shop's, and the reseller's own (catalogue/sheet_links.py, 2026-10-30) #}
-	{% if sheet_links %}
-	<div class="wsp-sheet-links mt-3">
-		{% for link in sheet_links %}<a class="btn btn-outline-primary btn-sm mr-2 mb-2" href="{{ link.href | e }}" target="_blank" rel="noopener">{{ link.label | e }}</a>{% endfor %}
-	</div>
-	{% endif %}
 	{% endif %}
 	{% set _trust_items = cart_settings.get("trust_items") or [] %}
 	{% if _trust_items %}
@@ -160,6 +154,13 @@
 		</div>
 		{% endfor %}
 	</div>
+	{% endif %}
+
+	{# //// Neoffice — the product's sheet, a PDF: the shop's, and the reseller's own (catalogue/sheet_links.py, 2026-10-30).
+	    2026-11-02: one quiet row of icons after the promises AND the trust items (between them it kept the two lists
+	    from touching: `.wsp-promises + .buybox-trust`), not two outlined buttons. #}
+	{% if not doc.is_gift_card %}
+	{% include "templates/generators/item/item_sheet_links.html" %}
 	{% endif %}
 
 	{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: place (item.html's script) — so the page never carries a second … #}

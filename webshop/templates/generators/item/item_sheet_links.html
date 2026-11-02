@@ -1,0 +1,16 @@
+{# //// Neoffice — added file (no upstream equivalent). The product's sheet, a PDF, as one quiet row under the
+    buy column (2026-11-02): a small file icon and "PDF" for the shop's sheet, the same with a "B2B" tag for the
+    reseller's own (their brand, their price). It was two outlined buttons, a third of the column for a link few
+    visitors use. The words a reader hears stay the full labels (the tooltip and the hidden name); what is drawn is
+    "PDF" and "B2B", which need no translation. Context: `sheet_links` ([{label, href, own}], catalogue/sheet_links.py). #}
+{% if sheet_links %}
+<div class="wsp-sheet-links">
+	{% for link in sheet_links %}
+	<a class="wsp-sheet-link{% if link.own %} wsp-sheet-link--own{% endif %}" href="{{ link.href | e }}" title="{{ link.label | e }}" target="_blank" rel="noopener">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+		<span aria-hidden="true">PDF</span>{% if link.own %}<span class="wsp-sheet-link__tag" aria-hidden="true">B2B</span>{% endif %}
+		<span class="wsp-sheet-link__name">{{ link.label | e }}</span>
+	</a>
+	{% endfor %}
+</div>
+{% endif %}

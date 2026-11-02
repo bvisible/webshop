@@ -399,6 +399,7 @@ jobs:
             webshop.webshop.catalogue.test_my_brand \
             webshop.webshop.catalogue.test_images \
             webshop.webshop.catalogue.test_sheet \
+            webshop.webshop.catalogue.test_sheet_links \
             webshop.webshop.catalogue.test_selection \
             webshop.webshop.catalogue.test_book \
             webshop.webshop.catalogue.test_catalogue_api \
