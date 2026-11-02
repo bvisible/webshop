@@ -1210,6 +1210,13 @@ A customer of an allowed group saves a brand on `/my-brand` (logo, colour, conta
   the page, the JSON-LD and the feed do not. Two doors in `sheet_api.py`: `product_sheet` (anybody, throttled per
   connection, kept five minutes) and `my_product_sheet` (`access.require_reseller`, the identity is the session's);
   the reseller's sheet never prints the buying price, the struck price or the supplier's promises.
+  - **The page offers them as one quiet row, not two buttons** (2026-11-02, `item_sheet_links.html`, fed by
+    `sheet_links.sheet_links` → `[{label, href, own}]`): a small file icon (Lucide `file-text`, `currentColor`) and
+    "PDF" for the shop's sheet, the same with a "B2B" tag for the reseller's own. The full labels stay as the tooltip and
+    the hidden name a screen reader hears (what is drawn is `aria-hidden` and needs no translation). Ink only
+    (`--wsh-muted`, `--wsh-text` on hover), 28 px high (36 on a touch screen). The row ends the buy column, **after the
+    trust items**: between the promises and the trust list it stopped `.wsp-promises + .buybox-trust` from matching.
+    `test_sheet_links` reads the template, the include's place and the stylesheet (eight mutations turn it red).
 - **A picture is read only from the site's public files** (`images.public_file_path`), rebuilt small and embedded as a
   data URI: the engine fetches nothing.
 - **The catalogue** (`/my-catalogues`, lot 2) is made by a job, never in a request: `catalogue_api.create_catalogue`
