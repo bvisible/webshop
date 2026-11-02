@@ -3,9 +3,9 @@
 
 Upstream ERPNext (the merge of 4 Oct 2026, 0f64354085) makes the whitelisted `get_payment_terms` refuse any session
 that may not read the `Payment Terms Template`, and a portal customer may not (the role `All` lost its read right on
-the template). The checkout asked it with the BUYER's session: « Erreur lors de la création de la demande de
-paiement » at the last click, no payment request, no order (neoffice-maintenance#2114). Every shop whose method rows
-name a template was hit, for every customer, the day the update reached it.
+the template). The checkout asked it with the BUYER's session: "Error creating payment request" at the last
+click, no payment request, no order (neoffice-maintenance#2114). Every shop whose method rows name a template was
+hit, for every customer, the day the update reached it.
 
 The schedule is now computed with the shop's rights (`payment_schedule_for`), as the pricing and the saves beside it
 already were (#277). The template is the shop's own, named by the method row, or by an instalment plan; the one
