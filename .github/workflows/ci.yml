@@ -305,6 +305,10 @@ jobs:
           # //// table, so a site without the theme runs them.
           # //// Neoffice — the transfer path under upstream's checks (#2056): a portal customer's order and its
           # //// Payment Request, with the lines stock ERPNext has put on the fork (`upstream_checks`).
+          # //// Neoffice — a payment method whose row names payment terms (#2114): the buyer's session cannot read the
+          # //// template on stock ERPNext, so the shop asks for the schedule with its own rights; the last class reads the
+          # //// sources and needs no fixture. The witness inside fails if this ERPNext lacks the guard (a green run would
+          # //// prove nothing).
           # //// Neoffice — the checkout's own dialogs (#2057): every label the script asks for is seeded by the page, and
           # //// the confirmation is given labels, not an options object. Reads two files, needs no site.
           for m in \
@@ -413,7 +417,8 @@ jobs:
             webshop.webshop.partner_api.test_partner_v1 \
             webshop.webshop.partner_api.test_integration_page \
             webshop.webshop.shopping_cart.test_offline_payment_rights \
-            webshop.webshop.tests.test_checkout_labels
+            webshop.webshop.tests.test_checkout_labels \
+            webshop.webshop.shopping_cart.test_payment_terms_rights
           do
             echo "::group::$m"
             bench --site test_site run-tests --module $m || failed="$failed $m"

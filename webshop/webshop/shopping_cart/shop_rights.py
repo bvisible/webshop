@@ -97,3 +97,33 @@ def save_as_shop(doc, submit=False, **save_kwargs):
 		frappe.db.set_value(doc.doctype, doc.name, stamp, update_modified=False)
 		doc.update(stamp)
 	return doc
+
+
+def payment_schedule_for(template, posting_date, grand_total, base_grand_total):
+	"""The rows a payment terms template gives an order, computed with the shop's rights (#2114).
+
+	ERPNext's whitelisted `get_payment_terms` refuses a session that may not read the
+	`Payment Terms Template` since the upstream merge of 4 Oct 2026 (0f64354085), and a
+	portal customer may not: the role `All` lost its read right on the template. The checkout
+	asked it with the BUYER's session, and every payment on a method whose row names a template
+	ended in "Error creating payment request" (neoffice-maintenance#2114).
+
+	The public function is called under `shop_rights()`, not the internal `_get_payment_terms`:
+	that name exists only on an ERPNext that has the guard (a shop whose ERPNext is older would
+	fail on the import, mid-update), and upstream may rename it. Nothing is written, and the
+	template is the shop's own -- the method row's, an instalment plan's -- never a name the
+	buyer typed: the one endpoint that takes it from the buyer
+	(webshopsi_cart.update_payment_terms) checks that the shop offers it first.
+
+	Every call of the shop goes through here: test_payment_terms_rights reads the sources and
+	fails on a direct call.
+	"""
+	from erpnext.controllers.accounts_controller import get_payment_terms
+
+	with shop_rights():
+		return get_payment_terms(
+			template,
+			posting_date=posting_date,
+			grand_total=grand_total,
+			base_grand_total=base_grand_total,
+		)

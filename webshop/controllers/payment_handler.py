@@ -7,7 +7,8 @@ from webshop.webshop.shopping_cart.cart import place_order, _get_cart_quotation,
 # //// a request was paid (payment_proof.py, maintenance#1807).
 from webshop.webshop.shopping_cart import payment_proof, pending_order
 # //// Neoffice — #277: the customer's session reads neither Item nor Account (shop_rights.py).
-from webshop.webshop.shopping_cart.shop_rights import save_as_shop, shop_rights
+# //// Neoffice — #2114: the payment terms schedule is computed with the shop's rights too (payment_schedule_for).
+from webshop.webshop.shopping_cart.shop_rights import payment_schedule_for, save_as_shop, shop_rights
 # //// Neoffice — a payment method is offered to a customer group, and carries that
 # //// group's payment terms (utils/payment_methods.py).
 from webshop.webshop.utils.payment_methods import (
@@ -267,8 +268,11 @@ class PaymentHandler:
                 save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — #277
                 
                 # Get and update payment schedule
-                from erpnext.controllers.accounts_controller import get_payment_terms
-                payment_schedule = get_payment_terms(
+                # //// Neoffice — #2114: asked with the shop's rights, not the buyer's session. Upstream's get_payment_terms
+                # //// (0f64354085, 4 Oct 2026) refuses a session that may not read the Payment Terms Template, and a
+                # //// portal customer may not: every payment on a method whose row names a template ended in « Error
+                # //// creating payment request ». The template is this row's (the shop's), never one the buyer named.
+                payment_schedule = payment_schedule_for(
                     payment_terms_template,
                     posting_date=quotation.transaction_date,
                     grand_total=quotation.rounded_total or quotation.grand_total,
@@ -340,8 +344,9 @@ class PaymentHandler:
                 "gateway_data": context
             }
             
-        except Exception as e:
-            frappe.log_error("Detailed error while creating payment request", e)
+        except Exception:
+            # //// Neoffice — #2114: the traceback is the message; `e` alone kept str(e) (« Not permitted ») and pointed nowhere.
+            frappe.log_error("Detailed error while creating payment request", frappe.get_traceback())
             return {
                 "status": "error",
                 "message": _("Error creating payment request")
@@ -745,8 +750,9 @@ class PaymentHandler:
                 "redirect_to": ""
             }
             
-        except Exception as e:
-            frappe.log_error("Detailed error while processing payment failure", e)
+        except Exception:
+            # //// Neoffice — #2114: the traceback is the message; `e` alone kept str(e) (« Not permitted ») and pointed nowhere.
+            frappe.log_error("Detailed error while processing payment failure", frappe.get_traceback())
             return {
                 "status": "error",
                 "message": _("A system error occurred while processing payment failure"),
@@ -854,7 +860,8 @@ def create_payment_request(quotation_id=None, gateway_settings=None, idempotency
             payment_gateway=payment_gateway
         )
     except Exception as e:
-        frappe.log_error("Error creating payment request", e)
+        # //// Neoffice — #2114: the traceback is the message; `e` alone kept str(e) (« Not permitted ») and pointed nowhere.
+        frappe.log_error("Error creating payment request", frappe.get_traceback())
         return {
             "status": "error",
             "message": str(e)
@@ -939,8 +946,9 @@ def handle_payment_success(payment_request_id, transaction_data=None):
     try:
         handler = PaymentHandler()
         return handler.handle_payment_success(payment_request_id=payment_request_id, transaction_data=transaction_data)
-    except Exception as e:
-        frappe.log_error("Detailed error while processing payment", e)
+    except Exception:
+        # //// Neoffice — #2114: the traceback is the message; `e` alone kept str(e) (« Not permitted ») and pointed nowhere.
+        frappe.log_error("Detailed error while processing payment", frappe.get_traceback())
         return {
             "status": "error",
             "message": _("Error processing payment")
@@ -952,8 +960,9 @@ def handle_payment_failure(payment_request_id, error_message=None):
     try:
         handler = PaymentHandler()
         return handler.handle_payment_failure(payment_request_id, error_message)
-    except Exception as e:
-        frappe.log_error("Detailed error while processing payment failure", e)
+    except Exception:
+        # //// Neoffice — #2114: the traceback is the message; `e` alone kept str(e) (« Not permitted ») and pointed nowhere.
+        frappe.log_error("Detailed error while processing payment failure", frappe.get_traceback())
         return {
             "status": "error",
             "message": _("Error processing payment failure")

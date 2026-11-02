@@ -7,7 +7,7 @@ from frappe import _
 
 # //// Neoffice — the quotation is saved with the shop's rights (#277): upstream v15.123.0 reads the
 # //// Item on the SESSION user whenever a line is priced (41effcf754)
-from webshop.webshop.shopping_cart.shop_rights import save_as_shop
+from webshop.webshop.shopping_cart.shop_rights import payment_schedule_for, save_as_shop
 from webshop.webshop.shopping_cart.cart import _get_cart_quotation
 # //// Neoffice — the placeholder order a cart's payment request is raised on (pending_order.py).
 from webshop.webshop.shopping_cart import pending_order
@@ -81,8 +81,10 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
                 save_as_shop(quotation, ignore_permissions=True)
                 
                 # Get and update payment schedule
-                from erpnext.controllers.accounts_controller import get_payment_terms
-                payment_schedule = get_payment_terms(
+                # //// Neoffice — #2114: with the shop's rights, not the buyer's session: upstream's get_payment_terms
+                # //// (0f64354085) refuses a session that may not read the Payment Terms Template, and a portal customer
+                # //// may not. The template is this method row's (the shop's), never one the buyer named.
+                payment_schedule = payment_schedule_for(
                     method.payment_terms_template,
                     posting_date=quotation.transaction_date,
                     grand_total=quotation.rounded_total or quotation.grand_total,

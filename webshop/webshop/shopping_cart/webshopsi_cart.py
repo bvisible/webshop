@@ -8,7 +8,16 @@ from frappe import _
 from webshop.webshop.shopping_cart.cart import apply_cart_settings as webshop_apply_cart_settings
 from webshop.webshop.shopping_cart.cart import get_party
 # //// Neoffice — #277: the customer's session reads neither Item nor Account (shop_rights.py).
-from webshop.webshop.shopping_cart.shop_rights import save_as_shop, shop_rights
+from webshop.webshop.shopping_cart.shop_rights import payment_schedule_for, save_as_shop, shop_rights
+
+def installment_templates():
+    """The payment terms templates the shop's instalment plans name: the only ones a buyer may pick (#2114)."""
+    settings = frappe.get_cached_doc("WebshopSI Settings")
+    return {
+        plan.payment_terms_template
+        for plan in settings.get("installment_plans") or []
+        if plan.payment_terms_template
+    }
 
 @frappe.whitelist()
 def update_payment_terms(quotation_name, payment_terms_template):
@@ -28,12 +37,19 @@ def update_payment_terms(quotation_name, payment_terms_template):
     if not payment_terms_template:
         return remove_webshopsi_fees(quotation)
 
+    # //// Neoffice — #2114: the buyer names the template here, and its schedule is now computed with the shop's rights
+    # //// (below), which the buyer's own session no longer allows on a template: only a plan the shop offers is accepted.
+    # //// Otherwise this endpoint would read, and return in the quotation, the terms of any template by name.
+    if payment_terms_template not in installment_templates():
+        frappe.throw(_('Access not authorized'), frappe.PermissionError)
+
     # Update the payment terms template
     quotation.payment_terms_template = payment_terms_template
     
     # Update the payment schedule
-    from erpnext.controllers.accounts_controller import get_payment_terms
-    payment_schedule = get_payment_terms(
+    # //// Neoffice — #2114: with the shop's rights, not the buyer's session (upstream's get_payment_terms, 0f64354085,
+    # //// refuses a session that may not read the Payment Terms Template, and a portal customer may not).
+    payment_schedule = payment_schedule_for(
         payment_terms_template,
         posting_date=quotation.transaction_date,
         grand_total=quotation.rounded_total or quotation.grand_total,

@@ -12,7 +12,7 @@ from frappe.utils import today
 
 # //// Neoffice — the buyer's quotation and invoice are saved with the shop's rights (#277): upstream
 # //// v15.123.0 reads the Item on the SESSION user whenever a line is priced (41effcf754)
-from webshop.webshop.shopping_cart.shop_rights import save_as_shop, shop_rights
+from webshop.webshop.shopping_cart.shop_rights import payment_schedule_for, save_as_shop, shop_rights
 
 class WebshopSISettings(Document):
 	def get_restricted_countries(self):
@@ -194,8 +194,10 @@ def on_payment_authorized(gateway_settings , birthday=None, contactName=None):
 							save_as_shop(quotation, ignore_permissions=True)
 							
 							# Update payment schedule
-							from erpnext.controllers.accounts_controller import get_payment_terms
-							payment_schedule = get_payment_terms(
+							# //// Neoffice — #2114: with the shop's rights, not the buyer's session: upstream's get_payment_terms
+							# //// (0f64354085) refuses a session that may not read the Payment Terms Template, and a portal customer
+							# //// may not. The template is the plan's own (WebshopSI_<n>_payments), never one the buyer named.
+							payment_schedule = payment_schedule_for(
 								payment_terms_template,
 								posting_date=quotation.transaction_date,
 								grand_total=rounded_total,
