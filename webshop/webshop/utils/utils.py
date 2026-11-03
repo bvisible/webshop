@@ -92,7 +92,10 @@ def get_gateway_configuration(payment_method, payment_gateway_account=None):
         with open(config_path, "r") as f:
             return json.load(f)
     except Exception as e:
-        frappe.log_error(f"Error reading payment configuration: {str(e)}")
+        # //// Neoffice — the title is the first argument and holds 140 characters; the exception text went there, and
+        # //// a path longer than that raised CharacterLengthExceededError out of this handler: a method whose JSON is
+        # //// missing broke the checkout form (no pay button) instead of answering {}.
+        frappe.log_error("Error reading payment configuration", str(e))
         return {}
 
 @frappe.whitelist( allow_guest=True )

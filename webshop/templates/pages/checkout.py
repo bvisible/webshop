@@ -1556,7 +1556,9 @@ def get_payment_template(payment_gateway_account: str, context: dict | str | Non
 				html = frappe.get_template(template_path).render(context)
 				return {"error": False, "html": html, "config": gateway_info["settings"]}
 		except Exception as e:
-			frappe.log_error(f"Custom template error: {str(e)}")
+			# //// Neoffice — the message is the second argument: a long exception text in the title raised
+			# //// CharacterLengthExceededError and skipped the default template this branch falls back to.
+			frappe.log_error("Custom template error", str(e))
 			pass  # If error, use default template
 		
 		# Default template rendering
