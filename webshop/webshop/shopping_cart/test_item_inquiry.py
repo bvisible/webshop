@@ -15,9 +15,23 @@ from webshop.webshop.shopping_cart import cart
 LEAD = {"lead_name": "A visitor", "email_id": "visitor@example.com", "phone": "+41 21 000 00 00"}
 
 
+def _theme_door(submit):
+	"""The theme's message door, replaced by `submit`. Where the theme is installed its package stays the real one: the
+	translations of the apps are read from it."""
+	messages = types.ModuleType("neoffice_theme.website_messages")
+	messages.submit = submit
+	modules = {"neoffice_theme.website_messages": messages}
+	try:
+		import neoffice_theme  # noqa: F401
+	except ImportError:
+		modules["neoffice_theme"] = types.ModuleType("neoffice_theme")
+	return patch.dict(sys.modules, modules)
+
+
 class TestAProductQuestion(FrappeTestCase):
-	def ask(self, lead=None, message="Is it in stock?", item=None, apps=("frappe", "erpnext", "webshop")):
-		with patch.object(cart.frappe, "get_installed_apps", return_value=list(apps)):
+	def ask(self, lead=None, message="Is it in stock?", item=None, theme=False):
+		# the theme is said there or not by the shop's own question, not by frappe's list of apps: the hooks read it too
+		with patch.object(cart, "_theme_installed", return_value=theme):
 			return cart.create_lead_for_item_inquiry(frappe.as_json(lead or LEAD), message=message, item=item)
 
 	def test_it_is_refused_without_an_email_address_or_a_phone(self):
@@ -33,24 +47,18 @@ class TestAProductQuestion(FrappeTestCase):
 
 	def test_a_phone_alone_is_enough(self):
 		submit = MagicMock(return_value={"ok": True})
-		messages = types.ModuleType("neoffice_theme.website_messages")
-		messages.submit = submit
-		theme = {"neoffice_theme": types.ModuleType("neoffice_theme"), "neoffice_theme.website_messages": messages}
-		with patch.dict(sys.modules, theme):
-			self.ask({**LEAD, "email_id": ""}, apps=("frappe", "erpnext", "webshop", "neoffice_theme"))
+		with _theme_door(submit):
+			self.ask({**LEAD, "email_id": ""}, theme=True)
 		self.assertEqual("", submit.call_args.kwargs["sender"])
 		self.assertEqual("+41 21 000 00 00", submit.call_args.kwargs["phone"])
 
 	def test_with_the_theme_it_is_a_site_message_that_names_the_product(self):
 		submit = MagicMock(return_value={"ok": True})
-		messages = types.ModuleType("neoffice_theme.website_messages")
-		messages.submit = submit
 		product = frappe._dict(
 			web_item_name="A mouse", item_code="MOUSE-1", route="products/a-mouse", url="https://shop.example/products/a-mouse"
 		)
-		theme = {"neoffice_theme": types.ModuleType("neoffice_theme"), "neoffice_theme.website_messages": messages}
-		with patch.dict(sys.modules, theme), patch.object(cart, "_inquiry_product", return_value=product):
-			answer = self.ask(item="WEB-ITM-1", apps=("frappe", "erpnext", "webshop", "neoffice_theme"))
+		with _theme_door(submit), patch.object(cart, "_inquiry_product", return_value=product):
+			answer = self.ask(item="WEB-ITM-1", theme=True)
 
 		self.assertEqual({"ok": True}, answer)
 		sent = submit.call_args.kwargs

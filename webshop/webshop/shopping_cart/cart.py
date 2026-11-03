@@ -1814,11 +1814,16 @@ def _inquiry_product(item):
 	return product
 
 
+# //// Neoffice — added: whether the theme's site messages take the product question (else it is a Lead, as upstream)
+def _theme_installed():
+	return "neoffice_theme" in frappe.get_installed_apps()
+
+
 # //// Neoffice — added: the single-use token of the theme's message door, taken when the dialog opens; "" without
 # //// the theme (the question then becomes a Lead, as upstream).
 @frappe.whitelist(allow_guest=True)
 def item_inquiry_token():
-	if "neoffice_theme" not in frappe.get_installed_apps():
+	if not _theme_installed():
 		return ""
 	from neoffice_theme.website_messages import issue_token
 
@@ -1852,7 +1857,7 @@ def create_lead_for_item_inquiry(lead, subject="", message="", item=None, token=
 	# //// Neoffice — with the theme, a product question is a message of the site, like the contact form's: the
 	# //// "Messages du site" inbox, the bell and the owner's mail, Nora's reading, the anti-spam rules. As a Lead
 	# //// with a comment it told nobody, and the question sat apart from the address that could answer it.
-	if "neoffice_theme" in frappe.get_installed_apps():
+	if _theme_installed():
 		from neoffice_theme.website_messages import submit
 
 		return submit(
