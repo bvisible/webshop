@@ -13,26 +13,30 @@ const {onTheServer} = require('./activation');
 
 const lastRead = new Map();
 
+//// The subject starts with the six digits whatever the language the mail is written in ("123456 is your sign-in code
+//// for …", "123456 est votre code de connexion pour …"), and the link is the one address that ends in /login-link:
+//// neither depends on the words, which the translations change.
 const READ_LATEST = (address) =>
 	`import re, json, email as em\n` +
 	`from email.header import decode_header, make_header\n` +
 	`rows = frappe.db.sql("""select q.message from \`tabEmail Queue\` q\n` +
 	`  join \`tabEmail Queue Recipient\` r on r.parent = q.name\n` +
-	`  where r.recipient = %s and q.message like %s\n` +
-	`  order by q.creation desc limit 1""", (${JSON.stringify(address)}, "%sign-in code%"))\n` +
-	`if not rows:\n` +
-	`    print("none")\n` +
-	`else:\n` +
-	`    msg = em.message_from_string(rows[0][0])\n` +
-	`    subject = str(make_header(decode_header(msg["Subject"])))\n` +
-	`    code = re.match(r"(\\d{6}) is your sign-in code", subject)\n` +
+	`  where r.recipient = %s order by q.creation desc limit 8""", (${JSON.stringify(address)},))\n` +
+	`found = None\n` +
+	`for (raw,) in rows:\n` +
+	`    msg = em.message_from_string(raw)\n` +
+	`    subject = str(make_header(decode_header(msg["Subject"] or "")))\n` +
+	`    code = re.match(r"\\s*(\\d{6})\\b", subject)\n` +
+	`    if not code:\n` +
+	`        continue\n` +
 	`    html = ""\n` +
 	`    for part in msg.walk():\n` +
 	`        if part.get_content_type() == "text/html":\n` +
 	`            html = part.get_payload(decode=True).decode(part.get_content_charset() or "utf-8", "replace")\n` +
 	`    link = re.search(r'href="([^"]*login-link\\?token=[^"]+)"', html)\n` +
-	`    print(json.dumps({"code": code.group(1) if code else None, "link": link.group(1) if link else None,\n` +
-	`                      "subject": subject}))\n`;
+	`    found = {"code": code.group(1), "link": link.group(1) if link else None, "subject": subject}\n` +
+	`    break\n` +
+	`print(json.dumps(found) if found else "none")\n`;
 
 /** The newest sign-in mail for `address`: {code, link, subject}, or null when none was queued. */
 function latestSignInMail(address) {
