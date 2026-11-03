@@ -201,6 +201,15 @@ for parent in frappe.get_all("Portal User", filters={"user": email, "parenttype"
 for customer in customers:
     for link in frappe.get_all("Dynamic Link", filters={"link_doctype": "Customer", "link_name": customer, "parenttype": "Address"}, pluck="parent"):
         addresses.add(link)
+# A customer and its primary contact point at each other (a sign-in opens both): each blocks the deletion of
+# the other, so the pointers go first.
+for customer in customers:
+    frappe.db.set_value("Customer", customer, {"customer_primary_contact": None, "customer_primary_address": None}, update_modified=False)
+# The helpdesk keeps its own record of every customer, named like it, and links the contact to it.
+if frappe.db.exists("DocType", "HD Customer"):
+    for customer in customers:
+        if frappe.db.exists("HD Customer", customer):
+            attempt("helpdesk customer " + customer, lambda c=customer: erase("HD Customer", c))
 for contact in contacts:
     attempt("contact " + contact, lambda c=contact: erase("Contact", c))
 for address in addresses:

@@ -267,6 +267,17 @@ test.describe("The desk's own sign-in page", () => {
 	test.describe.configure({mode: 'serial'});
 	test.setTimeout(150_000);
 
+	//// Staff may sign in with a code only where the site says so (System Settings, "Staff can sign in with the
+	//// emailed code"). That value is a site setting and other work on the instance can reset it: this test states
+	//// its own precondition instead of trusting what a previous run left.
+	test.beforeAll(() => {
+		onTheServer(
+			`frappe.db.set_single_value("System Settings", "login_with_email_link", 1)\n` +
+				`frappe.db.set_single_value("System Settings", "login_code_system_users", 1)\n` +
+				`frappe.db.commit()\nfrappe.clear_document_cache("System Settings", "System Settings")\nprint("set")`
+		);
+	});
+
 	test('staff sign in to the desk with a code', async ({page}) => {
 		const address = throwawayAddress('code-staff');
 		makeUser(address, 'Desk User');
