@@ -164,9 +164,20 @@ class TestTheCustomersPagesPassTheVeil(VeilCase):
 	and the customer portal stay open behind the veil, to a visitor too; the shop and the apps keep their rules."""
 
 	def blocked_at(self, address, endpoint, user="Guest"):
-		# the veil reads the address asked for: a renderer is handed the endpoint of the rule that matched
+		# the veil reads the address asked for: a renderer is handed the endpoint of the rule that matched. Which
+		# addresses are the customer's is frappe's rule (Neoffice's fork); the CI runs upstream frappe, so the rule
+		# stands here for what the fork's hooks declare (frappe: /me, /printview; ERPNext's portal: /orders).
+		import frappe.website.path_resolver as resolver
+
+		def customer_service_route(path):
+			path = (path or "").strip("/ ")
+			return any(path == route or path.startswith(route + "/") for route in ("me", "printview", "orders"))
+
 		request = Request(EnvironBuilder(path=address).get_environ())
-		with patch.object(frappe.local, "request", request, create=True):
+		with (
+			patch.object(frappe.local, "request", request, create=True),
+			patch.object(resolver, "customer_service_route", customer_service_route, create=True),
+		):
 			return self.blocked(endpoint, user)
 
 	def test_a_page_an_app_sends_a_customer_to_passes(self):
