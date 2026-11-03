@@ -259,7 +259,11 @@ class PaymentHandler:
                 
             # Clear and recalculate payment schedule
             quotation.payment_schedule = []
-            quotation.set_payment_schedule()
+            # //// Neoffice — #2173: with the shop's rights, like the calls around it. ERPNext reads the party's receivable account here
+            # //// and, since the merge of 4 Oct 2026, refuses a session that may not read it: a portal buyer paying by invoice on a
+            # //// shop whose customer has no account of its own ended in « Error creating payment request » at the last click.
+            with shop_rights():
+                quotation.set_payment_schedule()
             save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — #277
             
             # Update payment_terms_template 

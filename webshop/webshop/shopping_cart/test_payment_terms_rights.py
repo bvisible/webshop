@@ -238,3 +238,37 @@ class TestNoModuleAsksForPaymentTermsAsTheBuyer(unittest.TestCase):
 				if (imported or called) and path.name != "shop_rights.py":
 					offenders.append(f"{path.relative_to(root)}:{node.lineno}")
 		self.assertEqual(offenders, [], "ask for the schedule through shop_rights.payment_schedule_for")
+
+
+class TestNoPaymentScheduleIsSetAsTheBuyer(unittest.TestCase):
+	"""`set_payment_schedule` reads the party's receivable account, which upstream now refuses to a session that may not read it (#2173).
+
+	A source-reading test, no site: every call in the checkout's payment handler sits under `shop_rights()`."""
+
+	def test_every_call_of_the_handler_runs_with_the_shops_rights(self):
+		path = pathlib.Path(__file__).resolve().parents[2] / "controllers" / "payment_handler.py"
+		tree = ast.parse(path.read_text(), filename=str(path))
+		parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
+
+		def under_shop_rights(node):
+			while node in parents:
+				node = parents[node]
+				if isinstance(node, ast.With) and any(
+					isinstance(item.context_expr, ast.Call)
+					and getattr(item.context_expr.func, "id", None) == "shop_rights"
+					for item in node.items
+				):
+					return True
+			return False
+
+		calls = [
+			node
+			for node in ast.walk(tree)
+			if isinstance(node, ast.Call)
+			and isinstance(node.func, ast.Attribute)
+			and node.func.attr == "set_payment_schedule"
+		]
+		self.assertTrue(calls, "the handler no longer sets a payment schedule: this test has nothing to guard")
+		for call in calls:
+			self.assertTrue(under_shop_rights(call), f"payment_handler.py line {call.lineno}: not under shop_rights()")
+
