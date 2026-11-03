@@ -60,6 +60,13 @@ website_redirects = [
 	{"source": "/loyalty_points", "target": "/loyalty-points", "redirect_http_status": 301},
 ]
 
+# //// Neoffice — the account pages of the shop stay open while the website is in maintenance (Website Profile
+# //// maintenance_mode, an instance without a showcase site; the shop's own veil reads the same list): the address book
+# //// that ERPNext's /addresses leads to, and the old addresses of the account's pages. The rest of the account is the
+# //// portal menu, open by itself; the shop's pages close. Read by frappe/website/path_resolver.py
+# //// (website_route_stays_open, neoffice-maintenance#2171).
+website_maintenance_open_routes = ["my-addresses", "my_addresses", "gift_cards", "loyalty_points"]
+
 update_website_context = [
 	"webshop.webshop.shopping_cart.utils.update_website_context",
 	# //// Neoffice — added with the shop maintenance mode (deb34ad632, 2025-06-19

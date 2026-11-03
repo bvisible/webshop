@@ -22,6 +22,13 @@ class MaintenancePageRenderer(BaseRenderer):
 		if not self.is_maintenance_active():
 			return False
 
+		# //// Neoffice — the customer's service pages stay open behind the veil, to a visitor too (neoffice-maintenance#2171):
+		# //// a quotation to accept, a payment, the follow-up of a job, the customer portal. The pages each app declares
+		# //// (`website_maintenance_open_routes`) and the portal menu, as frappe's own maintenance page reads them
+		# //// (frappe/website/path_resolver.py customer_service_route). The apps keep their rule below (#1325).
+		if self.is_service_route():
+			return False
+
 		# Always allow these paths regardless of maintenance mode
 		always_allowed = [
 			'login', 'assets', 'files', 'private/files',
@@ -112,6 +119,19 @@ class MaintenancePageRenderer(BaseRenderer):
 		else:
 			return "Disabled"
 		
+	def is_service_route(self):
+		"""Whether the address asked for is one a website in maintenance keeps serving.
+
+		//// Neoffice — added (neoffice-maintenance#2171). It reads the address the visitor ASKED for, as frappe's
+		//// maintenance page does: a renderer is handed the endpoint of the route rule that matched (`/orders/SO-1`
+		//// arrives as `order`). Deployed with the frappe that carries the rule: a frappe without it opens nothing more."""
+		try:
+			from frappe.website.path_resolver import customer_service_route
+		except ImportError:
+			return False
+		request = getattr(frappe.local, "request", None)
+		return customer_service_route(getattr(request, "path", None) or self.path)
+
 	def is_app_endpoint(self):
 		"""Whether this request is for a single-page app mounted through `website_route_rules`.
 

@@ -157,3 +157,29 @@ class TestFrappeHandsTheRendererTheEndpoint(VeilCase):
 			with self.subTest(address=address):
 				endpoint = self.endpoint_of(address)
 				self.assertFalse(self.blocked(endpoint, STAFF))
+
+
+class TestTheCustomersPagesPassTheVeil(VeilCase):
+	"""//// Neoffice — neoffice-maintenance#2171: the pages an app sends a customer to (`website_maintenance_open_routes`)
+	and the customer portal stay open behind the veil, to a visitor too; the shop and the apps keep their rules."""
+
+	def blocked_at(self, address, endpoint, user="Guest"):
+		# the veil reads the address asked for: a renderer is handed the endpoint of the rule that matched
+		request = Request(EnvironBuilder(path=address).get_environ())
+		with patch.object(frappe.local, "request", request, create=True):
+			return self.blocked(endpoint, user)
+
+	def test_a_page_an_app_sends_a_customer_to_passes(self):
+		# frappe declares the portal's home and a document's « view online » page
+		self.assertFalse(self.blocked_at("/me", "me"))
+		self.assertFalse(self.blocked_at("/printview", "printview"))
+
+	def test_the_customer_portal_passes(self):
+		# ERPNext's portal menu: the list of orders and one order, whose rule hands the veil the endpoint `order`
+		self.assertFalse(self.blocked_at("/orders", "Sales Order"))
+		self.assertFalse(self.blocked_at("/orders/SO-0001", "order"))
+
+	def test_the_shop_and_the_apps_stay_behind_the_veil_for_a_visitor(self):
+		self.assertTrue(self.blocked_at("/all-products", "all-products"))
+		self.assertTrue(self.blocked_at("/brands/some-brand", "brand"))
+		self.assertTrue(self.blocked_at("/helpdesk/tickets/12", "helpdesk"))
