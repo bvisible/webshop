@@ -258,7 +258,16 @@ class ShopFixture(FrappeTestCase):
 				}
 			).insert(ignore_permissions=True)
 
-		gateway_account = _account(cls.company, account_type="Bank") or _account(cls.company, account_type="Cash")
+		# The first bank account found could be in another currency (the CI's site has a USD bank under an INR
+		# company): the payment entry then needed the day's rate, which the CI fetches from the network, and a night
+		# with no answer turned the gateway's tests red (3.11). An account in the company's currency needs none.
+		currency = frappe.get_cached_value("Company", cls.company, "default_currency")
+		gateway_account = (
+			_account(cls.company, account_type="Bank", account_currency=currency)
+			or _account(cls.company, account_type="Cash", account_currency=currency)
+			or _account(cls.company, account_type="Bank")
+			or _account(cls.company, account_type="Cash")
+		)
 		frappe.get_doc({"doctype": "Payment Gateway", "gateway": GATEWAY}).insert(ignore_permissions=True)
 		cls.gateway_account = (
 			frappe.get_doc(
