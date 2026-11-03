@@ -212,16 +212,13 @@ try:
     erase("User", email)
     report["account"] = "deleted"
 except Exception as error:
-    # An account that carries orders cannot be deleted, and must not be: the
-    # shop's books are not the test's to rewrite. Freeing the address is
-    # enough for the suite to run again, and it is what anonymisation does.
-    freed = "deleted-" + frappe.utils.now_datetime().strftime("%Y%m%d%H%M%S") + "-" + email
+    # An account that carries orders cannot be deleted, and must not be: the shop's books are not the test's to
+    # rewrite. It is disabled and left as it is. It used to be RENAMED to free the address, but a rename of a User
+    # rewrites owner and modified_by in every table that names it (tabVersion, tabActivity...): minutes of row
+    # locks on a shared site, which stopped every other session (2026-11-03). While that call crashed on an argument
+    # this Frappe does not take, it did nothing; made to work, it froze the instance.
     frappe.db.set_value("User", email, "enabled", 0, update_modified=False)
-    try:
-        frappe.rename_doc("User", email, freed, force=True)
-        report["account"] = "renamed (" + type(error).__name__ + ")"
-    except Exception as second:
-        report["account"] = "disabled only (" + type(second).__name__ + ")"
+    report["account"] = "disabled only (" + type(error).__name__ + ")"
 
 frappe.db.commit()
 print(json.dumps(report))
