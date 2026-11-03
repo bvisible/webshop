@@ -11773,3 +11773,8 @@ msgstr "Question sur {0}"
 #: webshop/webshop/shopping_cart/cart.py
 msgid "Question about a product"
 msgstr "Question sur un produit"
+
+#: webshop/webshop/shopping_cart/cart.py
+#, python-brace-format
+msgid "Product: {0} ({1})"
+msgstr "Produit : {0} ({1})"

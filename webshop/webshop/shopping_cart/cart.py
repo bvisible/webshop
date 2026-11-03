@@ -1846,9 +1846,9 @@ def create_lead_for_item_inquiry(lead, subject="", message="", item=None, token=
 	product = _inquiry_product(item)
 	if product:
 		subject = _("Question about {0}").format(product.web_item_name)
-		message = "{0}\n\n{1}: {2} ({3})\n{4}".format(
-			message, _("Product"), product.web_item_name, product.item_code, product.url
-		)
+		# //// Neoffice — one sentence to translate, so that French puts its space before the colon
+		line = _("Product: {0} ({1})").format(product.web_item_name, product.item_code)
+		message = f"{message}\n\n{line}\n{product.url}"
 	subject = (subject or "").strip() or _("Question about a product")
 	# //// Neoffice — with the theme, a product question is a message of the site, like the contact form's: the
 	# //// "Messages du site" inbox, the bell and the owner's mail, Nora's reading, the anti-spam rules. As a Lead
