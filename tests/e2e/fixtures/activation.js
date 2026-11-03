@@ -194,6 +194,10 @@ for contact in contacts:
     for link in frappe.get_all("Dynamic Link", filters={"parent": contact}, fields=["link_doctype", "link_name"]):
         if link.link_doctype == "Customer":
             customers.add(link.link_name)
+# A customer a SIGN-IN created (the portal hook opens one for an account that signs in, as the sign-in by code
+# does) is linked to the user by its portal-user row, not by a contact carrying the address.
+for parent in frappe.get_all("Portal User", filters={"user": email, "parenttype": "Customer"}, pluck="parent"):
+    customers.add(parent)
 for customer in customers:
     for link in frappe.get_all("Dynamic Link", filters={"link_doctype": "Customer", "link_name": customer, "parenttype": "Address"}, pluck="parent"):
         addresses.add(link)
@@ -214,7 +218,7 @@ except Exception as error:
     freed = "deleted-" + frappe.utils.now_datetime().strftime("%Y%m%d%H%M%S") + "-" + email
     frappe.db.set_value("User", email, "enabled", 0, update_modified=False)
     try:
-        frappe.rename_doc("User", email, freed, force=True, ignore_permissions=True)
+        frappe.rename_doc("User", email, freed, force=True)
         report["account"] = "renamed (" + type(error).__name__ + ")"
     except Exception as second:
         report["account"] = "disabled only (" + type(second).__name__ + ")"
