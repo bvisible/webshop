@@ -28,6 +28,9 @@ on_logout = "webshop.webshop.shopping_cart.utils.clear_cart_count"
 # //// Neoffice — an account opened at once in the shop is confirmed by the first way back into it,
 # //// which can only go through its mailbox (webshop/webshop/auth/confirmation.py, #691 D-9)
 on_login = ["webshop.webshop.auth.confirmation.on_login"]
+# //// Neoffice — the fork's sign-in by code (frappe.passwordless) offers no new account on a site for business
+# //// accounts only: there an account is opened by a person at the shop, not by a mailbox (auth/code_sign_in.py)
+passwordless_signup_closed = ["webshop.webshop.auth.code_sign_in.signup_closed"]
 on_session_creation = [
 	# //// Neoffice — body re-indented from 4 spaces to tabs by our editor config
 	# //// (no behaviour change). Kept as-is: reverting it would be a second

@@ -164,6 +164,18 @@ frappe.showLoginDialog = function(opts) {
                             <a href="/login#forgot">${__('Forgot Password?')}</a>
                         </p>
                     </div>
+                    <!-- //// Neoffice — step two of signing in with a code (frappe.passwordless): the code the mail carries -->
+                    <div class="form-group code-section slide-in" style="display: none;">
+                        <p class="code-intro text-muted"></p>
+                        <label for="login_code">${__('Code')}</label>
+                        <input type="text" id="login_code" class="form-control" inputmode="numeric"
+                            autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="7" placeholder="000000">
+                        <p class="code-links">
+                            <a href="#" class="code-resend">${__('Send a new code')}</a>
+                            &middot;
+                            <a href="#" class="code-use-password">${__('Use my password')}</a>
+                        </p>
+                    </div>
                     <div class="form-group fullname-section slide-in" style="display: none;">
                         <div class="form-group">
                             <label for="first_name">${__('First Name')}</label>
@@ -504,6 +516,11 @@ frappe.showLoginDialog = function(opts) {
     const socialLoginButtons = dialog.querySelector('.social-login-buttons');
     const loginWithEmailLink = dialog.querySelector('.login-with-email-link');
     const userName = dialog.querySelector('.user-name');
+    const codeSection = dialog.querySelector('.code-section');
+    const codeInput = dialog.querySelector('#login_code');
+    const codeIntro = dialog.querySelector('.code-intro');
+    const resendLink = dialog.querySelector('.code-resend');
+    const usePasswordLink = dialog.querySelector('.code-use-password');
 
     // Function to validate email
     function isValidEmail(email) {
@@ -524,6 +541,7 @@ frappe.showLoginDialog = function(opts) {
         callback: function(r) {
             if (r.message) {
                 const { social_login, login_with_email_link, provider_logins } = r.message;
+                passwordless = !!r.message.passwordless;
                 
                 if (social_login || login_with_email_link) {
                     socialLogins.style.display = 'block';
@@ -618,6 +636,201 @@ frappe.showLoginDialog = function(opts) {
         });
     }
 
+    //// Neoffice — signing in with a code (`frappe.passwordless` in the frappe fork, `auth/code_sign_in.py`,
+    //// neoffice-maintenance#2192): the address, then the code the mail carries, then the page the buyer was on.
+    //// An address with no account comes back with the proof of its mailbox and is asked its name. The password
+    //// stays behind "Use my password". Off (or stock frappe) none of this runs.
+    let passwordless = false;
+    let codeEmail = '';
+    let signUpProof = null;
+    let resendTimer = null;
+    let requestingCode = false;
+    const spinnerHtml = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
+
+    // The shop's own fetch, never frappe.call: on a 429 frappe.call never calls its error callback and pops a
+    // Frappe dialog over the page, and the buyer stays on a spinner.
+    function postJSON(method, args) {
+        const body = Object.assign({}, args);
+        if (window.webshop_content_language) body._lang = window.webshop_content_language;
+        return fetch('/api/method/' + method, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Frappe-CSRF-Token': frappe.csrf_token || window.csrf_token || '',
+            },
+            body: JSON.stringify(body),
+        }).then((response) => response.json().catch(() => ({})).then((json) => ({
+            status: response.status,
+            body: json.message || {},
+        })));
+    }
+
+    function alertRed(message) {
+        frappe.show_alert({ message: message, indicator: 'red' });
+    }
+
+    function startResendCountdown(seconds) {
+        clearInterval(resendTimer);
+        let left = seconds;
+        resendLink.style.pointerEvents = 'none';
+        resendLink.style.opacity = '0.5';
+        resendTimer = setInterval(() => {
+            left -= 1;
+            if (left <= 0) {
+                clearInterval(resendTimer);
+                resendLink.style.pointerEvents = '';
+                resendLink.style.opacity = '';
+            }
+        }, 1000);
+    }
+
+    function leave(target) {
+        closeDialog();
+        const here = window.location.pathname + window.location.search;
+        if (!target || target === here) window.location.reload();
+        else window.location.assign(target);
+    }
+
+    function resetToEmail() {
+        clearInterval(resendTimer);
+        signUpProof = null;
+        [codeSection, passwordSection, fullnameSection, dialogFooter].forEach((el) => { el.style.display = 'none'; });
+        emailInput.focus();
+    }
+
+    function showCodeStep(email, resendIn, resend) {
+        codeEmail = email;
+        signUpProof = null;
+        passwordSection.style.display = 'none';
+        fullnameSection.style.display = 'none';
+        codeIntro.textContent = __('We sent a code to {0}. Enter it to continue.', [email]);
+        codeInput.value = '';
+        showSection(codeSection);
+        submitBtn.textContent = __('Sign in');
+        showSection(dialogFooter);
+        codeInput.focus();
+        startResendCountdown(resendIn);
+        if (resend) frappe.show_alert({ message: __('A new code is on its way.'), indicator: 'green' });
+    }
+
+    function askForCode(email, resend) {
+        if (requestingCode) return;
+        requestingCode = true;
+        verifyBtn.disabled = true;
+        verifyBtn.classList.add('loading');
+        postJSON('frappe.passwordless.request_code', {
+            email: email,
+            redirect_to: window.location.pathname + window.location.search,
+        }).then((res) => {
+            if (res.status === 429) return alertRed(__('Too many requests. Please try again later.'));
+            if (!res.body.ok) {
+                return alertRed(res.body.reason === 'invalid_address'
+                    ? __('Please enter a valid email address') : __('An error occurred'));
+            }
+            showCodeStep(email, res.body.resend_in || 30, resend);
+        }).catch(() => {
+            alertRed(__('An error occurred'));
+        }).finally(() => {
+            requestingCode = false;
+            verifyBtn.disabled = false;
+            verifyBtn.classList.remove('loading');
+        });
+    }
+
+    function verifyCode() {
+        const code = codeInput.value.replace(/\s+/g, '');
+        if (!/^\d{6}$/.test(code)) {
+            alertRed(__('This code is not valid. Check it and try again.'));
+            codeInput.focus();
+            return;
+        }
+        const original = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = spinnerHtml;
+        postJSON('frappe.passwordless.verify_code', { email: codeEmail, code: code }).then((res) => {
+            const r = res.body;
+            if (res.status === 429) return alertRed(__('Too many requests. Please try again later.'));
+            if (r.ok && r.status === 'signed_in') {
+                frappe.show_alert({ message: __('Successful connection!'), indicator: 'green' });
+                return leave(r.redirect_to);
+            }
+            if (r.ok && r.status === 'unknown_address') {
+                signUpProof = r.proof;
+                clearInterval(resendTimer);
+                codeSection.style.display = 'none';
+                showSection(fullnameSection);
+                submitBtn.textContent = __('Create account');
+                frappe.show_alert({
+                    message: __('Your email is confirmed. Tell us your name to create your account.'),
+                    indicator: 'green',
+                });
+                return firstNameInput.focus();
+            }
+            alertRed({
+                locked: __('Too many wrong codes. Ask for a new code.'),
+                not_allowed: __('Signing in with a code is not available for this account. Use your password.'),
+            }[r.reason] || __('This code is not valid. Check it and try again.'));
+            codeInput.value = '';
+            codeInput.focus();
+        }).catch(() => {
+            alertRed(__('An error occurred'));
+        }).finally(() => {
+            submitBtn.disabled = false;
+            if (submitBtn.innerHTML === spinnerHtml) submitBtn.innerHTML = original;
+        });
+    }
+
+    function completeSignUp(firstName, lastName) {
+        const original = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = spinnerHtml;
+        postJSON('webshop.webshop.auth.code_sign_in.complete_sign_up', {
+            proof: signUpProof,
+            first_name: firstName,
+            last_name: lastName,
+            redirect_to: window.location.pathname + window.location.search,
+        }).then((res) => {
+            const r = res.body;
+            if (r.message === 'success' && r.signed_in) {
+                // the notice is translated by the server: a website page resolves no new __() string
+                try { sessionStorage.setItem('webshop_account_opened', r.notice || ''); } catch (e) { /* private mode */ }
+                return leave(r.redirect_to);
+            }
+            if (res.status === 429) return alertRed(__('Too many requests. Please try again later.'));
+            alertRed(r.reason || __('An error occurred'));
+            if (r.reason_code === 'invalid_proof') resetToEmail();
+        }).catch(() => {
+            alertRed(__('An error occurred'));
+        }).finally(() => {
+            submitBtn.disabled = false;
+            if (submitBtn.innerHTML === spinnerHtml) submitBtn.innerHTML = original;
+        });
+    }
+
+    resendLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        askForCode(codeEmail, true);
+    });
+    usePasswordLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        clearInterval(resendTimer);
+        codeSection.style.display = 'none';
+        showSection(passwordSection);
+        submitBtn.textContent = __('Sign in');
+        passwordInput.focus();
+    });
+    codeInput.addEventListener('input', function() {
+        if (codeInput.value.replace(/\s+/g, '').length === 6) verifyCode();
+    });
+    codeInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            verifyCode();
+        }
+    });
+
     // Verify email function
     function verifyEmail() {
         const email = emailInput.value.trim();
@@ -629,6 +842,13 @@ frappe.showLoginDialog = function(opts) {
                 indicator: 'red'
             });
             emailInput.focus();
+            return;
+        }
+
+        //// Neoffice — where the shop signs in with a code, the address is not looked up (it would tell a known
+        //// address from an unknown one): the code is asked for, the same for everybody.
+        if (passwordless) {
+            askForCode(email, false);
             return;
         }
 
@@ -678,6 +898,8 @@ frappe.showLoginDialog = function(opts) {
 
     // Add email input blur handler
     emailInput.addEventListener('blur', function() {
+        //// Neoffice — a code is mailed only on Continue or Enter, never because the field lost the focus
+        if (passwordless) return;
         const email = emailInput.value.trim();
         if (email) {
             verifyEmail();
@@ -701,6 +923,11 @@ frappe.showLoginDialog = function(opts) {
 
     // Handle form submission
     dialog.querySelector('.btn-submit').addEventListener('click', function() {
+        //// Neoffice — step two of the code sign-in is on screen: the button sends the code
+        if (codeSection.style.display === 'block') {
+            verifyCode();
+            return;
+        }
         const email = emailInput.value.trim();
         const password = passwordInput.value;
         const firstName = firstNameInput.value.trim();
@@ -714,6 +941,11 @@ frappe.showLoginDialog = function(opts) {
         if (fullnameSection.style.display === 'block') {
             if (!firstName || !lastName) {
                 frappe.show_alert({message: __('Please enter your first and last name'), indicator: 'red'});
+                return;
+            }
+            //// Neoffice — the mailbox was proven by the code: the account opens with it (auth/code_sign_in.py)
+            if (signUpProof) {
+                completeSignUp(firstName, lastName);
                 return;
             }
             // Create account

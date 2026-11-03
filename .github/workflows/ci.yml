@@ -374,6 +374,7 @@ jobs:
             webshop.webshop.seo.test_language_links \
             webshop.webshop.seo.test_structured_data \
             webshop.webshop.auth.test_account_opening \
+            webshop.webshop.auth.test_code_sign_in \
             webshop.webshop.seo.test_variants \
             webshop.webshop.seo.test_alt_text \
             webshop.webshop.seo.test_listing_ssr \

@@ -37,11 +37,37 @@ def signups_disabled() -> bool:
     2026-09-26). A new shop instance must have it unticked to take sign-ups."""
     return bool(cint(frappe.db.get_single_value("Website Settings", "disable_signup")))
 
+# //// Neoffice — extracted from create_account so that complete_sign_up (auth/code_sign_in.py, the account a
+# //// code opens) builds the very same user: a Website User with the Customer role and nothing else.
+def new_website_user(email, first_name, last_name):
+    """The unsaved User the shop opens for a customer. Never a System User."""
+    return frappe.get_doc({
+        "doctype": "User",
+        "email": email,
+        "first_name": first_name,
+        "last_name": last_name,
+        "enabled": 1,
+        "user_type": "Website User",
+        "send_welcome_email": 0,
+        "roles": [{
+            "role": "Customer",
+            "doctype": "Has Role"
+        }]
+    })
+
+
 @frappe.whitelist(allow_guest=True)
 def check_email(email):
     """Check if email already exists"""
     if not email:
         return {"exists": False}
+
+    # //// Neoffice — where the shop signs in with a code (auth/code_sign_in.py), nothing tells a known address
+    # //// from an unknown one: the dialog no longer asks, and a direct call gets one answer for every address.
+    from webshop.webshop.auth.code_sign_in import available
+
+    if available():
+        return {"exists": False, "login_with_email_link": False, "first_name": None}
 
     exists = frappe.db.exists("User", {"email": email})
     login_with_email_link = frappe.db.get_single_value('System Settings', 'login_with_email_link')
@@ -135,19 +161,7 @@ def create_account():
         # built-in welcome email here and send it manually afterwards, so that
         # a misconfigured SMTP server cannot prevent the account from being
         # reported as successfully created.
-        user = frappe.get_doc({
-            "doctype": "User",
-            "email": email,
-            "first_name": first_name,
-            "last_name": last_name,
-            "enabled": 1,
-            "user_type": "Website User",
-            "send_welcome_email": 0,
-            "roles": [{
-                "role": "Customer",
-                "doctype": "Has Role"
-            }]
-        })
+        user = new_website_user(email, first_name, last_name)
 
         try:
             user.insert(ignore_permissions=True)
@@ -234,9 +248,15 @@ def get_auth_settings():
                 "icon": icon
             })
 
+    # //// Neoffice — the code sign-in (auth/code_sign_in.py): on, the dialog asks for a code first and keeps the
+    # //// password for whoever has one; off (or stock frappe), it is the dialog it always was.
+    from webshop.webshop.auth.code_sign_in import available
+
+    passwordless = available()
     return {
+        "passwordless": passwordless,
         "social_login": len(provider_list) > 0,
-        "login_with_email_link": frappe.get_system_settings("login_with_email_link"),
+        "login_with_email_link": False if passwordless else frappe.get_system_settings("login_with_email_link"),
         "provider_logins": provider_list,
         "ldap_settings": frappe.db.get_value("LDAP Settings", "LDAP Settings", "enabled")
     }
