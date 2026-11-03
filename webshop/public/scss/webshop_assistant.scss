@@ -3,8 +3,11 @@
    or falling back to the theme's primary. */
 
 /* A dialog of the shop is open (a product question, an address): the bubble steps under its backdrop. At 1080 it
-   sat on the dialog's Send button on a phone. Bootstrap: backdrop 1040, dialog 1050. */
+   sat on the dialog's Send button on a phone. Bootstrap: backdrop 1040, dialog 1050. Closing a warning shown over a
+   dialog takes `modal-open` off the body while the dialog stays: the open dialog itself says so too (a rule of its
+   own, so that a browser without :has keeps the first). */
 body.modal-open .wsh-assistant { z-index: 1030; }
+body:has(.modal.show) .wsh-assistant { z-index: 1030; }
 
 .wsh-assistant {
 	--wsh-assistant-color: var(--primary, #1f2937);
