@@ -66,8 +66,9 @@ module.exports = defineConfig({
 			//// Neoffice — 16-account-lifecycle added: it creates an account through the
 			//// dialog, which is a visitor's path, and deletes it afterwards.
 			//// Neoffice — 17-seo-crawler-view added: a crawler has no session either.
+			//// Neoffice — 18-sign-in-with-a-code added: signing in with an emailed code is a visitor's path.
 			testMatch:
-				/(01-authentication|07-new-customer|08-assistant|10-quick-order|11-contrast|12-variants|16-account-lifecycle|17-seo-crawler-view)\.spec\.js/,
+				/(01-authentication|07-new-customer|08-assistant|10-quick-order|11-contrast|12-variants|16-account-lifecycle|17-seo-crawler-view|18-sign-in-with-a-code)\.spec\.js/,
 			use: {...devices['Desktop Chrome']},
 		},
 		{

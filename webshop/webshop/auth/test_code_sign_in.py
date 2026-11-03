@@ -127,7 +127,10 @@ class TestCompleteSignUp(FrappeTestCase):
 		self.assertEqual((answer["message"], answer["signed_in"], answer["redirect_to"]), ("success", True, "/checkout"))
 		user = frappe.get_doc("User", EMAIL)
 		self.assertEqual((user.user_type, user.first_name, user.last_name), ("Website User", "Ada", "Lovelace"))
-		self.assertEqual([r.role for r in user.roles], ["Customer"])
+		roles = [r.role for r in user.roles]
+		self.assertIn("Customer", roles)
+		# other apps of the instance add their own portal roles (a course student, a suite user); never a desk one
+		self.assertNotIn("System Manager", roles)
 		self.assertTrue(user.enabled)
 		# the code proved the address: nothing is left to confirm by a welcome email
 		self.assertFalse(frappe.db.get_value("User", EMAIL, "email_confirmation_pending"))
@@ -187,9 +190,11 @@ class TestCompleteSignUp(FrappeTestCase):
 		self.assertEqual(self.signed_in[0][0], KNOWN)
 
 	def test_a_staff_address_is_never_taken_over_by_the_shop(self):
+		frappe.set_user("Administrator")  # only an administrator grants a desk role
 		staff = frappe.get_doc({"doctype": "User", "email": STAFF, "first_name": "Staff", "send_welcome_email": 0})
 		staff.insert(ignore_permissions=True)
 		staff.add_roles("System Manager")
+		frappe.set_user("Guest")
 		self.assertEqual(frappe.db.get_value("User", STAFF, "user_type"), "System User")
 
 		answer = code_sign_in.complete_sign_up(self.proof(STAFF), "Mallory", "X")

@@ -9,6 +9,11 @@
 //// account and proving a deleted one is really gone — a `User` row missing from
 //// the database is the server's opinion; this is the shop's.
 const {expect} = require('@playwright/test');
+const {waitForSignInMail} = require('./code');
+
+//// Neoffice — the dialog signs in with a code where the site runs the frappe fork's `frappe.passwordless`
+//// (neoffice-maintenance#2192): an address is never looked up, the code is mailed and typed. The two helpers
+//// below read the page and follow whichever dialog it is, so the specs that use them say the same on both.
 
 //// A throwaway address the cleanup helper is allowed to remove: the guard in
 //// fixtures/activation.js accepts `e2e.<something>@yopmail.com` and nothing else,
@@ -38,14 +43,46 @@ async function askTheDialog(page, email) {
 
 	const nameAsked = page.locator('.fullname-section');
 	const passwordAsked = page.locator('.password-section');
+	const codeAsked = page.locator('.code-section');
 	await expect
-		.poll(async () => (await nameAsked.isVisible()) || (await passwordAsked.isVisible()), {
-			timeout: 25_000,
-			message: 'the dialog says neither "I know you" nor "I do not know you"',
-		})
+		.poll(
+			async () =>
+				(await nameAsked.isVisible()) || (await passwordAsked.isVisible()) || (await codeAsked.isVisible()),
+			{
+				timeout: 25_000,
+				message: 'the dialog says neither "I know you" nor "I do not know you" nor "I sent a code"',
+			}
+		)
 		.toBe(true);
 
+	if (await codeAsked.isVisible()) {
+		//// A code was mailed to everybody. Typing it answers the question: a known address is signed in
+		//// (the page reloads), an unknown one is asked for its name.
+		const mail = await waitForSignInMail(email);
+		await page.fill('#login_code', mail.code);
+		await expect
+			.poll(
+				async () => {
+					if (await nameAsked.isVisible().catch(() => false)) return 'unknown';
+					return (await signedInAs(page)) === email ? 'known' : null;
+				},
+				{timeout: 40_000, message: 'the code was typed and the dialog neither signed in nor asked a name'}
+			)
+			.not.toBeNull();
+		return (await nameAsked.isVisible().catch(() => false)) ? 'unknown' : 'known';
+	}
+
 	return (await passwordAsked.isVisible()) ? 'known' : 'unknown';
+}
+
+//// Who the page is signed in as, surviving the reload that follows a sign-in.
+async function signedInAs(page) {
+	try {
+		const r = await page.request.get('/api/method/frappe.auth.get_logged_user');
+		return r.ok() ? (await r.json()).message || 'Guest' : 'Guest';
+	} catch (error) {
+		return 'Guest';
+	}
 }
 
 /** Create an account through the shop's own dialog, as a visitor does. */
@@ -56,7 +93,8 @@ async function createAccountThroughDialog(page, email, {firstName = 'E2E', lastN
 	await page.fill('#first_name', firstName);
 	await page.fill('#last_name', lastName);
 	await page.locator('.btn-submit').click();
-	await page.waitForTimeout(6000);
+	//// Signed in at once (D-9, and the code's proof of the mailbox): the page reloads as the new customer.
+	await expect.poll(() => signedInAs(page), {timeout: 40_000, message: 'the new account is not signed in'}).toBe(email);
 }
 
-module.exports = {throwawayAddress, askTheDialog, createAccountThroughDialog};
+module.exports = {throwawayAddress, askTheDialog, createAccountThroughDialog, signedInAs};

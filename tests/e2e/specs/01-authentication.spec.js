@@ -5,6 +5,8 @@
 
 const {test, expect} = require('@playwright/test');
 const {CREDENTIALS, currentUser} = require('../fixtures/shop');
+const {askTheDialog} = require('../fixtures/account');
+const {accountExists} = require('../fixtures/activation');
 
 //// Unique per run so a re-run never collides with the account the previous run
 //// created. Cleanup: bench console, see README.md.
@@ -16,11 +18,24 @@ async function callAsGuest(page, method, form) {
 	return {status: r.status(), body: r.ok() ? await r.json() : null};
 }
 
+//// Neoffice — where the shop signs in with a code (neoffice-maintenance#2192) the address check tells nothing:
+//// the same answer for every address, because the dialog no longer asks. Each test below states what holds on
+//// the site it runs against, never a skip.
+async function signsInWithACode(page) {
+	const {body} = await callAsGuest(page, 'webshop.webshop.auth.api.get_auth_settings', {});
+	return Boolean(body.message.passwordless);
+}
+
 test.describe('E-mail address check', () => {
-	test('an existing account is recognised', async ({page}) => {
+	test('an existing account is recognised, or tells nothing where a code is mailed', async ({page}) => {
 		const {body} = await callAsGuest(page, 'webshop.webshop.auth.api.check_email', {
 			email: CREDENTIALS.user,
 		});
+		if (await signsInWithACode(page)) {
+			expect(body.message.exists, 'a known address must not be told apart from an unknown one').toBe(false);
+			expect(body.message.first_name, 'the first name would give the account away').toBeNull();
+			return;
+		}
 		expect(body.message.exists).toBe(true);
 		expect(body.message.first_name, 'the first name personalises the dialog').toBeTruthy();
 	});
@@ -30,6 +45,15 @@ test.describe('E-mail address check', () => {
 			email: 'e2e.unknown.zz@example.test',
 		});
 		expect(body.message.exists).toBe(false);
+	});
+
+	test('a known and an unknown address get the same answer where a code is mailed', async ({page}) => {
+		test.skip(!(await signsInWithACode(page)), 'this site still looks addresses up: the two tests above say so');
+		const known = await callAsGuest(page, 'webshop.webshop.auth.api.check_email', {email: CREDENTIALS.user});
+		const unknown = await callAsGuest(page, 'webshop.webshop.auth.api.check_email', {
+			email: 'e2e.unknown.zz@example.test',
+		});
+		expect(known.body.message).toEqual(unknown.body.message);
 	});
 });
 
@@ -89,9 +113,9 @@ test.describe('Account creation — the real journey', () => {
 		});
 		expect(body.message.message, `creation refused: ${body.message.reason || ''}`).not.toBe('error');
 
-		//// The account must exist AND remain a customer account: never a desk role.
-		const {body: check} = await callAsGuest(page, 'webshop.webshop.auth.api.check_email', {email});
-		expect(check.message.exists, 'the account must exist right after its creation').toBe(true);
+		//// The account must exist (asked of the server: the address check tells nothing where a code is mailed).
+		//// The throwaway address is not one the cleanup helper may delete: this spec has always left it behind.
+		expect(accountExists(email), 'the account must exist right after its creation').toBe(true);
 	});
 });
 
@@ -112,7 +136,7 @@ test.describe('Sign-in', () => {
 		expect(await currentUser(page)).toBe('Guest');
 	});
 
-	test('the dialog asks for the e-mail, then the password', async ({page}) => {
+	test('the dialog asks for the e-mail, then a code, or the password where none is mailed', async ({page}) => {
 		await page.goto('/all-products');
 		await page.waitForLoadState('domcontentloaded');
 		//// The bundles may still be loading: `frappe` is what opens the dialog.
@@ -129,6 +153,13 @@ test.describe('Sign-in', () => {
 		await page.fill('#login_email', CREDENTIALS.user);
 		await page.click('.btn-verify-email');
 
+		if (await signsInWithACode(page)) {
+			//// A code is mailed, whoever the address belongs to: the password and the name are not asked yet.
+			await expect(page.locator('.code-section')).toBeVisible();
+			await expect(page.locator('.password-section')).toBeHidden();
+			await expect(page.locator('.fullname-section')).toBeHidden();
+			return;
+		}
 		//// The password field only appears once the address is recognized: that's
 		//// what distinguishes "I'm signing in" from "I'm creating an account".
 		await expect(page.locator('.password-section')).toBeVisible();
@@ -136,19 +167,11 @@ test.describe('Sign-in', () => {
 	});
 
 	test('the dialog asks for a name when the address is unknown', async ({page}) => {
-		await page.goto('/all-products');
-		await page.waitForLoadState('domcontentloaded');
-		//// The bundles may still be loading: `frappe` is what opens the dialog.
-		await page.waitForFunction(
-			() => typeof window.frappe !== 'undefined' && !!window.frappe.showLoginDialog,
-			null,
-			{timeout: 30_000}
-		);
-		await page.evaluate(() => frappe.showLoginDialog({}));
-
-		await page.fill('#login_email', throwawayEmail());
-		await page.click('.btn-verify-email');
-
+		test.setTimeout(120_000);
+		//// askTheDialog follows either dialog: where a code is mailed it types the code the mailbox of an unknown
+		//// address would receive, and the name is asked only then.
+		const address = `e2e.dialog.${Date.now()}@yopmail.com`;
+		expect(await askTheDialog(page, address)).toBe('unknown');
 		await expect(page.locator('.fullname-section')).toBeVisible();
 		await expect(page.locator('.password-section')).toBeHidden();
 	});

@@ -21,6 +21,7 @@ const {
 	currentUser,
 } = require('../fixtures/shop');
 const {
+	accountExists,
 	activationAvailable,
 	activateAccount,
 	activationFailureReason,
@@ -53,16 +54,10 @@ test.describe('A new customer, from signing up to their order', () => {
 		//// Via readJson, which survives an HTML response — what the site returns
 		//// when it's under load, and which would kill an r.json() call with a
 		//// parsing error unrelated to what is being tested.
+		//// Asked of the server: where a code is mailed (neoffice-maintenance#2192) the address check tells
+		//// nothing, by design, so it can no longer answer "does this account exist".
 		await expect
-			.poll(
-				async () => {
-					const m = await readJson(page, '/api/method/webshop.webshop.auth.api.check_email', {
-						email,
-					});
-					return m ? m.exists : null;
-				},
-				{timeout: 40_000, message: 'the account was not created'}
-			)
+			.poll(() => accountExists(email), {timeout: 40_000, message: 'the account was not created'})
 			.toBe(true);
 
 		//// And they are signed in at once (decision D-9, #691): a first order no longer waits on
