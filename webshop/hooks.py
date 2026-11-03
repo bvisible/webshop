@@ -31,6 +31,8 @@ on_login = ["webshop.webshop.auth.confirmation.on_login"]
 # //// Neoffice — the fork's sign-in by code (frappe.passwordless) offers no new account on a site for business
 # //// accounts only: there an account is opened by a person at the shop, not by a mailbox (auth/code_sign_in.py)
 passwordless_signup_closed = ["webshop.webshop.auth.code_sign_in.signup_closed"]
+# //// Neoffice — and the mail speaks for the shop being served, not for the bench (auth/code_sign_in.py)
+passwordless_brand = ["webshop.webshop.auth.code_sign_in.brand"]
 on_session_creation = [
 	# //// Neoffice — body re-indented from 4 spaces to tabs by our editor config
 	# //// (no behaviour change). Kept as-is: reverting it would be a second

@@ -11774,3 +11774,44 @@ msgstr "Merci, votre question a bien été envoyée. La boutique vous répondra.
 #: webshop/webshop/shopping_cart/cart.py
 msgid "Please give an e-mail address or a phone number, so that the shop can answer you."
 msgstr "Veuillez indiquer une adresse e-mail ou un numéro de téléphone, afin que la boutique puisse vous répondre."
+
+#: webshop/public/js/auth_dialog.js:715
+msgid "A new code is on its way."
+msgstr "Un nouveau code est en route."
+
+#: webshop/webshop/auth/code_sign_in.py:100
+msgid "Signing in with a code is not available for this account."
+msgstr "La connexion par code n'est pas disponible pour ce compte."
+
+#: webshop/public/js/auth_dialog.js:773
+msgid "Signing in with a code is not available for this account. Use your password."
+msgstr "La connexion par code n'est pas disponible pour ce compte. Utilisez votre mot de passe."
+
+#: webshop/webshop/auth/code_sign_in.py:60
+msgid "Signing in with a code is not available on this site."
+msgstr "La connexion par code n'est pas disponible sur ce site."
+
+#: webshop/public/js/auth_dialog.js:745 webshop/public/js/auth_dialog.js:774
+msgid "This code is not valid. Check it and try again."
+msgstr "Ce code n'est pas valable. Vérifiez-le et réessayez."
+
+#: webshop/webshop/auth/code_sign_in.py:78
+msgid "This confirmation has expired. Ask for a new code."
+msgstr "Cette confirmation a expiré. Demandez un nouveau code."
+
+#: webshop/public/js/auth_dialog.js:772
+msgid "Too many wrong codes. Ask for a new code."
+msgstr "Trop de codes erronés. Demandez un nouveau code."
+
+#: webshop/public/js/auth_dialog.js:708
+#, python-brace-format
+msgid "We sent a code to {0}. Enter it to continue."
+msgstr "Nous avons envoyé un code à {0}. Saisissez-le pour continuer."
+
+#: webshop/webshop/auth/code_sign_in.py:105
+msgid "Your account is open and you are signed in."
+msgstr "Votre compte est ouvert et vous êtes connecté."
+
+#: webshop/public/js/auth_dialog.js:766
+msgid "Your email is confirmed. Tell us your name to create your account."
+msgstr "Votre e-mail est confirmé. Indiquez-nous votre nom pour créer votre compte."

@@ -11,6 +11,8 @@
 
 const {onTheServer} = require('./activation');
 
+const lastRead = new Map();
+
 const READ_LATEST = (address) =>
 	`import re, json, email as em\n` +
 	`from email.header import decode_header, make_header\n` +
@@ -44,10 +46,16 @@ function latestSignInMail(address) {
  */
 async function waitForSignInMail(address, {previousCode = null, timeout = 60_000} = {}) {
 	const deadline = Date.now() + timeout;
+	//// The code this process read last for the address is never read again: a second request a few seconds after the
+	//// first would otherwise be answered with the first mail while the new one is still on its way.
+	const skip = previousCode || lastRead.get(address) || null;
 	let last = null;
 	while (Date.now() < deadline) {
 		last = latestSignInMail(address);
-		if (last && last.code && last.code !== previousCode) return last;
+		if (last && last.code && last.code !== skip) {
+			lastRead.set(address, last.code);
+			return last;
+		}
 		await new Promise((resolve) => setTimeout(resolve, 2500));
 	}
 	throw new Error(`no new sign-in mail for ${address} after ${timeout / 1000}s (last: ${JSON.stringify(last)})`);

@@ -8695,3 +8695,57 @@ msgstr "Rinviare il presente modulo a"
 #, python-brace-format
 msgid "and {0} more"
 msgstr "e altri {0}"
+
+#: webshop/public/js/auth_dialog.js:715
+msgid "A new code is on its way."
+msgstr "Un nuovo codice è in arrivo."
+
+#: webshop/public/js/auth_dialog.js:174
+msgid "Send a new code"
+msgstr "Invia un nuovo codice"
+
+#: webshop/webshop/auth/code_sign_in.py:100
+msgid "Signing in with a code is not available for this account."
+msgstr "L'accesso con codice non è disponibile per questo account."
+
+#: webshop/public/js/auth_dialog.js:773
+msgid "Signing in with a code is not available for this account. Use your password."
+msgstr "L'accesso con codice non è disponibile per questo account. Acceda con la Sua password."
+
+#: webshop/webshop/auth/code_sign_in.py:60
+msgid "Signing in with a code is not available on this site."
+msgstr "L'accesso con codice non è disponibile su questo sito."
+
+#: webshop/public/js/auth_dialog.js:745 webshop/public/js/auth_dialog.js:774
+msgid "This code is not valid. Check it and try again."
+msgstr "Questo codice non è valido. Lo verifichi e riprovi."
+
+#: webshop/webshop/auth/code_sign_in.py:78
+msgid "This confirmation has expired. Ask for a new code."
+msgstr "Questa conferma è scaduta. Richieda un nuovo codice."
+
+#: webshop/public/js/auth_dialog.js:727 webshop/public/js/auth_dialog.js:754
+#: webshop/public/js/auth_dialog.js:801
+msgid "Too many requests. Please try again later."
+msgstr "Troppe richieste. Riprovi più tardi."
+
+#: webshop/public/js/auth_dialog.js:772
+msgid "Too many wrong codes. Ask for a new code."
+msgstr "Troppi codici errati. Richieda un nuovo codice."
+
+#: webshop/public/js/auth_dialog.js:176
+msgid "Use my password"
+msgstr "Usare la mia password"
+
+#: webshop/public/js/auth_dialog.js:708
+#, python-brace-format
+msgid "We sent a code to {0}. Enter it to continue."
+msgstr "Abbiamo inviato un codice a {0}. Lo inserisca per continuare."
+
+#: webshop/webshop/auth/code_sign_in.py:105
+msgid "Your account is open and you are signed in."
+msgstr "Il Suo account è stato aperto e Lei ha effettuato l'accesso."
+
+#: webshop/public/js/auth_dialog.js:766
+msgid "Your email is confirmed. Tell us your name to create your account."
+msgstr "La Sua e-mail è confermata. Ci indichi il Suo nome per creare il Suo account."

@@ -83,6 +83,11 @@ class TestTheShopWithoutTheEngine(FrappeTestCase):
 		with patch("webshop.webshop.multi_site.site_is_business_only", return_value=False):
 			self.assertFalse(code_sign_in.signup_closed())
 
+	def test_the_mail_speaks_for_the_shop_being_served(self):
+		self.assertIn("webshop.webshop.auth.code_sign_in.brand", frappe.get_hooks("passwordless_brand"))
+		with patch("webshop.webshop.seo.site.shop_name", return_value="La Fromagerie"):
+			self.assertEqual(code_sign_in.brand(), "La Fromagerie")
+
 	def test_a_field_losing_the_focus_never_mails_a_code(self):
 		"""A code is mailed on Continue or Enter. The dialog used to look the address up on every blur."""
 		path = os.path.join(os.path.dirname(__file__), "..", "..", "public", "js", "auth_dialog.js")

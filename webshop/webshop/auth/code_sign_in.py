@@ -39,6 +39,14 @@ def signup_closed() -> bool:
 	return bool(site_is_business_only())
 
 
+def brand() -> str:
+	"""Hook `passwordless_brand`: the name the mail speaks for is the shop being served (the site chrome's name, per
+	site), not the bench's. Empty when the site was never named: the engine then says the site's own application name."""
+	from webshop.webshop.seo.site import shop_name
+
+	return shop_name()
+
+
 def _clean_name(value) -> str:
 	return strip_html(value).strip()[:NAME_LENGTH] if isinstance(value, str) else ""
 
