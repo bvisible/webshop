@@ -18,7 +18,8 @@ from frappe import _, throw
 from frappe.rate_limiter import rate_limit  # //// Neoffice — see check_gift_cards (#953)
 from frappe.contacts.doctype.address.address import get_address_display
 from frappe.contacts.doctype.contact.contact import get_contact_name
-from frappe.utils import cint, cstr, flt, get_fullname
+# //// Neoffice — get_url and validate_email_address: the product question (create_lead_for_item_inquiry)
+from frappe.utils import cint, cstr, flt, get_fullname, get_url, validate_email_address
 from frappe.utils.nestedset import get_root_of
 
 from erpnext.accounts.utils import get_account_name
@@ -1801,10 +1802,73 @@ def add_new_address(doc):
 	# //// update above happen before this return).
 	return address
 
+# //// Neoffice — added: what the product question says about its product, None for a name that is not published.
+def _inquiry_product(item):
+	if not item:
+		return None
+	product = frappe.db.get_value(
+		"Website Item", {"name": item, "published": 1}, ["web_item_name", "item_code", "route"], as_dict=True
+	)
+	if product:
+		product.url = get_url("/" + (product.route or "").lstrip("/"))
+	return product
+
+
+# //// Neoffice — added: the single-use token of the theme's message door, taken when the dialog opens; "" without
+# //// the theme (the question then becomes a Lead, as upstream).
 @frappe.whitelist(allow_guest=True)
-def create_lead_for_item_inquiry(lead, subject, message):
+def item_inquiry_token():
+	if "neoffice_theme" not in frappe.get_installed_apps():
+		return ""
+	from neoffice_theme.website_messages import issue_token
+
+	return issue_token()
+
+
+@frappe.whitelist(allow_guest=True)
+# //// Neoffice — `item`, `token` and `website` added, `subject` and `message` optional (the dialog no longer sends a subject).
+def create_lead_for_item_inquiry(lead, subject="", message="", item=None, token="", website=""):
 	lead = frappe.parse_json(lead)
+	# //// Neoffice — the shop can only answer someone it can reach: an e-mail (checked) and a phone, refused empty
+	# //// here whatever the page sent. The dialog's required marks were the only guard.
+	email = (lead.get("email_id") or "").strip()
+	if not email:
+		frappe.throw(_("Please give your e-mail address, so that the shop can answer you."))
+	email = validate_email_address(email, throw=True)
+	phone = (lead.get("phone") or "").strip()
+	if not phone:
+		frappe.throw(_("Please give your phone number, so that the shop can call you back."))
+	message = (message or "").strip()
+	if not message:
+		frappe.throw(_("Please write your question."))
+	# //// Neoffice — the subject names the product, and the message carries its name, code and address: it was
+	# //// "Inquiry about WEB-ITM-0317", in English, typed into a field the visitor could see and change.
+	product = _inquiry_product(item)
+	if product:
+		subject = _("Question about {0}").format(product.web_item_name)
+		message = "{0}\n\n{1}: {2} ({3})\n{4}".format(
+			message, _("Product"), product.web_item_name, product.item_code, product.url
+		)
+	subject = (subject or "").strip() or _("Question about a product")
+	# //// Neoffice — with the theme, a product question is a message of the site, like the contact form's: the
+	# //// "Messages du site" inbox, the bell and the owner's mail, Nora's reading, the anti-spam rules. As a Lead
+	# //// with a comment it told nobody, and the question sat apart from the address that could answer it.
+	if "neoffice_theme" in frappe.get_installed_apps():
+		from neoffice_theme.website_messages import submit
+
+		return submit(
+			full_name=(lead.get("lead_name") or "").strip(),
+			sender=email,
+			phone=phone,
+			subject=subject,
+			message=message,
+			token=token,
+			website=website,
+		)
+
 	lead_doc = frappe.new_doc("Lead")
+	# //// Neoffice — the checked address, not the one the page sent
+	lead["email_id"], lead["phone"] = email, phone
 	for fieldname in ("lead_name", "company_name", "email_id", "phone"):
 		lead_doc.set(fieldname, lead.get(fieldname))
 
@@ -1831,7 +1895,9 @@ def create_lead_for_item_inquiry(lead, subject, message):
 			<p>{message}</p>
 		</div>
 	""".format(
-			subject=subject, message=message
+			# //// Neoffice — escaped: both come from a visitor and land in the desk's timeline as HTML
+			subject=frappe.utils.escape_html(subject),
+			message=frappe.utils.escape_html(message),
 		),
 	)
 

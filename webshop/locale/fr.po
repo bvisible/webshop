@@ -11720,3 +11720,56 @@ msgstr "Vous avez {0} flux, le maximum possible. Arrêtez-en un pour en créer u
 msgctxt "A product feed of a reseller"
 msgid "Feed"
 msgstr "Flux"
+
+#: webshop/templates/generators/item/item_inquiry.html
+msgid "A question about this product"
+msgstr "Une question sur ce produit"
+
+#: webshop/templates/generators/item/item_inquiry.html
+msgid "Your name"
+msgstr "Votre nom"
+
+#: webshop/templates/generators/item/item_inquiry.html
+msgid "Company (optional)"
+msgstr "Entreprise (facultatif)"
+
+#: webshop/templates/generators/item/item_inquiry.html
+msgid "Your e-mail address"
+msgstr "Votre adresse e-mail"
+
+#: webshop/templates/generators/item/item_inquiry.html
+msgid "The shop answers you at this address."
+msgstr "La boutique vous répondra à cette adresse."
+
+#: webshop/templates/generators/item/item_inquiry.html
+msgid "Your phone number"
+msgstr "Votre numéro de téléphone"
+
+#: webshop/templates/generators/item/item_inquiry.html
+msgid "Your question"
+msgstr "Votre question"
+
+#: webshop/templates/generators/item/item_inquiry.html
+msgid "Thank you, your question has been sent. The shop will answer you by e-mail."
+msgstr "Merci, votre question a bien été envoyée. La boutique vous répondra par e-mail."
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "Please give your e-mail address, so that the shop can answer you."
+msgstr "Veuillez indiquer votre adresse e-mail, afin que la boutique puisse vous répondre."
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "Please give your phone number, so that the shop can call you back."
+msgstr "Veuillez indiquer votre numéro de téléphone, afin que la boutique puisse vous rappeler."
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "Please write your question."
+msgstr "Veuillez écrire votre question."
+
+#: webshop/webshop/shopping_cart/cart.py
+#, python-brace-format
+msgid "Question about {0}"
+msgstr "Question sur {0}"
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "Question about a product"
+msgstr "Question sur un produit"

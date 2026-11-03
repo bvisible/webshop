@@ -1,72 +1,89 @@
 frappe.ready(() => {
+	//// Neoffice — the words come from the server (window.webshop_inquiry, item_inquiry.html), each with its
+	//// English as a fallback; the Subject field is gone: the server names the product (create_lead_for_item_inquiry).
+	const words = window.webshop_inquiry || {};
+	const say = (key, english) => words[key] || __(english);
+	let item = null;
+	let token = '';
 	const d = new frappe.ui.Dialog({
-		title: __('Contact Us'),
+		title: say('title', 'A question about this product'),  //// Neoffice — the server's words, see above
 		fields: [
 			{
 				fieldtype: 'Data',
-				label: __('Full Name'),
+				label: say('full_name', 'Your name'),  //// Neoffice — the server's words, see above
 				fieldname: 'lead_name',
 				reqd: 1
 			},
 			{
 				fieldtype: 'Data',
-				label: __('Organization Name'),
+				label: say('company', 'Company (optional)'),  //// Neoffice — the server's words, see above
 				fieldname: 'company_name',
 			},
 			{
 				fieldtype: 'Data',
-				label: __('Email'),
+				label: say('email', 'Your e-mail address'),  //// Neoffice — the server's words, see above
+				description: say('email_help', 'The shop answers you at this address.'),
 				fieldname: 'email_id',
 				options: 'Email',
 				reqd: 1
 			},
 			{
 				fieldtype: 'Data',
-				label: __('Phone Number'),
+				label: say('phone', 'Your phone number'),  //// Neoffice — the server's words, see above
 				fieldname: 'phone',
 				options: 'Phone',
 				reqd: 1
 			},
-			{
-				fieldtype: 'Data',
-				label: __('Subject'),
-				fieldname: 'subject',
-				reqd: 1
-			},
+			//// Neoffice — no Subject field any more: the server names the product
 			{
 				fieldtype: 'Text',
-				label: __('Message'),
+				label: say('message', 'Your question'),  //// Neoffice — the server's words, see above
 				fieldname: 'message',
 				reqd: 1
 			}
 		],
 		primary_action: send_inquiry,
-		primary_action_label: __('Send')
+		primary_action_label: say('send', 'Send')  //// Neoffice — the server's words, see above
 	});
 
+	//// Neoffice — the dialog closes once the message is in, and says so; it used to close at the click and say
+	//// nothing, sent or not. The product and the token of the theme's message door go with it.
 	function send_inquiry() {
 		const values = d.get_values();
-		const doc = Object.assign({}, values);
-		delete doc.subject;
-		delete doc.message;
-
-		d.hide();
-
-		frappe.call('webshop.webshop.shopping_cart.cart.create_lead_for_item_inquiry', {
-			lead: doc,
-			subject: values.subject,
-			message: values.message
-		}).then(r => {
-			if (r.message) {
+		if (!values) return;
+		const lead = {
+			lead_name: values.lead_name,
+			company_name: values.company_name,
+			email_id: values.email_id,
+			phone: values.phone
+		};
+		d.get_primary_btn().prop('disabled', true);
+		frappe.call({
+			method: 'webshop.webshop.shopping_cart.cart.create_lead_for_item_inquiry',
+			args: { lead: lead, subject: '', message: values.message, item: item, token: token },
+			callback: (r) => {
+				if (r.exc) return;
+				d.hide();
 				d.clear();
-			}
+				frappe.msgprint(say('sent', 'Thank you, your question has been sent. The shop will answer you by e-mail.'));
+			},
+			always: () => d.get_primary_btn().prop('disabled', false)
+		});
+	}
+
+	//// Neoffice — a single-use token, taken when the dialog opens (the theme holds back a message without one).
+	function take_token() {
+		token = '';
+		frappe.call({
+			method: 'webshop.webshop.shopping_cart.cart.item_inquiry_token',
+			callback: (r) => { token = r.message || ''; }
 		});
 	}
 
 	$('.btn-inquiry').click((e) => {
-		const $btn = $(e.target);
-		const item_code = $btn.data('item-code');
-		d.set_value('subject', 'Inquiry about ' + item_code);
+		//// Neoffice — the button's own data, not the target's: a click on its inner label gave no product.
+		item = $(e.currentTarget).data('item-code');
+		take_token();
 		if (!['Administrator', 'Guest'].includes(frappe.session.user)) {
 			d.set_value('email_id', frappe.session.user);
 			d.set_value('lead_name', frappe.get_cookie('full_name'));
