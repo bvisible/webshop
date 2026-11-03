@@ -22,17 +22,16 @@ frappe.ready(() => {
 			{
 				fieldtype: 'Data',
 				label: say('email', 'Your e-mail address'),  //// Neoffice — the server's words, see above
-				description: say('email_help', 'The shop answers you at this address.'),
+				//// Neoffice — the e-mail or the phone, one of the two: checked on sending and by the server
+				description: say('either', 'Your e-mail address or your phone number: the shop needs one of the two to answer you.'),
 				fieldname: 'email_id',
-				options: 'Email',
-				reqd: 1
+				options: 'Email'
 			},
 			{
 				fieldtype: 'Data',
 				label: say('phone', 'Your phone number'),  //// Neoffice — the server's words, see above
 				fieldname: 'phone',
-				options: 'Phone',
-				reqd: 1
+				options: 'Phone'
 			},
 			//// Neoffice — no Subject field any more: the server names the product
 			{
@@ -51,6 +50,11 @@ frappe.ready(() => {
 	function send_inquiry() {
 		const values = d.get_values();
 		if (!values) return;
+		//// Neoffice — the e-mail or the phone, one of the two (the server refuses a question with neither)
+		if (!values.email_id && !values.phone) {
+			frappe.msgprint(say('either', 'Your e-mail address or your phone number: the shop needs one of the two to answer you.'));
+			return;
+		}
 		const lead = {
 			lead_name: values.lead_name,
 			company_name: values.company_name,
@@ -65,7 +69,8 @@ frappe.ready(() => {
 				if (r.exc) return;
 				d.hide();
 				d.clear();
-				frappe.msgprint(say('sent', 'Thank you, your question has been sent. The shop will answer you by e-mail.'));
+				//// Neoffice — no promise of a mail: a phone may be all the visitor left
+				frappe.msgprint(say('sent', 'Thank you, your question has been sent. The shop will get back to you.'));
 			},
 			always: () => d.get_primary_btn().prop('disabled', false)
 		});

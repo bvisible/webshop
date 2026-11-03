@@ -16,17 +16,17 @@
 {#- //// Neoffice — the dialog's words, written here: a website page carries no catalogue for __(), and the #}
 {#- //// dialog spoke English ("Phone Number", "Inquiry about WEB-ITM-…") on a French shop. #}
 <script>
-window.webshop_inquiry = {{ {
-	"title": _("A question about this product"),
-	"full_name": _("Your name"),
-	"company": _("Company (optional)"),
-	"email": _("Your e-mail address"),
-	"email_help": _("The shop answers you at this address."),
-	"phone": _("Your phone number"),
-	"message": _("Your question"),
-	"send": _("Send"),
-	"sent": _("Thank you, your question has been sent. The shop will answer you by e-mail."),
-} | json }};
+window.webshop_inquiry = {
+	title: {{ _("A question about this product") | json }},
+	full_name: {{ _("Your name") | json }},
+	company: {{ _("Company (optional)") | json }},
+	email: {{ _("Your e-mail address") | json }},
+	either: {{ _("Your e-mail address or your phone number: the shop needs one of the two to answer you.") | json }},
+	phone: {{ _("Your phone number") | json }},
+	message: {{ _("Your question") | json }},
+	send: {{ _("Send") | json }},
+	sent: {{ _("Thank you, your question has been sent. The shop will get back to you.") | json }},
+};
 {% include "templates/generators/item/item_inquiry.js" %}
 </script>
 {% endif %}

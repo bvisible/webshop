@@ -1829,15 +1829,14 @@ def item_inquiry_token():
 # //// Neoffice — `item`, `token` and `website` added, `subject` and `message` optional (the dialog no longer sends a subject).
 def create_lead_for_item_inquiry(lead, subject="", message="", item=None, token="", website=""):
 	lead = frappe.parse_json(lead)
-	# //// Neoffice — the shop can only answer someone it can reach: an e-mail (checked) and a phone, refused empty
-	# //// here whatever the page sent. The dialog's required marks were the only guard.
+	# //// Neoffice — the shop can only answer someone it can reach: an e-mail (checked) or a phone, one of the two
+	# //// at least, refused here whatever the page sent. The dialog's required marks were the only guard.
 	email = (lead.get("email_id") or "").strip()
-	if not email:
-		frappe.throw(_("Please give your e-mail address, so that the shop can answer you."))
-	email = validate_email_address(email, throw=True)
 	phone = (lead.get("phone") or "").strip()
-	if not phone:
-		frappe.throw(_("Please give your phone number, so that the shop can call you back."))
+	if email:
+		email = validate_email_address(email, throw=True)
+	elif len(re.sub(r"\D", "", phone)) < 8:
+		frappe.throw(_("Please give an e-mail address or a phone number, so that the shop can answer you."))
 	message = (message or "").strip()
 	if not message:
 		frappe.throw(_("Please write your question."))
@@ -1884,6 +1883,9 @@ def create_lead_for_item_inquiry(lead, subject="", message="", item=None, token=
 	try:
 		lead_doc.save(ignore_permissions=True)
 	except frappe.exceptions.DuplicateEntryError:
+		# //// Neoffice — a question with only a phone has no address to find its Lead by
+		if not lead["email_id"]:
+			raise
 		frappe.clear_messages()
 		lead_doc = frappe.get_doc("Lead", {"email_id": lead["email_id"]})
 

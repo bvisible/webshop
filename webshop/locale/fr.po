@@ -11738,28 +11738,12 @@ msgid "Your e-mail address"
 msgstr "Votre adresse e-mail"
 
 #: webshop/templates/generators/item/item_inquiry.html
-msgid "The shop answers you at this address."
-msgstr "La boutique vous répondra à cette adresse."
-
-#: webshop/templates/generators/item/item_inquiry.html
 msgid "Your phone number"
 msgstr "Votre numéro de téléphone"
 
 #: webshop/templates/generators/item/item_inquiry.html
 msgid "Your question"
 msgstr "Votre question"
-
-#: webshop/templates/generators/item/item_inquiry.html
-msgid "Thank you, your question has been sent. The shop will answer you by e-mail."
-msgstr "Merci, votre question a bien été envoyée. La boutique vous répondra par e-mail."
-
-#: webshop/webshop/shopping_cart/cart.py
-msgid "Please give your e-mail address, so that the shop can answer you."
-msgstr "Veuillez indiquer votre adresse e-mail, afin que la boutique puisse vous répondre."
-
-#: webshop/webshop/shopping_cart/cart.py
-msgid "Please give your phone number, so that the shop can call you back."
-msgstr "Veuillez indiquer votre numéro de téléphone, afin que la boutique puisse vous rappeler."
 
 #: webshop/webshop/shopping_cart/cart.py
 msgid "Please write your question."
@@ -11778,3 +11762,15 @@ msgstr "Question sur un produit"
 #, python-brace-format
 msgid "Product: {0} ({1})"
 msgstr "Produit : {0} ({1})"
+
+#: webshop/templates/generators/item/item_inquiry.html
+msgid "Your e-mail address or your phone number: the shop needs one of the two to answer you."
+msgstr "Votre adresse e-mail ou votre numéro de téléphone : la boutique a besoin de l’un des deux pour vous répondre."
+
+#: webshop/templates/generators/item/item_inquiry.html
+msgid "Thank you, your question has been sent. The shop will get back to you."
+msgstr "Merci, votre question a bien été envoyée. La boutique vous répondra."
+
+#: webshop/webshop/shopping_cart/cart.py
+msgid "Please give an e-mail address or a phone number, so that the shop can answer you."
+msgstr "Veuillez indiquer une adresse e-mail ou un numéro de téléphone, afin que la boutique puisse vous répondre."

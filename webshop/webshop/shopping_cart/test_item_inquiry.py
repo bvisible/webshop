@@ -1,6 +1,6 @@
 # //// Neoffice — added file (no upstream equivalent): a question about a product.
-"""A question the shop cannot answer is worth nothing: it is refused without an e-mail address, a phone or a
-question, whatever the page sent. With the theme it goes the way of the site's other messages (the inbox, the bell,
+"""A question the shop cannot answer is worth nothing: it is refused without an e-mail address or a phone (one of
+the two at least) or without a question, whatever the page sent. With the theme it goes the way of the site's other messages (the inbox, the bell,
 the owner's mail, the anti-spam rules) instead of becoming a Lead that told nobody."""
 
 import sys
@@ -20,16 +20,26 @@ class TestAProductQuestion(FrappeTestCase):
 		with patch.object(cart.frappe, "get_installed_apps", return_value=list(apps)):
 			return cart.create_lead_for_item_inquiry(frappe.as_json(lead or LEAD), message=message, item=item)
 
-	def test_it_is_refused_without_an_email_address(self):
-		for email in ("", "  ", "not an address"):
-			with self.subTest(email=email), self.assertRaises(frappe.ValidationError):
-				self.ask({**LEAD, "email_id": email})
+	def test_it_is_refused_without_an_email_address_or_a_phone(self):
+		for email, phone in (("", ""), ("  ", " "), ("", "12 34")):
+			with self.subTest(email=email, phone=phone), self.assertRaises(frappe.ValidationError):
+				self.ask({**LEAD, "email_id": email, "phone": phone})
 
-	def test_it_is_refused_without_a_phone_or_a_question(self):
+	def test_it_is_refused_with_a_wrong_address_or_without_a_question(self):
 		with self.assertRaises(frappe.ValidationError):
-			self.ask({**LEAD, "phone": " "})
+			self.ask({**LEAD, "email_id": "not an address"})
 		with self.assertRaises(frappe.ValidationError):
 			self.ask(message=" ")
+
+	def test_a_phone_alone_is_enough(self):
+		submit = MagicMock(return_value={"ok": True})
+		messages = types.ModuleType("neoffice_theme.website_messages")
+		messages.submit = submit
+		theme = {"neoffice_theme": types.ModuleType("neoffice_theme"), "neoffice_theme.website_messages": messages}
+		with patch.dict(sys.modules, theme):
+			self.ask({**LEAD, "email_id": ""}, apps=("frappe", "erpnext", "webshop", "neoffice_theme"))
+		self.assertEqual("", submit.call_args.kwargs["sender"])
+		self.assertEqual("+41 21 000 00 00", submit.call_args.kwargs["phone"])
 
 	def test_with_the_theme_it_is_a_site_message_that_names_the_product(self):
 		submit = MagicMock(return_value={"ok": True})
