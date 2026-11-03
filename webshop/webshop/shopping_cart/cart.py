@@ -2894,13 +2894,28 @@ def get_party(user=None, ignore_permissions=False):
 		if frappe.db.exists("Customer", customer):
 			return frappe.get_doc("Customer", customer)
 
+# //// Neoffice — the checkout of this fork configures its gateways in the `payment_methods` table. The single field
+# //// `payment_gateway_account` is upstream's old way and stays empty on a shop configured by the table alone: the
+# //// sign-in hook (utils/portal.py) and the creation of a customer asked for it all the same and refused every
+# //// customer of such a shop, who then stayed on the login page (maintenance#1571). The first row that names a
+# //// gateway account answers when the field is empty; nothing is changed for a shop that fills the field.
+def gateway_account_of(cart_settings):
+	if cart_settings.payment_gateway_account:
+		return cart_settings.payment_gateway_account
+	for row in cart_settings.get("payment_methods") or []:
+		if row.get("payment_gateway_account"):
+			return row.get("payment_gateway_account")
+	return None
+
+
 def get_debtors_account(cart_settings):
-	if not cart_settings.payment_gateway_account:
+	# //// Neoffice — the field or, when it is empty, the table (see gateway_account_of above).
+	gateway_account = gateway_account_of(cart_settings)
+	if not gateway_account:
 		frappe.throw(_("Payment Gateway Account not set"), _("Mandatory"))
 
-	payment_gateway_account_currency = frappe.get_doc(
-		"Payment Gateway Account", cart_settings.payment_gateway_account
-	).currency
+	# //// Neoffice — the account found above, not the single field.
+	payment_gateway_account_currency = frappe.get_doc("Payment Gateway Account", gateway_account).currency
 
 	account_name = _("Debtors ({0})").format(payment_gateway_account_currency)
 

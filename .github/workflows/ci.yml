@@ -425,6 +425,7 @@ jobs:
             webshop.webshop.shopping_cart.test_offline_payment_rights \
             webshop.webshop.tests.test_checkout_labels \
             webshop.webshop.tests.test_catalogue_controls_have_names \
+            webshop.webshop.tests.test_debtors_account_reads_the_payment_methods \
             webshop.webshop.shopping_cart.test_payment_terms_rights \
             webshop.webshop.shopping_cart.test_item_inquiry
           do
