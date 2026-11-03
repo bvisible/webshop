@@ -2,6 +2,10 @@
    The chat bubble and its panel. One colour variable, set from the settings
    or falling back to the theme's primary. */
 
+/* A dialog of the shop is open (a product question, an address): the bubble steps under its backdrop. At 1080 it
+   sat on the dialog's Send button on a phone. Bootstrap: backdrop 1040, dialog 1050. */
+body.modal-open .wsh-assistant { z-index: 1030; }
+
 .wsh-assistant {
 	--wsh-assistant-color: var(--primary, #1f2937);
 	--wsh-assistant-ink: #1f2937;
