@@ -4283,9 +4283,11 @@ def process_gift_card_split(sales_order, coupon_data):
 		# Add a note to the description
 		original_amount = used_amount + excess_amount
 		if original_card.description:
-			original_card.description += f"\n\n{_('Amount adjusted on')} {today()} for order {sales_order.name}: {format_currency_value(original_amount, currency=sales_order.currency)} → {format_currency_value(used_amount, currency=sales_order.currency)}. {_('Remaining amount')} ({format_currency_value(excess_amount, currency=sales_order.currency)}) {_('transferred to card')} {new_code}."
+			# //// Neoffice — frappe.utils.today: `today` is imported nowhere in this function, and the split stopped here
+			# //// (NameError) after the new card was made and before the original one was cut down (2026-11-04)
+			original_card.description += f"\n\n{_('Amount adjusted on')} {frappe.utils.today()} for order {sales_order.name}: {format_currency_value(original_amount, currency=sales_order.currency)} → {format_currency_value(used_amount, currency=sales_order.currency)}. {_('Remaining amount')} ({format_currency_value(excess_amount, currency=sales_order.currency)}) {_('transferred to card')} {new_code}."
 		else:
-			original_card.description = f"{_('Amount adjusted on')} {today()} for order {sales_order.name}: {format_currency_value(original_amount, currency=sales_order.currency)} → {format_currency_value(used_amount, currency=sales_order.currency)}. {_('Remaining amount')} ({format_currency_value(excess_amount, currency=sales_order.currency)}) {_('transferred to card')} {new_code}."
+			original_card.description = f"{_('Amount adjusted on')} {frappe.utils.today()} for order {sales_order.name}: {format_currency_value(original_amount, currency=sales_order.currency)} → {format_currency_value(used_amount, currency=sales_order.currency)}. {_('Remaining amount')} ({format_currency_value(excess_amount, currency=sales_order.currency)}) {_('transferred to card')} {new_code}."
 		
 		original_card.save(ignore_permissions=True)
 		
