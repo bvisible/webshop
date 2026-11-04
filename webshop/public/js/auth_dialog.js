@@ -149,6 +149,9 @@ frappe.showLoginDialog = function(opts) {
                             </svg>
                         </div>
                     </div>
+                    <!-- //// Neoffice — where the shop signs in with a code, the password is one tap away from the first step too:
+                         a mail that does not come must never lock anybody out (neoffice-maintenance#2192) -->
+                    <p class="email-step-links" style="display: none;"><a href="#" class="email-use-password">${__('Use my password')}</a></p>
                     <div class="form-group password-section slide-in" style="display: none;">
                         <label for="login_password">${__('Password')}</label>
                         <div class="password-field">
@@ -521,6 +524,8 @@ frappe.showLoginDialog = function(opts) {
     const codeIntro = dialog.querySelector('.code-intro');
     const resendLink = dialog.querySelector('.code-resend');
     const usePasswordLink = dialog.querySelector('.code-use-password');
+    const emailStepLinks = dialog.querySelector('.email-step-links');
+    const emailUsePassword = dialog.querySelector('.email-use-password');
 
     // Function to validate email
     function isValidEmail(email) {
@@ -542,7 +547,8 @@ frappe.showLoginDialog = function(opts) {
             if (r.message) {
                 const { social_login, login_with_email_link, provider_logins } = r.message;
                 passwordless = !!r.message.passwordless;
-                
+                showEmailStepLinks(codeSection.style.display !== 'block' && passwordSection.style.display !== 'block');
+
                 if (social_login || login_with_email_link) {
                     socialLogins.style.display = 'block';
                     setTimeout(() => socialLogins.classList.add('show'), 50);
@@ -693,10 +699,29 @@ frappe.showLoginDialog = function(opts) {
         else window.location.assign(target);
     }
 
+    //// Neoffice — the password, whatever happens: a code that does not arrive (no mail, a refused request, a
+    //// network failure, a locked or barred account) must never leave anybody stuck on a red message. The link
+    //// under the address and the one under the code both come here, and so does every failure of the mail.
+    function showEmailStepLinks(show) {
+        emailStepLinks.style.display = show && passwordless ? 'block' : 'none';
+    }
+
+    function usePassword() {
+        clearInterval(resendTimer);
+        codeSection.style.display = 'none';
+        fullnameSection.style.display = 'none';
+        showEmailStepLinks(false);
+        showSection(passwordSection);
+        showSection(dialogFooter);
+        submitBtn.textContent = __('Sign in');
+        passwordInput.focus();
+    }
+
     function resetToEmail() {
         clearInterval(resendTimer);
         signUpProof = null;
         [codeSection, passwordSection, fullnameSection, dialogFooter].forEach((el) => { el.style.display = 'none'; });
+        showEmailStepLinks(true);
         emailInput.focus();
     }
 
@@ -705,6 +730,7 @@ frappe.showLoginDialog = function(opts) {
         signUpProof = null;
         passwordSection.style.display = 'none';
         fullnameSection.style.display = 'none';
+        showEmailStepLinks(false);
         codeIntro.textContent = __('We sent a code to {0}. Enter it to continue.', [email]);
         codeInput.value = '';
         showSection(codeSection);
@@ -724,14 +750,25 @@ frappe.showLoginDialog = function(opts) {
             email: email,
             redirect_to: window.location.pathname + window.location.search,
         }).then((res) => {
-            if (res.status === 429) return alertRed(__('Too many requests. Please try again later.'));
+            if (res.status === 429) {
+                alertRed(__('Too many requests. Please try again later.'));
+                return usePassword();
+            }
             if (!res.body.ok) {
-                return alertRed(res.body.reason === 'invalid_address'
-                    ? __('Please enter a valid email address') : __('An error occurred'));
+                if (res.body.reason === 'invalid_address') return alertRed(__('Please enter a valid email address'));
+                if (res.body.reason === 'disabled') {
+                    // the site stopped offering the code since the page loaded: the ordinary sign-in takes over
+                    passwordless = false;
+                    showEmailStepLinks(false);
+                    return verifyEmail();
+                }
+                alertRed(__('An error occurred'));
+                return usePassword();
             }
             showCodeStep(email, res.body.resend_in || 30, resend);
         }).catch(() => {
             alertRed(__('An error occurred'));
+            usePassword();
         }).finally(() => {
             requestingCode = false;
             verifyBtn.disabled = false;
@@ -772,6 +809,7 @@ frappe.showLoginDialog = function(opts) {
                 locked: __('Too many wrong codes. Ask for a new code.'),
                 not_allowed: __('Signing in with a code is not available for this account. Use your password.'),
             }[r.reason] || __('This code is not valid. Check it and try again.'));
+            if (r.reason === 'not_allowed') return usePassword();
             codeInput.value = '';
             codeInput.focus();
         }).catch(() => {
@@ -815,11 +853,17 @@ frappe.showLoginDialog = function(opts) {
     });
     usePasswordLink.addEventListener('click', function(e) {
         e.preventDefault();
-        clearInterval(resendTimer);
-        codeSection.style.display = 'none';
-        showSection(passwordSection);
-        submitBtn.textContent = __('Sign in');
-        passwordInput.focus();
+        usePassword();
+    });
+    //// Neoffice — from the first step: no mail is asked for, the person who already knows their password signs in
+    emailUsePassword.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (!isValidEmail(emailInput.value.trim())) {
+            frappe.show_alert({message: __('Please enter a valid email address'), indicator: 'red'});
+            emailInput.focus();
+            return;
+        }
+        usePassword();
     });
     codeInput.addEventListener('input', function() {
         if (codeInput.value.replace(/\s+/g, '').length === 6) verifyCode();

@@ -277,6 +277,67 @@ test.describe('The link in the mail', () => {
 	});
 });
 
+//// A mail that does not come must never lock anybody out (decision of 2026-11-04: the code is the default way in on
+//// every site, and the password stays whatever happens). The failures are the real ones, simulated at the network:
+//// nothing is mailed, so these tests spend none of the hourly allowance of the code.
+test.describe('The password is always in reach', () => {
+	test.setTimeout(120_000);
+
+	test.beforeEach(async ({page}) => {
+		await page.context().clearCookies(); //// the `customer` project starts signed in
+	});
+
+	async function signInWithThePassword(page) {
+		await expect(page.locator('.password-section')).toBeVisible();
+		await page.fill('#login_password', CREDENTIALS.password);
+		await page.locator('.btn-submit').click();
+		await expect.poll(() => signedInAs(page), {timeout: 40_000}).toBe(CREDENTIALS.user);
+	}
+
+	test('from the first step, with no mail asked for', async ({page}) => {
+		const asked = [];
+		page.on('request', (request) => {
+			if (request.url().includes('frappe.passwordless.request_code')) asked.push(request.url());
+		});
+		await openDialog(page);
+		await expect(page.locator('.email-use-password')).toBeVisible({timeout: 15_000});
+
+		//// no address yet: it says so, and nothing opens
+		await page.locator('.email-use-password').click();
+		await expect(page.locator('.password-section')).toBeHidden();
+
+		await page.fill('#login_email', CREDENTIALS.user);
+		await page.locator('.email-use-password').click();
+		await expect(page.locator('.code-section')).toBeHidden();
+		await expect(page.locator('.email-use-password')).toBeHidden();
+		await signInWithThePassword(page);
+		expect(asked, 'the password path must not mail anything').toEqual([]);
+	});
+
+	const failures = [
+		['a request the site refuses (429)', (route) =>
+			route.fulfill({status: 429, contentType: 'application/json', body: JSON.stringify({exc_type: 'TooManyRequestsError'})})],
+		['a server error (500)', (route) => route.fulfill({status: 500, contentType: 'text/html', body: 'Internal Server Error'})],
+		['a network that fails', (route) => route.abort('failed')],
+		['a code the site could not start', (route) =>
+			route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({message: {ok: false, reason: 'error'}})})],
+		['a site that stopped offering the code', (route) =>
+			route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({message: {ok: false, reason: 'disabled'}})})],
+	];
+
+	for (const [label, answer] of failures) {
+		test(`${label} leaves the password in reach`, async ({page}) => {
+			await page.route('**/api/method/frappe.passwordless.request_code', answer);
+			await openDialog(page);
+			await page.fill('#login_email', CREDENTIALS.user);
+			await page.click('.btn-verify-email');
+			await expect(page.locator('.password-section')).toBeVisible({timeout: 20_000});
+			await expect(page.locator('.code-section')).toBeHidden();
+			await signInWithThePassword(page);
+		});
+	}
+});
+
 test.describe("The desk's own sign-in page", () => {
 	test.describe.configure({mode: 'serial'});
 	test.setTimeout(150_000);
