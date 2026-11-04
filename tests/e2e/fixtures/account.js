@@ -8,7 +8,7 @@
 //// for a NAME when it is not. That single reading serves both creating an
 //// account and proving a deleted one is really gone — a `User` row missing from
 //// the database is the server's opinion; this is the shop's.
-const {expect} = require('@playwright/test');
+const {test, expect, request: playwrightRequest} = require('@playwright/test');
 const {waitForSignInMail} = require('./code');
 
 //// Neoffice — the dialog signs in with a code where the site runs the frappe fork's `frappe.passwordless`
@@ -76,10 +76,24 @@ async function askTheDialog(page, email) {
 }
 
 //// Who the page is signed in as, surviving the reload that follows a sign-in.
+////
+//// Asked through a context of its own, seeded with the page's cookies and thrown away: frappe answers a visitor
+//// with `Set-Cookie: sid=Guest`, and a question put through the page's own cookie jar, while the sign-in's response
+//// was still on its way, had its "visitor" answer land AFTER the sign-in's and overwrite the session the page had
+//// just been given. The page then reloaded as a guest and the test read "Guest" from a sign-in that had worked
+//// (a flake of the whole suite, found on 2026-11-04 in the trace of a session that existed on the server and had
+//// never been used).
 async function signedInAs(page) {
 	try {
-		const r = await page.request.get('/api/method/frappe.auth.get_logged_user');
-		return r.ok() ? (await r.json()).message || 'Guest' : 'Guest';
+		const url = page.url();
+		const baseURL = /^https?:/.test(url) ? new URL(url).origin : test.info().project.use.baseURL;
+		const api = await playwrightRequest.newContext({baseURL, storageState: await page.context().storageState()});
+		try {
+			const r = await api.get('/api/method/frappe.auth.get_logged_user');
+			return r.ok() ? (await r.json()).message || 'Guest' : 'Guest';
+		} finally {
+			await api.dispose();
+		}
 	} catch (error) {
 		return 'Guest';
 	}

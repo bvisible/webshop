@@ -67,8 +67,9 @@ module.exports = defineConfig({
 			//// dialog, which is a visitor's path, and deletes it afterwards.
 			//// Neoffice — 17-seo-crawler-view added: a crawler has no session either.
 			//// Neoffice — 18-sign-in-with-a-code added: signing in with an emailed code is a visitor's path.
+			//// Neoffice — 19-sign-in-from-the-app added: the phone has no session when it asks, and it runs once.
 			testMatch:
-				/(01-authentication|07-new-customer|08-assistant|10-quick-order|11-contrast|12-variants|16-account-lifecycle|17-seo-crawler-view|18-sign-in-with-a-code)\.spec\.js/,
+				/(01-authentication|07-new-customer|08-assistant|10-quick-order|11-contrast|12-variants|16-account-lifecycle|17-seo-crawler-view|18-sign-in-with-a-code|19-sign-in-from-the-app)\.spec\.js/,
 			use: {...devices['Desktop Chrome']},
 		},
 		{
@@ -79,7 +80,7 @@ module.exports = defineConfig({
 			//// its own customer): leaving them here made eleven specs fail for the
 			//// sole reason that the session wasn't the right one.
 			testIgnore:
-				/(01-authentication|06-checkout-b2b|07-new-customer|08-multi-site|09-business-account-request|16-account-lifecycle|17-seo-crawler-view)\.spec\.js/,
+				/(01-authentication|06-checkout-b2b|07-new-customer|08-multi-site|09-business-account-request|16-account-lifecycle|17-seo-crawler-view|19-sign-in-from-the-app)\.spec\.js/,
 			use: {...devices['Desktop Chrome'], storageState: SESSION},
 		},
 		{

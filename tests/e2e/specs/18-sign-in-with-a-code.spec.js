@@ -321,13 +321,29 @@ test.describe('The password is always in reach', () => {
 		['a network that fails', (route) => route.abort('failed')],
 		['a code the site could not start', (route) =>
 			route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({message: {ok: false, reason: 'error'}})})],
+		//// A site that stopped offering the code also answers the ordinary address check again (it tells a known
+		//// address from an unknown one): the dialog falls back to it and asks for the password of a known address.
 		['a site that stopped offering the code', (route) =>
-			route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({message: {ok: false, reason: 'disabled'}})})],
+			route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({message: {ok: false, reason: 'disabled'}})}),
+		async (page) => {
+			await page.route('**/', (route) => {
+				const request = route.request();
+				if (request.method() === 'POST' && (request.postData() || '').includes('auth.api.check_email')) {
+					return route.fulfill({
+						status: 200,
+						contentType: 'application/json',
+						body: JSON.stringify({message: {exists: true, first_name: 'E2E', login_with_email_link: false}}),
+					});
+				}
+				return route.continue();
+			});
+		}],
 	];
 
-	for (const [label, answer] of failures) {
+	for (const [label, answer, alsoAnswer] of failures) {
 		test(`${label} leaves the password in reach`, async ({page}) => {
 			await page.route('**/api/method/frappe.passwordless.request_code', answer);
+			if (alsoAnswer) await alsoAnswer(page);
 			await openDialog(page);
 			await page.fill('#login_email', CREDENTIALS.user);
 			await page.click('.btn-verify-email');
