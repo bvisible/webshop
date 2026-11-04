@@ -53,6 +53,16 @@ function userRecord(address) {
 	return JSON.parse(out.split('\n').pop());
 }
 
+//// A browser made by hand starts as nobody. Playwright 1.62 hands it the project's saved session, so
+//// under `customer` the "new browser" was already signed in as the test customer and never saw the dialog.
+function anonymousContext(browser, options = {}) {
+	return browser.newContext({
+		baseURL: test.info().project.use.baseURL,
+		storageState: {cookies: [], origins: []},
+		...options,
+	});
+}
+
 async function openDialog(page, path = '/all-products') {
 	await page.goto(path);
 	await page.waitForLoadState('domcontentloaded');
@@ -92,8 +102,12 @@ test.describe('Signing in with a code — what it must hold', () => {
 		expect(settings.body.passwordless, 'the site does not sign in with a code').toBe(true);
 
 		//// A known address and one nobody holds: one answer, and the cookie that binds a link to this browser
-		//// is set either way, so the headers do not tell them apart.
-		const known = await post(page, 'frappe.passwordless.request_code', {email: CREDENTIALS.user});
+		//// is set either way, so the headers do not tell them apart. The known one is a throwaway account: a
+		//// code is limited to five mails an hour per address, and the shared test customer's allowance was
+		//// spent by the second run of the hour.
+		const knownAddress = throwawayAddress('known');
+		makeUser(knownAddress, 'Customer');
+		const known = await post(page, 'frappe.passwordless.request_code', {email: knownAddress});
 		const stranger = await post(page, 'frappe.passwordless.request_code', {email: throwawayAddress('nobody')});
 		expect(known.status).toBe(200);
 		expect(known.body).toEqual(stranger.body);
@@ -201,7 +215,7 @@ test.describe('The link in the mail', () => {
 	}) => {
 		const address = throwawayAddress('code-link');
 		makeUser(address, 'Customer');
-		const context = await browser.newContext({baseURL: test.info().project.use.baseURL, locale: 'fr-CH'});
+		const context = await anonymousContext(browser, {locale: 'fr-CH'});
 		const page = await context.newPage();
 
 		await askForTheCode(page, address, '/all-products');
@@ -222,7 +236,7 @@ test.describe('The link in the mail', () => {
 		expect(new URL(page.url()).pathname).toBe('/all-products');
 
 		//// Once.
-		const other = await browser.newContext({baseURL: test.info().project.use.baseURL});
+		const other = await anonymousContext(browser);
 		const otherPage = await other.newPage();
 		await otherPage.goto(link);
 		await expect(otherPage.locator('form[action*="sign_in_with_link"]')).toHaveCount(0);
@@ -234,13 +248,13 @@ test.describe('The link in the mail', () => {
 	test('opened on another device it signs nobody in and points to the code', async ({browser}) => {
 		const address = throwawayAddress('code-device');
 		makeUser(address, 'Customer');
-		const asker = await browser.newContext({baseURL: test.info().project.use.baseURL});
+		const asker = await anonymousContext(browser);
 		const askerPage = await asker.newPage();
 		await askForTheCode(askerPage, address, '/all-products');
 		const mail = await waitForSignInMail(address);
 
 		//// The phone's mail app: no cookie, so no button, and nothing signed in.
-		const phone = await browser.newContext({baseURL: test.info().project.use.baseURL});
+		const phone = await anonymousContext(browser);
 		const phonePage = await phone.newPage();
 		await phonePage.goto(mail.link);
 		await expect(phonePage.locator('form[action*="sign_in_with_link"]')).toHaveCount(0);
