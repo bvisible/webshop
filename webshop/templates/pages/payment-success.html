@@ -6,9 +6,8 @@
 
 {% block page_content %}
 <div class="payment-success text-center">
-    {% if frappe.form_dict.doctype == "Payment Request" %}
-        {% set payment_request = frappe.get_doc("Payment Request", frappe.form_dict.docname) %}
-        
+    {# //// Neoffice — the request and the way back come from payment_success.py, which checks them. #}
+    {% if payment_request %}
         {# //// Neoffice — a REAL order only: until the money is in, a request points at the cart's placeholder order #}
         {% set ordered = payment_request.reference_doctype == "Sales Order" and frappe.db.get_value("Sales Order", payment_request.reference_name, "docstatus") == 1 %}
         {% if payment_request.from_checkout and ordered %}
@@ -34,7 +33,7 @@
 
                 // Redirect after 2 seconds
                 setTimeout(function() {
-                    window.location.href = "{{ frappe.form_dict.redirect_to or '/orders' }}";
+                    window.location.href = {{ redirect_to | tojson }};
                 }, 2000);
             </script>
         {% endif %}
@@ -57,7 +56,7 @@
 
             // Redirect after 2 seconds
             setTimeout(function() {
-                window.location.href = "{{ frappe.form_dict.redirect_to or '/orders' }}";
+                window.location.href = {{ redirect_to | tojson }};
             }, 2000);
         </script>
     {% endif %}
