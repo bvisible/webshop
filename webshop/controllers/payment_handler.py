@@ -793,11 +793,13 @@ class PaymentHandler:
             frappe.db.set_value("Payment Request", payment_request_id, {
                 "docstatus": 1,
                 "status": "Failed",
+                # //// Neoffice — the answer the shop's script can read: a refusal here left the card tile frozen.
                 "message": note
             }, update_modified=False)
 
             frappe.db.commit()
             
+            # //// Neoffice — the answer the shop's script can read: a refusal here left the card tile frozen.
             return answer
             
         except Exception:
