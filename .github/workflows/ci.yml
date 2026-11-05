@@ -328,6 +328,7 @@ jobs:
             webshop.templates.pages.test_payment_success \
             webshop.controllers.test_audit_guards_w2 \
             webshop.webshop.shopping_cart.test_audit_guards_w3 \
+            webshop.webshop.shopping_cart.test_audit_guards_w1 \
             webshop.webshop.shopping_cart.test_portal_guards \
             webshop.webshop.test_multi_site \
             webshop.webshop.utils.test_brand_carousel \
