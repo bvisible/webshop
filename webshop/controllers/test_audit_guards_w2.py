@@ -7,6 +7,8 @@ account and not as Administrator, on the shop's own cart and order (`ShopFixture
 application with a test client: its answer is an HTTP status the shop's dialog reads, and a session cookie.
 """
 
+import importlib.util
+import unittest
 from unittest.mock import patch
 
 import frappe
@@ -380,6 +382,9 @@ class TestTheShopOnItsOwnDocuments(ShopFixture):
 				erpnext_call.assert_not_called()
 				frappe.set_user("Administrator")
 
+	@unittest.skipUnless(
+		importlib.util.find_spec("builder"), "a page of the shop needs builder, absent from this CI"
+	)
 	def test_the_order_page_offers_to_pay_an_open_order_only(self):
 		before = frappe.db.get_single_value("Webshop Settings", "enable_checkout")
 		self.addCleanup(frappe.db.set_single_value, "Webshop Settings", "enable_checkout", before)
@@ -551,6 +556,7 @@ class TestTheShopOnItsOwnDocuments(ShopFixture):
 		before = frappe.db.count("Error Log", {"method": NOT_CONFIRMED_TITLE})
 		frappe.set_user(USER)
 		for _ in range(3):
+			frappe.local.cache.clear()  # each ask is a request of its own, with its own local cache
 			answer = call(CONCLUDE_PAYMENT, payment_request_id=request)
 		self.assertEqual(answer["message"], NOT_CONFIRMED_YET, "the buyer is told each time")
 		frappe.set_user("Administrator")
@@ -852,6 +858,7 @@ class TestTheShopSignIn(FrappeTestCase):
 
 	def setUp(self):
 		frappe.set_user("Administrator")
+		frappe.db.set_single_value("Website Settings", "disable_signup", 0)  # a fresh site closes sign-ups
 		self.peer = self.a_peer()
 		self.throttled = []
 
@@ -967,8 +974,9 @@ class TestTheShopSignIn(FrappeTestCase):
 
 	def test_two_factor_is_not_skipped_by_the_shop_s_door(self):
 		self.two_factor_for(self.CUSTOMER_ACCOUNT, self.STAFF_ACCOUNT)
+		self.set_system_setting("two_factor_method", "OTP App")  # a site with no mail account sends no code
 		for email in (self.CUSTOMER_ACCOUNT, self.STAFF_ACCOUNT):
-			with self.subTest(email=email):
+			with self.subTest(email=email), patch("frappe.sendmail"):
 				response = self.sign_in(email)
 				self.assertEqual(response.status_code, 403, response.get_data(as_text=True)[:400])
 				self.assertEqual(response.json["message"]["reason_code"], "use_the_sign_in_page")

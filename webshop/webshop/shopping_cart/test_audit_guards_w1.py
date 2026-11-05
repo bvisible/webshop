@@ -13,12 +13,15 @@ balance that moved in between.
 
 import ast
 import contextlib
+import inspect
 import threading
 import time
+import unittest
 from pathlib import Path
 from unittest import mock
 
 import frappe
+from erpnext.utilities.product import get_price
 from frappe.handler import is_valid_http_method
 from frappe.utils import flt
 from frappe.utils.redis_wrapper import RedisWrapper
@@ -55,6 +58,11 @@ from webshop.webshop.tests.utils import (
 	snapshot_webshop_settings,
 )
 from webshop.webshop.utils import cart_helpers
+
+# Gift cards and warehouse prices are our fork's: this CI runs upstream's erpnext on purpose.
+needs_our_erpnext = unittest.skipUnless(
+	"warehouse" in inspect.signature(get_price).parameters, "needs our erpnext fork, absent from this CI"
+)
 
 CART = "webshop.webshop.shopping_cart.cart"
 API = "webshop.webshop.api"
@@ -468,6 +476,7 @@ class TestAuditGuards(ShopFixture):
 
 	# --- finding 4: a gift card pays once, for what it really paid ----------------
 
+	@needs_our_erpnext
 	def test_a_card_spent_in_full_on_a_paid_order_is_empty_afterwards(self):
 		card = make_card(30)
 		self.fill()
@@ -479,6 +488,7 @@ class TestAuditGuards(ShopFixture):
 		self.assertEqual("success", out.get("status"), out)
 		self.assertEqual(0, flt(card_row(card.name).gift_card_amount), "the till would still accept this balance")
 
+	@needs_our_erpnext
 	def test_a_card_spent_in_full_on_an_order_on_account_is_empty_afterwards(self):
 		card = make_card(30)
 		self.fill()
@@ -497,6 +507,7 @@ class TestAuditGuards(ShopFixture):
 			"Comment", filters={"reference_doctype": "Coupon Code", "reference_name": card_name}, pluck="content"
 		)
 
+	@needs_our_erpnext
 	def test_a_card_worth_more_than_the_order_keeps_its_code_and_the_rest(self):
 		card = make_card(120)
 		self.fill()
@@ -517,6 +528,7 @@ class TestAuditGuards(ShopFixture):
 		shown = next(c for c in get_gift_cards_for_customer(CUSTOMER) if c.name == card.name)
 		self.assertEqual(("active", 70), (shown.status, flt(shown.remaining_amount)))
 
+	@needs_our_erpnext
 	def test_the_rest_of_a_card_pays_the_next_order(self):
 		card = make_card(70)
 		self.fill()
@@ -533,6 +545,7 @@ class TestAuditGuards(ShopFixture):
 		self.assertEqual(0, flt(card_row(card.name).gift_card_amount))
 		self.assertEqual(20, flt(frappe.db.get_value("Sales Order", self.orders()[0], "discount_amount")))
 
+	@needs_our_erpnext
 	def test_an_order_that_fails_costs_the_card_nothing(self):
 		"""handle_direct_order swallows the failure and the POST commits: what was written before it stays."""
 		for till in (False, True):
@@ -547,6 +560,7 @@ class TestAuditGuards(ShopFixture):
 				self.assertFalse(frappe.get_all("Coupon Code", filters={"coupon_code_residual": card.name}))
 				frappe.db.rollback()
 
+	@needs_our_erpnext
 	def test_a_till_card_pays_at_the_shop_and_keeps_its_code(self):
 		card = make_card(120, till=True)
 		self.fill()
@@ -563,6 +577,7 @@ class TestAuditGuards(ShopFixture):
 			"the till's own rule follows the balance, as POS Next writes it",
 		)
 
+	@needs_our_erpnext
 	def test_a_till_card_spent_in_full_pays_at_the_shop(self):
 		card = make_card(30, till=True)
 		self.fill()
@@ -573,6 +588,7 @@ class TestAuditGuards(ShopFixture):
 		self.assertEqual(0, flt(card_row(card.name).gift_card_amount))
 		self.assertEqual(1, len(self.orders()))
 
+	@needs_our_erpnext
 	def test_a_card_applied_on_two_carts_pays_one(self):
 		card = make_card(30)
 		for user in (USER, STRANGER):
@@ -589,6 +605,7 @@ class TestAuditGuards(ShopFixture):
 		self.assertEqual([], self.orders(STRANGER_CUSTOMER), "the second order was paid with a spent balance")
 		self.assertEqual(0, flt(card_row(card.name).gift_card_amount))
 
+	@needs_our_erpnext
 	def test_a_cancelled_order_gives_its_card_back(self):
 		card = make_card(120)
 		self.fill()
@@ -602,6 +619,7 @@ class TestAuditGuards(ShopFixture):
 		self.fill()
 		self.assertEqual(50, flt(self.apply(card.code).discount_amount), "the card pays again")
 
+	@needs_our_erpnext
 	def test_a_card_spent_in_full_is_whole_again_when_its_order_is_cancelled(self):
 		card = make_card(30)
 		self.fill()
@@ -725,6 +743,7 @@ class TestAuditGuards(ShopFixture):
 		self.fill()
 		self.assertTrue(self.order_by_the_web_door())
 
+	@needs_our_erpnext
 	def test_a_card_that_pays_everything_passes(self):
 		card = make_card(120)
 		self.shop_terms()
@@ -760,6 +779,7 @@ class TestAuditGuards(ShopFixture):
 		frappe.set_user("Administrator")
 		self.assertEqual(30, flt(card_row(card.name).gift_card_amount))
 
+	@needs_our_erpnext
 	def test_the_exact_code_and_the_name_the_checkout_restores_are_accepted(self):
 		card = make_card(30)
 		self.fill()
@@ -1059,6 +1079,7 @@ class TestAuditGuards(ShopFixture):
 		out = over_http(f"{API}.get_product_price_info", items=codes)
 		self.assertLessEqual(len(out), 50)
 
+	@needs_our_erpnext
 	def test_the_search_still_gets_its_prices(self):
 		out = over_http(f"{API}.get_product_price_info", items=frappe.as_json([ITEM, f"{PREFIX}-NO-SUCH"]))
 		self.assertEqual(PRICE, flt(out[ITEM]["price_list_rate"]))
@@ -1096,6 +1117,7 @@ class TestAuditGuards(ShopFixture):
 		with as_visitor():
 			self.assertEqual({}, over_http(f"{API}.get_product_price_info", items=[ITEM]))
 
+	@needs_our_erpnext
 	def test_a_closed_catalogue_stays_open_to_a_customer(self):
 		self.closed_catalogue()
 		frappe.set_user(USER)
@@ -1105,15 +1127,18 @@ class TestAuditGuards(ShopFixture):
 		self.assertIn("items", out)
 		self.assertEqual(PRICE, flt(prices[ITEM]["price_list_rate"]))
 
+	@needs_our_erpnext
 	def test_a_visitor_lists_the_shop_as_before(self):
 		with as_visitor():
 			self.assertIn("items", over_http(f"{API}.get_product_filter_data", query_args=LISTING))
 
+	@needs_our_erpnext
 	def test_a_visitor_reads_no_price_of_what_the_shop_does_not_show(self):
 		with as_visitor():
 			out = over_http(f"{API}.get_product_price_info", items=[ITEM, HIDDEN_ITEM])
 		self.assertEqual([ITEM], list(out))
 
+	@needs_our_erpnext
 	def test_the_staff_read_the_rest(self):
 		out = over_http(f"{API}.get_product_price_info", items=[HIDDEN_ITEM])
 		self.assertEqual(321, flt(out[HIDDEN_ITEM]["price_list_rate"]))
@@ -1362,6 +1387,7 @@ class TestAGiftCardAtAGateway(ShopFixture):
 		listed = hooks.doc_events["Sales Order"]["on_cancel"]
 		self.assertIn("webshop.webshop.shopping_cart.cart.give_gift_card_back", listed)
 
+	@needs_our_erpnext
 	def test_a_till_card_is_no_coupon_of_a_paid_order(self):
 		from webshop.controllers.payment_handler import _coupon_of_the_order
 

@@ -4,6 +4,8 @@
 # License: MIT. See LICENSE
 """/payment-success as a visitor reaches it, through the website router."""
 
+import importlib.util
+import unittest
 from urllib.parse import urlencode
 
 import frappe
@@ -24,6 +26,9 @@ def _render(**query) -> tuple[int, str]:
 	return response.status_code, response.get_data(as_text=True)
 
 
+@unittest.skipUnless(
+	importlib.util.find_spec("builder"), "a page of the shop needs builder, absent from this CI"
+)
 class TestPaymentSuccessPage(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user("Guest")

@@ -14,6 +14,7 @@ import os
 import re
 import shutil
 import subprocess
+import unittest
 from unittest.mock import patch
 
 import frappe
@@ -34,7 +35,12 @@ from webshop.webshop.seo import sitemaps
 from webshop.webshop.seo.feeds import google
 from webshop.webshop.shopping_cart import product_info
 from webshop.webshop.tests.utils import PREFIX, make_test_item, portal_customer
-from webshop.webshop.utils import builder, utils
+from webshop.webshop.utils import utils
+
+try:
+	from webshop.webshop.utils import builder
+except ImportError:  # the builder app is absent from this CI
+	builder = None
 
 USER = "wstest-w3-customer@yopmail.com"
 CUSTOMER = f"{PREFIX} W3 Customer"
@@ -102,6 +108,8 @@ def over_http(method):
 
 def page(path, **query):
 	"""What a visitor receives for `path`, through the website router."""
+	if not builder:
+		raise unittest.SkipTest("a page of the shop needs the builder app, absent from this CI")
 	set_request(method="GET", path=path, base_url="http://audit-w3.test")
 	frappe.form_dict.clear()
 	frappe.form_dict.update(query)
@@ -844,6 +852,7 @@ class TestUsageReport(Fixture):
 			self.assertIn("requests", [column["fieldname"] for column in columns])
 
 
+@unittest.skipUnless(builder, "needs the builder app, absent from this CI")
 class TestDraftOfBuilder(Fixture):
 	def draft(self):
 		page_doc = frappe.get_doc(
