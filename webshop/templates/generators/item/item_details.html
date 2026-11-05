@@ -6,14 +6,16 @@
 {# //// model ("also available second-hand") and under a used unit (its siblings). A price #}
 {# //// shows only where the page shows its own (hidden for a visitor on some shops). #}
 {% macro used_unit_row(unit) -%}
-<a class="product-used-unit" href="/{{ unit.route }}">
+{# //// Neoffice — a catalogue field is text: raw, a quote in it ran in the page. #}
+<a class="product-used-unit" href="/{{ unit.route | e }}">
 	{% if unit.thumbnail or unit.website_image %}
-	<img src="{{ unit.thumbnail or unit.website_image }}" alt="{{ unit.web_item_name }}" loading="lazy">
+	<img src="{{ (unit.thumbnail or unit.website_image) | e }}" alt="{{ unit.web_item_name | e }}" loading="lazy">
 	{% else %}
 	<span class="product-used-unit__abbr">{{ (unit.web_item_name or '?')[0] | upper }}</span>
 	{% endif %}
 	<span class="product-used-unit__body">
-		<span class="product-used-unit__name">{{ unit.web_item_name }}</span>
+		{# //// Neoffice — see above. #}
+		<span class="product-used-unit__name">{{ unit.web_item_name | e }}</span>
 		<span class="product-used-unit__meta">{{ _(unit.item_condition) }}{% if unit.condition_grade %} · {{ _(unit.condition_grade) }}{% endif %}</span>
 	</span>
 	{% if price_info and unit.formatted_price %}<span class="product-used-unit__price">{{ unit.formatted_price }}</span>{% endif %}
@@ -76,16 +78,17 @@
 	{# //// other used copies of the same model follow, so a customer compares in one place. #}
 	{% if condition_info.reference %}
 	{% set model = condition_info.reference %}
-	<a class="product-new-model" href="/{{ model.route }}">
+	{# //// Neoffice — see used_unit_row above. #}
+	<a class="product-new-model" href="/{{ model.route | e }}">
 		{% if model.thumbnail or model.website_image %}
-		<img src="{{ model.thumbnail or model.website_image }}" alt="{{ model.web_item_name }}" loading="lazy">
+		<img src="{{ (model.thumbnail or model.website_image) | e }}" alt="{{ model.web_item_name | e }}" loading="lazy">
 		{% else %}
 		<span class="product-new-model__abbr">{{ (model.web_item_name or '?')[0] | upper }}</span>
 		{% endif %}
 		{# //// Neoffice — second-hand (2026-09-14), see above: the new model's card #}
 		<span class="product-new-model__body">
 			<span class="product-new-model__label">{{ _("The new model") }}</span>
-			<span class="product-new-model__name">{{ model.web_item_name }}</span>
+			<span class="product-new-model__name">{{ model.web_item_name | e }}</span>
 			{% if model.in_stock %}<span class="product-new-model__stock">{{ _("In stock") }}</span>{% endif %}
 		</span>
 		{# //// Neoffice — second-hand (2026-09-14), see above: price and the way to the new model #}

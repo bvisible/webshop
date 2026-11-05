@@ -4,6 +4,8 @@
 # //// "CHF" on every tile (0804898032, 2025-03-05; setting 0134ef756e, 2025-07-03).
 import frappe
 import json
+# //// Neoffice — os: get_gateway_configuration keeps its path inside the apps, see there.
+import os
 
 from frappe import _
 from frappe.utils.data import fmt_money
@@ -89,6 +91,14 @@ def get_gateway_configuration(payment_method, payment_gateway_account=None):
         if not config_path:
             config_path = frappe.get_app_path("webshop", "templates", "payments", f"{payment_method}.json")
             
+        # //// Neoffice — the file name comes from a method's name or from a template path typed on a Webshop
+        # //// Payment Method, and get_app_path() leaves "../" as it is: any JSON file the worker could open was
+        # //// read, site_config.json among them. Whatever the path says, it stays in the apps: refused like a
+        # //// missing file, logged below and answered with an empty configuration.
+        apps = os.path.realpath(os.path.join(frappe.utils.get_bench_path(), "apps"))
+        if not os.path.realpath(config_path).startswith(apps + os.sep):
+            raise ValueError(f"Not in an app: {config_path}")
+
         with open(config_path, "r") as f:
             return json.load(f)
     except Exception as e:
@@ -98,8 +108,22 @@ def get_gateway_configuration(payment_method, payment_gateway_account=None):
         frappe.log_error("Error reading payment configuration", str(e))
         return {}
 
+# //// Neoffice — a guest named any account, or sent a filter (a JSON body makes one of an unannotated
+# //// argument), and the answer gave its first name, or told whether an account matched on any column of
+# //// User. It answers now for the caller, or for whoever may read accounts. Nothing in the apps calls it: it
+# //// stays for a stored template.
+# permission-check: ok the caller's own first name; another account's only to who may read accounts
 @frappe.whitelist( allow_guest=True )
-def get_first_name(user):
+def get_first_name(user: str | None = None):
+    user = user or frappe.session.user
+    if user == "Guest":
+        return None
+    # //// Neoffice — asked on the record: a role row with if_owner answers yes for the doctype, to any
+    # //// account. An account that does not exist reads the same as one the caller may not read.
+    if user != frappe.session.user and not (
+        frappe.db.exists("User", user) and frappe.has_permission("User", "read", doc=user)
+    ):
+        return None
     return frappe.db.get_value("User", user, "first_name")
 
 @frappe.whitelist(allow_guest=True)

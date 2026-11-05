@@ -518,16 +518,22 @@ function render_tree_nodes(container, nodes, level) {
 		// Calculate weightage based on position (higher position = higher weightage)
 		const baseWeightage = (nodes.length - index) * 10;
 		const hasChildren = node.children && node.children.length > 0;
+		//// Neoffice — an Item Group's name may hold a quote (only < and > are forbidden): raw in these attributes
+		//// it ran in the session of whoever opened this form, as Administrator too. item.data('name') reads the
+		//// original back.
+		const name = frappe.utils.escape_html(node.name);
 
+		//// Neoffice — name, see above.
 		const item = $(`
 			<div class="category-tree-item ${node.is_group ? 'is-group' : ''} ${hasChildren ? 'has-children' : ''}"
-				 data-name="${node.name}"
+				 data-name="${name}"
 				 data-level="${level}"
 				 data-weightage="${node.weightage || baseWeightage}"
 				 draggable="true">
 				<span class="drag-handle">☰</span>
 				${hasChildren ? '<span class="toggle-children">▼</span>' : '<span class="toggle-placeholder" style="width: 24px; display: inline-block;"></span>'}
-				<span class="item-label">${node.label}</span>
+				<!-- //// Neoffice — text, see above -->
+				<span class="item-label">${frappe.utils.escape_html(node.label)}</span>
 				<input type="number" class="item-weightage" value="${node.weightage || baseWeightage}"
 					   title="${__('Weightage - higher values appear first')}" />
 			</div>
@@ -537,7 +543,8 @@ function render_tree_nodes(container, nodes, level) {
 
 		// Render children if any
 		if (hasChildren) {
-			const children_container = $('<div class="category-children" data-parent="' + node.name + '"></div>');
+			//// Neoffice — name, see above.
+			const children_container = $('<div class="category-children" data-parent="' + name + '"></div>');
 			container.append(children_container);
 			render_tree_nodes(children_container, node.children, level + 1);
 		}

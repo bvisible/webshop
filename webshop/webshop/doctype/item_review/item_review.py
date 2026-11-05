@@ -16,6 +16,21 @@ from webshop.webshop.doctype.webshop_settings.webshop_settings import (
 
 from frappe.query_builder import DocType, functions
 
+# //// Neoffice — the columns the pages print. A review went out whole: the reviewer's login address next to
+# //// the name and the purchase badge the page shows, to any signed-in account. And a page of them had no end
+# //// (`end=0`).
+REVIEW_FIELDS = (
+	"review_title",
+	"comment",
+	"rating",
+	"customer",
+	"published_on",
+	"verified_purchase",
+	"creation",
+)
+MAX_REVIEWS_PER_PAGE = 50
+
+
 class UnverifiedReviewer(frappe.ValidationError):
 	pass
 
@@ -32,10 +47,14 @@ class ItemReview(Document):
 		set_reviews_in_cache(self.website_item, reviews_dict)
 
 
+# //// Neoffice — web_item is a name: annotated, a list or a dict from a JSON body is refused. See
+# //// REVIEW_FIELDS for the rest.
+# permission-check: ok what the product page prints to anyone: the columns of REVIEW_FIELDS, of one item
 @frappe.whitelist()
-def get_item_reviews(web_item, start=0, end=10, data=None):
+def get_item_reviews(web_item: str, start=0, end=10, data=None):
 	"Get Website Item Review Data."
-	start, end = cint(start), cint(end)
+	# //// Neoffice — a page has an end: see MAX_REVIEWS_PER_PAGE.
+	start, end = max(cint(start), 0), min(cint(end) if cint(end) > 0 else 10, MAX_REVIEWS_PER_PAGE)
 	settings = get_shopping_cart_settings()
 
 	# Get cached reviews for first page (start=0)
@@ -54,6 +73,11 @@ def get_item_reviews(web_item, start=0, end=10, data=None):
 			if from_cache:
 				set_reviews_in_cache(web_item, data)
 
+		# //// Neoffice — here and not only in the query: the cache has no end of life and still holds whole rows.
+		data["reviews"] = [
+			frappe._dict({field: row.get(field) for field in REVIEW_FIELDS}) for row in data["reviews"]
+		]
+
 	return data
 
 
@@ -70,7 +94,8 @@ def get_queried_reviews(web_item, start=0, end=10, data=None):
 	data.reviews = frappe.db.get_all(
 		"Item Review",
 		filters={"website_item": web_item},
-		fields=["*"],
+		# //// Neoffice — see REVIEW_FIELDS.
+		fields=list(REVIEW_FIELDS),
 		limit_start=start,
 		limit_page_length=end,
 	)
@@ -121,8 +146,11 @@ def set_reviews_in_cache(web_item, reviews_dict):
 	frappe.cache().hset("item_reviews", web_item, reviews_dict)
 
 
+# //// Neoffice — the arguments typed: web_item goes into a filter, and a list or a dict from a JSON body is
+# //// refused.
+# permission-check: ok one review of the session's own customer: the server names user, customer, badge
 @frappe.whitelist()
-def add_item_review(web_item, title, rating, comment=None):
+def add_item_review(web_item: str, title: str, rating: float, comment: str | None = None):
 	"""Add an Item Review by a user if non-existent."""
 	if frappe.session.user == "Guest":
 		# guest user should not reach here ideally in the case they do via an API, throw error
@@ -145,7 +173,10 @@ def add_item_review(web_item, title, rating, comment=None):
 		# //// Neoffice — the "verified purchase" badge the template already
 		# //// renders had no field behind it: has this customer bought the item?
 		doc.verified_purchase = 1 if has_bought(doc.customer, doc.item) else 0
-		doc.save()
+		# //// Neoffice — the shop writes the review: the Customer role lost its row on the doctype
+		# //// (item_review.json), from which any customer posted in another's name with the badge, or deleted
+		# //// another's review, past every check above.
+		doc.insert(ignore_permissions=True)
 
 
 # //// Neoffice — added helper: whether the customer really bought the item, used to flag

@@ -9,7 +9,11 @@ from frappe import _
 from frappe.utils import flt, fmt_money
 
 from webshop.webshop.doctype.webshop_settings.webshop_settings import (
+    # //// Neoffice — called_over_http and public_settings: what a visitor's own call may read, see
+    # //// shown_in_the_shop.
+    called_over_http,
     get_shopping_cart_settings,
+    public_settings,
     show_quantity_in_website,
 )
 from webshop.webshop.shopping_cart.cart import _get_cart_quotation, _set_price_list
@@ -26,9 +30,36 @@ def get_product_info_for_website(item_code: str, skip_quotation_creation: bool =
 	"""
 	Get product price / stock info for website
 	"""
+	# //// Neoffice — asked over HTTP, it answered for any code: the price, the units and the exact stock of an
+	# //// item the shop does not show. The same shape comes back as for a shop whose cart is off. The Python
+	# //// callers (the product page, the cards) have their own reasons to read an item and keep their answer.
+	if called_over_http(INFO_METHOD) and not shown_in_the_shop(item_code):
+		return frappe._dict({"product_info": {}, "cart_settings": public_settings(get_shopping_cart_settings())})
 	# //// Neoffice — the body is product_info_for_website below, which a listing card calls
 	# //// without the stock (#691 lot 5); this endpoint answers exactly as before.
 	return product_info_for_website(item_code, skip_quotation_creation)
+
+
+INFO_METHOD = "webshop.webshop.shopping_cart.product_info.get_product_info_for_website"
+
+
+# //// Neoffice — added: the catalogue's own test for the methods a stranger can call by a code, the same as
+# //// the listing's.
+def shown_in_the_shop(item_code: str) -> bool:
+	"""A published Website Item that is not sold, or a variant shown on the page of such a model.
+	The staff see the rest."""
+	from webshop.webshop.doctype.website_item.website_item import catalogue_is_closed
+
+	if frappe.has_permission("Website Item", "read"):
+		return True
+	if catalogue_is_closed():
+		return False
+	fields = ["published", "sold"]
+	product = frappe.db.get_value("Website Item", {"item_code": item_code}, fields, as_dict=True)
+	if not product:
+		model = frappe.db.get_value("Item", item_code, "variant_of")
+		product = model and frappe.db.get_value("Website Item", {"item_code": model}, fields, as_dict=True)
+	return bool(product and product.published and not product.sold)
 
 
 # //// Neoffice — added (#691 lot 5, 2026-09-25): get_product_info_for_website's body, with a
@@ -178,9 +209,11 @@ def set_product_info_for_website(item):
 # ////     differ. Upstream shows nothing at all on a template's card, which on a shop
 # ////     that sells only variants means a catalogue with no prices (94a06a2173 /
 # ////     170cc9d0bb, 2025-12-05). ▲▲▲
+# ////   · a code, a published item: a filter from a JSON body walked the codes of the drafts (2026-11-05).
+# permission-check: ok the name a product page prints to anyone, for a published item only
 @frappe.whitelist(allow_guest=True)
-def get_website_item_name(item_code):
-	return frappe.db.get_value("Website Item", {"item_code": item_code}, "item_name")
+def get_website_item_name(item_code: str):
+	return frappe.db.get_value("Website Item", {"item_code": item_code, "published": 1}, "item_name")
 
 
 def get_template_price_from_variants(item_code, price_list, customer_group, company, qty=1, party=None, warehouse=None):

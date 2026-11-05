@@ -369,6 +369,9 @@ class WebshopSettings(Document):
 	@frappe.whitelist()
 	def calculate_frequently_bought_together_items(self):
 		"""Manually trigger calculation of frequently bought together items"""
+		# //// Neoffice — run_doc_method asks only for a read right on the document, and any account held one: the
+		# //// table was rebuilt on demand. Who may write the settings presses this button.
+		self.check_permission("write")
 		if not self.enable_frequently_bought_together:
 			frappe.throw(_("Please enable 'Frequently Bought Together' first"))
 		
@@ -377,6 +380,10 @@ class WebshopSettings(Document):
 	@frappe.whitelist()
 	def regenerate_sitemap(self):
 		"""Clear sitemap cache and regenerate all sitemaps"""
+		# //// Neoffice — see calculate_frequently_bought_together_items: a read right cleared the site's sitemaps
+		# //// and wrote on the Single, and the function at the end of this file reaches here with no check of its
+		# //// own.
+		self.check_permission("write")
 		from frappe.utils import now_datetime
 
 		# //// Neoffice — the sitemaps are built and cached in webshop/webshop/seo/sitemaps.py

@@ -411,7 +411,15 @@ page_renderer = [
 
 jinja = {
 	"methods": [
-		"webshop.webshop.utils.utils",
+		# //// Neoffice — the helpers of utils.py by name. The module path made every function of the file a
+		# //// template global, get_gateway_configuration included: a file reader for whoever writes a Web Page. No
+		# //// template of the apps and none stored on a site calls that one, so it is not listed.
+		"webshop.webshop.utils.utils.format_currency_value",
+		"webshop.webshop.utils.utils.webshop_fmt_money",
+		"webshop.webshop.utils.utils.description_excerpt",
+		"webshop.webshop.utils.utils.get_user_header_info",
+		"webshop.webshop.utils.utils.get_user_avatar_html",
+		"webshop.webshop.utils.utils.get_first_name",
 		"webshop.webshop.utils.cart_helpers.get_cart_data",
         "webshop.webshop.utils.product_carousel_helper.get_carousel_items",
         "webshop.webshop.utils.product_carousel_helper.render_product_carousel",

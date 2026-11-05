@@ -163,7 +163,8 @@
 		<div class="row no-gutters">
 			{# //// Neoffice — column width of the category card (48e2708353, 2025-03-13). #}
 			<div class="col-md-6 ml-4">
-				<img class="card-img" src="{{ image }}" alt="{{ _(title) }}">
+				{# //// Neoffice — a catalogue field is text: raw, a quote in it ran in the page. #}
+				<img class="card-img" src="{{ image | e }}" alt="{{ _(title) | e }}">
 			</div>
 			<div class="col-md-6">
 				{{ item_card_body(title, description, item, is_featured, align,template) }}
@@ -181,12 +182,14 @@
 	<div class="card {{ align_items_class }}" style="height: 360px;">
 		{% if image %}
 			<div class="card-img-container">
-				<a href="/{{ item.route or '#' }}" style="text-decoration: none;">
-					<img class="card-img" src="{{ image }}" alt="{{ _(title )}}">
+				{# //// Neoffice — see the featured card above: the address too. #}
+				<a href="/{{ (item.route or '#') | e }}" style="text-decoration: none;">
+					<img class="card-img" src="{{ image | e }}" alt="{{ _(title ) | e }}">
 				</a>
 			</div>
 		{% else %}
-		<a href="/{{ item.route or '#' }}" style="text-decoration: none;">
+		{# //// Neoffice — see the featured card above. #}
+		<a href="/{{ (item.route or '#') | e }}" style="text-decoration: none;">
 			<div class="card-img-top no-image">
 				{{ frappe.utils.get_abbr(title) }}
 			</div>
@@ -206,11 +209,12 @@
 }) -%}
 <div class="card-body {{ align_class }}" style="width:100%">
 	<div class="mt-4">
-		<a href="/{{ item.route or '#' }}">
+		{# //// Neoffice — see the featured card above: the address and the title. #}
+		<a href="/{{ (item.route or '#') | e }}">
 			<div class="product-title">
 				{# //// Neoffice — upstream prints the raw title; through _() it can be translated like #}
 				{# //// every other label (9942bc8dfa, 2025-01-17 backported, and our own catalogues). #}
-				{{ _(title) or '' }}
+				{{ (_(title) or '') | e }}
 			</div>
 		</a>
 	</div>
@@ -317,7 +321,9 @@
 		<div class="review-card">
 			<div class="review-header d-flex justify-content-between align-items-start">
 				<div class="review-info">
-					<h5 class="review-title mb-1">{{ _(review.review_title) }}</h5>
+					{# //// Neoffice — what a customer typed is text: raw, it ran for every visitor, and a value #}
+					{# //// wrapped in double quotes reads as JSON and skips the sanitizer. Title, comment, name. #}
+					<h5 class="review-title mb-1">{{ _(review.review_title) | e }}</h5>
 					<div class="review-rating mb-2">
 						{% for i in range(1,6) %}
 							{# //// Neoffice — Frappe's Rating field stores 0..1; the row used to compare it with 1..5 and drew five empty stars #}
@@ -346,7 +352,7 @@
 			{% if review.comment %}
 				{# //// Neoffice — the review body (see the review card above). #}
 				<div class="review-content">
-					<p class="mb-3">{{ _(review.comment) }}</p>
+					<p class="mb-3">{{ _(review.comment) | e }}</p>
 				</div>
 			{% endif %}
 			{# //// Neoffice — the review footer: author and date with an icon, replacing upstream's #}
@@ -357,7 +363,8 @@
 					<svg class="icon icon-sm text-muted mr-1">
 						<use href="#icon-user"></use>
 					</svg>
-					<span class="reviewer-name">{{ _(review.customer) }}</span>
+					{# //// Neoffice — see the title above. #}
+					<span class="reviewer-name">{{ _(review.customer) | e }}</span>
 					<span class="review-separator">•</span>
 					<span class="review-date text-muted">{{ _(review.published_on) }}</span>
 				</div>
@@ -597,9 +604,10 @@
 		{% endif %}
 	</div>
 	<div class="r-item-info">
-		<a href="/{{ item.route or '#'}}" target="_blank">
+		{# //// Neoffice — see the featured card above: the address and the name. #}
+		<a href="/{{ (item.route or '#') | e }}" target="_blank">
 			{% set title = item.website_item_name %}
-			{{ title[:70] + "..." if title|len > 70 else title }}
+			{{ (title[:70] + "..." if title|len > 70 else title) | e }}
 		</a>
 
 		{% if item.get('price_info') %}

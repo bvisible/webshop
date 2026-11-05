@@ -689,14 +689,16 @@ class WebsiteItem(WebsiteGenerator):
 					})
 				
 				# Get stock information for the bundle item
-				from webshop.webshop.doctype.website_item.website_item import get_item_warehouses
+				# //// Neoffice — the import of get_item_warehouses left: stock_by_warehouse is the server's read.
 				
 				# Check if item allows backorders
 				item_doc = frappe.get_cached_value("Item", bundle_item.item_code, 
 					["stock_uom", "is_stock_item", "allow_alternative_item"], as_dict=True)
 				
 				if item_doc and item_doc.get("is_stock_item"):
-					warehouses_with_stock = get_item_warehouses(bundle_item.item_code)
+					# //// Neoffice — the server's own read: this page is built for a guest, the endpoint now asks for a
+					# //// right.
+					warehouses_with_stock = stock_by_warehouse(bundle_item.item_code)
 					if warehouses_with_stock:
 						total_stock = sum(w.actual_qty for w in warehouses_with_stock)
 						item_info["stock_qty"] = total_stock
@@ -1058,11 +1060,22 @@ def check_if_user_is_customer(user=None):
 # //// 2025-03-19), the multi-site publication helpers (c61d26c41a, 2026-07-08) and the
 # //// image helpers used when an Item carries several attachments (8f351c4819,
 # //// 2025-03-18). ▲▲▲
+# //// Neoffice — the stock of every warehouse went to any signed-in account, a portal customer included, and
+# //// a filter in place of a code gave the whole Bin table. The publish dialog is what calls it, so whoever
+# //// reads the stock or publishes keeps it. Python callers use stock_by_warehouse below.
 @frappe.whitelist()
-def get_item_warehouses(item_code):
+def get_item_warehouses(item_code: str):
 	"""
 	Get warehouses where the item has available stock
 	"""
+	# //// Neoffice — see above.
+	if not (frappe.has_permission("Bin", "read") or frappe.has_permission("Website Item", "create")):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+	return stock_by_warehouse(item_code)
+
+
+def stock_by_warehouse(item_code):
+	"""The warehouses holding the item, the fullest first."""
 	bin_data = frappe.get_all("Bin", 
 		filters={"item_code": item_code, "actual_qty": [">", 0]}, 
 		fields=["warehouse", "actual_qty"],
@@ -1210,6 +1223,22 @@ def make_website_item(doc, save=True):
 	# //// RediSearch — no fleet bench carries an index any more").
 
 	return [website_item.name, website_item.web_item_name]
+
+# //// Neoffice — "Login Required to View Products" closed the single product page only: Item Group is open to
+# //// guests (allow_guest_to_view), so its has_website_permission below is never asked, and the listings read
+# //// no setting. The pages and the methods that show the catalogue ask here.
+def catalogue_is_closed() -> bool:
+	"""Whether the shop keeps its products from this visitor until they sign in."""
+	return frappe.session.user == "Guest" and bool(
+		frappe.db.get_single_value("Webshop Settings", "login_required_to_view_products")
+	)
+
+
+def refuse_a_closed_catalogue():
+	"""For a page that lists products: the Not Permitted page, with its way to the login."""
+	if catalogue_is_closed():
+		raise frappe.PermissionError(_("You need to be logged in to access this page"))
+
 
 @frappe.whitelist()
 def has_website_permission_for_website_item(doc, ptype, user, verbose=False):

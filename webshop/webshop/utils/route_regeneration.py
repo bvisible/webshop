@@ -16,6 +16,9 @@ def regenerate_all_website_item_routes():
     Returns:
         dict: Result with count of updated items and any errors
     """
+    # //// Neoffice — a bulk tool that writes through frappe.db and checked no right: any signed-in account, a
+    # //// portal customer included, reached it. It asks now for the write right on Website Item.
+    frappe.has_permission("Website Item", "write", throw=True)
     updated_count = 0
     errors = []
     unchanged_count = 0
@@ -187,8 +190,9 @@ def get_parent_item_groups(item_group):
     return parents
 
 
+# //// Neoffice — typed: a list or a dict from a JSON body is refused before the body runs.
 @frappe.whitelist()
-def regenerate_routes_for_item_group(item_group):
+def regenerate_routes_for_item_group(item_group: str):
     """
     Regenerate routes for all Website Items in a specific item group.
     
@@ -198,6 +202,9 @@ def regenerate_routes_for_item_group(item_group):
     Returns:
         dict: Result with count of updated items
     """
+    # //// Neoffice — a bulk tool that writes through frappe.db and checked no right: any signed-in account, a
+    # //// portal customer included, reached it. It asks now for the write right on Website Item.
+    frappe.has_permission("Website Item", "write", throw=True)
     updated_count = 0
     errors = []
     
@@ -258,6 +265,9 @@ def check_duplicate_routes():
     Returns:
         dict: Dictionary of duplicate routes and the items using them
     """
+    # //// Neoffice — it lists what the catalogue withholds, unpublished items included: see the bulk tools of
+    # //// this file.
+    frappe.has_permission("Website Item", "read", throw=True)
     duplicates = frappe.db.sql("""
         SELECT 
             route,

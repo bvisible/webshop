@@ -15,6 +15,9 @@ def sync_creation_dates_from_items():
     Returns:
         dict: Result with count of updated items and any errors
     """
+    # //// Neoffice — a bulk tool that writes through frappe.db and checked no right: any signed-in account, a
+    # //// portal customer included, reached it. It asks now for the write right on Website Item.
+    frappe.has_permission("Website Item", "write", throw=True)
     updated_count = 0
     errors = []
     unchanged_count = 0
@@ -85,8 +88,9 @@ def sync_creation_dates_from_items():
     return result
 
 
+# //// Neoffice — typed: a list or a dict from a JSON body is refused before the body runs.
 @frappe.whitelist()
-def preview_creation_date_changes(limit=20):
+def preview_creation_date_changes(limit: int = 20):
     """
     Preview which Website Items would have their creation dates changed.
     
@@ -96,6 +100,9 @@ def preview_creation_date_changes(limit=20):
     Returns:
         dict: Preview of changes that would be made
     """
+    # //// Neoffice — it lists what the catalogue withholds, unpublished items included: see the bulk tools of
+    # //// this file.
+    frappe.has_permission("Website Item", "read", throw=True)
     # Get website items with different creation dates
     different_dates = frappe.db.sql("""
         SELECT 
@@ -134,8 +141,9 @@ def preview_creation_date_changes(limit=20):
     }
 
 
+# //// Neoffice — typed: a list or a dict from a JSON body is refused before the body runs.
 @frappe.whitelist()
-def get_newest_products(limit=20):
+def get_newest_products(limit: int = 20):
     """
     Get the newest products based on Item creation date.
     
@@ -145,6 +153,9 @@ def get_newest_products(limit=20):
     Returns:
         list: List of newest products
     """
+    # //// Neoffice — it lists what the catalogue withholds, unpublished items included: see the bulk tools of
+    # //// this file.
+    frappe.has_permission("Website Item", "read", throw=True)
     products = frappe.db.sql("""
         SELECT 
             wi.name,
@@ -168,8 +179,9 @@ def get_newest_products(limit=20):
     return products
 
 
+# //// Neoffice — typed: a list or a dict from a JSON body is refused before the body runs.
 @frappe.whitelist()
-def update_specific_website_item_date(website_item_name):
+def update_specific_website_item_date(website_item_name: str):
     """
     Update creation date for a specific Website Item.
     
@@ -179,6 +191,9 @@ def update_specific_website_item_date(website_item_name):
     Returns:
         dict: Result of the update
     """
+    # //// Neoffice — a bulk tool that writes through frappe.db and checked no right: any signed-in account, a
+    # //// portal customer included, reached it. It asks now for the write right on Website Item.
+    frappe.has_permission("Website Item", "write", throw=True)
     # Get the website item and its linked item
     data = frappe.db.sql("""
         SELECT 

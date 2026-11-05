@@ -94,7 +94,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-13 17:35:32.281964",
+ "modified": "2026-11-05 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Webshop",
  "name": "Item Review",
@@ -123,16 +123,6 @@
    "role": "Website Manager",
    "share": 1,
    "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "report": 1,
-   "role": "Customer",
-   "share": 1
   }
  ],
  "sort_field": "modified",

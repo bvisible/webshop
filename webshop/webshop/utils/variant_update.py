@@ -16,6 +16,9 @@ def update_website_items_variant_of():
     Returns:
         dict: Result with count of updated items and any errors
     """
+    # //// Neoffice — a bulk tool that writes through frappe.db and checked no right: any signed-in account, a
+    # //// portal customer included, reached it. It asks now for the write right on Website Item.
+    frappe.has_permission("Website Item", "write", throw=True)
     updated_count = 0
     errors = []
     skipped_count = 0
@@ -108,6 +111,9 @@ def fix_inconsistent_variants():
     Returns:
         dict: Result with count of fixed items
     """
+    # //// Neoffice — a bulk tool that writes through frappe.db and checked no right: any signed-in account, a
+    # //// portal customer included, reached it. It asks now for the write right on Website Item.
+    frappe.has_permission("Website Item", "write", throw=True)
     # Find Website Items that might need fixing
     potential_variants = frappe.db.sql("""
         SELECT 
@@ -161,6 +167,9 @@ def get_variant_statistics():
     Returns:
         dict: Statistics about variants
     """
+    # //// Neoffice — it lists what the catalogue withholds, unpublished items included: see the bulk tools of
+    # //// this file.
+    frappe.has_permission("Website Item", "read", throw=True)
     stats = {}
     
     # Total website items

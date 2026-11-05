@@ -11,6 +11,11 @@ sitemap = 1
 
 
 def get_context(context):
+	# //// Neoffice — the categories and the brands are the catalogue too: see catalogue_is_closed in
+	# //// website_item.py
+	from webshop.webshop.doctype.website_item.website_item import refuse_a_closed_catalogue
+
+	refuse_a_closed_catalogue()
 	context.body_class = "product-page"
 	# //// Neoffice — themes print context.title as the visible heading and as the last
 	# //// breadcrumb, and Frappe defaults it to the route name: a French shop read

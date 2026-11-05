@@ -8,9 +8,14 @@ visitor saw.
 
 import frappe
 from frappe import _
+# //// Neoffice — get_match_cond: see execute.
+from frappe.desk.reportview import get_match_cond
 from frappe.utils import add_days, cint, flt, getdate, nowdate
 
 from webshop.webshop.assistant import usage
+
+# //// Neoffice — see execute.
+CONVERSATION = "Shop Assistant Conversation"
 
 
 def execute(filters=None):
@@ -20,20 +25,26 @@ def execute(filters=None):
 	price = flt(frappe.db.get_single_value("Webshop Settings", "assistant_token_price"))
 	group = filters.get("group_by") or "Day"
 
+	# //// Neoffice — no alias on the table: see the query.
 	if group == "Customer":
-		key, key_label, key_type = "coalesce(c.customer, c.user, 'Visiteur')", _("Customer"), "Data"
+		key, key_label, key_type = "coalesce(customer, `user`, 'Visiteur')", _("Customer"), "Data"
 	else:
-		key, key_label, key_type = "date(c.last_message_on)", _("Date"), "Date"
+		# //// Neoffice — no alias on the table: see the query.
+		key, key_label, key_type = "date(last_message_on)", _("Date"), "Date"
 
+	match = get_match_cond(CONVERSATION)
+	# //// Neoffice — this SQL went past what limits a seller: a User Permission on Customer hid a customer from
+	# //// every list and not from here. The doctype's own conditions are in the query (they name the table,
+	# //// hence no alias).
 	rows = frappe.db.sql(
 		f"""select {key} as grouping,
-			count(distinct c.name) as conversations,
-			coalesce(sum(c.message_count), 0) as messages,
-			coalesce(sum(c.prompt_tokens), 0) as prompt_tokens,
-			coalesce(sum(c.completion_tokens), 0) as completion_tokens,
-			sum(case when c.status = 'Escalated' then 1 else 0 end) as escalated
-		from `tabShop Assistant Conversation` c
-		where date(c.last_message_on) between %(from_date)s and %(to_date)s
+			count(distinct name) as conversations,
+			coalesce(sum(message_count), 0) as messages,
+			coalesce(sum(prompt_tokens), 0) as prompt_tokens,
+			coalesce(sum(completion_tokens), 0) as completion_tokens,
+			sum(case when status = 'Escalated' then 1 else 0 end) as escalated
+		from `tabShop Assistant Conversation`
+		where date(last_message_on) between %(from_date)s and %(to_date)s {match}
 		group by {key}
 		order by {key}""",
 		{"from_date": from_date, "to_date": to_date},
@@ -41,7 +52,10 @@ def execute(filters=None):
 	)
 	# //// Neoffice — lot D of the 2026-10-30 audit: the day's counters beside its conversations, so that a day on which
 	# //// nobody was answered (a flood the rate limit turned away) is a line of the report like any other
-	if group != "Customer":
+	# //// Neoffice — and the site's own counters go to who may read them: the report also opens to a seller, who
+	# //// has no right on Shop Assistant Usage Day.
+	counters = group != "Customer" and frappe.has_permission("Shop Assistant Usage Day", "read")
+	if counters:
 		by_date = {str(row.grouping): row for row in rows}
 		for day, mine in usage.by_day(from_date, to_date).items():
 			row = by_date.get(day)
@@ -62,7 +76,8 @@ def execute(filters=None):
 		{"fieldname": "grouping", "label": key_label, "fieldtype": key_type, "width": 160},
 		{"fieldname": "conversations", "label": _("Conversations"), "fieldtype": "Int", "width": 120},
 	]
-	if group != "Customer":
+	# //// Neoffice — see above.
+	if counters:
 		columns += [
 			{"fieldname": "requests", "label": _("Requests received"), "fieldtype": "Int", "width": 130},
 			{"fieldname": "refused", "label": _("Turned away"), "fieldtype": "Int", "width": 110},

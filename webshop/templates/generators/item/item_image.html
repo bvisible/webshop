@@ -31,12 +31,14 @@
 {%- set pic = webshop_picture(url, layout) -%}
 {%- if pic.srcset %} srcset="{{ pic.srcset }}" sizes="{{ pic.sizes }}"{% endif %}{% if pic.width %} width="{{ pic.width }}" height="{{ pic.height }}"{% endif -%}
 {%- endmacro -%}
+{# //// Neoffice — a catalogue field is text: raw, a quote in it ran in the page. #}
+{# //// Every p.alt and p.image of this file. #}
 {%- macro media_img(p, classes, loading="lazy", index=None, priority=False, layout="gallery") -%}
 	{%- if p.video and not p.image -%}
-	<video class="{{ classes }}" src="{{ p.video.src }}" muted playsinline preload="metadata" aria-label="{{ p.alt }}"{% if index is not none %} data-index="{{ index }}"{% endif %}></video>
+	<video class="{{ classes }}" src="{{ p.video.src | e }}" muted playsinline preload="metadata" aria-label="{{ p.alt | e }}"{% if index is not none %} data-index="{{ index }}"{% endif %}></video>
 	{%- else -%}
 	{#- //// Neoffice — fetchpriority on the first picture, see the macro's note -#}
-	<img class="{{ classes }}" src="{{ p.image }}"{{ picture_attrs(p.image, layout) }} alt="{{ p.alt }}" loading="{{ loading }}"{% if priority %} fetchpriority="high"{% endif %} decoding="async"{% if index is not none %} data-index="{{ index }}"{% endif %}>
+	<img class="{{ classes }}" src="{{ p.image | e }}"{{ picture_attrs(p.image, layout) }} alt="{{ p.alt | e }}" loading="{{ loading }}"{% if priority %} fetchpriority="high"{% endif %} decoding="async"{% if index is not none %} data-index="{{ index }}"{% endif %}>
 	{%- endif -%}
 	{%- if p.video %}{{ play_badge() }}{% endif -%}
 {%- endmacro -%}
@@ -54,7 +56,7 @@
 		<div class="wsp-gallery__large" role="list">
 			{%- for p in photos[:2] %}
 			{# //// Neoffice — a video tile wears the play badge (media_img) #}
-			<a class="wsp-gallery__tile wsp-gallery__tile--large{% if p.video %} wsp-gallery__tile--video{% endif %}" href="{{ p.image or '#' }}" data-index="{{ loop.index0 }}" role="listitem" aria-label="{{ _('Play the video') if p.video else _('Zoom') }}">
+			<a class="wsp-gallery__tile wsp-gallery__tile--large{% if p.video %} wsp-gallery__tile--video{% endif %}" href="{{ (p.image or '#') | e }}" data-index="{{ loop.index0 }}" role="listitem" aria-label="{{ _('Play the video') if p.video else _('Zoom') }}">
 				{{ media_img(p, ('website-image ' if loop.first else '') ~ 'wsp-gallery__img', loading='eager', priority=loop.first, layout='gallery_large') }}
 			</a>
 			{%- endfor %}
@@ -62,7 +64,7 @@
 		{# //// Neoffice — Modern product page (2026-09-11), see the note at the top. #}
 		<div class="wsp-gallery__small" role="list">
 			{%- for p in photos[2:] %}
-			<a class="wsp-gallery__tile{% if p.video %} wsp-gallery__tile--video{% endif %}" href="{{ p.image or '#' }}" data-index="{{ loop.index0 + 2 }}" role="listitem" aria-label="{{ _('Play the video') if p.video else _('Zoom') }}">
+			<a class="wsp-gallery__tile{% if p.video %} wsp-gallery__tile--video{% endif %}" href="{{ (p.image or '#') | e }}" data-index="{{ loop.index0 + 2 }}" role="listitem" aria-label="{{ _('Play the video') if p.video else _('Zoom') }}">
 				{#- //// Neoffice — the small tiles' copies (#691 lot 5) #}
 				{{ media_img(p, 'wsp-gallery__img', layout='gallery_small') }}
 			</a>
@@ -78,7 +80,7 @@
 			<span class="wsp-gallery__thumb wsp-gallery__thumb--video" data-index="{{ loop.index0 }}" role="listitem" data-video="1">{{ media_img(p, 'wsp-gallery__thumb-img', layout='thumb') }}</span>
 			{%- else %}
 			{#- //// Neoffice — the thumbnails' copies (#691 lot 5) #}
-			<img class="wsp-gallery__thumb {% if loop.first %}active{% endif %}" src="{{ p.image }}"{{ picture_attrs(p.image, 'thumb') }} alt="{{ p.alt }}" loading="lazy" decoding="async" data-index="{{ loop.index0 }}" role="listitem">
+			<img class="wsp-gallery__thumb {% if loop.first %}active{% endif %}" src="{{ p.image | e }}"{{ picture_attrs(p.image, 'thumb') }} alt="{{ p.alt | e }}" loading="lazy" decoding="async" data-index="{{ loop.index0 }}" role="listitem">
 			{# //// Neoffice — video entries in the phone strip and the lightbox (2026-09-13) #}
 			{%- endif %}
 			{%- endfor %}
@@ -86,7 +88,7 @@
 		<div class="product-image-container wsp-gallery__stage">
 			<div class="product-image wsp-gallery__main">
 				{#- //// Neoffice — fetched first, see media_img #}
-				<img class="website-image wsp-gallery__img" src="{{ photos[0].image }}"{{ picture_attrs(photos[0].image, 'gallery') }} alt="{{ photos[0].alt }}" fetchpriority="high" data-index="0">
+				<img class="website-image wsp-gallery__img" src="{{ photos[0].image | e }}"{{ picture_attrs(photos[0].image, 'gallery') }} alt="{{ photos[0].alt | e }}" fetchpriority="high" data-index="0">
 			</div>
 			<div class="slideshow-navigation">
 				{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: ‹ #}
@@ -99,7 +101,7 @@
 	{%- elif layout == "single" %}
 	<div class="wsp-gallery__single product-image d-none d-md-block">
 		{# //// Neoffice — the single picture may be a video too #}
-		<a class="wsp-gallery__tile{% if photos[0].video %} wsp-gallery__tile--video{% endif %}" href="{{ photos[0].image or '#' }}" data-index="0" aria-label="{{ _('Play the video') if photos[0].video else _('Zoom') }}">
+		<a class="wsp-gallery__tile{% if photos[0].video %} wsp-gallery__tile--video{% endif %}" href="{{ (photos[0].image or '#') | e }}" data-index="0" aria-label="{{ _('Play the video') if photos[0].video else _('Zoom') }}">
 			{{ media_img(photos[0], 'website-image wsp-gallery__img', loading='eager', index=0, priority=True) }}
 		</a>
 	</div>
@@ -155,10 +157,10 @@
 			{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: - for p in photos #}
 			{%- for p in photos %}
 			{%- if p.video and not p.image %}
-			<span class="zoom-thumbnail zoom-thumbnail--video {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}" aria-label="{{ p.alt }}">{{ play_badge() }}</span>
+			<span class="zoom-thumbnail zoom-thumbnail--video {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}" aria-label="{{ p.alt | e }}">{{ play_badge() }}</span>
 			{%- else %}
 			{#- //// Neoffice — the zoom's thumbnails take a small copy: they fetched every original (#691 lot 5) #}
-			<img class="zoom-thumbnail {% if p.video %}zoom-thumbnail--video {% endif %}{% if loop.first %}active{% endif %}" src="{{ p.image }}"{{ picture_attrs(p.image, 'thumb') }} loading="lazy" decoding="async" alt="{{ p.alt }}" data-index="{{ loop.index0 }}">
+			<img class="zoom-thumbnail {% if p.video %}zoom-thumbnail--video {% endif %}{% if loop.first %}active{% endif %}" src="{{ p.image | e }}"{{ picture_attrs(p.image, 'thumb') }} loading="lazy" decoding="async" alt="{{ p.alt | e }}" data-index="{{ loop.index0 }}">
 			{%- endif %}
 			{%- endfor %}
 		</div>

@@ -205,9 +205,11 @@ webshop.ProductView =  class {
 			const position = $breadcrumbList.find('li').length + 1;
 			//// Neoffice — plain markup: the breadcrumb's structured data is the JSON-LD that
 			//// breadcrumbs.html prints (#691); microdata added in the browser only confused it.
+			//// Neoffice — the search comes from the address: printed as HTML, a crafted link ran in the visitor's
+			//// session.
 			$breadcrumbList.append(`
 				<li class="breadcrumb-item active" aria-current="page">
-					<span>${searchText}</span>
+					<span>${frappe.utils.escape_html(searchText)}</span>
 				</li>
 			`);
 			$breadcrumbList.addClass('search-updated');
@@ -332,6 +334,9 @@ webshop.ProductView =  class {
 
 		// Parse URL filters (field_filters, attribute_filters)
 		const urlParams = frappe.utils.get_query_params();
+		//// Neoffice — what follows comes from the address: printed as HTML, a crafted link ran in the visitor's
+		//// session.
+		const esc = frappe.utils.escape_html;
 
 		// Field filters from URL
 		if (urlParams.field_filters) {
@@ -353,9 +358,10 @@ webshop.ProductView =  class {
 							//// Neoffice — the facet's own label first (data-label: its translation of content, lot 14).
 							const facetLabel = $checkbox.length ? ($checkbox.closest('[data-label]').attr('data-label') || '').trim() : '';
 							const displayLabel = facetLabel || ($checkbox.length ? $checkbox.next('label').text().trim() || translated : translated);
+							//// Neoffice — esc(): see urlParams above.
 							$badges.append(`
-								<span class="badge badge-secondary active-filter-badge" data-filter-type="field" data-filter-name="${fieldName}" data-filter-value="${value}" style="cursor: pointer;">
-									${displayLabel}
+								<span class="badge badge-secondary active-filter-badge" data-filter-type="field" data-filter-name="${esc(fieldName)}" data-filter-value="${esc(value)}" style="cursor: pointer;">
+									${esc(displayLabel)}
 									<i class="fa fa-times ml-1"></i>
 								</span>
 							`);
@@ -376,9 +382,10 @@ webshop.ProductView =  class {
 					if (Array.isArray(values)) {
 						values.forEach(value => {
 							hasActiveFilters = true;
+							//// Neoffice — esc(): see urlParams above.
 							$badges.append(`
-								<span class="badge badge-primary active-filter-badge" data-filter-type="attribute" data-filter-name="${attrName}" data-filter-value="${value}" style="cursor: pointer;">
-									${attrName}: ${value}
+								<span class="badge badge-primary active-filter-badge" data-filter-type="attribute" data-filter-name="${esc(attrName)}" data-filter-value="${esc(value)}" style="cursor: pointer;">
+									${esc(attrName)}: ${esc(value)}
 									<i class="fa fa-times ml-1"></i>
 								</span>
 							`);
@@ -398,9 +405,10 @@ webshop.ProductView =  class {
 					hasActiveFilters = true;
 					const minLabel = priceRange.min ? priceRange.min : '0';
 					const maxLabel = priceRange.max ? priceRange.max : '∞';
+					//// Neoffice — esc(): see urlParams above.
 					$badges.append(`
 						<span class="badge badge-success active-filter-badge" data-filter-type="price" style="cursor: pointer;">
-							<i class="fa fa-money"></i> ${minLabel} - ${maxLabel}
+							<i class="fa fa-money"></i> ${esc(minLabel)} - ${esc(maxLabel)}
 							<i class="fa fa-times ml-1"></i>
 						</span>
 					`);

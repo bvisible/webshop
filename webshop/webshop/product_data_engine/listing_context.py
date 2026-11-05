@@ -20,6 +20,10 @@ def build_listing_context(context, title, locked_field_filters=None, listing_rou
 	cannot untick it. This is how /occasions is /all-products restricted to
 	second-hand units.
 	"""
+	# //// Neoffice — every listing of the shop comes through here: see catalogue_is_closed in website_item.py
+	from webshop.webshop.doctype.website_item.website_item import refuse_a_closed_catalogue
+
+	refuse_a_closed_catalogue()
 	# //// Themes print context.title as the visible page heading and as the
 	# //// last breadcrumb, and Frappe defaults it to the route name —
 	# //// untranslated. A French shop read "all-products" on screen while its

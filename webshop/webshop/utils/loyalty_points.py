@@ -137,11 +137,19 @@ def format_loyalty_points_message(item_code, price, qty=1, customer=None):
     return result
 
 
+# //// Neoffice — typed: a list or a dict from a JSON body is refused before the body runs.
+# permission-check: ok the points printed on a product page, for an item the shop shows
 @frappe.whitelist(allow_guest=True)
-def get_item_loyalty_points(item_code, price=None, qty=1):
+def get_item_loyalty_points(item_code: str, price=None, qty=1):
     """
     Web API to get loyalty points for an item
     """
+    # //// Neoffice — the points are worked out of Item.standard_rate, which they gave back for any code, a
+    # //// hidden item's too.
+    from webshop.webshop.shopping_cart.product_info import shown_in_the_shop
+
+    if not shown_in_the_shop(item_code):
+        return None
     if not price:
         # Get item price if not provided
         item = frappe.get_doc("Item", item_code)

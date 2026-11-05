@@ -47,6 +47,10 @@ class WebshopItemGroup(ItemGroup, WebsiteGenerator):
 		super(WebshopItemGroup, self).on_trash()
 
 	def get_context(self, context):
+		# //// Neoffice — a category is a listing: see catalogue_is_closed in website_item.py
+		from webshop.webshop.doctype.website_item.website_item import refuse_a_closed_catalogue
+
+		refuse_a_closed_catalogue()
 		context.show_search = True
 		context.body_class = "product-page"
 		# //// Neoffice — filters in a drawer on every screen (see listing_context.py)

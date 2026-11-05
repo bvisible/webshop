@@ -5,8 +5,9 @@ import frappe
 from frappe import _
 
 
+# //// Neoffice — typed: a list or a dict from a JSON body is refused before the body runs.
 @frappe.whitelist()
-def update_all_website_items_warehouse(warehouse_name):
+def update_all_website_items_warehouse(warehouse_name: str):
     """
     Update website_warehouse for all Website Items to the specified warehouse.
     
@@ -16,6 +17,9 @@ def update_all_website_items_warehouse(warehouse_name):
     Returns:
         dict: Result with count of updated items and any errors
     """
+    # //// Neoffice — a bulk tool that writes through frappe.db and checked no right: any signed-in account, a
+    # //// portal customer included, reached it. It asks now for the write right on Website Item.
+    frappe.has_permission("Website Item", "write", throw=True)
     if not warehouse_name:
         frappe.throw(_("Warehouse name is required"))
     
@@ -78,8 +82,9 @@ def update_all_website_items_warehouse(warehouse_name):
     return result
 
 
+# //// Neoffice — typed: a list or a dict from a JSON body is refused before the body runs.
 @frappe.whitelist()
-def update_website_items_warehouse_by_item_group(warehouse_name, item_group=None):
+def update_website_items_warehouse_by_item_group(warehouse_name: str, item_group: str | None = None):
     """
     Update website_warehouse for Website Items filtered by item group.
     
@@ -90,6 +95,9 @@ def update_website_items_warehouse_by_item_group(warehouse_name, item_group=None
     Returns:
         dict: Result with count of updated items and any errors
     """
+    # //// Neoffice — a bulk tool that writes through frappe.db and checked no right: any signed-in account, a
+    # //// portal customer included, reached it. It asks now for the write right on Website Item.
+    frappe.has_permission("Website Item", "write", throw=True)
     if not warehouse_name:
         frappe.throw(_("Warehouse name is required"))
     

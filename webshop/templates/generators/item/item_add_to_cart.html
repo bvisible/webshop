@@ -152,10 +152,12 @@
 						</svg>
 					</div>
 					<p class="mr-1 mb-1">
-						{{ _(offer.offer_title) }}:
+						{# //// Neoffice — a catalogue field is text: raw, a quote in it ran in the page. #}
+						{{ _(offer.offer_title) | e }}:
 						{{ _(offer.offer_subtitle) if offer.offer_subtitle else '' }}
 						<a class="offer-details" href="#"
-							data-offer-title="{{ offer.offer_title }}" data-offer-id="{{ offer.name }}"
+							{# //// Neoffice — see above. #}
+							data-offer-title="{{ offer.offer_title | e }}" data-offer-id="{{ offer.name | e }}"
 							role="button">
 							{{ _("More") }}
 						</a>
@@ -374,7 +376,8 @@
 {% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
 <div class="webshop-buybar" id="webshop-buybar" aria-hidden="true">
 	<div class="webshop-buybar__info">
-		<span class="webshop-buybar__name">{{ _(doc.web_item_name) }}</span>
+		{# //// Neoffice — see the offers above: a product's name is text. #}
+		<span class="webshop-buybar__name">{{ _(doc.web_item_name) | e }}</span>
 		{% if cart_settings.show_price and product_info.price %}
 			<span class="webshop-buybar__price">{{ webshop_fmt_money(product_info.price.get("price_list_rate", 0) * product_info.price.get("conversion_factor", 1), currency=product_info.price.get("currency")) }}</span>
 		{% endif %}

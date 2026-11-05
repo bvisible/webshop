@@ -203,8 +203,16 @@ def find_component_id(blocks):
                 
     return None
 
+# //// Neoffice — route and page_name are names: annotated, a list or a dict from a JSON body is refused.
 @frappe.whitelist(allow_guest=True)
-def get_builder_page_content(route=None, page_name=None, content_only=False, skip_scripts=False, skip_styles=False, use_cache=True):
+def get_builder_page_content(
+    route: str | None = None,
+    page_name: str | None = None,
+    content_only=False,
+    skip_scripts=False,
+    skip_styles=False,
+    use_cache=True,
+):
     """
     Render a Builder Page and return the HTML and CSS content with all global settings.
 
@@ -376,7 +384,9 @@ def get_builder_page_content(route=None, page_name=None, content_only=False, ski
         # If only content is requested, return early
         if content_only:
             # Cache and return
-            if use_cache and cache_key:
+            # //// Neoffice — a published page only: the key names no user, and the refusal above comes after
+            # //// the cache is read, so a draft the staff previewed went out to a guest for five minutes.
+            if use_cache and cache_key and page.get("published"):
                 frappe.cache().set_value(cache_key, result, expires_in_sec=300)  # Cache for 5 minutes
             return result
         
@@ -429,7 +439,8 @@ def get_builder_page_content(route=None, page_name=None, content_only=False, ski
             result["global_script"] = ""
         
         # Cache results if needed
-        if use_cache and cache_key:
+        # //// Neoffice — a published page only: see the early return above.
+        if use_cache and cache_key and page.get("published"):
             frappe.cache().set_value(cache_key, result, expires_in_sec=300)  # Cache for 5 minutes
         
         return result

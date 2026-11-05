@@ -92,13 +92,17 @@ $(() => {
 		get_user_review_html(reviews) {
 			let me = this;
 			let $content = $('.user-reviews');
+			//// Neoffice — what a customer typed is text: printed raw it ran for every visitor (see user_review in
+			//// macros.html).
+			const text = (value) => frappe.utils.escape_html(__(value));
 
 			reviews.forEach((review) => {
 				$content.append(`
 					<div class="mb-3 review">
 						<div class="d-flex">
 							<p class="mr-4 user-review-title">
-								<span>${__(review.review_title)}</span>
+								<!-- //// Neoffice — text(), see above -->
+								<span>${text(review.review_title)}</span>
 							</p>
 							<div class="rating">
 								${me.get_review_stars(review.rating)}
@@ -107,13 +111,15 @@ $(() => {
 
 						<div class="product-description mb-4">
 							<p>
-								${__(review.comment)}
+								<!-- //// Neoffice — text(), see above -->
+								${text(review.comment)}
 							</p>
 						</div>
 						<div class="review-signature mb-2">
-							<span class="reviewer">${__(review.customer)}</span>
+							<!-- //// Neoffice — text(), see above -->
+							<span class="reviewer">${text(review.customer)}</span>
 							<span class="indicator grey" style="--text-on-gray: var(--gray-300);"></span>
-							<span class="reviewer">${__(review.published_on)}</span>
+							<span class="reviewer">${text(review.published_on)}</span>
 						</div>
 					</div>
 				`);

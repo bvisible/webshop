@@ -30,7 +30,8 @@
 					{#- //// be a second h1 in the page; it keeps its class and its microdata as a plain block. #}
 					{%- set _title_tag = "div" if band_prints_title else "h1" %}
 					{#- //// Neoffice — itemprop removed, see the product container above (#691). #}
-					<{{ _title_tag }} class="product-title-main">{{ _(doc.web_item_name) }}</{{ _title_tag }}>
+					{#- //// Neoffice — a catalogue field is text: raw, a quote in it ran in the page. #}
+					<{{ _title_tag }} class="product-title-main">{{ _(doc.web_item_name) | e }}</{{ _title_tag }}>
 					{% if shopping_cart.cart_settings.enable_wishlist %}
 						<div class="like-action-item-fp like-action {{ 'like-action-wished' if wished else '' }} ml-2"
 							{# //// Neoffice — Modern product page (2026-09-11), see the note at the top: data-item-code=" doc.item_code " #}

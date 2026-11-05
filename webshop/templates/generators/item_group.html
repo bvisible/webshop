@@ -118,11 +118,16 @@
 						const wrap = document.getElementById('recently-viewed-block');
 						const box = document.getElementById('recently-viewed-items');
 						box.innerHTML = list.map(function(i) {
-							const name = (i.name || '').replace(/</g, '&lt;');
-							const abbr = name.split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 2);
-							const img = i.image ? ('<img src="' + i.image + '" alt="' + name + '" loading="lazy">') : ('<div class="rv-abbr">' + abbr + '</div>');
-							const price = i.price ? ('<div class="rv-price">' + i.price + '</div>') : '';
-							return '<a class="rv-card" href="/' + i.route + '">' + img + '<div><div class="rv-name">' + name + '</div>' + price + '</div></a>';
+							{# //// Neoffice — only < was escaped: a quote in a product's name left the alt attribute #}
+							{# //// and ran for each visitor who had seen the product. The whole entry is text now. #}
+							const esc = function(s) {
+								return String(s == null ? '' : s).replace(/[&<>"'`=]/g, function(c) { return '&#' + c.charCodeAt(0) + ';'; });
+							};
+							const name = esc(i.name);
+							const abbr = esc((i.name || '').split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 2));
+							const img = i.image ? ('<img src="' + esc(i.image) + '" alt="' + name + '" loading="lazy">') : ('<div class="rv-abbr">' + abbr + '</div>');
+							const price = i.price ? ('<div class="rv-price">' + esc(i.price) + '</div>') : '';
+							return '<a class="rv-card" href="/' + esc(i.route) + '">' + img + '<div><div class="rv-name">' + name + '</div>' + price + '</div></a>';
 						}).join('');
 						wrap.style.display = '';
 					} catch (e) {}

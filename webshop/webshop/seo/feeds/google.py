@@ -182,6 +182,10 @@ def site_refusal(settings) -> str | None:
 		return _("prices are hidden from visitors")
 	if site_is_business_only():
 		return _("the site serves business accounts only")
+	# //// Neoffice — a feed is the catalogue, for anyone with its address: see catalogue_is_closed in
+	# //// website_item.py
+	if settings.get("login_required_to_view_products"):
+		return _("the products are shown to signed-in customers only")
 	return None
 
 

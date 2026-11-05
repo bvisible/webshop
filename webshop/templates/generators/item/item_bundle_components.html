@@ -11,11 +11,13 @@
 			<div class="bundle-item-image">
 				{% if item.website_image %}
 					{% if item.is_published %}
-					<a href="/{{ item.route }}">
-						<img src="{{ item.website_image }}" alt="{{ item.web_item_name or item.item_name }}" class="bundle-item-img">
+					{# //// Neoffice — a catalogue field is text: raw, a quote in it ran in the page. #}
+					<a href="/{{ item.route | e }}">
+						<img src="{{ item.website_image | e }}" alt="{{ (item.web_item_name or item.item_name) | e }}" class="bundle-item-img">
 					</a>
 					{% else %}
-					<img src="{{ item.website_image }}" alt="{{ item.item_name }}" class="bundle-item-img">
+					{# //// Neoffice — see the published item above. #}
+					<img src="{{ item.website_image | e }}" alt="{{ item.item_name | e }}" class="bundle-item-img">
 					{% endif %}
 				{% else %}
 					<div class="bundle-item-placeholder">
@@ -27,11 +29,13 @@
 			</div>
 			<div class="bundle-item-details">
 				{% if item.is_published %}
-				<a href="/{{ item.route }}" class="bundle-item-name">
-					{{ item.web_item_name or item.item_name }}
+				{# //// Neoffice — see the picture above. #}
+				<a href="/{{ item.route | e }}" class="bundle-item-name">
+					{{ (item.web_item_name or item.item_name) | e }}
 				</a>
 				{% else %}
-				<span class="bundle-item-name">{{ item.item_name }}</span>
+				{# //// Neoffice — see the picture above. #}
+				<span class="bundle-item-name">{{ item.item_name | e }}</span>
 				{% endif %}
 				<div class="bundle-item-qty">
 					{{ _("Quantity") }}: {{ item.qty }} {{ item.uom }}

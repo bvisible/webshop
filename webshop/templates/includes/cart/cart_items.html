@@ -44,10 +44,11 @@
 					{# //// Neoffice — the line uses the Website Item's own image (website_image) rather than #}
 					{# //// the thumbnail, and links to the product; a variant showed the template's #}
 					{# //// thumbnail (b9f319c437, 2025-02-24). #}
-					<a href="{{ item_route or '#' }}">
+					{# //// Neoffice — a catalogue field is text: raw, a quote in it ran in the page. #}
+					<a href="{{ (item_route or '#') | e }}">
 						{% if d.website_image %}
 							{#- //// Neoffice — itemprop removed (#691): no microdata anywhere in the shop; the pages' structured data is JSON-LD. #}
-							<img class="website-image h-100 w-100" alt="{{ _(d.web_item_name) }}" src="{{ frappe.utils.quoted(d.website_image) | abs_url }}">
+							<img class="website-image h-100 w-100" alt="{{ _(d.web_item_name) | e }}" src="{{ frappe.utils.quoted(d.website_image) | abs_url }}">
 						{% else %}
 							{#- //// Neoffice — itemprop removed (#691): no microdata anywhere in the shop; the pages' structured data is JSON-LD. #}
 							<div class="no-image-cart-item">
@@ -60,8 +61,9 @@
 				<div class="d-flex w-100" style="flex-direction: column;">
 					<div class="item-title mb-1 mr-3">
 						{# //// Neoffice — the title links to the product page (see above). #}
-						<a href="{{ item_route or '#' }}" class="text-dark">
-							{{ d.get("web_item_name") or d.item_name }}
+						{# //// Neoffice — see the picture above. #}
+						<a href="{{ (item_route or '#') | e }}" class="text-dark">
+							{{ (d.get("web_item_name") or d.item_name) | e }}
 						</a>
 					</div>
 					<div class="item-subtitle mr-2">

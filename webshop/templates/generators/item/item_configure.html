@@ -5,7 +5,8 @@
 	{% if cart_settings.enable_variants | int %}
 	<button class="btn btn-primary-light btn-configure font-md mr-2"
 		data-item-code="{{ doc.item_code }}"
-		data-item-name="{{ doc.web_item_name }}"
+		{# //// Neoffice — a catalogue field is text: raw, a quote in it ran in the page. #}
+		data-item-name="{{ doc.web_item_name | e }}"
 	>
 		{{ _('Select Variant') }}
 	</button>

@@ -77,7 +77,15 @@ def _day(value):
 	return f"{value:%Y-%m-%d}" if value else None
 
 
+def closed_catalogue():
+	# //// Neoffice — a sitemap is read by a guest, and its product, category and brand lists are what a shop
+	# //// with Login Required to View Products keeps from one: see catalogue_is_closed in website_item.py.
+	return frappe.db.get_single_value("Webshop Settings", "login_required_to_view_products")
+
+
 def product_links():
+	if closed_catalogue():  # //// Neoffice — see closed_catalogue
+		return []
 	# //// Neoffice — multilingual lot 3 (neoffice-maintenance#2031): a copy under each language the product is translated in
 	from webshop.webshop.seo.language_links import expand
 
@@ -163,6 +171,8 @@ def _product_links(website_profile=None):
 
 
 def category_links():
+	if closed_catalogue():  # //// Neoffice — see closed_catalogue
+		return []
 	# //// Neoffice — multilingual lot 3 (neoffice-maintenance#2031): see product_links
 	from webshop.webshop.seo.language_links import expand
 
@@ -198,6 +208,8 @@ def _category_links(website_profile=None):
 
 
 def brand_links():
+	if closed_catalogue():  # //// Neoffice — see closed_catalogue
+		return []
 	# //// Neoffice — multilingual (neoffice-maintenance#2089): a brand's page exists in every language that publishes at once
 	from webshop.webshop.seo.language_links import expand_interface
 

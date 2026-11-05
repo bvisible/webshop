@@ -10,8 +10,17 @@ from frappe.utils import cint, cstr
 # //// was disabled since 2025-12-15 and no fleet bench still carries an index.
 from webshop.webshop.shopping_cart.product_info import set_product_info_for_website
 from webshop.webshop.doctype.override_doctype.item_group import get_item_for_list_in_html
+# //// Neoffice — see MAX_PAGE_LENGTH.
+from webshop.webshop.doctype.website_item.website_item import catalogue_is_closed
+from webshop.webshop.utils import throttle
 
 no_cache = 1
+
+# //// Neoffice — a visitor set the size of a page: one anonymous request cost the whole catalogue, a dozen
+# //// statements per row, and nothing counted them. A page has an end, and a connection that keeps asking is
+# //// turned away. The dropdown counts twice per call (search calls product_search), so 240 is 120 searches a
+# //// minute: a person typing is far below.
+MAX_PAGE_LENGTH = 100
 
 
 # //// Neoffice — _ imported for the page title (9953f79418, 2026-08-26).
@@ -32,9 +41,15 @@ def get_context(context):
 	raise frappe.Redirect(301)
 
 
+# //// Neoffice — typed, bounded and counted: see MAX_PAGE_LENGTH.
+# permission-check: ok the published catalogue a visitor browses; closed when the shop asks for a login
 @frappe.whitelist(allow_guest=True)
-def get_product_list(search=None, start=0, limit=12):
-	data = get_product_data(search, start, limit)
+@throttle.throttle("product-list", 60, 60)
+def get_product_list(search: str | None = None, start: int = 0, limit: int = 12):
+	# //// Neoffice — see MAX_PAGE_LENGTH, and catalogue_is_closed in website_item.py.
+	if catalogue_is_closed():
+		return []
+	data = get_product_data(search, max(cint(start), 0), min(max(cint(limit), 0), MAX_PAGE_LENGTH))
 
 	for item in data:
 		set_product_info_for_website(item)
@@ -95,8 +110,14 @@ def get_product_data(search=None, start=0, limit=12):
 	return frappe.db.sql(query, search_params, as_dict=1)  # nosemgrep
 
 
+# //// Neoffice — typed and counted: see MAX_PAGE_LENGTH.
+# permission-check: ok the published catalogue a visitor searches; closed when the shop asks for a login
 @frappe.whitelist(allow_guest=True)
-def search(query):
+@throttle.throttle("shop-search", 240, 60)  # //// Neoffice — see MAX_PAGE_LENGTH
+def search(query: str | None = None):
+	# //// Neoffice — see catalogue_is_closed in website_item.py.
+	if catalogue_is_closed():
+		return {"product_results": [], "category_results": []}
 	product_results = product_search(query)
 	category_results = get_category_suggestions(query)
 
@@ -109,7 +130,9 @@ def search(query):
 # //// Neoffice — reviewed for guests (frappe's semgrep rule guest-whitelisted-method): the shop's
 # //// search dropdown, over the published items of the site being browsed. Arguments typed, as the
 # //// rule asks (2026-09-26, when the variants' links changed here).
+# permission-check: ok the published catalogue a visitor searches; closed when the shop asks for a login
 @frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
+@throttle.throttle("shop-search", 240, 60)  # //// Neoffice — see MAX_PAGE_LENGTH
 def product_search(query: str | None, limit: int = 10, fuzzy_search: bool = True):
 	# //// Neoffice — RediSearch is REMOVED from this fork (tracker #223): it was
 	# //// disabled in 2025-12-15 (c54680b459 / e580d79023) because its autocomplete
@@ -127,7 +150,8 @@ def product_search(query: str | None, limit: int = 10, fuzzy_search: bool = True
 	# //// Neoffice — always False, kept for the payload contract (see above).
 	search_results = {"from_redisearch": False, "results": []}
 
-	if not query:
+	# //// Neoffice — catalogue_is_closed: see website_item.py.
+	if not query or catalogue_is_closed():
 		return search_results
 
 	# //// Neoffice — the query is trimmed before use.
@@ -186,7 +210,7 @@ def product_search(query: str | None, limit: int = 10, fuzzy_search: bool = True
 	# //// Neoffice — the ordering is done by SQL now (see above).
 	results = frappe.db.sql(sql_query, {
 		"search": search_pattern,
-		"limit": cint(limit)
+		"limit": min(max(cint(limit), 0), MAX_PAGE_LENGTH)  # //// Neoffice — see MAX_PAGE_LENGTH
 	}, as_dict=1)
 
 	# //// Neoffice — match_priority is an internal column; it never leaves the endpoint.
@@ -212,9 +236,14 @@ def clean_up_query(query):
 # //// "chore: remove RediSearch — no fleet bench carries an index any more").
 
 
+# //// Neoffice — typed, and closed with the catalogue.
+# permission-check: ok the names of the categories the shop shows; closed when the shop asks for a login
 @frappe.whitelist(allow_guest=True)
-def get_category_suggestions(query):
+def get_category_suggestions(query: str | None = None):
 	search_results = {"results": []}
+	# //// Neoffice — catalogue_is_closed: see website_item.py.
+	if catalogue_is_closed():
+		return search_results
 
 	# //// Neoffice — RediSearch is gone from this fork (tracker #223): the module was
 	# //// disabled since 2025-12-15 and no fleet site carried an index (measured
