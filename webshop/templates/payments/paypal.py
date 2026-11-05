@@ -11,9 +11,13 @@ from webshop.webshop.shopping_cart.shop_rights import payment_schedule_for, save
 from webshop.webshop.shopping_cart.cart import _get_cart_quotation
 # //// Neoffice — the placeholder order a cart's payment request is raised on (pending_order.py).
 from webshop.webshop.shopping_cart import pending_order
+# //// Neoffice — the cart a request was raised for (see below).
+from webshop.controllers.payment_handler import _cart_of_request
 
+# //// Neoffice — both a text: `idempotency_token` in a JSON body was an operator of the lookup below, which
+# //// walked the requests of every buyer.
 @frappe.whitelist(allow_guest=True)
-def create_paypal_payment_request(quotation_id, idempotency_token=None):
+def create_paypal_payment_request(quotation_id: str, idempotency_token: str | None = None):
     """Create a payment request for PayPal"""
     # //// Neoffice — the quotation must be the session's own cart, checked before the try below so the
     # //// refusal is not swallowed by its except (neoffice-maintenance#1764).
@@ -27,10 +31,19 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
             existing_pr = frappe.db.get_value(
                 "Payment Request",
                 {"custom_idempotency_token": idempotency_token},
-                ["name", "status", "reference_name", "reference_doctype"],
+                # //// Neoffice — `grand_total`: what the request asks of the gateway (see below).
+                ["name", "status", "reference_name", "reference_doctype", "grand_total"],
                 as_dict=True
             )
-            
+
+            # //// Neoffice — a token is no key: only a request of this cart is found again, as in
+            # //// PaymentHandler.create_payment_request. The answer below named the order of whichever
+            # //// request matched, and a token starts with its buyer's address. Another buyer's token is
+            # //// not written on the new request either: the column is unique.
+            if existing_pr and _cart_of_request(existing_pr) != cart.name:
+                existing_pr = None
+                idempotency_token = None
+
             if existing_pr:
                 # If payment request exists and is not failed, return existing one
                 if existing_pr.status != "Failed":
@@ -44,7 +57,12 @@ def create_paypal_payment_request(quotation_id, idempotency_token=None):
                     if (
                         not sales_order
                         and pending_order.is_placeholder(existing_pr.reference_name)
-                        and not pending_order.is_current(existing_pr.reference_name, cart)
+                        # //// Neoffice — the total as well as the lines
+                        # //// (PaymentHandler.create_payment_request).
+                        and not (
+                            pending_order.is_current(existing_pr.reference_name, cart)
+                            and pending_order.amount_matches(existing_pr, cart)
+                        )
                     ):
                         # the cart changed since: this request is for another amount
                         pending_order.release(cart.name)

@@ -1,5 +1,7 @@
 import frappe
 from frappe import _
+# //// Neoffice — what a failure keeps of the caller's text, and the amount of a cart (see below).
+from frappe.utils import cstr, flt, strip_html
 import json
 # //// Neoffice — get_party: whose cart it is (_is_the_session_s_quotation below).
 from webshop.webshop.shopping_cart.cart import place_order, _get_cart_quotation, is_gift_card_item, get_party
@@ -52,6 +54,17 @@ def _cart_of_request(payment_request):
     return None
 
 
+# //// Neoffice — what is kept of the text a browser sends with a failed payment. It went as it came into
+# //// `message` of the request, a field ERPNext renders as a Jinja template when the request is mailed. One
+# //// short plain text is all a decline needs.
+FAILURE_NOTE_LENGTH = 200
+
+
+def _failure_note(error_message):
+    text = strip_html(cstr(error_message))[:FAILURE_NOTE_LENGTH]
+    return text.replace("{", "(").replace("}", ")").strip() or _("Payment failed")
+
+
 # //// Neoffice — added function (no upstream equivalent), see `_record_gateway_payment`.
 def enabled_mode_of_payment(account, company):
     """The enabled Mode of Payment wired to `account` for `company`, or None.
@@ -102,7 +115,8 @@ class PaymentHandler:
                     {"custom_idempotency_token": idempotency_token},
                     # //// Neoffice — `reference_doctype` added: the request may
                     # //// already point to the created order, not the quotation.
-                    ["name", "status", "reference_name", "reference_doctype"],
+                    # //// Neoffice — `grand_total`: what the request asks of the gateway (see below).
+                    ["name", "status", "reference_name", "reference_doctype", "grand_total"],
                     as_dict=True
                 )
 
@@ -137,8 +151,20 @@ class PaymentHandler:
                         stale = False
                         if on_placeholder:
                             cart_name = pending_order.quotation_of(existing_pr.reference_name)
-                            if frappe.db.exists("Quotation", cart_name) and pending_order.is_current(
-                                existing_pr.reference_name, frappe.get_doc("Quotation", cart_name)
+                            # //// Neoffice — the total as well as the lines: a shipping rule, an address or
+                            # //// loyalty points move the total and leave the lines alone, so the request
+                            # //// found again kept the old amount while the gateway was asked for the new
+                            # //// one, and the order and its payment entry were then booked for an amount
+                            # //// the gateway never captured.
+                            cart = (
+                                frappe.get_doc("Quotation", cart_name)
+                                if frappe.db.exists("Quotation", cart_name)
+                                else None
+                            )
+                            if (
+                                cart
+                                and pending_order.is_current(existing_pr.reference_name, cart)
+                                and pending_order.amount_matches(existing_pr, cart)
                             ):
                                 # //// Neoffice — the buyer is still here: the hold of the placeholder starts over.
                                 pending_order.touch(existing_pr.reference_name)
@@ -382,9 +408,12 @@ class PaymentHandler:
                 # //// refused and left exactly as it is, with a message that tells them what to do. Marking it
                 # //// Failed would let a call with no proof kill a payment the gateway is still about to confirm.
                 # //// Anyone else is simply not permitted.
-                if _may_conclude(payment_request_id, money_confirmed=False):
+                if _is_the_buyer(payment_request_id):
                     return self._not_confirmed_yet(payment_request_id)
-                frappe.throw(_("Not permitted"), frappe.PermissionError)
+                # //// Neoffice — the answer a stranger always got, without the `frappe.throw` that went
+                # //// through the except below: a refusal is no fault, and each refused POST committed an
+                # //// Error Log row. A browser never reads this: the web method refuses first.
+                return {"status": "error", "message": _("Error processing payment")}
 
             # Bypass all permission checks - payment is confirmed by payment provider
             # We need to run as Administrator because get_mapped_doc checks permissions
@@ -624,10 +653,16 @@ class PaymentHandler:
         If the proof arrives afterwards (the gateway's return, its webhook, the TWINT poller), the request is
         concluded as usual.
         """
-        frappe.log_error(
-            "Webshop: a payment was asked to be concluded before the gateway confirmed it",
-            f"payment_request={payment_request_id} user={frappe.session.user}",
-        )
+        # //// Neoffice — once an hour per request: each reload of a waiting buyer wrote a row. Per request,
+        # //// not per title (payments' `log_once_an_hour`): a second buyer's charge in that hour is its
+        # //// own case.
+        key = f"webshop:not_confirmed_yet:{payment_request_id}"
+        if not frappe.cache().get_value(key):
+            frappe.cache().set_value(key, 1, expires_in_sec=3600)
+            frappe.log_error(
+                "Webshop: a payment was asked to be concluded before the gateway confirmed it",
+                f"payment_request={payment_request_id} user={frappe.session.user}",
+            )
         return {
             "status": "error",
             "redirect_to": "",
@@ -734,25 +769,36 @@ class PaymentHandler:
             # //// on the PSP side by a `succeeded` intent.
             if not payment_request_id or not frappe.db.exists("Payment Request", payment_request_id):
                 return self.handle_error("Missing payment request ID")
-            if not _may_conclude(payment_request_id, money_confirmed=False):
-                frappe.throw(_("Not permitted"), frappe.PermissionError)
+            # //// Neoffice — one answer, recorded or not: the card tile shows it. A `frappe.throw` here
+            # //// ended in the except below, one Error Log row per refused POST and a visitor told of a
+            # //// system error.
+            note = _failure_note(error_message)
+            answer = {"status": "error", "message": note, "redirect_to": ""}
+            if not _is_the_buyer(payment_request_id):
+                return answer
 
-            payment_request = frappe.get_doc("Payment Request", payment_request_id)
+            # //// Neoffice — read under lock, then judged. This wrote docstatus 1 / Failed on whatever the
+            # //// request was: a paid request read as failed and could then be released, a cancelled one
+            # //// came back to life. Only a request that moved no money can fail, and a gateway concluding
+            # //// it at this moment is waited for.
+            payment_request = frappe.get_doc("Payment Request", payment_request_id, for_update=True)
             payment_request.flags.ignore_permissions = True
+            if (
+                payment_request.docstatus == 2
+                or payment_request.status not in pending_order.UNPAID_STATUSES
+                or payment_proof.is_confirmed(payment_request_id)
+            ):
+                return answer
 
             frappe.db.set_value("Payment Request", payment_request_id, {
                 "docstatus": 1,
                 "status": "Failed",
-                "message": error_message or _("Payment failed")
+                "message": note
             }, update_modified=False)
 
             frappe.db.commit()
             
-            return {
-                "status": "error",
-                "message": error_message or _("Payment failed"),
-                "redirect_to": ""
-            }
+            return answer
             
         except Exception:
             # //// Neoffice — #2114: the traceback is the message; `e` alone kept str(e) (« Not permitted ») and pointed nowhere.
@@ -842,9 +888,12 @@ class PaymentHandler:
                 "message": _("An error occurred while validating the order")
             }
 
+# //// Neoffice — each parameter a text: a JSON body made a filter of any of them (frappe.db.exists,
+# //// get_doc, get_value).
+# permission-check: ok the handler refuses a cart that is not the session's (_is_the_session_s_quotation)
 @frappe.whitelist(allow_guest=True)
-def create_payment_request(quotation_id=None, gateway_settings=None, idempotency_token=None,
-                           payment_gateway=None):
+def create_payment_request(quotation_id: str | None = None, gateway_settings: str | None = None,
+                           idempotency_token: str | None = None, payment_gateway: str | None = None):
     """Create a payment request for a quotation
     
     Args:
@@ -863,6 +912,14 @@ def create_payment_request(quotation_id=None, gateway_settings=None, idempotency
             # //// Neoffice — pass the direct gateway name through to the handler.
             payment_gateway=payment_gateway
         )
+    # //// Neoffice — a refusal is no fault: every POST of a visitor with no cookie committed an Error Log
+    # //// row. Only the guard of `PaymentHandler.create_payment_request` gets here, the rest ends in its
+    # //// own except.
+    except frappe.PermissionError as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
     except Exception as e:
         # //// Neoffice — #2114: the traceback is the message; `e` alone kept str(e) (« Not permitted ») and pointed nowhere.
         frappe.log_error("Error creating payment request", frappe.get_traceback())
@@ -944,9 +1001,32 @@ def _may_conclude(payment_request_id: str, money_confirmed: bool = True) -> bool
 	return beneficiary in (customers or [])
 
 
+# //// Neoffice — added function (no upstream equivalent). Who hears about a request and may fail it:
+# //// `_may_conclude`'s identity cases, and the visitor with no account whose cart it is, by its cookie, as
+# //// `payments.integrations.web_checkout` asks. For a guest only: `get_party` can create a customer. A name
+# //// that does not exist is nobody's, so it is refused like a request of somebody else.
+def _is_the_buyer(payment_request_id):
+    if _may_conclude(payment_request_id, money_confirmed=False):
+        return True
+    if frappe.session.user != "Guest":
+        return False
+    row = frappe.db.get_value(
+        "Payment Request", payment_request_id, ["reference_doctype", "reference_name"], as_dict=True
+    )
+    return bool(row) and _is_the_session_s_quotation(_cart_of_request(row))
+
+
+# //// Neoffice — a text: in a JSON body it was a filter, in frappe.db.exists and in frappe.get_doc.
 @frappe.whitelist(allow_guest=True)
-def handle_payment_success(payment_request_id, transaction_data=None):
+def handle_payment_success(payment_request_id: str, transaction_data=None):
     """Handle payment success with Stripe"""
+    # //// Neoffice — a refusal is a refusal, a 403 with no Error Log row: it answered 200, and wrote a row
+    # //// per call for anyone, on a request that does not move. Whoever may conclude passes, and the buyer,
+    # //// who is told where the payment stands. Before the try below, which would log it. The Python
+    # //// callers (gateway returns, webhooks, pollers) hold the proof or run as the server, and catch what
+    # //// they call.
+    if not (_may_conclude(payment_request_id) or _is_the_buyer(payment_request_id)):
+        frappe.throw(_("Not permitted"), frappe.PermissionError)
     try:
         handler = PaymentHandler()
         return handler.handle_payment_success(payment_request_id=payment_request_id, transaction_data=transaction_data)
@@ -958,9 +1038,15 @@ def handle_payment_success(payment_request_id, transaction_data=None):
             "message": _("Error processing payment")
         }
 
+# //// Neoffice — texts: in a JSON body `payment_request_id` was the filter of the check AND of the UPDATE,
+# //// and one request of the caller's own let that UPDATE reach the requests of every customer.
 @frappe.whitelist(allow_guest=True)
-def handle_payment_failure(payment_request_id, error_message=None):
+def handle_payment_failure(payment_request_id: str, error_message: str | None = None):
     """Handle payment failure"""
+    # //// Neoffice — a real refusal, see handle_payment_success. A buyer is never refused here: the card tile
+    # //// unfreezes in its callback, which a 403 skips, so a guest's cart counts as theirs (_is_the_buyer).
+    if not _is_the_buyer(payment_request_id):
+        frappe.throw(_("Not permitted"), frappe.PermissionError)
     try:
         handler = PaymentHandler()
         return handler.handle_payment_failure(payment_request_id, error_message)
@@ -972,10 +1058,26 @@ def handle_payment_failure(payment_request_id, error_message=None):
             "message": _("Error processing payment failure")
         }
 
+# //// Neoffice — a text: it names a cache key.
+# permission-check: ok the session's own cart, and only when it has nothing to pay
 @frappe.whitelist(allow_guest=True)
-def handle_direct_order(idempotency_token=None):
+def handle_direct_order(idempotency_token: str | None = None):
     """Handle direct order validation without payment"""
     try:
+        # //// Neoffice — this door is the checkout's zero-amount button: a cart with nothing to pay, a gift
+        # //// card spent in full. Only the browser knew that, so any signed-in customer got a submitted order
+        # //// and its invoice on credit the shop never offered. An amount to pay goes through a method the
+        # //// buyer is offered (create_payment_request, place_offline_order), and a B2B customer orders from
+        # //// /checkout-b2b. An answer, not a 403: a buyer lands here when a gift card leaves the cart in
+        # //// another tab, and checkout.js shows this message. Here and not in the class: the browser's
+        # //// claim comes in through this door.
+        quotation = _get_cart_quotation()
+        if not quotation or flt(quotation.rounded_total or quotation.grand_total) > 0:
+            return {
+                "status": "error",
+                "message": _("This order has an amount to pay. Please choose a payment method.")
+            }
+
         handler = PaymentHandler()
         return handler.handle_direct_order(idempotency_token=idempotency_token)
     except Exception as e:

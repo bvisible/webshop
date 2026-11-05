@@ -5,6 +5,9 @@
 # //// caller's party before writing.
 import frappe
 from frappe import _
+# //// Neoffice — what remove_webshopsi_fees is handed by its Python callers, as opposed to a name from a
+# //// browser.
+from frappe.model.document import Document
 from webshop.webshop.shopping_cart.cart import apply_cart_settings as webshop_apply_cart_settings
 from webshop.webshop.shopping_cart.cart import get_party
 # //// Neoffice — #277: the customer's session reads neither Item nor Account (shop_rights.py).
@@ -120,6 +123,29 @@ def apply_webshopsi_payment_fees(quotation):
     save_as_shop(quotation, ignore_permissions=True)  # //// Neoffice — #277
     return {"success": True, "had_changes": True, "doc": quotation.as_dict()}
 
+# //// Neoffice — added helper. remove_webshopsi_fees reads, rewrites and answers with a whole quotation,
+# //// and unlike its two siblings it never asked whose: any signed-in account could name a draft of any
+# //// customer, carts and desk quotes alike. A name from a browser must be the session's own open cart.
+# //// `get_party` last: it can create a customer.
+def _require_own_cart(quotation_name):
+    row = None
+    if isinstance(quotation_name, str):
+        row = frappe.db.get_value(
+            "Quotation",
+            quotation_name,
+            ["party_name", "contact_email", "order_type", "docstatus"],
+            as_dict=True,
+        )
+    is_a_cart_of_this_session = (
+        row
+        and row.contact_email == frappe.session.user
+        and row.order_type == "Shopping Cart"
+        and row.docstatus == 0
+    )
+    if not is_a_cart_of_this_session or getattr(get_party(), "name", None) != row.party_name:
+        frappe.throw(_('Access not authorized'), frappe.PermissionError)
+
+
 @frappe.whitelist()
 def remove_webshopsi_fees(quotation):
     """Remove WebshopSI payment fees from a quotation
@@ -131,6 +157,11 @@ def remove_webshopsi_fees(quotation):
     """
     if not quotation:
         return
+
+    # //// Neoffice — see _require_own_cart. Before the try below, which would swallow the refusal. The
+    # //// Python callers hand the document they have judged, or the session's own cart.
+    if not isinstance(quotation, Document):
+        _require_own_cart(quotation)
 
     try:
         # If we receive a string (JS call), load the quotation

@@ -128,8 +128,43 @@ def make_invoice(sales_order_name):
 
 	return si
 
+# //// Neoffice — added helper. Whose date of birth the invoice tile may read and write: a contact this
+# //// session has the right on, or the person it is signed in as (the tile runs for a portal customer, who
+# //// has no right on Contact).
+def _may_use_contact(contact_name, ptype):
+	if not frappe.db.exists("Contact", contact_name):
+		return False
+	if frappe.has_permission("Contact", ptype, contact_name):
+		return True
+	user = frappe.session.user
+	if frappe.db.get_value("Contact", contact_name, "user") == user:
+		return True
+	return bool(
+		frappe.db.exists("Contact Email", {"parent": contact_name, "parenttype": "Contact", "email_id": user})
+	)
+
+
+# //// Neoffice — added helper. Whether the shop offers the invoice tile to the customer of this cart,
+# //// through whichever of its accounts (utils/payment_methods.py).
+def _invoice_tile_is_offered(quotation):
+	from webshop.webshop.utils.payment_methods import customer_group_of, rows_for_group
+
+	offered = rows_for_group(frappe.get_cached_doc("Webshop Settings"), customer_group_of(quotation))
+	gateways = frappe.get_all(
+		"Payment Gateway Account",
+		filters={"name": ["in", [row.payment_gateway_account for row in offered]]},
+		pluck="payment_gateway",
+	)
+	return bool(gateways) and bool(
+		frappe.db.exists(
+			"Payment Gateway", {"name": ["in", gateways], "gateway_settings": "WebshopSI Settings"}
+		)
+	)
+
+
+# //// Neoffice — each parameter a text: `contactName` in a JSON body was a filter of the caller's choice.
 @frappe.whitelist()
-def on_payment_authorized(gateway_settings , birthday=None, contactName=None):
+def on_payment_authorized(gateway_settings: str, birthday: str | None = None, contactName: str | None = None):
 	"""
 	Secure method to validate and finalize a WebshopSI payment.
 	This method is called after creating the payment_request.
@@ -152,11 +187,20 @@ def on_payment_authorized(gateway_settings , birthday=None, contactName=None):
 		gateway = frappe.get_value("Payment Gateway", {"gateway_settings": gateway_settings}, "name")
 		if not gateway:
 			frappe.throw(_("Payment Gateway not found for settings: {0}").format(gateway_settings))
-		
+
+		# //// Neoffice — this places an unpaid order and its invoice, on the word of the invoice tile. It
+		# //// took any row of Payment Gateway (a card gateway's settings did), and a customer the shop does
+		# //// not offer the tile to got it all the same: hiding a tile is not a permission.
+		if gateway_settings != "WebshopSI Settings" or not _invoice_tile_is_offered(quotation):
+			frappe.throw(_("This payment method is not available for your account."))
+
 		webshopsi_settings = frappe.get_doc("WebshopSI Settings")
 		
 		# Set birthday in contact
-		if birthday and contactName:
+		# //// Neoffice — it was saved with `ignore_permissions` on any Contact named. Skipped, not refused:
+		# //// the tile names the customer's primary contact, who may be a colleague of the buyer, and the
+		# //// order goes on without their date.
+		if birthday and contactName and _may_use_contact(contactName, "write"):
 			contact = frappe.get_doc("Contact", contactName)
 			contact.birthday = birthday
 			contact.save(ignore_permissions=True)
@@ -270,10 +314,14 @@ def on_payment_authorized(gateway_settings , birthday=None, contactName=None):
 			"redirect_to": "/payment-failed"
 		}
 
+# //// Neoffice — "securely", and nothing checked: any signed-in account read the date of birth of any
+# //// Contact, by name or, with a filter of a JSON body, by e-mail. Now a text, and only the session's own
+# //// contact answers. No refusal: the tile asks about the customer's primary contact, who may be a
+# //// colleague, and an empty field is what they get.
 @frappe.whitelist()
-def get_contact_birthday(contact_name):
+def get_contact_birthday(contact_name: str):
 	"""Securely retrieves a contact's birthday."""
-	if not contact_name:
+	if not contact_name or not _may_use_contact(contact_name, "read"):
 		return None
 	
 	try:
@@ -348,7 +396,9 @@ def get_payment_context(reference_doctype=None, reference_docname=None):
         frappe.throw(_("Failed to get payment context: {0}").format(str(e)))
 
 
-@frappe.whitelist()
+# //// Neoffice — no `@frappe.whitelist()` any more: nothing calls this over HTTP, and any signed-in account
+# //// could run it, rewriting the fee of each Payment Terms Template from the legacy plans and seeding the
+# //// Company fee accounts. A console or a patch calls it as a function.
 def migrate_installment_fees_to_templates():
     """Idempotent migration: copy each WebshopSI installment plan's fee
     (percentage + min/max) onto its linked Payment Terms Template, and seed every

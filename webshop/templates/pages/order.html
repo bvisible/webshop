@@ -44,7 +44,11 @@
 		<div class="form-column col-sm-6">
 			<div class="page-header-actions-block" data-html-block="header-actions">
 				<p>
-					{% if enabled_checkout and (doc.doctype != "Sales Invoice" or doc.outstanding_amount > 0) %}
+					{# //// Neoffice — the button stood on a cancelled or a closed order too. The rule of #}
+					{# //// can_be_paid (order.py), which refuses the request, read here from the document. #}
+					{% if enabled_checkout and doc.docstatus == 1
+						and doc.status not in ("Cancelled", "Closed")
+						and (doc.doctype != "Sales Invoice" or doc.outstanding_amount > 0) %}
 					{# //// Neoffice — the button calls the shop's own make_payment_request (order.py), not erpnext's: a customer has no right to create a Payment Request. #}
 					<a href="/api/method/webshop.templates.pages.order.make_payment_request?dn={{ doc.name }}&dt={{ doc.doctype }}&submit_doc=1&order_type=Shopping Cart"
 						class="btn btn-primary btn-sm" id="pay-for-order">
@@ -150,7 +154,9 @@
 	{# //// points were already booked when the order was placed, and the block let the #}
 	{# //// buyer spend them a second time (149f46beec, 2025-11-27). #}
 	{# Loyalty points only for Sales Order, not for Sales Invoice #}
-	{% if enabled_checkout and doc.doctype == "Sales Order" and doc.per_billed <= 0 %}
+	{# //// Neoffice — the same test: the points are spent on that button, which order.js needs. #}
+	{% if enabled_checkout and doc.docstatus == 1 and doc.status not in ("Cancelled", "Closed")
+		and doc.doctype == "Sales Order" and doc.per_billed <= 0 %}
 		<div class="panel panel-default">
 			<div class="panel-collapse">
 				<div class="panel-body text-muted small">
