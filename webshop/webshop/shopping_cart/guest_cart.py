@@ -9,6 +9,13 @@ from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shoppi
 # //// the SESSION user inside the quotation's validate; a visitor (Guest) reads neither.
 from webshop.webshop.shopping_cart.shop_rights import save_as_shop, shop_rights
 
+# //// Neoffice — the most lines a visitor's cart is priced for: the quick order takes 200 lines at a time,
+# //// on top of what the cart holds, and the largest shop cart of an instance is far below. The list came
+# //// from the request, with the body's limit of 25 MB for only bound, and each line costs some twenty
+# //// queries (#2296).
+MAX_CART_LINES = 500
+
+
 @frappe.whitelist(allow_guest=True)
 def get_guest_session_id():
     """Get or create a guest session ID"""
@@ -30,9 +37,19 @@ def get_guest_session_id():
     
     return guest_session_id
 
-@frappe.whitelist(allow_guest=True)
+# //// Neoffice — no longer whitelisted. No page calls it: the visitor's cart goes through cart.update_cart,
+# //// whose checks (a site for professionals, a shop without guest carts, the stock, the amount of a gift
+# //// card) this door walked around, with the rates and warehouses of its list and a new Quotation per call
+# //// (#2296).
 def create_guest_quotation(items=None):
     """Create or update a quotation for a guest"""
+    # //// Neoffice — the rule update_cart applies, for a caller that does not go through it: a visitor on a
+    # //// site for professionals has no cart, and this one was priced at the resellers' tariff. Asking for
+    # //// the cart is no filling.
+    if items:
+        from webshop.webshop.multi_site import require_login_to_buy
+
+        require_login_to_buy()
     
     # If items is a JSON string, convert it to a list
     if isinstance(items, str):
@@ -40,6 +57,10 @@ def create_guest_quotation(items=None):
             items = json.loads(items)
         except json.JSONDecodeError:
             frappe.throw(_("Invalid items format"))
+
+    # //// Neoffice — see MAX_CART_LINES: refused before anything is priced
+    if items and len(items) > MAX_CART_LINES:
+        frappe.throw(_("At most {0} lines per cart.").format(MAX_CART_LINES))
 
     # Get the guest_session_id from the cookie
     guest_session_id = frappe.request.cookies.get('guest_session_id')
@@ -183,41 +204,9 @@ def create_guest_quotation(items=None):
     }
     return result
 
-@frappe.whitelist(allow_guest=True)
-def test_guest_quotation(item_code=None):
-    """
-    Test endpoint to create a guest quotation
-    
-    Args:
-        item_code (str, optional): Code of the item to add to the cart
-    
-    Returns:
-        dict: Information about the created quotation
-    """
-    try:
-        
-        # Check parameters
-        settings = frappe.get_doc('Webshop Settings')
-        if not settings.enable_guest_cart:
-            return {"success": False, "message": "Guest cart is not enabled"}
-        
-        if not settings.guest_customer:
-            return {"success": False, "message": "Guest customer not configured"}
-        
-        # Create a test quotation
-        if item_code:
-            items = [{"item_code": item_code, "qty": 1}]
-            quotation = create_guest_quotation(items)
-            return {
-                "success": True,
-                "message": "Quotation created successfully",
-                "quotation": quotation
-            }
-        else:
-            return {"success": False, "message": "Item code required"}
-    except Exception as e:
-        frappe.log_error(f"TEST ERROR: {str(e)}\nTraceback: {frappe.get_traceback()}")
-        return {"success": False, "message": str(e)}
+# //// Neoffice — test_guest_quotation is gone: a guest endpoint nothing called, which logged its traceback
+# //// as a title (too long for one, so the Error Log insert failed and the traceback went back to the
+# //// visitor) (#2296).
 
 def check_and_merge_guest_cart():
     """

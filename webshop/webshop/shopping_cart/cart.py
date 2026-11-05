@@ -36,8 +36,12 @@ from webshop.webshop.shopping_cart.shop_rights import save_as_shop, shop_rights
 # //// the ERPNext entry point for the loyalty balance the cart spends (3bc2d836f1,
 # //// 2025-02-11).
 from erpnext.utilities.product import get_price
+# //// Neoffice — called_over_http and public_settings: what the browser is told of the settings
+# //// (_cart_settings).
 from webshop.webshop.doctype.webshop_settings.webshop_settings import (
+	called_over_http,
 	get_shopping_cart_settings,
+	public_settings,  # //// Neoffice — see above
 )
 from webshop.webshop.utils.product import get_web_item_qty_in_stock
 # //// Neoffice — added: every amount the shop prints goes through it, so the
@@ -103,6 +107,18 @@ def is_b2b_customer_group(customer_group, cart_settings=None):
 	return any(row.customer_group == customer_group for row in (cart_settings.get("b2b_customer_group") or []))
 
 
+# //// Neoffice — the cart's context goes to a template, and over HTTP to the browser. The template needs
+# //// the whole settings document; the browser got it too, to a visitor: the feed token, the guest
+# //// customer, the assistant's settings, and read none of it. Over HTTP it gets what a page's script may
+# //// read (public_settings, #711).
+CART_METHOD = "webshop.webshop.shopping_cart.cart.get_cart_quotation"
+
+
+def _cart_settings():
+	settings = frappe.get_cached_doc("Webshop Settings")
+	return public_settings(settings) if called_over_http(CART_METHOD) else settings
+
+
 @frappe.whitelist(allow_guest=True)
 def get_cart_quotation(doc=None):
 	party = get_party()
@@ -117,7 +133,8 @@ def get_cart_quotation(doc=None):
 			"shipping_addresses": [],
 			"billing_addresses": [],
 			"shipping_rules": [],
-			"cart_settings": frappe.get_cached_doc("Webshop Settings")
+			# //// Neoffice — the browser reads the public settings (_cart_settings)
+			"cart_settings": _cart_settings()
 		}
 
 	if not doc:
@@ -156,7 +173,8 @@ def get_cart_quotation(doc=None):
 							"shipping_addresses": [],
 							"billing_addresses": [],
 							"shipping_rules": [],
-							"cart_settings": frappe.get_cached_doc("Webshop Settings")
+							# //// Neoffice — the browser reads the public settings (_cart_settings)
+							"cart_settings": _cart_settings()
 						}
 			else:
 				# If no guest_session_id, create a new quotation
@@ -170,7 +188,8 @@ def get_cart_quotation(doc=None):
 						"shipping_addresses": [],
 						"billing_addresses": [],
 						"shipping_rules": [],
-						"cart_settings": frappe.get_cached_doc("Webshop Settings")
+						# //// Neoffice — the browser reads the public settings (_cart_settings)
+						"cart_settings": _cart_settings()
 					}
 		else:
 			# For logged in users, normal behavior
@@ -303,7 +322,8 @@ def get_cart_quotation(doc=None):
 		# //// (weight, contents, and "no shipping when every line is a gift card"), so the
 		# //// quotation is passed down (6d4eca593f, 2025-12-12).
 		"shipping_rules": get_applicable_shipping_rules(party, doc),
-		"cart_settings": frappe.get_cached_doc("Webshop Settings"),
+		# //// Neoffice — the browser reads the public settings (_cart_settings)
+		"cart_settings": _cart_settings(),
 		# //// Neoffice — added to the context. Everything the checkout renders in one call:
 		# //// the loyalty balance and its cash value (3bc2d836f1, 2025-02-11), whether the
 		# //// customer goes through the B2B tunnel (48e2708353, 2025-03-13), and whether the
@@ -417,24 +437,21 @@ def is_gift_card_coupon(coupon):
 	return bool(read("coupon_type") == "Gift Card" or read("pos_next_gift_card"))
 
 
+# //// Neoffice — the split is gone (spend_gift_card): what tells the families apart now is their rule.
 def issued_by_the_till(coupon):
-	"""A till card carries its balance on itself and KEEPS ITS CODE when spent.
-
-	The shop's own cards are split at order time into a new card for the
-	remainder; the till decrements in place. A customer holding a printed card
-	must not be handed a different code by the website, so the two families are
-	settled the way their issuer settles them.
-	"""
+	"""A card of the till has a Pricing Rule of its own; the shop's cards of one value share theirs."""
 	read = coupon.get if hasattr(coupon, "get") else (lambda field: getattr(coupon, field, None))
 	return bool(read("pos_next_gift_card"))
 
+# //// Neoffice — for both families now, `card` read under the lock of spend_gift_card (#2296).
 def settle_till_card(card, used_amount):
-	"""Take `used_amount` off a till card, in place, keeping its code.
+	"""Take `used_amount` off a card of either family, in place, keeping its code.
 
 	Returns what is left. A card that reaches zero is marked used, so nothing
 	downstream offers it again.
 	"""
-	remaining = flt(card.gift_card_amount) - flt(used_amount)
+	# //// Neoffice — rounded to the cent: 100 - 33.33 left 66.67000000000002 on the card.
+	remaining = flt(flt(card.gift_card_amount) - flt(used_amount), 2)
 	if remaining < 0:
 		remaining = 0
 
@@ -449,6 +466,151 @@ def settle_till_card(card, used_amount):
 	frappe.db.set_value("Coupon Code", card.name, values, update_modified=False)
 	card.gift_card_amount = remaining
 	return remaining
+
+
+# //// Neoffice — added (maintenance#2296). A gift card pays once, for what it really paid, from the balance
+# //// the database holds when the order is made. The cart notes the balance when the code is applied,
+# //// nothing read it again: one card paid several carts, a card spent in full kept its balance (the till
+# //// still took it), a card spent in part left a second, spendable card for the amount used, and a till
+# //// card was debited for an order ERPNext then refused. The till (pos_next/api/gift_cards.py) takes the
+# //// amount off the card, which keeps its code: the shop does the same now, for both families, with the
+# //// row locked between the reading and the writing.
+def _locked_gift_card(card_name):
+	"""The card as the database holds it now, its row locked until this transaction ends."""
+	fields = ["name", "coupon_type", "pricing_rule", "used", "gift_card_amount"]
+	if frappe.get_meta("Coupon Code").has_field("pos_next_gift_card"):
+		fields.append("pos_next_gift_card")
+	return frappe.db.get_value("Coupon Code", card_name, fields, as_dict=True, for_update=True)
+
+
+def ensure_gift_card_covers(quotation):
+	"""Refuse a cart whose gift card no longer holds what the cart takes off. Returns the balance."""
+	card = _locked_gift_card(quotation.gift_card_coupon)
+	balance = flt(card.gift_card_amount, 2) if card else 0
+	if flt(quotation.discount_amount, 2) > balance:
+		frappe.throw(_("This gift card no longer covers this amount. Remove it from the cart and apply it again."))
+	return balance
+
+
+def _gift_card_rule(amount):
+	"""The Pricing Rule of a shop card worth `amount`: the cards of one value share it."""
+	filters = {
+		"apply_on": "Transaction",
+		"price_or_product_discount": "Price",
+		"is_cumulative": 1,
+		"valid_upto": "2999-12-31",
+		"selling": 1,
+		"buying": 0,
+		"coupon_code_based": 1,
+		"disable": 0,
+		"margin_type": "Amount",
+		"rate_or_discount": "Discount Amount",
+		"discount_amount": amount,
+	}
+	rule = frappe.db.exists("Pricing Rule", filters)
+	if rule:
+		return rule
+	return (
+		frappe.get_doc({"doctype": "Pricing Rule", "title": f"{_('Gift Card')} {amount:.2f}", **filters})
+		.insert(ignore_permissions=True)
+		.name
+	)
+
+
+def _rule_follows_the_balance(card, remaining):
+	"""A document naming a card takes its Pricing Rule's amount as its discount: the rule says the balance."""
+	if not remaining:
+		return
+	if not issued_by_the_till(card):
+		rule = _gift_card_rule(remaining)
+		frappe.db.set_value("Coupon Code", card.name, "pricing_rule", rule, update_modified=False)
+	elif card.pricing_rule:
+		# as POS Next's _update_gift_card_balance writes it
+		frappe.db.set_value("Pricing Rule", card.pricing_rule, "discount_amount", remaining)
+
+
+def _spent_on(card_name, order):
+	return frappe.db.exists(
+		"Comment",
+		{
+			"reference_doctype": "Coupon Code",
+			"reference_name": card_name,
+			"comment_type": "Info",
+			"content": ["like", f"%({order})%"],
+		},
+	)
+
+
+def spend_gift_card(card_name, amount, order, strict=True):
+	"""Take what `order` really spent off a gift card, once, from what the database holds now.
+
+	Strict, a balance that no longer covers it refuses the order. Not strict, the money has already been taken at
+	a gateway and the order stands: the card gives what it has, and the shortfall goes to the Error Log.
+	Returns what is left on the card, None when nothing was taken.
+	"""
+	amount = flt(amount, 2)
+	card = _locked_gift_card(card_name)
+	if not card or amount <= 0 or _spent_on(card_name, order):
+		return None
+	if amount > flt(card.gift_card_amount, 2):
+		if strict:
+			frappe.throw(_("This gift card no longer covers this amount. Remove it from the cart and apply it again."))
+		frappe.log_error(
+			"Webshop: a gift card did not cover its order",
+			f"card={card_name} order={order} asked={amount} balance={card.gift_card_amount}",
+		)
+	remaining = settle_till_card(card, amount)
+	_rule_follows_the_balance(card, remaining)
+	currency = frappe.db.get_default("currency")
+	frappe.get_doc(
+		{
+			"doctype": "Comment",
+			"comment_type": "Info",
+			"reference_doctype": "Coupon Code",
+			"reference_name": card_name,
+			"content": _("Spent: {0}. Left on the card: {1}.").format(
+				format_currency_value(amount, currency=currency),
+				format_currency_value(remaining, currency=currency),
+			)
+			# the reference _spent_on looks for, whatever the language of the sentence
+			+ f" ({order})",
+		}
+	).insert(ignore_permissions=True)
+	return remaining
+
+
+def spend_gift_card_of_invoice(invoice):
+	"""The payment handler makes the order of a gateway payment and never settled its card: its invoice does.
+
+	The money is taken by then, hence not strict. An order placed on account has settled its card already, and
+	_spent_on makes this a no-op; a shop order is the only one read here.
+	"""
+	if invoice.docstatus != 1 or invoice.get("is_return"):
+		return
+	if not frappe.get_meta("Quotation").has_field("gift_card_coupon"):
+		return
+	for order in {row.sales_order for row in invoice.items if row.get("sales_order")}:
+		row = frappe.db.get_value("Sales Order", order, ["order_type", "discount_amount"], as_dict=True)
+		if not row or row.order_type != "Shopping Cart":
+			continue
+		cart = frappe.db.get_value("Sales Order Item", {"parent": order}, "prevdoc_docname")
+		card = frappe.db.get_value("Quotation", cart, "gift_card_coupon") if cart else None
+		if card:
+			spend_gift_card(card, row.discount_amount, order, strict=False)
+
+
+def give_gift_card_back(doc, method=None):
+	"""`on_cancel` of Sales Order: a cancelled order gives back what it took off its card, used mark included."""
+	if doc.order_type != "Shopping Cart" or not frappe.get_meta("Quotation").has_field("gift_card_coupon"):
+		return
+	cart = frappe.db.get_value("Sales Order Item", {"parent": doc.name}, "prevdoc_docname")
+	name = frappe.db.get_value("Quotation", cart, "gift_card_coupon") if cart else None
+	if not name or not _spent_on(name, doc.name):
+		return
+	card = _locked_gift_card(name)
+	balance = flt(flt(card.gift_card_amount) + flt(doc.discount_amount), 2)
+	frappe.db.set_value("Coupon Code", name, {"gift_card_amount": balance, "used": 0}, update_modified=False)
+	_rule_follows_the_balance(card, balance)
 
 
 
@@ -537,74 +699,75 @@ def get_customer_addresses():
 	return out
 
 
+# //// Neoffice — added (#2296). This function makes a submitted order, unpaid: that is its job for the
+# //// callers that settled the payment or its terms (place_offline_order, the gateway's return,
+# //// Webshopsi). Its web door asked nothing, so on a shop with a checkout page any signed-in customer
+# //// ordered on credit the shop never offered them, around the methods of their group. Over HTTP it now
+# //// follows what the shop shows that customer: the B2B checkout of the groups it names, the classic
+# //// cart's button where there is no checkout page, nothing where the shop only takes requests for a
+# //// quote, and otherwise a cart with nothing left to pay.
+PLACE_ORDER_METHOD = "webshop.webshop.shopping_cart.cart.place_order"
+
+
+def _refuse_terms_the_shop_did_not_offer(quotation):
+	if not called_over_http(PLACE_ORDER_METHOD):
+		return
+	settings = frappe.get_cached_doc("Webshop Settings")
+	group = frappe.db.get_value("Customer", quotation.party_name, "customer_group")
+	if is_b2b_customer_group(group, settings):
+		return
+	if not cint(settings.enable_checkout):
+		frappe.throw(_("This shop takes requests for a quote, not orders."))
+	if cint(settings.enable_checkout_page) and flt(quotation.rounded_total or quotation.grand_total) > 0:
+		frappe.throw(_("This order has an amount to pay. Please choose a payment method."))
+
+
+# //// Neoffice — the gate of #2274 asks this line why no permission of Frappe's is checked.
 @frappe.whitelist()
-def place_order():
+def place_order():  # permission-check: ok the session's own cart, no argument
 	quotation = _get_cart_quotation()
+	_refuse_terms_the_shop_did_not_offer(quotation)  # //// Neoffice — see the function
 	cart_settings = frappe.get_cached_doc("Webshop Settings")
 	quotation.company = cart_settings.company
 	
 	# Save the coupon info for later use
-	# //// Neoffice — added block (618eedfdb8, 2025-03-24 "Feat gift card split";
-	# //// f114dc4b5d, 2025-12-12). Upstream knows coupons, not gift cards: a coupon is
-	# //// spent whole or not at all. A gift card worth more than the order has to keep
-	# //// its balance, so before the order is made we cap the discount at the order total
-	# //// and record what was used and what is left; the split itself happens after the
-	# //// Sales Order exists (process_gift_card_split below). temp_coupon_code is read
-	# //// here because the code is entered on the cart, before the quotation is submitted.
+	# //// Neoffice — added block (618eedfdb8, 2025-03-24 "Feat gift card split"; f114dc4b5d, 2025-12-12).
+	# //// Upstream knows coupons, not gift cards: a coupon is spent whole or not at all, a gift card pays part
+	# //// of an order and keeps the rest. temp_coupon_code is read here because the code is entered on the
+	# //// cart, before the quotation is submitted.
 	coupon_data = None
-	gift_card_to_split = False
-	
+
 	# Check if we have a stored coupon in temp_coupon_code
 	if hasattr(quotation, "temp_coupon_code") and quotation.temp_coupon_code:
 		coupon_data = {
 			"coupon_code": quotation.temp_coupon_code
 		}
-		
-	# Check if this is a gift card that might need to be split
+
+	# //// Neoffice — no split any more: see spend_gift_card
+	# Check if this is a gift card
 	if hasattr(quotation, "gift_card_coupon") and quotation.gift_card_coupon and \
 	   hasattr(quotation, "gift_card_original_amount") and quotation.gift_card_original_amount:
-	
-		gift_card_amount = flt(quotation.gift_card_original_amount)
+
+		# //// Neoffice — the balance the database holds NOW, its row locked until this order is committed. This
+		# //// read the amount the cart noted when the code was applied, so a card on two carts paid both (see
+		# //// spend_gift_card).
+		gift_card_amount = ensure_gift_card_covers(quotation)
 		order_total = flt(quotation.grand_total)
-		
+
 		# Double-check that discount is applied correctly
 		if flt(quotation.discount_amount) == 0 and order_total > 0:
-			# Apply discount if not already applied
-			if gift_card_amount >= order_total:
-				# Limit discount to order total
-				quotation.apply_discount_on = "Grand Total"
-				quotation.discount_amount = order_total
-				quotation.gift_card_to_split = 1  # Mark for split
-				quotation.flags.ignore_permissions = True
-				save_as_shop(quotation)  # //// Neoffice — #277
-			else:
-				# Apply full gift card amount
-				quotation.apply_discount_on = "Grand Total"
-				quotation.discount_amount = gift_card_amount
-				quotation.gift_card_to_split = 0
-				quotation.flags.ignore_permissions = True
-				save_as_shop(quotation)  # //// Neoffice — #277
-		
-		# Get latest values after possible updates
-		gift_card_amount = flt(quotation.gift_card_original_amount)
-		used_amount = flt(quotation.discount_amount)
-		excess_amount = gift_card_amount - used_amount
-		
-		# Check if we need to split
-		if excess_amount > 0:
-			gift_card_to_split = True
-			
+			# Apply the card, up to the order total
+			quotation.apply_discount_on = "Grand Total"
+			quotation.discount_amount = min(gift_card_amount, order_total)
+			quotation.flags.ignore_permissions = True
+			save_as_shop(quotation)  # //// Neoffice — #277
+
 		# Store gift card data for processing after sales order creation
 		if not coupon_data:
 			coupon_data = {}
-			
-		coupon_data.update({
-			"is_gift_card": True,
-			"gift_card_coupon": quotation.gift_card_coupon,
-			"gift_card_amount": gift_card_amount,
-			"used_amount": used_amount,
-			"excess_amount": excess_amount
-		})
+
+		# //// Neoffice — the card's name: the amount is the order's, the balance the database's
+		coupon_data.update({"is_gift_card": True, "gift_card_coupon": quotation.gift_card_coupon})
 
 	quotation.flags.ignore_permissions = True
 	save_as_shop(quotation, submit=True)  # //// Neoffice — #277
@@ -635,176 +798,19 @@ def place_order():
 	sales_order = frappe.get_doc(mapped_order)
 	sales_order.payment_schedule = []
 	
-	# For gift cards that need to be split, process the split BEFORE creating the sales order
-	if coupon_data and coupon_data.get("is_gift_card") and coupon_data.get("gift_card_coupon"):
-		# We need to create a new gift card for the used amount before inserting the sales order
-		gift_card_amount = flt(coupon_data.get("gift_card_amount"))
-		used_amount = flt(quotation.discount_amount)
-		excess_amount = 0
-		
-		# Check if we have an excess amount that needs to be split
-		# //// Neoffice — a till card is settled here and never split (2026-09-22): its
-		# //// balance goes down on itself and it keeps the code the customer holds on a
-		# //// printed card. Done BEFORE the excess test, so a card spent in full is
-		# //// decremented too — those cards carry `maximum_use = 0`, so nothing else
-		# //// would ever stop them being spent again. See is_gift_card_coupon().
-		if used_amount > 0:
-			card = frappe.get_doc("Coupon Code", coupon_data.get("gift_card_coupon"))
-			if issued_by_the_till(card):
-				settle_till_card(card, used_amount)
-				frappe.db.commit()
-				coupon_data["settled_in_place"] = True
-
-		if gift_card_amount > used_amount and used_amount > 0 and not coupon_data.get("settled_in_place"):
-			excess_amount = gift_card_amount - used_amount
-			gift_card_to_split = True
-			
-			original_coupon = coupon_data.get("gift_card_coupon")
-			
-			# Get the original gift card
-			original_card = frappe.get_doc("Coupon Code", original_coupon)
-
-			if original_card and original_card.coupon_type == "Gift Card":
-				# Create a new gift card for the used amount
-				import string
-				
-				# //// Neoffice — secrets, not random: the code of a gift card is a token of value (#953).
-				# Generate a unique code for the new gift card
-				def generate_unique_code():
-					chars = string.ascii_uppercase + string.digits
-					code_parts = [''.join(secrets.choice(chars) for _ in range(4)) for _ in range(3)]  # //// Neoffice — secrets (#953)
-					new_code = '-'.join(code_parts)
-					
-					while frappe.db.exists("Coupon Code", {"coupon_code": new_code}):
-						code_parts = [''.join(secrets.choice(chars) for _ in range(4)) for _ in range(3)]  # //// Neoffice — secrets (#953)
-						new_code = '-'.join(code_parts)
-						
-					return new_code
-				
-				new_code = generate_unique_code()
-				
-				# Create a pricing rule for the used amount
-				pricing_rule_filters = {
-					"apply_on": "Transaction",
-					"price_or_product_discount": "Price",
-					"is_cumulative": 1,
-					"valid_upto": "2999-12-31",
-					"selling": 1,
-					"buying": 0,
-					"coupon_code_based": 1,
-					"disable": 0,
-					"margin_type": "Amount",
-					"rate_or_discount": "Discount Amount",
-					"discount_amount": used_amount
-				}
-				
-				pricing_rule = frappe.db.exists("Pricing Rule", pricing_rule_filters)
-				
-				if not pricing_rule:
-					pricing_rule = frappe.get_doc({
-						"doctype": "Pricing Rule",
-						"title": f"{_('Gift Card')} {format_currency_value(used_amount, currency=frappe.db.get_default('currency'))}",
-						**pricing_rule_filters
-					})
-					
-					pricing_rule.insert(ignore_permissions=True)
-					pricing_rule_name = pricing_rule.name
-				else:
-					pricing_rule_name = pricing_rule
-				
-				# Create the new gift card with the used amount
-				new_card_name = f"{_('Gift Card')} {format_currency_value(used_amount, currency=frappe.db.get_default('currency'))} - {original_card.customer or _('Customer')} - {new_code}"
-				
-				# Create the new gift card
-				new_gift_card = frappe.get_doc({
-					"doctype": "Coupon Code",
-					"coupon_name": new_card_name,
-					"coupon_type": "Gift Card",
-					"coupon_code": new_code,
-					"pricing_rule": pricing_rule_name,
-					"valid_from": original_card.valid_from,
-					"valid_upto": original_card.valid_upto,
-					"maximum_use": 1,
-					"used": 0,
-					"customer": original_card.customer,
-					"gift_card_amount": used_amount,
-					"coupon_code_residual": original_card.name,
-					"description": f"{_('Created from gift card')}: {original_card.name} ({_('amount used in order from quotation')} {quotation.name})"
-				})
-				
-				# If the customer has a portal user, set as owner
-				if original_card.customer:
-					try:
-						customer = frappe.get_doc("Customer", original_card.customer)
-						if hasattr(customer, "portal_users") and customer.portal_users:
-							user = customer.portal_users[0].user
-							new_gift_card.owner = user
-					except Exception as e:
-						frappe.log_error( "Gift Card Split Error", f"Error getting customer portal user: {str(e)}")
-				
-				# Save the new gift card
-				try:
-					new_gift_card.insert(ignore_permissions=True)
-					new_gift_card.save(ignore_permissions=True)
-					
-					# Update the original card with the remaining amount
-					excess_pricing_rule_filters = {
-						"apply_on": "Transaction",
-						"price_or_product_discount": "Price",
-						"is_cumulative": 1,
-						"valid_upto": "2999-12-31",
-						"selling": 1,
-						"buying": 0,
-						"coupon_code_based": 1,
-						"disable": 0,
-						"margin_type": "Amount",
-						"rate_or_discount": "Discount Amount",
-						"discount_amount": excess_amount
-					}
-					
-					excess_pricing_rule = frappe.db.exists("Pricing Rule", excess_pricing_rule_filters)
-					
-					if not excess_pricing_rule:
-						excess_pricing_rule = frappe.get_doc({
-							"doctype": "Pricing Rule",
-							"title": f"{_('Gift Card')} {excess_amount:.2f}",
-							**excess_pricing_rule_filters
-						})
-						
-						excess_pricing_rule.insert(ignore_permissions=True)
-						excess_pricing_rule_name = excess_pricing_rule.name
-					else:
-						excess_pricing_rule_name = excess_pricing_rule
-					
-					# Update the original card
-					original_card.gift_card_amount = excess_amount
-					original_card.pricing_rule = excess_pricing_rule_name
-					
-					if original_card.description:
-						original_card.description += f"\n\n{_('Amount adjusted on')} {frappe.utils.today()}: {format_currency_value(gift_card_amount, currency=frappe.db.get_default('currency'))} → {format_currency_value(excess_amount, currency=frappe.db.get_default('currency'))}. {_('Amount used')} ({format_currency_value(used_amount, currency=frappe.db.get_default('currency'))}) {_('transferred to card')} {new_code} {_('for order from quotation')} {quotation.name}."
-					else:
-						original_card.description = f"{_('Amount adjusted on')} {frappe.utils.today()}: {format_currency_value(gift_card_amount, currency=frappe.db.get_default('currency'))} → {format_currency_value(excess_amount, currency=frappe.db.get_default('currency'))}. {_('Amount used')} ({format_currency_value(used_amount, currency=frappe.db.get_default('currency'))}) {_('transferred to card')} {new_code} {_('for order from quotation')} {quotation.name}."
-					
-					original_card.save(ignore_permissions=True)
-					
-					# Remember the previous value
-					old_value = coupon_data.get("gift_card_coupon")
-					
-					# Update the coupon data to use the new gift card for the sales order
-					coupon_data["gift_card_coupon"] = new_gift_card.name
-
-				except Exception as e:
-					frappe.log_error(
-						"Gift Card Split Error",
-						f"Gift card split FAILED: "
-						f"Original card {original_coupon}, "
-						f"Used amount {used_amount}, "
-						f"Excess amount {excess_amount}. "
-						f"Error: {str(e)}"
-					)
-	
+	# //// Neoffice — the split that stood here is gone: see the end of this function
 	if coupon_data:
-		if "coupon_code" in coupon_data:
+		# //// Neoffice — a gift card pays, it is not named on the order. On `coupon_code` it brought its Pricing
+		# //// Rule back, whose amount became the order's discount (refused when it exceeds the order: a rule says
+		# //// the whole card, not what this order spends), and ERPNext's count of uses, which refuses a till card
+		# //// on its `maximum_use` of 0. The discount is the cart's; the card is settled once the order is
+		# //// submitted, below.
+		if coupon_data.get("is_gift_card"):
+			if quotation.discount_amount:
+				sales_order.apply_discount_on = "Grand Total"
+				sales_order.discount_amount = quotation.discount_amount
+
+		elif "coupon_code" in coupon_data:
 			# Set coupon code in the sales order
 			sales_order.coupon_code = coupon_data["coupon_code"]
 			
@@ -812,28 +818,7 @@ def place_order():
 			if quotation.discount_amount:
 				sales_order.apply_discount_on = "Grand Total"
 				sales_order.discount_amount = quotation.discount_amount
-				
-		elif "gift_card_coupon" in coupon_data:
-			# Set gift card coupon in the sales order
-			coupon_code = coupon_data["gift_card_coupon"]
-
-			# Check if the coupon code is valid and has a sufficient amount
-			coupon_doc = frappe.get_doc("Coupon Code", coupon_code)
-			discount_amount = quotation.discount_amount
-		
-			# Ensure the coupon code is valid and has a sufficient amount
-			if coupon_doc.gift_card_amount < discount_amount:
-				frappe.throw(_("Gift card amount ({0}) is less than required discount amount ({1})").format(
-					coupon_doc.gift_card_amount, discount_amount
-				))
-			
-			# Apply the coupon code to the sales order
-			sales_order.coupon_code = coupon_code
-			
-			# Ensure the discount is correctly applied
-			if discount_amount:
-				sales_order.apply_discount_on = "Grand Total"
-				sales_order.discount_amount = discount_amount
+		# //// Neoffice — the branch of a card named on the order went with the split
 
 	# Check if all items are gift cards
 	if quotation.items and len(quotation.items) == 1:
@@ -908,9 +893,13 @@ def place_order():
 	# //// on the SESSION user there. Before, this ran in the buyer's session.
 	save_as_shop(sales_order)
 	save_as_shop(sales_order, submit=True)
-	
-	# The gift card was already split before the sales order was inserted,
-	# so there is nothing left to do here.
+
+	# //// Neoffice — the card pays last, its row locked since the top of this function: an order that failed
+	# //// has cost it nothing (handle_direct_order swallows the failure and the POST commits what came before
+	# //// it). The split that stood before the order wrote a spendable card for the amount used, and cut the
+	# //// original from a snapshot.
+	if coupon_data and coupon_data.get("is_gift_card"):
+		spend_gift_card(coupon_data["gift_card_coupon"], sales_order.discount_amount, sales_order.name)
 
 	if hasattr(frappe.local, "cookie_manager"):
 		frappe.local.cookie_manager.delete_cookie("cart_count")
@@ -939,77 +928,9 @@ def _check_the_buyer_s_standing(sales_order):
 		check_credit_limit(sales_order.customer, sales_order.company, extra_amount=flt(sales_order.base_grand_total))
 
 
-# //// Neoffice — added block, down to request_for_quotation below. ▼▼▼
-# //// Upstream has no gift cards; ERPNext's Coupon Code is single-use and carries no
-# //// balance. A card worth more than the order must not be burnt: on submit of the
-# //// Sales Order we create a NEW card for the amount actually USED (marked used) and
-# //// leave the REMAINDER on the original card, then record both on the order
-# //// (618eedfdb8, 2025-03-24 "Feat gift card split"). Doing it after submit rather
-# //// than in place_order is deliberate — the split must not happen if the order
-# //// creation itself fails.
-# //// TO REVIEW: process_gift_card_split is DEFINED TWICE in this file — this one,
-# //// and again further down (the "Process the splitting of a gift card when its amount
-# //// exceeds the order total" one). Python keeps the LAST definition, so the one below
-# //// is what process_gift_card_on_submit actually calls and this one is unreachable.
-# //// Reconciling the two is a behaviour change and is left out of the 2026-09-04
-# //// clean-up pass; its strings and comments were put into English all the same, so
-# //// whichever survives is readable. ▲▲▲
-def process_gift_card_on_submit(doc, method=None):
-	"""
-	Hook function called when a Sales Order is submitted.
-	Checks if the Sales Order was created from a Quotation with a gift card
-	that needs to be split, and processes the split if needed.
-	"""
-	if doc.doctype != "Sales Order" or not doc.docstatus == 1:
-		return
-	
-	# Check if this Sales Order was created from a Quotation
-	if not doc.quotation:
-		return
-	
-	# Get the Quotation
-	try:
-		quotation = frappe.get_doc("Quotation", doc.quotation)
-		
-		# Check if this Quotation has a gift card that needs to be split
-		if hasattr(quotation, "gift_card_coupon") and quotation.gift_card_coupon and \
-		   hasattr(quotation, "gift_card_original_amount") and quotation.gift_card_original_amount:
-			
-			# Check if we need to split the gift card
-			gift_card_amount = flt(quotation.gift_card_original_amount)
-			used_amount = flt(quotation.discount_amount)
-			
-			if gift_card_amount > used_amount and used_amount > 0:
-				excess_amount = gift_card_amount - used_amount
-				
-				# Prepare gift card data for processing
-				# //// Neoffice — the shape `process_gift_card_split` actually reads (2026-09-22).
-				# //// The function was defined TWICE in this file: the second definition wins in
-				# //// Python, and it refuses anything without `is_gift_card` and `gift_card_coupon`
-				# //// — so the split answered "Invalid gift card data" and did nothing, and a card
-				# //// worth more than the order lost its remainder. The dead first definition is
-				# //// gone; a test now refuses a name defined twice in a module.
-				gift_card_data = {
-					"is_gift_card": 1,
-					"gift_card_coupon": quotation.gift_card_coupon,
-					"coupon_code": quotation.gift_card_coupon,
-					"gift_card_amount": gift_card_amount,
-					"used_amount": used_amount,
-					"excess_amount": excess_amount
-				}
-				
-				# Process the gift card split
-				process_gift_card_split(doc, gift_card_data)
-	except Exception as e:
-		frappe.log_error(f"Gift Card Processing Error: {str(e)}", _("Error processing gift card for Sales Order {0}").format(doc.name))
-
-# //// Neoffice — a second `process_gift_card_split`, 187 lines, used to sit here and was
-# //// DEAD: Python keeps the last definition of a name, and the live one is further down
-# //// this file. The two read different data shapes, so the split silently did nothing
-# //// (2026-09-22). Removed rather than merged; `test_no_shadowed_definitions` now fails
-# //// the build on any module that binds a name twice.
-
-
+# //// Neoffice — process_gift_card_on_submit and process_gift_card_split are gone: no hooks.py ever named
+# //// them, and what they meant to do (a new card, the original cut from a snapshot) is spend_gift_card's
+# //// job, once (#2296).
 
 
 @frappe.whitelist()
@@ -1294,13 +1215,69 @@ def validate_cart_line(
 	return limit
 
 
-# //// Neoffice — multi-warehouse: `warehouse` selects the stock source of the
-# //// line. None keeps the historical behaviour (single website_warehouse, or
-# //// the auto-picked source when the feature is on). Cart lines merge on
-# //// (item_code, warehouse) so the same item can sit in the cart once per
-# //// source, each line with its own delivery estimate.
+# //// Neoffice — added (#2296). What a gift card line may cost: an amount of the shop's list, or any
+# //// positive one where it offers a custom amount. Those two settings were read by the product page alone.
+def _offered_gift_card_amount(amount):
+	amount = flt(amount, 2)
+	offered = {flt(value, 2) for value in frappe.get_all("Gift Card Amount", pluck="amount")}
+	custom = cint(frappe.db.get_single_value("Webshop Settings", "enable_custom_amount"))
+	if amount <= 0 or not (custom or amount in offered):
+		frappe.throw(_("This gift card amount is not available."))
+	return amount
+
+
+# //// Neoffice — added (#2296). What a visitor may put in a cart by the shop's own buttons: what the shop
+# //// sells, the model of a variant included, or what the cart already holds. Upstream's Item read refused
+# //// the rest by accident; now that the shop prices a visitor's cart with its own rights (update_cart),
+# //// this keeps the price of an item that is not on sale out of reach. A Python caller decides for itself:
+# //// the booking module sells articles whose Website Item is not published, on purpose
+# //// (neoffice_theme.booking.extras.ensure_sellable).
+CART_BUTTONS = (
+	"webshop.webshop.shopping_cart.cart.update_cart",
+	"webshop.webshop.utils.cart_helpers.update_cart",
+)
+
+
+def _refuse_unpublished_item(item_code, qty):
+	if frappe.session.user != "Guest" or qty <= 0 or not any(called_over_http(door) for door in CART_BUTTONS):
+		return
+	from webshop.webshop.quick_order.api import sellable_website_item
+
+	template = frappe.db.get_value("Item", item_code, "variant_of")
+	if sellable_website_item(item_code) or (template and sellable_website_item(template)):
+		return
+	if not _existing_cart_qty(item_code):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+
+def _gift_card_data_at(data, amount):
+	"""The line's data at the checked amount: set_price_list_and_rate reads its rate back at every save."""
+	data = dict(data) if isinstance(data, dict) else {}
+	if not isinstance(data.get("code"), str):
+		data.pop("code", None)
+	data.update(rate=amount, price_list_rate=amount)
+	return data
+
+
+# //// Neoffice — multi-warehouse: `warehouse` selects the stock source of the line. None keeps the
+# //// historical behaviour (single website_warehouse, or the auto-picked source when the feature is on).
+# //// Cart lines merge on (item_code, warehouse) so the same item can sit in the cart once per source, each
+# //// line with its own delivery estimate.
+# //// Neoffice — limited, per address: every call of a visitor without a cookie stored a new Quotation. A
+# //// person pressing + stays far below it. `item_code` is typed: a list reached is_gift_card_item as a
+# //// filter (#2296).
 @frappe.whitelist(allow_guest=True)
-def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty=False, price_list_rate=None, gift_card_data=None, warehouse=None):
+@rate_limit(limit=120, seconds=60)
+def update_cart(
+	item_code: str,
+	qty,
+	additional_notes=None,
+	with_items=False,
+	add_qty=False,
+	price_list_rate=None,
+	gift_card_data=None,
+	warehouse=None,
+):
 	# //// Neoffice multi-site — on a site reserved for business accounts, filling a
 	# //// cart requires an account. The guard lives here rather than in the template:
 	# //// hiding a button is not a permission, and this endpoint is callable directly.
@@ -1330,6 +1307,8 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 	except (TypeError, ValueError):
 		frappe.throw(_("Quantity must be a valid number"))
 
+	_refuse_unpublished_item(item_code, qty)  # //// Neoffice — see the function
+
 	if isinstance(add_qty, str):
 		add_qty = add_qty.lower() == 'true'
 	
@@ -1347,6 +1326,16 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 	# Only check if price_list_rate is explicitly passed and not None
 	if price_list_rate and not is_gift_card:
 		frappe.throw(_("Price can only be modified for gift cards"))
+
+	# //// Neoffice — the amount of a gift card is one the shop offers, checked here. The request's
+	# //// `gift_card_data` carried a rate of its own, which set_price_list_and_rate put back on the line: any
+	# //// amount, a negative one included, which lowered the cart's total. Only what this check allowed goes
+	# //// on the line (#2296).
+	if is_gift_card and price_list_rate:
+		price_list_rate = _offered_gift_card_amount(price_list_rate)
+		gift_card_data = _gift_card_data_at(gift_card_data, price_list_rate)
+	else:
+		gift_card_data = None
 
 	# //// Neoffice — multi-warehouse: resolve the target stock source of this
 	# //// cart line before validating. Explicit warehouse wins; otherwise an
@@ -1524,7 +1513,12 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 		if result and result.get("success"):
 			quotation = frappe.get_doc("Quotation", result.get("quotation_id"))
 
-			apply_cart_settings(quotation=quotation)
+			# //// Neoffice — with the shop's rights, as the signed-in branch below (#277): pricing asks the session
+			# //// user for Item read, which a visitor does not have. Every "Add to cart" of a visitor ended in a 403
+			# //// and an empty cart, by the shop's button and through a booking, since erpnext took upstream's check
+			# //// (v15.123.0, merged 2026-10-20). Nothing widens what a visitor reads: see _refuse_unpublished_item.
+			with shop_rights():
+				apply_cart_settings(quotation=quotation)
 			
 			if cint(with_items):
 				context = get_cart_quotation(quotation)
@@ -1539,7 +1533,10 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
 						"templates/includes/cart/cart_payment_summary.html", context
 					),
 				}
-			return get_cart_quotation(quotation)
+			# //// Neoffice — this answer goes to the browser: the public settings (_cart_settings)
+			context = get_cart_quotation(quotation)
+			context["cart_settings"] = public_settings(context["cart_settings"])
+			return context
 		return None
 
 	quotation = _get_cart_quotation()
@@ -1830,9 +1827,20 @@ def item_inquiry_token():
 	return issue_token()
 
 
-@frappe.whitelist(allow_guest=True)
-# //// Neoffice — `item`, `token` and `website` added, `subject` and `message` optional (the dialog no longer sends a subject).
-def create_lead_for_item_inquiry(lead, subject="", message="", item=None, token="", website=""):
+# //// Neoffice — POST and limited: the dialog posts, a question writes a Lead and a Comment, and nothing
+# //// held a robot back where the theme's message door is absent. Typed: `item` reaches a filter (#2296).
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=10, seconds=60)
+# //// Neoffice — `item`, `token` and `website` added, `subject` and `message` optional (the dialog no
+# //// longer sends a subject).
+def create_lead_for_item_inquiry(  # permission-check: ok a visitor's question, limited, reads nothing back
+	lead: str | dict,
+	subject: str = "",
+	message: str = "",
+	item: str | None = None,
+	token: str = "",
+	website: str = "",
+):
 	lead = frappe.parse_json(lead)
 	# //// Neoffice — the shop can only answer someone it can reach: an e-mail (checked) or a phone, one of the two
 	# //// at least, refused here whatever the page sent. The dialog's required marks were the only guard.
@@ -1908,7 +1916,10 @@ def create_lead_for_item_inquiry(lead, subject="", message="", item=None, token=
 		),
 	)
 
-	return lead_doc
+	# //// Neoffice — never the document: after a DuplicateEntryError it is an existing Lead, and whoever knew
+	# //// an address read the whole record, phone, notes and revenue. A new Lead and a known one answer alike
+	# //// (#2296).
+	return frappe._dict(name=lead_doc.name, email_id=lead["email_id"])
 
 
 @frappe.whitelist()
@@ -1918,8 +1929,26 @@ def get_terms_and_conditions(terms_name):
 # //// Neoffice — upstream: @frappe.whitelist(). Guests reach this while checking out
 # //// on a shop with enable_guest_cart. The body below re-reads the quotation from the
 # //// session; the caller only names one of its own addresses.
+# //// Neoffice — added (#2296). An address goes on a cart when it is linked to the cart's party, the
+# //// signed-in customer or the shop's guest customer: the list the cart offers (get_address_docs), and
+# //// what ERPNext demands of a saved quotation with a party. The Address was read under ignore_permissions
+# //// and printed back, any Address by its name, to a visitor whose cart has no party.
+def _refuse_foreign_address(quotation, address_name):
+	if not quotation.party_name or not frappe.db.exists(
+		"Dynamic Link",
+		{
+			"parenttype": "Address",
+			"parent": address_name,
+			"link_doctype": quotation.quotation_to or "Customer",
+			"link_name": quotation.party_name,
+		},
+	):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+
+# //// Neoffice — typed: a JSON body made a filter of `address_name` (#2296).
 @frappe.whitelist(allow_guest=True)
-def update_cart_address(address_type, address_name):
+def update_cart_address(address_type: str, address_name: str):
 	# //// Neoffice — the whole body is rewritten (upstream: read the address, set it on
 	# //// the quotation, save, render). ▼▼▼ What it adds:
 	# ////   · a guest path — a guest has no read permission on Address, so the display is
@@ -1941,6 +1970,7 @@ def update_cart_address(address_type, address_name):
 		if not quotation:
 			frappe.throw(_("Cart not found"))
 
+		_refuse_foreign_address(quotation, address_name)  # //// Neoffice — see the function
 		address_doc = frappe.get_doc("Address", address_name).as_dict()
 		address_display = get_address_display(address_doc)
 		new_country = address_doc.get("country")
@@ -2043,6 +2073,9 @@ def update_cart_address(address_type, address_name):
 				"templates/includes/cart/address_card.html", context
 			),
 		}
+	# //// Neoffice — a refusal stays a refusal, it is no error to log and retry
+	except frappe.PermissionError:
+		raise
 	except Exception as e:
 		frappe.log_error("Cart Address Update Error", f"Error updating cart address: {str(e)}")
 		frappe.throw(_("Error updating address. Please try again or contact support."))
@@ -2424,9 +2457,10 @@ def set_price_list_and_rate(quotation, cart_settings):
 						frappe.log_error(f"Error parsing JSON:", e)
 						continue
 				# Restore prices from gift_card_data
+				# //// Neoffice — never below zero: a line saved before update_cart checked its amount may hold anything
 				if isinstance(item.gift_card_data, dict):
-					item.price_list_rate = item.gift_card_data.get("price_list_rate")
-					item.rate = item.gift_card_data.get("rate")
+					item.price_list_rate = max(flt(item.gift_card_data.get("price_list_rate")), 0)
+					item.rate = max(flt(item.gift_card_data.get("rate")), 0)
 			continue
 
 		item.price_list_rate = item.discount_percentage = item.rate = item.amount = None
@@ -3010,7 +3044,14 @@ def get_address_docs(
 
 
 @frappe.whitelist()
-def apply_shipping_rule(shipping_rule):
+def apply_shipping_rule(shipping_rule: str):  # permission-check: ok the session's own cart, a rule on offer
+	# //// Neoffice — only a rule the shop offers (get_shipping_rules, get_shipping_methods): ERPNext's
+	# //// ShippingRule.apply never reads `disabled`, so a rule withdrawn by the shop still applied by its name
+	# //// (#2296).
+	offered = {"name": shipping_rule, "disabled": 0, "shipping_rule_type": "Selling"}
+	if not frappe.db.exists("Shipping Rule", offered):
+		frappe.throw(_("This shipping method is not available."))
+
 	quotation = _get_cart_quotation()
 	quotation.shipping_rule = shipping_rule
 
@@ -3021,7 +3062,10 @@ def apply_shipping_rule(shipping_rule):
 	quotation.flags.ignore_permissions = True
 	save_as_shop(quotation)
 
-	return get_cart_quotation(quotation)
+	# //// Neoffice — this answer goes to the browser: the public settings (_cart_settings)
+	context = get_cart_quotation(quotation)
+	context["cart_settings"] = public_settings(context["cart_settings"])
+	return context
 
 # //// Neoffice — added helper (6d4eca593f, 2025-12-12). Upstream never re-checks a
 # //// rule against the address: the buyer picked "Swiss Post", then changed the
@@ -3261,8 +3305,11 @@ def get_customer_info():
 # //// below returns customer_name too. So the field is written, the address titles that
 # //// display it are refreshed, the cart quotation's own fetched copy is refreshed — and
 # //// no record is renamed. ▲▲▲
-@frappe.whitelist()
-def update_customer_info(customer_name=None, customer_type=None):
+# //// Neoffice — POST only, and typed: this commits on its own, so a link in a page or a mail renamed the
+# //// customer.
+@frappe.whitelist(methods=["POST"])
+# permission-check: ok writes the party of the session's own cart
+def update_customer_info(customer_name: str | None = None, customer_type: str | None = None):
 	"""Update customer information and related addresses"""
 	try:
 		quotation = get_cart_quotation().get('doc')
@@ -3469,8 +3516,13 @@ def update_contact_info(first_name, last_name, email=None, phone=None, company_n
 			"message": _("Could not update the contact details")
 		}
 
+# //// Neoffice — typed: a JSON body made `applied_code` a filter, so a card or a coupon was spent, or its
+# //// code walked, without knowing it. Limited as check_gift_cards is: the answers tell a code that exists
+# //// from one that does not.
 @frappe.whitelist(allow_guest=True)
-def apply_coupon_code(applied_code, applied_referral_sales_partner):
+@rate_limit(limit=60, seconds=60)
+# permission-check: ok the session's own cart; the exact code is the credential
+def apply_coupon_code(applied_code: str, applied_referral_sales_partner: str | None = None):
     quotation = True
 
     if not applied_code:
@@ -3565,7 +3617,10 @@ def apply_coupon_code(applied_code, applied_referral_sales_partner):
                 "comment_type": "Info",
                 "reference_doctype": "Quotation",
                 "reference_name": quotation.name,
-                "content": _("Gift card amount ({0}) exceeds order total ({1}). The excess amount ({2}) will be converted to a new gift card upon order submission.").format(
+                # //// Neoffice — the rest stays on the card: see spend_gift_card
+                "content": _(
+                    "Gift card amount ({0}) exceeds order total ({1}). The rest ({2}) stays on it."
+                ).format(
                     frappe.format(gift_card_amount, dict(fieldtype="Currency")),
                     frappe.format(order_total, dict(fieldtype="Currency")),
                     frappe.format(gift_card_amount - order_total, dict(fieldtype="Currency"))
@@ -3826,8 +3881,10 @@ def apply_loyalty_points(points):
 # //// forces a full recalculation — symmetric with apply_loyalty_points, which is the
 # //// part that was missing when the totals kept the discount after the points were
 # //// removed (b370403e2d, 2026-05-20).
-@frappe.whitelist(allow_guest=True)
-def remove_loyalty_points():
+# //// Neoffice — POST only: this deletes the entry that holds the points, and commits on its own, so a link
+# //// in a page or a mail gave the points back while the cart kept its discount.
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def remove_loyalty_points():  # permission-check: ok the session's own cart, no argument
 	quotation = _get_cart_quotation()
 	
 	# //// Neoffice — the Loyalty Point Entry written when the points were spent has to be
@@ -3942,7 +3999,8 @@ def remove_quotation_loyalty_points(doc, method=None):
 # //// code: 60 a minute per address is far above that and far below a search.
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=60, seconds=60)
-def check_gift_cards(code):
+# //// Neoffice — typed: a JSON body made `code` a filter on every code (#2296).
+def check_gift_cards(code: str):  # permission-check: ok says whether one exact code exists, limited
 	"""Check if gift cards exist"""
 	
 	coupon_code = frappe.db.exists("Coupon Code", {"coupon_code": code})
@@ -3950,6 +4008,9 @@ def check_gift_cards(code):
 
 def create_gift_cards_from_invoice(doc, method=None):
 	"""Create gift cards for gift card items in a paid invoice"""
+	# //// Neoffice — this hook runs at the submit of every invoice, a paid or an unpaid one: see the function
+	# //// (#2296)
+	spend_gift_card_of_invoice(doc)
 	try:
 		sales_invoice = doc
 		if not sales_invoice.docstatus == 1 or sales_invoice.outstanding_amount > 0 or sales_invoice.is_pos == 1:
@@ -4132,211 +4193,6 @@ def check_gift_cards_from_payment(doc, method=None):
 	except Exception as e:
 		frappe.log_error("Gift Card - Payment Check Error", f"Error checking payment for gift cards: {str(e)}")
 		raise
-
-
-def process_gift_card_split(sales_order, coupon_data):
-	"""
-	Process the splitting of a gift card when its amount exceeds the order total.
-	
-	Args:
-		sales_order: Sales Order document
-		coupon_data: Dictionary containing gift card information
-		
-	Returns:
-		dict: Status and information about the split gift card
-	"""
-	try:
-		# Check if it's a gift card that needs splitting
-		if not coupon_data or not coupon_data.get("is_gift_card") or not coupon_data.get("gift_card_coupon"):
-			return {"status": "error", "message": "Invalid gift card data"}
-			
-		gift_card_coupon = coupon_data.get("gift_card_coupon")
-		used_amount = flt(coupon_data.get("used_amount"))
-		excess_amount = flt(coupon_data.get("excess_amount"))
-		
-		# Verify amounts are valid
-		if used_amount <= 0 or excess_amount <= 0:
-			return {"status": "error", "message": "Invalid gift card amounts"}
-			
-		# Get the original gift card
-		original_card = frappe.get_doc("Coupon Code", gift_card_coupon)
-
-		# //// Neoffice — a card issued by the till is settled the way the till settles
-		# //// it (2026-09-22): its balance goes down ON ITSELF and it keeps its code.
-		# //// Splitting it would hand the customer a code their printed card does not
-		# //// bear, and leave the one in their wallet claiming a balance it no longer
-		# //// has. Only the shop's own cards are split.
-		if issued_by_the_till(original_card):
-			remaining = settle_till_card(original_card, used_amount)
-			frappe.db.commit()
-			return {
-				"status": "success",
-				"settled_in_place": True,
-				"coupon": original_card.name,
-				"remaining": remaining,
-			}
-		if not original_card or original_card.coupon_type != "Gift Card":
-			return {"status": "error", "message": "Gift card not found or invalid type"}
-			
-		# Generate a unique code for the new gift card
-		# //// Neoffice — `import random` removed: the segments below come from `secrets` (#953).
-		import string
-		
-		def generate_unique_gift_card_code():
-			"""Generate a unique code for a gift card"""
-			def generate_segment():
-				"""Generate a segment of 4 alphanumeric characters"""
-				chars = string.ascii_uppercase + string.digits
-				# //// Neoffice — secrets, not random: the code of a gift card is a token of value (#953).
-				return ''.join(secrets.choice(chars) for _ in range(4))
-			
-			# Generate initial code
-			code = f"{generate_segment()}-{generate_segment()}-{generate_segment()}"
-			
-			# Check if the code already exists
-			while frappe.db.exists("Coupon Code", {"coupon_code": code}):
-				code = f"{generate_segment()}-{generate_segment()}-{generate_segment()}"
-			
-			return code
-			
-		new_code = generate_unique_gift_card_code()
-		
-		# Get validity parameters from the original card
-		valid_from = original_card.valid_from
-		valid_upto = original_card.valid_upto
-		
-		# Create pricing rule for the new excess amount
-		pricing_rule_filters = {
-			"apply_on": "Transaction",
-			"price_or_product_discount": "Price",
-			"is_cumulative": 1,
-			"valid_upto": "2999-12-31",
-			"selling": 1,
-			"buying": 0,
-			"coupon_code_based": 1,
-			"disable": 0,
-			"margin_type": "Amount",
-			"rate_or_discount": "Discount Amount",
-			"discount_amount": excess_amount
-		}
-		
-		pricing_rule = frappe.db.exists("Pricing Rule", pricing_rule_filters)
-		
-		if not pricing_rule:
-			try:
-				pricing_rule = frappe.get_doc({
-					"doctype": "Pricing Rule",
-					"title": f"{_('Gift Card')} {excess_amount:.2f}",
-					**pricing_rule_filters
-				})
-				
-				pricing_rule.insert(ignore_permissions=True)
-				pricing_rule_name = pricing_rule.name
-			except Exception as e:
-				frappe.log_error("Gift Card - Error Creating Pricing Rule", f"Error creating Pricing Rule: {str(e)}")
-				return {"status": "error", "message": "Error creating pricing rule"}
-		else:
-			pricing_rule_name = pricing_rule
-		
-		# Create the new gift card with the excess amount
-		new_card_name = _("Gift Card {0} - {1} - {2}").format(
-			format_currency_value(excess_amount, currency=sales_order.currency),
-			original_card.customer,
-			new_code
-		)
-		
-		# Get the customer info
-		customer = frappe.get_doc("Customer", original_card.customer)
-		user_email = None
-		if hasattr(customer, "portal_users") and customer.portal_users:
-			user = customer.portal_users[0].user
-			user_email = user
-		
-		# Create the new gift card
-		new_gift_card = frappe.get_doc({
-			"doctype": "Coupon Code",
-			"coupon_name": new_card_name,
-			"coupon_type": "Gift Card",
-			"coupon_code": new_code,
-			"pricing_rule": pricing_rule_name,
-			"valid_from": valid_from,
-			"valid_upto": valid_upto,
-			"maximum_use": 9999,
-			"used": 0,
-			"customer": original_card.customer,
-			"gift_card_amount": excess_amount,
-			"description": _("Created from gift card: {0} (remaining amount after order {1})").format(
-				original_card.name, sales_order.name
-			)
-		})
-		
-		if user_email:
-			new_gift_card.owner = user_email
-		
-		new_gift_card.insert(ignore_permissions=True)
-		new_gift_card.save(ignore_permissions=True)
-		
-		# Update the original gift card
-		original_card.gift_card_amount = used_amount  # Update to the used amount
-		original_card.used = 1  # Mark as used
-		
-		# Add a note to the description
-		original_amount = used_amount + excess_amount
-		if original_card.description:
-			# //// Neoffice — frappe.utils.today: `today` is imported nowhere in this function, and the split stopped here
-			# //// (NameError) after the new card was made and before the original one was cut down (2026-11-04)
-			original_card.description += f"\n\n{_('Amount adjusted on')} {frappe.utils.today()} for order {sales_order.name}: {format_currency_value(original_amount, currency=sales_order.currency)} → {format_currency_value(used_amount, currency=sales_order.currency)}. {_('Remaining amount')} ({format_currency_value(excess_amount, currency=sales_order.currency)}) {_('transferred to card')} {new_code}."
-		else:
-			original_card.description = f"{_('Amount adjusted on')} {frappe.utils.today()} for order {sales_order.name}: {format_currency_value(original_amount, currency=sales_order.currency)} → {format_currency_value(used_amount, currency=sales_order.currency)}. {_('Remaining amount')} ({format_currency_value(excess_amount, currency=sales_order.currency)}) {_('transferred to card')} {new_code}."
-		
-		original_card.save(ignore_permissions=True)
-		
-		# Send notification if configured
-		webshop_settings = frappe.get_cached_doc("Webshop Settings")
-		if webshop_settings.gift_card_notification and user_email:
-			try:
-				notification = frappe.get_doc("Notification", webshop_settings.gift_card_notification)
-				if notification:
-					# Send notification
-					from frappe.core.doctype.communication.email import _make
-					_make(
-						doctype=new_gift_card.doctype,
-						name=new_gift_card.name,
-						subject=notification.subject,
-						content=frappe.render_template(notification.message, {"doc": new_gift_card}),
-						recipients=[user_email],
-						send_email=True,
-						communication_medium="Email",
-						sender=notification.sender_email,
-						sender_full_name=notification.sender
-					)
-			except Exception as e:
-				frappe.log_error("Gift Card - Notification Error", f"Error sending notification: {str(e)}")
-		
-		# Ensure the changes are saved
-		frappe.db.commit()
-		
-		# Display a message to the user
-		frappe.msgprint(
-			_("A new gift card has been created with the remaining amount of {0}. Card code: {1}").format(
-				format_currency_value(excess_amount, currency=sales_order.currency),
-				new_code
-			),
-			title=_("Gift Card Split")
-		)
-		
-		return {
-			"status": "success",
-			"message": _("Gift card split successfully"),
-			"new_gift_card": new_code,
-			"original_gift_card": original_card.name,
-			"used_amount": used_amount,
-			"excess_amount": excess_amount
-		}
-		
-	except Exception as e:
-		frappe.log_error("Gift Card - Error Splitting", f"Error splitting gift card: {str(e)}")
-		return {"status": "error", "message": f"Error: {str(e)}"}
 
 
 # //// Neoffice — added helper (a9615e2771, 2026-08-03 "retirer un morceau d'un sejour

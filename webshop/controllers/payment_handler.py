@@ -4,7 +4,15 @@ from frappe import _
 from frappe.utils import cstr, flt, strip_html
 import json
 # //// Neoffice — get_party: whose cart it is (_is_the_session_s_quotation below).
-from webshop.webshop.shopping_cart.cart import place_order, _get_cart_quotation, is_gift_card_item, get_party
+# //// Neoffice — ensure_gift_card_covers and issued_by_the_till: see create_payment_request, _coupon_of_the_order.
+from webshop.webshop.shopping_cart.cart import (
+    _get_cart_quotation,
+    ensure_gift_card_covers,
+    get_party,
+    is_gift_card_item,
+    issued_by_the_till,
+    place_order,
+)
 # //// Neoffice — the placeholder order a cart's payment request is raised on (pending_order.py), and what proves
 # //// a request was paid (payment_proof.py, maintenance#1807).
 from webshop.webshop.shopping_cart import payment_proof, pending_order
@@ -84,6 +92,15 @@ def enabled_mode_of_payment(account, company):
         (account, company),
     )
     return rows[0][0] if rows else None
+
+
+# //// Neoffice — added helper: see handle_payment_success.
+def _coupon_of_the_order(quotation):
+    """The coupon a paid order carries: a card of the shop, never one of the till."""
+    code = quotation.get("gift_card_coupon")
+    if not code or not frappe.db.exists("Coupon Code", code):
+        return None
+    return None if issued_by_the_till(frappe.get_doc("Coupon Code", code)) else code
 
 
 class PaymentHandler:
@@ -216,6 +233,11 @@ class PaymentHandler:
                     frappe.throw(_("Cart is empty"))
             else:
                 quotation = frappe.get_doc("Quotation", quotation_id)
+
+            # //// Neoffice — a card the till spent meanwhile is refused here, before the buyer pays. After
+            # //// the capture, a strict order would refuse with the money already taken.
+            if quotation.get("gift_card_coupon"):
+                ensure_gift_card_covers(quotation)
             
             # Get webshop parameters
             settings = frappe.get_cached_doc("Webshop Settings")
@@ -585,10 +607,11 @@ class PaymentHandler:
                     sales_order.discount_amount = quotation.discount_amount
 
                 # Preserve gift card coupon code if quotation has one
-                if hasattr(quotation, 'gift_card_coupon') and quotation.gift_card_coupon:
-                    coupon_code = quotation.gift_card_coupon
-                    if frappe.db.exists("Coupon Code", coupon_code):
-                        sales_order.coupon_code = coupon_code
+                # //// Neoffice — never a card of the till: ERPNext counts the order's coupon as used, and
+                # //// the order failed after the capture with "Allowed quantity is exhausted".
+                coupon_code = _coupon_of_the_order(quotation)
+                if coupon_code:
+                    sales_order.coupon_code = coupon_code
 
                 sales_order.submit()
                 sales_order_name = sales_order.name

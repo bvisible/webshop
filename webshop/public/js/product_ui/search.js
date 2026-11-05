@@ -282,6 +282,10 @@ webshop.ProductSearch = class {
 
 		let html = "";
 
+		//// Neoffice — a name, an address and a brand are what an editor typed: printed raw, a quote or a tag
+		//// in them ran in the visitor's session. Escaped where they are printed, as views.js does.
+		const esc = frappe.utils.escape_html;
+
 		//// Neoffice — the price, its struck-through list price and the discount, rendered
 		//// from what fetchProductPrices added.
 		product_results.forEach((res) => {
@@ -315,8 +319,8 @@ webshop.ProductSearch = class {
 				<div class="dropdown-item" style="display: flex;">
 					<img class="item-thumb col-2" src=${encodeURI(thumbnail)} />
 					<div class="col-9" style="white-space: normal;">
-						<a class="product-name-result" href="/${res.route}">${res.web_item_name}</a><br>
-						<span class="brand-line">${res.brand ? "by " + res.brand : ""}</span>
+						<a class="product-name-result" href="/${esc(res.route) /* //// Neoffice — esc: see above */}">${esc(res.web_item_name)}</a><br>
+						<span class="brand-line">${res.brand ? "by " + esc(res.brand) : ""}</span>
 						${priceHtml}
 					</div>
 				</div>
@@ -357,11 +361,14 @@ webshop.ProductSearch = class {
 			</div>
 		`;
 
+		//// Neoffice — see populateResults: what an editor typed is escaped where it is printed.
+		const esc = frappe.utils.escape_html;
+
 		category_results.forEach((category) => {
 			html += `
-				<a href="/${category.route}" class="btn btn-sm category-chip mr-2 mb-2"
+				<a href="/${esc(category.route) /* //// Neoffice — esc: see above */}" class="btn btn-sm category-chip mr-2 mb-2"
 					style="font-size: 13px" role="button">
-				${ category.name }
+				${ esc(category.name) }
 				</button>
 			`;
 		});

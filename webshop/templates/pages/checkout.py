@@ -1451,8 +1451,29 @@ def _intent_binding(kind: str):
 	return None
 
 
-# //// Neoffice — reviewed for guests, see get_payment_methods: a document named in `context` must be
-# //// the caller's (_refuse_foreign_reference). A form-encoded call's context is a JSON string, which
+# //// Neoffice — what the page's script reads of a gateway's settings, not the settings: its templates read
+# //// nothing of `config`, and the document went out whole, staff e-mails and merchant identifiers
+# //// included, to a visitor. The fields a gateway names are those it puts on the page anyway (#2296).
+def _settings_for_the_page(gateway_info, payment_gateway_account):
+	wanted = set((gateway_info["config"] or {}).get("required_settings") or [])
+	row = frappe.get_all(
+		"Webshop Payment Method",
+		filters={"payment_gateway_account": payment_gateway_account},
+		fields=["*"],
+		limit=1,
+	)
+	client_configuration = row[0].get("client_configuration") if row else None
+	if client_configuration:
+		try:
+			wanted |= set(frappe.parse_json(client_configuration).get("required_fields") or [])
+		except (ValueError, AttributeError):
+			pass  # read the same way by the page, which ignores a configuration it cannot parse
+	settings = gateway_info["settings"] or {}
+	return {field: settings.get(field) for field in wanted}
+
+
+# //// Neoffice — reviewed for guests, see get_payment_methods: a document named in `context` must be the
+# //// caller's (_refuse_foreign_reference). A form-encoded call's context is a JSON string, which
 # //// the body below ignores; a JSON body delivers it as a dict. Arguments typed, as the rule asks.
 @frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
 def get_payment_template(payment_gateway_account: str, context: dict | str | None = None):
@@ -1554,7 +1575,12 @@ def get_payment_template(payment_gateway_account: str, context: dict | str | Non
 					template_path = '/'.join(path_parts)
 				
 				html = frappe.get_template(template_path).render(context)
-				return {"error": False, "html": html, "config": gateway_info["settings"]}
+				# //// Neoffice — see _settings_for_the_page
+				return {
+					"error": False,
+					"html": html,
+					"config": _settings_for_the_page(gateway_info, payment_gateway_account),
+				}
 		except Exception as e:
 			# //// Neoffice — the message is the second argument: a long exception text in the title raised
 			# //// CharacterLengthExceededError and skipped the default template this branch falls back to.
@@ -1564,8 +1590,13 @@ def get_payment_template(payment_gateway_account: str, context: dict | str | Non
 		# Default template rendering
 		template_name = f"{gateway_info['type']}.html"
 		html = frappe.get_template(f"templates/payments/{template_name}").render(context)
-		
-		return {"error": False, "html": html, "config": gateway_info["settings"]}
+
+		# //// Neoffice — see _settings_for_the_page
+		return {
+			"error": False,
+			"html": html,
+			"config": _settings_for_the_page(gateway_info, payment_gateway_account),
+		}
 
 	except Exception as e:
 		frappe.log_error(f"General error", e)
@@ -1640,8 +1671,10 @@ def update_payment_method(payment_method):
 _ADDRESS_FIELDS_NEVER_SET = {"links", "is_your_company_address", "disabled", "name", "owner", "docstatus", "doctype"}
 
 
+# //// Neoffice — typed: a JSON body made `docname` a filter, which passed the check below on an address of
+# //// the caller and loaded the address of another party for the save (#2296).
 @frappe.whitelist()
-def update_address_info(doctype, docname, fieldname_dict):
+def update_address_info(doctype: str, docname: str, fieldname_dict: dict | str):
     """Update one of the signed-in customer's own addresses from the checkout."""
     if doctype != "Address" or frappe.session.user == "Guest":
         frappe.throw(_("Not permitted"), frappe.PermissionError)
@@ -1656,6 +1689,13 @@ def update_address_info(doctype, docname, fieldname_dict):
     )
     if not own and not frappe.has_permission("Address", "write", docname):
         frappe.throw(_("Not permitted"), frappe.PermissionError)
+    # //// Neoffice — the rule of the address book (webshop.api): an address another party shares is not
+    # //// rewritten from the shop, the save below passes every permission and it would change for that
+    # //// party too (#2296).
+    if own:
+        from webshop.webshop.api import _refuse_shared_address
+
+        _refuse_shared_address(frappe.get_doc("Address", docname), party)
     meta = frappe.get_meta("Address")
     writable = {
         df.fieldname

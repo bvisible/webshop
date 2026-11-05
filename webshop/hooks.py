@@ -293,6 +293,8 @@ doc_events = {
 			"webshop.webshop.utils.used_items.on_sales_order_change",
 		],
 		"on_cancel": [
+			# //// Neoffice — a card is now debited in place, for what an order spent: cancelling gives it back.
+			"webshop.webshop.shopping_cart.cart.give_gift_card_back",
 			"webshop.webshop.utils.follow_ups.on_cancel",
 			# //// Neoffice — second-hand: submitting and cancelling an order recompute
 			# //// Website Item.sold of the used units it holds (utils/used_items.py).

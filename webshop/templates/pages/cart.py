@@ -14,6 +14,10 @@ from webshop.webshop.shopping_cart.cart import get_cart_quotation
 # //// the same URL — a cart and a coupon belong to a customer. The explicit commit is
 # //// load-bearing: Frappe never commits a GET, and the redirect ends the request, so
 # //// without it the cart change would be rolled back. ▲▲▲
+# //// Neoffice — a GET no longer writes what the link says (#2296): any page could send a signed-in
+# //// customer here, and items, quantities (a negative one takes lines out) and coupons went on their cart.
+# //// The reorder link opens the product, whose button adds it; a coupon is applied when it is this
+# //// customer's own, as a reminder's is.
 from frappe import _
 
 
@@ -25,28 +29,41 @@ def handle_email_links():
     """
     from urllib.parse import quote, urlencode
 
-    from frappe.utils import cint
+    # //// Neoffice — update_cart is no longer called here: see the header of this file
+    from webshop.webshop.shopping_cart.cart import apply_coupon_code, get_party
 
-    from webshop.webshop.shopping_cart.cart import apply_coupon_code, update_cart
-
-    add, coupon = frappe.form_dict.get("add"), frappe.form_dict.get("coupon")
+    # //// Neoffice — a page takes no annotation: a JSON body or a repeated parameter is no code
+    add, coupon = (
+        value if isinstance(value, str) else None
+        for value in (frappe.form_dict.get("add"), frappe.form_dict.get("coupon"))
+    )
     if not (add or coupon):
         return
     if frappe.session.user == "Guest":
         wanted = {k: v for k, v in (("add", add), ("qty", frappe.form_dict.get("qty")), ("coupon", coupon)) if v}
         frappe.local.flags.redirect_location = "/login?redirect-to=" + quote("/cart?" + urlencode(wanted))
         raise frappe.Redirect
+    # //// Neoffice — the product of a reorder link, the customer's own coupon: see the header of this file
+    target = "/cart"
     try:
-        if add and frappe.db.exists("Website Item", {"item_code": add, "published": 1}):
-            update_cart(add, cint(frappe.form_dict.get("qty")) or 1, add_qty=True)
-        if coupon:
+        route = add and frappe.db.get_value("Website Item", {"item_code": add, "published": 1}, "route")
+        if route:
+            target = "/" + route.lstrip("/")
+        party = get_party() if coupon else None
+        # a reminder's link names the coupon as abandoned_carts.create_coupon does, by the document
+        holder = coupon and (
+            frappe.db.get_value("Coupon Code", {"coupon_code": coupon}, "customer")
+            or frappe.db.get_value("Coupon Code", coupon, "customer")
+        )
+        if party and holder == party.name:
             apply_coupon_code(coupon, "")
     except Exception:
         frappe.log_error("Cart link from an email failed", frappe.get_traceback())
     # a GET is never committed by Frappe, and the redirect ends the request:
     # without this the cart change (and the error log) would be rolled back
     frappe.db.commit()
-    frappe.local.flags.redirect_location = "/cart"
+    # //// Neoffice — the cart, or the product of a reorder link
+    frappe.local.flags.redirect_location = target
     raise frappe.Redirect
 
 

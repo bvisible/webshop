@@ -245,7 +245,18 @@ def format_cart_response(cart_data):
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 # //// Neoffice — multi-warehouse: `warehouse` (stock source of the line) rides
 # //// through this wrapper down to cart.update_cart.
-def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty=False, price_list_rate=None, gift_card_data=None, warehouse=None):
+# //// Neoffice — `item_code` typed: a list reached a filter, and the database's error came back to the
+# //// caller (#2296).
+def update_cart(
+    item_code: str,
+    qty,
+    additional_notes=None,
+    with_items=False,
+    add_qty=False,
+    price_list_rate=None,
+    gift_card_data=None,
+    warehouse=None,
+):
     """
     Improved version of the update_cart function that handles errors better and normalizes responses.
     
@@ -310,7 +321,11 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False, add_qty
     except Exception as e:
         frappe.log_error("Cart Error", f"Error in update_cart: {str(e)}")
         return {
-            "error": str(e),
+            # //// Neoffice — a refusal written for the buyer (stock, an account required, the limit) is
+            # //// shown; anything else is a fault, whose text (a column, a query) went back to the caller
+            # //// (#2296).
+            "error": str(e) if isinstance(e, frappe.ValidationError | frappe.PermissionError)
+            else _("The cart could not be updated."),
             "success": False,
             "items": [],
             "total_qty": 0,
@@ -373,7 +388,8 @@ def prepare_cart_response(response, with_items=False):
     except Exception as e:
         frappe.log_error("Cart Error", f"Error in prepare_cart_response: {str(e)}")
         return {
-            "error": str(e),
+            # //// Neoffice — see update_cart: the text of a fault stays in the log
+            "error": _("The cart could not be updated."),
             "success": False,
             "items": [],
             "total_qty": 0,

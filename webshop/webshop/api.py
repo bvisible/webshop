@@ -7,6 +7,7 @@ import json
 import frappe
 # //// Neoffice — _ imported for the messages our endpoints return to the buyer.
 from frappe import _
+from frappe.rate_limiter import rate_limit  # //// Neoffice — see get_product_price_info (#2296)
 from frappe.utils import cint
 
 from webshop.webshop.product_data_engine.filters import ProductFiltersBuilder
@@ -40,6 +41,12 @@ def get_product_filter_data(query_args: str | dict | None = None):
 		item_group (str): Valid Item Group
 		from_filters (bool): Set as True to jump to page 1
 	"""
+	# //// Neoffice — "Login Required to View Products" closed the pages, and this method gave a visitor what
+	# //// they list (catalogue_is_closed in website_item.py).
+	from webshop.webshop.doctype.website_item.website_item import refuse_a_closed_catalogue
+
+	refuse_a_closed_catalogue()
+
 	if isinstance(query_args, str):
 		query_args = json.loads(query_args)
 
@@ -242,8 +249,16 @@ def get_all_variants_info(item_code: str):
 	return selector_data(item_code)  # //// Neoffice — see above (#691 D-1)
 
 
+# //// Neoffice — the search bar's results are ten: fifty codes is far above it (#2296).
+PRICE_INFO_MAX_ITEMS = 50
+
+
+# //// Neoffice — limited, per address, and typed: one request of a visitor ran a full price resolution per
+# //// element of a list only the size of the body bounded, repeated codes included. Each keystroke of a
+# //// search is one call at most.
 @frappe.whitelist(allow_guest=True)
-def get_product_price_info(items):
+@rate_limit(limit=240, seconds=60)
+def get_product_price_info(items: str | list):  # permission-check: ok public prices, behind the shop's gate
 	"""Get price information for multiple items.
 	
 	Args:
@@ -254,7 +269,16 @@ def get_product_price_info(items):
 	"""
 	if isinstance(items, str):
 		items = json.loads(items)
-	
+
+	# //// Neoffice — each code once, a text, and no more than the search can ask for; see above.
+	if not isinstance(items, list):
+		return {}
+	items = list(dict.fromkeys(code for code in items if isinstance(code, str)))[:PRICE_INFO_MAX_ITEMS]
+	# //// Neoffice — an item the shop does not show has no price to give, a closed catalogue none at all: the
+	# //// test of get_product_info_for_website (shown_in_the_shop). The staff see the rest.
+	from webshop.webshop.shopping_cart.product_info import shown_in_the_shop
+
+	items = [code for code in items if shown_in_the_shop(code)]
 	if not items:
 		return {}
 	
@@ -299,6 +323,10 @@ def get_product_price_info(items):
 	# Get pricing rules if any
 	from erpnext.utilities.product import get_price
 
+	# //// Neoffice — here, not under the `if` below: the import made the name local to the function, and the
+	# //// `else` of an item priced with no rule died on an UnboundLocalError.
+	from webshop.webshop.utils.utils import format_currency_value
+
 	for item_code in items:
 		# Get base price
 		base_price = price_map.get(item_code, 0)
@@ -319,7 +347,7 @@ def get_product_price_info(items):
 			)
 			
 			if price_obj:
-				from webshop.webshop.utils.utils import format_currency_value
+				# //// Neoffice — format_currency_value is imported above the loop
 				formatted_price = format_currency_value(
 					price_obj.get("price_list_rate") or base_price,
 					currency=currency
@@ -701,9 +729,16 @@ def get_promotional_products(limit=10):
 	return items
 
 
+# //// Neoffice — `price_list` is kept for the page that still sends it (views.js, always empty since #711)
+# //// and is not read: any list named by the caller came back, a reseller's tariff or another customer's
+# //// (#2296).
 @frappe.whitelist(allow_guest=True)
-def get_discount_items_preview(limit=20, price_list=None):
+# permission-check: ok public prices of the shop's own list, behind its gate
+def get_discount_items_preview(limit: int | str = 20, price_list: str | None = None):
 	"""Endpoint optimized to quickly retrieve items with discount"""
+	# //// Neoffice — the gate and the list of every price of the shop, see below
+	from webshop.webshop.doctype.webshop_settings.webshop_settings import get_shopping_cart_settings
+	from webshop.webshop.multi_site import effective_price_list
 	from webshop.webshop.shopping_cart.cart import get_party
 	
 	limit = min(int(limit or 20), 50)  # Max 50 items
@@ -712,10 +747,15 @@ def get_discount_items_preview(limit=20, price_list=None):
 	settings = frappe.get_cached_doc("Webshop Settings")
 	if not settings.enabled:
 		return []
-	
-	if not price_list:
-		price_list = settings.price_list
-	
+
+	# //// Neoffice — the gate of get_product_price_info and the list every price of the shop comes from: a
+	# //// shop that hides its prices from visitors showed them here, and a site's tariff has its own rule
+	# //// (effective_price_list).
+	shop = get_shopping_cart_settings()
+	if not shop.show_price or (frappe.session.user == "Guest" and shop.hide_price_for_guest):
+		return []
+	price_list = effective_price_list()
+
 	if not price_list:
 		return []
 	
@@ -752,6 +792,8 @@ def get_discount_items_preview(limit=20, price_list=None):
 						 AND pr.disable = 0
 						 AND pr.selling = 1
 						 AND pr.discount_percentage > 0
+						 -- //// Neoffice — a rule reserved for a customer or a group is nobody else's to read (#2296)
+						 AND IFNULL(pr.applicable_for, '') = ''
 						 AND (pr.valid_from IS NULL OR pr.valid_from <= CURDATE())
 						 AND (pr.valid_upto IS NULL OR pr.valid_upto >= CURDATE())
 						), 0
@@ -906,7 +948,8 @@ def _refuse_shared_address(address, party):
 
 
 @frappe.whitelist()
-def get_address(address_name):
+# //// Neoffice — typed, like its two neighbours below (#2296).
+def get_address(address_name: str):  # permission-check: ok refused unless linked to the caller's party
 	"""Get address details for editing"""
 	from webshop.webshop.shopping_cart.cart import get_party
 
@@ -952,8 +995,11 @@ def get_address(address_name):
 	return out
 
 
-@frappe.whitelist()
-def update_address(address_name, address_data):
+# //// Neoffice — POST only, and typed: this commits on its own, so a link in a page or a mail rewrote the
+# //// customer's address, and the next delivery went where the link said (#2296).
+@frappe.whitelist(methods=["POST"])
+# permission-check: ok refused unless linked to the caller's party alone
+def update_address(address_name: str, address_data: str | dict):
 	"""Update an existing address"""
 	from webshop.webshop.shopping_cart.cart import get_party
 
@@ -1021,8 +1067,9 @@ def update_address(address_name, address_data):
 	return {"success": True, "message": _("Address updated successfully")}
 
 
-@frappe.whitelist()
-def delete_address(address_name):
+# //// Neoffice — POST only, and typed: see update_address.
+@frappe.whitelist(methods=["POST"])
+def delete_address(address_name: str):  # permission-check: ok refused unless the caller's party's alone
 	"""Delete an address if it belongs to the current user's customer"""
 	from webshop.webshop.shopping_cart.cart import get_party
 
