@@ -123,6 +123,11 @@ def as_visitor(cookie=None):
 
 def make_card(amount, till=False, customer=CUSTOMER):
 	"""A gift card of either family, with its own Pricing Rule, as the shop and the till issue them."""
+	if till and not frappe.get_meta("Coupon Code").has_field("pos_next_gift_card"):
+		#: A till card is the Coupon Code POS Next marks with its own field. Without POS Next (the
+		#: nightly CI of this fork installs erpnext and payments only) it would be an ordinary coupon
+		#: with no use left, refused for that reason and not for the one under test.
+		raise unittest.SkipTest("needs POS Next, whose field marks a till card")
 	code = f"WS{frappe.generate_hash(length=10).upper()}"
 	rule = frappe.get_doc(
 		{
