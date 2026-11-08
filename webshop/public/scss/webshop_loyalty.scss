@@ -79,7 +79,9 @@
             padding: 8px 12px;
             border-radius: var(--wsh-radius);
             font-size: 0.8125rem;
-            white-space: nowrap;
+            // hidden, the tooltip is still laid out: a sentence on one line ran past a phone's edge and the page scrolled sideways (test_tooltip_widths, 2026-11-08)
+            width: max-content;
+            max-width: min(320px, calc(100vw - 32px));
             opacity: 0;
             visibility: hidden;
             transition: all var(--wsh-motion);
