@@ -25,7 +25,13 @@ const track = (address) => {
 test.afterAll(() => {
 	for (const address of created) {
 		try {
-			deleteAccount(address);
+			const report = deleteAccount(address);
+			//// A throwaway account the cleanup could only disable stays on the instance, and tries to provision
+			//// a mailbox that fails: say so, with the reason the server gave, instead of staying silent
+			//// (neoffice-maintenance#2221: seventeen of them piled up unseen).
+			if (report && /^disabled only/.test(report.account || '')) {
+				console.warn(`[e2e] ${address} was disabled, not deleted: ${report.account}`);
+			}
 		} catch (error) {
 			/* the next run's address is a new one */
 		}
@@ -184,7 +190,22 @@ test.describe('A new customer, then the same customer again', () => {
 
 	test('the password is still there for whoever has one', async ({page}) => {
 		await page.context().clearCookies();
+		//// What this proves is the link to the password on the code step, not the mail. It used to ask the engine
+		//// for a real code for the shared test customer, in each project and at each retry, and the engine sends
+		//// five mails an hour per address: the second series of the hour got "too many requests", the dialog
+		//// went to the password by itself and the code step never showed (neoffice-maintenance#2221). The
+		//// engine's answer is given at the network instead: nothing is mailed and nothing is counted.
+		let answered = 0;
+		await page.route('**/api/method/frappe.passwordless.request_code', (route) => {
+			answered += 1;
+			return route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({message: {ok: true, resend_in: 30}}),
+			});
+		});
 		await askForTheCode(page, CREDENTIALS.user, '/all-products');
+		expect(answered, 'the dialog asked for the code once, and the answer was ours').toBe(1);
 		await page.locator('.code-use-password').click();
 		await expect(page.locator('.password-section')).toBeVisible();
 		await expect(page.locator('.code-section')).toBeHidden();

@@ -227,7 +227,9 @@ except Exception as error:
     # locks on a shared site, which stopped every other session (2026-11-03). While that call crashed on an argument
     # this Frappe does not take, it did nothing; made to work, it froze the instance.
     frappe.db.set_value("User", email, "enabled", 0, update_modified=False)
-    report["account"] = "disabled only (" + type(error).__name__ + ")"
+    # //// Neoffice — the error text, not only its class: a link that refuses the deletion names the document that
+    # //// holds it, and "disabled only (LinkExistsError)" did not say which one (neoffice-maintenance#2221).
+    report["account"] = "disabled only (" + type(error).__name__ + ": " + str(error)[:300] + ")"
 
 frappe.db.commit()
 print(json.dumps(report))
