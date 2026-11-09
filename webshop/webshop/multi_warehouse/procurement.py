@@ -29,9 +29,11 @@ from webshop.webshop.multi_warehouse.sources import (
 )
 
 PO_MARKER_FIELD = "neo_webshop_generated"
-# The customer order or invoice a purchase order was made for (patch
-# add_purchase_order_reference_field); joined by commas once drafts are merged.
-REFERENCE_FIELD = "neo_source_reference"
+# The customer order or invoice a purchase order was made for, in the « Référence »
+# the Neoffice theme puts on every purchase order (searched by the bar, shown in the
+# list, printed); joined by commas once drafts are merged. A site without that field
+# gets its drafts all the same, without the reference.
+REFERENCE_FIELD = "customer_reference"
 
 
 def process_sales_order(doc, method=None):

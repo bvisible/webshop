@@ -673,13 +673,26 @@ class TestProcurement(TestMultiWarehouseBase):
 		return frappe.get_doc("Purchase Order", po_name) if po_name else None
 
 	def ensure_marker_field(self):
-		from webshop.patches.add_purchase_order_reference_field import (
-			execute as add_reference,
-		)
+		from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
 		from webshop.patches.add_webshop_po_marker_field import execute
 
 		execute()
-		add_reference()
+		if not frappe.get_meta("Purchase Order").has_field(REFERENCE_FIELD):
+			# The « Référence » of the Neoffice theme, on every Neoffice site; the shop's
+			# own CI installs no theme, so the suite lays the same field.
+			create_custom_fields(
+				{
+					"Purchase Order": [
+						{
+							"fieldname": REFERENCE_FIELD,
+							"label": "Reference",
+							"fieldtype": "Data",
+							"insert_after": "schedule_date",
+						}
+					]
+				}
+			)
 		frappe.clear_cache(doctype="Purchase Order")
 
 	def po_of(self, sales_order):

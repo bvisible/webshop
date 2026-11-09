@@ -76,5 +76,3 @@ webshop.patches.add_my_brand_portal_menu
 webshop.patches.add_my_catalogues_portal_menu
 # //// Neoffice — the reseller's integration page in the account menu of existing sites (2026-11-01)
 webshop.patches.add_my_integration_portal_menu
-# //// Neoffice — the Reference of a Purchase Order: the customer order or invoice it was made for (2026-11-09)
-webshop.patches.add_purchase_order_reference_field
