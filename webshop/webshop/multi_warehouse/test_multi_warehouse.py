@@ -829,8 +829,9 @@ class TestProcurement(TestMultiWarehouseBase):
 		self.assertEqual([(d.item_code, d.qty) for d in po.items], [(ITEM, 2)])
 		self.assertFalse(po.items[0].sales_order)
 
-		# The hook fired twice adds nothing.
-		process_sales_invoice(invoice)
+		# The hook fired twice (in the accountant's submit, as in real life) adds nothing.
+		with as_role("accountant"):
+			process_sales_invoice(invoice)
 		self.assertEqual(
 			frappe.db.count("Purchase Order", {REFERENCE_FIELD: invoice.name}), 1
 		)
