@@ -270,11 +270,12 @@ doc_events = {
 			"webshop.webshop.crud_events.tax_rule.validate_use_for_cart.execute",
 		],
 	},
-	# //// Neoffice — multi-warehouse: webshop Sales Order lines sourced from a
-	# //// supplier warehouse prepare a draft Purchase Order (stacked per
-	# //// supplier) or a Material Request. Gated inside on Webshop Settings
-	# //// (enable_multi_warehouse + enable_supplier_procurement) and on
-	# //// order_type "Shopping Cart"; never raises into the submit.
+	# //// Neoffice — multi-warehouse: Sales Order lines sourced from a supplier
+	# //// warehouse prepare a draft Purchase Order of their own (one per order and
+	# //// supplier, the order in its Reference; drafts are merged by hand when the
+	# //// shop wants one) or a Material Request. Shop and desk orders alike since
+	# //// 2026-11-09. Gated inside on Webshop Settings (enable_multi_warehouse +
+	# //// enable_supplier_procurement); never raises into the submit.
 	# //// The feature's doctype fields are ours too: Webshop Settings
 	# //// "multi_warehouse_section" (+ its warehouse source table) and Website
 	# //// Item "warehouse_sources_mode". Their help texts used to start with
@@ -317,6 +318,9 @@ doc_events = {
 		"on_submit": [
 			"webshop.webshop.crud_events.sales_invoice.on_submit",
 			"webshop.webshop.utils.follow_ups.enroll_from_sales_invoice",
+			# //// Neoffice — multi-warehouse: an invoice typed without an order, whose lines come
+			# //// from a supplier warehouse, gets its own draft Purchase Order like an order does.
+			"webshop.webshop.multi_warehouse.procurement.process_sales_invoice",
 		],
 		"on_cancel": ["webshop.webshop.utils.follow_ups.on_cancel"],
 		"on_update": [

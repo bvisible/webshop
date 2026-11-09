@@ -18,7 +18,13 @@ from webshop.webshop.multi_warehouse.delays import (
 	expected_receipt_date,
 	next_order_departure,
 )
-from webshop.webshop.multi_warehouse.procurement import process_sales_order
+from frappe.tests.roles import as_role
+
+from webshop.webshop.multi_warehouse.procurement import (
+	REFERENCE_FIELD,
+	process_sales_invoice,
+	process_sales_order,
+)
 from webshop.webshop.multi_warehouse.sources import (
 	get_aggregate_stock,
 	get_item_warehouse_sources,
@@ -667,10 +673,49 @@ class TestProcurement(TestMultiWarehouseBase):
 		return frappe.get_doc("Purchase Order", po_name) if po_name else None
 
 	def ensure_marker_field(self):
+		from webshop.patches.add_purchase_order_reference_field import (
+			execute as add_reference,
+		)
 		from webshop.patches.add_webshop_po_marker_field import execute
 
 		execute()
+		add_reference()
 		frappe.clear_cache(doctype="Purchase Order")
+
+	def po_of(self, sales_order):
+		"""The draft Purchase Order whose lines point at this customer order."""
+		name = frappe.db.get_value(
+			"Purchase Order Item",
+			{"sales_order": sales_order.name, "docstatus": 0},
+			"parent",
+		)
+		return frappe.get_doc("Purchase Order", name) if name else None
+
+	def new_order(self, qty, order_type="Sales"):
+		"""An order to the supplier warehouse, typed and submitted by a seller."""
+		sales_order = frappe.get_doc(
+			{
+				"doctype": "Sales Order",
+				"customer": CUSTOMER_NAME,
+				"company": get_company(),
+				"order_type": order_type,
+				"transaction_date": nowdate(),
+				"delivery_date": add_days(nowdate(), 30),
+				"items": [
+					{
+						"item_code": ITEM,
+						"qty": qty,
+						"rate": 42,
+						"warehouse": supplier_warehouse(),
+						"delivery_date": add_days(nowdate(), 30),
+					}
+				],
+			}
+		)
+		with as_role("sales_user"):
+			sales_order.insert()
+			sales_order.submit()
+		return sales_order
 
 	def test_po_draft_created_with_traceability(self):
 		self.ensure_marker_field()
@@ -692,16 +737,109 @@ class TestProcurement(TestMultiWarehouseBase):
 			getdate(line.schedule_date), add_business_days(nowdate(), 15)
 		)
 
-	def test_second_order_stacks_into_same_po(self):
+	def test_each_order_gets_its_own_purchase_order(self):
 		self.ensure_marker_field()
 		self.configure_settings(enable_supplier_procurement=1)
-		self.make_webshop_sales_order(qty=3)
-		po_first = self.get_webshop_po()
-		self.make_webshop_sales_order(qty=2)
-		po_second = self.get_webshop_po()
+		first = self.new_order(qty=3)
+		second = self.new_order(qty=2)
 
-		self.assertEqual(po_first.name, po_second.name)
-		self.assertEqual(len(po_second.items), len(po_first.items) + 1)
+		po_first, po_second = self.po_of(first), self.po_of(second)
+		self.assertIsNotNone(po_first, "the first order prepared no purchase order")
+		self.assertIsNotNone(po_second, "the second order prepared no purchase order")
+		self.assertNotEqual(po_first.name, po_second.name)
+		# Each one says whom it is for, and holds only its own order's line.
+		self.assertEqual(po_first.get(REFERENCE_FIELD), first.name)
+		self.assertEqual(po_second.get(REFERENCE_FIELD), second.name)
+		self.assertEqual([d.sales_order for d in po_first.items], [first.name])
+		self.assertEqual([d.qty for d in po_second.items], [2])
+
+	def test_an_open_draft_of_the_supplier_is_left_alone(self):
+		# The draft a merchant was preparing by hand, before the shop order came.
+		self.ensure_marker_field()
+		self.configure_settings(enable_supplier_procurement=1)
+		draft = frappe.get_doc(
+			{
+				"doctype": "Purchase Order",
+				"supplier": SUPPLIER_NAME,
+				"company": get_company(),
+				"transaction_date": nowdate(),
+				"neo_webshop_generated": 1,
+				"items": [
+					{
+						"item_code": ITEM,
+						"qty": 6,
+						"rate": 20,
+						"warehouse": store_warehouse(),
+						"schedule_date": add_days(nowdate(), 10),
+					}
+				],
+			}
+		)
+		with as_role("purchase_user"):
+			draft.insert()
+
+		order = self.new_order(qty=3, order_type="Shopping Cart")
+
+		draft.reload()
+		self.assertEqual([d.qty for d in draft.items], [6], "the order went into the old draft")
+		self.assertNotEqual(self.po_of(order).name, draft.name)
+
+	def test_an_invoice_without_order_gets_its_own_purchase_order(self):
+		self.ensure_marker_field()
+		self.configure_settings(enable_supplier_procurement=1)
+		invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": CUSTOMER_NAME,
+				"company": get_company(),
+				"posting_date": nowdate(),
+				"due_date": add_days(nowdate(), 30),
+				"items": [
+					{
+						"item_code": ITEM,
+						"qty": 2,
+						"rate": 42,
+						"warehouse": supplier_warehouse(),
+					}
+				],
+			}
+		)
+		with as_role("accountant"):
+			invoice.insert()
+			invoice.submit()
+
+		name = frappe.db.get_value(
+			"Purchase Order", {REFERENCE_FIELD: invoice.name, "docstatus": 0}, "name"
+		)
+		self.assertIsNotNone(name, "the invoice prepared no purchase order")
+		po = frappe.get_doc("Purchase Order", name)
+		self.assertEqual([(d.item_code, d.qty) for d in po.items], [(ITEM, 2)])
+		self.assertFalse(po.items[0].sales_order)
+
+		# The hook fired twice adds nothing.
+		process_sales_invoice(invoice)
+		self.assertEqual(
+			frappe.db.count("Purchase Order", {REFERENCE_FIELD: invoice.name}), 1
+		)
+
+	def test_an_invoice_made_from_an_order_buys_nothing_more(self):
+		from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
+
+		self.ensure_marker_field()
+		self.configure_settings(enable_supplier_procurement=1)
+		order = self.new_order(qty=3)
+		self.assertIsNotNone(self.po_of(order))
+
+		invoice = make_sales_invoice(order.name)
+		invoice.due_date = add_days(nowdate(), 30)
+		with as_role("accountant"):
+			invoice.insert()
+			invoice.submit()
+
+		self.assertFalse(
+			frappe.db.exists("Purchase Order", {REFERENCE_FIELD: invoice.name}),
+			"the order's line was bought a second time from its invoice",
+		)
 
 	def test_procurement_is_idempotent(self):
 		self.ensure_marker_field()
@@ -733,33 +871,6 @@ class TestProcurement(TestMultiWarehouseBase):
 						"qty": 2,
 						"rate": 42,
 						"warehouse": store_warehouse(),
-						"delivery_date": add_days(nowdate(), 30),
-					}
-				],
-			}
-		)
-		sales_order.flags.ignore_permissions = True
-		sales_order.insert()
-		sales_order.submit()
-		self.assertIsNone(self.get_webshop_po())
-
-	def test_non_webshop_orders_are_ignored(self):
-		self.ensure_marker_field()
-		self.configure_settings(enable_supplier_procurement=1)
-		sales_order = frappe.get_doc(
-			{
-				"doctype": "Sales Order",
-				"customer": CUSTOMER_NAME,
-				"company": get_company(),
-				"order_type": "Sales",
-				"transaction_date": nowdate(),
-				"delivery_date": add_days(nowdate(), 30),
-				"items": [
-					{
-						"item_code": ITEM,
-						"qty": 2,
-						"rate": 42,
-						"warehouse": supplier_warehouse(),
 						"delivery_date": add_days(nowdate(), 30),
 					}
 				],
