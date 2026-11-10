@@ -559,6 +559,8 @@ def spend_gift_card(card_name, amount, order, strict=True):
 			"Webshop: a gift card did not cover its order",
 			f"card={card_name} order={order} asked={amount} balance={card.gift_card_amount}",
 		)
+	# //// Neoffice — what the card really paid, a short card included (#651, _tell_the_holder)
+	before = flt(card.gift_card_amount, 2)
 	remaining = settle_till_card(card, amount)
 	_rule_follows_the_balance(card, remaining)
 	currency = frappe.db.get_default("currency")
@@ -576,6 +578,7 @@ def spend_gift_card(card_name, amount, order, strict=True):
 			+ f" ({order})",
 		}
 	).insert(ignore_permissions=True)
+	_tell_the_holder(card_name, order, flt(before - remaining, 2), remaining)  # //// Neoffice — #651
 	return remaining
 
 
@@ -611,6 +614,110 @@ def give_gift_card_back(doc, method=None):
 	balance = flt(flt(card.gift_card_amount) + flt(doc.discount_amount), 2)
 	frappe.db.set_value("Coupon Code", name, {"gift_card_amount": balance, "used": 0}, update_modified=False)
 	_rule_follows_the_balance(card, balance)
+
+
+# //// Neoffice — added (maintenance#651). A gift card is a bearer card (#644): whoever holds its code spends it, and the
+# //// holder is often not the customer who bought it. /gift_cards lists the signed-in customer's own cards only, so the
+# //// one who spent a card saw what was left on it nowhere. Decided on 10.11.2026: the balance is shown on the order's
+# //// confirmation page and in an e-mail sent when the card pays; no page that answers a typed code (a code can be
+# //// guessed: the till's format holds about 41 bits).
+def _masked_code(code):
+	"""The end of a card's code: enough to tell two cards apart, never enough to spend one."""
+	code = (code or "").strip()
+	return f"…{code[-4:]}" if len(code) > 4 else code
+
+
+def gift_card_of_order(order):
+	"""What a shop order paid with its gift card and what the card holds after it; None without a card.
+
+	Read from the card as it is now. A gateway order settles its card when its invoice is submitted
+	(spend_gift_card_of_invoice), which can come after the buyer reaches the page: until then, what this order
+	takes is taken off here, so the page and the e-mail that follows say the same.
+	"""
+	if not order or not frappe.get_meta("Quotation").has_field("gift_card_coupon"):
+		return None
+	row = frappe.db.get_value("Sales Order", order, ["order_type", "discount_amount", "currency"], as_dict=True)
+	if not row or row.order_type != "Shopping Cart" or flt(row.discount_amount, 2) <= 0:
+		return None
+	cart = frappe.db.get_value("Sales Order Item", {"parent": order}, "prevdoc_docname")
+	name = frappe.db.get_value("Quotation", cart, "gift_card_coupon") if cart else None
+	if not name:
+		return None
+	card = frappe.db.get_value("Coupon Code", name, ["coupon_code", "gift_card_amount", "valid_upto"], as_dict=True)
+	if not card:
+		return None
+	spent = flt(row.discount_amount, 2)
+	left = flt(card.gift_card_amount, 2)
+	if not _spent_on(name, order):
+		left = max(flt(left - spent, 2), 0)
+	return frappe._dict(
+		code=_masked_code(card.coupon_code),
+		spent=spent,
+		left=left,
+		valid_upto=card.valid_upto,
+		currency=row.currency,
+	)
+
+
+def _tell_the_holder(card_name, order, spent, left):
+	"""Queue the e-mail telling the buyer of a shop order what its gift card paid and what it holds now.
+
+	Queued for after the commit: the order or the invoice that spends the card can still fail, and this fork's
+	sendmail sends at once. A failure here never fails the order.
+	"""
+	try:
+		if flt(spent, 2) <= 0 or frappe.db.get_value("Sales Order", order, "order_type") != "Shopping Cart":
+			return
+		frappe.enqueue(
+			"webshop.webshop.shopping_cart.cart.send_gift_card_balance",
+			queue="short",
+			enqueue_after_commit=True,
+			card_name=card_name,
+			order=order,
+			spent=flt(spent, 2),
+			left=flt(left, 2),
+		)
+	except Exception:
+		frappe.log_error("Webshop: gift card balance e-mail not queued", frappe.get_traceback())
+
+
+def send_gift_card_balance(card_name, order, spent, left):
+	"""Background job: the gift card e-mail of one shop order, in the buyer's language."""
+	row = frappe.db.get_value("Sales Order", order, ["contact_email", "owner", "currency"], as_dict=True)
+	if not row:
+		return
+	recipient = row.contact_email or (row.owner if row.owner not in ("Administrator", "Guest") else None)
+	if not recipient or not frappe.utils.validate_email_address(recipient):
+		return
+	card = frappe.db.get_value("Coupon Code", card_name, ["coupon_code", "valid_upto"], as_dict=True) or frappe._dict()
+	lang = frappe.db.get_value("User", recipient, "language") or frappe.db.get_default("lang") or "en"
+
+	def money(value):
+		return format_currency_value(flt(value, 2), currency=row.currency)
+
+	paragraphs = [
+		_("Your gift card {0} paid {1} of your order {2}.", lang=lang).format(
+			_masked_code(card.coupon_code), money(spent), order
+		),
+		"<strong>" + _("Left on the card: {0}", lang=lang).format(money(left)) + "</strong>",
+	]
+	if flt(left, 2) > 0:
+		if card.valid_upto:
+			paragraphs.append(
+				_("Valid until: {0}", lang=lang).format(frappe.utils.format_date(card.valid_upto))
+			)
+		paragraphs.append(
+			_("Keep the code of the card: it pays your next orders until the balance is used up.", lang=lang)
+		)
+	else:
+		paragraphs.append(_("The card is now used up.", lang=lang))
+	frappe.sendmail(
+		recipients=[recipient],
+		subject=_("Your gift card: {0} left", lang=lang).format(money(left)),
+		message="".join(f"<p>{text}</p>" for text in paragraphs),
+		reference_doctype="Sales Order",
+		reference_name=order,
+	)
 
 
 

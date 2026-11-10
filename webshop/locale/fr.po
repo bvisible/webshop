@@ -11819,3 +11819,62 @@ msgstr "Votre compte est ouvert et vous êtes connecté."
 #: webshop/public/js/auth_dialog.js:766
 msgid "Your email is confirmed. Tell us your name to create your account."
 msgstr "Votre e-mail est confirmé. Indiquez-nous votre nom pour créer votre compte."
+
+#: webshop/webshop/shopping_cart/cart.py:3750
+#, python-brace-format
+msgid "Gift card amount ({0}) exceeds order total ({1}). The rest ({2}) stays on it."
+msgstr "Le montant de la carte cadeau ({0}) dépasse le total de la commande ({1}). Le solde restant ({2}) demeure sur la carte."
+
+#: webshop/templates/pages/thank_you.html:198
+#, python-brace-format
+msgid "Gift card {0}"
+msgstr "Carte cadeau {0}"
+
+#: webshop/webshop/shopping_cart/cart.py:710
+msgid "Keep the code of the card: it pays your next orders until the balance is used up."
+msgstr "Conservez le code de votre carte : il règle vos prochaines commandes jusqu'à épuisement du solde."
+
+#: webshop/templates/pages/thank_you.html:200
+#: webshop/webshop/shopping_cart/cart.py:702
+#, python-brace-format
+msgid "Left on the card: {0}"
+msgstr "Reste sur la carte : {0}"
+
+#: webshop/templates/pages/thank_you.html:199
+#, python-brace-format
+msgid "Paid with the card: {0}"
+msgstr "Payé avec la carte : {0}"
+
+#: webshop/webshop/shopping_cart/cart.py:573
+#, python-brace-format
+msgid "Spent: {0}. Left on the card: {1}."
+msgstr "Dépensé : {0}. Reste sur la carte : {1}."
+
+#: webshop/webshop/shopping_cart/cart.py:713
+msgid "The card is now used up."
+msgstr "Le solde de la carte est épuisé."
+
+#: webshop/webshop/shopping_cart/cart.py:1332
+msgid "This gift card amount is not available."
+msgstr "Ce montant de carte cadeau n'est pas disponible."
+
+#: webshop/webshop/shopping_cart/cart.py:491
+#: webshop/webshop/shopping_cart/cart.py:557
+msgid "This gift card no longer covers this amount. Remove it from the cart and apply it again."
+msgstr "Cette carte cadeau ne couvre plus ce montant. Retirez-la de votre panier, puis appliquez-la à nouveau."
+
+#: webshop/templates/pages/thank_you.html:202
+#: webshop/webshop/shopping_cart/cart.py:707
+#, python-brace-format
+msgid "Valid until: {0}"
+msgstr "Valide jusqu'au : {0}"
+
+#: webshop/webshop/shopping_cart/cart.py:699
+#, python-brace-format
+msgid "Your gift card {0} paid {1} of your order {2}."
+msgstr "Votre carte cadeau {0} a réglé {1} de votre commande {2}."
+
+#: webshop/webshop/shopping_cart/cart.py:716
+#, python-brace-format
+msgid "Your gift card: {0} left"
+msgstr "Votre carte cadeau : il reste {0}"

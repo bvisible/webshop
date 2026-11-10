@@ -189,6 +189,23 @@
                                 </div>
                             </div>
 
+                            {# //// Neoffice — maintenance#651: the holder of a gift card sees what it paid and what is left
+                               on it; /gift_cards lists the signed-in customer's own cards only. #}
+                            {% if gift_card_used %}
+                                <div class="row mt-4">
+                                    <div class="col-md-12">
+                                        <div class="alert alert-info gift-card-balance" role="status">
+                                            <strong>{{ _("Gift card {0}").format(gift_card_used.code) }}</strong><br>
+                                            {{ _("Paid with the card: {0}").format(webshop_fmt_money(gift_card_used.spent, currency=gift_card_used.currency)) }}<br>
+                                            <strong>{{ _("Left on the card: {0}").format(webshop_fmt_money(gift_card_used.left, currency=gift_card_used.currency)) }}</strong>
+                                            {% if gift_card_used.left and gift_card_used.valid_upto %}
+                                                <br>{{ _("Valid until: {0}").format(frappe.utils.format_date(gift_card_used.valid_upto)) }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
                             {% if sales_invoice %}
                                 <div class="row mt-4">
                                     <div class="col-md-12">

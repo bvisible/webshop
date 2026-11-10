@@ -2,6 +2,8 @@ import frappe
 import json
 from frappe import _
 from webshop.webshop.shopping_cart.cart import decorate_quotation_doc
+# //// Neoffice — the balance left on the order's gift card (#651), see gift_card_of_order.
+from webshop.webshop.shopping_cart.cart import gift_card_of_order
 # //// Neoffice — the placeholder order a cart's card payment is raised on (pending_order.py).
 from webshop.webshop.shopping_cart import pending_order
 
@@ -79,6 +81,8 @@ def get_context(context):
 
 		context.sales_order = sales_order
 		context.doc = sales_order
+		# //// Neoffice — what the order's gift card paid and what is left on it (#651)
+		context.gift_card_used = gift_card_of_order(sales_order.name)
 		
 		# Decorate the document with web information (images, etc.)
 		context.doc = decorate_quotation_doc(context.doc)
