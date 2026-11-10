@@ -34,7 +34,7 @@ from unittest.mock import patch
 
 import frappe
 
-from webshop.controllers.payment_handler import PaymentHandler, _may_conclude
+from webshop.controllers.payment_handler import PaymentHandler, _may_conclude, gateway_account_for
 
 PREFIX = "_WSTEST-"
 
@@ -423,3 +423,48 @@ def _test_user(email, roles):
 		return email
 	finally:
 		frappe.flags.mute_emails = before
+
+
+class TestTheGatewayAccountIsTheOrdersCompany(unittest.TestCase):
+    """//// Neoffice — an order is charged through its own company's gateway account, never another's."""
+
+    def setUp(self):
+        self.addCleanup(frappe.db.rollback)
+        companies = frappe.get_all(
+            "Account",
+            filters={"account_type": "Bank", "is_group": 0},
+            pluck="company",
+            distinct=True,
+            limit=2,
+        )
+        if len(companies) < 2:
+            self.skipTest("fewer than two companies with a bank account on this site")
+        self.mine, self.other = companies
+        if not frappe.db.exists("Payment Gateway", PREFIX + "Gateway"):
+            frappe.get_doc({"doctype": "Payment Gateway", "gateway": PREFIX + "Gateway"}).insert(
+                ignore_permissions=True
+            )
+
+    def account(self, company):
+        bank = frappe.db.get_value("Account", {"company": company, "account_type": "Bank", "is_group": 0}, "name")
+        if not bank:
+            self.skipTest(f"no bank account for {company}")
+        return frappe.get_doc(
+            {
+                "doctype": "Payment Gateway Account",
+                "payment_gateway": PREFIX + "Gateway",
+                "company": company,
+                "payment_account": bank,
+            }
+        ).insert(ignore_permissions=True).name
+
+    def test_each_company_gets_its_own_account(self):
+        other = self.account(self.other)
+        mine = self.account(self.mine)
+        self.assertEqual(gateway_account_for(PREFIX + "Gateway", self.mine).name, mine)
+        self.assertEqual(gateway_account_for(PREFIX + "Gateway", self.other).name, other)
+
+    def test_another_companys_account_is_refused(self):
+        self.account(self.other)
+        with self.assertRaises(frappe.ValidationError):
+            gateway_account_for(PREFIX + "Gateway", self.mine)

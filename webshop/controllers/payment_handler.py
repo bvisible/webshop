@@ -94,6 +94,22 @@ def enabled_mode_of_payment(account, company):
     return rows[0][0] if rows else None
 
 
+# //// Neoffice — added function (no upstream equivalent). The gateway's account of the order's company:
+# //// upstream took the first Payment Gateway Account of the gateway, so with two companies an order of the
+# //// second was charged through the first company's account (its clearing account, its books) or refused.
+def gateway_account_for(gateway, company):
+    """The Payment Gateway Account of `gateway` for `company`; one without a company on a site that never
+    set it. Never another company's: the payment would be booked to the wrong books."""
+    name = frappe.db.get_value(
+        "Payment Gateway Account", {"payment_gateway": gateway, "company": company}, "name"
+    ) or frappe.db.get_value(
+        "Payment Gateway Account", {"payment_gateway": gateway, "company": ["in", ["", None]]}, "name"
+    )
+    if not name:
+        frappe.throw(_("No account of payment gateway {0} for company {1}").format(gateway, company))
+    return frappe.get_doc("Payment Gateway Account", name)
+
+
 # //// Neoffice — added helper: see handle_payment_success.
 def _coupon_of_the_order(quotation):
     """The coupon a paid order carries: a card of the shop, never one of the till."""
@@ -262,7 +278,7 @@ class PaymentHandler:
                 if not frappe.db.exists("Payment Gateway", payment_gateway):
                     frappe.throw(_("Payment Gateway not found: {0}").format(payment_gateway))
                 gateway = payment_gateway
-                gateway_account = frappe.get_doc("Payment Gateway Account", {"payment_gateway": gateway})
+                gateway_account = gateway_account_for(gateway, quotation.company)  # //// Neoffice — by company
                 # //// Neoffice — the terms come from the row this customer was OFFERED,
                 # //// not from the first row whose account name happens to start with the
                 # //// gateway's. Two groups can share a gateway on different terms — 30
@@ -279,7 +295,7 @@ class PaymentHandler:
                     frappe.throw(_("Payment Gateway not found for settings: {0}").format(gateway_settings))
                     
                 # Get Payment Gateway Account
-                gateway_account = frappe.get_doc("Payment Gateway Account", {"payment_gateway": gateway})
+                gateway_account = gateway_account_for(gateway, quotation.company)  # //// Neoffice — by company
                 
                 # //// Neoffice — see the marker above: the row this customer was offered.
                 _row = row_for_gateway(gateway_account.name, settings, customer_group_of(quotation))
