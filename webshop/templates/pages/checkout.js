@@ -1816,7 +1816,11 @@ frappe.ready(function() {
             this.freezeElements(['step-section', 'order-summary']);
             const container = $('#shipping-methods-container');
             const previousHtml = container.html();
-            container.html(`<div class="text-muted">${__('Loading shipping methods...')}</div>`);
+            //// Neoffice — a refresh keeps the list on screen during the round trip (#2452). Emptied, no radio
+            //// existed for about a second after a choice, and « Continue » refused with « Shipping Method Required ».
+            if (!isRefresh || !container.find('input[name="shipping_method"]').length) {
+                container.html(`<div class="text-muted">${__('Loading shipping methods...')}</div>`);
+            }
 
             // Get form data
             const ship_to_different = $('#ship_to_different').is(':checked');
@@ -1835,6 +1839,12 @@ frappe.ready(function() {
 
                 if (response.message && response.message.length) {
                     const methods = response.message;
+                    //// Neoffice — the cart's own rule is the current method until the buyer picks another (#2452):
+                    //// the summary already counts it, but a buyer coming back found no radio checked.
+                    const remembered = methods.find((method) => method.selected);
+                    if (!this.currentShippingMethod && remembered) {
+                        this.currentShippingMethod = remembered.name;
+                    }
 
                     let html = `<div class="shipping-methods">
                         <div class="mb-3">${__('Please select a shipping method to continue')}</div>`;

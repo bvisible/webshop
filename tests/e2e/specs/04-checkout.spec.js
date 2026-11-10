@@ -192,6 +192,59 @@ test.describe('Checkout tunnel', () => {
 		});
 	});
 
+	//// #2452: the shipping step refused « Continue » with a method on screen. Right after a choice the list was
+	//// emptied while the server answered, so no radio was checked for about a second; and a buyer coming back
+	//// found none checked although the summary already counted the cart's rule.
+	test.describe('Shipping method', () => {
+		test('Continue pressed right after a choice reaches the payment step', async ({page}) => {
+			await page.locator('#step-address .next-step').click();
+			await expect(page.locator('#step-shipping')).toHaveClass(/active/, {timeout: 40_000});
+			const radios = page.locator('#step-shipping input[name="shipping_method"]');
+			test.skip((await radios.count()) < 2, 'fewer than two shipping methods');
+
+			await page.evaluate(() => {
+				window.__shippingBlanks = 0;
+				const target = document.querySelector('#shipping-methods-container');
+				new MutationObserver(() => {
+					if (!target.querySelector('input[name="shipping_method"]')) window.__shippingBlanks += 1;
+				}).observe(target, {childList: true, subtree: true});
+			});
+			await page.locator('#step-shipping input[name="shipping_method"]:not(:checked)').first().click();
+			await page.locator('#step-shipping .next-step').click();
+
+			await expect(page.locator('#step-payment')).toHaveClass(/active/, {timeout: 45_000});
+			expect(
+				await page.evaluate(() => window.__shippingBlanks),
+				'the shipping list was emptied after the choice'
+			).toBe(0);
+		});
+
+		test("a buyer coming back finds the cart's shipping method checked", async ({page}) => {
+			await page.locator('#step-address .next-step').click();
+			await expect(page.locator('#step-shipping')).toHaveClass(/active/, {timeout: 40_000});
+			test.skip(
+				(await page.locator('#step-shipping input[name="shipping_method"]').count()) === 0,
+				'no shipping method for this address'
+			);
+			const chosen = await chooseShipping(page);
+			await expect
+				.poll(async () => ((await readQuotation(page)) || {doc: {}}).doc.shipping_rule, {timeout: 20_000})
+				.toBe(chosen);
+
+			await page.goto('/checkout');
+			await page.waitForLoadState('networkidle');
+			await expect(page.locator('#step-address')).toHaveClass(/active/, {timeout: 30_000});
+			await page.locator('#step-address .next-step').click();
+			await expect(page.locator('#step-shipping')).toHaveClass(/active/, {timeout: 40_000});
+
+			await expect(page.locator('#step-shipping input[name="shipping_method"]:checked')).toHaveValue(chosen, {
+				timeout: 20_000,
+			});
+			await page.locator('#step-shipping .next-step').click();
+			await expect(page.locator('#step-payment')).toHaveClass(/active/, {timeout: 45_000});
+		});
+	});
+
 	test.describe('Payment step', () => {
 		test('the payment methods appear without a blank screen', async ({page}) => {
 			await page.locator('#step-address .next-step').click();

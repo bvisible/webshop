@@ -731,7 +731,10 @@ def get_shipping_methods():
 				"display_rate": display_amount,
 				"formatted_rate": format_currency_value(display_amount, currency=quotation.currency),
 				"calculate_based_on": rule.calculate_based_on,
-				"taxable": bool(rule.taxable_account) 
+				"taxable": bool(rule.taxable_account),
+				# //// Neoffice — the rule the cart already carries (#2452): the summary counts it, so the step
+				# //// shows it chosen to a buyer coming back, instead of an empty list that refuses « Continue ».
+				"selected": rule.name == quotation.shipping_rule,
 			})
 	
 	return available_methods
