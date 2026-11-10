@@ -364,6 +364,7 @@ jobs:
             webshop.webshop.shopping_cart.test_tax_builder \
             webshop.webshop.shopping_cart.test_loyalty_rights \
             webshop.webshop.shopping_cart.test_pending_order \
+            webshop.webshop.shopping_cart.test_a_staff_account_is_not_a_shop_customer \
             webshop.webshop.quick_order.test_quick_order \
             webshop.webshop.tests.test_stylesheet_inks \
             webshop.webshop.utils.test_product_carousel \
