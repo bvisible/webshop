@@ -433,6 +433,8 @@ jobs:
             webshop.webshop.tests.test_catalogue_controls_have_names \
             webshop.webshop.tests.test_debtors_account_reads_the_payment_methods \
             webshop.webshop.tests.test_a_payment_method_without_its_configuration_does_not_break_the_checkout \
+            webshop.webshop.tests.test_the_invoice_method_finds_its_template_without_a_path \
+            webshop.webshop.tests.test_a_gift_card_holder_sees_its_balance \
             webshop.webshop.shopping_cart.test_payment_terms_rights \
             webshop.webshop.shopping_cart.test_item_inquiry
           do
