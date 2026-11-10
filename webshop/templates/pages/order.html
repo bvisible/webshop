@@ -50,7 +50,15 @@
 						and doc.status not in ("Cancelled", "Closed")
 						and (doc.doctype != "Sales Invoice" or doc.outstanding_amount > 0) %}
 					{# //// Neoffice — the button calls the shop's own make_payment_request (order.py), not erpnext's: a customer has no right to create a Payment Request. #}
-					<a href="/api/method/webshop.templates.pages.order.make_payment_request?dn={{ doc.name }}&dt={{ doc.doctype }}&submit_doc=1&order_type=Shopping Cart"
+					{# //// Neoffice — a POST form with its CSRF token, not a GET link (#2222): the link created a Payment Request for #}
+					{# //// whatever page sent a signed-in customer to it. Same shape as erpnext's order page since v15.124.4. #}
+					<form action="/api/method/webshop.templates.pages.order.make_payment_request" method="post" id="pay-for-order-form" style="display:inline">
+					<input type="hidden" name="csrf_token" value="{{ csrf_token | e }}">
+					<input type="hidden" name="dn" value="{{ doc.name | e }}">
+					<input type="hidden" name="dt" value="{{ doc.doctype | e }}">
+					<input type="hidden" name="submit_doc" value="1">
+					<input type="hidden" name="order_type" value="Shopping Cart">
+					<button type="submit"
 						class="btn btn-primary btn-sm" id="pay-for-order">
 						{# //// Neoffice — on an invoice the button must offer what is left to pay, not the #}
 						{# //// grand total: a partly paid invoice asked for the whole amount again #}
@@ -61,7 +69,9 @@
 						{% else %}
 							{{ _("Pay") }} {{ doc.get_formatted("grand_total") }}
 						{% endif %}
-					</a>
+					</button>
+					{# //// Neoffice — end of the Pay form (#2222), was the end of a GET link. #}
+					</form>
 					{% endif %}
 				</p>
 			</div>

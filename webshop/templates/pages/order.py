@@ -52,6 +52,10 @@ def get_context(context):
 	)
 
 	context.enabled_checkout = frappe.get_doc("Webshop Settings").enable_checkout
+	# //// Neoffice — the Pay form posts it (#2222, see make_payment_request).
+	from frappe.sessions import get_csrf_token
+
+	context.csrf_token = get_csrf_token()
 
 	default_print_format = frappe.db.get_value(
 		"Property Setter",
@@ -126,7 +130,10 @@ def get_context(context):
 # //// does not have: the button, which called it directly, would stop working. The page already shows an order only to
 # //// whoever the website permission lets see it; the same test guards the request, which is then made as the system.
 # //// Drop this, and the two links to it in order.html and order.js, if upstream's page ever makes its own way to it.
-@frappe.whitelist()
+# //// Neoffice — POST only (neoffice-maintenance#2222): a GET that creates a Payment Request could be fired by any
+# //// page at a signed-in customer. The order page posts a form with its CSRF token, as erpnext's does since
+# //// v15.124.4 (71b17c6aff).
+@frappe.whitelist(methods=["POST"])
 def make_payment_request(**args):
 	args = frappe._dict(args)
 	if args.dt not in ("Sales Order", "Sales Invoice") or not isinstance(args.dn, str):

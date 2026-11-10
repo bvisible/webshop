@@ -48,18 +48,23 @@ frappe.ready(() => {
 				args_obj.payment_gateway_account = payment_gateway_account;
 			}
 
-			const args_str = Object
-				.entries(args_obj)
-				.map((e) => e[0] + "=" + e[1])
-				.join("&");
-
-			// //// Neoffice — the shop's own make_payment_request (order.py), not erpnext's: a customer has no right to create a Payment Request
-			const href_base_url = "/api/method/webshop.templates.pages.order.make_payment_request"
-			const href = href_base_url + "?" + args_str;
+			// //// Neoffice — the Pay button is a POST form since #2222 (order.html): the redeemed points and the
+			// //// gateway account travel as hidden fields of that form, no longer in the query string of a link.
+			const form = document.getElementById("pay-for-order-form");
+			for (const [name, value] of Object.entries(args_obj)) {
+				let input = form.querySelector(`input[name="${name}"]`);
+				if (!input) {
+					input = document.createElement("input");
+					input.type = "hidden";
+					input.name = name;
+					form.appendChild(input);
+				}
+				input.value = value;
+			}
 
 			var payment_button = document.getElementById("pay-for-order");
 			payment_button.innerHTML = __("Pay Remaining");
-			payment_button.href = href;
+			// //// Neoffice — no href to set any more: the Pay button submits its form (#2222).
 		}
 
 		frappe.call({
