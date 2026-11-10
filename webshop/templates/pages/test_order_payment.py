@@ -3,6 +3,7 @@
 # //// (erpnext's own asks for a desk right, v15.99.0, GHSA-wpfx-jw7g-7f83).
 
 import frappe
+from frappe.tests.roles import as_role, make_persona
 from frappe.tests.utils import FrappeTestCase
 
 from webshop.templates.pages import order
@@ -64,15 +65,24 @@ class TestThePayButtonPostsAForm(FrappeTestCase):
 		self.assertNotIn("make_payment_request?", html, "a GET link creates a Payment Request for any page")
 
 	def test_the_order_page_hands_its_form_a_token(self):
-		name = frappe.db.get_value("Sales Order", {"docstatus": 1}, "name")
-		if not name:
+		# //// Neoffice — the page is opened by the order's own buyer, as in the shop (check_test_roles).
+		row = frappe.db.get_value("Sales Order", {"docstatus": 1}, ["name", "customer"], as_dict=True)
+		if not row:
 			self.skipTest("no submitted Sales Order on this site")
-		frappe.set_user("Administrator")
-		frappe.form_dict.update({"doctype": "Sales Order", "name": name})
+		# The scene, by Administrator: a buyer account of the order's customer, as the shop makes it.
+		buyer = make_persona("portal_customer", customer=row.customer)
+		customer = frappe.get_doc("Customer", row.customer)
+		if customer.meta.get_field("portal_users") and not any(p.user == buyer for p in customer.portal_users):
+			customer.append("portal_users", {"user": buyer})
+			customer.save(ignore_permissions=True)
 		context = frappe._dict()
 		try:
-			order.get_context(context)
+			with as_role(buyer):
+				# Set once the buyer is signed in: switching the user starts a fresh request dict.
+				frappe.form_dict.update({"doctype": "Sales Order", "name": row.name})
+				order.get_context(context)
 		finally:
 			frappe.form_dict.pop("doctype", None)
 			frappe.form_dict.pop("name", None)
+			frappe.set_user("Administrator")
 		self.assertTrue(context.csrf_token)
