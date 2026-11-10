@@ -1292,6 +1292,13 @@ def update_cart(
 			_("The Administrator account cannot shop. Sign in with a customer account to try the shop."),
 			title=_("Not a customer account"),
 		)
+	# //// Neoffice — the same for any other desk account (a System User: staff, the demo's own account) with no
+	# //// Customer linked to it by hand: get_party() no longer makes one for it (neoffice-maintenance#2450).
+	if is_desk_account(frappe.session.user) and not get_party():
+		frappe.throw(
+			_("This is a staff account, not a customer account. Sign in with a customer account to try the shop."),
+			title=_("Not a customer account"),
+		)
 
 	# Convert gift_card_data from JSON if necessary
 	if gift_card_data and isinstance(gift_card_data, str):
@@ -2637,6 +2644,12 @@ def apply_loyalty_points_tax(quotation):
 		for i, tax in enumerate(quotation.taxes):
 			tax.idx = i + 1
 				
+# //// Neoffice — added function (neoffice-maintenance#1763, #2450): who the cart never makes a Customer for.
+def is_desk_account(user):
+	"""Administrator or a System User: staff, never made a shop Customer by the cart."""
+	return user == "Administrator" or frappe.db.get_value("User", user, "user_type") == "System User"
+
+
 def get_party(user=None, ignore_permissions=False):
 	"""Return the customer (Customer) for the current user"""
 	if not user:
@@ -2781,6 +2794,14 @@ def get_party(user=None, ignore_permissions=False):
 	# //// the contact lookup. Made a separate `if` so that the three lookups above all get
 	# //// a chance before a SECOND customer is created for the same person — the
 	# //// duplicate-customer bug (0ef0381e9c, 2025-11-25).
+	# //// Neoffice — a desk account (a System User: staff, the demo's own account) is never made a shop Customer
+	# //// either, for the reason given for Administrator above: browsing the shop minted a Customer named after the
+	# //// account (« admin » on the demo, first in every customer list and in the films of the guided tours), a
+	# //// Portal User row and the Customer role (neoffice-maintenance#2450). A staff member who also buys is linked
+	# //// to a Customer by hand (Portal User) and is found by the lookups above; only a Website User gets one made.
+	if is_desk_account(user):
+		return None
+
 	# Only create new customer if we really can't find one
 	if not frappe.db.exists("Portal User", {"user": user}):
 		if not cart_settings.enabled:

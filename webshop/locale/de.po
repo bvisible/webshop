@@ -6417,6 +6417,10 @@ msgstr "Danke für Ihre Bestellung!"
 msgid "The Administrator account cannot shop. Sign in with a customer account to try the shop."
 msgstr "Das Administrator-Konto kann nicht einkaufen. Melden Sie sich mit einem Kundenkonto an, um den Shop auszuprobieren."
 
+#: webshop/webshop/shopping_cart/cart.py
+msgid "This is a staff account, not a customer account. Sign in with a customer account to try the shop."
+msgstr "Das ist ein Mitarbeiterkonto und kein Kundenkonto. Melden Sie sich mit einem Kundenkonto an, um den Shop auszuprobieren."
+
 #: webshop/templates/pages/gift_cards.html:144
 msgid "The amount will be deducted from your total"
 msgstr "Der Betrag wird von Ihrer Gesamtsumme abgezogen"

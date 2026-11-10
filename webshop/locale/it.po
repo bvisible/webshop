@@ -6653,6 +6653,10 @@ msgstr "Grazie per il Suo ordine!"
 msgid "The Administrator account cannot shop. Sign in with a customer account to try the shop."
 msgstr "L'account Amministratore non può fare acquisti. Acceda con un account cliente per provare il negozio."
 
+#: webshop/webshop/shopping_cart/cart.py
+msgid "This is a staff account, not a customer account. Sign in with a customer account to try the shop."
+msgstr "Questo è un account dipendente, non un account cliente. Acceda con un account cliente per provare il negozio."
+
 #: webshop/templates/pages/gift_cards.html:144
 msgid "The amount will be deducted from your total"
 msgstr "L'importo sarà detratto dal Suo totale"
