@@ -8,6 +8,7 @@ from webshop.webshop.utils.utils import format_currency_value
 from webshop.webshop.shopping_cart.cart import get_cart_quotation, get_party, get_address_docs, apply_shipping_rule, _get_cart_quotation
 from webshop.controllers.payment_handler import PaymentHandler
 from webshop.webshop.utils.utils import get_gateway_configuration
+from webshop.webshop.utils.utils import default_payment_template  # //// Neoffice — #2173
 from erpnext.setup.utils import get_exchange_rate
 from erpnext.stock.get_item_details import get_conversion_factor
 from erpnext.accounts.doctype.shipping_rule.shipping_rule import ShippingRule
@@ -1594,7 +1595,8 @@ def get_payment_template(payment_gateway_account: str, context: dict | str | Non
 			pass  # If error, use default template
 		
 		# Default template rendering
-		template_name = f"{gateway_info['type']}.html"
+		# //// Neoffice — the gateway's template, see default_payment_template (#2173)
+		template_name = f"{gateway_info.get('template') or gateway_info['type']}.html"
 		html = frappe.get_template(f"templates/payments/{template_name}").render(context)
 
 		# //// Neoffice — see _settings_for_the_page
@@ -1642,14 +1644,18 @@ def get_gateway_info(payment_gateway_account):
         # Get gateway type from name
         gateway_type = gateway.gateway.split('-')[0].split()[0].lower().strip()
         
+        # //// Neoffice — the template's own name, not always the first word of the gateway's (#2173)
+        template = default_payment_template(gateway, gateway_type)
+
         # Get gateway configuration from JSON file
-        gateway_config = get_gateway_configuration(gateway_type, account.name)
+        gateway_config = get_gateway_configuration(template, account.name)  # //// Neoffice — #2173
         
         return {
             "account": account,
             "gateway": gateway,
             "settings": gateway_settings,
             "type": gateway_type,
+            "template": template,  # //// Neoffice — #2173
             "config": gateway_config
         }
         

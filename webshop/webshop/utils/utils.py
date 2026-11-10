@@ -60,6 +60,18 @@ def format_currency_value(value, currency=None, precision=None):
     else:
         return f"{symbol} {formatted_number}"
 
+# //// Neoffice — added (maintenance#2173). A gateway's template and JSON are looked up by the first word of its name
+# //// (`facture.html`). The pay-on-invoice gateway is named after the method ("Facture") while its files are
+# //// webshopsi.html / webshopsi.json, and only the rows the webshopsi migration rewrote carried their path: a method
+# //// added by hand in the desk had none, and its tile no pay button. The gateway says what it is by its settings.
+_TEMPLATE_OF_SETTINGS = {"WebshopSI Settings": "webshopsi"}
+
+
+def default_payment_template(gateway, gateway_type):
+	"""The template a gateway uses when its Webshop Payment Method names no path: its settings', else its type."""
+	return _TEMPLATE_OF_SETTINGS.get(gateway.get("gateway_settings")) or gateway_type
+
+
 def get_gateway_configuration(payment_method, payment_gateway_account=None):
     """Gets the JSON configuration for a given payment method
     
