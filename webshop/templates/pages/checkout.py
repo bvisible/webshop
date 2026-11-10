@@ -442,6 +442,9 @@ def get_context(context):
 
 	return context
 
+# //// Neoffice — it reads the signed-in buyer's own cart (_get_cart_quotation) and the public shipping
+# //// rules, nothing else: the web-method permission gate is told so, on the line below (#2452).
+# permission-check: ok the caller's own cart and the public shipping rules
 @frappe.whitelist()
 def get_shipping_methods():
 	"""Get available shipping methods based on the cart items and shipping/billing address"""
