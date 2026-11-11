@@ -415,18 +415,8 @@ frappe.ready(() => {
 {% endif %}
 
 <script>
-	function g(rolls) {
-		const data = "qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM";
-		let result = "";
-		while (rolls >= 1) {
-			const randomIndex = Math.floor(Math.random() * data.length);
-			const c = data[randomIndex];
-			result = c + result; // Add character at beginning of string
-			rolls--;
-		}
-		return result.toUpperCase();
-	}
-	
+	//// Neoffice — the page no longer makes the code of a gift card (#953): it drew it in the buyer's browser (a predictable generator), asked
+	//// the server whether it was free, and the server kept it. The server mints the code when the card's invoice is paid.
 	frappe.ready(() => {
 		$('input[name="gift_card_amount"]').on('change', async function() {
 			const isCustom = $(this).val() === 'custom';
@@ -595,41 +585,13 @@ frappe.ready(() => {
 					amount = parseFloat($selectedAmount.val());
 				}
 				
-				// Function to generate unique code
-				const generateUniqueCode = () => {
-					return new Promise((resolve, reject) => {
-						const checkCode = (code) => {
-							frappe.call({
-								method: "webshop.webshop.shopping_cart.cart.check_gift_cards",
-								args: { code: code },
-								callback: function(r) {
-									if (r.message) {
-										// Code exists, generate a new one
-										const newCode = g(4) + "-" + g(4) + "-" + g(4);
-										checkCode(newCode);
-									} else {
-										// Code does not exist, use it
-										resolve(code);
-									}
-								},
-								error: function(r) {
-									reject(r);
-								}
-							});
-						};
-						
-						// First attempt with a code
-						const initialCode = g(4) + "-" + g(4) + "-" + g(4);
-						checkCode(initialCode);
-					});
-				};
-				
-				// Generate unique code
-				generateUniqueCode()
-					.then(uniqueCode => {
+				//// Neoffice — no code is made here any more, nor asked for: the server mints it (#953). The promise keeps the shape of
+				//// the call below.
+				Promise.resolve()
+					.then(() => {
 						// Prepare gift card data
 						gift_card_data = {
-							code: uniqueCode,
+							//// Neoffice — no `code` any more: the server mints it when the card's invoice is paid (#953)
 							price_list_rate: amount,
 							rate: amount,
 							amount_type: $selectedAmount.val(),

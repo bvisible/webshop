@@ -1360,10 +1360,37 @@ def _refuse_unpublished_item(item_code, qty):
 def _gift_card_data_at(data, amount):
 	"""The line's data at the checked amount: set_price_list_and_rate reads its rate back at every save."""
 	data = dict(data) if isinstance(data, dict) else {}
-	if not isinstance(data.get("code"), str):
-		data.pop("code", None)
+	# //// Neoffice — the code of a card is the server's, minted when its invoice is paid (#953): the item page chose it in the
+	# //// buyer's browser (a predictable generator) and the server took it as it came. Whatever code a request carries is dropped here.
+	data.pop("code", None)
+	data.pop("codes", None)
 	data.update(rate=amount, price_list_rate=amount)
 	return data
+
+
+# //// Neoffice — added (#953): the code of a gift card, minted by the server from `secrets` in the format the item page used
+# //// (three groups of four letters and digits), one no card of the site already has.
+GIFT_CARD_CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+
+def _new_gift_card_code():
+	"""A gift card code nobody chose: twelve characters of `secrets`, as XXXX-XXXX-XXXX, free on this site."""
+	for _attempt in range(20):
+		code = "-".join("".join(secrets.choice(GIFT_CARD_CODE_ALPHABET) for _ in range(4)) for _ in range(3))
+		if not frappe.db.exists("Coupon Code", {"coupon_code": code}):
+			return code
+	frappe.throw(_("Please try again"))
+
+
+# //// Neoffice — added (#953): whether the cards of an invoice's line were already made. The hook runs at the invoice's submit and
+# //// at each payment of it; it looked for the code the browser had chosen. The codes are the server's now, written back on the line
+# //// once minted (`codes`); a line from before keeps its browser `code`, read only to find a card already made, never to make one.
+def _cards_of_the_line_exist(data):
+	data = data if isinstance(data, dict) else {}
+	codes = [code for code in (data.get("codes") or []) if isinstance(code, str)]
+	if isinstance(data.get("code"), str):
+		codes.append(data["code"])
+	return any(frappe.db.exists("Coupon Code", {"coupon_code": code}) for code in codes)
 
 
 # //// Neoffice — multi-warehouse: `warehouse` selects the stock source of the line. None keeps the
@@ -4150,10 +4177,9 @@ def create_gift_cards_from_invoice(doc, method=None):
 				continue
 				
 			gift_card_data = json.loads(item.gift_card_data) if item.gift_card_data else None
-			if gift_card_data and gift_card_data.get("code"):
-				# Check if gift card code already exists
-				if frappe.db.exists("Coupon Code", {"coupon_code": gift_card_data.get("code")}):
-					return
+			# //// Neoffice — the cards of the line already made: by the codes the server minted (#953), see _cards_of_the_line_exist
+			if _cards_of_the_line_exist(gift_card_data):
+				return
 
 		# Check validity settings in Webshop Settings
 		settings = frappe.get_single("Webshop Settings")
@@ -4200,23 +4226,14 @@ def create_gift_cards_from_invoice(doc, method=None):
 					raise
 
 			# Create a gift card for each quantity
+			# //// Neoffice — the codes minted for this line, written back on it below (#953)
+			minted = []
 			for i in range(cint(item.qty)):
 				try:
-					# Get coupon_code in gift_card_data field
-					gift_card_data = json.loads(item.gift_card_data) if item.gift_card_data else None
-					base_coupon_code = gift_card_data.get("code") if gift_card_data else None
-
-					# Generate unique coupon_code for each quantity
-					# If qty > 1, append index to make it unique
-					if cint(item.qty) > 1 and base_coupon_code:
-						coupon_code = f"{base_coupon_code}-{i+1}"
-					elif not base_coupon_code:
-						# Generate a random unique code if none provided
-						import string
-						# //// Neoffice — secrets, not random: a coupon code is a token of value (#953).
-						coupon_code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(10))
-					else:
-						coupon_code = base_coupon_code
+					# //// Neoffice — every card gets a code of the server's own (#953): the line's code was the one the buyer's browser
+					# //// had chosen (suffixed -1, -2 for a quantity), and a line without one got ten characters.
+					coupon_code = _new_gift_card_code()
+					minted.append(coupon_code)
 
 					# Build unique coupon_name with index when qty > 1
 					if cint(item.qty) > 1:
@@ -4294,6 +4311,17 @@ def create_gift_cards_from_invoice(doc, method=None):
 				except Exception as e:
 					frappe.log_error("Gift Card - Error creation",f"Error creating Gift Card: {str(e)}\nData: {gift_card.as_dict() if 'gift_card' in locals() else 'Not created'}")
 					raise
+
+			# //// Neoffice — the line keeps the codes of its cards (#953): the next run of the hook (a payment of the invoice) finds them
+			# //// and makes no second card; the browser's code, if a line from before carried one, goes.
+			if minted:
+				line_data = json.loads(item.gift_card_data) if item.gift_card_data else {}
+				line_data = line_data if isinstance(line_data, dict) else {}
+				line_data.pop("code", None)
+				line_data["codes"] = minted
+				frappe.db.set_value(
+					"Sales Invoice Item", item.name, "gift_card_data", json.dumps(line_data), update_modified=False
+				)
 
 	except Exception as e:
 		frappe.log_error("Gift Card - General error",f"General error creating Gift Card: {str(e)}")
