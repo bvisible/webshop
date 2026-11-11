@@ -14,6 +14,25 @@ STAFF_BUYER = "staff-buyer-2450@yopmail.com"
 BUYER_CUSTOMER = "_Test Staff Buyer 2450"
 
 
+def _a_leaf_customer_group():
+	"""A customer group that is not a folder: a fresh site defaults to the root, a folder."""
+	leaf = frappe.db.get_value("Customer Group", {"is_group": 0}, "name")
+	if leaf:
+		return leaf
+	root = frappe.db.get_value(
+		"Customer Group", {"is_group": 1, "parent_customer_group": ("is", "not set")}, "name"
+	)
+	group = frappe.get_doc(
+		{
+			"doctype": "Customer Group",
+			"customer_group_name": "_Test Leaf 2450",
+			"is_group": 0,
+			"parent_customer_group": root,
+		}
+	)
+	return group.insert(ignore_permissions=True).name
+
+
 class TestAStaffAccountIsNotAShopCustomer(FrappeTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -47,7 +66,13 @@ class TestAStaffAccountIsNotAShopCustomer(FrappeTestCase):
 		# Administrator prepares the scenery: a staff member who also buys, linked to their Customer by hand
 		make_persona("sales_user", STAFF_BUYER)
 		customer = frappe.new_doc("Customer")
-		customer.update({"customer_name": BUYER_CUSTOMER, "customer_type": "Individual"})
+		customer.update(
+			{
+				"customer_name": BUYER_CUSTOMER,
+				"customer_type": "Individual",
+				"customer_group": _a_leaf_customer_group(),
+			}
+		)
 		customer.append("portal_users", {"user": STAFF_BUYER})
 		customer.flags.ignore_mandatory = True
 		customer.insert(ignore_permissions=True)
