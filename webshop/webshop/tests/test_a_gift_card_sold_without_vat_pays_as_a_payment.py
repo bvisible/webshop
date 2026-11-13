@@ -212,7 +212,7 @@ def _a_company_with_a_debt_account():
 
 
 @unittest.skipUnless(_the_site_has_the_columns(), "POS Next does not describe how a card was sold on this site")
-class TestTheBooksOfAnOrderPaidInPartByACard(FrappeTestCase):
+class TestTheBooksOfAnOrderPaidInPartByACard(FrappeTestCase):  # role-check: ok the books are the subject: the shop makes and books its orders with its own rights, Administrator's (shop_rights, #277), and the gateway's class below plays them as the buyer
 	PRICE = 108.10  # VAT included: 100.00 and 8.10
 	CARD_AMOUNT = 40.00
 
@@ -540,3 +540,130 @@ class TestTheBooksOfAnOrderPaidInPartByACard(FrappeTestCase):
 
 		self.assertEqual(order.discount_amount, 40.0)
 		self.assertFalse(order.get("gift_card_paid_amount"))
+
+
+# ---------------------------------------------------------------------------------------------- the gateway's way
+
+from webshop.controllers.payment_handler import PaymentHandler  # noqa: E402
+from webshop.webshop.shopping_cart.test_loyalty_rights import (  # noqa: E402
+	CUSTOMER as SHOP_CUSTOMER,
+	GATEWAY as SHOP_GATEWAY,
+	PRICE as SHOP_PRICE,
+	USER as SHOP_USER,
+	ITEM as SHOP_ITEM,
+	ShopFixture,
+	no_gateway,
+	upstream_checks,
+)
+
+
+@unittest.skipUnless(_the_site_has_the_columns(), "POS Next does not describe how a card was sold on this site")
+class TestAnOrderOfTheGatewayPaidInPartByACard(ShopFixture):
+	"""The order the gateway's return makes (handle_payment_success), under upstream's checks, with a card applied to the cart."""
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		self.debt_account = frappe.db.get_value(
+			"Account",
+			{
+				"company": self.company,
+				"root_type": "Liability",
+				"is_group": 0,
+				"disabled": 0,
+				"account_type": ["in", ["", "Income Account"]],
+			},
+			"name",
+		)
+		if not self.debt_account:
+			self.skipTest("no debt account in the shop's company")
+		self.card_amount = round(SHOP_PRICE / 2, 2)
+		self.card = frappe.get_doc(
+			{
+				"doctype": "Coupon Code",
+				"coupon_name": "Test gateway card 2639 %s" % frappe.generate_hash(length=6),
+				"coupon_type": "Gift Card",
+				"pricing_rule": cart._gift_card_rule(self.card_amount),
+				"customer": SHOP_CUSTOMER,
+				"coupon_code": frappe.generate_hash(length=10).upper(),
+				"valid_from": nowdate(),
+				"valid_upto": add_days(nowdate(), 30),
+				"maximum_use": 9999,
+				"used": 0,
+				"gift_card_amount": self.card_amount,
+				card_payment.ORIGIN: "Sold without VAT",
+				card_payment.SALE_ACCOUNT: self.debt_account,
+			}
+		).insert(ignore_permissions=True)
+
+	def the_cart_with_the_card(self):
+		frappe.set_user(SHOP_USER)
+		with upstream_checks():
+			cart.update_cart(SHOP_ITEM, 1)
+			cart.get_cart_quotation()
+			quotation = cart._get_cart_quotation()
+			total = flt(quotation.rounded_total or quotation.grand_total, 2)
+			cart.apply_coupon_code(self.card.name)
+			quotation = cart._get_cart_quotation()
+		frappe.set_user("Administrator")
+		return quotation, total
+
+	def the_money_comes(self, quotation):
+		frappe.set_user(SHOP_USER)
+		with upstream_checks():
+			request = PaymentHandler().create_payment_request(
+				quotation_id=quotation.name, payment_gateway=SHOP_GATEWAY, idempotency_token="T2639-%s" % frappe.generate_hash(length=10)
+			)["payment_request_id"]
+		frappe.set_user("Administrator")
+		frappe.db.commit()
+		self.stripe_has_charged(request)
+		frappe.set_user(SHOP_USER)
+		with upstream_checks(), no_gateway():
+			result = PaymentHandler().handle_payment_success(payment_request_id=request)
+		frappe.set_user("Administrator")
+		return request, result
+
+	def test_the_gateway_asks_for_what_the_card_leaves_and_the_order_is_at_the_full_price(self):
+		quotation, total = self.the_cart_with_the_card()
+		self.assertEqual(quotation.discount_amount, self.card_amount, "the cart still shows the card as a discount")
+
+		request, result = self.the_money_comes(quotation)
+
+		self.assertEqual(result.get("status"), "success", (result, self.last_error()))
+		self.assertEqual(frappe.db.get_value("Payment Request", request, "grand_total"), flt(total - self.card_amount, 2))
+		order = frappe.get_doc("Sales Order", frappe.db.get_value("Payment Request", request, "reference_name"))
+		self.assertEqual(order.discount_amount, 0)
+		self.assertEqual(flt(order.rounded_total or order.grand_total, 2), total, "the order says the full price")
+		self.assertEqual((order.gift_card_paid_with, order.gift_card_paid_amount), (self.card.name, self.card_amount))
+		self.assertEqual(frappe.db.get_value("Journal Entry", order.gift_card_journal, "docstatus"), 1)
+		self.assertEqual(frappe.db.get_value("Coupon Code", self.card.name, ["gift_card_amount", "used"], as_dict=True), {"gift_card_amount": 0, "used": 1})
+
+	def test_the_invoice_takes_the_card_and_the_gateways_payment_closes_it(self):
+		quotation, total = self.the_cart_with_the_card()
+
+		request, result = self.the_money_comes(quotation)
+
+		self.assertEqual(result.get("status"), "success", (result, self.last_error()))
+		order = frappe.db.get_value("Payment Request", request, "reference_name")
+		invoice = frappe.get_doc("Sales Invoice", frappe.db.get_value("Sales Invoice Item", {"sales_order": order, "docstatus": 1}, "parent"))
+		self.assertEqual(flt(invoice.rounded_total or invoice.grand_total, 2), total)
+		self.assertEqual(invoice.total_advance, self.card_amount)
+		self.assertEqual(invoice.outstanding_amount, 0, "the card and the gateway paid it all")
+		entries = frappe.get_all("Payment Entry Reference", filters={"reference_name": invoice.name, "docstatus": 1}, pluck="parent")
+		self.assertEqual([frappe.db.get_value("Payment Entry", entry, "paid_amount") for entry in entries], [flt(total - self.card_amount, 2)])
+
+	def test_a_gateway_order_cancelled_gives_the_card_back(self):
+		quotation, _ = self.the_cart_with_the_card()
+		request, result = self.the_money_comes(quotation)
+		self.assertEqual(result.get("status"), "success", (result, self.last_error()))
+		order = frappe.db.get_value("Payment Request", request, "reference_name")
+		invoice = frappe.db.get_value("Sales Invoice Item", {"sales_order": order, "docstatus": 1}, "parent")
+		for entry in frappe.get_all("Payment Entry Reference", filters={"reference_name": invoice, "docstatus": 1}, pluck="parent"):
+			frappe.get_doc("Payment Entry", entry).cancel()
+		frappe.get_doc("Sales Invoice", invoice).cancel()
+		# the gateway's request stands on the order: it goes first, as at the desk
+		frappe.get_doc("Payment Request", request).cancel()
+
+		frappe.get_doc("Sales Order", order).cancel()
+
+		self.assertEqual(frappe.db.get_value("Coupon Code", self.card.name, ["gift_card_amount", "used"], as_dict=True), {"gift_card_amount": self.card_amount, "used": 0})
