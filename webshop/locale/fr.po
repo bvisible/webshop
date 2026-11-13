@@ -1314,7 +1314,7 @@ msgstr ""
 #: webshop/templates/pages/cgv.py:20 webshop/templates/pages/cgv.py:27
 #: webshop/templates/pages/cgv.py:28 webshop/templates/pages/checkout.html:398
 msgid "Conditions Générales de Vente"
-msgstr ""
+msgstr "Conditions générales de vente"
 
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:314
 #: webshop/webshop/doctype/webshop_settings/webshop_settings.js:325
@@ -4401,7 +4401,7 @@ msgstr "Parler à quelqu'un"
 
 #: webshop/webshop/assistant/escalation.py:159
 msgid "Pas de helpdesk sur cette boutique : la demande est partie à l'équipe par message."
-msgstr ""
+msgstr "Aucun helpdesk sur cette boutique : la demande a été transmise à l'équipe par message."
 
 #: webshop/public/js/auth_dialog.js:121
 msgid "Password"
@@ -11878,3 +11878,129 @@ msgstr "Votre carte cadeau {0} a réglé {1} de votre commande {2}."
 #, python-brace-format
 msgid "Your gift card: {0} left"
 msgstr "Votre carte cadeau : il reste {0}"
+
+#: webshop/webshop/shopping_cart/guest_cart.py:63
+#, python-brace-format
+msgid "At most {0} lines per cart."
+msgstr "Maximum {0} lignes par panier."
+
+#: webshop/webshop/shopping_cart/gift_card_payment.py:157
+#, python-brace-format
+msgid "Gift card {0} paid {1} of order {2}"
+msgstr "La carte cadeau {0} a payé {1} de la commande {2}"
+
+#: webshop/webshop/shopping_cart/gift_card_payment.py:218
+#, python-brace-format
+msgid "Given back: {0}. Left on the card: {1}."
+msgstr "Restitué : {0}. Solde sur la carte : {1}."
+
+#: webshop/webshop/seo/feeds/google_languages.py:84
+#, python-brace-format
+msgid "legal pages still in the site's language: {0}"
+msgstr "pages légales encore dans la langue du site : {0}"
+
+#: webshop/controllers/payment_handler.py:111
+#, python-brace-format
+msgid "No account of payment gateway {0} for company {1}"
+msgstr "Aucun compte de la passerelle de paiement {0} pour la société {1}"
+
+#: webshop/webshop/seo/feeds/google_languages.py:77
+msgid "no product is translated yet"
+msgstr "aucun produit n'est encore traduit"
+
+#: webshop/webshop/seo/feeds/google_languages.py:201
+#, python-brace-format
+msgid "Not ready: {0}"
+msgstr "Pas prêt : {0}"
+
+#: webshop/webshop/seo/score.py:748
+#, python-brace-format
+msgid "Not translated yet into {0}"
+msgstr "Pas encore traduit en {0}"
+
+#: webshop/templates/includes/order/order_taxes.html:169
+#: webshop/templates/pages/thank_you.html:191
+msgid "Paid by gift card"
+msgstr "Payé par carte cadeau"
+
+#: webshop/webshop/seo/feeds/google_languages.py:199
+msgid "Ready for Merchant Center"
+msgstr "Prêt pour Merchant Center"
+
+#: webshop/webshop/shopping_cart/gift_card_payment.py:127
+msgid "The account of this gift card's sale cannot take its payment. Ask the shop."
+msgstr "Le compte de la vente de cette carte cadeau ne peut pas encaisser le paiement. Adressez-vous à la boutique."
+
+#: webshop/webshop/utils/cart_helpers.py:328
+#: webshop/webshop/utils/cart_helpers.py:392
+msgid "The cart could not be updated."
+msgstr "Le panier n'a pas pu être mis à jour."
+
+#: webshop/webshop/shopping_cart/gift_card_payment.py:229
+#, python-brace-format
+msgid "The journal entry {0} that booked {1} paid by a gift card was cancelled: the card has its balance back."
+msgstr "L'écriture de journal {0} qui a comptabilisé {1} payé par carte cadeau a été annulée : le solde de la carte est rétabli."
+
+#: webshop/webshop/seo/feeds/google_languages.py:207
+msgid "the product is not translated into this language yet"
+msgstr "le produit n'est pas encore traduit dans cette langue"
+
+#: webshop/webshop/seo/feeds/google.py:188
+msgid "the products are shown to signed-in customers only"
+msgstr "les produits ne sont affichés qu'aux clients connectés"
+
+#: webshop/webshop/seo/feeds/google_languages.py:81
+msgid "the shop's own texts (cart, checkout) have no translation in this language"
+msgstr "les textes propres à la boutique (panier, paiement) ne sont pas traduits dans cette langue"
+
+#: webshop/webshop/auth/api.py:305
+msgid "This account finishes signing in on the sign-in page."
+msgstr "Ce compte achève sa connexion sur la page de connexion."
+
+#: webshop/templates/pages/order.py:157
+msgid "This order can no longer be paid."
+msgstr "Cette commande ne peut plus être payée."
+
+#: webshop/controllers/payment_handler.py:1138
+#: webshop/webshop/shopping_cart/cart.py:841
+msgid "This order has an amount to pay. Please choose a payment method."
+msgstr "Cette commande a un montant à payer. Veuillez choisir un mode de paiement."
+
+#: webshop/webshop/shopping_cart/cart.py:3227
+msgid "This shipping method is not available."
+msgstr "Ce mode de livraison n'est pas disponible."
+
+#: webshop/webshop/shopping_cart/cart.py:839
+msgid "This shop takes requests for a quote, not orders."
+msgstr "Cette boutique accepte des demandes de devis, et non des commandes."
+
+#: webshop/webshop/auth/api.py:353
+msgid "Too many failed attempts. Please try again later."
+msgstr "Trop de tentatives échouées. Veuillez réessayer plus tard."
+
+#: webshop/webshop/seo/score.py:749
+#, python-brace-format
+msgid "Translated into {0}"
+msgstr "Traduit en {0}"
+
+#: webshop/webshop/seo/score.py:746
+#, python-brace-format
+msgid "Translated into {0}; not yet into {1}"
+msgstr "Traduit en {0} ; pas encore en {1}"
+
+#: webshop/webshop/seo/feeds/google_languages.py:79
+#, python-brace-format
+msgid "{0} products the French feed sends are not translated yet"
+msgstr "{0} produits envoyés dans le flux français ne sont pas encore traduits"
+
+#: webshop/patches/add_gift_card_payment_fields_to_sales_order.py:11
+msgid "Paid with Gift Card"
+msgstr "Payé avec une carte cadeau"
+
+#: webshop/patches/add_gift_card_payment_fields_to_sales_order.py:18
+msgid "Paid by Gift Card"
+msgstr "Payé par carte cadeau"
+
+#: webshop/patches/add_gift_card_payment_fields_to_sales_order.py:25
+msgid "Gift Card Journal Entry"
+msgstr "Écriture de journal de la carte cadeau"
