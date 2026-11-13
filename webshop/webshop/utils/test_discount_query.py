@@ -23,6 +23,7 @@ from frappe.utils import add_days, nowdate
 
 from webshop.webshop.tests.utils import (
 	default_company,
+	leaf_customer_group,
 	leaf_item_group,
 	root_customer_group,
 	selling_price_list,
@@ -36,12 +37,25 @@ from webshop.webshop.utils.discount_query import (
 PREFIX = "_Test Discount Query"
 
 
+def _a_customer_group():
+	"""A customer group of the module's own, for a site that has none at all."""
+	name = f"{PREFIX} Group"
+	if not frappe.db.exists("Customer Group", name):
+		frappe.get_doc({"doctype": "Customer Group", "customer_group_name": name, "is_group": 0}).insert(
+			ignore_permissions=True
+		)
+	return name
+
+
 class TestDiscountQuery(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		cls.company = default_company()
 		cls.price_list = selling_price_list()
-		cls.customer_group = root_customer_group()
+		# The CI workflow installs upstream ERPNext on a fresh site: since v15.125.0 it may hold no
+		# customer group at lft 1, and a None group failed every rule here ("Customer Group is
+		# required"). Any group of the site will do: the rule and the query name the same one.
+		cls.customer_group = root_customer_group() or leaf_customer_group() or _a_customer_group()
 		cls.compare_at = f"{PREFIX} Compare At"
 		cls.item_code = f"{PREFIX} Item"
 		cls.item_group = leaf_item_group()
