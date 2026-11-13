@@ -2451,6 +2451,23 @@ delivery estimate (`decorate_cart_line` skips it).
 > tax template applies; a multi-purpose voucher is normally taxed at redemption) and
 > loyalty points earned on buying one.
 
+> **A card sold WITHOUT VAT pays an order as a PAYMENT, not as a discount**
+> (`shopping_cart/gift_card_payment.py`, maintenance#2639; measured on osiris 2026-11-13).
+> As a discount it took the VAT off the order a second time (a 40.- card on a 108.10 cart
+> left 5.10 of VAT instead of 8.10) and never cleared the debt account its sale had
+> credited. How a card was sold is POS Next's `pos_next_origin` / `pos_next_sale_account`
+> on Coupon Code (COPIED here, as the rule above: a site without them keeps the
+> discount); `create_gift_cards_from_invoice` sets them on a new card from the sale line.
+> For a payment the CART still shows the card as a discount (what the buyer pays), the
+> ORDER is made at its full price with `gift_card_paid_with` / `gift_card_paid_amount` /
+> `gift_card_journal`, and once it is submitted a journal entry books the card's part:
+> debit the sale account, credit the customer, the order as its reference (an advance).
+> `before_validate` of a Sales Invoice pulls it into an invoice made from the order,
+> because ERPNext does not when an invoice is made from an order (measured). Cancelling the
+> journal, alone or through its order, gives the card its balance back
+> (`give_the_card_back`); `gift_card_journal` is a Data field on purpose: a Link would
+> forbid cancelling the journal on its own.
+
 ### Multi-warehouse on the product page
 
 When a product has several sources, the buy column offers one radio per source with

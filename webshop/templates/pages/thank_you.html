@@ -183,6 +183,20 @@
                                                     <td colspan="2" class="text-right"><strong>{{ _("Total") }}</strong></td>
                                                     <td class="text-right"><strong>{{ webshop_fmt_money(doc.rounded_total, currency=doc.currency) }}</strong></td>
                                                 </tr>
+                                                {# //// Neoffice — a gift card sold without VAT pays as a payment (maintenance#2639): the order says its full
+                                                   price, then what the card paid and what is left to pay. #}
+                                                {% if doc.get('gift_card_paid_amount') %}
+                                                <tr>
+                                                    <td></td>
+                                                    <td colspan="2" class="text-right text-success">{{ _("Paid by gift card") }}</td>
+                                                    <td class="text-right text-success">-{{ webshop_fmt_money(doc.gift_card_paid_amount, currency=doc.currency) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td></td>
+                                                    <td colspan="2" class="text-right"><strong>{{ _("Left to pay") }}</strong></td>
+                                                    <td class="text-right"><strong>{{ webshop_fmt_money(max(0, doc.rounded_total - doc.gift_card_paid_amount), currency=doc.currency) }}</strong></td>
+                                                </tr>
+                                                {% endif %}
                                             </tfoot>
                                         </table>
                                     </div>

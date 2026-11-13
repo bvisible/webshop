@@ -76,3 +76,5 @@ webshop.patches.add_my_brand_portal_menu
 webshop.patches.add_my_catalogues_portal_menu
 # //// Neoffice — the reseller's integration page in the account menu of existing sites (2026-11-01)
 webshop.patches.add_my_integration_portal_menu
+# //// Neoffice — an order paid in part by a gift card sold without VAT keeps its full price, and says which card paid, how much and the journal entry that books it (2026-11-13, #2639)
+webshop.patches.add_gift_card_payment_fields_to_sales_order

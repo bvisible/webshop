@@ -16,6 +16,8 @@ from webshop.webshop.shopping_cart.cart import (
 # //// Neoffice — the placeholder order a cart's payment request is raised on (pending_order.py), and what proves
 # //// a request was paid (payment_proof.py, maintenance#1807).
 from webshop.webshop.shopping_cart import payment_proof, pending_order
+# //// Neoffice — a card sold without VAT pays as a payment, not a discount (maintenance#2639).
+from webshop.webshop.shopping_cart import gift_card_payment as card_payment
 # //// Neoffice — #277: the customer's session reads neither Item nor Account (shop_rights.py).
 # //// Neoffice — #2114: the payment terms schedule is computed with the shop's rights too (payment_schedule_for).
 from webshop.webshop.shopping_cart.shop_rights import payment_schedule_for, save_as_shop, shop_rights
@@ -621,16 +623,33 @@ class PaymentHandler:
                 if quotation.discount_amount:
                     sales_order.apply_discount_on = quotation.apply_discount_on or "Grand Total"
                     sales_order.discount_amount = quotation.discount_amount
+                    # //// Neoffice — a card sold without VAT pays as a payment (maintenance#2639): the order keeps its full price
+                    # //// and the card's part is booked as a journal entry once the order is submitted, below.
+                    card_payment.put_the_card_on_the_order(sales_order, quotation)
 
                 # Preserve gift card coupon code if quotation has one
                 # //// Neoffice — never a card of the till: ERPNext counts the order's coupon as used, and
                 # //// the order failed after the capture with "Allowed quantity is exhausted".
-                coupon_code = _coupon_of_the_order(quotation)
+                # //// Neoffice — nor a card that pays by journal entry: its Pricing Rule would discount the order again (#2639).
+                coupon_code = None if sales_order.get("gift_card_paid_amount") else _coupon_of_the_order(quotation)
                 if coupon_code:
                     sales_order.coupon_code = coupon_code
 
                 sales_order.submit()
                 sales_order_name = sales_order.name
+
+                # //// Neoffice — the money is captured: a card payment that cannot be booked never fails the order, it goes to the
+                # //// Error Log and leaves the card as it was (the savepoint undoes the part of the card already taken) (#2639).
+                if sales_order.get("gift_card_paid_amount"):
+                    frappe.db.savepoint("gift_card_payment")
+                    try:
+                        card_payment.book_the_card(sales_order, strict=False)
+                    except Exception:
+                        frappe.db.rollback(save_point="gift_card_payment")
+                        frappe.log_error(
+                            "Webshop: a gift card payment was not booked",
+                            f"order={sales_order_name}\n{frappe.get_traceback()}",
+                        )
 
                 if not sales_order_name:
                     return self.handle_error("Error creating order")

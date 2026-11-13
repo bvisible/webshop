@@ -314,6 +314,8 @@ doc_events = {
 		],
 	},
 	"Sales Invoice": {
+		# //// Neoffice — an invoice made from an order paid in part by a gift card takes the card's journal entry as its advance (#2639)
+		"before_validate": "webshop.webshop.shopping_cart.gift_card_payment.pull_the_card_into_the_invoice",
 		"validate": "webshop.webshop.crud_events.sales_invoice.validate",
 		"on_submit": [
 			"webshop.webshop.crud_events.sales_invoice.on_submit",
@@ -329,6 +331,10 @@ doc_events = {
 	},
 	"Payment Entry": {
 		"on_submit": ["webshop.webshop.shopping_cart.cart.check_gift_cards_from_payment"]
+	},
+	# //// Neoffice — the journal entry that books what a gift card paid of an order: cancelled, alone or with its order, it gives the card its balance back (#2639)
+	"Journal Entry": {
+		"on_cancel": ["webshop.webshop.shopping_cart.gift_card_payment.give_the_card_back"],
 	},
 	# //// Neoffice — second-hand (2026-09-14): a used unit is one of a kind, so the stock ledger
 	# //// decides whether it is still in the catalogue (Website Item.sold, utils/used_items.py).

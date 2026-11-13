@@ -160,3 +160,27 @@
 		</div>
 	</div>
 </div>
+
+{# //// Neoffice — a gift card sold without VAT pays as a payment (maintenance#2639): the order keeps its full price, then says what the card paid and what is left to pay. #}
+{% if doc.doctype == 'Sales Order' and doc.get('gift_card_paid_amount') %}
+	<div class="w-100 mt-5 order-taxes">
+		<div class="col-4 d-flex border-btm pb-5">
+			<div class="item-grand-total col-8">
+				{{ _("Paid by gift card") }}
+			</div>
+			<div class="item-grand-total col-4 text-right pr-0">
+				-{{ webshop_fmt_money(doc.gift_card_paid_amount, currency=doc.currency) }}
+			</div>
+		</div>
+	</div>
+	<div class="w-100 mt-5 order-taxes font-weight-bold">
+		<div class="col-4 d-flex">
+			<div class="item-grand-total col-8">
+				{{ _("Left to pay") }}
+			</div>
+			<div class="item-grand-total col-4 text-right pr-0">
+				{{ webshop_fmt_money(max(0, (doc.rounded_total or doc.grand_total) - doc.gift_card_paid_amount), currency=doc.currency) }}
+			</div>
+		</div>
+	</div>
+{% endif %}

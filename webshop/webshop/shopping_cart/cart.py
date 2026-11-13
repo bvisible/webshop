@@ -27,6 +27,8 @@ from erpnext.accounts.utils import get_account_name
 # //// Neoffice — see webshop/shopping_cart/shop_rights.py (#277): upstream v15 checks
 # //// Item and Account read on the SESSION user inside the quotation's validate.
 from webshop.webshop.shopping_cart.shop_rights import save_as_shop, shop_rights
+# //// Neoffice — a card sold without VAT pays as a payment, not a discount (maintenance#2639): see gift_card_payment.py
+from webshop.webshop.shopping_cart import gift_card_payment as card_payment
 # //// Neoffice — added imports, and the block below is re-indented from four spaces
 # //// to tabs by our editor config (no behaviour change; take OUR side on the
 # //// whitespace at the merge). get_price applies Pricing Rules to a cart line — our
@@ -606,6 +608,10 @@ def give_gift_card_back(doc, method=None):
 	"""`on_cancel` of Sales Order: a cancelled order gives back what it took off its card, used mark included."""
 	if doc.order_type != "Shopping Cart" or not frappe.get_meta("Quotation").has_field("gift_card_coupon"):
 		return
+	# //// Neoffice — an order whose card paid by journal entry: cancelling its journal gives the card back (gift_card_payment.give_the_card_back) (#2639)
+	if doc.get("gift_card_journal"):
+		card_payment.cancel_the_journal_of(doc)
+		return
 	cart = frappe.db.get_value("Sales Order Item", {"parent": doc.name}, "prevdoc_docname")
 	name = frappe.db.get_value("Quotation", cart, "gift_card_coupon") if cart else None
 	if not name or not _spent_on(name, doc.name):
@@ -636,17 +642,23 @@ def gift_card_of_order(order):
 	"""
 	if not order or not frappe.get_meta("Quotation").has_field("gift_card_coupon"):
 		return None
-	row = frappe.db.get_value("Sales Order", order, ["order_type", "discount_amount", "currency"], as_dict=True)
-	if not row or row.order_type != "Shopping Cart" or flt(row.discount_amount, 2) <= 0:
+	# //// Neoffice — a card that paid by journal entry leaves the order at its full price: what it paid is the order's own field (#2639)
+	fields = ["order_type", "discount_amount", "currency"]
+	if card_payment.order_has_the_columns():
+		fields += ["gift_card_paid_with", "gift_card_paid_amount"]
+	row = frappe.db.get_value("Sales Order", order, fields, as_dict=True)
+	if not row or row.order_type != "Shopping Cart" or card_payment.the_card_part(row) <= 0:
 		return None
 	cart = frappe.db.get_value("Sales Order Item", {"parent": order}, "prevdoc_docname")
-	name = frappe.db.get_value("Quotation", cart, "gift_card_coupon") if cart else None
+	# //// Neoffice — the card an order paid by journal entry is named on the order itself, not on its cart's discount (#2639)
+	name = row.get("gift_card_paid_with") or (frappe.db.get_value("Quotation", cart, "gift_card_coupon") if cart else None)
 	if not name:
 		return None
 	card = frappe.db.get_value("Coupon Code", name, ["coupon_code", "gift_card_amount", "valid_upto"], as_dict=True)
 	if not card:
 		return None
-	spent = flt(row.discount_amount, 2)
+	# //// Neoffice — what it took off: the order's discount, or what the journal entry booked (#2639)
+	spent = card_payment.the_card_part(row)
 	left = flt(card.gift_card_amount, 2)
 	if not _spent_on(name, order):
 		left = max(flt(left - spent, 2), 0)
@@ -916,6 +928,9 @@ def place_order():  # permission-check: ok the session's own cart, no argument
 			if quotation.discount_amount:
 				sales_order.apply_discount_on = "Grand Total"
 				sales_order.discount_amount = quotation.discount_amount
+				# //// Neoffice — a card sold without VAT pays as a payment (maintenance#2639): the order keeps its full price,
+				# //// says what the card pays, and the journal that books it is made once the order is submitted, below.
+				card_payment.put_the_card_on_the_order(sales_order, quotation)
 
 		elif "coupon_code" in coupon_data:
 			# Set coupon code in the sales order
@@ -1006,7 +1021,11 @@ def place_order():  # permission-check: ok the session's own cart, no argument
 	# //// it). The split that stood before the order wrote a spendable card for the amount used, and cut the
 	# //// original from a snapshot.
 	if coupon_data and coupon_data.get("is_gift_card"):
-		spend_gift_card(coupon_data["gift_card_coupon"], sales_order.discount_amount, sales_order.name)
+		# //// Neoffice — a card that pays by journal entry is taken off and booked together (maintenance#2639)
+		if sales_order.get("gift_card_paid_amount"):
+			card_payment.book_the_card(sales_order)
+		else:
+			spend_gift_card(coupon_data["gift_card_coupon"], sales_order.discount_amount, sales_order.name)
 
 	if hasattr(frappe.local, "cookie_manager"):
 		frappe.local.cookie_manager.delete_cookie("cart_count")
@@ -4266,7 +4285,9 @@ def create_gift_cards_from_invoice(doc, method=None):
 						"customer": sales_invoice.customer,
 						"sales_invoice": sales_invoice.name,
 						"gift_card_amount": item.rate,
-						"owner":  customer.portal_users[0].user
+						"owner":  customer.portal_users[0].user,
+						# //// Neoffice — how the card was sold and the account its sale credited, which decide how it is spent (maintenance#2639)
+						**card_payment.origin_of_a_new_card(sales_invoice, item),
 					})
 
 					gift_card.ignore_permissions = True
