@@ -332,5 +332,6 @@
 {% block head_include %}
 {{ super() }}
 {#- //// Neoffice — a page of the category is its own reference (listing_canonical, #691 lot 2) #}
-<link rel="canonical" href="{{ canonical_url or frappe.utils.get_url(doc.route) }}">
+{#- //// Neoffice — the fallback on the domain of the site being browsed too (neoffice-maintenance#2662) #}
+<link rel="canonical" href="{{ canonical_url or webshop_site_url(doc.route) }}">
 {% endblock %}

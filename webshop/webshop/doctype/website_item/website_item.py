@@ -391,8 +391,14 @@ class WebsiteItem(WebsiteGenerator):
 		# //// variant's own page stays for the carts and emails that link it, and names the model's.
 		from webshop.webshop.seo.variants import PARAMETER, chosen_variant, group_model, offered_variants
 
+		# //// Neoffice — on the domain of the site being browsed (neoffice-maintenance#2662, decision D-3):
+		# //// frappe.utils.get_url answers the instance's host_name, so the product page of the second site of
+		# //// an instance named the first site's address as canonical while its sitemap and structured data
+		# //// (site_url) named its own. An instance that resolves no Website Profile gets get_url, as before.
+		from webshop.webshop.multi_site import site_url
+
 		context.group_model = group_model(self, settings)
-		context.canonical_url = frappe.utils.get_url(self.route)
+		context.canonical_url = site_url(self.route)  # //// Neoffice — the browsed site's domain (#2662, above)
 		if context.group_model == self.item_code:
 			context.model_variants = offered_variants(self.item_code, settings)
 			context.chosen_variant = chosen_variant(
@@ -402,7 +408,7 @@ class WebsiteItem(WebsiteGenerator):
 				context.variant_picture = context.chosen_variant.image
 		elif context.group_model:
 			model_route = frappe.db.get_value("Website Item", {"item_code": context.group_model}, "route")
-			context.canonical_url = frappe.utils.get_url(model_route)
+			context.canonical_url = site_url(model_route)  # //// Neoffice — the browsed site's domain (#2662, above)
 		# //// Neoffice — the product's EAN and manufacturer's reference in its characteristics, as
 		# //// text a search finds (#691 plan note 20, B2; Webshop Settings, show_product_identifiers).
 		# //// A model's page prints the chosen variant's, which the variant selector then follows.

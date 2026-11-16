@@ -453,6 +453,20 @@ class TestAModelPage(FrappeTestCase):
 			[v["sku"] for v in page.product_jsonld["hasVariant"]], [v["sku"] for v in model.product_jsonld["hasVariant"]]
 		)
 
+	def test_each_site_of_the_instance_names_its_own_domain_as_canonical(self):
+		# neoffice-maintenance#2662, decision D-3: on the second site of an instance, the product page named the
+		# first site's address (frappe's host_name) while its sitemap and structured data named its own domain.
+		second_site = frappe._dict(name="_WSP Second Site 2662", primary_domain="second-site.example.test")
+		route = frappe.db.get_value("Website Item", {"item_code": MODEL}, "route").strip("/")
+		with patch.object(frappe.local, "website_profile_doc", second_site, create=True):
+			model = self.context(MODEL)
+			variant = self.context(self.codes[("Graphite", "S")])
+		self.assertEqual(model.canonical_url, f"https://second-site.example.test/{route}")
+		self.assertEqual(variant.canonical_url, model.canonical_url, "a variant names its model's page, on this site")
+		# an instance that resolves no site profile (one site) keeps frappe's own address
+		with patch.object(frappe.local, "website_profile_doc", None, create=True):
+			self.assertEqual(self.context(MODEL).canonical_url, frappe.utils.get_url(route))
+
 	def test_the_page_opened_on_a_variant_prints_it(self):
 		code = self.codes[("Graphite", "M")]
 		context = self.context(MODEL, variant=code)
