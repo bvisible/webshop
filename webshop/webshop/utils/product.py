@@ -9,9 +9,13 @@ from erpnext.stock.doctype.warehouse.warehouse import get_child_warehouses
 
 def get_web_item_qty_in_stock(item_code, item_warehouse_field, warehouse=None):
 	in_stock, stock_qty = 0, ""
-	template_item_code, is_stock_item = frappe.db.get_value(
-		"Item", item_code, ["variant_of", "is_stock_item"]
-	)
+	# //// Neoffice — upstream unpacks the Item's row: an Item deleted while its Website Item stayed published gave
+	# //// None, and the page, card or cart that asked raised a TypeError (neoffice-maintenance#2670). An item that
+	# //// does not exist has no stock.
+	item_row = frappe.db.get_value("Item", item_code, ["variant_of", "is_stock_item"])
+	if not item_row:
+		return frappe._dict({"in_stock": 0, "stock_qty": 0, "is_stock_item": 0})
+	template_item_code, is_stock_item = item_row
 
 	if not warehouse:
 		warehouse = frappe.db.get_value("Website Item", {"item_code": item_code}, item_warehouse_field)

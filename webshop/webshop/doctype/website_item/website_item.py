@@ -288,6 +288,12 @@ class WebsiteItem(WebsiteGenerator):
 				self.thumbnail = file_doc.thumbnail_url
 
 	def get_context(self, context):
+		# //// Neoffice — a product page whose Item is gone (deleted by force, or in bulk, while its Website Item stayed
+		# //// published) does not exist: it answered 500 to every visitor, the stock read below unpacking the missing
+		# //// Item (neoffice-maintenance#2670). Not found, before anything of the page is read.
+		if not self.item_code or not frappe.db.exists("Item", self.item_code):
+			raise frappe.PageDoesNotExistError
+
 		# //// Neoffice — a bookable service is not a product, and this page said
 		# //// otherwise: a hotel room came out with "Code article", a stock
 		# //// counter, loyalty points, an inert "Add to cart" and product

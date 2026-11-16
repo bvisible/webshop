@@ -6,10 +6,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 import frappe
+from frappe.tests.roles import as_role
 from frappe.tests.utils import FrappeTestCase
 
 from webshop.webshop.doctype.website_item.test_website_item import create_regular_web_item
-from webshop.webshop.tests.utils import restore_webshop_settings, snapshot_webshop_settings
+from webshop.webshop.tests.utils import leaf_item_group, restore_webshop_settings, snapshot_webshop_settings
 from webshop.webshop.utils.promises import PROMISE_FIELDS
 
 
@@ -25,9 +26,14 @@ class TestProductPage(FrappeTestCase):
 		super().tearDownClass()
 
 	def _published_item(self):
-		name = frappe.db.get_value("Website Item", {"published": 1}, "name")
+		# //// Neoffice — one whose Item exists: a site may hold published pages whose Item was deleted by force, and
+		# //// those answer 404 now (neoffice-maintenance#2670), which these tests are not about.
+		name = frappe.db.sql(
+			"""select w.name from `tabWebsite Item` w join `tabItem` i on i.name = w.item_code
+			where w.published = 1 order by w.name limit 1"""
+		)
 		if name:
-			return frappe.get_doc("Website Item", name)
+			return frappe.get_doc("Website Item", name[0][0])
 		# The per-push CI runs on a fresh site with no published item: make one, so these
 		# tests run on every push and not only in the nightly suite (#399).
 		return create_regular_web_item(web_args={"published": 1})
@@ -121,3 +127,50 @@ class TestProductPage(FrappeTestCase):
 		self.assertTrue(on_its_own.startswith('<h1 class="product-title-main">'), on_its_own)
 		self.assertTrue(on_its_own.endswith("</h1>"), on_its_own)
 
+
+# //// Neoffice — neoffice-maintenance#2670: a published page whose Item is gone.
+class TestAPageWhoseItemIsGone(FrappeTestCase):
+	CODE = "_WSTEST-2670-GONE"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.page = create_regular_web_item(
+			self.CODE,
+			item_args={"item_group": leaf_item_group(), "is_stock_item": 0},
+			web_args={"published": 1},
+		)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+		# whatever a commit on the way kept, by name
+		for name in frappe.get_all("Website Item", {"item_code": self.CODE}, pluck="name"):
+			frappe.db.delete("Website Item", name)
+		if frappe.db.exists("Item", self.CODE):
+			frappe.delete_doc("Item", self.CODE, force=True, ignore_permissions=True)
+		frappe.db.commit()
+
+	def _orphan(self):
+		# What a forced delete made before the hook below existed: the Item row gone, the page still published.
+		frappe.db.delete("Item", self.CODE)
+		return frappe.get_doc("Website Item", self.page.name)
+
+	def test_the_page_is_not_found(self):
+		doc = self._orphan()
+		context = frappe._dict(metatags={}, shopping_cart=frappe._dict(), route=doc.route)
+		with as_role("Guest"):
+			with self.assertRaises(frappe.PageDoesNotExistError):
+				doc.get_context(context)
+
+	def test_its_stock_is_none_rather_than_an_error(self):
+		from webshop.webshop.utils.product import get_web_item_qty_in_stock
+
+		self._orphan()
+		stock = get_web_item_qty_in_stock(self.CODE, "website_warehouse")
+		self.assertEqual((stock.in_stock, stock.stock_qty), (0, 0))
+
+	def test_deleting_the_item_by_force_unpublishes_its_page(self):
+		self.assertEqual(frappe.db.get_value("Website Item", self.page.name, "published"), 1)
+		frappe.delete_doc("Item", self.CODE, force=True, ignore_permissions=True)
+		self.assertFalse(frappe.db.exists("Item", self.CODE))
+		self.assertEqual(frappe.db.get_value("Website Item", self.page.name, "published"), 0)

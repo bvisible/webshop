@@ -242,6 +242,10 @@ doc_events = {
 		"after_rename": [
 			"webshop.webshop.crud_events.item.invalidate_item_variants_cache.execute",
 		],
+		# //// Neoffice — an Item deleted by force leaves no published product page behind (neoffice-maintenance#2670)
+		"after_delete": [
+			"webshop.webshop.crud_events.item.unpublish_website_item.execute",
+		],
 	},
 	"Product Bundle": {
 		"on_update": [
