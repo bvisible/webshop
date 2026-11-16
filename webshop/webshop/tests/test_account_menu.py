@@ -293,3 +293,127 @@ class TestAccountMenu(FrappeTestCase):
 		self.assertFalse(account_menu.heal_stale_roles(CUSTOMER))
 		self.assertFalse(account_menu.heal_stale_roles("Guest"))
 		self.assertFalse(account_menu.heal_stale_roles("Administrator"))
+
+
+# ---------------------------------------------------------------- neoffice-maintenance#2653
+SUPPLIER_ACCOUNT = "_wstest_menu_supplier_2653@yopmail.com"
+BUYER_ACCOUNT = "_wstest_menu_buyer_2653@yopmail.com"
+SUPPLIER = "_WSTEST Menu Supplier 2653"
+BUYER = "_WSTEST Menu Buyer 2653"
+
+ADDRESS_PORTAL = frappe._dict(
+	menu=[
+		frappe._dict(title="Orders", route="/orders", enabled=1, role="Customer"),
+		# ERPNext's own row: « Addresses » for the Customer role
+		frappe._dict(title="Addresses", route="/addresses", enabled=1, role="Customer"),
+	],
+	custom_menu=[],
+	hide_standard_menu=0,
+)
+
+
+def address_portal():
+	"""Portal Settings with ERPNext's « Addresses » row; every other document is the real one."""
+
+	def cached(doctype, *args, **kwargs):
+		return ADDRESS_PORTAL if doctype == "Portal Settings" else _real_get_cached_doc(doctype, *args, **kwargs)
+
+	def doc(*args, **kwargs):
+		return ADDRESS_PORTAL if args and args[0] == "Portal Settings" else _real_get_doc(*args, **kwargs)
+
+	return _Both(
+		patch.object(utils.frappe, "get_cached_doc", side_effect=cached),
+		patch.object(frappe, "get_doc", side_effect=doc),
+	)
+
+
+def _party_of(doctype, name, user):
+	"""A bare Customer or Supplier whose Portal Users hold `user`, as ERPNext links a portal account."""
+	frappe.db.delete("Portal User", {"parenttype": doctype, "parent": name})
+	frappe.db.delete(doctype, {"name": name})
+	party = frappe.new_doc(doctype)
+	party.update({"customer_name": name} if doctype == "Customer" else {"supplier_name": name})
+	party.name = name
+	party.db_insert()
+	row = frappe.get_doc(
+		{"doctype": "Portal User", "parent": name, "parenttype": doctype, "parentfield": "portal_users", "user": user}
+	)
+	row.name = frappe.generate_hash(length=10)
+	row.db_insert()
+
+
+class TestTheAddressBookIsTheCustomers(FrappeTestCase):
+	"""The shop's address book lists a customer's addresses. A supplier's portal account carries the Customer
+	role too (Portal Settings' default role), so ERPNext's « Addresses » entry led it to a 417 error page."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+		for email, roles in ((SUPPLIER_ACCOUNT, ["Supplier", "Customer"]), (BUYER_ACCOUNT, ["Customer"])):
+			if not frappe.db.exists("User", email):
+				user = frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": email,
+						"first_name": email.split("@")[0],
+						"user_type": "Website User",
+						"send_welcome_email": 0,
+						"roles": [{"role": role} for role in roles],
+					}
+				)
+				user.flags.skip_drive_setup = True
+				user.insert(ignore_permissions=True)
+		_party_of("Supplier", SUPPLIER, SUPPLIER_ACCOUNT)
+		_party_of("Customer", BUYER, BUYER_ACCOUNT)
+		frappe.db.commit()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		for doctype, name in (("Supplier", SUPPLIER), ("Customer", BUYER)):
+			frappe.db.delete("Portal User", {"parenttype": doctype, "parent": name})
+			frappe.db.delete(doctype, {"name": name})
+		for email in (SUPPLIER_ACCOUNT, BUYER_ACCOUNT):
+			frappe.delete_doc("User", email, force=1, ignore_permissions=True)
+		frappe.db.commit()
+		super().tearDownClass()
+
+	def setUp(self):
+		for user in (SUPPLIER_ACCOUNT, BUYER_ACCOUNT):
+			frappe.cache.hdel("roles", user)
+			frappe.cache.hdel("portal_menu_items", user)
+		frappe.local.flags.redirect_location = None
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.local.flags.redirect_location = None
+
+	def menu_of(self, user):
+		frappe.set_user(user)
+		context = frappe._dict(path="me", show_sidebar=1)
+		with address_portal():
+			utils.update_website_context(context)
+		return routes(context)
+
+	def test_a_supplier_is_not_offered_the_address_book(self):
+		self.assertEqual(self.menu_of(SUPPLIER_ACCOUNT), ["/orders"])
+
+	def test_a_customer_keeps_the_address_book_in_the_menu(self):
+		self.assertEqual(self.menu_of(BUYER_ACCOUNT), ["/orders", "/my-addresses"])
+
+	def test_a_supplier_opening_the_address_book_is_sent_to_the_account_page(self):
+		from webshop.www import my_addresses
+
+		frappe.set_user(SUPPLIER_ACCOUNT)
+		with self.assertRaises(frappe.Redirect):
+			my_addresses.get_context(frappe._dict())
+		self.assertEqual(frappe.local.flags.redirect_location, "/me")
+
+	def test_a_customer_opens_the_address_book_as_before(self):
+		from webshop.www import my_addresses
+
+		frappe.set_user(BUYER_ACCOUNT)
+		context = my_addresses.get_context(frappe._dict())
+		self.assertEqual((context.party.doctype, context.party.name), ("Customer", BUYER))
+		self.assertIsNone(frappe.local.flags.redirect_location)

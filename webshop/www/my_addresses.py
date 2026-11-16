@@ -1,9 +1,10 @@
 # //// Neoffice — added file (no upstream equivalent). Context of the address book page:
-# //// signs the visitor out to /login when anonymous, and refuses when the account has
-# //// no customer (a807dc8a10, 2026-01-03).
+# //// signs the visitor out to /login when anonymous, and sends an account that has no customer
+# //// to /me (a807dc8a10, 2026-01-03; neoffice-maintenance#2653).
 import frappe
 from frappe import _
 from webshop.webshop.shopping_cart.cart import get_party, get_address_docs
+from webshop.webshop.utils.account_menu import is_supplier_portal_account
 
 
 def get_context(context):
@@ -17,10 +18,14 @@ def get_context(context):
 		frappe.local.flags.redirect_location = "/login?redirect-to=/my-addresses"
 		raise frappe.Redirect
 
-	# Get current customer
-	party = get_party()
-	if not party:
-		frappe.throw(_("No customer account found"))
+	# //// Neoffice — the address book is a customer's (neoffice-maintenance#2653). An account that has no
+	# //// customer (a supplier's portal account) met Frappe's error page here, code 417: it is sent to its
+	# //// account's page instead, never to /login (it is signed in) nor to /app (a portal account has no desk).
+	# //// A supplier is recognised before get_party(), which would otherwise answer with its Supplier.
+	party = None if is_supplier_portal_account() else get_party()
+	if not party or party.doctype != "Customer":
+		frappe.local.flags.redirect_location = "/me"
+		raise frappe.Redirect
 
 	context.party = party
 

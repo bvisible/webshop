@@ -147,6 +147,26 @@ ENTRIES = {
 }
 
 
+# //// Neoffice — the shop's address book (www/my_addresses.py) lists the addresses of a CUSTOMER
+# //// (neoffice-maintenance#2653). ERPNext offers « Addresses » to the Customer role, which Portal Settings'
+# //// default role also gives a supplier's portal account: the link then led the supplier to an error page.
+ADDRESS_BOOK = "/my-addresses"
+
+
+def is_supplier_portal_account(user: str | None = None) -> bool:
+	"""The account is a supplier's on the portal: a portal user of a Supplier and of no Customer.
+
+	ERPNext links a portal account to its party by the party's Portal Users, for a Customer and for a
+	Supplier alike; that link, not a role, says whose account it is.
+	"""
+	user = user or frappe.session.user
+	if not user or user in ("Guest", "Administrator"):
+		return False
+	if not frappe.db.exists("Portal User", {"user": user, "parenttype": "Supplier"}):
+		return False
+	return not frappe.db.exists("Portal User", {"user": user, "parenttype": "Customer"})
+
+
 def adapt_menu(items) -> list:
 	"""The portal's rows as the customer reads them: new addresses, short titles, only what the site offers.
 
@@ -160,6 +180,9 @@ def adapt_menu(items) -> list:
 			continue
 		title, offered = ENTRIES.get(route, (None, None))
 		if offered is not None and not offered():
+			continue
+		# //// Neoffice — a supplier is not offered the customer's address book (neoffice-maintenance#2653)
+		if route == ADDRESS_BOOK and is_supplier_portal_account():
 			continue
 		seen.add(route)
 		row = frappe._dict(item)
