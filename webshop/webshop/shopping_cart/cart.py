@@ -2924,6 +2924,16 @@ def get_party(user=None, ignore_permissions=False):
 				return frappe.get_cached_doc("Customer", customer_name)
 			return frappe.get_doc("Customer", customer_name)
 
+	# //// Neoffice — a desk account (a System User: staff, the demo's own account) is a buyer only through the
+	# //// link made by hand above (the Customer's Portal Users), never through the guesses below. They match the
+	# //// account's e-mail on contacts: the company's generic address, typed in the records of real customers,
+	# //// attached a staff account to the portal of one of them, and its cart then ran in that customer's name
+	# //// (neoffice-maintenance#2450). Nor is it made a shop Customer, for the reason given for Administrator above:
+	# //// browsing the shop minted a Customer named after the account (« admin » on the demo, first in every
+	# //// customer list and in the films of the guided tours), a Portal User row and the Customer role.
+	if is_desk_account(user):
+		return None
+
 	# Try to find via Contact
 	contact_name = get_contact_name(user)
 	party = None
@@ -2937,7 +2947,7 @@ def get_party(user=None, ignore_permissions=False):
 		# //// Neoffice — upstream takes contact.links[0] whatever its type. A contact is also linked to records that
 		# //// are no buyer (the Helpdesk mirror's HD Customer, a Company, a Sales Partner), and the first of them
 		# //// became the cart's party: a staff account whose contact was linked to its HD Customer got a cart and an
-		# //// accepted update_cart, which the desk-account rule below never reached (neoffice-maintenance#2562).
+		# //// accepted update_cart, which the desk-account rule (then further down) never reached (neoffice-maintenance#2562).
 		# //// Only a Customer link is a buyer, else a Supplier (the portal party upstream also serves); a contact
 		# //// linked to nothing else leaves the party to the lookups below.
 		link = _party_link_of(contact)
@@ -3019,13 +3029,8 @@ def get_party(user=None, ignore_permissions=False):
 	# //// the contact lookup. Made a separate `if` so that the three lookups above all get
 	# //// a chance before a SECOND customer is created for the same person — the
 	# //// duplicate-customer bug (0ef0381e9c, 2025-11-25).
-	# //// Neoffice — a desk account (a System User: staff, the demo's own account) is never made a shop Customer
-	# //// either, for the reason given for Administrator above: browsing the shop minted a Customer named after the
-	# //// account (« admin » on the demo, first in every customer list and in the films of the guided tours), a
-	# //// Portal User row and the Customer role (neoffice-maintenance#2450). A staff member who also buys is linked
-	# //// to a Customer by hand (Portal User) and is found by the lookups above; only a Website User gets one made.
-	if is_desk_account(user):
-		return None
+	# //// Neoffice — a desk account never reaches this point (see the Portal User lookup above): only a Website
+	# //// User gets a Customer made (neoffice-maintenance#2450).
 
 	# Only create new customer if we really can't find one
 	if not frappe.db.exists("Portal User", {"user": user}):

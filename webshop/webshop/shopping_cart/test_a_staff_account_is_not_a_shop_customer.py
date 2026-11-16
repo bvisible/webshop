@@ -18,6 +18,9 @@ BUYER_CUSTOMER = "_Test Staff Buyer 2450"
 STAFF_LINKED = "staff-linked-2562@yopmail.com"
 SHOPPER_LINKED = "shopper-linked-2562@yopmail.com"
 SHOPPER_CUSTOMER = "_Test Shopper 2562"
+# neoffice-maintenance#2450: a staff account whose e-mail is on the contact of a real customer
+STAFF_NAMED = "staff-named-2450@yopmail.com"
+NAMING_CUSTOMER = "_Test Customer Naming Staff 2450"
 
 
 def _a_leaf_customer_group():
@@ -42,17 +45,17 @@ def _a_leaf_customer_group():
 class TestAStaffAccountIsNotAShopCustomer(FrappeTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		for email in (STAFF_LINKED, SHOPPER_LINKED):
+		for email in (STAFF_LINKED, SHOPPER_LINKED, STAFF_NAMED):
 			for contact in frappe.get_all(
 				"Contact Email", {"email_id": email, "parenttype": "Contact"}, pluck="parent"
 			):
 				frappe.delete_doc("Contact", contact, force=True, ignore_permissions=True)
-		for user in (STAFF, STAFF_BUYER, STAFF_LINKED, SHOPPER_LINKED):
+		for user in (STAFF, STAFF_BUYER, STAFF_LINKED, SHOPPER_LINKED, STAFF_NAMED):
 			for row in frappe.get_all("Portal User", {"user": user, "parenttype": "Customer"}, pluck="parent"):
 				frappe.delete_doc("Customer", row, force=True, ignore_permissions=True)
 			for contact in frappe.get_all("Contact", {"user": user}, pluck="name"):
 				frappe.delete_doc("Contact", contact, force=True, ignore_permissions=True)
-		for name in (BUYER_CUSTOMER, SHOPPER_CUSTOMER):
+		for name in (BUYER_CUSTOMER, SHOPPER_CUSTOMER, NAMING_CUSTOMER):
 			if frappe.db.exists("Customer", name):
 				frappe.delete_doc("Customer", name, force=True, ignore_permissions=True)
 
@@ -141,3 +144,29 @@ class TestAStaffAccountIsNotAShopCustomer(FrappeTestCase):
 			party = cart.get_party()
 			self.assertIsNotNone(party)
 			self.assertEqual((party.doctype, party.name), ("Customer", customer.name))
+
+	# ---------------------------------------------------------------- neoffice-maintenance#2450, the portal rows
+	def test_a_staff_account_is_not_attached_to_the_customer_its_e_mail_names(self):
+		# A desk account's e-mail on a contact of a real customer (the company's generic address typed in the
+		# customer's record) made get_party() add the account to that customer's Portal Users, and the account's
+		# cart then ran in the customer's name. Administrator prepares the scenery: the customer and its contact.
+		customer = frappe.new_doc("Customer")
+		customer.update(
+			{
+				"customer_name": NAMING_CUSTOMER,
+				"customer_type": "Company",
+				"customer_group": _a_leaf_customer_group(),
+			}
+		)
+		customer.flags.ignore_mandatory = True
+		customer.insert(ignore_permissions=True)
+		make_persona("sales_user", STAFF_NAMED)
+		self._link_contact(STAFF_NAMED, [("Customer", customer.name)])
+		with as_role("sales_user", email=STAFF_NAMED):
+			before = frappe.db.count("Customer")
+			self.assertIsNone(cart.get_party())
+			with self.assertRaises(frappe.ValidationError) as refused:
+				cart.update_cart("NO-SUCH-ITEM-2450", 1)
+			self.assertIn("staff account", str(refused.exception))
+			self.assertEqual(before, frappe.db.count("Customer"))
+		self.assertFalse(frappe.db.exists("Portal User", {"user": STAFF_NAMED}))
