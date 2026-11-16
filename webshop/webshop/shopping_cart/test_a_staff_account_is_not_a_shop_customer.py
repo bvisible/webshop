@@ -2,6 +2,8 @@
 # //// never made a shop Customer by the cart, as Administrator already was not (neoffice-maintenance#1763): the demo
 # //// grew a Customer "admin" that sat first in every customer list and in the films of the guided tours
 # //// (neoffice-maintenance#2450).
+# //// Neoffice — and a contact linked to a record that is no buyer (the Helpdesk mirror's HD Customer, a Company) does
+# //// not make that record the cart's party (neoffice-maintenance#2562).
 
 import frappe
 from frappe.tests.roles import as_role, make_persona
@@ -12,6 +14,10 @@ from webshop.webshop.shopping_cart import cart
 STAFF = "staff-2450@yopmail.com"
 STAFF_BUYER = "staff-buyer-2450@yopmail.com"
 BUYER_CUSTOMER = "_Test Staff Buyer 2450"
+# neoffice-maintenance#2562: accounts whose contact is linked to a record that is no buyer
+STAFF_LINKED = "staff-linked-2562@yopmail.com"
+SHOPPER_LINKED = "shopper-linked-2562@yopmail.com"
+SHOPPER_CUSTOMER = "_Test Shopper 2562"
 
 
 def _a_leaf_customer_group():
@@ -36,13 +42,19 @@ def _a_leaf_customer_group():
 class TestAStaffAccountIsNotAShopCustomer(FrappeTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		for user in (STAFF, STAFF_BUYER):
+		for email in (STAFF_LINKED, SHOPPER_LINKED):
+			for contact in frappe.get_all(
+				"Contact Email", {"email_id": email, "parenttype": "Contact"}, pluck="parent"
+			):
+				frappe.delete_doc("Contact", contact, force=True, ignore_permissions=True)
+		for user in (STAFF, STAFF_BUYER, STAFF_LINKED, SHOPPER_LINKED):
 			for row in frappe.get_all("Portal User", {"user": user, "parenttype": "Customer"}, pluck="parent"):
 				frappe.delete_doc("Customer", row, force=True, ignore_permissions=True)
 			for contact in frappe.get_all("Contact", {"user": user}, pluck="name"):
 				frappe.delete_doc("Contact", contact, force=True, ignore_permissions=True)
-		if frappe.db.exists("Customer", BUYER_CUSTOMER):
-			frappe.delete_doc("Customer", BUYER_CUSTOMER, force=True, ignore_permissions=True)
+		for name in (BUYER_CUSTOMER, SHOPPER_CUSTOMER):
+			if frappe.db.exists("Customer", name):
+				frappe.delete_doc("Customer", name, force=True, ignore_permissions=True)
 
 	def test_browsing_the_shop_makes_no_customer_for_a_staff_account(self):
 		with as_role("sales_user", email=STAFF) as staff:
@@ -80,3 +92,52 @@ class TestAStaffAccountIsNotAShopCustomer(FrappeTestCase):
 			party = cart.get_party()
 			self.assertIsNotNone(party)
 			self.assertEqual(party.name, customer.name)
+
+	# ---------------------------------------------------------------- neoffice-maintenance#2562
+	def _link_contact(self, email, links):
+		"""The account's contact, linked to `links` in that order (Administrator prepares the scenery)."""
+		names = frappe.get_all("Contact Email", {"email_id": email, "parenttype": "Contact"}, pluck="parent")
+		contact = frappe.get_doc("Contact", names[0]) if names else frappe.new_doc("Contact")
+		if not names:
+			contact.first_name = email.split("@")[0]
+			contact.append("email_ids", {"email_id": email, "is_primary": 1})
+		contact.set("links", [{"link_doctype": doctype, "link_name": name} for doctype, name in links])
+		contact.save(ignore_permissions=True)
+		return contact.name
+
+	def _a_record_that_is_no_buyer(self):
+		# The demo's case is the Helpdesk mirror's HD Customer; a Company is a record every site has.
+		company = frappe.db.get_value("Company", {}, "name")
+		if not company:
+			self.skipTest("a company is needed")
+		return ("Company", company)
+
+	def test_a_staff_account_linked_to_no_buyer_has_no_cart(self):
+		make_persona("sales_user", STAFF_LINKED)
+		self._link_contact(STAFF_LINKED, [self._a_record_that_is_no_buyer()])
+		with as_role("sales_user", email=STAFF_LINKED):
+			before = frappe.db.count("Customer")
+			self.assertIsNone(cart.get_party())
+			with self.assertRaises(frappe.ValidationError) as refused:
+				cart.update_cart("NO-SUCH-ITEM-2562", 1)
+			self.assertIn("staff account", str(refused.exception))
+			self.assertEqual(before, frappe.db.count("Customer"))
+
+	def test_a_shopper_s_customer_is_found_behind_a_link_that_is_no_buyer(self):
+		customer = frappe.new_doc("Customer")
+		customer.update(
+			{
+				"customer_name": SHOPPER_CUSTOMER,
+				"customer_type": "Individual",
+				"customer_group": _a_leaf_customer_group(),
+			}
+		)
+		customer.flags.ignore_mandatory = True
+		customer.insert(ignore_permissions=True)
+		make_persona("portal_customer", SHOPPER_LINKED)
+		# the record that is no buyer comes FIRST on the contact, the Customer after it; no Portal User row yet
+		self._link_contact(SHOPPER_LINKED, [self._a_record_that_is_no_buyer(), ("Customer", customer.name)])
+		with as_role("portal_customer", email=SHOPPER_LINKED):
+			party = cart.get_party()
+			self.assertIsNotNone(party)
+			self.assertEqual((party.doctype, party.name), ("Customer", customer.name))

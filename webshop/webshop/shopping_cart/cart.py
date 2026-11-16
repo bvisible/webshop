@@ -2803,6 +2803,16 @@ def is_desk_account(user):
 	return user == "Administrator" or frappe.db.get_value("User", user, "user_type") == "System User"
 
 
+# //// Neoffice — added function (neoffice-maintenance#2562), see the contact lookup of get_party().
+def _party_link_of(contact):
+	"""The contact's link to a Customer, else to a Supplier; None when it names neither."""
+	for doctype in ("Customer", "Supplier"):
+		for link in contact.get("links") or []:
+			if link.link_doctype == doctype and link.link_name:
+				return link
+	return None
+
+
 def get_party(user=None, ignore_permissions=False):
 	"""Return the customer (Customer) for the current user"""
 	if not user:
@@ -2869,9 +2879,16 @@ def get_party(user=None, ignore_permissions=False):
 		# //// read is only taken on that path; a web request still goes through get_doc and
 		# //// its permission check.
 		contact = frappe.get_cached_doc("Contact", contact_name) if ignore_permissions else frappe.get_doc("Contact", contact_name)
-		if contact.links:
-			party_doctype = contact.links[0].link_doctype
-			party = contact.links[0].link_name
+		# //// Neoffice — upstream takes contact.links[0] whatever its type. A contact is also linked to records that
+		# //// are no buyer (the Helpdesk mirror's HD Customer, a Company, a Sales Partner), and the first of them
+		# //// became the cart's party: a staff account whose contact was linked to its HD Customer got a cart and an
+		# //// accepted update_cart, which the desk-account rule below never reached (neoffice-maintenance#2562).
+		# //// Only a Customer link is a buyer, else a Supplier (the portal party upstream also serves); a contact
+		# //// linked to nothing else leaves the party to the lookups below.
+		link = _party_link_of(contact)
+		if link:
+			party_doctype = link.link_doctype
+			party = link.link_name
 
 	# //// Neoffice — third fallback: a Contact whose e-mail matches but which is not
 	# //// linked to the session user. Without it, a customer whose portal user was
