@@ -21,7 +21,7 @@ from unittest import mock
 
 import frappe
 from frappe.model.naming import parse_naming_series
-from frappe.utils import add_to_date, now_datetime
+from frappe.utils import add_to_date, flt, now_datetime
 
 import webshop.webshop.shopping_cart.cart as cart
 from webshop.controllers.payment_handler import PaymentHandler
@@ -29,6 +29,7 @@ from webshop.templates.pages import order as order_page
 from webshop.templates.pages import thank_you as thank_you_page
 from webshop.templates.pages.checkout import cart_intent_state
 from webshop.templates.payments import paypal
+from webshop.webshop.doctype.website_item.website_item import make_website_item
 from webshop.webshop.shopping_cart import pending_order
 from webshop.webshop.shopping_cart.test_loyalty_rights import (
 	GATEWAY,
@@ -38,9 +39,11 @@ from webshop.webshop.shopping_cart.test_loyalty_rights import (
 	USER,
 	CUSTOMER,
 	ShopFixture,
+	_purge_vouchers,
 	no_gateway,
 	upstream_checks,
 )
+from webshop.webshop.tests.utils import make_test_item
 
 
 NOT_CONFIRMED_YET = (
@@ -923,3 +926,109 @@ class TestACardPaymentIsRaisedOnAPlaceholderOrder(ShopFixture):
 			thank_you_page.get_context(context)
 		self.assertFalse(context.get("error_message"), context.get("error_message"))
 		self.assertEqual(context.sales_order.name, order)
+
+
+# //// Neoffice — neoffice-maintenance#1572: a line the list of this site does not price.
+UNPRICED = f"{PREFIX} Unpriced Item"
+
+
+class TestALineWithNoPriceOnThisSiteIsNeverOrdered(ShopFixture):
+	"""The cart is one quotation for every site of an instance, each site pricing it on its own list: a line put in the
+	cart where the item is sold comes back at 0.00 on a site whose list has no price for it. It is marked in the cart,
+	and neither ordered nor paid for at 0.00 (cart.unpriced_lines). Here the item has no price on the shop's list at
+	all, which is what the list of the other site amounts to."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		uom = frappe.db.get_single_value("Stock Settings", "stock_uom") or frappe.db.get_value("UOM", {}, "name")
+		make_website_item(make_test_item(UNPRICED, is_stock_item=0, stock_uom=uom))
+		website_item = frappe.get_doc("Website Item", {"item_code": UNPRICED})
+		website_item.published = 1
+		website_item.save(ignore_permissions=True)
+		frappe.db.delete("Item Price", {"item_code": UNPRICED})
+		frappe.db.commit()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		_purge_vouchers(CUSTOMER)  # the carts that name the item go before it
+		frappe.db.delete("Item Price", {"item_code": UNPRICED})
+		for name in frappe.get_all("Website Item", filters={"item_code": UNPRICED}, pluck="name"):
+			frappe.delete_doc("Website Item", name, force=True, ignore_permissions=True)
+		if frappe.db.exists("Item", UNPRICED):
+			frappe.delete_doc("Item", UNPRICED, force=True, ignore_permissions=True)
+		frappe.db.commit()
+		super().tearDownClass()
+
+	def fill_the_cart(self):
+		"""The buyer's cart: a priced line and the line this site has no price for."""
+		frappe.set_user(USER)
+		with upstream_checks():
+			cart.update_cart(ITEM, 1)
+			cart.update_cart(UNPRICED, 1)
+			context = cart.get_cart_quotation()  # sets the customer's address on the cart, as the cart page does
+			quotation = cart._get_cart_quotation()
+		frappe.set_user("Administrator")
+		return quotation, context
+
+	def test_the_cart_names_the_line_and_marks_it(self):
+		quotation, context = self.fill_the_cart()
+		line = next(row for row in quotation.items if row.item_code == UNPRICED)
+		self.assertEqual(flt(line.rate), 0, "the line is shown at 0.00")
+		self.assertEqual(context.get("unpriced_lines"), [line.name])
+		html = frappe.render_template(
+			"templates/includes/cart/cart_items.html", {**context, "cart_settings": frappe._dict(enable_checkout=1)}
+		)
+		self.assertEqual(html.count("webshop-line-unpriced"), 1)
+
+	def test_the_order_is_refused_and_names_the_line(self):
+		self.fill_the_cart()
+		frappe.set_user(USER)
+		try:
+			with upstream_checks(), self.assertRaises(frappe.ValidationError) as refused:
+				cart.place_order()
+		finally:
+			frappe.set_user("Administrator")
+		self.assertIn(UNPRICED, str(refused.exception))
+		self.assertEqual(frappe.get_all("Sales Order", filters={"customer": CUSTOMER, "docstatus": 1}), [])
+
+	def test_the_card_payment_is_refused_before_any_request(self):
+		quotation, _context = self.fill_the_cart()
+		frappe.set_user(USER)
+		with upstream_checks():
+			result = PaymentHandler().create_payment_request(
+				quotation_id=quotation.name,
+				payment_gateway=GATEWAY,
+				idempotency_token=f"{PREFIX}-{frappe.generate_hash(length=10)}",
+			)
+		frappe.set_user("Administrator")
+		self.assertEqual(result.get("status"), "error", result)
+		self.assertIn(UNPRICED, result.get("message") or "")
+		self.assertEqual(frappe.get_all("Payment Request", filters={"party": CUSTOMER}), [])
+		self.assertFalse(frappe.db.exists("Sales Order", pending_order.placeholder_name(quotation.name)))
+
+	def test_no_tile_raises_a_placeholder_order_for_it(self):
+		# the PayPal tile raises its request on the placeholder without going through the handler
+		quotation, _context = self.fill_the_cart()
+		frappe.set_user(USER)
+		try:
+			with upstream_checks(), self.assertRaises(frappe.ValidationError):
+				pending_order.carrier_for(quotation)
+		finally:
+			frappe.set_user("Administrator")
+		self.assertFalse(frappe.db.exists("Sales Order", pending_order.placeholder_name(quotation.name)))
+
+	def test_money_a_gateway_already_took_still_concludes_its_order(self):
+		# a request raised before the rule existed and paid after it: refusing would keep the money with no order
+		self.fill_the_cart()
+		frappe.set_user(USER)
+		frappe.flags.webshop_payment_is_in = True
+		try:
+			with upstream_checks():
+				name = cart.place_order()
+		finally:
+			frappe.flags.webshop_payment_is_in = False
+			frappe.set_user("Administrator")
+		self.assertTrue(name)
+		self.assertEqual(frappe.db.get_value("Sales Order", name, "docstatus"), 1)

@@ -12,6 +12,8 @@ from webshop.webshop.shopping_cart.cart import (
     is_gift_card_item,
     issued_by_the_till,
     place_order,
+    unpriced_lines,  # //// Neoffice — unpriced_lines, unpriced_message: see create_payment_request (#1572)
+    unpriced_message,
 )
 # //// Neoffice — the placeholder order a cart's payment request is raised on (pending_order.py), and what proves
 # //// a request was paid (payment_proof.py, maintenance#1807).
@@ -251,6 +253,12 @@ class PaymentHandler:
                     frappe.throw(_("Cart is empty"))
             else:
                 quotation = frappe.get_doc("Quotation", quotation_id)
+
+            # //// Neoffice — a line with no price on this site is never paid for at 0.00: refused before any request is
+            # //// raised, in words the checkout shows (cart.unpriced_lines, neoffice-maintenance#1572).
+            unpriced = unpriced_lines(quotation)
+            if unpriced:
+                return {"status": "error", "message": unpriced_message(unpriced)}
 
             # //// Neoffice — a card the till spent meanwhile is refused here, before the buyer pays. After
             # //// the capture, a strict order would refuse with the money already taken.

@@ -70,6 +70,10 @@ def carrier_for(quotation):
 	"""The placeholder a payment request for this cart is raised on: made, kept, or made again when the cart changed."""
 	if quotation.get("quotation_to") != "Customer":
 		frappe.throw(_("This cart cannot be paid online."))
+	# A line with no price on this site is not paid for at 0.00, whichever tile raises the request (#1572).
+	from webshop.webshop.shopping_cart.cart import refuse_unpriced_lines
+
+	refuse_unpriced_lines(quotation)
 	name = placeholder_name(quotation.name)
 	existing = frappe.db.exists("Sales Order", name)
 	if existing:

@@ -339,7 +339,9 @@ def get_cart_quotation(doc=None):
 		"is_b2b_customer": is_b2b_customer,
 		"loyalty_info": loyalty_info,
 		"show_loyalty": show_loyalty,
-		"show_loyalty_for_guests": show_loyalty_for_guests
+		"show_loyalty_for_guests": show_loyalty_for_guests,
+		# //// Neoffice — the lines with no price on this site, which cart_items.html marks (#1572, see unpriced_lines)
+		"unpriced_lines": [row.name for row in unpriced_lines(doc)] if doc else [],
 	}
 
 
@@ -841,11 +843,64 @@ def _refuse_terms_the_shop_did_not_offer(quotation):
 		frappe.throw(_("This order has an amount to pay. Please choose a payment method."))
 
 
+# //// Neoffice — added functions (neoffice-maintenance#1572). The cart is one quotation for every site of an instance,
+# //// and each site prices it on its own list: a line put in the cart on a site that sells the item came back at 0.00
+# //// on a site whose list has no price for it, and the checkout ordered it at 0.00. Such a line is marked in the cart
+# //// (cart_items.html) and refused by every door that orders or pays a cart: place_order, the payment request of the
+# //// card checkout (payment_handler) and the placeholder order every online payment is raised on (pending_order).
+def unpriced_lines(quotation):
+	"""The cart's lines that have no price on the list the cart is priced at, which it shows at 0.00.
+
+	A line is unpriced when the pricing found no rate for it (its rate and its list rate are both 0) and neither
+	the item nor its template has a valid Item Price on the cart's list. A free item of a pricing rule, a gift card
+	(its amount is the one chosen) and a booking's companion line (priced by the booking) are never counted, and an
+	item the list sells at 0 on purpose keeps its Item Price, so it is not counted either.
+	"""
+	if not quotation:
+		return []
+	from webshop.webshop.utils.customer_pricing import list_rates
+
+	price_list = quotation.get("selling_price_list")
+	out = []
+	for row in quotation.get("items") or []:
+		if flt(row.get("rate")) or flt(row.get("price_list_rate")):
+			continue
+		if row.get("is_free_item") or row.get("gift_card_data") or row.get("booking_extra_of"):
+			continue
+		if not row.get("item_code") or is_gift_card_item(row.item_code):
+			continue
+		codes = [row.item_code]
+		template = frappe.db.get_value("Item", row.item_code, "variant_of")
+		if template:
+			codes.append(template)
+		if price_list and list_rates(codes, price_list):
+			continue
+		out.append(row)
+	return out
+
+
+def unpriced_message(rows):
+	"""What the buyer reads when a cart with unpriced lines is ordered or paid."""
+	names = ", ".join(sorted({row.get("item_name") or row.get("item_code") for row in rows}))
+	return _("No price on this site for: {0}. Remove these lines from your cart to place your order.").format(names)
+
+
+def refuse_unpriced_lines(quotation):
+	rows = unpriced_lines(quotation)
+	if rows:
+		frappe.throw(unpriced_message(rows), title=_("Not sold on this site"))
+
+
 # //// Neoffice — the gate of #2274 asks this line why no permission of Frappe's is checked.
 @frappe.whitelist()
 def place_order():  # permission-check: ok the session's own cart, no argument
 	quotation = _get_cart_quotation()
 	_refuse_terms_the_shop_did_not_offer(quotation)  # //// Neoffice — see the function
+	# //// Neoffice — a line with no price on this site is not ordered at 0.00 (see unpriced_lines, #1572). Money a gateway
+	# //// already took concludes its order as before (PaymentRequest.on_payment_authorized sets the flag): refusing then
+	# //// would keep the money with no order, and the cart was checked when its payment request was raised.
+	if not frappe.flags.get("webshop_payment_is_in"):
+		refuse_unpriced_lines(quotation)
 	cart_settings = frappe.get_cached_doc("Webshop Settings")
 	quotation.company = cart_settings.company
 	

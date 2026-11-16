@@ -100,7 +100,13 @@ class PaymentRequest(OriginalPaymentRequest):
 
                 # Create Sales Order using place_order
                 frappe.flags.ignore_permissions = True
-                sales_order_name = place_order()
+                # //// Neoffice — the money is in: place_order does not refuse the cart's unpriced lines here, it was
+                # //// checked when this request was raised (cart.unpriced_lines, neoffice-maintenance#1572).
+                frappe.flags.webshop_payment_is_in = True
+                try:
+                    sales_order_name = place_order()
+                finally:
+                    frappe.flags.webshop_payment_is_in = False
                 if not sales_order_name:
                     frappe.throw(_("Error creating order"))
 

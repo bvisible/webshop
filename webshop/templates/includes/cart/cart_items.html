@@ -69,6 +69,13 @@
 					<div class="item-subtitle mr-2">
 						{{ d.item_code }}
 					</div>
+					{# //// Neoffice — a line with no price on this site's list shows 0.00 and cannot be ordered: said on the line #}
+					{# //// (cart.unpriced_lines, neoffice-maintenance#1572). A shop that only takes requests for a quote prices nothing. #}
+					{% if cart_settings.enable_checkout and d.name in (unpriced_lines or []) %}
+					<div class="webshop-line-unpriced text-danger small mt-1" role="note">
+						{{ _("No price on this site: remove this line to place your order.") }}
+					</div>
+					{% endif %}
 					{%- set variant_of = frappe.db.get_value('Item', d.item_code, 'variant_of') %}
 					{% if variant_of %}
 					<span class="item-subtitle mr-2">
