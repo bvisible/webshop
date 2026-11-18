@@ -315,6 +315,8 @@ jobs:
           # //// prove nothing).
           # //// Neoffice — the checkout's own dialogs (#2057): every label the script asks for is seeded by the page, and
           # //// the confirmation is given labels, not an options object. Reads two files, needs no site.
+          # //// Neoffice — a card the shop sold goes with its sale (maintenance#2816): cancelled or returned, the
+          # //// invoice takes the card back, played through the invoice's own hooks on the same small shop.
           for m in \
             webshop.controllers.test_payment_handler \
             webshop.controllers.test_payment_mode_enabled \
@@ -437,6 +439,7 @@ jobs:
             webshop.webshop.tests.test_a_payment_method_without_its_configuration_does_not_break_the_checkout \
             webshop.webshop.tests.test_the_invoice_method_finds_its_template_without_a_path \
             webshop.webshop.tests.test_a_gift_card_holder_sees_its_balance \
+            webshop.webshop.tests.test_a_shop_gift_card_goes_with_the_sale_that_created_it \
             webshop.webshop.shopping_cart.test_payment_terms_rights \
             webshop.webshop.shopping_cart.test_item_inquiry
           do
