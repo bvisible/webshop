@@ -14,7 +14,7 @@ import frappe
 from frappe.tests.roles import as_role
 from frappe.tests.utils import FrappeTestCase
 
-from webshop.webshop.shopping_cart import gift_card_sale
+from webshop.webshop.shopping_cart import cart, gift_card_sale
 
 SALE = "_T2816-SINV"
 RETURN = "_T2816-RET"
@@ -159,3 +159,26 @@ class TestAShopGiftCardGoesWithItsSale(FrappeTestCase):
 			pluck="reference_name",
 		)
 		self.assertEqual(sorted(voids), sorted(CARDS), "each card voided once")
+
+	def test_an_invoice_amended_from_a_cancelled_sale_takes_its_cards_back_once_paid(self):
+		self.act("on_cancel", self.sale)
+		frappe.db.set_value("Sales Invoice", SALE, "docstatus", 2)
+		# The amendment copies the line, its codes with it: the shop makes no new card for it
+		amended = self.invoice(f"{SALE}-1", qty=2, codes=list(CARDS))
+		frappe.db.set_value("Sales Invoice", amended.name, {"amended_from": SALE, "outstanding_amount": 0, "is_pos": 0})
+		amended.reload()
+		with (
+			mock.patch.object(cart, "is_gift_card_item", side_effect=lambda code: code == ITEM),
+			mock.patch.object(cart, "spend_gift_card_of_invoice"),
+			as_role("head_accountant"),
+		):
+			# what runs when the amendment is paid
+			cart.create_gift_cards_from_invoice(amended)
+		for code in CARDS:
+			self.assertEqual((self.card(code).gift_card_amount, self.card(code).used), (50, 0), code)
+			self.assertEqual(frappe.db.get_value("Coupon Code", code, "sales_invoice"), amended.name)
+		self.assertEqual(frappe.db.count("Coupon Code", {"coupon_code": ["like", "_T2816-%"]}), 2, "no new card")
+		# Cancelled in its turn, the amendment takes them back
+		self.act("on_cancel", amended)
+		self.assertEqual([self.card(code).gift_card_amount for code in CARDS], [0, 0])
+

@@ -4266,6 +4266,11 @@ def create_gift_cards_from_invoice(doc, method=None):
 		sales_invoice = doc
 		if not sales_invoice.docstatus == 1 or sales_invoice.outstanding_amount > 0 or sales_invoice.is_pos == 1:
 			return
+		# //// Neoffice — an invoice amended from a cancelled sale keeps the codes of its cards on its line, so no new card is
+		# //// made below: paid, it takes back the cards the cancel had voided (gift_card_sale, maintenance#2816)
+		from webshop.webshop.shopping_cart.gift_card_sale import give_the_cards_to_the_amendment
+
+		give_the_cards_to_the_amendment(sales_invoice)
 
 		# Check if any gift card item
 		for item in sales_invoice.items:

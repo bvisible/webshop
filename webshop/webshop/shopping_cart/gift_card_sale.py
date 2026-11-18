@@ -13,6 +13,8 @@ customer the money back and left the card full, to spend. The till had the same 
   for the rest is the business's decision (asked to Jérémy, as for #2725), not the shop's.
 - A credit note that takes back one card of several takes one of its amount, an unspent one.
 - A cancelled credit note gives back the cards it had taken.
+- An invoice amended from a cancelled sale keeps the codes of its cards on its line, so the shop makes no new card for
+  it: once paid, it takes back the cards the cancel had voided (give_the_cards_to_the_amendment).
 
 The comments end with a reference that is read back whatever the language of their sentence, as the shop does for a
 card spent on an order (`(<order>)`, cart._spent_on): `(void <document>)` and `(back <document>)`.
@@ -217,3 +219,20 @@ def _give_back_the_cards_of_a_cancelled_return(credit_note):
 	for card in _cards_created_by(original):
 		if credit_note.name in card.taken_by:
 			_restore(card, credit_note.name, sentence)
+
+
+
+def give_the_cards_to_the_amendment(invoice):
+	"""Called by cart.create_gift_cards_from_invoice once `invoice` is paid: when it was amended from a sale whose cancel
+	voided its cards, those cards come back to it, whole and tied to it, instead of none (its line names their codes,
+	which stops a new card being made)."""
+	cancelled = invoice.get("amended_from")
+	if not cancelled or not frappe.db.exists("Sales Invoice", {"name": cancelled, "docstatus": 2}):
+		return
+	sentence = _("Given back: the invoice {0} amended from the cancelled sale {1} holds this gift card now.").format(
+		invoice.name, cancelled
+	)
+	for card in _cards_created_by(frappe.get_doc("Sales Invoice", cancelled)):
+		if cancelled in card.taken_by:
+			_restore(card, cancelled, sentence)
+			frappe.db.set_value("Coupon Code", card.name, "sales_invoice", invoice.name, update_modified=False)
