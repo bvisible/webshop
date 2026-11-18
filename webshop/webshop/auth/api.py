@@ -5,7 +5,7 @@
 # //// 2026-04-08 "handle existing users in shop create_account (WI-00297)").
 import frappe
 from frappe import _
-from frappe.utils import cint, validate_email_address
+from frappe.utils import EMAIL_MATCH_PATTERN, cint, validate_email_address
 from frappe.utils.oauth import get_oauth2_authorize_url
 
 # //// Neoffice — the address nginx saw, and the limit per connection of a door open to strangers
@@ -141,7 +141,12 @@ def create_account():
 
         # Validate email format
         try:
-            validate_email_address(email, throw=True)
+            # //// Neoffice — the address and nothing else (maintenance#2860): validate_email_address finds an address
+            # //// inside the string and its pattern only checks how it begins, so a vulnerability scanner's
+            # //// `sample@email.tst' and 2*3*8=6*8 ...` passed here, then reached User as `unknown_error` with an Error
+            # //// Log row (frappe now refuses such a user name). Refused here as what it is, an invalid address.
+            if validate_email_address(email, throw=True) != email or not EMAIL_MATCH_PATTERN.fullmatch(email):
+                raise ValueError
             # //// Neoffice — see EMAIL_LENGTH.
             if len(email) > EMAIL_LENGTH:
                 raise ValueError
