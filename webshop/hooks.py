@@ -327,8 +327,15 @@ doc_events = {
 			# //// Neoffice — multi-warehouse: an invoice typed without an order, whose lines come
 			# //// from a supplier warehouse, gets its own draft Purchase Order like an order does.
 			"webshop.webshop.multi_warehouse.procurement.process_sales_invoice",
+			# //// Neoffice — a credit note that takes back the sale of a gift card takes the card back too (#2816)
+			"webshop.webshop.shopping_cart.gift_card_sale.on_submit",
 		],
-		"on_cancel": ["webshop.webshop.utils.follow_ups.on_cancel"],
+		"on_cancel": [
+			"webshop.webshop.utils.follow_ups.on_cancel",
+			# //// Neoffice — the gift cards a sale created go with it: a cancelled sale takes them back, a cancelled
+			# //// credit note gives back the ones it had taken (#2816, as the till does since #2725)
+			"webshop.webshop.shopping_cart.gift_card_sale.on_cancel",
+		],
 		"on_update": [
 			"webshop.webshop.shopping_cart.cart.create_gift_cards_from_invoice"
 		]
