@@ -238,6 +238,10 @@
 {% endblock %}
 
 {% block script %}
+	{# //// Neoffice — the shop's gateway account, from the server, for order.js: the script itself holds no Jinja any more
+	//// (it is also put raw in the « Non Autorisé » page, neoffice-maintenance#2934). #}
+	{%- set gateway_account = frappe.db.get_single_value('Webshop Settings', 'payment_gateway_account') %}
+	<script>window.neoffice_payment_gateway_account = {{ gateway_account | tojson }};</script>
 	<script> {% include "templates/pages/order.js" %}</script>
 	<script>
 		window.doc_info = {

@@ -41,8 +41,10 @@ frappe.ready(() => {
 
 			//// Neoffice — from the server, in the page: a portal account has no right on Webshop Settings any more
 			//// (webshop_settings.json), where any account read the shop's whole configuration.
-			{%- set gateway_account = frappe.db.get_single_value('Webshop Settings', 'payment_gateway_account') %}
-			const payment_gateway_account = {{ gateway_account | tojson }};
+			//// Neoffice — read from the page (order.html sets it): this file is also put RAW in the page frappe draws
+			//// when the order may not be shown (« Non Autorisé »), where a Jinja tag here threw « SyntaxError:
+			//// Unexpected token '%' » (neoffice-maintenance#2934).
+			const payment_gateway_account = window.neoffice_payment_gateway_account || null;
 
 			if (payment_gateway_account) {
 				args_obj.payment_gateway_account = payment_gateway_account;

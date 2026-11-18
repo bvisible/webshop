@@ -36,9 +36,9 @@
 				{%- endfor -%}
 				{%- for parent in filtered_parents[-2:] %}
 				<li class="breadcrumb-item">
-					<a href="{{ url_prefix }}{{ parent.route | abs_url }}">{{ parent.title or parent.label or parent.name or "" }}</a>
+					<a href="{{ url_prefix }}{{ parent.route | abs_url }}">{{ _(parent.title or parent.label or parent.name or "") }}</a>
 				</li>
-				{%- set crumbs.items = crumbs.items + [{"name": parent.title or parent.label or parent.name or "", "item": webshop_site_url((parent.route or "").strip("/"))}] -%}
+				{%- set crumbs.items = crumbs.items + [{"name": _(parent.title or parent.label or parent.name or ""), "item": webshop_site_url((parent.route or "").strip("/"))}] -%}
 				{% endfor -%}
 			{%- endif -%}
 
