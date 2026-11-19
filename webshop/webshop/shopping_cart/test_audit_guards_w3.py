@@ -700,9 +700,22 @@ class TestSettingsRights(Fixture):
 		self.assertIn("Desk User", roles, "the forms and the pages of the desk keep reading it")
 
 	def test_the_order_page_reads_the_settings_on_the_server(self):
-		rendered = frappe.render_template(read_app_file("templates/pages/order.js"), {})
-		self.assertNotIn("frappe.db.get_single_value", rendered)
-		self.assertRegex(rendered, r"const payment_gateway_account = (\"[^\"]*\"|\"\"|null);")
+		# order.js is also put raw in the « Non Autorisé » page of an order that may not be shown, where a Jinja tag
+		# threw a SyntaxError (neoffice-maintenance#2934): the script holds none, and reads what order.html sets.
+		script = read_app_file("templates/pages/order.js")
+		self.assertNotIn("frappe.db.get_single_value", script)
+		self.assertNotRegex(script, r"\{[%{#]")
+		self.assertIn("window.neoffice_payment_gateway_account", script)
+		setter = "\n".join(
+			line
+			for line in read_app_file("templates/pages/order.html").splitlines()
+			if "gateway_account" in line
+		)
+		self.assertIn("frappe.db.get_single_value('Webshop Settings', 'payment_gateway_account')", setter)
+		self.assertRegex(
+			frappe.render_template(setter, {}),
+			r"window\.neoffice_payment_gateway_account = (\"[^\"]*\"|null);",
+		)
 
 	def test_the_buttons_of_the_form_need_a_write_right(self):
 		frappe.set_user(STOCK_USER)
