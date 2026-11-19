@@ -10,6 +10,8 @@ if TYPE_CHECKING:
 
 import frappe
 from frappe import _
+# //// Neoffice — Document, for the annotation of make_website_item (see there).
+from frappe.model.document import Document
 from frappe.utils import cint, cstr, flt, random_string
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
 from frappe.website.website_generator import WebsiteGenerator
@@ -1098,7 +1100,9 @@ def stock_by_warehouse(item_code):
 @frappe.whitelist()
 # //// Neoffice — `doc` annotated (the web-method gate of neoffice-ci), and its item code read as text before it reaches
 # //// the filters of frappe.db.exists and of the stock reader: a JSON body could otherwise make it a filter operator.
-def make_website_item(doc: str | dict, save=True):
+# //// Document too: the patch and the reviews' tests pass the Item itself, which Frappe's type check let through only
+# //// once named (arbitrary types allowed); a web request can still only send text or a dict.
+def make_website_item(doc: str | dict | Document, save=True):
 	"""
 	Make Website Item from Item. Used via Form UI or patch.
 	"""
