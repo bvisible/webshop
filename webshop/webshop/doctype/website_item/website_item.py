@@ -1096,7 +1096,9 @@ def stock_by_warehouse(item_code):
 	return bin_data
 
 @frappe.whitelist()
-def make_website_item(doc, save=True):
+# //// Neoffice — `doc` annotated (the web-method gate of neoffice-ci), and its item code read as text before it reaches
+# //// the filters of frappe.db.exists and of the stock reader: a JSON body could otherwise make it a filter operator.
+def make_website_item(doc: str | dict, save=True):
 	"""
 	Make Website Item from Item. Used via Form UI or patch.
 	"""
@@ -1105,8 +1107,10 @@ def make_website_item(doc, save=True):
 
 	if isinstance(doc, str):
 		doc = json.loads(doc)
+	# //// Neoffice — the item code as text, for the two filters below (see the marker above the def).
+	item_code = cstr(doc.get("item_code"))
 
-	if frappe.db.exists("Website Item", {"item_code": doc.get("item_code")}):
+	if frappe.db.exists("Website Item", {"item_code": item_code}):
 		message = _("Website Item already exists against {0}").format(
 			frappe.bold(doc.get("item_code"))
 		)
@@ -1121,7 +1125,7 @@ def make_website_item(doc, save=True):
 	# //// read or Website Item create) refused whoever publishes from a server path without a stock right (a bookable
 	# //// article saved by a manager of the work), and the caught refusal still showed « Not permitted ». Nothing of the
 	# //// stock goes back to the caller: the warehouse only fills the record.
-	warehouses_with_stock = stock_by_warehouse(doc.get("item_code"))
+	warehouses_with_stock = stock_by_warehouse(item_code)
 	if warehouses_with_stock:
 		website_item.website_warehouse = warehouses_with_stock[0].warehouse
 
