@@ -1117,7 +1117,11 @@ def make_website_item(doc, save=True):
 
 	# //// Neoffice — see the block above (default warehouse = the one with the most stock).
 	# Define default warehouse (one with the most stock)
-	warehouses_with_stock = get_item_warehouses(doc.get("item_code"))
+	# //// Neoffice — the stock is read here by the Python reader, not the whitelisted get_item_warehouses: its gate (Bin
+	# //// read or Website Item create) refused whoever publishes from a server path without a stock right (a bookable
+	# //// article saved by a manager of the work), and the caught refusal still showed « Not permitted ». Nothing of the
+	# //// stock goes back to the caller: the warehouse only fills the record.
+	warehouses_with_stock = stock_by_warehouse(doc.get("item_code"))
 	if warehouses_with_stock:
 		website_item.website_warehouse = warehouses_with_stock[0].warehouse
 
