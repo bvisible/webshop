@@ -1009,7 +1009,7 @@ def get_payment_methods(reference_doctype: str | None = None, reference_docname:
 				# //// RECORD, not the payment method. So we prefer, in order: the
 				# //// label the merchant wrote, then the GATEWAY name, then the
 				# //// account for want of anything better. Same rule as the
-				# //// booking surface (`neoffice_theme.booking.checkout._moyen_lisible`).
+				# //// booking surface (`neoffice_theme.booking.checkout._readable_method`).
 				title = (
 					payment_gateway_account.checkout_title
 					or payment_gateway_account.payment_gateway
