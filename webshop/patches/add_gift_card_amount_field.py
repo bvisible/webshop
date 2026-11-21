@@ -1,7 +1,10 @@
 # //// Neoffice — added file (no upstream equivalent).
-# //// Coupon Code.gift_card_amount, fetched from the Pricing Rule discount: a gift
-# //// card has a face value, which an ERPNext coupon does not carry — it only knows a
+# //// Coupon Code.gift_card_amount: a gift card has a face value, which an ERPNext coupon does not carry — it only knows a
 # //// Pricing Rule (73119aae66, 2025-02-11 "feat: Add gift card amount field").
+# //// The field used to be fetched from the Pricing Rule's discount at every save of the card. It is not any more: the cards
+# //// the shop sells share one rule per amount, so a card spent rewrote the balance of its sisters (maintenance#3239). The
+# //// balance is the card's own, and POS Next's patch gift_cards.the_balance_of_a_gift_card_is_its_own clears the fetch on
+# //// the sites that still have it.
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
@@ -17,8 +20,6 @@ def execute():
         'label': 'Gift Card Amount',
         'fieldtype': 'Currency',
         'insert_after': 'pricing_rule',
-        'fetch_from': 'pricing_rule.discount_amount',
-        'fetch_if_empty': 1,
         'read_only': 0,
         'translatable': 0,
         'depends_on': 'eval:doc.coupon_type=="Gift Card"',
