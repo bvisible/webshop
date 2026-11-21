@@ -33,26 +33,41 @@
 			'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
 			'<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>',
 
-		//// Neoffice — a block drawn longer ago than this was served from the page cache (or the
-		//// visitor's clock is off): its state is hidden until the live one has come.
+		//// Neoffice — a block drawn longer ago than this was served from the page cache: its state is
+		//// hidden until the live one has come. Measured both ways (Math.abs below): a visitor whose
+		//// clock runs a day behind would otherwise see a cached « closed » until the answer.
 		STALE_SECONDS: 90,
+
+		//// Neoffice — one request per language for all the blocks of a page (the page and its footer
+		//// asked twice at every refresh), kept a few seconds so their minute timers share it.
+		SHARED_MS: 10000,
+		asked: {},
 
 		//// Neoffice — fetch, not frappe's call helper: a page Builder renders has no frappe object. `_lang`
 		//// asks for the answer in the language the page was drawn in (frappe.translate.get_language).
-		load(container) {
-			const lang = container.dataset.lang;
+		ask(lang) {
+			const key = lang || "";
+			const hit = this.asked[key];
+			if (hit && Date.now() - hit.at < this.SHARED_MS) return hit.answer;
 			const url =
 				"/api/method/webshop.webshop.utils.store_hours.get_opening_hours" +
 				(lang ? "?_lang=" + encodeURIComponent(lang) : "");
-			return fetch(url, { headers: { Accept: "application/json" }, credentials: "same-origin" })
+			const answer = fetch(url, { headers: { Accept: "application/json" }, credentials: "same-origin" })
 				.then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-				.then((r) => this.render(container, r.message))
+				.then((r) => r.message);
+			this.asked[key] = { at: Date.now(), answer };
+			return answer;
+		},
+
+		load(container) {
+			return this.ask(container.dataset.lang)
+				.then((data) => this.render(container, data))
 				.catch(() => undefined);
 		},
 
 		stale(container) {
 			const drawn = Number(container.dataset.drawnAt);
-			return drawn > 0 && Date.now() / 1000 - drawn > this.STALE_SECONDS;
+			return drawn > 0 && Math.abs(Date.now() / 1000 - drawn) > this.STALE_SECONDS;
 		},
 
 		//// Neoffice — what a cached page may have wrong: the state, the date, the day marked as
@@ -148,7 +163,23 @@
 			.querySelectorAll(".webshop-opening-hours[data-autoload]")
 			.forEach((container) => root.opening_hours.start(container));
 	start_all();
-	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start_all);
+	//// Neoffice — the script runs after the FIRST block only: a later one (the footer) is started as
+	//// soon as the parser adds it, before it is painted with a cached state, not at DOMContentLoaded.
+	if (document.readyState === "loading") {
+		const watch = new MutationObserver((records) => {
+			for (const record of records)
+				for (const node of record.addedNodes) {
+					if (node.nodeType !== 1) continue;
+					if (node.matches(".webshop-opening-hours[data-autoload]")) root.opening_hours.start(node);
+					node.querySelectorAll(".webshop-opening-hours[data-autoload]").forEach((c) => root.opening_hours.start(c));
+				}
+		});
+		watch.observe(document.documentElement, { childList: true, subtree: true });
+		document.addEventListener("DOMContentLoaded", () => {
+			watch.disconnect();
+			start_all();
+		});
+	}
 	document.addEventListener("visibilitychange", () => {
 		if (document.hidden) return;
 		document
