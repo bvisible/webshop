@@ -441,6 +441,7 @@ jobs:
             webshop.webshop.tests.test_a_gift_card_holder_sees_its_balance \
             webshop.webshop.tests.test_a_shop_gift_card_goes_with_the_sale_that_created_it \
             webshop.webshop.tests.test_a_signup_takes_an_address_and_nothing_else \
+            webshop.webshop.tests.test_the_desk_script_of_a_coupon_does_not_write_a_balance \
             webshop.webshop.shopping_cart.test_payment_terms_rights \
             webshop.webshop.shopping_cart.test_item_inquiry
           do
