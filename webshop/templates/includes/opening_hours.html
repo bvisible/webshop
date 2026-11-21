@@ -27,7 +27,11 @@
 {%- set _css = opening_hours_css() -%}
 {%- if _css %}<style>{{ _css | safe }}</style>{% endif -%}
 {%- set compact = display == "compact" -%}
-<div class="webshop-opening-hours{% if hours and hours.configured %} has-hours{% endif %}" data-autoload{% if compact %} data-display="compact"{% endif %}>
+{#- //// Neoffice — data-drawn-at and data-lang: Frappe keeps a rendered page in its cache with no expiry,
+    and a shop that opens at 10:00 said « Opens today at 10:00 » on its home page at 10:14. The script
+    printed below the block asks the server for the live state in the language of the page, and hides the
+    state of a block drawn long ago until that answer has come (store_hours.drawn_at). -#}
+<div class="webshop-opening-hours{% if hours and hours.configured %} has-hours{% endif %}" data-autoload{% if compact %} data-display="compact"{% endif %}{% if hours and hours.drawn_at %} data-drawn-at="{{ hours.drawn_at }}"{% endif %}{% if hours and hours.lang %} data-lang="{{ hours.lang }}"{% endif %}>
 	{% if hours and hours.configured %}
 	{# //// Neoffice — added the compact wrapper class for the footer-column form (66e82a4d40 "le bloc se modernise, et la ligne du jour ne déborde plus") #}
 	<div class="wsh-hours{% if compact %} wsh-hours--compact{% endif %}">
@@ -69,3 +73,8 @@
 	</div>
 	{% endif %}
 </div>
+{#- //// Neoffice — the block's script, once per request, AFTER the block so the block is there when it
+    runs (store_hours.opening_hours_js). A page Builder renders loads no script of this app: without this,
+    nothing redrew a block served from the page cache. `safe` is our own file, not user input. -#}
+{%- set _js = opening_hours_js() -%}
+{%- if _js %}<script>{{ _js | safe }}</script>{% endif -%}

@@ -13,10 +13,12 @@ wrong: the next opening is looked for on the CURRENT day first. Closed between
 """
 
 import datetime
+import time
+from zoneinfo import ZoneInfo
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, formatdate, get_time, getdate, now_datetime
+from frappe.utils import add_days, formatdate, get_system_timezone, get_time, getdate, now_datetime
 
 WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 # //// Neoffice — where the full week lives, linked from the compact form
@@ -241,6 +243,20 @@ def upcoming_closures(now, sched, horizon_days=CLOSURES_HORIZON_DAYS, limit=CLOS
 	return out
 
 
+def drawn_at(now):
+	"""`now`, the site's clock (naive), as seconds since the epoch: what a browser compares to its own.
+
+	//// Neoffice — Frappe keeps a rendered page in its cache with no expiry, so a block written on the
+	//// server can be served hours after it was drawn: a shop that opens at 10:00 said « Opens today at
+	//// 10:00 » on its home page at 10:14. The block carries this stamp, and its script hides the state of
+	//// a block drawn long ago until the live one has come (public/js/opening_hours.js, STALE_SECONDS).
+	"""
+	try:
+		return int(now.replace(tzinfo=ZoneInfo(get_system_timezone())).timestamp())
+	except Exception:
+		return int(time.time())
+
+
 def opening_hours(now=None, settings=None):
 	"""Everything the component, the page and the assistant show."""
 	settings = settings or get_settings()
@@ -263,6 +279,10 @@ def opening_hours(now=None, settings=None):
 		# //// Neoffice — the compact form (a footer column) shows one line and links here
 		more_url=PAGE_ROUTE,
 		more_label=_("All opening hours"),
+		# //// Neoffice — when the block was drawn and in which language: its script asks the server for the
+		# //// live state in the language of the page (`_lang`), and hides a state drawn long ago (drawn_at)
+		drawn_at=drawn_at(now),
+		lang=frappe.local.lang or "",
 		address=(settings.get("store_address") or "").strip(),
 		phone=(settings.get("store_phone") or "").strip(),
 		email=(settings.get("store_email") or "").strip(),
@@ -299,6 +319,25 @@ def opening_hours_css():
 	from webshop.webshop.utils.assets import component_css
 
 	return component_css("webshop_opening_hours")
+
+
+def opening_hours_js():
+	"""The block's script, once per request ("" on later calls, and when the file cannot be read).
+
+	//// Neoffice — printed inline by the include, like its stylesheet: a page Builder renders loads no
+	//// script of this app, and that page is the one Frappe keeps in its cache. Without it, the state the
+	//// server wrote stayed on the page for as long as the cache lived. The file is the same one the shop's
+	//// own bundle imports (web.bundle.js); a page that has both starts each block once (`data-started`).
+	"""
+	if getattr(frappe.local, "webshop_opening_hours_js_done", False):
+		return ""
+	frappe.local.webshop_opening_hours_js_done = True
+	try:
+		with open(frappe.get_app_path("webshop", "public", "js", "opening_hours.js"), encoding="utf-8") as fh:
+			return fh.read()
+	except Exception:
+		frappe.log_error("Opening hours script unavailable", frappe.get_traceback())
+		return ""
 
 
 def webshop_opening_hours():

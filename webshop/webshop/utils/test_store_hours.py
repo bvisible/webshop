@@ -130,3 +130,56 @@ class TestStoreHours(FrappeTestCase):
 			frappe.set_user("Administrator")
 		for key in ("configured", "week", "closures", "headline", "today_text"):
 			self.assertIn(key, data)
+
+
+class TestABlockServedFromThePageCache(FrappeTestCase):
+	"""A shop that opens at 10:00 said « Currently closed — Opens today at 10:00 » on its home page at 10:14.
+
+	Frappe keeps a rendered page in its cache with no expiry, and the include writes the state on the
+	server: the home page was served as it had been drawn before the opening. A page Builder renders loads
+	no frappe script, so nothing redrew it. The block now says when it was drawn and carries its own
+	script, which asks the server for the live state wherever the block is.
+	"""
+
+	def setUp(self):
+		frappe.local.webshop_opening_hours_js_done = False
+		self.addCleanup(setattr, frappe.local, "webshop_opening_hours_js_done", False)
+
+	def test_the_block_says_when_it_was_drawn_and_in_which_language(self):
+		import datetime as dt
+		from zoneinfo import ZoneInfo
+
+		from frappe.utils import get_system_timezone
+
+		now = at(FRIDAY, 9, 59)
+		data = store_hours.opening_hours(now, settings_like(WEEK))
+		expected = int(now.replace(tzinfo=ZoneInfo(get_system_timezone())).timestamp())
+		self.assertEqual(data.drawn_at, expected)
+		self.assertEqual(dt.datetime.fromtimestamp(data.drawn_at, ZoneInfo(get_system_timezone())).hour, 9)
+		self.assertEqual(data.lang, frappe.local.lang)
+
+	def test_the_script_comes_once_per_request(self):
+		first = store_hours.opening_hours_js()
+		self.assertIn("get_opening_hours", first)
+		self.assertEqual(store_hours.opening_hours_js(), "", "two blocks on a page carry it once")
+
+	def test_the_script_needs_no_frappe(self):
+		# a page Builder renders has no frappe object: frappe.call, frappe.ready and frappe.provide would throw
+		script = store_hours.opening_hours_js()
+		for needs_frappe in ("frappe.call", "frappe.ready", "frappe.provide"):
+			self.assertNotIn(needs_frappe, script)
+		self.assertNotIn("</script", script.lower(), "it is printed inside a <script> element")
+		self.assertIn("_lang", script, "the live state comes back in the language of the page")
+		self.assertIn("drawnAt", script, "a block drawn long ago hides its state until the live one comes")
+
+	def test_the_include_prints_the_stamp_and_the_script_once(self):
+		hours = store_hours.opening_hours(at(FRIDAY, 9, 59), settings_like(WEEK))
+		html = frappe.render_template(
+			"{% set hours = h %}{% include 'webshop/templates/includes/opening_hours.html' %}"
+			"{% include 'webshop/templates/includes/opening_hours.html' %}",
+			{"h": hours},
+		)
+		self.assertIn(f'data-drawn-at="{hours.drawn_at}"', html)
+		self.assertIn(f'data-lang="{hours.lang}"', html)
+		self.assertEqual(html.count("<script>"), 1, html[-400:])
+		self.assertLess(html.index("webshop-opening-hours"), html.index("<script>"), "the block exists when its script runs")
