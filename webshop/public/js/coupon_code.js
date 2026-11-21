@@ -1,7 +1,9 @@
 //// Neoffice — added file (no upstream equivalent). Desk script on Coupon Code: shows
-//// gift_card_amount only for a Gift Card coupon and keeps it in step with the
-//// Pricing Rule it is fetched from (73119aae66, 2025-02-11). Wired in hooks.py
+//// gift_card_amount only for a Gift Card coupon, read-only (73119aae66, 2025-02-11). Wired in hooks.py
 //// doctype_js — upstream registers no script on Coupon Code.
+//// It used to copy the Pricing Rule's discount into the balance and save the card every time the form was opened.
+//// The balance is the card's own and the shop's cards of one amount share a rule, so opening a card in the desk gave
+//// it back what a sister had spent, or took away what it still held (maintenance#3239). It no longer writes it.
 frappe.ui.form.on('Coupon Code', {
     refresh: function(frm) {
         // Show or hide the gift card amount field
@@ -9,21 +11,6 @@ frappe.ui.form.on('Coupon Code', {
         
         // Make the field read-only
         frm.set_df_property('gift_card_amount', 'read_only', 1);
-        
-        // Update the amount if it's a gift card with a pricing rule
-        if (frm.doc.coupon_type === 'Gift Card' && frm.doc.pricing_rule) {
-            frappe.db.get_value('Pricing Rule', frm.doc.pricing_rule, 'discount_amount')
-                .then(r => {
-                    if (r.message && r.message.discount_amount) {
-                        let new_amount = r.message.discount_amount;
-                        if (frm.doc.gift_card_amount !== new_amount) {
-                            frm.set_value('gift_card_amount', new_amount);
-                            // Save if the value has changed
-                            frm.save();
-                        }
-                    }
-                });
-        }
     },
     
     coupon_type: function(frm) {
