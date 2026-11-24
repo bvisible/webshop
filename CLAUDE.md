@@ -549,6 +549,20 @@ test at all until 2026-09-10.
 > restores the server's order (each card remembers its index): it used to re-insert
 > the cards in their CURRENT order, so A-Z was a one-way door.
 
+### Attribute filters on a shop that lists models (2026-11-24, neoffice-maintenance#3337)
+
+**A shop can list the model only**: one card per model, its sizes and colours on variants that have no card. Upstream's
+attribute facet read the rows of the listed items themselves, which on such a shop hold no value: it offered nothing and a
+tick found nothing. `product_data_engine/model_attributes.py` reads the live variants of the listed models instead, in
+the facet (`get_attribute_filters`) and in the tick (`query_items_with_attributes`), **in one query for all the models,
+never one per card**; a tick lists the models that have ONE variant carrying every ticked value (« M » and « red » ask for
+a red M). A variant that has a card of its own stays a card of its own (the model is not listed twice for it), a disabled
+one is not offered, a model's own rows are never offered, and where the shop shows only what is in stock
+(neoffice_theme's `neo_show_only_in_stock`) or the visitor ticked « in stock », the variant must be one that can be
+bought. `hide_variants` keeps its exclusion with the attribute filters (Webshop Settings refuses both) and nothing here
+runs for it. The gender of a product is a Select field of the Website Item that neoffice_theme makes (`neo_gender`),
+offered as a filter field like the brand. Test: `product_data_engine/test_model_attribute_filters.py`.
+
 ### One scope for a listing (2026-09-24, neoffice-maintenance#737)
 
 **Every SQL path of the grid reads `ProductQuery.where_conditions`, and every facet reads

@@ -363,20 +363,46 @@ class ProductFiltersBuilder:
 		if not item_codes:
 			return []
 
-		result = frappe.get_all(
-			"Item Variant Attribute",
-			filters={
-				"attribute": ["in", attributes],
-				"attribute_value": ["is", "set"],
-				"parent": ["in", item_codes],  # //// Neoffice — the listing's own items
-			},
-			fields=["attribute", "attribute_value"],
-			distinct=True,
+		# //// Neoffice — a shop that lists MODELS: one card per model, its sizes and colours on variants that have no
+		# //// card (neoffice-maintenance#3337). Upstream reads only the rows of the listed items themselves, which on such
+		# //// a shop are the models' own and hold no value: the facet offered nothing, or one stray value, and a tick
+		# //// found nothing. The values of the live variants of the listed models are read too, in one query for all of
+		# //// them (product_data_engine/model_attributes.py), and a model's own rows are left out. A shop that hides its
+		# //// variants never gets here with attribute facets on (Webshop Settings refuses both, b103d68868).
+		from webshop.webshop.product_data_engine.model_attributes import (
+			lists_models,
+			models_among,
+			shows_only_what_is_in_stock,
+			variant_attribute_values,
+		)
+
+		models = models_among(item_codes) if lists_models(self.doc) else set()
+		own_codes = [code for code in item_codes if code not in models]
+
+		result = (
+			frappe.get_all(
+				"Item Variant Attribute",
+				filters={
+					"attribute": ["in", attributes],
+					"attribute_value": ["is", "set"],
+					"parent": ["in", own_codes],  # //// Neoffice — the listing's own items
+				},
+				fields=["attribute", "attribute_value"],
+				distinct=True,
+			)
+			if own_codes
+			else []
 		)
 
 		attribute_value_map = {}
 		for d in result:
 			attribute_value_map.setdefault(d.attribute, []).append(d.attribute_value)
+
+		# //// Neoffice — see above (neoffice-maintenance#3337): what a model's variants carry
+		for attribute, value in variant_attribute_values(models, attributes, shows_only_what_is_in_stock(self.doc)):
+			values = attribute_value_map.setdefault(attribute, [])
+			if value not in values:
+				values.append(value)
 
 		out = []
 		for attribute in attributes:

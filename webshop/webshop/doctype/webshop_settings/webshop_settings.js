@@ -252,8 +252,11 @@ frappe.ui.form.on("Webshop Settings", {
 		frappe.model.with_doctype("Website Item", () => {
 			const web_item_meta = frappe.get_meta('Website Item');
 
+			// //// Neoffice — a Select field is offered too when it is a standard filter of the Website Item list
+			// //// (the product gender, neoffice-maintenance#3337): the server accepts a Select field as a filter field
+			// //// (validate_field_filters), only this list left it out, so a merchant could not choose one.
 			const valid_fields = web_item_meta.fields.filter(df =>
-				["Link", "Table MultiSelect"].includes(df.fieldtype) && !df.hidden
+				(["Link", "Table MultiSelect"].includes(df.fieldtype) || (df.fieldtype === "Select" && df.in_standard_filter)) && !df.hidden
 			).map(df =>
 				({ label: df.label, value: df.fieldname })
 			);

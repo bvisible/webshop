@@ -123,6 +123,9 @@ class ProductQuery:
 		# //// search term kept for the match-priority ordering, and the sort order
 		# //// (2591df1013, 2025-12-14; bfbe33fc4d, 2025-12-15).
 		self._total_count_cache = None
+		# //// Neoffice — whether the visitor ticked "in stock": an attribute tick on a model then asks for a variant that
+		# //// can be bought (query_items_with_attributes, neoffice-maintenance#3337)
+		self.in_stock_asked = False
 		# //// Neoffice — the search, kept as words and fields and rendered by where_conditions
 		# //// with each query's own table alias (a bare `item_code` is ambiguous next to Item Price)
 		self._search_words = []
@@ -172,6 +175,7 @@ class ProductQuery:
 			self.build_price_filters(price_condition)
 		# Add stock filter if requested
 		if fields and fields.get("in_stock"):
+			self.in_stock_asked = True  # //// Neoffice — read by query_items_with_attributes (neoffice-maintenance#3337)
 			self.build_stock_filters(True)
 
 		# //// Neoffice — the sort order is kept on the instance: it is applied in the query
@@ -776,7 +780,23 @@ class ProductQuery:
 			item_codes.append({x.item_code for x in item_code_list})
 
 		if item_codes:
-			item_codes = list(set.intersection(*item_codes))
+			item_codes = set.intersection(*item_codes)
+			# //// Neoffice — a shop that lists MODELS (neoffice-maintenance#3337): the lookup above reads the items that
+			# //// carry the card, whose own rows hold no size and no colour; those sit on the variants, which have no
+			# //// card. The models that have a live variant carrying every ticked value are found too, and listed
+			# //// (product_data_engine/model_attributes.py). Where the shop shows only what is in stock, or the visitor
+			# //// ticked "in stock", that variant must be one that can be bought. A shop that hides its variants is
+			# //// left as it was: Webshop Settings refuses attribute facets there (b103d68868).
+			from webshop.webshop.product_data_engine.model_attributes import (
+				lists_models,
+				models_matching_attributes,
+				shows_only_what_is_in_stock,
+			)
+
+			if lists_models(self.settings):
+				only_in_stock = self.in_stock_asked or shows_only_what_is_in_stock(self.settings)
+				item_codes |= models_matching_attributes(attributes, only_in_stock)
+			item_codes = list(item_codes)
 			self.filters.append(["item_code", "in", item_codes])
 
 		items, count = self.query_items(start=start)
