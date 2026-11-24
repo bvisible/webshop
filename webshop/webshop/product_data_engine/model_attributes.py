@@ -38,7 +38,9 @@ from frappe.utils import cint, cstr
 SHOW_ONLY_IN_STOCK = "neo_show_only_in_stock"
 
 # a variant `v` that has no card of its own: a Website Item of its own is a card, found by the direct lookup
-NO_CARD_OF_ITS_OWN = "NOT EXISTS (SELECT 1 FROM `tabWebsite Item` own WHERE own.item_code = v.name)"
+# (a NOT IN over an uncorrelated list, which MariaDB materialises once: the Website Item has no index on its item code, and
+# a correlated NOT EXISTS read the whole table for each variant; a null in the list would make every NOT IN unknown)
+NO_CARD_OF_ITS_OWN = "v.name NOT IN (SELECT item_code FROM `tabWebsite Item` WHERE item_code IS NOT NULL)"
 
 # a variant `v` of the card `wi` that a visitor can buy
 VARIANT_IN_STOCK = """(
