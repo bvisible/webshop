@@ -78,7 +78,10 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          # //// Neoffice — 3.12, what our servers run: upstream's workflow says 3.10, and the frappe it clones
+          # //// (version-15, since 15.128.0) asks for 3.11 at least, so the Setup step died on « No solution found
+          # //// when resolving dependencies » before one test ran. To be dropped when upstream's workflow moves on.
+          python-version: '3.12'
       
       - name: Setup Node
         uses: actions/setup-node@v4
