@@ -1139,9 +1139,16 @@ class ProductQuery:
 		if not in_stock_only:
 			return
 			
+		# //// Neoffice — a MODEL (an item with variants) is told by its variants (neoffice-maintenance#3343). Upstream read the
+		# //// stock of the card's own item for every card; a model's own item never holds stock (a bin belongs to a variant) and
+		# //// a shop that lists models lost every one of them the moment the box was ticked, whatever its variants held. The
+		# //// condition is the size facet's (model_attributes.VARIANT_IN_STOCK), not a copy of it.
+		from webshop.webshop.product_data_engine.model_attributes import MODEL_IN_STOCK
+
 		# Get all item codes that are in stock
 		# This includes checking actual stock and also non-stock items
-		stock_items_query = """
+		# //// Neoffice — an f-string: the condition of a model is spliced in below
+		stock_items_query = f"""
 			SELECT DISTINCT wi.item_code
 			FROM `tabWebsite Item` wi
 			LEFT JOIN `tabItem` i ON wi.item_code = i.item_code
@@ -1150,10 +1157,12 @@ class ProductQuery:
 			-- //// Neoffice — second-hand (2026-09-14): a sold used unit is out of every listing
 			AND wi.sold = 0
 			AND (
+				-- //// Neoffice — a model: one of its live variants can be bought (see above)
+				(IFNULL(i.has_variants, 0) = 1 AND {MODEL_IN_STOCK})
 				-- Non-stock items are always "in stock"
-				i.is_stock_item = 0
-				-- Stock items with actual stock
-				OR (i.is_stock_item = 1 AND b.actual_qty > 0)
+				OR (IFNULL(i.has_variants, 0) = 0 AND i.is_stock_item = 0)
+				-- //// Neoffice — Stock items with actual stock: a plain item reads its own bin, a model its variants (above)
+				OR (IFNULL(i.has_variants, 0) = 0 AND i.is_stock_item = 1 AND b.actual_qty > 0)
 				-- Items on backorder
 				OR wi.on_backorder = 1
 			)

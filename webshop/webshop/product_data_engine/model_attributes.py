@@ -24,6 +24,9 @@ That is one SQL condition (`VARIANT_IN_STOCK`), not a call per variant: a shop h
 bins as `build_stock_filters` and `get_web_item_qty_in_stock` do; the multi-warehouse sources, the expired batches and
 the point-of-sale invoices not yet consolidated, which only the per-item computation of a card sees, are not in it.
 
+The same condition tells whether a MODEL is in stock (`MODEL_IN_STOCK`: some live variant of it can be bought), because a
+model's own item never holds stock: the "only what is in stock" box of the sidebar reads it (neoffice-maintenance#3343).
+
 A shop that hides its variants (`hide_variants`) never reaches this: its attribute facets are refused by Webshop
 Settings, the two settings being exclusive (`validate_attribute_filters`).
 
@@ -60,6 +63,16 @@ VARIANT_IN_STOCK = """(
 			)
 		)
 	)
+)"""
+
+# the card `wi` of a model, told by its variants: one live variant of it can be bought. A model's own item holds no stock
+# (a bin belongs to a variant), so asking its own bin took the model off a list that shows only what is in stock whatever its
+# variants held (neoffice-maintenance#3343). A variant that has a card of its own counts: the model's page sells it too.
+MODEL_IN_STOCK = f"""EXISTS (
+	SELECT 1 FROM `tabItem` v
+	WHERE v.variant_of = wi.item_code
+	AND IFNULL(v.disabled, 0) = 0
+	AND {VARIANT_IN_STOCK}
 )"""
 
 
