@@ -318,6 +318,8 @@ jobs:
           # //// prove nothing).
           # //// Neoffice — the checkout's own dialogs (#2057): every label the script asks for is seeded by the page, and
           # //// the confirmation is given labels, not an options object. Reads two files, needs no site.
+          # //// Neoffice — the listing's filters on models, the order of an attribute's values and the chip of an active
+          # //// filter (maintenance#3343, #3344, #3346): four files no step ran yet.
           # //// Neoffice — a card the shop sold goes with its sale (maintenance#2816): cancelled or returned, the
           # //// invoice takes the card back, played through the invoice's own hooks on the same small shop.
           for m in \
@@ -405,6 +407,10 @@ jobs:
             webshop.webshop.seo.test_ai_referrals \
             webshop.webshop.seo.test_score \
             webshop.webshop.product_data_engine.test_references \
+            webshop.webshop.product_data_engine.test_attribute_value_order \
+            webshop.webshop.product_data_engine.test_model_attribute_filters \
+            webshop.webshop.product_data_engine.test_model_stock_filter \
+            webshop.webshop.utils.test_filter_chip_label \
             webshop.webshop.tests.test_engine_callers_match_the_engine \
             webshop.webshop.tests.test_gift_card_codes_are_not_predictable \
             webshop.webshop.tests.test_a_gift_card_sold_without_vat_pays_as_a_payment \
