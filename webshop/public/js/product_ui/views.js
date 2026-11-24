@@ -357,7 +357,13 @@ webshop.ProductView =  class {
 							const translated = translations[value] || value;
 							//// Neoffice — the facet's own label first (data-label: its translation of content, lot 14).
 							const facetLabel = $checkbox.length ? ($checkbox.closest('[data-label]').attr('data-label') || '').trim() : '';
-							const displayLabel = facetLabel || ($checkbox.length ? $checkbox.next('label').text().trim() || translated : translated);
+							//// Neoffice — then the label the facet DRAWS: the `.label-area` of the checkbox's own <label> (the
+							//// template translates each value there). The line read `$checkbox.next('label')`, but the checkbox sits
+							//// INSIDE its label (field_filter_section): it found none and fell back to the value stored on the item,
+							//// so a French shop read "Women" in the chip next to a facet reading "Femme" (neoffice-maintenance#3346).
+							//// `translated` (a table every page fills for a few words) is left for a facet not drawn yet.
+							const drawnLabel = $checkbox.length ? $checkbox.closest('label').find('.label-area').first().text().trim() : '';
+							const displayLabel = facetLabel || drawnLabel || translated;
 							//// Neoffice — esc(): see urlParams above.
 							$badges.append(`
 								<span class="badge badge-secondary active-filter-badge" data-filter-type="field" data-filter-name="${esc(fieldName)}" data-filter-value="${esc(value)}" style="cursor: pointer;">
