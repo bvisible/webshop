@@ -263,14 +263,14 @@ class TestAttributeFiltersOnModels(FrappeTestCase):
 	# ---- the facet ----
 	def test_the_facet_offers_the_values_of_the_live_variants_of_the_listed_models(self):
 		facets = self.facets(item_group=TOPS)
-		# the shirts' variants only: S and M, Red and Blue
-		self.assertEqual(facets[SIZE], ["M", "S"])
-		self.assertEqual(facets[COLOUR], ["Blue", "Red"])
+		# the shirts' variants only: S and M, Red and Blue, in the order of their attributes (neoffice-maintenance#3344)
+		self.assertEqual(facets[SIZE], ["S", "M"])
+		self.assertEqual(facets[COLOUR], ["Red", "Blue"])
 
 		facets = self.facets(item_group=COATS)
 		# L and XL, Blue and Red; not XXL (the parka's card is unpublished), not XS nor Green (a disabled variant)
 		self.assertEqual(facets[SIZE], ["L", "XL"])
-		self.assertEqual(facets[COLOUR], ["Blue", "Red"])
+		self.assertEqual(facets[COLOUR], ["Red", "Blue"])
 
 	def test_the_facet_of_the_whole_shop_offers_every_listed_model_once(self):
 		facets = self.facets()
@@ -328,7 +328,7 @@ class TestAttributeFiltersOnModels(FrappeTestCase):
 		frappe.set_user("Guest")
 		self.addCleanup(frappe.set_user, "Administrator")
 		self.assertEqual(self.listing({SIZE: ["M"]}) & {SHIRT, COAT}, {SHIRT})
-		self.assertEqual(self.facets(item_group=TOPS)[SIZE], ["M", "S"])
+		self.assertEqual(self.facets(item_group=TOPS)[SIZE], ["S", "M"])
 
 	def test_one_query_serves_every_model_whatever_their_number(self):
 		for run in (
@@ -412,11 +412,11 @@ class TestAttributeFiltersOnModels(FrappeTestCase):
 		self.assertEqual(self.listing({SIZE: ["M"]}) & {GROUPY}, set())
 
 	def test_the_facet_offers_only_the_values_that_can_be_bought_when_the_shop_asks(self):
-		self.assertEqual(self.facets(item_group=BOOTS)[SIZE], ["L", "M", "S", "XL"])
+		self.assertEqual(self.facets(item_group=BOOTS)[SIZE], ["S", "M", "L", "XL"])
 		self.in_stock_rule()
 		# the boot's L has no stock and its XL is all reserved: they leave; M (stock, and in a group's child) and the
 		# sandal's and the clog's S (backorder, no shop warehouse) stay
-		self.assertEqual(self.facets(item_group=BOOTS)[SIZE], ["M", "S"])
+		self.assertEqual(self.facets(item_group=BOOTS)[SIZE], ["S", "M"])
 
 	def test_the_visitors_in_stock_toggle_asks_for_a_variant_that_can_be_bought_too(self):
 		self.assertEqual(self.listing({SIZE: ["L"]}, {"in_stock": ["1"]}) & {COAT, BOOT}, {COAT})

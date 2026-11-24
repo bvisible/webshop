@@ -369,6 +369,7 @@ class ProductFiltersBuilder:
 		# //// found nothing. The values of the live variants of the listed models are read too, in one query for all of
 		# //// them (product_data_engine/model_attributes.py), and a model's own rows are left out. A shop that hides its
 		# //// variants never gets here with attribute facets on (Webshop Settings refuses both, b103d68868).
+		from webshop.webshop.product_data_engine.attribute_value_order import listed_positions, order_values
 		from webshop.webshop.product_data_engine.model_attributes import (
 			lists_models,
 			models_among,
@@ -404,16 +405,22 @@ class ProductFiltersBuilder:
 			if value not in values:
 				values.append(value)
 
+		# //// Neoffice — the merchant's order of the values, read once for every attribute (see below)
+		positions = listed_positions([attribute for attribute in attributes if attribute in attribute_value_map])
+
 		out = []
 		for attribute in attributes:
 			if attribute not in attribute_value_map:
 				continue
 
 			values = attribute_value_map[attribute]
-			# //// Neoffice — attribute values are sorted alphabetically; upstream returns them in
-			# //// the order the Item Attribute happens to list them.
-			# Sort attribute values alphabetically
-			sorted_values = sorted(values, key=lambda x: x.lower() if isinstance(x, str) else str(x))
+			# //// Neoffice — the values come in a FIXED order. Upstream returns them in the order the database hands the
+			# //// variants' rows back, which changes from one request to the next; the fork first sorted them alphabetically
+			# //// (stable, but "L, M, S, XL" and "10, 12, 8" are not what a shop wants). Now the order the merchant gave the
+			# //// values on the Item Attribute (Item Attribute Value.idx), then the values it does not list, in natural order
+			# //// (8 before 10): still one order whatever the database returns (neoffice-maintenance#3344,
+			# //// product_data_engine/attribute_value_order.py).
+			sorted_values = order_values(values, positions.get(attribute))
 			out.append(frappe._dict(name=attribute, item_attribute_values=sorted_values))
 
 		return out
